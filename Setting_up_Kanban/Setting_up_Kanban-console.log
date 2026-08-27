@@ -1,0 +1,3764 @@
+Prepare_Kanban-console.log
+
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh auth login
+? Where do you use GitHub? GitHub.com
+The value of the GITHUB_TOKEN environment variable is being used for authenticat
+ion.
+To have GitHub CLI store credentials instead, first clear the value from the env
+ironment.
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh auth refresh -s project
+The value of the GITHUB_TOKEN environment variable is being used for authenticat
+ion.
+To refresh credentials stored in GitHub CLI, first clear the value from the envi
+ronment.
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh auth status
+github.com
+  ✓ Logged in to github.com account tlindi (GITHUB_TOKEN)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: ghp_************************************
+  - Token scopes: 'admin:enterprise', 'admin:gpg_key', 'admin:org', 'admin:org_h
+ook', 'admin:public_key', 'admin:repo_hook', 'admin:ssh_signing_key', 'audit_log
+', 'codespace', 'copilot', 'delete:packages', 'delete_repo', 'gist', 'notificati
+ons', 'project', 'repo', 'user', 'workflow', 'write:discussion', 'write:network_
+configurations', 'write:packages'
+
+  ✓ Logged in to github.com account tlindi (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: ghp_************************************
+  - Token scopes: 'admin:enterprise', 'admin:gpg_key', 'admin:org', 'admin:org_h
+ook', 'admin:public_key', 'admin:repo_hook', 'admin:ssh_signing_key', 'audit_log
+', 'codespace', 'copilot', 'delete:packages', 'delete_repo', 'gist', 'notificati
+ons', 'project', 'repo', 'user', 'workflow', 'write:discussion', 'write:network_
+configurations', 'write:packages'
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ '/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/import_jagports_tasks.sh'
+github.com
+  ✓ Logged in to github.com account tlindi (GITHUB_TOKEN)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: ghp_************************************
+  - Token scopes: 'admin:enterprise', 'admin:gpg_key', 'admin:org', 'admin:org_hook', 'admin:public_key', 'admin:repo_hook', 'admin:ssh_signing_k
+ey', 'audit_log', 'codespace', 'copilot', 'delete:packages', 'delete_repo', 'gist', 'notifications', 'project', 'repo', 'user', 'workflow', 'writ
+e:discussion', 'write:network_configurations', 'write:packages'
+
+  ✓ Logged in to github.com account tlindi (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: ghp_************************************
+  - Token scopes: 'admin:enterprise', 'admin:gpg_key', 'admin:org', 'admin:org_hook', 'admin:public_key', 'admin:repo_hook', 'admin:ssh_signing_k
+ey', 'audit_log', 'codespace', 'copilot', 'delete:packages', 'delete_repo', 'gist', 'notifications', 'project', 'repo', 'user', 'workflow', 'writ
+e:discussion', 'write:network_configurations', 'write:packages'
+The value of the GITHUB_TOKEN environment variable is being used for authentication.
+To refresh credentials stored in GitHub CLI, first clear the value from the environment.
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh auth status
+github.com
+  ✓ Logged in to github.com account tlindi (GITHUB_TOKEN)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: ghp_************************************
+  - Token scopes: 'admin:enterprise', 'admin:gpg_key', 'admin:org', 'admin:org_hook', 'admin:public_key', 'admin:repo_hook', 'admin:ssh_signing_k
+ey', 'audit_log', 'codespace', 'copilot', 'delete:packages', 'delete_repo', 'gist', 'notifications', 'project', 'repo', 'user', 'workflow', 'writ
+e:discussion', 'write:network_configurations', 'write:packages'
+
+  ✓ Logged in to github.com account tlindi (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: ghp_************************************
+  - Token scopes: 'admin:enterprise', 'admin:gpg_key', 'admin:org', 'admin:org_hook', 'admin:public_key', 'admin:repo_hook', 'admin:ssh_signing_k
+ey', 'audit_log', 'codespace', 'copilot', 'delete:packages', 'delete_repo', 'gist', 'notifications', 'project', 'repo', 'user', 'workflow', 'writ
+e:discussion', 'write:network_configurations', 'write:packages'
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh repo list tlindi --limit 20
+
+Showing 20 of 49 repositories in @tlindi
+
+NAME                                     DESCRIPTION                                                           INFO          UPDATED
+tlindi/jagports                                                                                                private       about 10 minutes ago
+tlindi/SeedQR-offline                    Compact SeedQR decoder for 12 word phrases for 21x21 QR Codes (si...  public        about 10 days ago
+tlindi/mynode                            The easiest way to run Bitcoin and Lightning!                         public, fork  about 3 months ago
+tlindi/LTSConvert                        A Powershell script to convert any 64-bit installation of Windows...  public, fork  about 5 months ago
+tlindi/sunbit-boiler                     SunBit Oy produced Bitcoin Boiler heating system control panel PC...  private       about 7 months ago
+tlindi/bullbitcoin-mobile                The Bull Bitcoin Mobile Wallet and Exchange App                       public, fork  about 7 months ago
+tlindi/bitcoin-ohjeet                    Ohjeita Bitcoinin käyttöön                                            public, fork  about 9 months ago
+tlindi/electrum                          Electrum Bitcoin Wallet                                               public, fork  about 9 months ago
+tlindi/mynode-clearnet                   Clearnet Support by adding FQDN and HTTPS                             public        about 9 months ago
+tlindi/phoenixd-btcpayserver-plugin                                                                            public, fork  about 9 months ago
+tlindi/mynode-pwallet                    MyNode Community App - pwallet                                        public        about 9 months ago
+tlindi/Bitcoin-User-Manual-Booklet-i18n  This free publication by Cryptosteel is part of the MotherLode pr...  public, fork  about 10 months ago
+tlindi/bitchat-android                   bluetooth mesh chat, IRC vibes                                        public, fork  about 1 year ago
+tlindi/mynode-phoenixd                   MyNode Community App - phoenixd                                       public        about 1 year ago
+tlindi/lnbits                            LNbits, free and open-source Lightning wallet and accounts system.    public, fork  about 1 year ago
+tlindi/phoenixd                                                                                                public, fork  about 1 year ago
+tlindi/lndhub                            Access lnbits from BlueWallet or Zeus                                 public, fork  about 1 year ago
+tlindi/pwallet                                                                                                 public        about 1 year ago
+tlindi/mynode-albyhub                    MyNode Community App - albyhub                                        public        about 1 year ago
+tlindi/mynode-nutshell                   Cashu Mint as MyNodeBTC Community App / Dynamic App                   public        about 1 year ago
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project list --owner tlindi
+NUMBER  TITLE                                        STATE  ID
+1       Jagports Vehicle Information and EPC System  open   PVT_kwHOAG6fZ84BhoLT
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project field-list 1 --owner tlindi
+NAME                  DATA TYPE                   ID
+Title                 ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMQ
+Assignees             ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMU
+Status                ProjectV2SingleSelectField  PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY
+Labels                ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMc
+Linked pull requests  ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMg
+Milestone             ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMk
+Repository            ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMo
+Reviewers             ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMw
+Parent issue          ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOM0
+Sub-issues progress   ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOM4
+Created               ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOM8
+Updated               ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjONA
+Closed                ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjONE
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project field-create 1 --owner tlindi --name "Priority" --data-type "TEXT"
+Created field
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project field-list 1 --owner tlindi
+NAME                  DATA TYPE                   ID
+Title                 ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMQ
+Assignees             ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMU
+Status                ProjectV2SingleSelectField  PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY
+Labels                ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMc
+Linked pull requests  ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMg
+Milestone             ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMk
+Repository            ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMo
+Reviewers             ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOMw
+Parent issue          ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOM0
+Sub-issues progress   ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOM4
+Created               ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjOM8
+Updated               ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjONA
+Closed                ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjONE
+Priority              ProjectV2Field              PVTF_lAHOAG6fZ84BhoLTzhgjSTY
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project item-list 1 --owner tlindi --format json --limit 1
+{
+  "items": [],
+  "totalCount": 0
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project field-list 1 --owner tlindi --format json
+{
+  "fields": [
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMQ",
+      "name": "Title",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMU",
+      "name": "Assignees",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+      "name": "Status",
+      "options": [
+        {
+          "id": "f75ad846",
+          "name": "Todo"
+        },
+        {
+          "id": "47fc9ee4",
+          "name": "In Progress"
+        },
+        {
+          "id": "98236657",
+          "name": "Done"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMc",
+      "name": "Labels",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMg",
+      "name": "Linked pull requests",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMk",
+      "name": "Milestone",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMo",
+      "name": "Repository",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMw",
+      "name": "Reviewers",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM0",
+      "name": "Parent issue",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM4",
+      "name": "Sub-issues progress",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM8",
+      "name": "Created",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONA",
+      "name": "Updated",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONE",
+      "name": "Closed",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjSTY",
+      "name": "Priority",
+      "type": "ProjectV2Field"
+    }
+  ],
+  "totalCount": 14
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh issue create --repo tlindi/jagports --title "[P0 TEST] Kanban import test" --body "Temporary test issue for GitHub Project import and Priority field."
+
+Creating issue in tlindi/jagports
+
+https://github.com/tlindi/jagports/issues/1
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project item-add 1 --owner tlindi --url https://github.com/tlindi/jagports/issues/1
+Added item
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project item-list 1 --owner tlindi --format json
+{
+  "items": [
+    {
+      "content": {
+        "body": "Temporary test issue for GitHub Project import and Priority field.",
+        "number": 1,
+        "repository": "tlindi/jagports",
+        "title": "[P0 TEST] Kanban import test",
+        "type": "Issue",
+        "url": "https://github.com/tlindi/jagports/issues/1"
+      },
+      "id": "PVTI_lAHOAG6fZ84BhoLTzg4P-aU",
+      "repository": "https://github.com/tlindi/jagports",
+      "status": "Todo",
+      "title": "[P0 TEST] Kanban import test"
+    }
+  ],
+  "totalCount": 1
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project item-edit --project-id PVT_kwHOAG6fZ84BhoLT --id PVTI_lAHOAG6fZ84BhoLTzg4P-aU --field-id PVTF_lAHOAG6fZ84BhoLTzhgjSTY --text "P0"
+Edited item "[P0 TEST] Kanban import test"
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh project item-list 1 --owner tlindi --format json
+{
+  "items": [
+    {
+      "content": {
+        "body": "Temporary test issue for GitHub Project import and Priority field.",
+        "number": 1,
+        "repository": "tlindi/jagports",
+        "title": "[P0 TEST] Kanban import test",
+        "type": "Issue",
+        "url": "https://github.com/tlindi/jagports/issues/1"
+      },
+      "id": "PVTI_lAHOAG6fZ84BhoLTzg4P-aU",
+      "priority": "P0",
+      "repository": "https://github.com/tlindi/jagports",
+      "status": "Todo",
+      "title": "[P0 TEST] Kanban import test"
+    }
+  ],
+  "totalCount": 1
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh issue delete 1 --repo tlindi/jagports --yes
+✔ Deleted issue tlindi/jagports#1 ([P0 TEST] Kanban import test).
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh api graphql -f query='query { user(login:"tlindi") { projectV2(number:1) { views(first:20) { nodes { id number name layout } } } } }'
+{
+  "data": {
+    "user": {
+      "projectV2": {
+        "views": {
+          "nodes": [
+            {
+              "id": "PVTV_lAHOAG6fZ84BhoLTzgLcpA0",
+              "number": 1,
+              "name": "View 1",
+              "layout": "TABLE_LAYOUT"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ gh api graphql -f query='mutation { updateProjectV2View(input:{viewId:"PVTV_lAHOAG6fZ84BhoLTzgLcpA0",layout:BOARD_LAYOUT}) { projectV2View { id name layout } } }'
+{
+  "data": {
+    "updateProjectV2View": {
+      "projectV2View": {
+        "id": "PVTV_lAHOAG6fZ84BhoLTzgLcpA0",
+        "name": "View 1",
+        "layout": "BOARD_LAYOUT"
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ cp '/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/Jagports_GitHub_Import_Task_List.md'
+cp: missing destination file operand after '/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/Jagports_GitHub_Import_Task_List.md'
+Try 'cp --help' for more information.
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ git status
+fatal: not a git repository (or any of the parent directories): .git
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ git clone https://github.com/tlindi/jagports.git
+Cloning into 'jagports'...
+remote: Enumerating objects: 6, done.
+remote: Counting objects: 100% (6/6), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 6 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (6/6), done.
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website
+$ cd jagports
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cp '/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/Jagports_GitHub_Import_Task_List.md'
+cp: missing destination file operand after '/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/Jagports_GitHub_Import_Task_List.md'
+Try 'cp --help' for more information.
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cp '/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/Jagports_GitHub_Import_Task_List.md' .
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        Jagports_GitHub_Import_Task_List.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ git add Jagports_GitHub_Import_Task_List.md
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ git commit -m "Add GitHub Kanban import task list"
+[main 75b0d2e] Add GitHub Kanban import task list
+ 1 file changed, 64 insertions(+)
+ create mode 100644 Jagports_GitHub_Import_Task_List.md
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ git push
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 1.63 KiB | 1.63 MiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/tlindi/jagports.git
+   b9cfbfc..75b0d2e  main -> main
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh project field-list 1 --owner tlindi --format json
+{
+  "fields": [
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMQ",
+      "name": "Title",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMU",
+      "name": "Assignees",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+      "name": "Status",
+      "options": [
+        {
+          "id": "f75ad846",
+          "name": "Todo"
+        },
+        {
+          "id": "47fc9ee4",
+          "name": "In Progress"
+        },
+        {
+          "id": "98236657",
+          "name": "Done"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMc",
+      "name": "Labels",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMg",
+      "name": "Linked pull requests",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMk",
+      "name": "Milestone",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMo",
+      "name": "Repository",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMw",
+      "name": "Reviewers",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM0",
+      "name": "Parent issue",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM4",
+      "name": "Sub-issues progress",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM8",
+      "name": "Created",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONA",
+      "name": "Updated",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONE",
+      "name": "Closed",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjSTY",
+      "name": "Priority",
+      "type": "ProjectV2Field"
+    }
+  ],
+  "totalCount": 14
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='query { node(id:"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY") { ... on ProjectV2SingleSelectField { id name options { id name } } } }'
+{
+  "data": {
+    "node": {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+      "name": "Status",
+      "options": [
+        {
+          "id": "f75ad846",
+          "name": "Todo"
+        },
+        {
+          "id": "47fc9ee4",
+          "name": "In Progress"
+        },
+        {
+          "id": "98236657",
+          "name": "Done"
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='mutation { updateProjectV2Field(input:{fieldId:"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",singleSelectOptions:[{name:"BACKLOG",description:"Work identified but not yet being actively researched.",color:GRAY},{name:"RESEARCH",description:"Research and information gathering in progress.",color:BLUE},{name:"PROPOSED",description:"A concrete proposal exists and awaits decision.",color:YELLOW},{name:"DECISION NEEDED",description:"Human or authorized decision is required.",color:ORANGE},{name:"APPROVED",description:"Approved for implementation.",color:GREEN},{name:"CODING",description:"Implementation in progress.",color:PURPLE},{name:"REVIEW",description:"Implementation or proposal under review.",color:PINK},{name:"TESTING",description:"Validation and testing in progress.",color:BLUE},{name:"DONE",description:"Work completed and accepted.",color:GREEN},{name:"BLOCKED",description:"Work cannot proceed until a blocker is resolved.",color:RED}]) { projectV2Field { ... on ProjectV2SingleSelectField { id name options { id name } } } } }'
+{
+  "errors": [
+    {
+      "message": "Expected NAME, actual: RPAREN (\")\") at [1, 940]",
+      "locations": [
+        {
+          "line": 1,
+          "column": 940
+        }
+      ]
+    }
+  ]
+}
+gh: Expected NAME, actual: RPAREN (")") at [1, 940]
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='mutation { updateProjectV2Field(input:{fieldId:"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY"}) { projectV2Field { id } } }'
+{
+  "errors": [
+    {
+      "path": [
+        "mutation",
+        "updateProjectV2Field",
+        "projectV2Field",
+        "id"
+      ],
+      "extensions": {
+        "code": "selectionMismatch",
+        "nodeName": "ProjectV2FieldConfiguration"
+      },
+      "locations": [
+        {
+          "line": 1,
+          "column": 85
+        }
+      ],
+      "message": "Selections can't be made directly on unions (see selections on ProjectV2FieldConfiguration)"
+    }
+  ]
+}
+gh: Selections can't be made directly on unions (see selections on ProjectV2FieldConfiguration)
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='mutation { updateProjectV2Field(input:{fieldId:"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY"}) { projectV2Field { ... on ProjectV2SingleSelectField { id name options { id name } } } } }'
+{
+  "data": {
+    "updateProjectV2Field": {
+      "projectV2Field": {
+        "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+        "name": "Status",
+        "options": [
+          {
+            "id": "f75ad846",
+            "name": "Todo"
+          },
+          {
+            "id": "47fc9ee4",
+            "name": "In Progress"
+          },
+          {
+            "id": "98236657",
+            "name": "Done"
+          }
+        ]
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='{ __type(name:"UpdateProjectV2FieldInput") { inputFields { name type { kind name ofType { kind name } } } } }'
+{
+  "data": {
+    "__type": {
+      "inputFields": [
+        {
+          "name": "clientMutationId",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "name": "fieldId",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "SCALAR",
+              "name": "ID"
+            }
+          }
+        },
+        {
+          "name": "name",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "name": "singleSelectOptions",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null
+            }
+          }
+        },
+        {
+          "name": "multiSelectOptions",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null
+            }
+          }
+        },
+        {
+          "name": "iterationConfiguration",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "ProjectV2IterationFieldConfigurationInput",
+            "ofType": null
+          }
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='{ __type(name:"ProjectV2SingleSelectFieldOptionInput") { inputFields { name type { kind name ofType { kind name } } } } }'
+{
+  "data": {
+    "__type": {
+      "inputFields": [
+        {
+          "name": "id",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "name": "name",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "SCALAR",
+              "name": "String"
+            }
+          }
+        },
+        {
+          "name": "color",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "ENUM",
+              "name": "ProjectV2SingleSelectFieldOptionColor"
+            }
+          }
+        },
+        {
+          "name": "description",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "SCALAR",
+              "name": "String"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='{ __type(name:"ProjectV2SingleSelectFieldOptionColor") { enumValues { name } } }'
+{
+  "data": {
+    "__type": {
+      "enumValues": [
+        {
+          "name": "GRAY"
+        },
+        {
+          "name": "BLUE"
+        },
+        {
+          "name": "GREEN"
+        },
+        {
+          "name": "YELLOW"
+        },
+        {
+          "name": "ORANGE"
+        },
+        {
+          "name": "RED"
+        },
+        {
+          "name": "PINK"
+        },
+        {
+          "name": "PURPLE"
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='mutation { updateProjectV2Field(input:{fieldId:"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",singleSelectOptions:[{name:"BACKLOG",color:GRAY,description:"Work identified but not yet being actively researched."},{name:"RESEARCH",color:BLUE,description:"Research and information gathering in progress."},{name:"PROPOSED",color:YELLOW,description:"A concrete proposal exists and awaits decision."},{name:"DECISION NEEDED",color:ORANGE,description:"A human or authorized decision is required."},{name:"APPROVED",color:GREEN,description:"Approved for implementation."},{name:"CODING",color:PURPLE,description:"Implementation in progress."},{name:"REVIEW",color:PINK,description:"Implementation or proposal under review."},{name:"TESTING",color:BLUE,description:"Validation and testing in progress."},{name:"DONE",color:GREEN,description:"Work completed and accepted."},{name:"BLOCKED",color:RED,description:"Work cannot proceed until a blocker is resolved."}]) { projectV2Field { ... on ProjectV2SingleSelectField { id name options { id name color description } } } } }'
+{
+  "errors": [
+    {
+      "message": "Expected NAME, actual: RPAREN (\")\") at [1, 942]",
+      "locations": [
+        {
+          "line": 1,
+          "column": 942
+        }
+      ]
+    }
+  ]
+}
+gh: Expected NAME, actual: RPAREN (")") at [1, 942]
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^[[200~gh api graphql -f query='{ __type(name:"UpdateProjectV2FieldInput") { inputFields { name type { kind name ofType { kind name ofType { kind name } } } } } }'~
+bash: $'\E[200~gh': command not found
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^[[200~gh api graphql -f query='{ __type(name:"UpdateProjectV2FieldInput") { inputFields { name type { kind name ofType { kind name ofType { kind name } } } } } }'
+bash: $'\E[200~gh': command not found
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='{ __type(name:"UpdateProjectV2FieldInput") { inputFields { name type { kind name ofType { kind name ofType { kind name } } } } } }'
+{
+  "data": {
+    "__type": {
+      "inputFields": [
+        {
+          "name": "clientMutationId",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "name": "fieldId",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "SCALAR",
+              "name": "ID",
+              "ofType": null
+            }
+          }
+        },
+        {
+          "name": "name",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "name": "singleSelectOptions",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INPUT_OBJECT",
+                "name": "ProjectV2SingleSelectFieldOptionInput"
+              }
+            }
+          }
+        },
+        {
+          "name": "multiSelectOptions",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INPUT_OBJECT",
+                "name": "ProjectV2MultiSelectFieldOptionInput"
+              }
+            }
+          }
+        },
+        {
+          "name": "iterationConfiguration",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "ProjectV2IterationFieldConfigurationInput",
+            "ofType": null
+          }
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql \
+  -f query='mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}' \
+  -f fieldId='PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY' \
+  -f options='[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]'
+{
+  "errors": [
+    {
+      "extensions": {
+        "value": "[{\"id\":\"f75ad846\",\"name\":\"BACKLOG\",\"color\":\"GRAY\",\"description\":\"Work identified but not yet being actively rese
+arched.\"},{\"id\":\"47fc9ee4\",\"name\":\"RESEARCH\",\"color\":\"BLUE\",\"description\":\"Research and information gathering in progress.\"},{\"
+id\":\"98236657\",\"name\":\"DONE\",\"color\":\"GREEN\",\"description\":\"Work completed and accepted.\"}]",
+        "problems": [
+          {
+            "path": [
+              0
+            ],
+            "explanation": "Expected \"[{\\\"id\\\":\\\"f75ad846\\\",\\\"name\\\":\\\"BACKLOG\\\",\\\"color\\\":\\\"GRAY\\\",\\\"description\\\":
+\\\"Work identified but not yet being actively researched.\\\"},{\\\"id\\\":\\\"47fc9ee4\\\",\\\"name\\\":\\\"RESEARCH\\\",\\\"color\\\":\\\"BLUE
+\\\",\\\"description\\\":\\\"Research and information gathering in progress.\\\"},{\\\"id\\\":\\\"98236657\\\",\\\"name\\\":\\\"DONE\\\",\\\"colo
+r\\\":\\\"GREEN\\\",\\\"description\\\":\\\"Work completed and accepted.\\\"}]\" to be a key-value object."
+          }
+        ]
+      },
+      "locations": [
+        {
+          "line": 1,
+          "column": 23
+        }
+      ],
+      "message": "Variable $options of type [ProjectV2SingleSelectFieldOptionInput!] was provided invalid value for 0 (Expected \"[{\\\"id\\\":\\
+\"f75ad846\\\",\\\"name\\\":\\\"BACKLOG\\\",\\\"color\\\":\\\"GRAY\\\",\\\"description\\\":\\\"Work identified but not yet being actively researc
+hed.\\\"},{\\\"id\\\":\\\"47fc9ee4\\\",\\\"name\\\":\\\"RESEARCH\\\",\\\"color\\\":\\\"BLUE\\\",\\\"description\\\":\\\"Research and information
+gathering in progress.\\\"},{\\\"id\\\":\\\"98236657\\\",\\\"name\\\":\\\"DONE\\\",\\\"color\\\":\\\"GREEN\\\",\\\"description\\\":\\\"Work compl
+eted and accepted.\\\"}]\" to be a key-value object.)"
+    }
+  ]
+}
+gh: Variable $options of type [ProjectV2SingleSelectFieldOptionInput!] was provided invalid value for 0 (Expected "[{\"id\":\"f75ad846\",\"name\"
+:\"BACKLOG\",\"color\":\"GRAY\",\"description\":\"Work identified but not yet being actively researched.\"},{\"id\":\"47fc9ee4\",\"name\":\"RESEA
+RCH\",\"color\":\"BLUE\",\"description\":\"Research and information gathering in progress.\"},{\"id\":\"98236657\",\"name\":\"DONE\",\"color\":\"
+GREEN\",\"description\":\"Work completed and accepted.\"}]" to be a key-value object.)
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > /tmp/jagports-options.json <<'EOF'
+{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]}
+EOF
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ printf '%s\n' '{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]}' > /tmp/jagports-options.json
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat /tmp/jagports-options.json
+{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ jq -n --arg q 'mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}' --argjson o "$(cat /tmp/jagports-options.json)" '{query:$q,variables:{fieldId:$o.fieldId,options:$o.options}}' > /tmp/jagports-graphql.json
+bash: jq: command not found
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python -c "import json; d=json.load(open('/tmp/jagports-options.json')); q='mutation(\$fieldId:ID!,\$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:\$fieldId,singleSelectOptions:\$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'; json.dump({'query':q,'variables':{'fieldId':d['fieldId'],'options':d['options']}},open('/tmp/jagports-graphql.json','w'))"
+bash: !,\: event not found
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > /tmp/make-jagports-query.py <<'PY'
+import json
+d=json.load(open('/tmp/jagports-options.json'))
+q='mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'
+json.dump({"query":q,"variables":{"fieldId":d["fieldId"],"options":d["options"]}},open('/tmp/jagports-graphql.json','w'))
+PY
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python /tmp/make-jagports-query.py
+Traceback (most recent call last):
+  File "C:/Users/tomil/AppData/Local/Temp/make-jagports-query.py", line 2, in <module>
+    d=json.load(open('/tmp/jagports-options.json'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/jagports-options.json'
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ls /tmp
+ 0004e258-3762-4df8-b0c5-5e6065042336.tmp
+ 02D67560-4B21-48D1-9372-F44B80153265/
+ 03DBF43B-1BD3-43DD-AF49-B233E4C9A562/
+ 0446b23f-3029-44ba-be55-b1f9cc266a5b_MY1998-JaguarXK8-MY1998-Convertible-USA.zip.a5b/
+ 054193CC-4373-4881-AD67-CA8158FDBEF6/
+ 06EF217C-0EFE-4F36-B284-47BE4B8F7B2C/
+ 072C2EF0-ACE9-4773-A5C0-314C656472E2/
+ 0B452049/
+ 0B958B12-E377-4D06-9D90-EDA8907E6988/
+ 0D03F0BA-F824-4294-9E9E-54A0B836330B/
+ 0F380DC2-99C2-4655-8EE0-81678DE262B5/
+ 0a096f33-2038-40be-a119-b598e5f809c5.tmp
+ 0d90a7ce-e696-44a2-8f57-5683e86963f9.tmp
+ 125C1ABC-3CD5-424E-982A-3BC701B4D8B9/
+ 1324d962-2b18-4d10-8bab-eb604005bc1d_intro-folders.zip.c1d/
+ 1344B214-5450-4370-B0B4-2E505115F0F5/
+ 13666085-AC80-4896-B4A2-7A0360EB94F5/
+ 1801d920-2e34-4fb1-b7a6-8672af58a042_intro-folders.zip.042/
+ 193fd954-df64-4810-9fdb-4c0f9cc32cc1.tmp
+ 1947905E-97FB-45AB-BCD7-50930D5E3554/
+ 1acfe6c5-2ecb-484b-8f1e-6374f25bd85a.tmp
+ 1e89744b-08d9-4562-b70c-cf3dc5ed6df8.tmp
+ 20e32cee-46ab-4670-b9ee-6a603bf3fcd7.tmp
+ 22E9003C-7DA6-45FE-AB1F-A5BF2056DCDA/
+ 232d1b45-247e-4b1c-897b-c941112b5f21.tmp
+ 23DFEC90-B965-4DF1-B5DB-DF77290BF0B8/
+ 25e5293d-0631-449a-a836-3defaf1df468.tmp
+ 28DC2E8A-FC84-4924-8236-C7567CDDB9EB/
+ 2C72A54A-16E0-4116-B251-B246A25BA971/
+ 31938087-F8FA-4B1A-989A-739195F53BBE/
+ 331887ab-3705-4bca-bef3-c9370e5c7c9b.tmp
+ 352c21da-2230-49cd-8331-6ead7e85cb31.tmp
+ 38B52A6E-2286-4540-9153-0C363BDEF203/
+ 398F9546-F4B2-4A1C-B57B-106850D8C760/
+ 3A3CA018-5FD4-48A6-8444-49D158A1BAE5/
+ 3c16ff3f-f474-48a9-9476-872ae1009c8f.tmp
+ 3e76f5f8-ad85-4c8c-92bc-d9fbc32154c9.tmp
+ 3f276ee7-f29b-43be-9d16-bfdd51730963.tmp
+ 3f85baab-a07c-4b74-8863-b84a971b8d1e.tmp
+ 3f86dc92-8728-4a42-87ea-2728b76f13e9.tmp
+ 42118345-7646-445c-a473-137e9ff5974e.tmp
+ 43236646-7b89-4ea5-b03a-0d3e341de35e.tmp
+ 4332CBB3-0888-46D6-8E1A-F31CC2ABC59B/
+ 434AA6D5-4562-46AA-AB50-3430E06EC635/
+ 44253f8e-3d6c-4514-a5da-33a4de5205bf.tmp
+ 44c2e0c5-3143-4bc7-a84d-dce839dcc167.tmp
+ 45D8F3F4-1D6B-471F-BE67-CB0B923A77EE/
+ 4EE080BB-5387-4DD4-A03F-5EE8720CA903/
+ 4ef32bed-18c6-4f43-b866-9759b30f1c0b_intro-folders.zip.c0b/
+ 50d4176a-43b6-42eb-860c-3521762a9223_intro-folders.zip.223/
+ 5375020b-194c-4d19-9682-57602845dbd4.tmp
+ 53ae9061-80bd-40b4-a49a-8522dde809fd.tmp
+ 57E6F309-46BA-47B9-AAB7-5486C3A99B48/
+ 585D2F5D-F15C-4C24-8AAA-D4FFBCF88EC6/
+ 595ff436-3592-4993-b4cd-7ebd48f952d2.tmp
+ 5ad54a3c-aa13-4b5c-a231-6d59cb38e0b2.tmp
+ 5d504f20-8193-4624-abfe-a6a2be2858d1.tmp
+ 5f1078a5-73fa-44c4-b28c-17af6e17928f.tmp
+ 60cfa202-a88f-43ef-be13-4d3e42f56b3b.tmp
+ 627D1569-FC71-4DB0-8186-05DEFE7534ED/
+ 6390c724-f895-43fc-9782-7a2ee209ff41.tmp
+ 667d9e93-9003-41f3-ae2d-8f7388c33f86.tmp
+ 6BE5ACAE-B315-4610-88DC-C4AF44D22879/
+ 6bc2f00a-ae3b-4633-a872-233748df5191.tmp
+ 7C39EC81-046A-46A9-8B8B-14A51479DE10/
+ 7dc59a8e-7d68-497b-9f18-e8c0a60d8bce.tmp
+ 7e13605c-0d4f-4e0f-b0d5-2d33b9b64975.tmp
+ 7e683566-48ac-41fd-aa1f-36e31d999259.tmp
+ 7ed41990-19cb-4404-8e92-1075e5718710.tmp
+ 7zO496AEF78/
+ 7zO496B553E/
+ 7zO496C6B58/
+ 81b23b5c-c420-4ad4-8ce3-e46e279e3b7c_intro-folders.zip.b7c/
+ 858798f5-4f47-483a-a5c4-b07da14b3d13.tmp
+ 85F85E5A-F776-495D-8E53-5AC0297028F2/
+ 85cfc400-0b8e-40a0-bd09-08db54c7f790.tmp
+ 864F06AA-CE61-4984-A4A0-B33A26EF7224/
+ 88942B1F-535D-4D16-8462-B5D0C1AB2DF8/
+ 89437432-A0BC-4785-897E-A755865D73FD/
+ 927bf2d5-a861-4db0-9278-123d9c54a9b6.tmp
+ 931fcaa0-6657-4977-af84-8cb7b7d5e970.tmp
+ 958784FE-4A1C-402B-A6E0-8B120728F454/
+ 9880bf18-1f8e-4a78-9c8b-a1481b19c1b9.tmp
+ 9FC9B9E4-93EC-4295-A57B-E36F01D17A16/
+ A1574C57-E577-4999-AB88-CD43511AAC42/
+ A7C48F78-26E6-4214-8612-10257D8581D3/
+ A9E1FE84-B7D3-476C-962C-3380E3ABEAE6/
+ A9R8C63.tmp
+ ABBYY/
+ ACEEEE96-3EB6-4E0A-AB59-D6220596EBB5/
+ AEEFA2E5-BC34-42F7-A763-217AA4360716/
+ AFA1E6F7-3C86-4F23-B6D1-6EAA50472505/
+ AFDFD0FB-03DB-4240-88C6-176647EEF306/
+ AFX4F05.tmp
+ AFX4F06.tmp
+ ActivityVisualCache/
+ Adobe/
+ AdobeARM.log
+ B6D6C885-40C9-43F6-AB35-D17D5D953FB4/
+ C125C9E8-4AE9-48B8-8253-DE873DF42FF3/
+ CFG2AFD.tmp
+ CFG507.tmp
+ CreativeCloud/
+ D224CF71-2E55-4492-B688-2145413278B2/
+ D3745EB4-BB52-4CA3-AC2E-D34C878132FF/
+ D7A5B9AB-F094-4069-B1DD-EDB1C36AAD1E/
+ D9BB66A3-25E0-47BF-97D8-A6372AD4358E/
+ DiagOutputDir/
+ Diagnostics/
+ E67A315A-61A6-4E38-9B1E-FE4003F9D602/
+ E68A9E54-4778-4BC7-B5D2-5EC551C233C9/
+ E9E40B00-EF8F-4D3E-B531-449397166773/
+ EB694244-DA5D-41C4-B4A1-DE27D25EE34F/
+ EDE9AA2C-74DD-49D8-9CCF-704BDBD9576A/
+ EF6B966D-1122-45AC-BB22-AD16640C3F3D/
+ EF7D1697-74B5-42E0-9A72-E7389BAD8432/
+ EFBADB93-408F-4FFF-A557-EFB7AF991AB7/
+ ExchangePerflog_8484fa31ce3d5bc7cfcccd43.dat
+ F8334CB8-D208-4FB8-9468-C41771B21944/
+ FE454BC1-01C0-468A-8868-1A3C187A2AEE/
+ FP_AX_MSI_INSTALLER.exe*
+ FXSAPIDebugLogFile.txt
+ IWEC48B.tmp.dir/
+ Lenovo/
+ ListSync/
+ LogiCameraSettings/
+ Logitech/
+ Low/
+ MSI377f9.LOG
+ MSI99459.LOG
+ MSIa7ea.LOG
+ MessagingAddin/
+ Microsoft/
+ MicrosoftEdgeUpdate.log
+ MpCmdRun.log
+ Olktmp.png
+'Outlook Logging'/
+ PMHAppLog/
+ PhotoCache/
+ PinnableShortcuts/
+ PowerQuery/
+ PowerToys.Update.exe*
+ QuickAssist/
+ StructuredQuery.log
+ TCD1000.tmp/
+ TCD1021.tmp/
+ TCD1080.tmp/
+ TCD10F0.tmp/
+ TCD1121.tmp/
+ TCD11CF.tmp/
+ TCD1309.tmp/
+ TCD1609.tmp/
+ TCD1E52.tmp/
+ TCD1E63.tmp/
+ TCD1E73.tmp/
+ TCD1E74.tmp/
+ TCD1E85.tmp/
+ TCD1E95.tmp/
+ TCD1E96.tmp/
+ TCD1EE6.tmp/
+ TCD1EE7.tmp/
+ TCD1EE8.tmp/
+ TCD1EE9.tmp/
+ TCD1F09.tmp/
+ TCD1F29.tmp/
+ TCD4045.tmp/
+ TCD4062.tmp/
+ TCD4072.tmp/
+ TCD4092.tmp/
+ TCD4093.tmp/
+ TCD4094.tmp/
+ TCD4095.tmp/
+ TCD4096.tmp/
+ TCD4097.tmp/
+ TCD4098.tmp/
+ TCD40A9.tmp/
+ TCD40AA.tmp/
+ TCD4128.tmp/
+ TCD5068.tmp/
+ TCD506A.tmp/
+ TCD507C.tmp/
+ TCD5080.tmp/
+ TCD50A3.tmp/
+ TCD50C4.tmp/
+ TCD50C5.tmp/
+ TCD50C6.tmp/
+ TCD50C7.tmp/
+ TCD50D7.tmp/
+ TCD5126.tmp/
+ TCD5147.tmp/
+ TCD5148.tmp/
+ TCD5521.tmp/
+ TCD5532.tmp/
+ TCD5533.tmp/
+ TCD5534.tmp/
+ TCD5535.tmp/
+ TCD5536.tmp/
+ TCD5556.tmp/
+ TCD5557.tmp/
+ TCD5596.tmp/
+ TCD55A7.tmp/
+ TCD55B8.tmp/
+ TCD55C8.tmp/
+ TCD5646.tmp/
+ TCD61E9.tmp/
+ TCD61EA.tmp/
+ TCD61EB.tmp/
+ TCD61FC.tmp/
+ TCD61FD.tmp/
+ TCD61FE.tmp/
+ TCD620E.tmp/
+ TCD620F.tmp/
+ TCD6210.tmp/
+ TCD6211.tmp/
+ TCD6270.tmp/
+ TCD62DF.tmp/
+ TCD632E.tmp/
+ TCD71C3.tmp/
+ TCD71C4.tmp/
+ TCD71C5.tmp/
+ TCD71D6.tmp/
+ TCD71D7.tmp/
+ TCD71DC.tmp/
+ TCD71EC.tmp/
+ TCD71FD.tmp/
+ TCD722E.tmp/
+ TCD725E.tmp/
+ TCD72AE.tmp/
+ TCD72BF.tmp/
+ TCD72C0.tmp/
+ TCD845F.tmp/
+ TCD8460.tmp/
+ TCD8471.tmp/
+ TCD8481.tmp/
+ TCD8482.tmp/
+ TCD84A3.tmp/
+ TCD84B3.tmp/
+ TCD84D3.tmp/
+ TCD84D4.tmp/
+ TCD84D5.tmp/
+ TCD84E6.tmp/
+ TCD8506.tmp/
+ TCD8507.tmp/
+ TCD85DD.tmp/
+ TCD85DE.tmp/
+ TCD85EF.tmp/
+ TCD8600.tmp/
+ TCD8601.tmp/
+ TCD8603.tmp/
+ TCD8604.tmp/
+ TCD8657.tmp/
+ TCD8677.tmp/
+ TCD8688.tmp/
+ TCD8689.tmp/
+ TCD868A.tmp/
+ TCD8766.tmp/
+ TCD890C.tmp/
+ TCD890D.tmp/
+ TCD890E.tmp/
+ TCD890F.tmp/
+ TCD8910.tmp/
+ TCD8920.tmp/
+ TCD8921.tmp/
+ TCD8922.tmp/
+ TCD8923.tmp/
+ TCD8932.tmp/
+ TCD8943.tmp/
+ TCD8964.tmp/
+ TCD8966.tmp/
+ TCD8967.tmp/
+ TCD8978.tmp/
+ TCD8986.tmp/
+ TCD8987.tmp/
+ TCD8989.tmp/
+ TCD8999.tmp/
+ TCD89A8.tmp/
+ TCD89F8.tmp/
+ TCD8A27.tmp/
+ TCD8A59.tmp/
+ TCD8A5A.tmp/
+ TCD8A68.tmp/
+ TCD8A88.tmp/
+ TCD8CBD.tmp/
+ TCD8CCF.tmp/
+ TCD8CD0.tmp/
+ TCD8CD1.tmp/
+ TCD8CF2.tmp/
+ TCD8CF3.tmp/
+ TCD8D13.tmp/
+ TCD8D14.tmp/
+ TCD8D35.tmp/
+ TCD8D36.tmp/
+ TCD8D46.tmp/
+ TCD8D57.tmp/
+ TCD8D93.tmp/
+ TCD8D94.tmp/
+ TCD8D96.tmp/
+ TCD8D98.tmp/
+ TCD8DA8.tmp/
+ TCD8DB9.tmp/
+ TCD8DBA.tmp/
+ TCD8DC5.tmp/
+ TCD8E19.tmp/
+ TCD8E39.tmp/
+ TCD8E3A.tmp/
+ TCD8E3B.tmp/
+ TCD8E4C.tmp/
+ TCD8ED9.tmp/
+ TCD9633.tmp/
+ TCD9648.tmp/
+ TCD9649.tmp/
+ TCD964A.tmp/
+ TCD965B.tmp/
+ TCD965C.tmp/
+ TCD965D.tmp/
+ TCD965E.tmp/
+ TCD966E.tmp/
+ TCD966F.tmp/
+ TCD96CF.tmp/
+ TCD96E0.tmp/
+ TCD9710.tmp/
+ TCD9C03.tmp/
+ TCD9C15.tmp/
+ TCD9C16.tmp/
+ TCD9C18.tmp/
+ TCD9C2B.tmp/
+ TCD9C2C.tmp/
+ TCD9C2D.tmp/
+ TCD9C3E.tmp/
+ TCD9C4E.tmp/
+ TCD9C6F.tmp/
+ TCD9C70.tmp/
+ TCD9CFD.tmp/
+ TCD9D4C.tmp/
+ TCD9F0B.tmp/
+ TCD9F0E.tmp/
+ TCD9F1F.tmp/
+ TCD9F20.tmp/
+ TCD9F22.tmp/
+ TCD9F33.tmp/
+ TCD9F34.tmp/
+ TCD9F44.tmp/
+ TCD9F45.tmp/
+ TCD9F46.tmp/
+ TCD9FD4.tmp/
+ TCD9FD5.tmp/
+ TCDA006.tmp/
+ TCDAED6.tmp/
+ TCDAED7.tmp/
+ TCDAED8.tmp/
+ TCDAEEA.tmp/
+ TCDAF2C.tmp/
+ TCDAF5E.tmp/
+ TCDAF6E.tmp/
+ TCDAF6F.tmp/
+ TCDAF80.tmp/
+ TCDAFD1.tmp/
+ TCDAFE2.tmp/
+ TCDB051.tmp/
+ TCDB062.tmp/
+ TCDB2D0.tmp/
+ TCDB2D1.tmp/
+ TCDB2D2.tmp/
+ TCDB2D3.tmp/
+ TCDB2D4.tmp/
+ TCDB2D5.tmp/
+ TCDB2E6.tmp/
+ TCDB2E7.tmp/
+ TCDB2F7.tmp/
+ TCDB2F8.tmp/
+ TCDB367.tmp/
+ TCDB368.tmp/
+ TCDB369.tmp/
+ TCDB36A.tmp/
+ TCDB36C.tmp/
+ TCDB37E.tmp/
+ TCDB37F.tmp/
+ TCDB388.tmp/
+ TCDB391.tmp/
+ TCDB393.tmp/
+ TCDB394.tmp/
+ TCDB3A5.tmp/
+ TCDB3A6.tmp/
+ TCDB426.tmp/
+ TCDB427.tmp/
+ TCDB4A6.tmp/
+ TCDBAD5.tmp/
+ TCDBAE6.tmp/
+ TCDBAF7.tmp/
+ TCDBAF9.tmp/
+ TCDBB19.tmp/
+ TCDBB3B.tmp/
+ TCDBB6B.tmp/
+ TCDBB7C.tmp/
+ TCDBB8D.tmp/
+ TCDBBAF.tmp/
+ TCDBBB0.tmp/
+ TCDBBE0.tmp/
+ TCDBC00.tmp/
+ TCDD036.tmp/
+ TCDD037.tmp/
+ TCDD038.tmp/
+ TCDD039.tmp/
+ TCDD04A.tmp/
+ TCDD06A.tmp/
+ TCDD06B.tmp/
+ TCDD06C.tmp/
+ TCDD06D.tmp/
+ TCDD06E.tmp/
+ TCDD0AE.tmp/
+ TCDD0AF.tmp/
+ TCDD10D.tmp/
+ TCDDD7F.tmp/
+ TCDDDA2.tmp/
+ TCDDDC8.tmp/
+ TCDDDD2.tmp/
+ TCDDDD8.tmp/
+ TCDDDD9.tmp/
+ TCDDDDA.tmp/
+ TCDDDEB.tmp/
+ TCDDDFC.tmp/
+ TCDDE02.tmp/
+ TCDDE03.tmp/
+ TCDDE0C.tmp/
+ TCDDE24.tmp/
+ TCDDE2C.tmp/
+ TCDDE3D.tmp/
+ TCDDE3E.tmp/
+ TCDDE3F.tmp/
+ TCDDE47.tmp/
+ TCDDE48.tmp/
+ TCDDE49.tmp/
+ TCDDE7F.tmp/
+ TCDDE80.tmp/
+ TCDDF16.tmp/
+ TCDDFD1.tmp/
+ TCDDFD2.tmp/
+ TCDDFD4.tmp/
+ TCDDFE7.tmp/
+ TCDDFE8.tmp/
+ TCDDFF3.tmp/
+ TCDDFF8.tmp/
+ TCDE009.tmp/
+ TCDE039.tmp/
+ TCDE03A.tmp/
+ TCDE03B.tmp/
+ TCDE044.tmp/
+ TCDE045.tmp/
+ TCDE04B.tmp/
+ TCDE08B.tmp/
+ TCDE08C.tmp/
+ TCDEE2.tmp/
+ TCDEE3.tmp/
+ TCDEF4.tmp/
+ ToasttmpD.png
+ ToasttmpF.png
+ ToasttmpX.png
+ VBE/
+ WMZuneComm.etl
+ WMZuneComm.etl.001
+ WPF/
+ WSLDVCPlugin/
+ WinGet/
+ X1CARBON-20260822-0800.log
+ X1CARBON-20260822-0804.log
+ X1CARBON-20260822-1236.log
+ X1CARBON-20260822-1736.log
+ X1CARBON-20260822-2236.log
+ X1CARBON-20260823-1638.log
+ X1CARBON-20260824-0405.log
+ X1CARBON-20260824-1043.log
+ X1CARBON-20260826-1725.log
+ ZB/
+ _TSCEEA.tmp/
+ _TSDB1F.tmp/
+ _TSF8BD.tmp/
+ a6de08c0-69b2-4631-a0f9-c556bc869329.tmp
+ a754c7e7-649b-430d-ae54-447905981480.tmp
+ a93fa1ee-9c2a-446b-9611-f964e2a6ea50.tmp
+ a9a36baa-529d-4707-8892-573447dca8fe.tmp
+ abe2a2ea-b7e2-43f3-be01-e47ab77a1a26.tmp
+ ac4a08f9-9d54-41c6-bde5-cf4c1abfd8ff.tmp
+ acrobat_sbx/
+ acrocef_low/
+ acrord32_super_sbx/
+ add7e09f-f6d5-47d7-bd76-3ebba8733502.tmp
+ af19001e-ddf0-49b6-a8c2-91daf4fc0f5f.tmp
+ b2b131a9-d402-4ed1-b1a5-b2dea408cd87.tmp
+ b8547303-34c6-4866-9a3f-ceaf30b85727.tmp
+ b9b50821-456c-4d52-a0df-ed9c6bd54b21.tmp
+ c2a00801-b307-4a31-8d0b-68018814b105.tmp
+ c2dc738e-a22c-4a5e-b352-d0e20bbb21b8.tmp
+ c389e981-c8ac-454b-a418-4814eb703b9f.tmp
+ cbe54c1d-5337-4f12-818c-23a4944e89ad.tmp
+ cdd85463-03a6-4c41-9c31-19d1da753595.tmp
+ ce4dfb7f-103b-4a23-b698-a9dac4c84acf.tmp
+ ce97d6fd-8b7b-41cf-98e7-5992377e3db5.tmp
+ chromecrx_chrome_Unpacker_BeginUnzipping12816_1476608392/
+ chromecrx_chrome_Unpacker_BeginUnzipping14416_802259415/
+ chromecrx_chrome_Unpacker_BeginUnzipping17484_1154504356/
+ chromecrx_chrome_Unpacker_BeginUnzipping19308_822703447/
+ chromecrx_chrome_Unpacker_BeginUnzipping21756_289041501/
+ chromecrx_chrome_Unpacker_BeginUnzipping22216_1201533857/
+ chromecrx_chrome_Unpacker_BeginUnzipping23448_528524285/
+ chromecrx_chrome_Unpacker_BeginUnzipping24216_425640395/
+ chromecrx_chrome_Unpacker_BeginUnzipping25864_1292908657/
+ chromecrx_chrome_Unpacker_BeginUnzipping3236_940586652/
+ chromecrx_chrome_Unpacker_BeginUnzipping32504_1830705710/
+ chromecrx_chrome_Unpacker_BeginUnzipping33744_568770159/
+ chromecrx_chrome_Unpacker_BeginUnzipping35952_158222611/
+ chromecrx_chrome_Unpacker_BeginUnzipping640_1698156944/
+ chromecrx_chrome_Unpacker_BeginUnzipping8820_509593130/
+ chromecrx_chrome_url_fetcher_10476_1601051553/
+ chromecrx_chrome_url_fetcher_11480_1167844784/
+ chromecrx_chrome_url_fetcher_11660_1436172315/
+ chromecrx_chrome_url_fetcher_14772_656231007/
+ chromecrx_chrome_url_fetcher_14924_1942263260/
+ chromecrx_chrome_url_fetcher_15976_926828937/
+ chromecrx_chrome_url_fetcher_16724_1393933580/
+ chromecrx_chrome_url_fetcher_21556_1873860370/
+ chromecrx_chrome_url_fetcher_21896_402562556/
+ chromecrx_chrome_url_fetcher_22272_1219828376/
+ chromecrx_chrome_url_fetcher_23236_936358115/
+ chromecrx_chrome_url_fetcher_23268_1925189095/
+ chromecrx_chrome_url_fetcher_36692_122903850/
+ chromecrx_chrome_url_fetcher_36804_630879750/
+ chromecrx_chrome_url_fetcher_36944_1818520839/
+ chromecrx_chrome_url_fetcher_7336_305808342/
+ chromecrx_chrome_url_fetcher_8392_1432819014/
+ chromecrx_chrome_url_fetcher_9400_1634957515/
+ chromecrx_chrome_url_fetcher_9548_1107248661/
+ collab_low/
+ com.logi.optionsplus.agent.logs/
+ com.logi.xlog.temp/
+ cv_debug.log
+ d3d679ff-f4ba-4974-b055-5ad6c249fec1.tmp
+ dc3d847d-4887-4247-baff-3ad36bd8f74a.tmp
+ dd_vcredist_amd64_20260824040353.log
+ dedaa8da-39e8-438b-9a65-86385ec15407.tmp.js
+ e8ce97be871174982b4232a14057eae8-{87A94AB0-E370-4cde-98D3-ACC110C5967D}
+ e8e399d9-f5d5-4596-8186-f7c9e71143d0.tmp
+ e9e6ead3-34fb-4164-be12-0a1e3e9f6028.tmp
+ eed9dba3-d389-43f4-8d73-767339939ca4.tmp
+ f0c8f989-70ae-4b75-9c01-0556b0dd84be.tmp
+ f5e78b31-ab5c-41e7-8ba8-3c3bb6f5a3d3.tmp
+ f75ad0ef-f97c-4cf4-ac46-d10e11142c97.tmp
+ gimp/
+ jagports-graphql.json
+ jagports-options.json
+ lilo.3472/
+ make-jagports-query.py
+ mat-debug-10944.log
+ mat-debug-11064.log
+ mat-debug-11564.log
+ mat-debug-12300.log
+ mat-debug-13476.log
+ mat-debug-13636.log
+ mat-debug-13928.log
+ mat-debug-14104.log
+ mat-debug-1416.log
+ mat-debug-14296.log
+ mat-debug-14456.log
+ mat-debug-14592.log
+ mat-debug-14720.log
+ mat-debug-15172.log
+ mat-debug-15620.log
+ mat-debug-15644.log
+ mat-debug-16056.log
+ mat-debug-16068.log
+ mat-debug-16092.log
+ mat-debug-16180.log
+ mat-debug-16360.log
+ mat-debug-16744.log
+ mat-debug-17100.log
+ mat-debug-17288.log
+ mat-debug-17412.log
+ mat-debug-17912.log
+ mat-debug-18312.log
+ mat-debug-18768.log
+ mat-debug-18864.log
+ mat-debug-19256.log
+ mat-debug-19992.log
+ mat-debug-20328.log
+ mat-debug-20816.log
+ mat-debug-20960.log
+ mat-debug-21088.log
+ mat-debug-21188.log
+ mat-debug-21396.log
+ mat-debug-2168.log
+ mat-debug-21868.log
+ mat-debug-21872.log
+ mat-debug-23024.log
+ mat-debug-23120.log
+ mat-debug-23476.log
+ mat-debug-23480.log
+ mat-debug-23528.log
+ mat-debug-23656.log
+ mat-debug-24008.log
+ mat-debug-24160.log
+ mat-debug-24496.log
+ mat-debug-24556.log
+ mat-debug-24640.log
+ mat-debug-25368.log
+ mat-debug-25656.log
+ mat-debug-25720.log
+ mat-debug-25768.log
+ mat-debug-25800.log
+ mat-debug-25936.log
+ mat-debug-26216.log
+ mat-debug-26552.log
+ mat-debug-26764.log
+ mat-debug-26800.log
+ mat-debug-26824.log
+ mat-debug-27076.log
+ mat-debug-27112.log
+ mat-debug-27140.log
+ mat-debug-27812.log
+ mat-debug-30560.log
+ mat-debug-3112.log
+ mat-debug-31860.log
+ mat-debug-32516.log
+ mat-debug-3308.log
+ mat-debug-3368.log
+ mat-debug-33700.log
+ mat-debug-3716.log
+ mat-debug-4036.log
+ mat-debug-4452.log
+ mat-debug-4596.log
+ mat-debug-6956.log
+ mat-debug-7188.log
+ mat-debug-7240.log
+ mat-debug-7612.log
+ mat-debug-8128.log
+ mat-debug-9712.log
+ msohtmlclip/
+ msohtmlclip1/
+ node-compile-cache/
+ nsy3C5B.tmp/
+'opushutil.exe_c2rdll(202608240359122B68).log'
+ prep_Form_JSI_API_not_a_real_file_Hermes_perf.cache
+ prep_bundle_js_V8_perf.cache
+ prep_foundation_win32_bundle_V8_perf.cache
+ prep_index_win32_bundle_V8_perf.cache
+ prep_jsi-internal___host-function-manager_js_V8_perf.cache
+ prep_lpc_win32_bundle_V8_perf.cache
+ prep_ui_win32_bundle_V8_perf.cache
+ scoped_dir12328_2008510623/
+ scoped_dir12920_896821408/
+ scoped_dir14308_1212846850/
+ scoped_dir16036_6003731/
+ scoped_dir16668_1350898525/
+ scoped_dir17300_1084066402/
+ scoped_dir19984_1763411997/
+ scoped_dir19984_960178872/
+ scoped_dir21032_1132760733/
+ scoped_dir21032_1223954310/
+ scoped_dir21864_1606419109/
+ scoped_dir23576_1325784726/
+ scoped_dir23576_530632844/
+ scoped_dir23636_1343414759/
+ scoped_dir24176_975582207/
+ scoped_dir24184_1019884066/
+ scoped_dir25240_2136739352/
+ scoped_dir26012_2116093931/
+ scoped_dir26200_1309358900/
+ scoped_dir28544_629557631/
+ scoped_dir28644_1100360387/
+ scoped_dir28644_429808422/
+ scoped_dir30420_63927050/
+ scoped_dir3044_901298370/
+ scoped_dir35052_1569144838/
+ scoped_dir36372_133744989/
+ scoped_dir3668_1802001309/
+ scoped_dir4264_594355755/
+ scoped_dir4468_233961156/
+ scoped_dir6516_1768374907/
+ scoped_dir6820_92802029/
+ scoped_dir8424_1523569506/
+ scoped_dir8592_267557330/
+ scoped_dir8652_1634872749/
+ scoped_dir8796_1163381872/
+ soffice_convert_hb4_aya6/
+ soffice_profile_ibmpp0wh/
+ system-commandline-sentinel-files/
+ v8-compile-cache/
+ wct128F.tmp
+ wct163B.tmp
+ wct1D33.tmp
+ wct2ADA.tmp
+ wct2AF2.tmp
+ wct2CED.tmp
+ wct4F22.tmp
+ wct51A6.tmp
+ wct8CCC.tmp
+ wct8EE.tmp
+ wct8F19.tmp
+ wct9634.tmp
+ wctA2F9.tmp
+ wctA7CD.tmp
+ wctA96E.tmp
+ wctAB14.tmp
+ wctB62.tmp
+ wctC0A4.tmp
+ wctC35F.tmp
+ wctC483.tmp
+ wctC494.tmp
+ wctC533.tmp
+ wctC665.tmp
+ wctE105.tmp
+ wctE565.tmp
+ wctE67F.tmp
+ wctEA0F.tmp
+ wctEED5.tmp
+ wctF555.tmp
+ wctFD9.tmp
+ xReflect.exe*
+ {02787847-CE09-4BF1-901E-1A71843B0CD6}/
+ {06624EE6-A6E9-470A-83FC-AE5124CE59A7}/
+ {06A8F5E4-F8D9-4472-B2D6-8AF2B1378983}/
+ {06B9209A-2511-4F64-B215-91B3201B7161}/
+ {086928A2-0315-45B7-9805-ABD8C648FF6B}/
+ {0D3053CB-87C1-4B8A-AEA5-D29A186D3104}/
+ {11D7D2D5-0880-4D01-BFA6-692C85D7E5E1}/
+ {13090246-F923-4182-8237-D50CAC8818AD}/
+ {14A73A01-3518-4F77-9322-4F1AD63E0E7B}/
+ {1592D874-6B24-4C86-9FEB-C1E2CDAEA252}/
+ {163C5F09-3FE1-4318-9EB6-FCD92E217452}/
+ {16CC7C94-6AE6-446E-B570-7B3247F87120}/
+ {18F8CEF5-CA17-40AC-A44C-97C5610F738F}/
+ {1A0C84AC-1DD1-4EDB-9AD4-60D56D67B1F7}/
+ {1E3AF39A-924E-45BD-A617-B67A8CAD67A5}/
+ {23B94FAF-75D3-4D13-9822-CAAA7815D70E}/
+ {286E9E6A-963A-43CA-84D4-8B2F0501FB33}/
+ {2A04E790-158F-4FCB-8AF3-A9436112828C}/
+ {2B53D221-49DB-4F18-AA8B-E46A8A785D19}/
+ {2D2E84DE-7ADF-47AA-8094-5419B785613E}/
+ {304D491D-CB1D-43A4-90BA-ACCC0F18A167}/
+ {3A200BC4-BE1B-42FB-8866-BD18A596B12D}/
+ {40786ED4-681C-4276-8624-FA9B37E680AE}/
+ {431B0525-9980-4AA6-9BBA-C652DD633E83}/
+ {44DD51C7-40D9-461E-A9BD-BFEFD83E7B3C}/
+ {4A00E1A0-A6C0-4EE6-8866-7ECAA216DB3B}/
+ {4B9DE033-3CD0-4FB7-8A4A-9399EE692EDA}/
+ {4E0AD61B-3C26-4D46-A944-ACF48DAFE087}/
+ {4E31F737-C5FD-49DE-B2FE-1BBE127B269D}/
+ {4EECF30E-7EB4-4DF9-9776-C5715662E324}/
+ {55068855-C26E-4CC8-A9E8-DD30ABF83D06}/
+ {55BA62C1-F7A7-4BA3-8631-7D54D7B50676}/
+ {56D82F78-1FF7-48C5-9982-89C31C5575CB}/
+ {592D1179-F182-474F-BF24-D1F40F5F8FD4}/
+ {5AA6F168-F0E4-412D-8499-E04E61F396B3}/
+ {5B841AE9-D33C-43CD-BC99-4FC9CE7B9CD6}/
+'{5E0A0242-0EC2-4F6B-974C-B781246E2068} - OProcSessId.dat'
+ {6669439A-B8D8-450F-8F73-CCC7228FE2ED}/
+ {668DBD5E-11BD-4DF8-A987-6C1E60EE6499}/
+ {66C8050F-B687-43EF-A5E4-4947790425CB}/
+ {672F78CB-EC46-4389-9624-56530C7B18CB}/
+ {68C34BB9-F75C-41AC-99F2-01B00FC3CDD3}/
+ {6A7A0A99-FA2D-473B-94BC-7BE237FB0FB6}/
+ {6BD25BB0-367B-4219-919D-1E8E452001BC}/
+ {6E8ABD05-7734-468A-9E39-18BC67D1A54A}/
+ {6F4104BF-EBA4-412E-B410-68C9D0F132FB}/
+ {714FE334-E818-40FF-83CE-C8BBA9628300}/
+ {734C4AB1-E15B-4DFF-92E0-5E7F1F9B3E0F}/
+ {7625F2DC-2EAE-4A45-9F86-1FE278359407}/
+ {775582A6-8BD1-477F-A4E5-9FB47E02171D}/
+ {7B4788E0-950A-4BC2-BC55-021E813D6BB7}/
+ {7BB2B8CC-0586-4086-AF5A-8FED68C404D9}/
+ {7C1E6F16-2269-4A0E-94DB-A212F9979129}/
+ {7D8AEF60-2BE5-43B7-BA9C-91C0850B44F4}/
+ {7F52447C-D2E8-44CB-A00C-EBE2DDF1DADB}/
+ {8233AAE6-C75A-48EB-B9D5-52F3EF1F2A8B}/
+ {85090613-E791-4A5D-A218-114C87E03EC4}/
+ {86D5E798-4BDA-4176-B150-5090C672F31E}/
+ {8C4606B2-B646-42E9-BDFC-36FEF10832EF}/
+'{8CC4E7ED-5F82-4D0E-B161-9CF0D1103715} - OProcSessId.dat'
+ {8F07DB21-4BC7-4E50-84C1-91F50A50C6F4}/
+ {8F4B52E1-A161-4D3D-979F-6F7656B84A8A}/
+ {90BE72BD-80C4-475E-B23F-2A43F14FDD8F}/
+ {993AF97A-A55B-4D1D-884C-C3FA535CF1C0}/
+ {9B2049AF-9BB0-4559-A0A9-5B6EF8098970}/
+ {9C78C0F7-CB2E-49B0-B554-48A12069E56B}/
+ {9F9EF2F7-63EF-4EE0-9A62-238DF050BA52}/
+ {A3CB76FD-D445-451E-BE5D-ED104FAF8B2E}/
+ {A53A49C6-BC75-408C-A6A1-3A82303B53B9}/
+ {A98ED93F-406B-4B83-B8AB-3AD8DFA7304F}/
+ {A9F62BA5-71DD-4E5C-AF58-08D3E8352B62}/
+ {AA407B2C-22F5-466E-A207-48FC594CFF94}/
+ {ACA10A2D-7CBF-4EB1-8A75-16F26C9E36B8}/
+ {ADFAF544-6D99-4344-9E23-2A0421BCF0A9}/
+ {B05E507E-A9C2-4F7F-8EA3-43C9461F7D8A}/
+ {B16F4D65-C3F2-41AE-8991-86FA9A697067}/
+ {B537A5B5-65D3-4900-9009-E7262A54541A}/
+ {B7D860AB-30C1-4C36-B1D1-7D07B93E1A01}/
+ {B873CAA5-95F3-4C05-8C3E-E3281514D8FD}/
+ {B8A505A8-ADEE-45CB-A3D1-556F7D0E9F1C}/
+ {BAF5175E-C27F-4252-81B9-E42F01E46CB6}/
+ {C353DAE4-35A0-4316-90E8-065B4CE5D2F0}/
+ {CA817944-BBDB-4097-917D-465C3748929B}/
+ {CBE7A488-A7AC-4EBC-9AA7-A3E512CF6A97}/
+ {D1679D93-4C51-4A60-83E3-43CE20E2281C}/
+ {D338924D-F8FB-4B75-87E6-DBE4BB8F18A3}/
+ {D53B0013-EDED-4EC0-82CE-1DDF07244C76}/
+ {D73960AF-4262-41DA-93BB-7E0341185B96}/
+ {D76F8666-F88C-4158-82A9-BDE7FBE91941}/
+ {D9EE97A5-F21E-4D00-82FA-1EAF83C734BE}/
+ {DBBA193A-B780-41E1-B2CD-8218CCFA7F94}/
+ {DCFF9A9D-90A7-48B7-A8B7-6EBFE6745CAF}/
+ {DD3FF95B-C1C0-467F-AF93-03B02A3D6562}/
+ {DEC55814-312B-4706-BC15-D08DB8470A84}/
+ {DF782545-8985-4901-9368-BEAA5062FF02}/
+ {E1EA2024-0B84-44DE-BD78-D32166A82D29}/
+ {E20411EB-3308-49A5-9044-1BA1F719C6CD}/
+'{E8FE3EDF-A050-4152-BEB6-BC3970A1A83D} - OProcSessId.dat'
+ {EB74F9A5-568F-456E-BE5A-8CDECEBF1ED9}/
+'{EBCBAC7E-4E6F-4F76-9E26-4C7324A1A621} - OProcSessId.dat'
+ {F1471F1A-4B02-471A-AC28-930D0603D806}/
+ {F36B2D9F-5BE9-4D99-828C-A98CBEE56071}/
+ {F7BE6102-A9FD-434E-A9BE-461A79767089}/
+ {F9D4C388-FFE0-4AFB-B76C-94CA8D9F2621}/
+ {FC7B8003-EF80-4AAE-83CF-BEDAC1B65201}/
+ {FF1CA4E1-84B9-4B89-B3CA-BA3230737EE4}/
+'~PI11C6.tmp'
+'~PI1F76.tmp'
+'~PI2C88.tmp'
+'~PI4264.tmp'
+'~PI824C.tmp'
+'~PI9501.tmp'
+'~PI963A.tmp'
+'~PIB82C.tmp'
+'~PIC8C6.tmp'
+'~PIE7D1.tmp'
+'~PIF04.tmp'
+'~PIF85D.tmp'
+'~PIFA05.tmp'
+'~nsu.tmp'/
+'~nsu1.tmp'/
+'~nsu2.tmp'/
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ printf '%s\n' '{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]}' > /tmp/jagports-options.json && cat /tmp/jagports-options.json
+{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python /tmp/make-jagports-query.py
+Traceback (most recent call last):
+  File "C:/Users/tomil/AppData/Local/Temp/make-jagports-query.py", line 2, in <module>
+    d=json.load(open('/tmp/jagports-options.json'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/jagports-options.json'
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ printf '%s\n' '{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]}' > jagports-options.json
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python -c "import json; d=json.load(open('jagports-options.json')); q='mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'; json.dump({'query':q,'variables':{'fieldId':d['fieldId'],'options':d['options']}},open('jagports-graphql.json','w'))"
+bash: !,: event not found
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > make-jagports-query.py <<'PY'
+import json
+d=json.load(open('jagports-options.json'))
+q='mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'
+json.dump({"query":q,"variables":{"fieldId":d["fieldId"],"options":d["options"]}},open('jagports-graphql.json','w'))
+PY
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python make-jagports-query.py
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql --input jagports-graphql.json
+{
+  "data": {
+    "updateProjectV2Field": {
+      "projectV2Field": {
+        "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+        "name": "Status",
+        "options": [
+          {
+            "id": "f75ad846",
+            "name": "BACKLOG",
+            "color": "GRAY",
+            "description": "Work identified but not yet being actively researched."
+          },
+          {
+            "id": "47fc9ee4",
+            "name": "RESEARCH",
+            "color": "BLUE",
+            "description": "Research and information gathering in progress."
+          },
+          {
+            "id": "98236657",
+            "name": "DONE",
+            "color": "GREEN",
+            "description": "Work completed and accepted."
+          }
+        ]
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ printf '%s\n' '{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"name":"PROPOSED","color":"PURPLE","description":"A concrete proposal is ready for consideration."},{"name":"DECISION NEEDED","color":"YELLOW","description":"A decision or approval is required before work can proceed."},{"name":"APPROVED","color":"GREEN","description":"The proposed work has been approved."},{"name":"CODING","color":"BLUE","description":"Implementation or technical work is in progress."},{"name":"REVIEW","color":"ORANGE","description":"Work is ready for review."},{"name":"TESTING","color":"PINK","description":"Implementation is being tested and validated."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."},{"name":"BLOCKED","color":"RED","description":"Work cannot proceed because of a blocking dependency or issue."}]}' > jagports-options.json
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat jagports-options.json
+{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"name":"PROPOSED","color":"PURPLE","description":"A concrete proposal is ready for consideration."},{"name":"DECISION NEEDED","color":"YELLOW","description":"A decision or approval is required before work can proceed."},{"name":"APPROVED","color":"GREEN","description":"The proposed work has been approved."},{"name":"CODING","color":"BLUE","description":"Implementation or technical work is in progress."},{"name":"REVIEW","color":"ORANGE","description":"Work is ready for review."},{"name":"TESTING","color":"PINK","description":"Implementation is being tested and validated."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."},{"name":"BLOCKED","color":"RED","description":"Work cannot proceed because of a blocking dependency or issue."}]}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python make-project-query.py
+C:/Program Files/Inkscape/bin/python.exe: can't open file 'C:/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports/make-project-query.py': [Errno 2] No such file
+ or directory
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > make-project-query.py <<'PY'
+import json
+d=json.load(open('jagports-options.json'))
+q='mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'
+json.dump({"query":q,"variables":{"fieldId":d["fieldId"],"options":d["options"]}},open('jagports-graphql.json','w'))
+PY
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python make-project-query.py
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql --input jagports-graphql.json
+{
+  "data": {
+    "updateProjectV2Field": {
+      "projectV2Field": {
+        "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+        "name": "Status",
+        "options": [
+          {
+            "id": "f75ad846",
+            "name": "BACKLOG",
+            "color": "GRAY",
+            "description": "Work identified but not yet being actively researched."
+          },
+          {
+            "id": "47fc9ee4",
+            "name": "RESEARCH",
+            "color": "BLUE",
+            "description": "Research and information gathering in progress."
+          },
+          {
+            "id": "fe06b432",
+            "name": "PROPOSED",
+            "color": "PURPLE",
+            "description": "A concrete proposal is ready for consideration."
+          },
+          {
+            "id": "7ba628dc",
+            "name": "DECISION NEEDED",
+            "color": "YELLOW",
+            "description": "A decision or approval is required before work can proceed."
+          },
+          {
+            "id": "4683185c",
+            "name": "APPROVED",
+            "color": "GREEN",
+            "description": "The proposed work has been approved."
+          },
+          {
+            "id": "087a1dfe",
+            "name": "CODING",
+            "color": "BLUE",
+            "description": "Implementation or technical work is in progress."
+          },
+          {
+            "id": "f93c3f0d",
+            "name": "REVIEW",
+            "color": "ORANGE",
+            "description": "Work is ready for review."
+          },
+          {
+            "id": "f82a7987",
+            "name": "TESTING",
+            "color": "PINK",
+            "description": "Implementation is being tested and validated."
+          },
+          {
+            "id": "98236657",
+            "name": "DONE",
+            "color": "GREEN",
+            "description": "Work completed and accepted."
+          },
+          {
+            "id": "92d95536",
+            "name": "BLOCKED",
+            "color": "RED",
+            "description": "Work cannot proceed because of a blocking dependency or issue."
+          }
+        ]
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh project field-list 1 --owner tlindi --format json
+{
+  "fields": [
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMQ",
+      "name": "Title",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMU",
+      "name": "Assignees",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+      "name": "Status",
+      "options": [
+        {
+          "id": "f75ad846",
+          "name": "BACKLOG"
+        },
+        {
+          "id": "47fc9ee4",
+          "name": "RESEARCH"
+        },
+        {
+          "id": "fe06b432",
+          "name": "PROPOSED"
+        },
+        {
+          "id": "7ba628dc",
+          "name": "DECISION NEEDED"
+        },
+        {
+          "id": "4683185c",
+          "name": "APPROVED"
+        },
+        {
+          "id": "087a1dfe",
+          "name": "CODING"
+        },
+        {
+          "id": "f93c3f0d",
+          "name": "REVIEW"
+        },
+        {
+          "id": "f82a7987",
+          "name": "TESTING"
+        },
+        {
+          "id": "98236657",
+          "name": "DONE"
+        },
+        {
+          "id": "92d95536",
+          "name": "BLOCKED"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMc",
+      "name": "Labels",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMg",
+      "name": "Linked pull requests",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMk",
+      "name": "Milestone",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMo",
+      "name": "Repository",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMw",
+      "name": "Reviewers",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM0",
+      "name": "Parent issue",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM4",
+      "name": "Sub-issues progress",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM8",
+      "name": "Created",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONA",
+      "name": "Updated",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONE",
+      "name": "Closed",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjSTY",
+      "name": "Priority",
+      "type": "ProjectV2Field"
+    }
+  ],
+  "totalCount": 14
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh label list --repo tlindi/jagports --limit 100
+
+Showing 10 of 10 labels in tlindi/jagports
+
+NAME              DESCRIPTION                                 COLOR
+accessibility     Barrier affecting people with disabilities  #f143ab
+bug               Something isn't working                     #d73a4a
+documentation     Improvements or additions to documentation  #0075ca
+duplicate         This issue or pull request already exists   #cfd3d7
+enhancement       New feature or request                      #a2eeef
+good first issue  Good for newcomers                          #7057ff
+help wanted       Extra attention is needed                   #008672
+invalid           This doesn't seem right                     #e4e669
+question          Further information is requested            #d876e3
+wontfix           This will not be worked on                  #ffffff
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='query { node(id:"PVTF_lAHOAG6fZ84BhoLTzhgjSTY") { ... on ProjectV2Field { id name } ... on ProjectV2SingleSelectField { id name options { id name } } } }'
+{
+  "data": {
+    "node": {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjSTY",
+      "name": "Priority"
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='{ __type(name:"CreateProjectV2FieldInput") { inputFields { name type { kind name ofType { kind name } } } } }'
+{
+  "data": {
+    "__type": {
+      "inputFields": [
+        {
+          "name": "clientMutationId",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        },
+        {
+          "name": "projectId",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "SCALAR",
+              "name": "ID"
+            }
+          }
+        },
+        {
+          "name": "dataType",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "ENUM",
+              "name": "ProjectV2CustomFieldType"
+            }
+          }
+        },
+        {
+          "name": "name",
+          "type": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "SCALAR",
+              "name": "String"
+            }
+          }
+        },
+        {
+          "name": "singleSelectOptions",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null
+            }
+          }
+        },
+        {
+          "name": "multiSelectOptions",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null
+            }
+          }
+        },
+        {
+          "name": "iterationConfiguration",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "ProjectV2IterationFieldConfigurationInput",
+            "ofType": null
+          }
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='{ __type(name:"ProjectV2CustomFieldType") { enumValues { name } } }'
+{
+  "data": {
+    "__type": {
+      "enumValues": [
+        {
+          "name": "TEXT"
+        },
+        {
+          "name": "SINGLE_SELECT"
+        },
+        {
+          "name": "MULTI_SELECT"
+        },
+        {
+          "name": "NUMBER"
+        },
+        {
+          "name": "DATE"
+        },
+        {
+          "name": "ITERATION"
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='query { node(id:"PVTF_lAHOAG6fZ84BhoLTzhgjSTY") { __typename } }'
+{
+  "data": {
+    "node": {
+      "__typename": "ProjectV2Field"
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='{ __type(name:"ProjectV2SingleSelectFieldOptionInput") { inputFields { name } } }'
+{
+  "data": {
+    "__type": {
+      "inputFields": [
+        {
+          "name": "id"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "color"
+        },
+        {
+          "name": "description"
+        }
+      ]
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='query { user(login:"tlindi") { projectV2(number:1) { id title } } }'
+{
+  "data": {
+    "user": {
+      "projectV2": {
+        "id": "PVT_kwHOAG6fZ84BhoLT",
+        "title": "Jagports Vehicle Information and EPC System"
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='mutation($projectId:ID!,$name:String!,$dataType:ProjectV2CustomFieldType!,$options:[ProjectV2SingleSelectFieldOptionInput!]){createProjectV2Field(input:{projectId:$projectId,name:$name,dataType:$dataType,singleSelectOptions:$options}){projectV2Field{id name}}}' -F projectId='PVT_kwHOAG6fZ84BhoLT' -F name='Work Type' -F dataType='SINGLE_SELECT' -f options='[{"name":"Research","color":"BLUE","description":"Research and information gathering."},{"name":"Decision","color":"YELLOW","description":"Decision, approval, or policy work."},{"name":"Development","color":"PURPLE","description":"Coding or technical implementation."},{"name":"Review","color":"ORANGE","description":"Review, validation, or quality assurance."},{"name":"Documentation","color":"GRAY","description":"Documentation, instructions, or project memory."},{"name":"Operations","color":"GREEN","description":"Operational, administrative, or coordination work."}]'
+{
+  "errors": [
+    {
+      "path": [
+        "mutation",
+        "createProjectV2Field",
+        "projectV2Field",
+        "id"
+      ],
+      "extensions": {
+        "code": "selectionMismatch",
+        "nodeName": "ProjectV2FieldConfiguration"
+      },
+      "locations": [
+        {
+          "line": 1,
+          "column": 236
+        }
+      ],
+      "message": "Selections can't be made directly on unions (see selections on ProjectV2FieldConfiguration)"
+    },
+    {
+      "path": [
+        "mutation",
+        "createProjectV2Field",
+        "projectV2Field",
+        "name"
+      ],
+      "extensions": {
+        "code": "selectionMismatch",
+        "nodeName": "ProjectV2FieldConfiguration"
+      },
+      "locations": [
+        {
+          "line": 1,
+          "column": 236
+        }
+      ],
+      "message": "Selections can't be made directly on unions (see selections on ProjectV2FieldConfiguration)"
+    }
+  ]
+}
+gh: Selections can't be made directly on unions (see selections on ProjectV2FieldConfiguration)
+Selections can't be made directly on unions (see selections on ProjectV2FieldConfiguration)
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh project field-list 1 --owner tlindi --format json
+{
+  "fields": [
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMQ",
+      "name": "Title",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMU",
+      "name": "Assignees",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+      "name": "Status",
+      "options": [
+        {
+          "id": "f75ad846",
+          "name": "BACKLOG"
+        },
+        {
+          "id": "47fc9ee4",
+          "name": "RESEARCH"
+        },
+        {
+          "id": "fe06b432",
+          "name": "PROPOSED"
+        },
+        {
+          "id": "7ba628dc",
+          "name": "DECISION NEEDED"
+        },
+        {
+          "id": "4683185c",
+          "name": "APPROVED"
+        },
+        {
+          "id": "087a1dfe",
+          "name": "CODING"
+        },
+        {
+          "id": "f93c3f0d",
+          "name": "REVIEW"
+        },
+        {
+          "id": "f82a7987",
+          "name": "TESTING"
+        },
+        {
+          "id": "98236657",
+          "name": "DONE"
+        },
+        {
+          "id": "92d95536",
+          "name": "BLOCKED"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMc",
+      "name": "Labels",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMg",
+      "name": "Linked pull requests",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMk",
+      "name": "Milestone",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMo",
+      "name": "Repository",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMw",
+      "name": "Reviewers",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM0",
+      "name": "Parent issue",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM4",
+      "name": "Sub-issues progress",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM8",
+      "name": "Created",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONA",
+      "name": "Updated",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONE",
+      "name": "Closed",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjSTY",
+      "name": "Priority",
+      "type": "ProjectV2Field"
+    }
+  ],
+  "totalCount": 14
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh api graphql -f query='mutation($projectId:ID!,$name:String!,$dataType:ProjectV2CustomFieldType!,$options:[ProjectV2SingleSelectFieldOptionInput!]){createProjectV2Field(input:{projectId:$projectId,name:$name,dataType:$dataType,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}' -F projectId='PVT_kwHOAG6fZ84BhoLT' -F name='Work Type' -F dataType='SINGLE_SELECT' -f options='[{"name":"Research","color":"BLUE","description":"Research and information gathering."},{"name":"Decision","color":"YELLOW","description":"Decision, approval, or policy work."},{"name":"Development","color":"PURPLE","description":"Coding or technical implementation."},{"name":"Review","color":"ORANGE","description":"Review, validation, or quality assurance."},{"name":"Documentation","color":"GRAY","description":"Documentation, instructions, or project memory."},{"name":"Operations","color":"GREEN","description":"Operational, administrative, or coordination work."}]'
+{
+  "errors": [
+    {
+      "extensions": {
+        "value": "[{\"name\":\"Research\",\"color\":\"BLUE\",\"description\":\"Research and information gathering.\"},{\"name\":\"Decision\",\"color\":\"YELLOW\",\"description\":\"Decision, approva
+l, or policy work.\"},{\"name\":\"Development\",\"color\":\"PURPLE\",\"description\":\"Coding or technical implementation.\"},{\"name\":\"Review\",\"color\":\"ORANGE\",\"description\":\"Review, val
+idation, or quality assurance.\"},{\"name\":\"Documentation\",\"color\":\"GRAY\",\"description\":\"Documentation, instructions, or project memory.\"},{\"name\":\"Operations\",\"color\":\"GREEN\",\"
+description\":\"Operational, administrative, or coordination work.\"}]",
+        "problems": [
+          {
+            "path": [
+              0
+            ],
+            "explanation": "Expected \"[{\\\"name\\\":\\\"Research\\\",\\\"color\\\":\\\"BLUE\\\",\\\"description\\\":\\\"Research and information gathering.\\\"},{\\\"name\\\":\\\"Decision\\\",\\\
+"color\\\":\\\"YELLOW\\\",\\\"description\\\":\\\"Decision, approval, or policy work.\\\"},{\\\"name\\\":\\\"Development\\\",\\\"color\\\":\\\"PURPLE\\\",\\\"description\\\":\\\"Coding or technical
+ implementation.\\\"},{\\\"name\\\":\\\"Review\\\",\\\"color\\\":\\\"ORANGE\\\",\\\"description\\\":\\\"Review, validation, or quality assurance.\\\"},{\\\"name\\\":\\\"Documentation\\\",\\\"color\
+\\":\\\"GRAY\\\",\\\"description\\\":\\\"Documentation, instructions, or project memory.\\\"},{\\\"name\\\":\\\"Operations\\\",\\\"color\\\":\\\"GREEN\\\",\\\"description\\\":\\\"Operational, admin
+istrative, or coordination work.\\\"}]\" to be a key-value object."
+          }
+        ]
+      },
+      "locations": [
+        {
+          "line": 1,
+          "column": 75
+        }
+      ],
+      "message": "Variable $options of type [ProjectV2SingleSelectFieldOptionInput!] was provided invalid value for 0 (Expected \"[{\\\"name\\\":\\\"Research\\\",\\\"color\\\":\\\"BLUE\\\",\\\"desc
+ription\\\":\\\"Research and information gathering.\\\"},{\\\"name\\\":\\\"Decision\\\",\\\"color\\\":\\\"YELLOW\\\",\\\"description\\\":\\\"Decision, approval, or policy work.\\\"},{\\\"name\\\":\
+\\"Development\\\",\\\"color\\\":\\\"PURPLE\\\",\\\"description\\\":\\\"Coding or technical implementation.\\\"},{\\\"name\\\":\\\"Review\\\",\\\"color\\\":\\\"ORANGE\\\",\\\"description\\\":\\\"Re
+view, validation, or quality assurance.\\\"},{\\\"name\\\":\\\"Documentation\\\",\\\"color\\\":\\\"GRAY\\\",\\\"description\\\":\\\"Documentation, instructions, or project memory.\\\"},{\\\"name\\\
+":\\\"Operations\\\",\\\"color\\\":\\\"GREEN\\\",\\\"description\\\":\\\"Operational, administrative, or coordination work.\\\"}]\" to be a key-value object.)"
+    }
+  ]
+}
+gh: Variable $options of type [ProjectV2SingleSelectFieldOptionInput!] was provided invalid value for 0 (Expected "[{\"name\":\"Research\",\"color\":\"BLUE\",\"description\":\"Research and informat
+ion gathering.\"},{\"name\":\"Decision\",\"color\":\"YELLOW\",\"description\":\"Decision, approval, or policy work.\"},{\"name\":\"Development\",\"color\":\"PURPLE\",\"description\":\"Coding or tec
+hnical implementation.\"},{\"name\":\"Review\",\"color\":\"ORANGE\",\"description\":\"Review, validation, or quality assurance.\"},{\"name\":\"Documentation\",\"color\":\"GRAY\",\"description\":\"D
+ocumentation, instructions, or project memory.\"},{\"name\":\"Operations\",\"color\":\"GREEN\",\"description\":\"Operational, administrative, or coordination work.\"}]" to be a key-value object.)
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ ^C
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ gh project field-list 1 --owner tlindi --format json
+{
+  "fields": [
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMQ",
+      "name": "Title",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMU",
+      "name": "Assignees",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+      "name": "Status",
+      "options": [
+        {
+          "id": "f75ad846",
+          "name": "BACKLOG"
+        },
+        {
+          "id": "47fc9ee4",
+          "name": "RESEARCH"
+        },
+        {
+          "id": "fe06b432",
+          "name": "PROPOSED"
+        },
+        {
+          "id": "7ba628dc",
+          "name": "DECISION NEEDED"
+        },
+        {
+          "id": "4683185c",
+          "name": "APPROVED"
+        },
+        {
+          "id": "087a1dfe",
+          "name": "CODING"
+        },
+        {
+          "id": "f93c3f0d",
+          "name": "REVIEW"
+        },
+        {
+          "id": "f82a7987",
+          "name": "TESTING"
+        },
+        {
+          "id": "98236657",
+          "name": "DONE"
+        },
+        {
+          "id": "92d95536",
+          "name": "BLOCKED"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMc",
+      "name": "Labels",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMg",
+      "name": "Linked pull requests",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMk",
+      "name": "Milestone",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMo",
+      "name": "Repository",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMw",
+      "name": "Reviewers",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM0",
+      "name": "Parent issue",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM4",
+      "name": "Sub-issues progress",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM8",
+      "name": "Created",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONA",
+      "name": "Updated",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONE",
+      "name": "Closed",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjSTY",
+      "name": "Priority",
+      "type": "ProjectV2Field"
+    }
+  ],
+  "totalCount": 14
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ printf '%s\n' '{"projectId":"PVT_kwHOAG6fZ84BhoLT","name":"Work Type","dataType":"SINGLE_SELECT","options":[{"name":"Research","color":"BLUE","description":"Research and information gathering."},{"name":"Decision","color":"YELLOW","description":"Decision, approval, or policy work."},{"name":"Development","color":"PURPLE","description":"Coding or technical implementation."},{"name":"Review","color":"ORANGE","description":"Review, validation, or quality assurance."},{"name":"Documentation","color":"GRAY","description":"Documentation, instructions, or project memory."},{"name":"Operations","color":"GREEN","description":"Operational, administrative, or coordination work."}]}' > jagports-work-type.json
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ python -c "import json; d=json.load(open('jagports-work-type.json')); q='mutation($projectId:ID!,$name:String!,$dataType:ProjectV2CustomFieldType!,$options:[ProjectV2SingleSelectFieldOptionInput!]){createProjectV2Field(input:{projectId:$projectId,name:$name,dataType:$dataType,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'; json.dump({'query':q,'variables':{'projectId':d['projectId'],'name':d['name'],'dataType':d['dataType'],'options':d['options']}},open('jagports-work-type-graphql.json','w'))"
+bash: !,: event not found
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > make-work-type-query.py <<'PY'
+import json
+
+d = json.load(open("jagports-work-type.json"))
+
+q = 'mutation($projectId:ID!,$name:String!,$dataType:ProjectV2CustomFieldType!,$options:[ProjectV2SingleSelectFieldOptionInput!]){createProjectV2Field(input:{projectId:$projectId,name:$name,dataType:$dataType,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'
+
+json.dump(
+    {
+        "query": q,
+        "variables": {
+            "projectId": d["projectId"],
+            "name": d["name"],
+            "dataType": d["dataType"],
+            "options": d["options"]
+        }
+    },
+    open("jagports-work-type-graphql.json", "w")
+)
+PY
+
+python make-work-type-query.py
+
+gh api graphql --input jagports-work-type-graphql.json
+{
+  "data": {
+    "createProjectV2Field": {
+      "projectV2Field": {
+        "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgkNAI",
+        "name": "Work Type",
+        "options": [
+          {
+            "id": "810602b6",
+            "name": "Research",
+            "color": "BLUE",
+            "description": "Research and information gathering."
+          },
+          {
+            "id": "c6db17cd",
+            "name": "Decision",
+            "color": "YELLOW",
+            "description": "Decision, approval, or policy work."
+          },
+          {
+            "id": "95e43327",
+            "name": "Development",
+            "color": "PURPLE",
+            "description": "Coding or technical implementation."
+          },
+          {
+            "id": "6a02ebd2",
+            "name": "Review",
+            "color": "ORANGE",
+            "description": "Review, validation, or quality assurance."
+          },
+          {
+            "id": "42d39d50",
+            "name": "Documentation",
+            "color": "GRAY",
+            "description": "Documentation, instructions, or project memory."
+          },
+          {
+            "id": "56b7de52",
+            "name": "Operations",
+            "color": "GREEN",
+            "description": "Operational, administrative, or coordination work."
+          }
+        ]
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > jagports-decision-status.json <<'EOF'
+{
+  "projectId": "PVT_kwHOAG6fZ84BhoLT",
+  "name": "Decision Status",
+  "dataType": "SINGLE_SELECT",
+  "options": [
+    {
+      "name": "Not Required",
+      "color": "GRAY",
+      "description": "No decision or approval is currently required."
+    },
+    {
+      "name": "Pending",
+      "color": "YELLOW",
+      "description": "A decision or approval is required."
+    },
+    {
+      "name": "Approved",
+      "color": "GREEN",
+      "description": "The required decision or approval has been granted."
+    },
+    {
+      "name": "Rejected",
+      "color": "RED",
+      "description": "The proposal or requested action was rejected."
+    }
+  ]
+}
+EOF
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > make-decision-status-query.py <<'PY'
+import json
+
+d = json.load(open("jagports-decision-status.json"))
+
+q = 'mutation($projectId:ID!,$name:String!,$dataType:ProjectV2CustomFieldType!,$options:[ProjectV2SingleSelectFieldOptionInput!]){createProjectV2Field(input:{projectId:$projectId,name:$name,dataType:$dataType,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'
+
+json.dump(
+    {
+        "query": q,
+        "variables": {
+            "projectId": d["projectId"],
+            "name": d["name"],
+            "dataType": d["dataType"],
+            "options": d["options"]
+        }
+    },
+    open("jagports-decision-status-graphql.json", "w")
+)
+PY
+
+python make-decision-status-query.py
+gh api graphql --input jagports-decision-status-graphql.json
+{
+  "data": {
+    "createProjectV2Field": {
+      "projectV2Field": {
+        "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgkNQQ",
+        "name": "Decision Status",
+        "options": [
+          {
+            "id": "b55d86f2",
+            "name": "Not Required",
+            "color": "GRAY",
+            "description": "No decision or approval is currently required."
+          },
+          {
+            "id": "54e7039b",
+            "name": "Pending",
+            "color": "YELLOW",
+            "description": "A decision or approval is required."
+          },
+          {
+            "id": "a442a6c3",
+            "name": "Approved",
+            "color": "GREEN",
+            "description": "The required decision or approval has been granted."
+          },
+          {
+            "id": "ae5d30e6",
+            "name": "Rejected",
+            "color": "RED",
+            "description": "The proposal or requested action was rejected."
+          }
+        ]
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > jagports-dependencies.json <<'EOF'
+{
+  "projectId": "PVT_kwHOAG6fZ84BhoLT",
+  "name": "Dependencies",
+  "dataType": "TEXT"
+}
+EOF
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > make-dependencies-query.py <<'PY'
+import json
+
+d = json.load(open("jagports-dependencies.json"))
+
+q = 'mutation($projectId:ID!,$name:String!,$dataType:ProjectV2CustomFieldType!){createProjectV2Field(input:{projectId:$projectId,name:$name,dataType:$dataType}){projectV2Field{... on ProjectV2Field{id name}}}}'
+
+json.dump(
+    {
+        "query": q,
+        "variables": {
+            "projectId": d["projectId"],
+            "name": d["name"],
+            "dataType": d["dataType"]
+        }
+    },
+    open("jagports-dependencies-graphql.json", "w")
+)
+PY
+
+python make-dependencies-query.py
+gh api graphql --input jagports-dependencies-graphql.json
+{
+  "data": {
+    "createProjectV2Field": {
+      "projectV2Field": {
+        "id": "PVTF_lAHOAG6fZ84BhoLTzhgkNZE",
+        "name": "Dependencies"
+      }
+    }
+  }
+}
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > setup-remaining-kanban.py <<'PY'
+import json
+import subprocess
+import sys
+
+PROJECT_ID = "PVT_kwHOAG6fZ84BhoLT"
+REPO = "tlindi/jagports"
+
+fields = [
+    {
+        "name": "Risk",
+        "dataType": "SINGLE_SELECT",
+        "options": [
+            {"name": "None", "color": "GRAY", "description": "No material risk identified."},
+            {"name": "Low", "color": "GREEN", "description": "Low impact or easily manageable risk."},
+            {"name": "Medium", "color": "YELLOW", "description": "Meaningful risk requiring monitoring or mitigation."},
+            {"name": "High", "color": "ORANGE", "description": "Significant risk requiring active mitigation."},
+            {"name": "Critical", "color": "RED", "description": "Severe risk that may block or materially threaten the work."}
+        ]
+    },
+    {
+        "name": "Executing Entity",
+        "dataType": "SINGLE_SELECT",
+        "options": [
+            {"name": "Product Owner", "color": "YELLOW", "description": "Human Product Owner executing the task."},
+            {"name": "Team Lead Agent", "color": "PURPLE", "description": "Team Lead Agent executing or coordinating the task."},
+            {"name": "Specialist Agent", "color": "BLUE", "description": "Specialist AI agent executing the task."},
+            {"name": "Human", "color": "GREEN", "description": "Human team member other than the Product Owner."}
+        ]
+    },
+    {
+        "name": "Execution Target",
+        "dataType": "TEXT"
+    }
+]
+
+query = '''
+query {
+  user(login:"tlindi") {
+gh label list --repo tlindi/jagports --limit 100jsonescription "Work cannot currently proceed" --color "d73a4a" --force "e4e669" --forcetion}} ... on ProjectV2Field{id name}}}}'rojectId,name:$name,
+CREATE: Risk
+{"data":{"createProjectV2Field":{"projectV2Field":{"id":"PVTSSF_lAHOAG6fZ84BhoLTzhgkOE4","name":"Risk","options":[{"id":"63a8ff03","name":"None","color":"GRAY","description":"No material risk ident
+ified."},{"id":"94b24603","name":"Low","color":"GREEN","description":"Low impact or easily manageable risk."},{"id":"d81dda35","name":"Medium","color":"YELLOW","description":"Meaningful risk requir
+ing monitoring or mitigation."},{"id":"3c38b0a5","name":"High","color":"ORANGE","description":"Significant risk requiring active mitigation."},{"id":"39541bba","name":"Critical","color":"RED","desc
+ription":"Severe risk that may block or materially threaten the work."}]}}}}
+CREATE: Executing Entity
+{"data":{"createProjectV2Field":{"projectV2Field":{"id":"PVTSSF_lAHOAG6fZ84BhoLTzhgkOGQ","name":"Executing Entity","options":[{"id":"474d49fc","name":"Product Owner","color":"YELLOW","description":
+"Human Product Owner executing the task."},{"id":"fa385afa","name":"Team Lead Agent","color":"PURPLE","description":"Team Lead Agent executing or coordinating the task."},{"id":"e57d4126","name":"S
+pecialist Agent","color":"BLUE","description":"Specialist AI agent executing the task."},{"id":"620f788c","name":"Human","color":"GREEN","description":"Human team member other than the Product Owne
+r."}]}}}}
+CREATE: Execution Target
+{"data":{"createProjectV2Field":{"projectV2Field":{"id":"PVTF_lAHOAG6fZ84BhoLTzhgkOGc","name":"Execution Target"}}}}
+
+FIELD SETUP COMPLETE
+
+=== CREATING / VERIFYING REPOSITORY LABELS ===
+✓ Label "agent" created in tlindi/jagports
+✓ Label "human" created in tlindi/jagports
+✓ Label "decision-needed" created in tlindi/jagports
+✓ Label "dependency" created in tlindi/jagports
+✓ Label "blocked" created in tlindi/jagports
+
+=== FINAL PROJECT FIELD LIST ===
+{
+  "fields": [
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMQ",
+      "name": "Title",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMU",
+      "name": "Assignees",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY",
+      "name": "Status",
+      "options": [
+        {
+          "id": "f75ad846",
+          "name": "BACKLOG"
+        },
+        {
+          "id": "47fc9ee4",
+          "name": "RESEARCH"
+        },
+        {
+          "id": "fe06b432",
+          "name": "PROPOSED"
+        },
+        {
+          "id": "7ba628dc",
+          "name": "DECISION NEEDED"
+        },
+        {
+          "id": "4683185c",
+          "name": "APPROVED"
+        },
+        {
+          "id": "087a1dfe",
+          "name": "CODING"
+        },
+        {
+          "id": "f93c3f0d",
+          "name": "REVIEW"
+        },
+        {
+          "id": "f82a7987",
+          "name": "TESTING"
+        },
+        {
+          "id": "98236657",
+          "name": "DONE"
+        },
+        {
+          "id": "92d95536",
+          "name": "BLOCKED"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMc",
+      "name": "Labels",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMg",
+      "name": "Linked pull requests",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMk",
+      "name": "Milestone",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMo",
+      "name": "Repository",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOMw",
+      "name": "Reviewers",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM0",
+      "name": "Parent issue",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM4",
+      "name": "Sub-issues progress",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjOM8",
+      "name": "Created",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONA",
+      "name": "Updated",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjONE",
+      "name": "Closed",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgjSTY",
+      "name": "Priority",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgkNAI",
+      "name": "Work Type",
+      "options": [
+        {
+          "id": "810602b6",
+          "name": "Research"
+        },
+        {
+          "id": "c6db17cd",
+          "name": "Decision"
+        },
+        {
+          "id": "95e43327",
+          "name": "Development"
+        },
+        {
+          "id": "6a02ebd2",
+          "name": "Review"
+        },
+        {
+          "id": "42d39d50",
+          "name": "Documentation"
+        },
+        {
+          "id": "56b7de52",
+          "name": "Operations"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgkNQQ",
+      "name": "Decision Status",
+      "options": [
+        {
+          "id": "b55d86f2",
+          "name": "Not Required"
+        },
+        {
+          "id": "54e7039b",
+          "name": "Pending"
+        },
+        {
+          "id": "a442a6c3",
+          "name": "Approved"
+        },
+        {
+          "id": "ae5d30e6",
+          "name": "Rejected"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgkNZE",
+      "name": "Dependencies",
+      "type": "ProjectV2Field"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgkOE4",
+      "name": "Risk",
+      "options": [
+        {
+          "id": "63a8ff03",
+          "name": "None"
+        },
+        {
+          "id": "94b24603",
+          "name": "Low"
+        },
+        {
+          "id": "d81dda35",
+          "name": "Medium"
+        },
+        {
+          "id": "3c38b0a5",
+          "name": "High"
+        },
+        {
+          "id": "39541bba",
+          "name": "Critical"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTSSF_lAHOAG6fZ84BhoLTzhgkOGQ",
+      "name": "Executing Entity",
+      "options": [
+        {
+          "id": "474d49fc",
+          "name": "Product Owner"
+        },
+        {
+          "id": "fa385afa",
+          "name": "Team Lead Agent"
+        },
+        {
+          "id": "e57d4126",
+          "name": "Specialist Agent"
+        },
+        {
+          "id": "620f788c",
+          "name": "Human"
+        }
+      ],
+      "type": "ProjectV2SingleSelectField"
+    },
+    {
+      "id": "PVTF_lAHOAG6fZ84BhoLTzhgkOGc",
+      "name": "Execution Target",
+      "type": "ProjectV2Field"
+    }
+  ],
+  "totalCount": 20
+}
+
+=== FINAL REPOSITORY LABEL LIST ===
+
+Showing 15 of 15 labels in tlindi/jagports
+
+NAME              DESCRIPTION                                  COLOR
+accessibility     Barrier affecting people with disabilities   #f143ab
+bug               Something isn't working                      #d73a4a
+documentation     Improvements or additions to documentation   #0075ca
+duplicate         This issue or pull request already exists    #cfd3d7
+enhancement       New feature or request                       #a2eeef
+good first issue  Good for newcomers                           #7057ff
+help wanted       Extra attention is needed                    #008672
+invalid           This doesn't seem right                      #e4e669
+question          Further information is requested             #d876e3
+wontfix           This will not be worked on                   #ffffff
+agent             Work executed by an AI agent                 #7057ff
+human             Work requiring human execution               #008672
+decision-needed   A decision or approval is required           #d876e3
+dependency        Work has an external or blocking dependency  #e4e669
+blocked           Work cannot currently proceed                #d73a4a
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > setup-p1-5.py <<'PY'
+from pathlib import Path
+
+path = Path("KANBAN_OPERATING_RULES.md")
+
+content = r"""# Jagports Kanban Operating Rules
+
+## Purpose
+
+The Jagports GitHub Project is the system of record for project work, task state,
+ownership, decisions, dependencies, risks, and execution coordination.
+
+The Kanban is the primary communication and work-control system between the
+Product Owner, Team Lead Agent, Specialist Agents, and human contributors.
+
+Repository: `tlindi/jagports`
+
+Project: `Jagports Vehicle Information and EPC System`
+
+---
+
+## 1. Authority and Roles
+
+### Product Owner
+
+The Product Owner is the final human authority for:
+
+- business priorities
+- scope
+- strategic direction
+- budget/cost decisions
+- external commitments
+- acceptance of materially important outcomes
+- decisions explicitly requiring human approval
+
+The Product Owner may create, edit, prioritize, assign, approve, block, review,
+and close work.
+
+The Product Owner may delegate execution, but delegation does not transfer
+git status --shortpytable, commit and push it.")odified.")ystem of recordanhecy.TESTING → DONE`
+CREATED: KANBAN_OPERATING_RULES.md
+
+P1.5 operating rules written.
+No GitHub Project fields or labels were modified.
+
+Next:
+  1. Review KANBAN_OPERATING_RULES.md
+  2. If acceptable, commit and push it.
+?? KANBAN_OPERATING_RULES.md
+?? jagports-decision-status-graphql.json
+?? jagports-decision-status.json
+?? jagports-dependencies-graphql.json
+?? jagports-dependencies.json
+?? jagports-graphql.json
+?? jagports-options.json
+?? jagports-work-type-graphql.json
+?? jagports-work-type.json
+?? kanban-create-executing-entity.json
+?? kanban-create-execution-target.json
+?? kanban-create-risk.json
+?? make-decision-status-query.py
+?? make-dependencies-query.py
+?? make-jagports-query.py
+?? make-project-query.py
+?? make-work-type-query.py
+?? setup-p1-5.py
+?? setup-remaining-kanban.py
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ cat > setup-p1-5.py <<'PY'
+from pathlib import Path
+
+path = Path("KANBAN_OPERATING_RULES.md")
+
+content = r"""# Jagports Kanban Operating Rules
+
+## Purpose
+
+The Jagports GitHub Project is the system of record for project work, task state,
+ownership, decisions, dependencies, risks, and execution coordination.
+
+The Kanban is the primary communication and work-control system between the
+Product Owner, Team Lead Agent, Specialist Agents, and human contributors.
+
+Repository: `tlindi/jagports`
+
+Project: `Jagports Vehicle Information and EPC System`
+
+---
+
+## 1. Authority and Roles
+
+### Product Owner
+
+The Product Owner is the final human authority for:
+
+- business priorities
+- scope
+- strategic direction
+- budget/cost decisions
+- external commitments
+- acceptance of materially important outcomes
+- decisions explicitly requiring human approval
+
+The Product Owner may create, edit, prioritize, assign, approve, block, review,
+and close work.
+
+The Product Owner may delegate execution, but delegation does not transfer
+git status --shortpytable, commit and push it.")odified.")ystem of recordanhecy.TESTING → DONE`
+CREATED: KANBAN_OPERATING_RULES.md
+
+P1.5 operating rules written.
+No GitHub Project fields or labels were modified.
+
+Next:
+  1. Review KANBAN_OPERATING_RULES.md
+  2. If acceptable, commit and push it.
+?? KANBAN_OPERATING_RULES.md
+?? jagports-decision-status-graphql.json
+?? jagports-decision-status.json
+?? jagports-dependencies-graphql.json
+?? jagports-dependencies.json
+?? jagports-graphql.json
+?? jagports-options.json
+?? jagports-work-type-graphql.json
+?? jagports-work-type.json
+?? kanban-create-executing-entity.json
+?? kanban-create-execution-target.json
+?? kanban-create-risk.json
+?? make-decision-status-query.py
+?? make-dependencies-query.py
+?? make-jagports-query.py
+?? make-project-query.py
+?? make-work-type-query.py
+?? setup-p1-5.py
+?? setup-remaining-kanban.py
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ sed -n '1,260p' KANBAN_OPERATING_RULES.md
+# Jagports Kanban Operating Rules
+
+## Purpose
+
+The Jagports GitHub Project is the system of record for project work, task state,
+ownership, decisions, dependencies, risks, and execution coordination.
+
+The Kanban is the primary communication and work-control system between the
+Product Owner, Team Lead Agent, Specialist Agents, and human contributors.
+
+Repository: `tlindi/jagports`
+
+Project: `Jagports Vehicle Information and EPC System`
+
+---
+
+## 1. Authority and Roles
+
+### Product Owner
+
+The Product Owner is the final human authority for:
+
+- business priorities
+- scope
+- strategic direction
+- budget/cost decisions
+- external commitments
+- acceptance of materially important outcomes
+- decisions explicitly requiring human approval
+
+The Product Owner may create, edit, prioritize, assign, approve, block, review,
+and close work.
+
+The Product Owner may delegate execution, but delegation does not transfer
+ultimate human decision authority.
+
+### Team Lead Agent
+
+The Team Lead Agent is responsible for coordinating the work system and keeping
+the Kanban operational.
+
+The Team Lead Agent may:
+
+- decompose approved goals into tasks
+- propose priorities
+- propose task ordering
+- assign work to suitable executing entities
+- coordinate Specialist Agents
+- move work through normal execution states
+- identify dependencies
+- identify and escalate risks
+- identify decisions requiring the Product Owner
+- review work before human acceptance where appropriate
+- maintain consistency of task structure and documentation
+
+The Team Lead Agent must not silently make a decision reserved for the Product
+Owner.
+
+When human authority is required, the task must enter `DECISION NEEDED` and the
+decision must be recorded.
+
+### Specialist Agent
+
+A Specialist Agent executes work within its assigned scope.
+
+A Specialist Agent may:
+
+- research
+- analyze
+- draft
+- code
+- test
+- document
+- perform other explicitly assigned work
+
+A Specialist Agent must report material findings, blockers, risks, dependencies,
+and proposed decisions through the Kanban/task record.
+
+A Specialist Agent does not independently redefine project scope or override
+Product Owner decisions.
+
+### Human Contributor
+
+A human contributor may execute assigned work according to the task definition.
+
+Material changes to scope, priority, architecture, cost, or policy must be
+escalated through the Kanban.
+
+---
+
+## 2. System of Record
+
+Every material piece of project work must have a corresponding Kanban item.
+
+The Kanban item is the authoritative record for:
+
+- what is being done
+- why it is being done
+- priority
+- executing entity
+- execution target
+- current state
+- dependencies
+- risk
+- decision status
+- relevant discussion
+- acceptance/review status
+
+Important decisions must not exist only in private chat.
+
+Where a decision is made outside GitHub, the resulting decision must be
+recorded in the relevant task or project documentation.
+
+---
+
+## 3. Task Creation
+
+Tasks may be proposed by the Product Owner, Team Lead Agent, Specialist Agents,
+or human contributors.
+
+However, proposed work does not automatically become committed work.
+
+New work should initially enter:
+
+`BACKLOG`
+
+unless there is a clear reason for another state.
+
+The task should contain enough information to understand:
+
+- objective
+- expected outcome
+- reason/context
+- proposed executor
+- execution target
+- dependencies
+- known risks
+- required decision/approval
+
+---
+
+## 4. Priority Rules
+
+Priority must be explicit.
+
+The project must not treat multiple tasks with the same priority as if they
+were automatically equal in execution order.
+
+Use the priority hierarchy defined by the project.
+
+Where exact ordering matters, use sub-priorities such as:
+
+- `P1`
+- `P1.1`
+- `P1.2`
+- `P1.3`
+- `P2`
+- `P2.1`
+
+The Product Owner has final authority over priority.
+
+The Team Lead Agent may propose priority and ordering and may maintain the
+execution sequence after approval.
+
+A lower-priority task must not displace a higher-priority task without an
+explicit reason or priority change.
+
+---
+
+## 5. Assignment and Executing Entity
+
+Each executable task should identify the actual executing entity.
+
+Use the Project `Executing Entity` field to distinguish:
+
+- Product Owner
+- Team Lead Agent
+- Specialist Agent
+- Human
+
+The GitHub `Assignees` field should identify the actual GitHub account when
+available.
+
+The task should also identify the concrete `Execution Target` where relevant,
+such as:
+
+- GitHub repository
+- GitHub Project
+- GitHub Issue
+- specific file
+- website
+- external system
+- local development environment
+- other required device/system
+
+---
+
+## 6. Kanban State Rules
+
+The controlled workflow is:
+
+`BACKLOG → RESEARCH → PROPOSED → DECISION NEEDED → APPROVED → CODING → REVIEW → TESTING → DONE`
+
+`BLOCKED` may be entered whenever work cannot proceed.
+
+### BACKLOG
+
+Work is identified but not actively being researched or executed.
+
+### RESEARCH
+
+Information gathering, investigation, discovery, or analysis is underway.
+
+### PROPOSED
+
+A concrete proposal or solution is ready for consideration.
+
+### DECISION NEEDED
+
+A human or otherwise required decision/approval is blocking progression.
+
+The task must clearly state what decision is required.
+
+### APPROVED
+
+The required proposal/work has been approved and may proceed.
+
+### CODING
+
+Implementation or other active technical execution is underway.
+
+### REVIEW
+
+Work is ready for review.
+
+### TESTING
+
+Implementation or output is being tested and validated.
+
+### DONE
+
+The work is completed and accepted according to the task's definition of done.
+
+### BLOCKED
+
+Work cannot proceed because of a dependency, missing decision, technical
+problem, external constraint, or other blocker.
+
+A blocked task should document:
+
+- blocker
+- impact
+- required resolution
+- responsible party where known
+
+---
+
+## 7. Moving Work
+
+The Team Lead Agent may move work through normal execution states when the
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ wc -l KANBAN_OPERATING_RULES.md
+sed -n '261,520p' KANBAN_OPERATING_RULES.md
+434 KANBAN_OPERATING_RULES.md
+required conditions are satisfied.
+
+The Product Owner may move or override state at any time.
+
+A Specialist Agent or Human Contributor should not move work into an approval
+or acceptance state merely by declaring its own work complete when independent
+approval is required.
+
+Moving to `DONE` means the defined completion/acceptance criteria have been met.
+
+---
+
+## 8. Decisions
+
+A decision requiring Product Owner authority must be explicit.
+
+The task should contain:
+
+1. the decision required
+2. relevant alternatives
+3. recommendation, if available
+4. consequences/risks
+5. Product Owner decision
+6. date/record of decision
+
+Use `Decision Status`:
+
+- `Not Required`
+- `Pending`
+- `Approved`
+- `Rejected`
+
+A rejected proposal must not silently continue as approved work.
+
+---
+
+## 9. Dependencies
+
+Dependencies must be recorded when another task, person, system, decision, or
+external condition is required before work can continue.
+
+Use the `Dependencies` field and/or task description to identify the dependency.
+
+If a dependency prevents progress, use:
+
+`BLOCKED`
+
+The Team Lead Agent is responsible for detecting and escalating unresolved
+dependencies.
+
+---
+
+## 10. Risk
+
+Material risk should be recorded using the `Risk` field:
+
+- `None`
+- `Low`
+- `Medium`
+- `High`
+- `Critical`
+
+High and Critical risks should be explicitly described in the task.
+
+A Critical risk may justify moving work to `BLOCKED` until resolved.
+
+---
+
+## 11. Labels
+
+Repository labels provide additional classification.
+
+Current operational labels include:
+
+- `agent`
+- `human`
+- `decision-needed`
+- `dependency`
+- `blocked`
+
+Labels should supplement Project fields, not replace them.
+
+Use Project fields for structured workflow information and labels for useful
+cross-cutting classification.
+
+---
+
+## 12. Review and Acceptance
+
+Review should verify that the actual result matches the task objective.
+
+Where appropriate:
+
+`CODING → REVIEW → TESTING → DONE`
+
+A task should not be marked `DONE` merely because implementation has stopped.
+
+The task should contain sufficient evidence that the expected result was
+achieved.
+
+The Product Owner retains final acceptance authority for materially important
+project outcomes.
+
+---
+
+## 13. Communication Rule
+
+The Kanban is the shared operational memory.
+
+Agents and humans should communicate material project information through the
+relevant task or linked project documentation.
+
+Important information must not depend on one person's private conversation
+history.
+
+If work discussed elsewhere becomes actionable, create or update the Kanban
+item.
+
+---
+
+## 14. Escalation Rule
+
+Escalate to the Product Owner when any of the following occurs:
+
+- strategic direction is unclear
+- priorities conflict
+- scope must materially change
+- an important business decision is required
+- cost or external commitment is involved
+- a high/critical risk cannot be resolved by the Team Lead Agent
+- an architectural or policy decision exceeds delegated authority
+- acceptance is disputed
+
+When escalation is required, the task should enter:
+
+`DECISION NEEDED`
+
+and its `Decision Status` should become:
+
+`Pending`
+
+---
+
+## 15. Operating Principle
+
+The Team Lead Agent coordinates execution.
+
+Specialist Agents and humans execute assigned work.
+
+The Product Owner retains final human authority.
+
+The Kanban records the work, its state, its owner/executor, decisions,
+dependencies, risks, and completion.
+
+No important project decision should depend solely on hidden conversation
+context.
+
+---
+
+## 16. P1.5 Completion Criteria
+
+P1.5 is complete when:
+
+- role authority is documented
+- task creation rules are documented
+- priority rules are documented
+- executing entity rules are documented
+- state-transition rules are documented
+- decision rules are documented
+- dependency rules are documented
+- risk rules are documented
+- review/acceptance rules are documented
+- Kanban communication is established as the operational system of record
+
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$ git add KANBAN_OPERATING_RULES.md && \
+git commit -m "Define Kanban operating rules" && \
+git push origin main && \
+rm -f \
+  setup-p1-5.py \
+  setup-remaining-kanban.py \
+  make-project-query.py \
+  make-jagports-query.py \
+  make-work-type-query.py \
+  make-decision-status-query.py \
+  make-dependencies-query.py \
+  jagports-options.json \
+  jagports-graphql.json \
+  jagports-work-type.json \
+  jagports-work-type-graphql.json \
+  jagports-decision-status.json \
+  jagports-decision-status-graphql.json \
+  jagports-dependencies.json \
+  jagports-dependencies-graphql.json \
+  kanban-create-risk.json \
+  kanban-create-executing-entity.json \
+  kanban-create-execution-target.json && \
+git status --short
+[main 252b38e] Define Kanban operating rules
+ 1 file changed, 434 insertions(+)
+ create mode 100644 KANBAN_OPERATING_RULES.md
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 3.83 KiB | 979.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/tlindi/jagports.git
+   75b0d2e..252b38e  main -> main
+
+tomil@x1carbon MINGW64 ~/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports (main)
+$
