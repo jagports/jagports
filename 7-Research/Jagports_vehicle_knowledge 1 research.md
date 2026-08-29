@@ -1207,17 +1207,67 @@ reconnaissance pass (in the style of RES-8/RES-9) to identify what materials
 actually exist, in what format, and under what access terms, per Range —
 before any decision about extraction or import is made.
 
----
+## 13. Jaguar Daimler Heritage Trust (JHT) chassis-number source — X100 VIN identity
 
-## 13. Issues / open questions to clarify
-- **13.1. Deployment scope vs. import scope** — goal §2 assumes the importer/parsing layer
+**Source**: `JaguarHeritageTrust_Chassis_Numbers.xlsx`, JDHT ("JHT"), 5 worksheets. Provenance tier: **A — factory/JDHT primary record** (per the vehicle-knowledge todo doc's own tier scale).
+
+### 13.1 X100 serial/production timeline (old + new VIN system)
+
+The old numeric system and the new `Axxxxx` system overlapped in January 1999 — the old system's last vehicle isn't until August 1999 (`042775`), while the new system's first vehicle (`A00001`) is dated January 1999. Both are real, simultaneous production, not a clean handover date.
+
+| Date | Short VIN | Event |
+|---|---|---|
+| 1996/02 | 001001 | Start of production |
+| 1996/06 | 001246 | 1997MY |
+| 1997/01 | 008106 | — |
+| 1997/08 | 018108 | 1998MY |
+| 1998/01 | 023018 | — |
+| 1998/02 | 024687 | 1998¾MY, launch of XKR |
+| 1998/08 | 031303 | 1999MY |
+| 1999/01 | 036194 | — |
+| 1999/01 | A00001 | First of new VIN system (runs alongside old system) |
+| 1999/04 | A00016 | 2000MY |
+| 1999/08 | 042775 | Last vehicle of old VIN system |
+| 2000/01 | A04808 | — |
+| 2000/02 | A06139 | First XKR Silverstone |
+| 2000/07 | A11051 | 2001MY |
+| 2001/01 | A17049 | — |
+| 2001/06 | A23312 | First XKR 100 |
+| 2001/07 | A24196 | 2002MY |
+| 2002/01 | A27749 | — |
+| 2002/06 | A30645 | 2003MY, 4.2L engine introduced (X103) |
+| 2003/01 | A35155 (coupe) | 2003½MY coupe |
+| 2003/01 | A35171 (convertible) | 2003½MY convertible |
+| 2003/06 | A36874 | 2004MY |
+| 2004/01 | A40265 | 2004.5MY (X105) |
+| 2004/06 | A42348 | 2005MY |
+| 2005/01 | A44686 | 2006MY |
+| 2005/02 | A45289 | Introduction of 4.2S Final Edition (possibly — JDHT's own hedge, not this project's) |
+| 2005/05 | A48684 | Last unit off the line |
+
+This directly corroborates the regression-fixture VIN list already recorded elsewhere in this project from a separate source (jaguarforums attachment) — the two independently agree on every milestone value.
+
+### 13.2 VIN position-decode scheme, as stated by JDHT
+
+| Positions | 1996–1999 (old system) | 2000–2005 (new "A" system) |
+|---|---|---|
+| 1–3 | `SAJ` = Jaguar manufacturer code | same |
+| 4 | `J` = Jaguar model (vs. Daimler) | not restated by JDHT for this era |
+| 5 | `G` = XK8/XKR | — |
+| 6 | — | `4` = XK8/XKR |
+| 7 | `E` = Coupe, `F` = Convertible | `1` = Coupe, `2` = Convertible |
+
+**Not yet confirmed as a general rule**: position 4 (`J` = Jaguar vs. Daimler) doesn't hold up against real VINs already on file for known X100 cars in this project (`SAJGX2744VC015283`, `SAJAA41E5YNA03059`, `SAJDA42C72NA25775` — positions 4 = `G`, `A`, `D` respectively, none of them Daimler-badged cars). Treat this specific sub-rule as JDHT's stated claim, not yet validated at project scope — position 4 more likely encodes something finer-grained (engine/line variant) that JDHT's summary sheet simplified. Positions 5/6/7 held up on every VIN spot-checked. This is exactly the kind of candidate-mapping-vs-confirmed-rule distinction the vehicle-knowledge todo doc's own framework is designed for — status here should stay `hypothesized` for position 4 specifically, `confirmed` for 1–3 and 5–7.
+
+## 14. Issues / open questions to clarify
+- **14.1. Deployment scope vs. import scope** — goal §2 assumes the importer/parsing layer
   supports the full JEPC data format regardless of model. All Ranges (§4.13) are
   treated equally, so this is not a question of priority — but Mark 2 Range, XK
   Classic Range, and Early Saloons have no JEPC data at all and would need to be
   populated solely from their SNG PDF catalogue (§9, §11) if imported; confirm
   whether/when that SNG-only import path gets built versus staying JEPC-only for
   now.
-- **13.2. `A<groupId>` attribute meanings** — the numeric group ids (engine type, trim,
+- **14.2. `A<groupId>` attribute meanings** — the numeric group ids (engine type, trim,
   transmission, etc.) are not decoded. Not required for the filtering algorithm itself
   (§4.8), which only needs to compare a vehicle's own list of `groupId`/`valueCode`
   pairs against a part's requirements without knowing what any group "means" — but
@@ -1225,66 +1275,66 @@ before any decision about extraction or import is made.
   codes, and would help troubleshoot filtering results. Would likely require either a
   labels/lookup XML file not yet located, or inferring meaning from cross-referencing
   many category attribute files against known factory option codes.
-- **13.3. Vehicle attribute source for VIN search** — vehicle-specific search (goal §2.III)
+- **14.3. Vehicle attribute source for VIN search** — vehicle-specific search (goal §2.III)
   is now a standard, non-deferred feature, but JEPC's own VIN→attribute decode has no
   offline data path (§3/§4.8). Need a source for a vehicle's attribute list to filter
   against: likely limited at first to vehicles already recorded as a Donor Vehicle
   (§6.4) with known attributes, rather than an arbitrary typed-in VIN.
-- **13.4. `internalPartNo` client code** (the 2 characters after `pb_` in field 8 of an item
+- **14.4. `internalPartNo` client code** (the 2 characters after `pb_` in field 8 of an item
   drilldown record, §4.7) — purpose not confirmed, possibly a plant/region code.
-- **13.5. Field index 9** of the item-drilldown 12-field schema (§4.7) is present but unused
+- **14.5. Field index 9** of the item-drilldown 12-field schema (§4.7) is present but unused
   by the client code seen so far — meaning unknown.
-- **13.6. `isDFS` flag** (field index 5, §4.7) — likely "Discontinued/Direct Factory Supply"
+- **14.6. `isDFS` flag** (field index 5, §4.7) — likely "Discontinued/Direct Factory Supply"
   or similar, not fully confirmed.
-- **13.7. Flash-image ↔ full-size-PNG filename linkage** (§4.1/§4.5) — likely but not
+- **14.7. Flash-image ↔ full-size-PNG filename linkage** (§4.1/§4.5) — likely but not
   directly proven on a single category that has both a `flash/images`+`flash/xml`
   pair and an `illustrations/png` entry sharing the same code.
-- **13.8. `hotspotClick()` definition** — referenced in `JEPCProductDrillDown.html` (§4.9)
+- **14.8. `hotspotClick()` definition** — referenced in `JEPCProductDrillDown.html` (§4.9)
   but not located in any JS file reviewed so far. Low priority since the new app only
   needs the underlying data (already decoded, §4.10), not Jaguar's own click-handling.
-- **13.9. Hotspot ↔ itemNo reverse cardinality** — confirmed that each hotspot resolves to
+- **14.9. Hotspot ↔ itemNo reverse cardinality** — confirmed that each hotspot resolves to
   one `itemNo` (§4.9), but not confirmed whether a given `itemNo` can be the target of
   more than one hotspot region on the same diagram.
-- **13.10. Hotspot coordinate formula** (§4.10) — the twips-based conversion is a plausible
+- **14.10. Hotspot coordinate formula** (§4.10) — the twips-based conversion is a plausible
   hypothesis, not yet visually validated against a real rendered hotspot; alternative
   explanations that could produce a similar-looking relationship include a Flash-stage
   scale transform inside `PartImage.swf` itself, image letterboxing/centering within
   the fixed 400×500 movie canvas, or some other SWF-internal coordinate transform —
   needs checking against an actual rendered diagram before relying on it.
-- **13.11. Real `Price_...xml` sample** — field meaning is known from code (§4.12), but no
+- **14.11. Real `Price_...xml` sample** — field meaning is known from code (§4.12), but no
   real numbers or currency-name field have been seen yet. This is now needed (not
   optional) given the legacy reference-pricing feature (§6.10) — specifically, where
   in these files (or in session/install metadata) the currency *name* is recorded, and
   which installations/machines have the USD-2009, GBP-2009, and RUB-~2012 snapshots
   available to import.
-- **13.12. `BoxSub2` overloading** (§5.2 col E) — the list also contains directional/grouping
+- **14.12. `BoxSub2` overloading** (§5.2 col E) — the list also contains directional/grouping
   codes (`1/2`, `2/2`, `R1`, `R2`) alongside genuine sub-compartment labels; needs
   clarifying whether this is really one field doing two jobs.
-- **13.13. `Stock` sheet column H (`Part-jag`)** (§5.2) — formula nominally pulls
+- **14.13. `Stock` sheet column H (`Part-jag`)** (§5.2) — formula nominally pulls
   `Jaguar ProdName` from `PartsMaster`, but sample values look like category-path
   strings instead — worth checking against the live workbook.
-- **13.14. `Stock value` column** (`PartsMaster` col 31, §5.1) — unclear whether this is
+- **14.14. `Stock value` column** (`PartsMaster` col 31, §5.1) — unclear whether this is
   `Stock × Price` or a duplicate of the `Stock` quantity column.
-- **13.15. `Price EU euro` vs `Price Euro`** (`PartsMaster` cols 19/21, §5.1) — needs
+- **14.15. `Price EU euro` vs `Price Euro`** (`PartsMaster` cols 19/21, §5.1) — needs
   confirming which is cost and which is sell price.
-- **13.16. Image-pin coordinate system** (§6.6's `admin_part_pin`) — before building the
+- **14.16. Image-pin coordinate system** (§6.6's `admin_part_pin`) — before building the
   pinning UI, need to decide whether admins pin on the small Flash-viewer JPGs
   (twips-based coordinate hypothesis per §4.10) or the full-res illustration PNGs
   (presumably plain pixels), since that affects how the UI captures and converts click
   coordinates.
-- **13.17. Second site's name** — the `RnX`-style shelf codes in `StockUnits.Shelfs` (§5.2)
+- **14.17. Second site's name** — the `RnX`-style shelf codes in `StockUnits.Shelfs` (§5.2)
   belong to a second business site distinct from `ESPOO`, but that site's own name
   isn't recorded anywhere in the Excel data; need the actual name to populate
   `storage_location.site` (§6.3).
-- **13.18. Listing "committed quantity" policy** (§6.5's `available_quantity`) — whether a
+- **14.18. Listing "committed quantity" policy** (§6.5's `available_quantity`) — whether a
   `draft` listing should reserve stock the same way an `active` one does, or only
   `active`/`sold` listings count against `quantity_on_hand`.
-- **13.19. Standalone Accessories Range fitment scope** (§4.13) — need to confirm
+- **14.19. Standalone Accessories Range fitment scope** (§4.13) — need to confirm
   during import whether individual accessory items (under `3484`'s leaves, or
   under a nested per-vehicle `ACCESSORIES` branch) carry their own
   per-vehicle-Range fitment/attribute data (§4.8) the way ordinary parts do, or
   whether fitment for this Range has to be sourced/entered differently.
-- **13.20. Per-model Accessories leaf `modelId`s** (§4.13) — the business owner has
+- **14.20. Per-model Accessories leaf `modelId`s** (§4.13) — the business owner has
   confirmed by name that leaf entries like `F-PACE ACCESSORIES`,
   `XF ACCESSORIES`/`ALL NEW XF ACCESSORIES`, `XJ RANGE ACCESSORIES FROM (V)
   G00442 to (V) H32732`/`...FROM (V) V00001`, and `XK ACCESSORIES FROM (V)
@@ -1292,7 +1342,7 @@ before any decision about extraction or import is made.
   none appear in the sampled `models_l_id_0.xml` — their real `modelId`s need
   locating in the full model list before these can be imported and merged as
   specified.
-- **13.21. Historical marketing materials as a source** (§12) — nothing has been located
+- **14.21. Historical marketing materials as a source** (§12) — nothing has been located
   yet; open until a reconnaissance pass identifies what actually exists, in what
   format, and under what access/copyright terms.
 
