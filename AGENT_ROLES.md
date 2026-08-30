@@ -8,7 +8,7 @@ an existing account (ChatGPT/Claude conversation, or Codex Web) as noted below.
 Splitting a role into its own dedicated account is a future option, not a
 current requirement.
 
-Repository: `tlindi/jagports`
+Repository: `jagports/jagports`
 
 ---
 
@@ -63,7 +63,7 @@ Executes approved implementation tasks: writes code, runs tests, opens
 changes against the repository.
 
 Maps to: `KANBAN_OPERATING_RULES.md` — "Specialist Agent" (execution scope)
-Current executor: Codex Web, connected to `tlindi/jagports`
+Current executor: Codex Web, connected to `jagports/jagports`
 
 ---
 
