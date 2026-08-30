@@ -23,7 +23,9 @@ Before creating a Pull Request:
 
 ## GitHub Issue Closing Syntax
 
-Always use GitHub issue linking notation.
+Every Pull Request that completes a GitHub Issue must link to the Issue it closes.
+
+Always use GitHub issue closing notation:
 
 Correct:
 
@@ -35,7 +37,13 @@ Closes 123
 Closes Issue 123
 Closes P2.3
 
-The `#IssueNumber` format is required so GitHub links the Pull Request and Issue.
+The `#IssueNumber` format is required because it creates the PR ↔ Issue relationship in GitHub.
+
+Purpose:
+
+- Links implementation work to the original task.
+- Allows GitHub to automatically close the Issue after the Pull Request is merged.
+- Maintains traceability between Kanban task, Issue, Pull Request, review, and completion.
 
 ## GitHub API Rules
 
