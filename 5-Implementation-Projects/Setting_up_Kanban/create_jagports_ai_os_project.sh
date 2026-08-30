@@ -10,21 +10,19 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
-PROJECT_URL=$(gh project list --owner "$PROJECT_OWNER" --format json --limit 100 2>/dev/null | python -c "import json,sys; d=json.load(sys.stdin); [print(p['url']) for p in d if isinstance(p,dict) and p.get('title')=='$PROJECT_TITLE']" | head -n 1)
+PROJECT_NUMBER=$(gh project list --owner "$PROJECT_OWNER" --format json --limit 100 | python -c "import json,sys; d=json.load(sys.stdin); p=d.get('projects',d) if isinstance(d,(dict,list)) else []; [print(x.get('number')) for x in p if isinstance(x,dict) and x.get('title')=='$PROJECT_TITLE']" | head -n 1)
 
-if [ -n "$PROJECT_URL" ]; then
-  PROJECT_NUMBER=$(printf '%s\n' "$PROJECT_URL" | sed 's:/*$::' | sed 's:.*/::')
-  echo "Project already exists: $PROJECT_TITLE"
-else
+if [ -z "$PROJECT_NUMBER" ]; then
   echo "Creating Project: $PROJECT_TITLE"
-  CREATE_OUTPUT=$(gh project create --owner "$PROJECT_OWNER" --title "$PROJECT_TITLE" 2>&1)
-  CREATE_RC=$?
-  printf '%s\n' "$CREATE_OUTPUT"
-  if [ "$CREATE_RC" -ne 0 ]; then
+  CREATE_OUTPUT=$(gh project create --owner "$PROJECT_OWNER" --title "$PROJECT_TITLE") || {
     echo "ERROR: Project creation failed." >&2
-    exit "$CREATE_RC"
+    exit 1
+  }
+  echo "$CREATE_OUTPUT"
+  PROJECT_NUMBER=$(printf '%s\n' "$CREATE_OUTPUT" | sed -n 's#^.*/projects/\([0-9][0-9]*\).*$#\1#p' | head -n 1)
+  if [ -z "$PROJECT_NUMBER" ]; then
+    PROJECT_NUMBER=$(gh project list --owner "$PROJECT_OWNER" --format json --limit 100 | python -c "import json,sys; d=json.load(sys.stdin); p=d.get('projects',d) if isinstance(d,(dict,list)) else []; [print(x.get('number')) for x in p if isinstance(x,dict) and x.get('title')=='$PROJECT_TITLE']" | head -n 1)
   fi
-  PROJECT_NUMBER=$(printf '%s\n' "$CREATE_OUTPUT" | sed -n 's:.*/projects/\([0-9][0-9]*\).*:\1:p' | tail -n 1)
 fi
 
 if [ -z "$PROJECT_NUMBER" ]; then
