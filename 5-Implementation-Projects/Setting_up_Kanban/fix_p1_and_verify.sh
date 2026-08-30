@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ID="PVT_kwHOAG6fZ84BhoLT"
-STATUS_FIELD_ID="PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY"
-PRIORITY_FIELD_ID="PVTF_lAHOAG6fZ84BhoLTzhgjSTY"
-STATUS_DONE="98236657"
+REPO="${REPO:-$(gh repo view --json nameWithOwner --jq '.nameWithOwner')}"
+PROJECT_OWNER="${PROJECT_OWNER:-${REPO%%/*}}"
+PROJECT_NUMBER="${PROJECT_NUMBER:-1}"
+PROJECT_ID="${PROJECT_ID:-}"
+STATUS_FIELD_ID="${STATUS_FIELD_ID:-}"
+PRIORITY_FIELD_ID="${PRIORITY_FIELD_ID:-}"
+STATUS_DONE="${STATUS_DONE:-}"
 
-echo "=== Fixing [P1] Open Kanban ==="
+if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$PRIORITY_FIELD_ID" ] || [ -z "$STATUS_DONE" ]; then
+  echo "ERROR: Project configuration is incomplete. Set PROJECT_ID, STATUS_FIELD_ID, PRIORITY_FIELD_ID and STATUS_DONE." >&2
+  exit 1
+fi
 
-item_id=$(gh project item-list 1 --owner tlindi --format json | python -c "
+echo "=== Verifying [P1] Open Kanban ==="
+echo "Repository: $REPO"
+echo "Project owner: $PROJECT_OWNER"
+echo "Project number: $PROJECT_NUMBER"
+
+item_id=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json | python -c "
 import json,sys
 d=json.load(sys.stdin)
 for i in d['items']:
@@ -34,7 +45,7 @@ echo "Priority -> P1"
 echo ""
 echo "=== Verifying P1 / P1.1 / P1.2 ==="
 
-gh project item-list 1 --owner tlindi --format json | python -c "
+gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json | python -c "
 import json,sys
 d=json.load(sys.stdin)
 for i in d['items']:
