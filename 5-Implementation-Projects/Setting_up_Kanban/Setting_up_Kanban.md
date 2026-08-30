@@ -90,7 +90,7 @@ gh project list --owner "$PROJECT_OWNER"
 
 Then inspect the Project fields and views using the commands in `Setting_up_Kanban_v2.md`.
 
-For a Project mutation, the GitHub token needs the `project` scope. GitHub documents GraphQL as the API for automating Project configuration. citeturn0search0
+For a Project mutation, the GitHub token needs the `project` scope. GitHub documents GraphQL as the API for automating Project configuration.
 
 ## P1 scripts
 
