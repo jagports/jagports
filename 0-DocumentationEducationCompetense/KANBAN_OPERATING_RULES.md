@@ -8,7 +8,7 @@ ownership, decisions, dependencies, risks, and execution coordination.
 The Kanban is the primary communication and work-control system between the
 Product Owner, Team Lead Agent, Specialist Agents, and human contributors.
 
-Repository: `tlindi/jagports`
+Repository: `jagports/jagports`
 
 Project: `Jagports Vehicle Information and EPC System`
 
@@ -431,4 +431,3 @@ P1.5 is complete when:
 - risk rules are documented
 - review/acceptance rules are documented
 - Kanban communication is established as the operational system of record
-
