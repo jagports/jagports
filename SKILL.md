@@ -73,6 +73,24 @@ because GitHub cannot automatically link a task name to an Issue.
 - If a closing reference was incorrect, add a correction comment with the actual `Closes #<issue-number>` reference.
 - After merge, verify that the intended Issue was closed and linked correctly.
 
+## GitHub Project Issue Management Rules
+
+When creating a new GitHub Issue that belongs to the project:
+
+- Add the Issue to the GitHub Project immediately.
+- Initial Project Status must always be `BACKLOG`.
+- Do not assume a new Issue has a workflow state until it has been added to the Project.
+- After adding the Issue to the Project, update the Status field according to the actual workflow state.
+
+If automatic Project Status updates are not available:
+
+- Add a temporary Issue comment documenting the intended Project Status.
+- Include the expected initial state, for example:
+
+`Project Status: BACKLOG (waiting for Project item creation/update)`
+
+The Project Status and Issue state must remain synchronized.
+
 ## GitHub API Rules
 
 - Add a minimum 1 second delay between GitHub API calls.
