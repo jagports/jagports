@@ -1,6 +1,6 @@
 # Setting up GitHub Projects Kanban — Reusable Command Set
 
-This consolidates the **working/validated commands from the Jagports setup** and generalizes them for reuse. Failed experimental commands are intentionally omitted.
+This document contains the validated command pattern for the Jagports Kanban setup. Repository and project ownership are parameters; do not embed a personal GitHub account or an old repository transfer target in scripts.
 
 ## 1. Authenticate and find the Project
 
@@ -9,16 +9,19 @@ gh auth status
 gh project list --owner OWNER
 ```
 
-Example:
+For the current repository, determine the repository automatically:
 
 ```bash
-gh project list --owner tlindi
+REPO="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
+REPO_OWNER="${REPO%%/*}"
+echo "$REPO"
+echo "$REPO_OWNER"
 ```
 
 ## 2. Inspect Project fields
 
 ```bash
-gh project field-list PROJECT_NUMBER --owner OWNER --format json
+gh project field-list PROJECT_NUMBER --owner PROJECT_OWNER --format json
 ```
 
 Use this to find the `Status` field ID and its option IDs.
@@ -31,8 +34,10 @@ gh api graphql -f query='query { node(id:"STATUS_FIELD_ID") { ... on ProjectV2Si
 
 ## 4. Inspect Project views
 
+For an organization-owned Project:
+
 ```bash
-gh api graphql -f query='query { user(login:"OWNER") { projectV2(number:PROJECT_NUMBER) { views(first:20) { nodes { id number name layout } } } } }'
+gh api graphql -f query='query($organization:String!,$number:Int!){organization(login:$organization){projectV2(number:$number){views(first:20){nodes{id number name layout}}}}}' -f organization=PROJECT_OWNER -F number=PROJECT_NUMBER
 ```
 
 ## 5. Change an existing view to Board/Kanban
@@ -41,11 +46,7 @@ gh api graphql -f query='query { user(login:"OWNER") { projectV2(number:PROJECT_
 gh api graphql -f query='mutation { updateProjectV2View(input:{viewId:"VIEW_ID",layout:BOARD_LAYOUT}) { projectV2View { id name layout } } }'
 ```
 
-Validated for Jagports:
-
-```text
-View 1 → BOARD_LAYOUT
-```
+Always verify the returned layout after the mutation.
 
 ## 6. Inspect the Status-field mutation schema
 
@@ -53,11 +54,7 @@ View 1 → BOARD_LAYOUT
 gh api graphql -f query='{ __type(name:"UpdateProjectV2FieldInput") { inputFields { name type { kind name ofType { kind name ofType { kind name } } } } } }'
 ```
 
-The relevant argument is:
-
-```text
-singleSelectOptions
-```
+The relevant argument is `singleSelectOptions`.
 
 ## 7. Inspect single-select option schema
 
@@ -73,11 +70,7 @@ color
 description
 ```
 
-Optional:
-
-```text
-id
-```
+Optional: `id`.
 
 ## 8. Inspect allowed colors
 
@@ -85,22 +78,9 @@ id
 gh api graphql -f query='{ __type(name:"ProjectV2SingleSelectFieldOptionColor") { enumValues { name } } }'
 ```
 
-Validated values:
-
-```text
-GRAY
-BLUE
-GREEN
-YELLOW
-ORANGE
-RED
-PINK
-PURPLE
-```
-
 ## 9. Create an options JSON file
 
-Use a file in the repository rather than `/tmp`, because `/tmp` may be cleared between commands.
+Keep the configuration file with the working setup rather than relying on `/tmp`.
 
 General form:
 
@@ -108,85 +88,35 @@ General form:
 printf '%s\n' '{"fieldId":"STATUS_FIELD_ID","options":[{"id":"OPTION_ID","name":"STATUS_NAME","color":"GRAY","description":"Description"}]}' > project-options.json
 ```
 
-Jagports validated example:
-
-```bash
-printf '%s\n' '{"fieldId":"PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY","options":[{"id":"f75ad846","name":"BACKLOG","color":"GRAY","description":"Work identified but not yet being actively researched."},{"id":"47fc9ee4","name":"RESEARCH","color":"BLUE","description":"Research and information gathering in progress."},{"id":"98236657","name":"DONE","color":"GREEN","description":"Work completed and accepted."}]}' > jagports-options.json
-```
-
-Verify:
-
-```bash
-cat jagports-options.json
-```
-
 ## 10. Generate the GraphQL request with Python
-
-Git Bash interprets `!` as history expansion, so avoid putting the long GraphQL mutation directly into a Bash command.
-
-Create a helper:
 
 ```bash
 cat > make-project-query.py <<'PY'
 import json
-d=json.load(open('jagports-options.json'))
-q='mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'
-json.dump({"query":q,"variables":{"fieldId":d["fieldId"],"options":d["options"]}},open('jagports-graphql.json','w'))
+
+with open('project-options.json', encoding='utf-8') as f:
+    data = json.load(f)
+
+query = 'mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]){updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}}}'
+
+with open('project-graphql.json', 'w', encoding='utf-8') as f:
+    json.dump({'query': query, 'variables': {'fieldId': data['fieldId'], 'options': data['options']}}, f)
 PY
-```
 
-Run:
-
-```bash
 python make-project-query.py
 ```
-
-No output is expected.
 
 ## 11. Execute the update
 
 ```bash
-gh api graphql --input jagports-graphql.json
+gh api graphql --input project-graphql.json
 ```
 
 Always inspect the returned options after the mutation.
 
-## 12. Verified Jagports identifiers
+## 12. Target Jagports workflow
 
-```text
-Owner: tlindi
-Project number: 1
-Project: Jagports Vehicle Information and EPC System
-
-Status field:
-PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY
-
-Board view:
-PVTV_lAHOAG6fZ84BhoLTzgLcpA0
-View number: 1
-Name: View 1
-Layout: BOARD_LAYOUT
-```
-
-## 13. Current verified Status configuration
-
-The first successful Status update established:
-
-```text
-BACKLOG
-RESEARCH
-DONE
-```
-
-The original option IDs were reused:
-
-```text
-f75ad846 → BACKLOG
-47fc9ee4 → RESEARCH
-98236657 → DONE
-```
-
-The full target workflow is:
+The required workflow is:
 
 ```text
 BACKLOG
@@ -206,29 +136,27 @@ Exceptional state:
 BLOCKED
 ```
 
-The remaining states have **not yet been configured** at the time of this document's creation.
+The workflow configuration is a Project concern. Repository scripts must obtain repository/project configuration from variables or discovery rather than embedding a former repository owner.
 
-## 14. Recommended reusable setup order
+## 13. P1 completion criteria
 
-```text
-1. Authenticate
-2. Find Project
-3. Inspect fields
-4. Inspect Status field
-5. Inspect views
-6. Change view to Board
-7. Inspect GraphQL mutation schema
-8. Inspect option schema
-9. Inspect allowed colors
-10. Create local options JSON
-11. Generate GraphQL request
-12. Execute mutation
-13. Verify returned configuration
-```
+P1 is complete only when all of these are verified against the current GitHub repository/project:
 
-## 15. Bootstrap operating rule
+- repository exists and is accessible
+- Project exists and is open
+- Project is linked to the intended repository
+- board view is configured
+- required Status workflow exists
+- Priority field exists
+- required labels/structured fields exist
+- operating rules are committed in the repository
+- Issue → Project attachment has been tested
+- Priority assignment has been tested
+- temporary test material has been removed
 
-Do not bulk-import the complete work plan until the Kanban workflow is configured.
+## 14. Bootstrap operating rule
+
+Do not bulk-import the complete work plan until the Kanban workflow is configured and verified.
 
 Recommended order:
 
@@ -242,14 +170,12 @@ P1.5 Define Kanban operating rules
 P2   Begin normal project work
 ```
 
-The Product Owner establishes the initial control structure. After the operating rules are established, the Team Lead Agent can take operational responsibility for managing the work queue.
+## 15. Troubleshooting lessons
 
-## 16. Troubleshooting lessons
-
-- Failed GraphQL experiments did not change the Status field.
 - Do not guess GraphQL input syntax; inspect the schema first.
 - Use GraphQL variables/request files for complex mutations.
 - Avoid `/tmp` for files that must survive between commands.
-- Avoid long GraphQL commands containing `!` directly in Git Bash.
-- Preserve existing option IDs when deliberately renaming existing options.
+- Preserve existing option IDs when deliberately renaming options.
 - Configure incrementally and verify after each mutation.
+- Never hardcode a repository owner from a previous GitHub account or repository transfer.
+- Prefer `gh repo view --json nameWithOwner --jq '.nameWithOwner'` when a script runs from inside the target checkout.
