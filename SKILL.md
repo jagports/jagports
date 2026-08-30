@@ -46,12 +46,32 @@ Purpose:
 - Allows GitHub to automatically close the Issue after the Pull Request is merged.
 - Maintains traceability between Kanban task, Issue, Pull Request, review, and completion.
 
-PR commenting lessons learned:
+## PR Merge Closing Rules
+
+When merging a Pull Request that closes an Issue:
+
+- The PR description must contain the closing reference before merge.
+- The merge review/comment should explicitly state which Issue is being closed.
+- Use the exact Issue number, not only a task identifier.
+
+Example merge comment:
+
+This PR closes Issue #123.
+The implemented task is tracked by GitHub Issue #123.
+
+Do not write:
+
+This closes P2.3.
+
+because GitHub cannot automatically link a task name to an Issue.
+
+## PR Commenting Lessons Learned
 
 - Do not reference only task names such as P2.3 in PR closing comments.
 - Always search and confirm the actual GitHub Issue number before writing closing references.
 - PR reviews and comments should identify the exact Issue number when explaining what was completed.
 - If a closing reference was incorrect, add a correction comment with the actual `Closes #<issue-number>` reference.
+- After merge, verify that the intended Issue was closed and linked correctly.
 
 ## GitHub API Rules
 
