@@ -20,19 +20,33 @@ Validation scope:
 - Issue management
 - Project management
 
-Status:
-In validation
-
 ## Validation Result
 
 Repository access:
-Pending
+PASS
+
+Details:
+- Repository visibility: private
+- Authenticated user: jagports-fi
+- Repository permission: admin
+- Effective permissions include:
+  - admin
+  - maintain
+  - push
+  - triage
+  - pull
 
 Issue access:
-Pending
+PASS
+
+Details:
+- Repository permission level allows issue management operations.
 
 Project access:
-Pending
+PENDING
+
+Details:
+- Requires separate GitHub Project permission verification.
 
 Validated date:
-Pending
+2026-08-30
