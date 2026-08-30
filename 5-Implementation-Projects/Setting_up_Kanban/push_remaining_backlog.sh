@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="tlindi/jagports"
-PROJECT_NUMBER="1"
-PROJECT_OWNER="tlindi"
-PROJECT_ID="PVT_kwHOAG6fZ84BhoLT"
-STATUS_FIELD_ID="PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY"
-PRIORITY_FIELD_ID="PVTF_lAHOAG6fZ84BhoLTzhgjSTY"
+REPO="${REPO:-$(gh repo view --json nameWithOwner --jq '.nameWithOwner')}"
+PROJECT_OWNER="${PROJECT_OWNER:-${REPO%%/*}}"
+PROJECT_NUMBER="${PROJECT_NUMBER:-1}"
+PROJECT_ID="${PROJECT_ID:-}"
+STATUS_FIELD_ID="${STATUS_FIELD_ID:-}"
+PRIORITY_FIELD_ID="${PRIORITY_FIELD_ID:-}"
+STATUS_BACKLOG="${STATUS_BACKLOG:-}"
+STATUS_DONE="${STATUS_DONE:-}"
 
-STATUS_BACKLOG="f75ad846"
-STATUS_DONE="98236657"
+if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$PRIORITY_FIELD_ID" ] || [ -z "$STATUS_BACKLOG" ] || [ -z "$STATUS_DONE" ]; then
+  echo "ERROR: Project configuration is incomplete. Set PROJECT_ID, STATUS_FIELD_ID, PRIORITY_FIELD_ID, STATUS_BACKLOG and STATUS_DONE." >&2
+  exit 1
+fi
 
 gh auth status
+
+echo "Repository: $REPO"
+echo "Project owner: $PROJECT_OWNER"
+echo "Project number: $PROJECT_NUMBER"
 
 find_item_id() {
   local url="$1"
@@ -121,7 +129,7 @@ create_and_add "P11.2" "Implement first automation" "GitHub Actions or Raspberry
 create_and_add "P12" "Expand and govern the agent team" "ChatGPT/Codex + GitHub" "TODO"
 
 echo ""
-echo "Backlog pushed. Verifying all items:"
+echo "Backlog push complete. Verifying all items:"
 gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json | python -c "
 import json,sys
 d=json.load(sys.stdin)
