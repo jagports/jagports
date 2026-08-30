@@ -1,48 +1,14 @@
 #!/usr/bin/env bash
 
 # Jagports AI OS
-
 # make_jagports_subissues.sh
-
-#
-
 # Windows Git Bash compatible.
-
-#
-
 # Creates GitHub sub-issue relationships from priority titles.
-
-#
-
-# Examples:
-
-# [P1]     <- [P1.1]
-
-# [P2]     <- [P2.1]
-
-# [P2.1]   <- [P2.1.1]
-
-#
-
-# Processes open and closed issues.
-
-# Safe to run repeatedly.
-
-#
-
-# Requirements:
-
-# Git Bash
-
-# GitHub CLI (gh)
-
-#
-
-# Does not require jq, awk, or other separately installed tools.
+# Processes open and closed issues. Safe to run repeatedly.
 
 set -o pipefail
 
-REPO="${REPO:-tlindi/jagports}"
+REPO="${REPO:-$(gh repo view --json nameWithOwner --jq '.nameWithOwner')}"
 
 MAX_RETRIES=5
 RETRY_DELAY=2
@@ -55,12 +21,6 @@ fail() {
 log "ERROR: $*"
 exit 1
 }
-
-# ------------------------------------------------------------
-
-# Requirements
-
-# ------------------------------------------------------------
 
 if ! command -v gh >/dev/null 2>&1; then
 fail "GitHub CLI (gh) is not installed."
@@ -76,18 +36,10 @@ fi
 
 log "Repository: $REPO"
 
-# ------------------------------------------------------------
-
-# Read all issues
-
-# ------------------------------------------------------------
-
 ISSUES_FILE="$(mktemp)"
-
 trap 'rm -f "$ISSUES_FILE"' EXIT
 
 log "Reading GitHub issues..."
-
 if ! gh issue list --repo "$REPO" --state all --limit 1000 --json number,title --jq '.[] | [.number,.title] | @tsv' > "$ISSUES_FILE"; then
 fail "Unable to retrieve GitHub issues."
 fi
@@ -97,29 +49,14 @@ fail "GitHub returned no issues."
 fi
 
 ISSUE_COUNT=$(wc -l < "$ISSUES_FILE" | tr -d ' ')
-
 log "Found $ISSUE_COUNT issues."
-
-# ------------------------------------------------------------
-
-# Counters
-
-# ------------------------------------------------------------
 
 CHECKED=0
 ADDED=0
 EXISTING=0
 FAILED=0
 
-# ------------------------------------------------------------
-
-# Process issues
-
-# ------------------------------------------------------------
-
 while IFS="$(printf '\t')" read -r CHILD_ISSUE TITLE; do
-
-
 PRIORITY="${TITLE#\[}"
 PRIORITY="${PRIORITY%%\]*}"
 
@@ -132,7 +69,6 @@ case "$PRIORITY" in
 esac
 
 PARENT_PRIORITY="${PRIORITY%.*}"
-
 PARENT_ISSUE=$(gh issue list --repo "$REPO" --state all --limit 1000 --json number,title --jq ".[] | select(.title | startswith(\"[$PARENT_PRIORITY]\")) | .number" | head -1)
 
 if test -z "$PARENT_ISSUE"; then
@@ -142,12 +78,7 @@ if test -z "$PARENT_ISSUE"; then
 fi
 
 CHECKED=$((CHECKED + 1))
-
 log "CHECK [$PARENT_PRIORITY] #$PARENT_ISSUE <- [$PRIORITY] #$CHILD_ISSUE"
-
-# --------------------------------------------------------
-# Check whether relationship already exists
-# --------------------------------------------------------
 
 SUBISSUES=$(gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues?per_page=100" --jq '.[].number' 2>/dev/null)
 
@@ -156,10 +87,6 @@ if printf '%s\n' "$SUBISSUES" | grep -Fxq "$CHILD_ISSUE"; then
     EXISTING=$((EXISTING + 1))
     continue
 fi
-
-# --------------------------------------------------------
-# Get child's numeric GitHub ID
-# --------------------------------------------------------
 
 CHILD_ID=$(gh api "repos/$REPO/issues/$CHILD_ISSUE" --jq '.id' 2>/dev/null)
 
@@ -171,19 +98,9 @@ fi
 
 log "Moving #$CHILD_ISSUE (id $CHILD_ID) under #$PARENT_ISSUE"
 
-# --------------------------------------------------------
-# Add relationship
-#
-# IMPORTANT:
-#   no leading slash
-#   -F sends integer
-# --------------------------------------------------------
-
 SUCCESS=0
 ATTEMPT=1
-
 while test "$ATTEMPT" -le "$MAX_RETRIES"; do
-
     if gh api --method POST "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" -H "Accept: application/vnd.github+json" -F sub_issue_id="$CHILD_ID" >/dev/null 2>&1; then
         SUCCESS=1
         break
@@ -195,7 +112,6 @@ while test "$ATTEMPT" -le "$MAX_RETRIES"; do
     fi
 
     ATTEMPT=$((ATTEMPT + 1))
-
 done
 
 if test "$SUCCESS" -eq 1; then
@@ -205,24 +121,13 @@ else
     log "FAILED [$PARENT_PRIORITY] #$PARENT_ISSUE <- [$PRIORITY] #$CHILD_ISSUE"
     FAILED=$((FAILED + 1))
 fi
-
-
 done < "$ISSUES_FILE"
-
-# ------------------------------------------------------------
-
-# Final verification
-
-# ------------------------------------------------------------
 
 log "------------------------------------------------------------"
 log "Final verification..."
-
 VERIFY_FAILED=0
 
 while IFS="$(printf '\t')" read -r CHILD_ISSUE TITLE; do
-
-
 PRIORITY="${TITLE#\[}"
 PRIORITY="${PRIORITY%%\]*}"
 
@@ -235,7 +140,6 @@ case "$PRIORITY" in
 esac
 
 PARENT_PRIORITY="${PRIORITY%.*}"
-
 PARENT_ISSUE=$(gh issue list --repo "$REPO" --state all --limit 1000 --json number,title --jq ".[] | select(.title | startswith(\"[$PARENT_PRIORITY]\")) | .number" | head -1)
 
 if test -z "$PARENT_ISSUE"; then
@@ -252,15 +156,7 @@ else
     log "VERIFY FAILED [$PARENT_PRIORITY] #$PARENT_ISSUE <- [$PRIORITY] #$CHILD_ISSUE"
     VERIFY_FAILED=$((VERIFY_FAILED + 1))
 fi
-
-
 done < "$ISSUES_FILE"
-
-# ------------------------------------------------------------
-
-# Summary
-
-# ------------------------------------------------------------
 
 log "------------------------------------------------------------"
 log "FINAL SUMMARY"
