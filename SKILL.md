@@ -19,7 +19,8 @@ Before creating a Pull Request:
 
 - Verify the base branch.
 - Verify the head branch.
-- Verify the PR description links the correct Issue.
+- Verify the PR description links the correct Issue number.
+- Confirm that the Issue being closed is the exact Issue implemented by the PR.
 
 ## GitHub Issue Closing Syntax
 
@@ -44,6 +45,13 @@ Purpose:
 - Links implementation work to the original task.
 - Allows GitHub to automatically close the Issue after the Pull Request is merged.
 - Maintains traceability between Kanban task, Issue, Pull Request, review, and completion.
+
+PR commenting lessons learned:
+
+- Do not reference only task names such as P2.3 in PR closing comments.
+- Always search and confirm the actual GitHub Issue number before writing closing references.
+- PR reviews and comments should identify the exact Issue number when explaining what was completed.
+- If a closing reference was incorrect, add a correction comment with the actual `Closes #<issue-number>` reference.
 
 ## GitHub API Rules
 
