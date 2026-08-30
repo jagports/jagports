@@ -3,17 +3,26 @@ set -uo pipefail
 # Note: no -e — individual row failures are handled explicitly so one bad
 # row never aborts the rest of the run.
 
-REPO="tlindi/jagports"
-PROJECT_NUMBER="1"
-PROJECT_OWNER="tlindi"
-PROJECT_ID="PVT_kwHOAG6fZ84BhoLT"
-STATUS_FIELD_ID="PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY"
-PRIORITY_FIELD_ID="PVTF_lAHOAG6fZ84BhoLTzhgjSTY"
-STATUS_BACKLOG="f75ad846"
-STATUS_DONE="98236657"
+REPO="${REPO:-$(gh repo view --json nameWithOwner --jq '.nameWithOwner')}"
+PROJECT_OWNER="${PROJECT_OWNER:-${REPO%%/*}}"
+PROJECT_NUMBER="${PROJECT_NUMBER:-1}"
+PROJECT_ID="${PROJECT_ID:-}"
+STATUS_FIELD_ID="${STATUS_FIELD_ID:-}"
+PRIORITY_FIELD_ID="${PRIORITY_FIELD_ID:-}"
+STATUS_BACKLOG="${STATUS_BACKLOG:-}"
+STATUS_DONE="${STATUS_DONE:-}"
 ITEM_LIST_LIMIT=200
 
+if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$PRIORITY_FIELD_ID" ] || [ -z "$STATUS_BACKLOG" ] || [ -z "$STATUS_DONE" ]; then
+  echo "ERROR: Project configuration is incomplete. Set PROJECT_ID, STATUS_FIELD_ID, PRIORITY_FIELD_ID, STATUS_BACKLOG and STATUS_DONE." >&2
+  exit 1
+fi
+
 gh auth status
+
+echo "Repository: $REPO"
+echo "Project owner: $PROJECT_OWNER"
+echo "Project number: $PROJECT_NUMBER"
 
 echo "Fetching existing issues (title match) to skip duplicates..."
 EXISTING_TITLES=$(gh issue list --repo "$REPO" --state all --limit 200 --json title \
@@ -94,10 +103,6 @@ Initial status: $init_status"
   echo "  -> item_id=$item_id status=$init_status priority=$priority"
 }
 
-# ============================================================
-# Full backlog — safe to re-run; existing titles are skipped
-# ============================================================
-
 create_and_add "P1"    "Open Kanban" "GitHub Projects" "DONE"
 create_and_add "P1.1"  "Select Kanban tool" "GitHub Projects / Board" "DONE"
 create_and_add "P1.2"  "Create Jagports GitHub repository" "GitHub" "DONE"
@@ -158,5 +163,4 @@ create_and_add "P11.2" "Implement first automation" "GitHub Actions or Raspberry
 create_and_add "P12"   "Expand and govern the agent team" "ChatGPT/Codex + GitHub" "TODO"
 
 echo ""
-echo "Done. Open the Project to review:"
-echo "https://github.com/users/$PROJECT_OWNER/projects/$PROJECT_NUMBER"
+echo "Done. Project: https://github.com/orgs/$PROJECT_OWNER/projects/$PROJECT_NUMBER"
