@@ -11,7 +11,7 @@ if ! gh auth status >/dev/null 2>&1; then
 fi
 
 find_project_number() {
-  gh project list --owner "$PROJECT_OWNER" --format json --limit 100 --jq ".[] | select(.title == \"$PROJECT_TITLE\") | .number" 2>/dev/null | head -n 1
+  gh project list --owner "$PROJECT_OWNER" --format json --limit 100 | python -c "import json,sys; d=json.load(sys.stdin); [print(p.get('number')) for p in d if p.get('title') == '$PROJECT_TITLE']" 2>/dev/null | head -n 1
 }
 
 PROJECT_NUMBER=$(find_project_number)
