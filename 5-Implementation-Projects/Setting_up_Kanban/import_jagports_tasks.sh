@@ -1,30 +1,138 @@
 #!/usr/bin/env bash
 set -uo pipefail
-# Note: no -e — individual row failures are handled explicitly so one bad
-# row never aborts the rest of the run.
+# No -e: individual row/lookup failures are handled explicitly.
 
-REPO="${REPO:-$(gh repo view --json nameWithOwner --jq '.nameWithOwner')}"
-PROJECT_OWNER="${PROJECT_OWNER:-${REPO%%/*}}"
-PROJECT_NUMBER="${PROJECT_NUMBER:-1}"
-PROJECT_ID="${PROJECT_ID:-}"
-STATUS_FIELD_ID="${STATUS_FIELD_ID:-}"
-PRIORITY_FIELD_ID="${PRIORITY_FIELD_ID:-}"
-STATUS_BACKLOG="${STATUS_BACKLOG:-}"
-STATUS_DONE="${STATUS_DONE:-}"
+REPO="jagports/jagports"
+PROJECT_ID="PVT_kwDOEz190s4Bh6vc"
 ITEM_LIST_LIMIT=200
 
-if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$PRIORITY_FIELD_ID" ] || [ -z "$STATUS_BACKLOG" ] || [ -z "$STATUS_DONE" ]; then
-  echo "ERROR: Project configuration is incomplete. Set PROJECT_ID, STATUS_FIELD_ID, PRIORITY_FIELD_ID, STATUS_BACKLOG and STATUS_DONE." >&2
+echo "=== Auth check ==="
+gh auth status
+
+# ------------------------------------------------------------------
+# 1. Resolve project number AND owner login from the known Project ID
+# ------------------------------------------------------------------
+echo ""
+echo "=== Resolving project number/owner for ID $PROJECT_ID ==="
+
+PROJECT_INFO=$(gh api graphql -f query='
+query($id: ID!) {
+  node(id: $id) {
+    ... on ProjectV2 {
+      number
+      title
+      owner {
+        ... on User { login }
+        ... on Organization { login }
+      }
+    }
+  }
+}' -f id="$PROJECT_ID")
+
+PROJECT_NUMBER=$(echo "$PROJECT_INFO" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+print(d['data']['node']['number'])
+")
+
+PROJECT_TITLE=$(echo "$PROJECT_INFO" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+print(d['data']['node']['title'])
+")
+
+PROJECT_OWNER=$(echo "$PROJECT_INFO" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+print(d['data']['node']['owner']['login'])
+")
+
+if [ -z "$PROJECT_NUMBER" ] || [ "$PROJECT_NUMBER" = "None" ]; then
+  echo "ERROR: could not resolve a project number for ID $PROJECT_ID."
+  echo "Raw response:"
+  echo "$PROJECT_INFO"
   exit 1
 fi
 
-gh auth status
+echo "Found: number=$PROJECT_NUMBER owner=$PROJECT_OWNER title=\"$PROJECT_TITLE\""
 
-echo "Repository: $REPO"
-echo "Project owner: $PROJECT_OWNER"
-echo "Project number: $PROJECT_NUMBER"
+# ------------------------------------------------------------------
+# 2. Find Status and Priority field IDs + Status option IDs dynamically
+# ------------------------------------------------------------------
+echo ""
+echo "=== Resolving field IDs ==="
 
-echo "Fetching existing issues (title match) to skip duplicates..."
+FIELDS_JSON=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json)
+
+STATUS_FIELD_ID=$(echo "$FIELDS_JSON" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+for f in d['fields']:
+    if f['name']=='Status':
+        print(f['id']); break
+")
+
+PRIORITY_FIELD_ID=$(echo "$FIELDS_JSON" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+for f in d['fields']:
+    if f['name']=='Priority':
+        print(f['id']); break
+")
+
+if [ -z "$STATUS_FIELD_ID" ] || [ -z "$PRIORITY_FIELD_ID" ]; then
+  echo "ERROR: could not resolve Status/Priority field IDs. Found fields:"
+  echo "$FIELDS_JSON" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+for f in d['fields']:
+    print(' -', f['name'], f['id'])
+"
+  exit 1
+fi
+
+STATUS_BACKLOG=$(echo "$FIELDS_JSON" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+for f in d['fields']:
+    if f['name']=='Status':
+        for o in f.get('options', []):
+            if o['name']=='BACKLOG':
+                print(o['id']); break
+")
+
+STATUS_DONE=$(echo "$FIELDS_JSON" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+for f in d['fields']:
+    if f['name']=='Status':
+        for o in f.get('options', []):
+            if o['name']=='DONE':
+                print(o['id']); break
+")
+
+if [ -z "$STATUS_BACKLOG" ] || [ -z "$STATUS_DONE" ]; then
+  echo "ERROR: could not resolve BACKLOG/DONE Status option IDs. Found options:"
+  echo "$FIELDS_JSON" | python -c "
+import json,sys
+d=json.load(sys.stdin)
+for f in d['fields']:
+    if f['name']=='Status':
+        for o in f.get('options', []):
+            print(' -', o['name'], o['id'])
+"
+  exit 1
+fi
+
+echo "Status field: $STATUS_FIELD_ID (BACKLOG=$STATUS_BACKLOG, DONE=$STATUS_DONE)"
+echo "Priority field: $PRIORITY_FIELD_ID"
+
+# ------------------------------------------------------------------
+# 3. Helper functions
+# ------------------------------------------------------------------
+
+echo ""
+echo "=== Fetching existing issue titles (skip duplicates) ==="
 EXISTING_TITLES=$(gh issue list --repo "$REPO" --state all --limit 200 --json title \
   | python -c "
 import json,sys
@@ -103,6 +211,10 @@ Initial status: $init_status"
   echo "  -> item_id=$item_id status=$init_status priority=$priority"
 }
 
+# ============================================================
+# 4. Full backlog — safe to re-run; existing titles are skipped
+# ============================================================
+
 create_and_add "P1"    "Open Kanban" "GitHub Projects" "DONE"
 create_and_add "P1.1"  "Select Kanban tool" "GitHub Projects / Board" "DONE"
 create_and_add "P1.2"  "Create Jagports GitHub repository" "GitHub" "DONE"
@@ -163,4 +275,5 @@ create_and_add "P11.2" "Implement first automation" "GitHub Actions or Raspberry
 create_and_add "P12"   "Expand and govern the agent team" "ChatGPT/Codex + GitHub" "TODO"
 
 echo ""
-echo "Done. Project: https://github.com/orgs/$PROJECT_OWNER/projects/$PROJECT_NUMBER"
+echo "Done. Open the Project to review:"
+echo "https://github.com/orgs/$PROJECT_OWNER/projects/$PROJECT_NUMBER"
