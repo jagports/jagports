@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="tlindi/jagports"
-PROJECT_NUMBER="1"
-PROJECT_OWNER="tlindi"
-PROJECT_ID="PVT_kwHOAG6fZ84BhoLT"
-STATUS_FIELD_ID="PVTSSF_lAHOAG6fZ84BhoLTzhgjOMY"
-PRIORITY_FIELD_ID="PVTF_lAHOAG6fZ84BhoLTzhgjSTY"
-STATUS_BACKLOG="f75ad846"
+REPO="${REPO:-$(gh repo view --json nameWithOwner --jq '.nameWithOwner')}"
+PROJECT_OWNER="${PROJECT_OWNER:-${REPO%%/*}}"
+PROJECT_NUMBER="${PROJECT_NUMBER:-1}"
+PROJECT_ID="${PROJECT_ID:-}"
+STATUS_FIELD_ID="${STATUS_FIELD_ID:-}"
+PRIORITY_FIELD_ID="${PRIORITY_FIELD_ID:-}"
+STATUS_BACKLOG="${STATUS_BACKLOG:-}"
+
+if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$PRIORITY_FIELD_ID" ] || [ -z "$STATUS_BACKLOG" ]; then
+  echo "ERROR: Project configuration is incomplete. Set PROJECT_ID, STATUS_FIELD_ID, PRIORITY_FIELD_ID and STATUS_BACKLOG." >&2
+  exit 1
+fi
 
 declare -a FAILED=(
   "35:P7.3"
@@ -29,6 +34,9 @@ declare -a FAILED=(
   "52:P12"
 )
 
+echo "Repository: $REPO"
+echo "Project owner: $PROJECT_OWNER"
+echo "Project number: $PROJECT_NUMBER"
 echo "Fetching full project item list (limit 200 to avoid pagination cutoff)..."
 ITEMS_JSON=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --limit 200 --format json)
 
