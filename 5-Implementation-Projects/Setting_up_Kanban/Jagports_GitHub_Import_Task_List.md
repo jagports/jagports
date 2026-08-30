@@ -7,9 +7,9 @@ One row = one GitHub Issue. Keep the priority prefix in the title so execution o
 | `P1` | Open Kanban | GitHub Projects | DONE |
 | `P1.1` | Select Kanban tool | GitHub Projects / Board | DONE |
 | `P1.2` | Create Jagports GitHub repository | GitHub | DONE |
-| `P1.3` | Configure Kanban workflow | GitHub Projects | TODO |
-| `P1.4` | Define Kanban fields and labels | GitHub Projects / Issues | TODO |
-| `P1.5` | Define Kanban operating rules | GitHub repository | TODO |
+| `P1.3` | Configure Kanban workflow | GitHub Projects | DONE |
+| `P1.4` | Define Kanban fields and labels | GitHub Projects / Issues | DONE |
+| `P1.5` | Define Kanban operating rules | GitHub repository | DONE |
 | `P2` | Open agent accounts/access to Kanban | GitHub + Codex Web | TODO |
 | `P2.1` | Define agent identities | GitHub repository | TODO |
 | `P2.2` | Validate leader R/W rights | GitHub Project permissions | TODO |
