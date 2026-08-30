@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# import_jagports_tasks.sh
+#
+# Pushes the full P1–P12 Jagports AI OS backlog to a GitHub Project as
+# Issues, setting Status and Priority fields on each. Idempotent — safe
+# to re-run; existing issue titles are skipped. Resolves project number
+# and owner dynamically from a known Project ID, and resolves Status/
+# Priority field IDs dynamically by name (no hardcoded IDs from any
+# prior project). Includes delays between API calls to avoid tripping
+# GitHub's secondary rate limit during bulk creation.
 set -uo pipefail
 # No -e: individual row/lookup failures are handled explicitly.
 
@@ -6,8 +15,15 @@ REPO="jagports/jagports"
 PROJECT_ID="PVT_kwDOEz190s4Bh6vc"
 ITEM_LIST_LIMIT=200
 
+# Delay (seconds) inserted after each GitHub API call to avoid the
+# secondary/abuse rate limit that can trigger even when primary quota
+# is untouched. Increase if you see "API rate limit already exceeded"
+# despite full primary quota.
+API_DELAY=1.5
+
 echo "=== Auth check ==="
 gh auth status
+sleep "$API_DELAY"
 
 # ------------------------------------------------------------------
 # 1. Resolve project number AND owner login from the known Project ID
@@ -28,6 +44,7 @@ query($id: ID!) {
     }
   }
 }' -f id="$PROJECT_ID")
+sleep "$API_DELAY"
 
 PROJECT_NUMBER=$(echo "$PROJECT_INFO" | python -c "
 import json,sys
@@ -63,6 +80,7 @@ echo ""
 echo "=== Resolving field IDs ==="
 
 FIELDS_JSON=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json)
+sleep "$API_DELAY"
 
 STATUS_FIELD_ID=$(echo "$FIELDS_JSON" | python -c "
 import json,sys
@@ -140,6 +158,7 @@ d=json.load(sys.stdin)
 for i in d:
     print(i['title'])
 ")
+sleep "$API_DELAY"
 
 title_exists() {
   local title="$1"
@@ -166,9 +185,11 @@ set_fields() {
 
   gh project item-edit --project-id "$PROJECT_ID" --id "$item_id" \
     --field-id "$STATUS_FIELD_ID" --single-select-option-id "$status_opt" >/dev/null 2>&1
+  sleep "$API_DELAY"
 
   gh project item-edit --project-id "$PROJECT_ID" --id "$item_id" \
     --field-id "$PRIORITY_FIELD_ID" --text "$priority" >/dev/null 2>&1
+  sleep "$API_DELAY"
 }
 
 create_and_add() {
@@ -186,6 +207,7 @@ Initial status: $init_status"
 
   local url
   url=$(gh issue create --repo "$REPO" --title "$title" --body "$body" 2>&1)
+  sleep "$API_DELAY"
   if [[ "$url" != https://* ]]; then
     echo "FAILED to create issue: $title — $url"
     return 0
@@ -193,10 +215,12 @@ Initial status: $init_status"
   echo "Created: $url"
 
   gh project item-add "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --url "$url" >/dev/null 2>&1
+  sleep "$API_DELAY"
 
   local item_id=""
   for attempt in 1 2 3 4 5 6; do
     item_id=$(find_item_id "$url")
+    sleep "$API_DELAY"
     [ -n "$item_id" ] && break
     echo "  item not visible yet, retrying (attempt $attempt)..."
     sleep 3
