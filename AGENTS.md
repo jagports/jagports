@@ -25,12 +25,14 @@ Use the Issue subject and root-folder names to determine which domains are relev
 
 The discovery sequence is:
 
-1. Inspect all eight root folders.
-2. Use their names to identify the semantic domains relevant to the Issue.
-3. In each relevant domain, read the applicable `KNOWLEDGE.md` when present.
-4. Check `7-Research` when the work depends on research, evidence, investigation, or verification.
-5. Check `00-Management` and `4-Production` when the Issue concerns management, governance, requirements, priorities, production, or product decisions.
-6. Check `5-Implementation-Projects` and `6-Development` when implementation work is involved.
-7. If relevant documentation conflicts, follow the established authority/decision rules. If the conflict cannot be resolved under those rules, escalate it as `CONFLICT` before proceeding with the affected decision or change.
+1. Inspect `0-DocumentationEducationCompetense` and read its applicable `KNOWLEDGE.md` when the Issue requires documentation, education, competencies, or agent protocol knowledge.
+2. Inspect `00-Management` and read its applicable `KNOWLEDGE.md` when the Issue concerns repository/project management, governance, requirements, priorities, or product decisions. Repository/project management itself is performed by human `tlindi`.
+3. Inspect `2-Sales` and read its applicable `KNOWLEDGE.md` when the Issue concerns sales, customers, or commercial matters.
+4. Inspect `3-Deployment` and read its applicable `KNOWLEDGE.md` when the Issue concerns deployment, installation, or operational deployment.
+5. Inspect `4-Production` and read its applicable `KNOWLEDGE.md` when the Issue concerns production data, production files, or product decisions requiring production context. Production is organized as `Base → Platform → Platform Application → Application → EndCustomer`; there is currently no data or code considered production.
+6. Inspect `5-Implementation-Projects` and read its applicable `KNOWLEDGE.md` when implementation-project context is relevant.
+7. Inspect `6-Development` and read its applicable `KNOWLEDGE.md` when software, engineering, or technical development is involved.
+8. Inspect `7-Research` and read its applicable `KNOWLEDGE.md` when the work depends on research, evidence, investigation, or verification.
+9. If relevant documentation conflicts, follow the established authority/decision rules. If the conflict cannot be resolved under those rules, escalate it as `CONFLICT` before proceeding with the affected decision or change.
 
 The distinction is mandatory: inspect all root folders first; read `KNOWLEDGE.md` only in domains relevant to the Issue. Empty folders are still inspected and remain part of the repository semantic map.
