@@ -104,14 +104,6 @@ Before deleting a test artifact:
 
 Do not silently delete active work or retain obsolete test artifacts merely because they were once used for testing.
 
-### Knowledge quality rule
-
-`KNOWLEDGE.md` contains reusable knowledge, not a chronological test diary.
-
-Do not encode individual work-item numbers, review numbers, temporary resource names, one-off test cases, or topic-specific history as knowledge unless the information itself expresses a reusable rule. Convert an observed event into a general principle that can be applied to future work.
-
-When an observation is useful only as evidence for a particular implementation, keep it in the relevant work item, review, test plan, or project record rather than in `KNOWLEDGE.md`.
-
 ### Classification metadata and workflow state
 
 Metadata used to classify work should remain independent of workflow state unless the project explicitly defines an integration between them. A classification mechanism should not silently change status, priority, ordering, ownership, or other work-control information.
