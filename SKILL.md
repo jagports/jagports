@@ -36,6 +36,28 @@ Before creating a Pull Request:
 - Verify the PR description links the correct Issue number.
 - Confirm that the Issue being closed is the exact Issue implemented by the PR.
 
+## SKILL and Project Knowledge Change Control
+
+A requested change to `SKILL.md` must first be recorded in a dedicated GitHub Issue describing the requested change.
+
+Before implementing a requested SKILL change:
+
+1. Create the dedicated GitHub Issue.
+2. Add the Issue to the GitHub Project immediately.
+3. Set its initial Project Status to `BACKLOG`.
+4. The first substantive work action moves the Project Status to `RESEARCH`.
+5. Perform the research and define the exact change.
+6. Implement the change on a dedicated branch.
+7. Open a Pull Request linked to the Issue.
+8. Move the Project Status to `REVIEW` when the implementation is ready for review.
+9. Do not merge or mark the Issue `DONE` until the review and subsequent workflow gates are completed.
+
+The Issue is the system-of-record for the requested SKILL change and must remain traceable to the implementation branch and Pull Request.
+
+The same controlled workflow must be used for substantive additions or changes to project-specific `KNOWLEDGE.md` when they are requested as project work. Knowledge changes must not bypass the Issue-based work record.
+
+If the required GitHub Project operation is unavailable to the current agent session, the agent must disclose that limitation immediately and must not claim that the Issue was added to the Project or that its Project Status was changed.
+
 ## GitHub Issue Closing Syntax
 
 Every Pull Request that completes a GitHub Issue must link to the Issue it closes.
