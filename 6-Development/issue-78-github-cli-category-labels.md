@@ -18,24 +18,57 @@ If `category:skill` already exists, the command may report that it already exist
 
     gh label create "category:skill" --repo jagports/jagports --color "5319E7" --description "Skills, operating instructions, or automation rules" --force
 
-## Verification commands
+## Test evidence
+
+### Test case 1 — Initial configuration attempt: failed/partial
+
+The initial commands were executed against `jagports/jagports`.
+
+Observed results:
+
+- `category:skill`: already existed.
+- `category:agent`: created successfully.
+- `category:knowledge`: rejected with HTTP 422 because the description exceeded GitHub's 100-character maximum.
+
+This failure is retained as test evidence because it identified a real GitHub constraint in the configuration procedure.
+
+### Test case 2 — Corrected configuration: successful
+
+The descriptions were shortened and the commands were rerun with `--force`:
+
+    gh label create "category:skill" --repo jagports/jagports --color "5319E7" --description "Skills, operating instructions, or automation rules" --force
+    gh label create "category:agent" --repo jagports/jagports --color "1D76DB" --description "Agent behavior, roles, discovery, or hand-off" --force
+    gh label create "category:knowledge" --repo jagports/jagports --color "0E8A16" --description "Project knowledge, documentation, research, decisions, or requirements" --force
+
+Observed result: all three commands completed successfully.
+
+### Test case 3 — Label-list verification: successful
+
+Command executed:
 
     gh label list --repo jagports/jagports --search "category:"
 
-Expected category labels:
+Observed result:
 
-    category:skill
-    category:agent
-    category:knowledge
+    Showing 3 of 3 labels in jagports/jagports
 
-Verify the labels on the implementation Issue and PR:
+    category:skill      Skills, operating instructions, or automation rules                     #5319E7
+    category:knowledge  Project knowledge, documentation, research, decisions, or requirements  #0E8A16
+    category:agent      Agent behavior, roles, discovery, or hand-off                           #1D76DB
 
+Result: all three required category labels exist with the specified descriptions and colors.
+
+## Verification commands
+
+    gh label list --repo jagports/jagports --search "category:"
     gh issue view 78 --repo jagports/jagports --json number,title,labels
     gh pr view 94 --repo jagports/jagports --json number,title,labels
 
 ## Human verification
 
 A human reviewer must confirm in PR #94 that all three labels exist, correspond to the documented prefixes, and remain independent of the Kanban workflow before the PR is approved/merged.
+
+The human reviewer must also confirm that the recorded successful CLI output corresponds to the actual repository state and that no Category field, Status, Priority, ordering rule, or workflow state was added to the Kanban as part of this change.
 
 ## Repository Change Gate
 
