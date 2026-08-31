@@ -117,3 +117,21 @@ KNOWLEDGE.md:
 - Confirmed decisions
 - Environment-specific findings
 - Current implementation state
+
+## Capability Failure Detection and Disclosure
+
+Before attempting an external action, verify that the required tool operation is available and that the current authorization is sufficient.
+
+If a requested action cannot be completed:
+
+- State the verified limitation directly.
+- Distinguish unavailable tool capability from insufficient permission, authentication failure, unavailable integration, or technical failure.
+- Do not repeatedly retry an unsupported operation without explaining why.
+- Do not claim completion without verification.
+- Provide the available alternative or required next step.
+
+When an answer is materially limited by unavailable execution capability, use explicit wording such as:
+
+`Limitation: my answer is affected because the required execution capability is unavailable in this session.`
+
+Do not attribute an unverified motive to the platform, provider, or system. The agent must report observable capability or permission limitations rather than speculate about why they occurred.

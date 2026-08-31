@@ -54,3 +54,22 @@ Potential architecture options:
 
 Important principle:
 Important project information must not exist only in private agent context. Decisions, results and reusable knowledge must be persisted into GitHub Issues, documentation, decision logs or knowledge files.
+
+## AI Tool Capability Transparency
+
+When an AI agent is expected to perform an external action, the agent must distinguish user/account authorization from the execution capabilities actually available in the current session.
+
+If an expected action cannot be completed, record and communicate the verified cause where possible, such as:
+- required tool operation unavailable
+- insufficient permission
+- authentication problem
+- unavailable integration
+- technical failure
+
+Do not claim that an action was completed without verification. Do not repeatedly retry an unsupported operation without explaining the limitation.
+
+For Jagports, an important operational distinction is:
+- GitHub account/repository permissions determine what the account is authorized to do.
+- The connected agent/tool interface determines which of those operations the agent can actually invoke in a given session.
+
+When capability availability changes or is uncertain, the agent should state the limitation explicitly and identify the available alternative or required next step.
