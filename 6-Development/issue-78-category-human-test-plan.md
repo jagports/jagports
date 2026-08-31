@@ -4,7 +4,7 @@
 
 Use the prepared branch below. Do not add the label manually.
 
-- [ ] Open https://github.com/jagports/jagports/compare/main...agent/test-category-agent-101-final2
+- [ ] Open https://github.com/jagports/jagports/compare/main...agent/test-category-agent-101-final3
 - [ ] Create the PR into `main` with title `AGENT / Human test category agent` and leave labels unchanged.
 - [ ] Confirm `category:agent` is added automatically.
 
