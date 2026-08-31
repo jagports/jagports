@@ -1,11 +1,27 @@
-# Issue #78 — Category human test plan
+# Category label human test plan
 
-## Current test — AGENT label
+## Test 1 — Automatic label on PR creation
 
-Use the prepared branch below. Do not add the label manually.
+- [ ] Open the prepared PR-creation page for a branch that has a real file change and no existing PR.
+- [ ] Create the PR with a supported category prefix and do not add the matching category label manually.
+- [ ] Confirm the matching category label is automatically appended and validation succeeds.
 
-- [ ] Open https://github.com/jagports/jagports/compare/main...agent/test-category-agent-101-final3
-- [ ] Create the PR into `main` with title `AGENT / Human test category agent` and leave labels unchanged.
-- [ ] Confirm `category:agent` is added automatically.
+## Test 2 — Automatic label after renaming an existing PR
 
-If the label is not added automatically, leave the test unchecked and report the PR number and result. Do not manually add the label.
+- [ ] Open an existing PR that currently has no matching category label.
+- [ ] Edit only its title so it starts with a supported category prefix.
+- [ ] Confirm the matching category label is automatically appended after the title edit and the workflow succeeds.
+
+## Test 3 — Automatic label after renaming an existing Issue
+
+- [ ] Open an existing Issue that currently has no matching category label.
+- [ ] Edit only its title so it starts with a supported category prefix.
+- [ ] Confirm the matching category label is automatically appended after the title edit and the workflow succeeds.
+
+## Test 4 — Human verification of category independence
+
+- [ ] Inspect the tested Issue or PR in GitHub.
+- [ ] Confirm the category label is metadata only and did not change Project Status or Priority.
+- [ ] Record the actual observed result as PASS, FAIL, BLOCKED, or NOT TESTED.
+
+Do not manually add the expected category label during automatic-label tests. If automation fails, leave the test unchecked and record the actual result and workflow run.
