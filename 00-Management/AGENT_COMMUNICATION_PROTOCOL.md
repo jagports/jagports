@@ -37,7 +37,7 @@ The executing agent records the result in the same Issue. If implementation crea
 
 ## Escalation Categories
 
-Escalations use one of these categories:
+Escalations use one of these seven categories:
 
 1. `DECISION` — a human decision is required before work can safely continue.
 2. `BLOCKED` — execution cannot continue because a required dependency, capability or input is unavailable.
@@ -46,6 +46,11 @@ Escalations use one of these categories:
 5. `ACCESS` — required repository, service, account or permission access is unavailable or insufficient.
 6. `CONFLICT` — two requirements, decisions or sources conflict and the agent cannot resolve the conflict from existing authoritative information.
 7. `FAILURE` — an implementation or validation attempt failed and recovery is not safely inferable.
+
+AUTO and REVIEW are handling modes, not escalation categories:
+
+- `AUTO` — the agent may proceed without human escalation when the work is explicitly authorized.
+- `REVIEW` — the agent may prepare the work, but review is required before proceeding to the next controlled step.
 
 Every escalation must state:
 
@@ -128,6 +133,8 @@ For implementation work:
 `Issue → Branch → Pull Request → Review → Merge → Issue closure`
 
 Pull Requests must use the exact GitHub closing syntax, for example `Closes #17`.
+
+Each implementation Pull Request must also explicitly identify the Issues it will close, using `Closes #<issue>` or equivalent GitHub closing syntax in the PR body. The linked Issues should therefore show that they will be closed by the PR before merge.
 
 ## Communication Rule of Precedence
 
