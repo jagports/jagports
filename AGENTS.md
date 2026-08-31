@@ -17,9 +17,4 @@ Before beginning work on any GitHub Issue, inspect all eight root folders, inclu
 
 `KNOWLEDGE.md` is the designated filename for repository or domain knowledge. After identifying the relevant domains, read `KNOWLEDGE.md` in those domains when present. Do not read other Markdown files as part of general knowledge discovery unless a separate instruction explicitly requires them.
 
-When applicable, also check:
-- `7-Research` for research, evidence, investigation, or verification.
-- `00-Management` and `4-Production` for management, governance, requirements, priorities, production, or product decisions.
-- `5-Implementation-Projects` and `6-Development` for implementation work.
-
 If relevant documentation conflicts, follow the established authority/decision rules. If the conflict cannot be resolved, escalate it as `CONFLICT` before proceeding with the affected decision or change.
