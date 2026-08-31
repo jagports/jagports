@@ -15,6 +15,38 @@ Before doing any Jagports work:
 
 - Never claim that an action was performed without verification.
 
+## Repository Change Gate
+
+Every repository modification is subject to the mandatory Repository Change Gate. This applies before changing documentation, configuration, templates, scripts, source code, or any other repository file. There are no exemptions for documentation-only, small, trivial, cleanup, or seemingly low-risk changes.
+
+Before making any repository modification, the agent must complete the following controlled workflow:
+
+1. Identify the GitHub Issue that authorizes and describes the requested work. If no suitable Issue exists, create the required Issue before making the repository modification.
+2. Verify that a dedicated branch exists from the appropriate base branch. Create one when necessary.
+3. Make all repository modifications only on that dedicated branch. Never modify `main` directly.
+4. Open a Pull Request from the dedicated branch to the appropriate base branch. The PR description must contain `Closes #<issue-number>` for the Issue implemented by the PR.
+5. Update the GitHub Project/Kanban item status to the workflow state that reflects the actual current phase of the work, and verify that the update succeeded. Project/Kanban status changes are part of execution, not optional documentation.
+6. Request the required review and wait for the required review/approval.
+7. Do not merge the Pull Request until the required review has been independently verified as approved.
+8. Merge the approved Pull Request through the controlled GitHub workflow.
+9. After the merge, verify the resulting repository state, Pull Request state, Issue state, and relevant GitHub Project/Kanban state.
+
+The Repository Change Gate is a hard process requirement, not guidance. The existence of a simple or urgent change does not permit bypassing the Issue → Branch → PR → Review → Merge workflow.
+
+### Direct-Main Change Recovery
+
+A direct change to `main` is a process violation. It must not be accepted as normal work or treated as an exemption from the Repository Change Gate.
+
+When a direct-main change is detected:
+
+1. Stop further repository modifications until the violation is assessed.
+2. Document the violation and identify the affected commit, files, and intended GitHub Issue.
+3. Create or identify the corrective Issue if one does not already exist.
+4. Restore the required controlled workflow by moving the intended change onto a dedicated branch based on the appropriate repository state.
+5. Open a corrective Pull Request linked with `Closes #<issue-number>` and subject it to the normal required review and approval process.
+6. Do not declare the violation resolved until the corrective Pull Request, repository state, Issue state, and relevant Kanban state have been verified.
+7. Record the recovery and resulting decision in the appropriate project knowledge record when project history or process knowledge is affected.
+
 ## Git Branch Rules
 
 - Always create and work on a branch.
