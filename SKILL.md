@@ -80,7 +80,11 @@ When creating a new GitHub Issue that belongs to the project:
 - Add the Issue to the GitHub Project immediately.
 - Initial Project Status must always be `BACKLOG`.
 - Do not assume a new Issue has a workflow state until it has been added to the Project.
-- After adding the Issue to the Project, update the Status field according to the actual workflow state.
+- When actual work starts, the first substantive work comment or work action marks the transition from `BACKLOG` to `RESEARCH` unless another workflow state is explicitly appropriate.
+- Subsequent Project Status changes must be made when the task actually enters the corresponding workflow phase.
+- Project Status changes are part of the task execution, not optional documentation.
+- During Review, verify that the Project Status has been implemented and matches the task's actual current workflow state.
+- A task must not be considered correctly reviewed if its Project Status is missing, stale, or inconsistent with the work performed.
 
 If automatic Project Status updates are not available:
 
@@ -109,6 +113,10 @@ Check both:
 If GitHub access or the required operation is unavailable:
 
 - Alert the user immediately and state the limitation clearly.
+- The alert must begin exactly with:
+
+`*** !!! ALERT - GitHub functions unavailable !!! ***`
+
 - Do not silently continue as if the GitHub action was performed.
 - Do not repeatedly retry an unavailable operation.
 - Do not ask the user to paste commands or perform the missing GitHub operation merely to compensate for the agent's unavailable capability.
@@ -172,7 +180,9 @@ Rules:
 
 - PRs are the required integration path.
 - Review changes before merging.
-- Merge to `main` only after validation.
+- Merge to the repository's current default branch only after validation and required review.
+- Never treat GitHub's `mergeable` state as evidence that the required review has occurred.
+- Before merging, independently verify that the required review/approval exists. If it cannot be verified, do not merge.
 
 ## Separation of Responsibilities
 
