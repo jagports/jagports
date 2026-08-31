@@ -36,6 +36,28 @@ Before creating a Pull Request:
 - Verify the PR description links the correct Issue number.
 - Confirm that the Issue being closed is the exact Issue implemented by the PR.
 
+## SKILL Change Control
+
+Whenever a change to `SKILL.md` is requested, a dedicated GitHub Issue must first be opened describing the requested change.
+
+The Issue is the system-of-record for that SKILL change and must follow the normal Kanban workflow before `SKILL.md` is modified.
+
+Required workflow:
+
+1. Open the dedicated Issue describing the requested SKILL change.
+2. Add the Issue to the Jagports GitHub Project.
+3. Set the initial **Project Item Status** to `BACKLOG`.
+4. The first substantive work action moves the **Project Item Status** to `RESEARCH`.
+5. Research and define the required change.
+6. Implement the change on a dedicated branch.
+7. Open a Pull Request linked to the Issue.
+8. Move the **Project Item Status** to `REVIEW` when the implementation is ready for review.
+9. Do not merge or mark the Issue `DONE` until review and the subsequent workflow gates are completed.
+
+The same Issue-based change-control principle applies to substantive changes to project-specific `KNOWLEDGE.md` when requested as project work.
+
+If the required GitHub Project operation is unavailable, disclose that limitation immediately. Do not claim that the Issue was added to the Project or that its **Project Item Status** was changed unless the operation was actually performed and verified.
+
 ## GitHub Issue Closing Syntax
 
 Every Pull Request that completes a GitHub Issue must link to the Issue it closes.
@@ -215,7 +237,6 @@ KNOWLEDGE.md:
 - Project history
 - Confirmed decisions
 - Environment-specific findings
-- Current implementation state
 
 ## Capability Failure Detection and Disclosure
 
@@ -227,7 +248,6 @@ If a requested action cannot be completed:
 - Distinguish unavailable tool capability from insufficient permission, authentication failure, unavailable integration, or technical failure.
 - Do not repeatedly retry an unsupported operation without explaining why.
 - Do not claim completion without verification.
-- Provide the available alternative or required next step.
 
 When an answer is materially limited by unavailable execution capability, use explicit wording such as:
 
