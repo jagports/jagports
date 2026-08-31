@@ -1,5 +1,19 @@
 # SKILL — Jagports AI OS Operational Rules
 
+## Mandatory Start-of-Work Procedure
+
+Before doing any Jagports work:
+
+- Verify GitHub access.
+- Read the current `SKILL.md` from the repository.
+- Follow its rules.
+- Verify that the GitHub operations needed for the particular task are available.
+- If an operation required by the SKILL is unavailable, give the exact alert:
+
+`*** !!! ALERT - GitHub functions unavailable !!! ***`
+
+- Never claim that an action was performed without verification.
+
 ## Git Branch Rules
 
 - Always create and work on a branch.
