@@ -53,22 +53,9 @@ The clean SKILL category test was reported by the human tester as successful aft
 
 This establishes the complete tested path for the SKILL category: PR title prefix → GitHub Actions category handling → repository label.
 
-The earlier SKILL test PR #105 is historical/failed evidence and must not be treated as the successful test. It was superseded by the clean test.
+The earlier SKILL test PR #105 is historical/failed evidence and must not be treated as the successful test. It remained open and did not receive the expected automatic label; it was superseded by the clean test.
 
-AGENT and KNOWLEDGE clean test environments were prepared using the same method. Branch preparation alone is not human-test evidence; record them as successful only after explicit human confirmation of the automatic label.
-
-### Human + workflow operating model
-
-The category system demonstrates a useful human/automation workflow:
-
-1. **Human prepares intent** by using the required PR title prefix (`SKILL /`, `AGENT /`, or `KNOWLEDGE /`).
-2. **GitHub Actions performs the mechanical validation/label handling**.
-3. **Human verifies the result in the GitHub UI**, especially the visible label and check result.
-4. **GitHub remains the shared record** of the request, automation result, review, and human verification.
-
-Automation should handle deterministic repository operations; humans should verify outcomes that require UI inspection or judgment. A human test must not be replaced by an agent claiming that the expected UI result exists based only on workflow source code.
-
-This model is preferable to making humans perform deterministic labeling manually: the human supplies the category intent, automation applies/enforces the convention, and the human confirms the observable result.
+AGENT and KNOWLEDGE clean test environments were subsequently prepared using the same method. They should only be recorded as successful human tests after the human has explicitly confirmed the automatic label result; branch preparation alone is not test evidence.
 
 ### Test cleanup knowledge
 
