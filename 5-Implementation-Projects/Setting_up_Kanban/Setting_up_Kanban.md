@@ -36,13 +36,15 @@ The P1 group is:
 | P1 | Open Kanban | GitHub Project is available and usable |
 | P1.1 | Select Kanban tool | GitHub Projects selected as the $0 work-control system |
 | P1.2 | Create Jagports GitHub repository | `jagports/jagports` exists and is accessible |
-| P1.3 | Configure Kanban workflow | Controlled Status workflow is configured and verified |
+| P1.3 | Configure Kanban workflow | Controlled Project Item Status workflow is configured and verified |
 | P1.4 | Define Kanban fields and labels | Required Project fields and repository labels exist |
 | P1.5 | Define Kanban operating rules | Rules are committed in `0-DocumentationEducationCompetense/KANBAN_OPERATING_RULES.md` |
 
 The task list records these P1 items as DONE, but completion should be treated as valid only after verification against the current repository/project after the repository transfer.
 
 ## Required workflow
+
+The workflow states below are **Project Item Status** option values. They are stored in the `Status` field of each Issue's item in the GitHub Project. They are not statuses of the Project itself.
 
 ```text
 BACKLOG
@@ -56,7 +58,7 @@ BACKLOG
 → DONE
 ```
 
-Exceptional state:
+Exceptional Project Item Status:
 
 ```text
 BLOCKED
@@ -66,7 +68,7 @@ BLOCKED
 
 At minimum:
 
-- `Status` — controlled workflow state
+- `Status` — the Project Item Status field containing the controlled workflow state of an Issue's Project item
 - `Priority` — ordered values such as `P1`, `P1.1`, `P1.2`, `P2`
 - `Executing Entity` — Product Owner / Team Lead Agent / Specialist Agent / Human
 - `Execution Target` — concrete system, repository, issue, file, or device where applicable
@@ -74,7 +76,19 @@ At minimum:
 - `Dependencies` — blocking or prerequisite work
 - `Risk` — material delivery risk
 
-Repository labels supplement Project fields; they do not replace structured Project state.
+Repository labels supplement Project fields; they do not replace structured Project Item Status or other Project fields.
+
+## Project Item Status operations
+
+When an Issue is intended to participate in the Kanban workflow:
+
+1. Create or identify the Issue.
+2. Add the Issue to the GitHub Project, creating the Project item.
+3. Set the Project Item Status field to `BACKLOG` unless another initial state is explicitly justified.
+4. Independently verify that the Project item exists and that its Project Item Status is the expected value.
+5. When work enters another workflow phase, update the same Project Item Status field to the corresponding option and verify the mutation.
+
+Automatic Issue-to-Project-to-BACKLOG triggering is **not currently implemented**. Documentation must not imply that opening an Issue automatically creates a Project item or assigns its Project Item Status.
 
 ## P1 verification
 
@@ -105,6 +119,8 @@ The following scripts are designed to operate without a hardcoded historical rep
 
 All scripts now obtain the repository as `owner/name` from `gh repo view` unless `REPO` is explicitly supplied.
 
+These scripts perform explicit Project item operations. They must be understood as manual/semi-automatic setup tooling, not as an automatic Issue event trigger.
+
 ## Historical evidence
 
 `Setting_up_Kanban-console.log` is retained as historical execution evidence. It contains pre-transfer repository/account names because changing historical console output would falsify the record. It is not a source for current repository configuration.
@@ -112,3 +128,5 @@ All scripts now obtain the repository as `owner/name` from `gh repo view` unless
 ## Current operating rule
 
 The repository and Project are the system of record. Do not copy repository owner/name values from historical logs into new scripts or commands. Discover the current repository identity first, then configure the Project explicitly.
+
+When this document says `Status` in the context of workflow state, it means the **Project Item Status field** of the Issue's Project item. The GitHub Project itself does not have a separate workflow status represented by these values.
