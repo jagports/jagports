@@ -1,5 +1,19 @@
 # Jagports Project Knowledge
 
+## Repository and GitHub Access
+
+The authoritative Jagports repository is:
+
+`jagports/jagports`
+
+The GitHub account used for Jagports repository access is:
+
+`jagports-fi`
+
+`jagports-fi` is an administrator of the `jagports/jagports` repository.
+
+Do not use the obsolete `tlindi/jagports` repository reference for current Jagports work.
+
 ## Future Agent Operating Model Investigation
 
 Topic: proactive multi-agent workflow architecture
