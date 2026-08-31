@@ -1,10 +1,10 @@
 # Issue #78 — Category human test plan
 
-Use the prepared branch for the current human test. Do not add the label manually.
-
 ## Current test — SKILL label
 
-- [ ] Open https://github.com/jagports/jagports/compare/main...skill/test-category-skill-2
+Use the prepared branch below. Do not add the label manually.
+
+- [ ] Open https://github.com/jagports/jagports/compare/main...skill/test-category-skill-final-101
 - [ ] Create the PR into `main` with title `SKILL / Human test category skill` and leave labels unchanged.
 - [ ] Confirm `category:skill` is added automatically.
 
