@@ -19,40 +19,6 @@ Use:
 
 No critical decision may exist only in private agent context.
 
-## Before Beginning Work
-
-Before beginning work on an Issue, the agent must inspect the repository root and use all root folders as the first-level documentation and knowledge map, even when some folders are currently empty or contain no immediately relevant files.
-
-The current root folders are:
-
-1. `0-DocumentationEducationCompetense`
-2. `00-Management`
-3. `2-Sales`
-4. `3-Deployment`
-5. `4-Production`
-6. `5-Implementation-Projects`
-7. `6-Development`
-8. `7-Research`
-
-The agent must:
-
-1. Inspect all of the root folders listed above before beginning substantive work.
-2. Determine which folders contain information relevant to the Issue.
-3. Read the relevant `*.md` files in those folders before making decisions or implementation changes.
-4. Treat an empty or currently unused folder as part of the repository's knowledge structure; its lack of content is not a reason to omit it from the initial inspection.
-5. Check `00-Management` for management, governance and operating rules.
-6. Check `0-DocumentationEducationCompetense` for documentation, education, competence and agent-protocol information.
-7. Check `2-Sales` for sales, customer and commercial information when relevant.
-8. Check `3-Deployment` for deployment and operational information when relevant.
-9. Check `4-Production` for product requirements, priorities and production planning when relevant.
-10. Check `5-Implementation-Projects` for active implementation-project context when relevant.
-11. Check `6-Development` for software and technical-development context when relevant.
-12. Check `7-Research` for research, evidence and investigations when relevant.
-13. Do not read unrelated documentation merely because it is a Markdown file.
-14. If relevant documentation conflicts, follow the established authority and decision rules and escalate an unresolved conflict as `CONFLICT`.
-
-This discovery step is mandatory because the numbered root folders provide the semantic map of Jagports AI OS knowledge. Agents must not assume that the Issue itself contains all required context.
-
 ## Message Lifecycle
 
 `Message created → Agent notified → Agent acknowledges → Action taken → Result recorded → Knowledge updated if reusable`
