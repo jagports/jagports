@@ -99,3 +99,18 @@ When the user explicitly requests commands, provide the requested command sequen
 For command sequences whose later steps depend on earlier output, use a temporary file in the working directory to carry the required result between commands. Remove those temporary files after the dependent commands have completed successfully.
 
 Windows Git Bash compatibility is an explicit project constraint. Avoid `awk`, Bash associative arrays, backslash (`\\`) line continuations, and Windows path-separator assumptions. Prefer forward-slash paths and simple Git Bash-compatible shell constructs. Commands should be verified against these known limitations before being given to the user.
+
+## KNOWLEDGE.md Generalization and Scope Rules
+
+`KNOWLEDGE.md` is the repository-wide knowledge record. It contains durable, reusable knowledge rather than chronological work-item history or implementation-specific evidence.
+
+- The repository root `KNOWLEDGE.md` is the single authoritative knowledge file.
+- Do not create or retain additional `KNOWLEDGE.md` files in subfolders.
+- Do not retain individual GitHub Issue numbers in `KNOWLEDGE.md`.
+- Do not retain individual Pull Request numbers in `KNOWLEDGE.md`.
+- Do not retain specific branch names in `KNOWLEDGE.md`.
+- Do not retain temporary resource names, one-off test cases, or other identifiers that are meaningful only to a particular task or implementation.
+- Do not retain one-off category examples when they are tied to a particular task, Issue, Pull Request, branch, or temporary workflow.
+- When an observed event contains reusable information, convert it into a general rule or principle and retain only that generalized knowledge.
+- Keep task-specific evidence, implementation history, individual test results, and temporary operational details in the relevant Issue, Pull Request, test record, project record, or other task-specific documentation.
+- Before committing changes to the root `KNOWLEDGE.md`, review the content for task-specific identifiers and examples and generalize or remove them.
