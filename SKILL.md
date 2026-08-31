@@ -8,6 +8,7 @@ Before doing any Jagports work:
 - Read the current `SKILL.md` from the repository.
 - Follow its rules.
 - Verify that the GitHub operations needed for the particular task are available.
+- Confirm that the requested work has a corresponding GitHub Issue before substantive work begins.
 - If an operation required by the SKILL is unavailable, give the exact alert:
 
 `*** !!! ALERT - GitHub functions unavailable !!! ***`
