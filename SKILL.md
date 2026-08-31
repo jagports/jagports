@@ -69,6 +69,26 @@ Before creating a Pull Request:
 - Verify the PR description links the correct Issue number.
 - Confirm that the Issue being closed is the exact Issue implemented by the PR.
 
+## Work Category Subject Prefixes and Labels
+
+Persistent work records that represent a primary category must use exactly one of these human-readable subject prefixes:
+
+- `SKILL /` — skills, operating instructions, reusable procedures, or automation rules.
+- `AGENT /` — agent behavior, roles, discovery, delegation, or hand-off.
+- `KNOWLEDGE /` — project/product knowledge, documentation, research, decisions, or requirements.
+
+Each prefix has a corresponding GitHub label used as machine-readable metadata:
+
+- `SKILL /` ↔ `category:skill`
+- `AGENT /` ↔ `category:agent`
+- `KNOWLEDGE /` ↔ `category:knowledge`
+
+Use the same primary category on the implementing Issue and its Pull Request. If work spans multiple categories, select one primary category for the prefix and label and document secondary impacts in the record body.
+
+The category label and subject prefix are complementary: the label is machine-readable classification and the prefix provides human-visible traceability. Category is metadata only and must remain independent of the GitHub Project/Kanban. Category must not create or alter Project Status, Priority, ordering, or workflow states.
+
+The repository GitHub Actions workflow `.github/workflows/validate-category-conventions.yml` validates the prefix/label relationship for Issues and Pull Requests. Automated validation does not replace human review.
+
 ## GitHub Issue Closing Syntax
 
 Every Pull Request that completes a GitHub Issue must link to the Issue it closes.
