@@ -1,0 +1,79 @@
+name: Validate category conventions
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+  pull_request:
+    types: [opened, edited, labeled, unlabeled, synchronize]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  validate-category:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set matching category label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const item = context.eventName === 'issues' ? context.payload.issue : context.payload.pull_request;
+            const title = item.title || '';
+            const categories = [
+              ['SKILL /', 'category:skill'],
+              ['AGENT /', 'category:agent'],
+              ['KNOWLEDGE /', 'category:knowledge']
+            ];
+            const match = categories.find(([prefix]) => title.startsWith(prefix));
+            if (!match) return;
+            const [prefix, expectedLabel] = match;
+            const currentLabels = (item.labels || []).map(label => typeof label === 'string' ? label : label.name);
+            if (!currentLabels.includes(expectedLabel)) {
+              const number = context.eventName === 'issues' ? context.payload.issue.number : context.payload.pull_request.number;
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: number,
+                labels: [expectedLabel]
+              });
+              core.info(`Added ${expectedLabel} for ${prefix}`);
+            }
+
+      - name: Validate title prefix and category label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const event = context.eventName;
+            const item = event === 'issues' ? context.payload.issue : context.payload.pull_request;
+            const title = item.title || '';
+            const categories = [
+              ['SKILL /', 'category:skill'],
+              ['AGENT /', 'category:agent'],
+              ['KNOWLEDGE /', 'category:knowledge']
+            ];
+            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
+            if (matches.length === 0) {
+              core.setFailed(`Title must start with one of: ${categories.map(([prefix]) => prefix).join(', ')}`);
+              return;
+            }
+            const [prefix, expectedLabel] = matches[0];
+            const number = event === 'issues' ? context.payload.issue.number : context.payload.pull_request.number;
+            const refreshed = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number
+            });
+            const refreshedLabels = refreshed.data.labels.map(label => typeof label === 'string' ? label : label.name);
+            if (!refreshedLabels.includes(expectedLabel)) {
+              core.setFailed(`Title prefix ${prefix} requires label ${expectedLabel}.`);
+              return;
+            }
+            const categoryLabels = categories.map(([, label]) => label);
+            const conflicting = refreshedLabels.filter(label => categoryLabels.includes(label) && label !== expectedLabel);
+            if (conflicting.length > 0) {
+              core.setFailed(`Category label does not match title prefix: ${conflicting.join(', ')}`);
+              return;
+            }
+            core.info(`Category convention valid: ${prefix} ↔ ${expectedLabel}`);
