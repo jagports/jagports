@@ -111,6 +111,10 @@ Important decisions must not exist only in private chat.
 Where a decision is made outside GitHub, the resulting decision must be
 recorded in the relevant task or project documentation.
 
+The workflow state of an Issue is the **Project Item Status**: the value of the
+`Status` field belonging to that Issue's item in the GitHub Project. It is not a
+status of the Project itself.
+
 ---
 
 ## 3. Task Creation
@@ -136,6 +140,11 @@ The task should contain enough information to understand:
 - dependencies
 - known risks
 - required decision/approval
+
+When an Issue is added to the Project, its workflow state must be set and verified
+through the Project Item Status field. The current implementation does not
+provide an automatic Issue-to-Project-to-BACKLOG trigger; an agent or other
+explicit automation must perform and verify the Project operations.
 
 ---
 
@@ -203,6 +212,9 @@ The controlled workflow is:
 
 `BLOCKED` may be entered whenever work cannot proceed.
 
+The values above are **Project Item Status option values**. They are stored in
+the `Status` field of each Issue's Project item.
+
 ### BACKLOG
 
 Work is identified but not actively being researched or executed.
@@ -265,6 +277,9 @@ The Product Owner may move or override state at any time.
 A Specialist Agent or Human Contributor should not move work into an approval
 or acceptance state merely by declaring its own work complete when independent
 approval is required.
+
+A workflow transition means changing the **Project Item Status** value on the
+Issue's Project item to the corresponding Status option.
 
 Moving to `DONE` means the defined completion/acceptance criteria have been met.
 
@@ -358,6 +373,9 @@ A task should not be marked `DONE` merely because implementation has stopped.
 The task should contain sufficient evidence that the expected result was
 achieved.
 
+Review must independently verify that the Issue's Project item exists and that
+its **Project Item Status** matches the actual workflow state.
+
 The Product Owner retains final acceptance authority for materially important
 project outcomes.
 
@@ -414,6 +432,9 @@ dependencies, risks, and completion.
 
 No important project decision should depend solely on hidden conversation
 context.
+
+For clarity, whenever this document refers to a workflow state, it means the
+**Project Item Status** stored in the `Status` field of the Issue's Project item.
 
 ---
 
