@@ -1,0 +1,2 @@
+Issue #78 human test — SKILL category.
+This file is intentionally harmless test data.
