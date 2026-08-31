@@ -20,6 +20,9 @@ jobs:
           script: |
             const item = context.eventName === 'issues' ? context.payload.issue : context.payload.pull_request;
             const title = item.title || '';
+            // `edited` is the GitHub event used for title/subject changes. Therefore
+            // renaming an existing Issue or PR into a category automatically appends
+            // the matching category label without requiring a separate rename event.
             const categories = [
               ['SKILL /', 'category:skill'],
               ['AGENT /', 'category:agent'],
