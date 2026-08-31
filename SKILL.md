@@ -1,5 +1,19 @@
 # SKILL — Jagports AI OS Operational Rules
 
+## Mandatory Start-of-Work Procedure
+
+Before doing any Jagports work:
+
+- Verify GitHub access.
+- Read the current `SKILL.md` from the repository.
+- Follow its rules.
+- Verify that the GitHub operations needed for the particular task are available.
+- If an operation required by the SKILL is unavailable, give the exact alert:
+
+`*** !!! ALERT - GitHub functions unavailable !!! ***`
+
+- Never claim that an action was performed without verification.
+
 ## Git Branch Rules
 
 - Always create and work on a branch.
@@ -77,19 +91,27 @@ because GitHub cannot automatically link a task name to an Issue.
 
 When creating a new GitHub Issue that belongs to the project:
 
-- Add the Issue to the GitHub Project immediately.
-- Initial Project Status must always be `BACKLOG`.
-- Do not assume a new Issue has a workflow state until it has been added to the Project.
-- After adding the Issue to the Project, update the Status field according to the actual workflow state.
+- Add the Issue to the GitHub Project immediately. The agent must perform this Project operation explicitly.
+- Set the **Project Item Status** to `BACKLOG` when the Project item is created. Do not assume that GitHub automatically assigns this status.
+- Independently verify that the Project item exists and that its **Project Item Status** is `BACKLOG`.
+- After successful verification, communicate the result in the Issue's persistent GitHub record, including that the Issue was added to the Project and its initial **Project Item Status** is `BACKLOG`.
+- If the Project add or **Project Item Status** operation cannot be performed or verified, report the limitation immediately and do not claim that the Project setup succeeded.
+- Do not assume a new Issue has a workflow state until it has been added to the Project and the **Project Item Status** has been verified.
+- When actual work starts, the first substantive work comment or work action marks the transition from `BACKLOG` to `RESEARCH` unless another workflow state is explicitly appropriate.
+- Subsequent **Project Item Status** changes must be made when the task actually enters the corresponding workflow phase.
+- **Project Item Status** changes are part of the task execution, not optional documentation.
+- During Review, verify that the **Project Item Status** has been implemented and matches the task's actual current workflow state.
+- A task must not be considered correctly reviewed if its **Project Item Status** is missing, stale, or inconsistent with the work performed.
 
-If automatic Project Status updates are not available:
+If a **Project Item Status** update cannot be performed:
 
-- Add a temporary Issue comment documenting the intended Project Status.
-- Include the expected initial state, for example:
+- Add a temporary Issue comment documenting the intended **Project Item Status** and the reason the Project update could not be performed.
+- Include the expected state, for example:
 
-`Project Status: BACKLOG (waiting for Project item creation/update)`
+`Project Item Status: BACKLOG (waiting for Project item creation/update)`
 
-The Project Status and Issue state must remain synchronized.
+- Do not represent the intended state as the actual **Project Item Status**.
+- The **Project Item Status** and Issue state must be synchronized as soon as the required Project operation becomes available.
 
 ## GitHub API Rules
 
@@ -109,6 +131,10 @@ Check both:
 If GitHub access or the required operation is unavailable:
 
 - Alert the user immediately and state the limitation clearly.
+- The alert must begin exactly with:
+
+`*** !!! ALERT - GitHub functions unavailable !!! ***`
+
 - Do not silently continue as if the GitHub action was performed.
 - Do not repeatedly retry an unavailable operation.
 - Do not ask the user to paste commands or perform the missing GitHub operation merely to compensate for the agent's unavailable capability.
@@ -172,7 +198,9 @@ Rules:
 
 - PRs are the required integration path.
 - Review changes before merging.
-- Merge to `main` only after validation.
+- Merge to the repository's current default branch only after validation and required review.
+- Never treat GitHub's `mergeable` state as evidence that the required review has occurred.
+- Before merging, independently verify that the required review/approval exists. If it cannot be verified, do not merge.
 
 ## Separation of Responsibilities
 
@@ -205,4 +233,4 @@ When an answer is materially limited by unavailable execution capability, use ex
 
 `Limitation: my answer is affected because the required execution capability is unavailable in this session.`
 
-Do not attribute an unverified motive to the platform, provider, or system. The agent must report observable capability or permission limitations rather than speculate about why they occurred.
+Do not attribute an unverified motive to the platform, provider, or system. The agent must report observable capability or permission limitations rather than speculate about why the platform/provider/system works that way.
