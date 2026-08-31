@@ -92,26 +92,26 @@ because GitHub cannot automatically link a task name to an Issue.
 When creating a new GitHub Issue that belongs to the project:
 
 - Add the Issue to the GitHub Project immediately. Automatic Issue-to-Project automation does not currently exist, so the agent must perform this Project operation explicitly.
-- Set the Project Status to `BACKLOG` when the Project item is created. Do not assume that GitHub automatically assigns this status.
-- Independently verify that the Project item exists and that its Project Status is `BACKLOG`.
-- After successful verification, communicate the result in the Issue's persistent GitHub record, including that the Issue was added to the Project and its initial Project Status is `BACKLOG`.
-- If the Project add or Status operation cannot be performed or verified, report the limitation immediately and do not claim that the Project setup succeeded.
-- Do not assume a new Issue has a workflow state until it has been added to the Project and the state has been verified.
+- Set the **Project Item Status** to `BACKLOG` when the Project item is created. Do not assume that GitHub automatically assigns this status.
+- Independently verify that the Project item exists and that its **Project Item Status** is `BACKLOG`.
+- After successful verification, communicate the result in the Issue's persistent GitHub record, including that the Issue was added to the Project and its initial **Project Item Status** is `BACKLOG`.
+- If the Project add or **Project Item Status** operation cannot be performed or verified, report the limitation immediately and do not claim that the Project setup succeeded.
+- Do not assume a new Issue has a workflow state until it has been added to the Project and the **Project Item Status** has been verified.
 - When actual work starts, the first substantive work comment or work action marks the transition from `BACKLOG` to `RESEARCH` unless another workflow state is explicitly appropriate.
-- Subsequent Project Status changes must be made when the task actually enters the corresponding workflow phase.
-- Project Status changes are part of the task execution, not optional documentation.
-- During Review, verify that the Project Status has been implemented and matches the task's actual current workflow state.
-- A task must not be considered correctly reviewed if its Project Status is missing, stale, or inconsistent with the work performed.
+- Subsequent **Project Item Status** changes must be made when the task actually enters the corresponding workflow phase.
+- **Project Item Status** changes are part of the task execution, not optional documentation.
+- During Review, verify that the **Project Item Status** has been implemented and matches the task's actual current workflow state.
+- A task must not be considered correctly reviewed if its **Project Item Status** is missing, stale, or inconsistent with the work performed.
 
-If a Project Status update cannot be performed:
+If a **Project Item Status** update cannot be performed:
 
-- Add a temporary Issue comment documenting the intended Project Status and the reason the Project update could not be performed.
+- Add a temporary Issue comment documenting the intended **Project Item Status** and the reason the Project update could not be performed.
 - Include the expected state, for example:
 
-`Project Status: BACKLOG (waiting for Project item creation/update)`
+`Project Item Status: BACKLOG (waiting for Project item creation/update)`
 
-- Do not represent the intended state as the actual Project Status.
-- The Project Status and Issue state must be synchronized as soon as the required Project operation becomes available.
+- Do not represent the intended state as the actual **Project Item Status**.
+- The **Project Item Status** and Issue state must be synchronized as soon as the required Project operation becomes available.
 
 ## GitHub API Rules
 
