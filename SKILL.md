@@ -145,6 +145,29 @@ Before giving commands to the user, verify that the command sequence does not de
 
 Use Git Bash-compatible forward-slash paths and simple shell constructs. Prefer commands that have already been verified in this project. If a command or syntax has not been verified, use a simpler compatible alternative or explicitly state the uncertainty before asking the user to run it.
 
+## Navigation URL Rules
+
+When giving the user step-by-step instructions for navigating a web UI, provide a direct URL to the relevant page whenever a stable, known URL can be determined.
+
+Do not make the user manually navigate through multiple menus when the target page can be opened directly.
+
+For example, instead of:
+
+- Open the repository: `jagports/jagports`
+- Settings
+- Left sidebar → Rules → Rulesets
+
+provide the direct repository Settings → Rules URL when that is the intended destination:
+
+https://github.com/jagports/jagports/settings/rules
+
+Rules:
+
+- Prefer direct URLs to the exact target page.
+- Use the repository's actual name and path; do not invent URLs.
+- If a direct URL is unavailable or uncertain, give the UI navigation path instead.
+- When using a URL in a normal ChatGPT response, use the platform's URL-link format rather than displaying a raw URL unless the user explicitly asks for raw URLs.
+
 ## Pull Request Rules
 
 - PRs are the required integration path.
