@@ -2,89 +2,116 @@
 
 ## Human testing
 
-### GitHub category-label automation — Issue #78
+### General principles
 
-The category system uses repository-level GitHub labels. The labels are not branch contents and therefore are available independently of which branch a PR comes from.
+Human testing verifies observable behavior and functional results that cannot be established reliably from implementation inspection alone. Test instructions must be short, explicit, repeatable, and independent of a particular work item or subject.
 
-Configured labels:
+A good human test defines:
 
-- `category:skill` — Skills, operating instructions, or automation rules — `#5319E7`
-- `category:agent` — Agent behavior, roles, discovery, or hand-off — `#1D76DB`
-- `category:knowledge` — Project knowledge, documentation, research, decisions, or requirements — `#0E8A16`
+1. **Starting state** — what is already prepared and what the tester should see.
+2. **Action** — one concrete action for the human to perform.
+3. **Expected result** — one observable result that determines pass/fail.
 
-The category labels are metadata. They do not create a separate Kanban category/state and must not change Kanban Status, Priority, ordering, or workflow.
+Do not make the human infer missing steps, reconstruct the test environment, or interpret implementation details unnecessarily.
 
-#### Workflow deployment test
+### Behavioral testing
 
-PR #107 deployed `.github/workflows/validate-category-conventions.yml` to `main`.
+Test the behavior that a human or external system is expected to observe, rather than merely checking that an implementation exists.
 
-A `CHORE /` deployment PR initially exposed an important workflow rule: maintenance PRs must be explicitly exempted from the category-prefix/label requirement. After that correction, the validation job succeeded. The GitHub Actions run showed:
+- Define the observable behavior before testing.
+- Exercise the smallest realistic action that triggers it.
+- Record the actual observed result, including failures or unexpected behavior.
 
-- `validate-category` — succeeded
-- workflow output: `CHORE PR: category label is not required.`
-- GitHub also reported a Node.js 20 deprecation warning for `actions/github-script@v7`; this was a warning, not a test failure.
+A successful implementation check is not automatically a successful human test. Human confirmation is required when the expected result depends on the user interface, interaction flow, or other human-observable behavior.
 
-PR #107 was approved and merged. The workflow therefore became available from `main` before the clean category-label human test.
+### Functional testing
 
-#### Human test method learned
+Functional tests verify that a feature performs its intended operation from a realistic starting state.
 
-A reliable automatic-label human test requires a real branch change and a PR that does not already exist.
+- Use a controlled and reproducible test state.
+- Change or provide only the inputs required by the test.
+- Verify the resulting output or state against an explicit expected result.
 
-Required preparation:
+Do not perform manually an operation that the test is intended to verify as automatic. Otherwise the test may produce a false positive.
 
-1. Create a fresh branch from current `main`.
-2. Make a small, harmless file change on that branch so GitHub has a real comparison.
-3. Verify the exact branch has **zero existing PRs** before giving the PR-creation URL.
-4. Give the user a compare URL for that exact branch.
-5. User creates the PR with the category prefix and does not manually add the label.
-6. Verify the automatically assigned category label and the validation check.
+### Technical test-environment preparation
 
-Do not assume that a branch is a clean PR-test branch merely because its name is new. The exact branch must be checked for existing PRs. A compare URL can lead to an existing PR if the branch already has one.
+When a test requires technical setup, prepare the environment before handing the test to a human.
 
-Do not use a branch with no file difference for a PR-creation test: GitHub can immediately present the existing PR/closed PR state instead of offering a new PR creation flow.
+- Prepare all required files, configuration, data, services, or other prerequisites.
+- Use an isolated and reproducible test state when the operation could affect other work.
+- Verify prerequisites before giving the human the test instructions.
+- Ensure that the test state itself does not perform the behavior being tested before the human starts.
 
-#### Verified human result
+A test environment is preparation, not test evidence. The expected behavior must still be exercised and observed.
 
-The clean SKILL category test was reported by the human tester as successful after the workflow had been merged to `main`:
+### Human + automation workflow
 
-- PR title used the `SKILL /` prefix.
-- `category:skill` was automatically applied.
-- The label was not manually added.
+Use humans and automation for the responsibilities each can verify reliably:
 
-This establishes the complete tested path for the SKILL category: PR title prefix → GitHub Actions category handling → repository label.
+1. **Human defines intent** and performs actions requiring human judgment or interaction.
+2. **Automation performs deterministic operations** such as validation, metadata handling, or repeatable checks.
+3. **Human verifies observable results** where the result requires UI observation, real interaction, or judgment.
+4. **The project record captures the request, automated result, review, and human verification.**
 
-The earlier SKILL test PR #105 is historical/failed evidence and must not be treated as the successful test. It was superseded by the clean test.
+Do not substitute implementation inspection for human verification when the test explicitly concerns observable behavior. Conversely, do not require a human to perform repetitive deterministic checks that automation can verify consistently.
 
-AGENT and KNOWLEDGE clean test environments were prepared using the same method. Branch preparation alone is not human-test evidence; record them as successful only after explicit human confirmation of the automatic label.
+### Workflow and automation testing
 
-### Human + workflow operating model
+When a test depends on automation, verify that the automation is available in the execution context and that the tested event actually invokes it.
 
-The category system demonstrates a useful human/automation workflow:
+- Verify the relevant configuration is deployed where it is expected to run.
+- Trigger the real event or operation under test.
+- Inspect the resulting execution status and output.
+- Distinguish warnings from failures according to the acceptance criteria.
 
-1. **Human prepares intent** by using the required PR title prefix (`SKILL /`, `AGENT /`, or `KNOWLEDGE /`).
-2. **GitHub Actions performs the mechanical validation/label handling**.
-3. **Human verifies the result in the GitHub UI**, especially the visible label and check result.
-4. **GitHub remains the shared record** of the request, automation result, review, and human verification.
+The presence of configuration or workflow source code does not prove that the automation executed successfully. Execution evidence is required.
 
-Automation should handle deterministic repository operations; humans should verify outcomes that require UI inspection or judgment. A human test must not be replaced by an agent claiming that the expected UI result exists based only on workflow source code.
+### Test evidence
 
-This model is preferable to making humans perform deterministic labeling manually: the human supplies the category intent, automation applies/enforces the convention, and the human confirms the observable result.
+Test evidence must describe what was actually observed, not what was expected to happen.
 
-### Test cleanup knowledge
+- **PASS:** expected behavior was observed.
+- **FAIL:** expected behavior was not observed.
+- **BLOCKED:** the test could not be executed because a prerequisite was unavailable.
+- **NOT TESTED:** the environment was prepared but the behavior was not exercised and verified.
 
-Temporary category-test Issues and branches should be removed after testing so they do not remain as misleading active work records.
+Do not record an unexecuted test as successful merely because the implementation or test environment appears correct.
 
-Issue #120 was created and assigned to `tlindi` to remove obsolete human-testing branches. The cleanup list includes the temporary SKILL, AGENT, KNOWLEDGE, and documentation test branches created during the testing process. Branch deletion must be performed only after confirming no active PR depends on a branch.
+### Reproducible test instructions and URLs
 
-Test Issues that were closed after the testing cycle included #95, #97, #98, #99, #101, and #115. Closed test Issues are historical evidence and should not be reused as current test instructions.
+Any link or navigation instruction supplied for a human test must be checked immediately before it is supplied.
 
-### Important operational lessons
+Verify that:
 
-- GitHub labels are repository-level objects, not branch files.
-- A workflow file on a feature/test branch cannot reliably validate a newly created PR from another branch; the workflow must be present on the target/default branch according to the applicable GitHub Actions trigger behavior.
-- Deployment of a workflow and testing of the workflow should therefore be separated when the test depends on the workflow being available from `main`.
-- Human tests should be short and granular. A useful test item can be three steps: URL, action, expected result.
-- Test URLs must point to a genuinely unused branch with a real file change, not to an existing PR.
-- Automatic-label tests are invalid if the label is manually added before verification.
-- Human confirmation is required for visual/UI facts such as whether a label appeared in the PR interface; source-code inspection alone is not equivalent to human testing.
-- Category metadata remains orthogonal to the Kanban workflow.
+- the destination exists and is accessible;
+- it represents the intended starting state;
+- it does not unexpectedly open an already-completed or unrelated operation;
+- the instructions identify the exact action and expected result.
+
+For any test that depends on a unique resource or isolated state, verify that the resource is actually unique and unused before providing it to the tester.
+
+### Cleanup after testing
+
+Temporary test artifacts should be removed after the test cycle when they are no longer needed.
+
+Before deleting a test artifact:
+
+1. Check its current state.
+2. Check whether active work still depends on it.
+3. Delete only artifacts that are confirmed obsolete.
+4. Record what was actually removed when the cleanup itself is part of project control.
+
+Do not silently delete active work or retain obsolete test artifacts merely because they were once used for testing.
+
+### Knowledge quality rule
+
+`KNOWLEDGE.md` contains reusable knowledge, not a chronological test diary.
+
+Do not encode individual work-item numbers, review numbers, temporary resource names, one-off test cases, or topic-specific history as knowledge unless the information itself expresses a reusable rule. Convert an observed event into a general principle that can be applied to future work.
+
+When an observation is useful only as evidence for a particular implementation, keep it in the relevant work item, review, test plan, or project record rather than in `KNOWLEDGE.md`.
+
+### Classification metadata and workflow state
+
+Metadata used to classify work should remain independent of workflow state unless the project explicitly defines an integration between them. A classification mechanism should not silently change status, priority, ordering, ownership, or other work-control information.
