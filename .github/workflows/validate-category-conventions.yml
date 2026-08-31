@@ -1,0 +1,56 @@
+name: Validate category conventions
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+  pull_request:
+    types: [opened, edited, labeled, unlabeled, synchronize]
+
+jobs:
+  validate-category:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      pull-requests: read
+      contents: read
+    steps:
+      - name: Validate title prefix and category label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const event = context.eventName;
+            const item = event === 'issues' ? context.payload.issue : context.payload.pull_request;
+            const title = item.title || '';
+            const labels = (item.labels || []).map(label => typeof label === 'string' ? label : label.name);
+            const categories = [
+              ['SKILL /', 'category:skill'],
+              ['AGENT /', 'category:agent'],
+              ['KNOWLEDGE /', 'category:knowledge']
+            ];
+
+            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
+
+            if (matches.length === 0) {
+              core.setFailed(`Title must start with one of: ${categories.map(([prefix]) => prefix).join(', ')}`);
+              return;
+            }
+
+            if (matches.length > 1) {
+              core.setFailed('Title must use exactly one category prefix.');
+              return;
+            }
+
+            const [prefix, expectedLabel] = matches[0];
+            if (!labels.includes(expectedLabel)) {
+              core.setFailed(`Title prefix ${prefix} requires label ${expectedLabel}.`);
+              return;
+            }
+
+            const categoryLabels = categories.map(([, label]) => label);
+            const conflicting = labels.filter(label => categoryLabels.includes(label) && label !== expectedLabel);
+            if (conflicting.length > 0) {
+              core.setFailed(`Category label does not match title prefix: ${conflicting.join(', ')}`);
+              return;
+            }
+
+            core.info(`Category convention valid: ${prefix} ↔ ${expectedLabel}`);
