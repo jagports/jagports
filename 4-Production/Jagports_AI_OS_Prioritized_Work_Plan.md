@@ -16,9 +16,9 @@
 - **P2.4 — Connect Codex to repository:** **Executor:** Product Owner + Codex Web. **Where:** Codex Web + GitHub. Authorize Codex to work against the Jagports repository and verify that it can inspect and modify the intended project.
 
 - **P3 — Define agent communication protocol:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub Issues / Projects. Make Issues, comments, labels, fields, status changes, and decision records the authoritative communication channel between agents and the Product Owner.
-- **P3.1 — Define escalation categories:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub repository documentation. Establish `AUTO`, `REVIEW`, `DECISION`, and `BLOCKED` handling rules.
+- **P3.1 — Define escalation categories:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub repository documentation. Establish seven escalation categories: `DECISION`, `BLOCKED`, `RISK`, `SCOPE`, `ACCESS`, `CONFLICT`, and `FAILURE`. Define the handling rules for each. `AUTO` and `REVIEW` are handling modes, not escalation categories.
 - **P3.2 — Define human decision gate:** **Executor:** Product Owner. **Where:** GitHub Kanban. Require explicit Product Owner approval before consequential product, architecture, cost, security, or data-strategy decisions proceed.
-- **P3.3 — Define agent hand-off format:** **Executor:** Team Lead Agent + ChatGPT. **Where:** GitHub Issue templates. Standardize what one agent must leave for the next agent to continue work without repeating research.
+- **P3.3 — Define agent hand-off format:** **Executor:** Team Lead Agent + ChatGPT. **Where:** GitHub Issue templates. Standardize the minimum persistent information one agent must leave for the next agent to continue work without repeating research.
 
 - **P4 — Create work-item templates:** **Executor:** Product Owner + ChatGPT, implemented by Codex where useful. **Where:** GitHub Issues. Create templates for Feature, Research, Decision, Architecture, Bug, Risk, Validation, Technical Debt, and Documentation.
 - **P4.1 — Define feature template:** **Executor:** Product Owner + Product/Vehicle Agent. **Where:** GitHub Issues. Include problem, value, proposed solution, evidence, priority, dependencies, risks, acceptance criteria, open questions, and decision requirement.
@@ -115,12 +115,20 @@ The roles do not need to be separate paid AI accounts or separate always-on serv
 
 Agents may act autonomously for research, analysis, documentation, routine implementation, testing, and backlog maintenance where explicitly authorized.
 
-Use four escalation categories:
+Use seven escalation categories:
 
-- **AUTO:** Agent can proceed.
-- **REVIEW:** Agent can prepare work but should obtain review.
-- **DECISION:** Product Owner approval is required.
-- **BLOCKED:** Work cannot continue until an issue is resolved.
+- **DECISION:** Explicit Product Owner decision is required before work can safely continue.
+- **BLOCKED:** Execution cannot continue because a required dependency, capability, or input is unavailable.
+- **RISK:** The agent can continue, but a material technical, operational, security, or data risk requires visibility.
+- **SCOPE:** The requested work conflicts with, exceeds, or materially changes the agreed scope.
+- **ACCESS:** Required repository, service, account, or permission access is unavailable or insufficient.
+- **CONFLICT:** Authoritative requirements, decisions, or sources conflict and cannot be resolved from existing information.
+- **FAILURE:** An implementation or validation attempt failed and recovery is not safely inferable.
+
+AUTO and REVIEW are handling modes, not escalation categories:
+
+- **AUTO:** Agent may proceed without human escalation when explicitly authorized.
+- **REVIEW:** Agent may prepare work, but review is required before proceeding to the next controlled step.
 
 Consequential product direction, architecture, security, cost, data strategy, or other high-impact decisions must reach the Product Owner.
 
