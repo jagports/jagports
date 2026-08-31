@@ -25,10 +25,11 @@ Before making any repository modification, the agent must complete the following
 2. Verify that a dedicated branch exists from the appropriate base branch. Create one when necessary.
 3. Make all repository modifications only on that dedicated branch. Never modify `main` directly.
 4. Open a Pull Request from the dedicated branch to the appropriate base branch. The PR description must contain `Closes #<issue-number>` for the Issue implemented by the PR.
-5. Request the required review and wait for the required review/approval.
-6. Do not merge the Pull Request until the required review has been independently verified as approved.
-7. Merge the approved Pull Request through the controlled GitHub workflow.
-8. After the merge, verify the resulting repository state, Pull Request state, Issue state, and relevant GitHub Project/Kanban state.
+5. Update the GitHub Project/Kanban item status to the workflow state that reflects the actual current phase of the work, and verify that the update succeeded. Project/Kanban status changes are part of execution, not optional documentation.
+6. Request the required review and wait for the required review/approval.
+7. Do not merge the Pull Request until the required review has been independently verified as approved.
+8. Merge the approved Pull Request through the controlled GitHub workflow.
+9. After the merge, verify the resulting repository state, Pull Request state, Issue state, and relevant GitHub Project/Kanban state.
 
 The Repository Change Gate is a hard process requirement, not guidance. The existence of a simple or urgent change does not permit bypassing the Issue → Branch → PR → Review → Merge workflow.
 
