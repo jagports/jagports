@@ -10,7 +10,7 @@ Inspect all of these root folders, including folders that are currently empty:
 - `00-Management` — Repository and project management, governance, and management operating material. Current repository management is human-controlled; agents must follow the applicable instructions found here.
 - `2-Sales` — Sales, customers, and commercial matters.
 - `3-Deployment` — Deployment, installation, and operational deployment.
-- `4-Production` — Production data and product/production knowledge. Its production hierarchy is `Base → Platform → Platform Application → Application → EndCustomer`; there is currently no data or code considered production yet.
+- `4-Production` — Production data and files that run in production, organized as `Base → Platform → Platform Application → Application → EndCustomer`. There is currently no data or code considered production yet.
 - `5-Implementation-Projects` — Active implementation projects and their work context.
 - `6-Development` — Software, engineering, and technical development.
 - `7-Research` — Research, investigations, evidence, and verification.
