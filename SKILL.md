@@ -91,7 +91,7 @@ because GitHub cannot automatically link a task name to an Issue.
 
 When creating a new GitHub Issue that belongs to the project:
 
-- Add the Issue to the GitHub Project immediately. Automatic Issue-to-Project automation does not currently exist, so the agent must perform this Project operation explicitly.
+- Add the Issue to the GitHub Project immediately. The agent must perform this Project operation explicitly.
 - Set the **Project Item Status** to `BACKLOG` when the Project item is created. Do not assume that GitHub automatically assigns this status.
 - Independently verify that the Project item exists and that its **Project Item Status** is `BACKLOG`.
 - After successful verification, communicate the result in the Issue's persistent GitHub record, including that the Issue was added to the Project and its initial **Project Item Status** is `BACKLOG`.
