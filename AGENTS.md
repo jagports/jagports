@@ -7,7 +7,7 @@ Before beginning work on any GitHub Issue, the agent must inspect the repository
 Inspect all of these root folders, including folders that are currently empty:
 
 - `0-DocumentationEducationCompetense` — Documentation, education, competencies, and agent protocol material.
-- `00-Management` — Repository and project management, governance, and management operating material. Current repository management is human-controlled; agents must follow the applicable instructions found here.
+- `00-Management` — Repository and project management. All repository/project management is performed by human `tlindi`; agents do not perform repository/project management.
 - `2-Sales` — Sales, customers, and commercial matters.
 - `3-Deployment` — Deployment, installation, and operational deployment.
 - `4-Production` — Production data and files that run in production, organized as `Base → Platform → Platform Application → Application → EndCustomer`. There is currently no data or code considered production yet.
@@ -19,37 +19,18 @@ The agent must then identify which domains are relevant to the Issue and read th
 
 ## Documentation Discovery
 
-`KNOWLEDGE.md` is the conventional filename for repository or domain knowledge when such a file exists, but it is not a requirement that every relevant agent document use that filename. Other specifically named Markdown documents can contain applicable rules, protocols, requirements, or operating instructions.
+`KNOWLEDGE.md` is the designated filename for repository or domain knowledge. After identifying the relevant domains from the root-folder structure, read `KNOWLEDGE.md` in those relevant domains when present. Do not search or read other Markdown files as part of this general agent-knowledge discovery process unless a separate, applicable instruction explicitly requires a particular document.
 
-Use the Issue subject, root-folder names, filenames, and document content to determine which documentation is relevant. Do not blindly read every Markdown file.
+Use the Issue subject and root-folder names to determine which domains are relevant to the Issue. Do not blindly read `KNOWLEDGE.md` files from unrelated domains.
 
 The discovery sequence is:
 
 1. Inspect all eight root folders.
-2. Use their names and contents to identify the semantic domains relevant to the Issue.
+2. Use their names to identify the semantic domains relevant to the Issue.
 3. In each relevant domain, read the applicable `KNOWLEDGE.md` when present.
-4. Also read other specifically relevant `*.md` documents when their names or contents indicate that they govern the Issue.
-5. Check `7-Research` when the work depends on research, evidence, investigation, or verification.
-6. Check `00-Management` and `4-Production` when the Issue concerns management, governance, requirements, priorities, production, or product decisions.
-7. Check `5-Implementation-Projects` and `6-Development` when implementation work is involved.
-8. If relevant documentation conflicts, follow the established authority/decision rules. If the conflict cannot be resolved under those rules, escalate it as `CONFLICT` before proceeding with the affected decision or change.
+4. Check `7-Research` when the work depends on research, evidence, investigation, or verification.
+5. Check `00-Management` and `4-Production` when the Issue concerns management, governance, requirements, priorities, production, or product decisions.
+6. Check `5-Implementation-Projects` and `6-Development` when implementation work is involved.
+7. If relevant documentation conflicts, follow the established authority/decision rules. If the conflict cannot be resolved under those rules, escalate it as `CONFLICT` before proceeding with the affected decision or change.
 
-The distinction is mandatory: inspect all root folders first; read documentation in depth only in domains relevant to the Issue. Empty folders are still inspected and remain part of the repository semantic map.
-
-## Communication Protocol
-
-The detailed Jagports AI OS agent communication protocol is maintained in:
-
-`0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md`
-
-This root-level document is only the discovery/index layer. Communication lifecycle, notification, acknowledgement, escalation, and persistent hand-off rules belong to the detailed communication-protocol work item and must not be duplicated here.
-
-## Scope Boundary
-
-This file defines repository knowledge discovery and navigation for agents. Changes to the Repository SKILL, repository change-control rules, file-move/rename behavior, or the detailed communication protocol belong to their dedicated Issues and Pull Requests rather than being implemented here.
-
-Relevant current work items include:
-
-- `#73` / `#77` — Repository SKILL and repository change-control requirements.
-- `#80` — Repository SKILL rule for preserving file-move/rename semantics.
-- `#14` — Agent communication protocol and its related architecture work.
+The distinction is mandatory: inspect all root folders first; read `KNOWLEDGE.md` only in domains relevant to the Issue. Empty folders are still inspected and remain part of the repository semantic map.
