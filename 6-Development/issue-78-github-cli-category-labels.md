@@ -10,11 +10,13 @@ Categories are metadata only. They must not become GitHub Project/Kanban Status,
 
 Run from any environment with GitHub CLI authenticated and repository access:
 
-    gh label create "category:skill" --repo jagports/jagports --color "5319E7" --description "Primary work category: agent skills, operating instructions, or automation rules"
-    gh label create "category:agent" --repo jagports/jagports --color "1D76DB" --description "Primary work category: agent behavior, roles, discovery, or hand-off"
-    gh label create "category:knowledge" --repo jagports/jagports --color "0E8A16" --description "Primary work category: project/product knowledge, documentation, research, decisions, or requirements"
+    gh label create "category:skill" --repo jagports/jagports --color "5319E7" --description "Skills, operating instructions, or automation rules"
+    gh label create "category:agent" --repo jagports/jagports --color "1D76DB" --description "Agent behavior, roles, discovery, or hand-off"
+    gh label create "category:knowledge" --repo jagports/jagports --color "0E8A16" --description "Project knowledge, documentation, research, decisions, or requirements"
 
-If `category:skill` already exists, the first command may report that it already exists. Do not delete/recreate it merely for that reason.
+If `category:skill` already exists, the command may report that it already exists. Do not delete/recreate it merely for that reason. To align its color/description with this specification, use `--force`:
+
+    gh label create "category:skill" --repo jagports/jagports --color "5319E7" --description "Skills, operating instructions, or automation rules" --force
 
 ## Verification commands
 
@@ -34,3 +36,7 @@ Verify the labels on the implementation Issue and PR:
 ## Human verification
 
 A human reviewer must confirm in PR #94 that all three labels exist, correspond to the documented prefixes, and remain independent of the Kanban workflow before the PR is approved/merged.
+
+## Repository Change Gate
+
+This file is part of the Issue #78 implementation branch and must reach `main` only through the normal PR review and merge process.
