@@ -6,45 +6,33 @@ Before beginning work on any GitHub Issue, the agent must inspect the repository
 
 Inspect all of these root folders, including folders that are currently empty:
 
-- `0-DocumentationEducationCompetense` — Documentation, education, competencies
-- `00-Management` — Management, governance, agent operating rules
-- `2-Sales` — Sales, customer, commercial matters
-- `3-Deployment` — Deployment, installation, operational deployment
-- `4-Production` — Production, product planning, requirements
-- `5-Implementation-Projects` — Active implementation projects
-- `6-Development` — Software and technical development
-- `7-Research` — Research, investigations, evidence
+- `0-DocumentationEducationCompetense` — Documentation, education, competencies, and agent protocol material.
+- `00-Management` — Repository and project management, governance, and management operating material. Current repository management is human-controlled; agents must follow the applicable instructions found here.
+- `2-Sales` — Sales, customers, and commercial matters.
+- `3-Deployment` — Deployment, installation, and operational deployment.
+- `4-Production` — Production data and product/production knowledge. Its production hierarchy is `Base → Platform → Platform Application → Application → EndCustomer`; there is currently no data or code considered production yet.
+- `5-Implementation-Projects` — Active implementation projects and their work context.
+- `6-Development` — Software, engineering, and technical development.
+- `7-Research` — Research, investigations, evidence, and verification.
 
-The agent must then identify which domains are relevant to the Issue and read the applicable `*.md` files in those domains before making decisions or implementation changes.
+The agent must then identify which domains are relevant to the Issue and read the applicable documentation in those domains before making decisions or implementation changes.
 
-Do not blindly read every Markdown file. Use the Issue subject, task description, root-folder names, filenames, and document content to determine relevance.
+## Documentation Discovery
 
-### Semantic Domain Map
+`KNOWLEDGE.md` is the conventional filename for repository or domain knowledge when such a file exists, but it is not a requirement that every relevant agent document use that filename. Other specifically named Markdown documents can contain applicable rules, protocols, requirements, or operating instructions.
 
-The root-folder names are the first-level navigation protocol. Use them as follows:
+Use the Issue subject, root-folder names, filenames, and document content to determine which documentation is relevant. Do not blindly read every Markdown file.
 
-- `0-DocumentationEducationCompetense` — documentation, education, competencies, and agent communication protocol material.
-- `00-Management` — management, governance, agent operating rules, process, and project-control material.
-- `2-Sales` — sales, customers, and commercial matters.
-- `3-Deployment` — deployment, installation, and operational deployment.
-- `4-Production` — product planning, product requirements, priorities, and production-related knowledge.
-- `5-Implementation-Projects` — active implementation projects and their work context.
-- `6-Development` — software, engineering, and technical development.
-- `7-Research` — research, investigations, evidence, and verification findings.
+The discovery sequence is:
 
-### Minimum Discovery Rules
-
-- Read applicable management and agent-operating documentation before executing work.
-- Check `0-DocumentationEducationCompetense` for applicable documentation, education, competence, and agent protocol material.
-- Check `00-Management` for applicable management, governance, process, and project-control material.
-- Check `2-Sales` for Issues concerning sales, customers, or commercial matters.
-- Check `3-Deployment` for Issues concerning deployment, installation, or operational deployment.
-- Check `4-Production` for applicable product plans, requirements, priorities, and production-related knowledge.
-- Check `5-Implementation-Projects` for active implementation-project context when relevant.
-- Check `6-Development` for implementation, software, engineering, or technical-development work.
-- Check `7-Research` when the work depends on research, evidence, investigation, or external findings.
-- Treat existing authoritative decisions and requirements as constraints unless the current Issue explicitly changes them through the required decision process.
-- If relevant documentation conflicts, follow the established decision/authority rules. If the conflict cannot be resolved under those rules, escalate it as `CONFLICT` before proceeding with the affected decision or change.
+1. Inspect all eight root folders.
+2. Use their names and contents to identify the semantic domains relevant to the Issue.
+3. In each relevant domain, read the applicable `KNOWLEDGE.md` when present.
+4. Also read other specifically relevant `*.md` documents when their names or contents indicate that they govern the Issue.
+5. Check `7-Research` when the work depends on research, evidence, investigation, or verification.
+6. Check `00-Management` and `4-Production` when the Issue concerns management, governance, requirements, priorities, production, or product decisions.
+7. Check `5-Implementation-Projects` and `6-Development` when implementation work is involved.
+8. If relevant documentation conflicts, follow the established authority/decision rules. If the conflict cannot be resolved under those rules, escalate it as `CONFLICT` before proceeding with the affected decision or change.
 
 The distinction is mandatory: inspect all root folders first; read documentation in depth only in domains relevant to the Issue. Empty folders are still inspected and remain part of the repository semantic map.
 
@@ -54,18 +42,14 @@ The detailed Jagports AI OS agent communication protocol is maintained in:
 
 `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md`
 
-Agents must read the applicable communication-protocol rules before beginning work that involves agent hand-off, escalation, human decisions, workflow transitions, or persistent inter-agent communication.
+This root-level document is only the discovery/index layer. Communication lifecycle, notification, acknowledgement, escalation, and persistent hand-off rules belong to the detailed communication-protocol work item and must not be duplicated here.
 
-## Repository Change Control
+## Scope Boundary
 
-Repository changes must follow the controlled workflow:
+This file defines repository knowledge discovery and navigation for agents. Changes to the Repository SKILL, repository change-control rules, file-move/rename behavior, or the detailed communication protocol belong to their dedicated Issues and Pull Requests rather than being implemented here.
 
-`Issue → Branch → Change → Pull Request → Review → Merge → Verification`
+Relevant current work items include:
 
-No repository file may be modified directly on `main`. This applies equally to documentation, configuration, templates, scripts, source code, and small changes.
-
-Before modifying a repository file, verify that the required Issue and dedicated branch exist. The change must be made on that branch, delivered through a Pull Request linked to the Issue, reviewed, approved, merged, and then verified.
-
-## Persistent Communication
-
-GitHub Issues, Pull Requests, Project state, and repository documentation are persistent project records. Critical decisions, blockers, findings, and hand-offs must not exist only in transient agent context.
+- `#73` / `#77` — Repository SKILL and repository change-control requirements.
+- `#80` — Repository SKILL rule for preserving file-move/rename semantics.
+- `#14` — Agent communication protocol and its related architecture work.
