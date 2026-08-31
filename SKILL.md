@@ -97,6 +97,54 @@ The Project Status and Issue state must remain synchronized.
 - Avoid unnecessary repeated API calls.
 - Use verification after mutations.
 
+## GitHub Access Availability
+
+Before starting work that requires GitHub, verify that GitHub access is actually available in the current agent session.
+
+Check both:
+
+- Repository access to the required repository.
+- Availability of the specific GitHub operation needed for the requested action, such as reading files, editing files, creating branches, creating PRs, commenting on Issues, or changing Project fields.
+
+If GitHub access or the required operation is unavailable:
+
+- Alert the user immediately and state the limitation clearly.
+- Do not silently continue as if the GitHub action was performed.
+- Do not repeatedly retry an unavailable operation.
+- Do not ask the user to paste commands or perform the missing GitHub operation merely to compensate for the agent's unavailable capability.
+- Explain what can be completed with the capabilities currently available and what remains blocked.
+
+Do not confuse GitHub account/repository permission with agent tool availability. Verify the actual capability before claiming that an action can be performed.
+
+## User Command Requests
+
+If the user explicitly asks for commands:
+
+- Provide the commands together in one Markdown code block so they can be pasted to the console as a batch.
+- Do not split the requested command sequence into multiple code blocks unless the user explicitly asks for separate batches.
+- Do not propose creating a script and asking the user to run it when direct commands are sufficient.
+- Do not ask the user to paste command output back merely because the agent could not execute the command itself; first determine whether a suitable GitHub or other execution tool is available.
+
+When later commands depend on output from earlier commands:
+
+- Make the earlier commands save the required result to a temporary file in the working directory.
+- Make later commands read that temporary file.
+- Every successful command sequence must remove its temporary files when they are no longer needed.
+- Ensure cleanup does not occur before dependent commands have successfully consumed the temporary data.
+
+## Windows Git Bash Command Compatibility
+
+Commands intended for the project's Windows Git Bash environment must respect the established compatibility constraints.
+
+Before giving commands to the user, verify that the command sequence does not depend on known unsupported or unreliable constructs in this environment, including:
+
+- `awk`
+- Bash associative arrays
+- backslash (`\\`) line continuations
+- Windows path separator (`\\`) assumptions in shell paths
+
+Use Git Bash-compatible forward-slash paths and simple shell constructs. Prefer commands that have already been verified in this project. If a command or syntax has not been verified, use a simpler compatible alternative or explicitly state the uncertainty before asking the user to run it.
+
 ## Pull Request Rules
 
 - PRs are the required integration path.
