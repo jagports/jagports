@@ -160,6 +160,8 @@ The Issue-driven completion lifecycle is:
 
 **Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
 
+Current implementation reality: Codex is not yet integrated into the Jagports development workflow. At present, implementation is primarily driven by ChatGPT under the control and direction of `tlindi`.
+
 Project Status changes and the Issue-driven completion lifecycle are related but are not the same representation. Project Status visualizes the current workflow state of an Issue; it is not a separate hard-coded completion lifecycle.
 
 ## Traceability
