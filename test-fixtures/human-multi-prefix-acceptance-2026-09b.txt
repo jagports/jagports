@@ -1,0 +1,2 @@
+Fresh fixture for human validation of multiple supported category prefixes.
+Do not modify this file during the test.
