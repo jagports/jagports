@@ -1,0 +1,1 @@
+Temporary isolated fixture for human verification of conflicting category metadata.
