@@ -19,14 +19,16 @@ gh authentication
        ↓
    GitHub account
        ↓
-repository access
+repository / Project access
        ↓
-  Project access
+Jagports AI OS Project
        ↓
- Project #<id>
-       ↓
-  Project Status
+  Project Item
+       │
+       └── Status / <current state>
 ```
+
+The `Status` shown here belongs to the **Project Item**, not to the Project. The Project is the container for the Project Item.
 
 ## Future Agent Operating Model Investigation
 
