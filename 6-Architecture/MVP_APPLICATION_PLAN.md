@@ -8,18 +8,17 @@ The MVP should be a real full-stack web application, not a GitHub Pages-only app
 
 ### GitHub Pages
 
-GitHub Pages is suitable for a static documentation or frontend-only site, but it does not provide the persistent server-side application/database needed for stock inventory. GitHub's documentation explicitly states that Pages does not support server-side languages such as PHP, Ruby or Python. It is therefore not the correct standalone runtime for mutable inventory data.
-
-A GitHub Pages frontend could technically call an external API, but that would still require a separate backend and database. For the MVP this adds unnecessary complexity.
+GitHub Pages is suitable for a static documentation or frontend-only site, but it does not provide the persistent server-side application/database needed for stock inventory. A GitHub Pages frontend could call an external API, but that would still require a separate backend and database.
 
 ### Recommended $0 runtime
 
 Use **Cloudflare Workers Static Assets + Workers + D1** as the initial hosted application.
 
-This gives one deployment containing:
-
 ```text
 Browser
+  |
+  v
+Cloudflare Access
   |
   v
 Cloudflare Worker
@@ -34,9 +33,11 @@ Cloudflare Worker
           |---- vehicle/identity data when added
 ```
 
-Cloudflare's current Workers Free limits include 100,000 requests/day, 10 ms CPU per invocation, 128 MB memory and 3 MB compressed Worker size. D1 Free includes 5 million rows read/day, 100,000 rows written/day, 500 MB per database and 5 GB total account storage. These limits are suitable for a small private MVP, provided queries are indexed and inventory writes remain modest.
+The application source is production code and belongs under the approved repository structure:
 
-Cloudflare also supports direct GitHub repository integration for automatic builds/deployments, so GitHub remains the source-control and review system while Cloudflare provides runtime hosting.
+```text
+4-Production/application/jagports-mvp/
+```
 
 ## 2. MVP boundary
 
@@ -56,6 +57,7 @@ The MVP deliberately does **not** attempt to implement the whole future Jaguar k
 10. Responsive browser UI.
 11. Automated smoke/schema tests.
 12. Cloudflare deployment configuration.
+13. Cloudflare Access as the required outer authentication boundary before real inventory use.
 
 ### Deferred
 
@@ -148,7 +150,7 @@ POST /api/vehicles
 GET  /api/vehicles?q=<VIN/serial>
 ```
 
-Mutating stock operations require an `X-Admin-Token` secret in the initial private MVP. This is deliberately a temporary/simple mechanism; production multi-user authentication should be a separate security issue. The deployment should be protected with Cloudflare Access before exposing inventory publicly.
+The current code retains `X-Admin-Token` as a temporary application-level authorization mechanism. The deployed private application must additionally be protected by Cloudflare Access before real inventory use. The token and all Cloudflare credentials remain deployment secrets and must never be committed to Git.
 
 ## 6. UI MVP
 
@@ -193,12 +195,13 @@ Recommended first deployment:
 
 1. Create Cloudflare Workers application.
 2. Connect `jagports/jagports` through Cloudflare's Git integration.
-3. Configure the MVP directory as the Worker project root.
+3. Configure `4-Production/application/jagports-mvp/` as the Worker project root.
 4. Create a D1 database.
 5. Run the schema migration.
 6. Set `ADMIN_TOKEN` as a Cloudflare secret.
-7. Enable Cloudflare Access for the application before real inventory use.
-8. Verify health, part lookup and stock CRUD.
+7. Configure Cloudflare Access in front of the deployed application and require authentication.
+8. Verify unauthenticated requests are denied by Access.
+9. Verify health, part lookup and stock CRUD through the authenticated application.
 
 The same Worker can serve static assets and API routes, avoiding separate frontend/backend hosting.
 
@@ -229,10 +232,10 @@ If the application reaches these limits, the next step is optimization or a paid
 - Tests catch schema/API regressions.
 - Deployment instructions are complete.
 - The MVP can later accept the real JEPC import without changing the stock model.
+- Production application files are under `4-Production/application/jagports-mvp/`.
+- Cloudflare Access is configured and unauthenticated application/API access is rejected before real inventory is exposed.
 
 ## 11. Future extension path
-
-The MVP is intentionally designed so the next layers can be added incrementally:
 
 ```text
 MVP
