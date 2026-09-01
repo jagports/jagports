@@ -143,6 +143,8 @@ The standard Issue-driven development lifecycle is:
 
 **Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
 
+The previous lifecycle **Approved Issue → Codex → Implement → Test → Review → Merge → Done** is obsolete and must not be used.
+
 The initiating Issue remains open while its implementation is being developed, tested and reviewed. The implementing Pull Request should maintain explicit traceability to the initiating Issue using the project's preferred relationship wording.
 
 After the implementing Pull Request is successfully merged and the work is complete, close the initiating Issue with reason `completed`. The final Project state for the completed work is `DONE`.
