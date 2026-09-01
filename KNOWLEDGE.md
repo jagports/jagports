@@ -137,6 +137,14 @@ For multiple references, give each primary reference its own line rather than co
 - A nested knowledge file may briefly identify its scope or point to root policy, while its substantive content should remain domain-specific.
 - Before committing a `KNOWLEDGE.md` change, review the content for task-specific identifiers and one-off examples and generalize or remove them where appropriate.
 
+## Project Work Plan Reference
+
+`5-Implementation-Projects/Jagports_AI_OS_Prioritized_Work_Plan.md` is maintained as a **WORK IN PROGRESS** planning document.
+
+Agents should consult it when planning project work, but should critically evaluate its descriptions, assumptions and proposed structures. The work plan is not fixed: agents are encouraged to identify inconsistencies, outdated material, missing work, unnecessary complexity and better approaches, and to freely suggest improvements.
+
+The GitHub Issues are the primary work and communication records. The GitHub Project provides a visual representation of Issues and their current Project Item Status.
+
 ## Issue-to-Completion Lifecycle
 
 The standard Issue-driven development lifecycle is:
