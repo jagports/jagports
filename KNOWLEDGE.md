@@ -136,3 +136,15 @@ For multiple references, give each primary reference its own line rather than co
 - Repository-wide policy should be defined at the root and should not be unnecessarily duplicated in nested knowledge files.
 - A nested knowledge file may briefly identify its scope or point to root policy, while its substantive content should remain domain-specific.
 - Before committing a `KNOWLEDGE.md` change, review the content for task-specific identifiers and one-off examples and generalize or remove them where appropriate.
+
+## Issue-to-Completion Lifecycle
+
+The standard Issue-driven development lifecycle is:
+
+**Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
+
+The initiating Issue remains open while its implementation is being developed, tested and reviewed. The implementing Pull Request should maintain explicit traceability to the initiating Issue using the project's preferred relationship wording.
+
+After the implementing Pull Request is successfully merged and the work is complete, close the initiating Issue with reason `completed`. The final Project state for the completed work is `DONE`.
+
+Closing the Issue is a lifecycle step after merge; it is not a substitute for PR-to-Issue traceability and does not require the PR relationship itself to use automatic `Closes #N` wording.
