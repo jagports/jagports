@@ -91,6 +91,28 @@ Verify that:
 
 For any test that depends on a unique resource or isolated state, verify that the resource is actually unique and unused before providing it to the tester.
 
+### Human-test preflight, checklist creation, and handover
+
+The actual GitHub state is the source of truth for human-test preparation. Preparation comments, issue descriptions, branch names, or agent assertions are not evidence that a fixture is ready.
+
+Before creating a human-test Issue:
+
+1. Select a test case that is not duplicate coverage of an already executed or invalidated test.
+2. Create or establish the complete isolated fixture required by the test.
+3. Verify the actual GitHub state of every required resource, including that unique resources are genuinely unused and that preparation has not already performed the behavior under test.
+4. Create the complete human-test checklist only after the fixture passes preflight.
+5. Ensure the checklist contains the exact starting state, concrete action, expected result, a checkbox for every executable step, a stop-on-failure rule, and mutually exclusive final result choices.
+6. Include a direct URL for every specific GitHub resource the human must open, inspect, modify, or verify.
+
+After creating the human-test Issue, fetch the actual stored Issue content and perform a handover verification:
+
+1. Confirm that the stored Issue contains every required test instruction and direct URL.
+2. Confirm that each direct URL resolves to the intended existing resource.
+3. Confirm that the linked resource still has the verified starting state.
+4. Do not hand the human the test Issue URL until these checks succeed.
+
+If any preflight or post-creation handover check fails, do not present the test as ready. Correct the preparation or record the test as blocked/invalid. Never make the human repair a technical fixture that was supposed to be prepared in advance.
+
 ### Cleanup after testing
 
 Temporary test artifacts should be removed after the test cycle when they are no longer needed.
