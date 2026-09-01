@@ -160,17 +160,17 @@ The Issue-driven completion lifecycle is:
 
 **Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
 
-Project Status changes and the Issue-driven completion lifecycle are related but are not the same representation. Do not replace the Issue lifecycle with a separate hard-coded Kanban sequence in this protocol.
+Project Status changes are the visualization of Issue workflow state; they are not a separate completion lifecycle. The Project Status options may change as the project evolves and should not be treated as a fixed sequence that replaces the Issue-driven completion lifecycle.
 
 ## Traceability
 
-For implementation work:
+For implementation work, the records progress as:
 
-`Issue → Branch → Pull Request → Review → Merge → Issue closure`
+`Issue → Branch → Pull Request → Review → Merge → Issue closure → Done`
 
 The implementing Pull Request must maintain explicit traceability to its initiating Issue. The PR relationship and the later Issue closure are separate lifecycle actions.
 
-After a successful merge and completion of the work, the initiating Issue is closed with reason `completed`, and the completed work is represented by the appropriate final Project Status.
+After a successful merge and completion of the work, the initiating Issue is closed with reason `completed`. The GitHub Project then represents the completed work with the appropriate final Project Status.
 
 ## Communication Rule of Precedence
 
