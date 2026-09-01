@@ -166,3 +166,129 @@ The initiating Issue remains open while its implementation is being developed, t
 After the implementing Pull Request is successfully merged and the work is complete, close the initiating Issue with reason `completed`. The final Project state for the completed work is `DONE`.
 
 Closing the Issue is a lifecycle step after merge; it is not a substitute for PR-to-Issue traceability and does not require the PR relationship itself to use automatic `Closes #N` wording.
+
+## Project Management Workflow Charts
+
+Workflow charts are used to present the process at the level needed by the reader. Keep each chart focused on one purpose rather than combining every Project, Issue, PR, test, decision and operational detail into one diagram.
+
+### General project lifecycle reference
+
+A conventional project-management lifecycle can be represented as five major process groups: initiating, planning, executing, monitoring and controlling, and closing. Monitoring and controlling is not merely a final step; it operates alongside execution and feeds corrective action back into the plan and work.
+
+```mermaid
+flowchart LR
+    I[Initiating] --> P[Planning]
+    P --> E[Executing]
+    E --> M[Monitoring & Controlling]
+    M --> E
+    M --> P
+    E --> C[Closing]
+    M --> C
+```
+
+This is a reference model for presentation, not a replacement for the Jagports workflow. PMI describes the five process groups as Initiating, Planning, Executing, Monitoring and Controlling, and Closing. Microsoft likewise presents a five-phase project lifecycle using initiation, planning, execution, monitoring/control and closure.
+
+### Jagports Issue-to-completion workflow
+
+The authoritative Jagports implementation lifecycle is narrower and more operational than a generic project lifecycle. The Project visualizes the Issue's current workflow state, while the Issue and Pull Request records retain the detailed work and traceability.
+
+```mermaid
+flowchart LR
+    A[Approved Issue] --> B[Codex / ChatGPT]
+    B --> C[Implement]
+    C --> D[Test]
+    D --> E[Review]
+    E --> F[Merge]
+    F --> G[Close Issue]
+    G --> H[DONE]
+
+    C -. blocked / escalation .-> X[BLOCKED]
+    X -. resolved .-> C
+    D -. failed .-> C
+    E -. changes required .-> C
+```
+
+Rules represented by this chart:
+
+- The initiating Issue remains open during implementation, testing and review.
+- The Pull Request provides explicit traceability to the initiating Issue.
+- A successful merge is followed by closing the initiating Issue with reason `completed`.
+- The final Project state is `DONE`.
+- `BLOCKED` is an exceptional state, not a normal lifecycle stage.
+- Test failure or review-requested changes return the work to implementation rather than allowing premature completion.
+
+### Decision and control gates
+
+Project management becomes easier to understand when decision gates are shown separately from the normal work flow. A gate answers whether the work is authorized to proceed; it is not another implementation task.
+
+```mermaid
+flowchart TD
+    R[Research / Problem Definition] --> P[Proposal]
+    P --> G{Decision Gate}
+    G -->|Approved| I[Implementation]
+    G -->|Needs decision| H[Human Decision]
+    H --> G
+    I --> T[Test / Validation]
+    T --> V{Acceptance Gate}
+    V -->|Pass| M[Merge]
+    V -->|Fail| I
+```
+
+For Jagports, explicit human approval is required when the work reaches a consequential decision gate defined by the project's communication and decision rules. Routine execution should not be escalated merely because a workflow contains a gate.
+
+### Execution, monitoring and feedback loop
+
+A useful management view separates doing work from observing its result. Feedback can change implementation, testing, planning or the decision that authorized the work.
+
+```mermaid
+flowchart LR
+    S[Scope / Requirement] --> P[Plan]
+    P --> W[Work]
+    W --> T[Test / Measure]
+    T --> R[Review / Observe]
+    R -->|accepted| C[Complete]
+    R -->|correction needed| W
+    R -->|scope or plan change| P
+    R -->|new consequential decision| D[Decision Gate]
+    D --> P
+```
+
+This feedback-loop view is particularly useful for explaining why `REVIEW`, `TESTING`, `BLOCKED`, and decision/escalation mechanisms are control functions rather than simple linear steps.
+
+### Issue, Project and PR traceability view
+
+The Project is the visual work-control layer. The Issue is the primary persistent work and communication record. The Pull Request is the implementation and review record. These records should remain connected without requiring one diagram to reproduce all their internal details.
+
+```mermaid
+flowchart LR
+    I[GitHub Issue<br/>Primary work record] --> P[GitHub Project<br/>Status / visualization]
+    I --> PR[Pull Request<br/>Implementation / review]
+    PR --> T[Test / validation]
+    T --> PR
+    PR --> I
+    PR --> P
+```
+
+The diagram is intentionally conceptual. The exact Project fields, labels, test structure and repository automation belong in the relevant operational knowledge and Issue records.
+
+### Presentation rules for workflow charts
+
+- Use a lifecycle chart to explain the overall sequence.
+- Use a decision-gate chart to explain authorization and escalation.
+- Use a feedback-loop chart to explain testing, review, correction and control.
+- Use a traceability chart to explain which GitHub record owns which kind of information.
+- Do not put individual Issue or PR numbers into reusable knowledge charts.
+- Do not use an external project-management lifecycle as if it were the Jagports Project Status list.
+- Keep `Project Status` and project-management lifecycle concepts distinct: a Project Status describes the current work state, while a lifecycle chart explains how work moves and why transitions occur.
+
+### External workflow references
+
+The following sources were used as reference material for the conceptual charts:
+
+- Project Management Institute, five process groups and project-management lifecycle: https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/standard-for-portfolio-management-third-edition.pdf
+- Project Management Institute, project-management process groups and activities: https://www.pmi.org/learning/library/project-management-middle-five-stages-6969
+- Microsoft, project lifecycle visual model: https://www.microsoft.com/en-sg/microsoft-365/business-insights-ideas/resources/how-to-manage-all-five-phases-of-a-projects-life-cycle
+- Microsoft Learn, configurable project stages: https://learn.microsoft.com/en-us/dynamics365/project-operations/project-management/project-stages
+- Atlassian, workflow diagrams and their use for project planning, dependencies and process improvement: https://www.atlassian.com/agile/project-management/workflow-chart
+
+These references are explanatory sources only. The authoritative Jagports process remains the workflow and rules defined in this repository's `SKILL.md`, `KNOWLEDGE.md`, communication protocol and GitHub Project configuration.
