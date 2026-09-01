@@ -166,3 +166,226 @@ The initiating Issue remains open while its implementation is being developed, t
 After the implementing Pull Request is successfully merged and the work is complete, close the initiating Issue with reason `completed`. The final Project state for the completed work is `DONE`.
 
 Closing the Issue is a lifecycle step after merge; it is not a substitute for PR-to-Issue traceability and does not require the PR relationship itself to use automatic `Closes #N` wording.
+
+## ASCII Workflow Diagrams
+
+Plain-text workflow diagrams are preferred over Mermaid when a compact visual explanation improves understanding. They should be short, focused, readable in GitHub Markdown, Issue comments and Pull Request comments, and reusable rather than tied to one-off task numbers.
+
+### GitHub identity and Project access
+
+```text
+gh authentication
+       ↓
+   GitHub account
+       ↓
+repository access
+       ↓
+  Project access
+       ↓
+ Project #<id>
+       ↓
+  Project Status
+```
+
+### Issue → Project relationship
+
+```text
+GitHub Issue
+     ↓
+Project Item
+     ↓
+Jagports AI OS Project
+     ↓
+Status / <current state>
+```
+
+### Issue implementation traceability
+
+```text
+Issue
+  ↓
+Branch
+  ↓
+Pull Request
+  ↓
+Review
+  ↓
+Merge
+  ↓
+Issue closure
+  ↓
+DONE
+```
+
+### Complete Issue-driven lifecycle
+
+```text
+Approved Issue
+      ↓
+    Codex
+      ↓
+  Implement
+      ↓
+     Test
+      ↓
+    Review
+      ↓
+    Merge
+      ↓
+Close Issue
+      ↓
+     DONE
+```
+
+### Research → approved implementation
+
+```text
+Research
+   ↓
+Finding
+   ↓
+Opportunity
+   ↓
+Feature Proposal
+   ↓
+Prioritization
+   ↓
+Decision
+   ↓
+Approval
+   ↓
+Implementation
+```
+
+### Human decision gate
+
+```text
+Agent proposal
+      ↓
+   PROPOSED
+      ↓
+DECISION NEEDED
+      ↓
+Human decision
+   ↙       ↘
+REJECTED   APPROVED
+              ↓
+           Proceed
+```
+
+### Agent communication lifecycle
+
+```text
+Message created
+      ↓
+Agent notified
+      ↓
+Acknowledged
+      ↓
+Action taken
+      ↓
+Result recorded
+      ↓
+Knowledge updated
+```
+
+### Agent hand-off
+
+```text
+Source agent
+     ↓
+Issue hand-off record
+     ↓
+Destination agent / human
+     ↓
+Acknowledgement
+     ↓
+Accept / Clarify / Escalate
+     ↓
+Continue work
+```
+
+### Escalation handling
+
+```text
+Work / observation
+       ↓
+Need human visibility?
+    ↙         ↘
+   No         Yes
+   ↓           ↓
+  AUTO     Escalation
+             ↓
+ DECISION / BLOCKED / RISK
+ SCOPE / ACCESS / CONFLICT / FAILURE
+             ↓
+        Owner action
+             ↓
+          Continue
+```
+
+### Pull Request control flow
+
+```text
+Draft / implementation PR
+          ↓
+      Ready for review
+          ↓
+        Review
+       ↙      ↘
+ Changes     Approved
+   ↓             ↓
+Implement      Merge
+   ↓             ↓
+Review again   Close Issue
+                 ↓
+                DONE
+```
+
+### Test relationship
+
+```text
+Implementation Issue
+        ↓
+   Pull Request
+        ↓
+    Test Issue
+        ↓
+ PASS / FAIL / BLOCKED
+        ↓
+ Review / remediation
+        ↓
+     Completion
+```
+
+### Project Status versus lifecycle
+
+```text
+Issue lifecycle
+      ↓
+Approved → Implement → Test → Review → Merge → Close
+      ↓
+Project Item Status
+      ↓
+Current visual work state
+```
+
+Project Status is the visualization of the current work state. It is not a second, competing completion lifecycle.
+
+### Knowledge flow
+
+```text
+Observed result
+      ↓
+Task record / Issue
+      ↓
+Validated reusable finding
+      ↓
+KNOWLEDGE.md
+      ↓
+Future agent work
+```
+
+### Scope rule for ASCII diagrams
+
+Use an ASCII diagram when it makes a relationship, transition, ownership boundary, decision gate, dependency, or lifecycle easier to understand. Do not add diagrams merely for decoration. Prefer one small diagram over a large diagram containing unrelated processes. Keep task-specific Issue/PR numbers out of reusable knowledge diagrams unless the diagram is explicitly part of task-specific documentation.
