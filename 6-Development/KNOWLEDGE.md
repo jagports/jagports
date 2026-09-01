@@ -45,6 +45,31 @@ When a test requires technical setup, prepare the environment before handing the
 
 A test environment is preparation, not test evidence. The expected behavior must still be exercised and observed.
 
+### Human-test checklist creation and preflight verification
+
+Before creating or presenting a human-test Issue, the agent must create the complete test checklist from the applicable development knowledge and then perform a preflight check of the prepared test state.
+
+The checklist must contain:
+
+- a clearly stated starting state;
+- only the human actions required to exercise the behavior;
+- a checkbox for every executable test step;
+- an explicit expected result;
+- a stop rule stating that a failed or blocked step remains unchecked and stops the test;
+- a final result control with exactly one outcome: PASS, FAIL, BLOCKED, or NOT TESTED;
+- direct URLs to every specific GitHub resource the human must open, inspect, modify, or verify, when such URLs are available.
+
+Before the checklist is given to the human, verify every prerequisite and every referenced resource:
+
+1. Confirm the target resource exists and is the intended resource.
+2. Confirm the resource is in the exact starting state described by the checklist.
+3. For a unique or isolated test resource, confirm it is genuinely fresh and has not already been used by another human test.
+4. Confirm that preparation has not already performed the behavior being tested.
+5. Confirm every supplied URL opens the intended resource and does not lead to an unrelated or already-completed operation.
+6. Only after all checks pass, create or present the human-test Issue.
+
+The human-test Issue must describe the verified starting state. It must not delegate technical preparation, fixture creation, cleanup, or state repair to the human unless that activity is itself the behavior under test.
+
 ### Human + automation workflow
 
 Use humans and automation for the responsibilities each can verify reliably:
