@@ -2,20 +2,22 @@
 
 ## Purpose
 
-This document defines the operational communication rules for agents and humans working through GitHub Issues and GitHub Projects.
+This document defines the operational communication rules for agents and humans working through GitHub Issues, Pull Requests and the GitHub Project.
 
 The protocol is persistent: critical communication must not depend on private agent context.
 
-## System of Record
+## Primary Communication Record
 
-GitHub Issues and the Jagports GitHub Project are the primary persistent communication and work-control system.
+GitHub Issues are the primary persistent work and communication records for Jagports AI OS.
 
 Use:
 
-- GitHub Issue comments for task-specific communication, acknowledgements, blockers, results and hand-offs.
-- GitHub Issues for work items, escalations and decisions requiring a durable record.
-- Repository documentation for reusable protocol and product knowledge.
-- GitHub Project Status for the current workflow state.
+- GitHub Issues for work items, task-specific communication, acknowledgements, blockers, results, decisions and hand-offs.
+- Pull Requests for implementation changes, technical discussion, review and implementation traceability to Issues.
+- Repository documentation for reusable protocol, product and project knowledge.
+- GitHub Project Status as a visualization of Issues and their current workflow state.
+
+The Project does not replace the Issue as the primary communication record. Important communication and decisions must be recoverable from the relevant Issue and linked artifacts.
 
 No critical decision may exist only in private agent context.
 
@@ -150,26 +152,28 @@ The receiving agent should acknowledge the hand-off and either accept the work, 
 - If an agent becomes unavailable, another agent can recover the work from the Issue, Project state, repository and linked artifacts.
 - Reusable findings are added to repository knowledge after the work is validated.
 
-## Implementation Workflow
+## Project Status and Issue Lifecycle
 
-Work follows the project workflow:
+The GitHub Project Status is used to visualize the current state of Issues. The available Project Item Status options define the Kanban work-state silos.
 
-`BACKLOG → RESEARCH → PROPOSED → DECISION NEEDED → APPROVED → CODING → REVIEW → TESTING → DONE`
+The Issue-driven completion lifecycle is:
 
-`BLOCKED` is exceptional and must include a visible reason and owner.
+**Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
 
-A new Project item starts in `BACKLOG`. The first substantive work action or work comment transitions the Project item to `RESEARCH`.
+Current implementation reality: Codex is not yet integrated into the Jagports development workflow. At present, implementation is primarily driven by ChatGPT under the control and direction of `tlindi`.
+
+Project Status changes and the Issue-driven completion lifecycle are related but are not the same representation. Project Status visualizes the current workflow state of an Issue; it is not a separate hard-coded completion lifecycle.
 
 ## Traceability
 
 For implementation work:
 
-`Issue → Branch → Pull Request → Review → Merge → Issue closure`
+`Issue → Branch → Pull Request → Review → Merge → Issue closure → Done`
 
-Pull Requests must use the exact GitHub closing syntax, for example `Closes #17`.
+The implementing Pull Request must maintain explicit traceability to its initiating Issue. The PR relationship and the later Issue closure are separate lifecycle actions.
 
-Each implementation Pull Request must also explicitly identify the Issues it will close, using `Closes #<issue>` or equivalent GitHub closing syntax in the PR body. The linked Issues should therefore show that they will be closed by the PR before merge.
+After a successful merge and completion of the work, the initiating Issue is closed with reason `completed`. The GitHub Project then represents the completed work with the appropriate final Project Status.
 
 ## Communication Rule of Precedence
 
-When communication exists in multiple places, the latest authoritative GitHub Issue decision or repository documentation takes precedence over transient agent context.
+When communication exists in multiple places, the latest authoritative decision recorded on the relevant GitHub Issue or in repository documentation takes precedence over transient agent context. Project Status is used to represent workflow state and does not replace the Issue's communication record.
