@@ -1,0 +1,1 @@
+Temporary test fixture for human category-label verification.
