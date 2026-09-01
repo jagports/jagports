@@ -1,0 +1,1 @@
+Third fixture file for KNOWLEDGE single-prefix classification.
