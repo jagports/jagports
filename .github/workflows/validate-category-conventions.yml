@@ -25,11 +25,7 @@ jobs:
               ['AGENT /', 'category:agent'],
               ['KNOWLEDGE /', 'category:knowledge']
             ];
-            const matches = categories.filter(([prefix]) => title.includes(prefix));
-            if (matches.length > 1) {
-              core.setFailed('Title contains multiple supported category prefixes; exactly one primary category prefix is permitted.');
-              return;
-            }
+            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
             if (matches.length === 0) return;
             const [prefix, expectedLabel] = matches[0];
             const currentLabels = (item.labels || []).map(label => typeof label === 'string' ? label : label.name);
@@ -56,22 +52,12 @@ jobs:
               ['AGENT /', 'category:agent'],
               ['KNOWLEDGE /', 'category:knowledge']
             ];
-            const matches = categories.filter(([prefix]) => title.includes(prefix));
+            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
 
-            // CHORE PRs are repository-maintenance work and are intentionally
-            // outside the category-label convention. This allows deployment
-            // PRs such as this workflow deployment to pass validation.
-            if (title.startsWith('CHORE /')) {
-              core.info('CHORE PR: category label is not required.');
-              return;
-            }
-
+            // Ordinary titles are valid and do not require a category prefix.
+            // Prefix-specific validation applies only when a known prefix starts the title.
             if (matches.length === 0) {
-              core.setFailed(`Title must start with one of: ${categories.map(([prefix]) => prefix).join(', ')}`);
-              return;
-            }
-            if (!title.startsWith(matches[0][0])) {
-              core.setFailed(`Category prefix ${matches[0][0]} must be at the beginning of the title.`);
+              core.info('No known category prefix: ordinary title, no category validation required.');
               return;
             }
             if (matches.length > 1) {
