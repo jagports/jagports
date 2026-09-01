@@ -91,6 +91,30 @@ Verify that:
 
 For any test that depends on a unique resource or isolated state, verify that the resource is actually unique and unused before providing it to the tester.
 
+### Human-test checklist creation and preflight
+
+Before creating or presenting a human-test Issue, the agent must derive the complete test checklist from the applicable development knowledge and requirements. The checklist must contain only the human actions needed to exercise the behavior and must include:
+
+- a verified starting state;
+- a checkbox for every executable human step;
+- an explicit expected result for each step or test action;
+- a stop-on-failure or stop-on-blocked rule, leaving the failed or blocked step unchecked;
+- exactly one final outcome: **PASS**, **FAIL**, **BLOCKED**, or **NOT TESTED**;
+- direct URLs to every specific GitHub resource the human must open, inspect, modify, or verify.
+
+Before handing the human the Issue URL, the agent must complete this preflight:
+
+1. Verify every prerequisite exists and matches the stated starting state.
+2. Verify every unique or isolated fixture is genuinely fresh and unused.
+3. Verify preparation has not already performed the behavior being tested.
+4. Verify every URL in the test Issue resolves to the intended resource.
+5. After creating the human-test Issue, fetch the actual Issue and inspect its stored body. Confirm that the stored body contains all required direct URLs and that those URLs resolve to the intended existing test resources.
+6. Hand over the human-test Issue URL only after all preceding checks pass.
+
+Creating an Issue and assuming its content is correct is not sufficient. The stored Issue content must be independently fetched and checked before human handover.
+
+The checklist and preflight procedure must remain generic. They must not contain one-off Issue numbers, pull request numbers, branch names, or other identifiers tied to a particular test or work item.
+
 ### Cleanup after testing
 
 Temporary test artifacts should be removed after the test cycle when they are no longer needed.
