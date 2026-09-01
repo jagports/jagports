@@ -153,17 +153,15 @@ A token's permission scope alone is not sufficient evidence. The actual Project 
 
 ### Creating the automation token
 
-Create a dedicated personal access token while authenticated to GitHub as the selected automation user. Use the narrowest permissions that support the workflow's required repository and Project operations, and use an expiration appropriate to the project's security policy.
+Create a dedicated personal access token while authenticated as the selected automation user. Use the minimum permissions actually required by the workflow. The previously verified Project mutation used a token with the `project` scope.
 
-The token must be stored only as a repository or organization Actions secret, using the secret name expected by the workflow, for example `PROJECTS_TOKEN`.
-
-Do not put a token value in source code, workflow YAML, Issues, Pull Requests, `KNOWLEDGE.md`, scripts, logs, or chat messages. Do not expose the token when verifying the configuration; secret-listing commands should be used only to confirm the secret name exists.
+Store the resulting token only as the repository GitHub Actions secret named `PROJECTS_TOKEN`. The secret name is configuration metadata; the token value is the protected secret and must never be written to repository content, workflow files, Issues, Pull Requests, logs, scripts, or chat.
 
 ### Project setup checklist
 
 When creating or preparing a GitHub Project for automation, the setup task must include:
 
-1. Identify and record the Project owner, Project number, and Project name.
+1. Identify the Project owner, Project number, and Project name.
 2. Verify the required Project fields and option values used by automation.
 3. Select a dedicated automation user where appropriate.
 4. Verify the automation user's read access to the target Project.
