@@ -121,9 +121,13 @@ GitHub Issue
 Project Item
      ↓
 Jagports AI OS Project
-     ↓
-Status / <current state>
+     │
+     └── Status / <current state>
 ```
+
+The `Status` shown here belongs to the **Project Item**. The Project is the
+container to which the Project Item belongs; it does not own the workflow
+status.
 
 ---
 
