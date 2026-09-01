@@ -123,7 +123,7 @@ GitHub Issue and Pull Request comments must be formatted for quick visual scanni
 - Put each distinct traceability statement on its own line or paragraph.
 - When an Issue or Pull Request is the primary reference for a statement, put its Markdown link at the beginning of the line.
 - Keep the Issue/PR number and title together in the link text when useful; do not bury the reference inside a long sentence.
-- Separate relationship text such as `implements`, `resolves`, `supersedes`, or `previous implementation` from the referenced Issue or Pull Request instead of placing the complete relationship in one long line.
+- Separate relationship text such as `implements`, `resolves`, `supersedes`, or `previous implementation` from the referenced Issue or Pull Request instead of placing the complete relationship in one long sentence.
 - Use short headings or labels on their own lines when context is needed before a reference.
 - Do not construct long inline chains containing a PR title, PR number, Issue title, Issue number, and relationship text in the same sentence.
 
@@ -186,3 +186,19 @@ After the implementing Pull Request is successfully merged and the work is compl
 Closing the Issue is a lifecycle step after merge; it is not a substitute for PR-to-Issue traceability and does not require the PR relationship itself to use automatic `Closes #N` wording.
 
 The detailed lifecycle, traceability, review and testing diagrams are maintained in `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md`, beside the communication and implementation rules they describe.
+
+## 4-Production Folder Structure
+
+`4-Production/` is the repository location for production implementations. It may contain the following approved subfolders:
+
+- `base/` — shared/base production infrastructure and foundational runtime components.
+- `platform/` — platform-level production components.
+- `application-platform/` — reusable application-platform/runtime services used by applications.
+- `application/` — production application implementations.
+- `customer/` — customer-specific production components and configuration.
+
+Existing production subfolders remain valid unless explicitly reorganized through an approved Issue and Pull Request.
+
+Agents must not invent additional root-level production folders. Production files must be placed under `4-Production/` and, where applicable, one of the approved subfolders above.
+
+Before choosing a production subfolder, agents must inspect the relevant repository documentation and existing contents. If the correct subfolder is unclear, the agent must ask the Product Owner rather than inventing a new structure.
