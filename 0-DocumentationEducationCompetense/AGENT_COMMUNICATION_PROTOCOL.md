@@ -160,11 +160,11 @@ The Issue-driven completion lifecycle is:
 
 **Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
 
-Project Status changes are the visualization of Issue workflow state; they are not a separate completion lifecycle. The Project Status options may change as the project evolves and should not be treated as a fixed sequence that replaces the Issue-driven completion lifecycle.
+Project Status changes and the Issue-driven completion lifecycle are related but are not the same representation. Project Status visualizes the current workflow state of an Issue; it is not a separate hard-coded completion lifecycle.
 
 ## Traceability
 
-For implementation work, the records progress as:
+For implementation work:
 
 `Issue → Branch → Pull Request → Review → Merge → Issue closure → Done`
 
