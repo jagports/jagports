@@ -1,11 +1,15 @@
 # Jagports AI OS — Explicitly Ordered Implementation Plan
 
+> **WORK IN PROGRESS — NOT THE SOURCE OF TRUTH**
+>
+> This work-plan document retains the historical/planning Kanban style for work in progress. It is not authoritative for current workflow states or lifecycle rules. The GitHub Project's **Project Item Status options** are the authoritative Kanban work-state silos. The current Issue-to-completion lifecycle is defined in `KNOWLEDGE.md`.
+
 ## Priority execution list
 
 - **P1 — Open Kanban:** **Executor:** Product Owner (with ChatGPT assistance). **Where:** GitHub Projects — https://github.com/features/issues. Select and create the central Jagports Kanban that will become the communication and work-control system for humans and agents.
 - **P1.1 — Select Kanban tool:** **Executor:** Product Owner, assisted by ChatGPT. **Where:** ChatGPT + GitHub Projects. Confirm GitHub Projects is the $0 Kanban choice and define why it is the system of record.
 - **P1.2 — Create Jagports GitHub repository:** **Executor:** Product Owner. **Where:** GitHub — https://github.com/. Create the private Jagports repository that will hold code, documentation, agent instructions, decisions, and project memory.
-- **P1.3 — Configure Kanban workflow:** **Executor:** Product Owner with ChatGPT guidance. **Where:** GitHub Projects. Create the controlled states `BACKLOG → RESEARCH → PROPOSED → DECISION NEEDED → APPROVED → CODING → REVIEW → TESTING → DONE`, plus `BLOCKED`.
+- **P1.3 — Configure Kanban workflow:** **Executor:** Product Owner with ChatGPT guidance. **Where:** GitHub Projects. Create/configure the Project Item Status options used as the Kanban work-state silos.
 - **P1.4 — Define Kanban fields and labels:** **Executor:** Product Owner. **Where:** GitHub Projects / Issues. Add priority, work type, owner/agent, decision status, dependencies, risk, and other minimum fields needed for agent communication.
 - **P1.5 — Define Kanban operating rules:** **Executor:** Product Owner + Team Lead Agent specification. **Where:** GitHub repository documentation. Define who may create, move, approve, block, review, and close work items.
 
@@ -17,7 +21,7 @@
 
 - **P3 — Define agent communication protocol:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub Issues / Projects. Make Issues, comments, labels, fields, status changes, and decision records the authoritative communication channel between agents and the Product Owner.
 - **P3.1 — Define escalation categories:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub repository documentation. Establish `AUTO`, `REVIEW`, `DECISION`, and `BLOCKED` handling rules.
-- **P3.2 — Define human decision gate:** **Executor:** Product Owner. **Where:** GitHub Kanban. Require explicit Product Owner approval before consequential product, architecture, cost, security, or data-strategy decisions proceed.
+- **P3.2 — Define human decision gate:** **Executor:** Product Owner. **Where:** GitHub Project. Require explicit Product Owner approval before consequential product, architecture, cost, security, or data-strategy decisions proceed.
 - **P3.3 — Define agent hand-off format:** **Executor:** Team Lead Agent + ChatGPT. **Where:** GitHub Issue templates. Standardize what one agent must leave for the next agent to continue work without repeating research.
 
 - **P4 — Create work-item templates:** **Executor:** Product Owner + ChatGPT, implemented by Codex where useful. **Where:** GitHub Issues. Create templates for Feature, Research, Decision, Architecture, Bug, Risk, Validation, Technical Debt, and Documentation.
@@ -38,12 +42,12 @@
 - **P7 — Establish research-to-decision workflow:** **Executor:** Research Agent + Product/Vehicle Agent + Team Lead Agent. **Where:** ChatGPT/web research + GitHub Issues. Define the process from research finding through feature proposal, prioritization, decision request, and approved work.
 - **P7.1 — Run first research cycle:** **Executor:** Research Agent. **Where:** ChatGPT/web research; results recorded in GitHub. Produce the first evidence-backed Jagports opportunities.
 - **P7.2 — Convert findings to proposals:** **Executor:** Product/Vehicle Agent. **Where:** GitHub Issues. Convert validated findings into actionable feature or product proposals.
-- **P7.3 — Escalate only required decisions:** **Executor:** Team Lead Agent. **Where:** GitHub Kanban. Present concise decision requests to the Product Owner and leave routine work autonomous.
+- **P7.3 — Escalate only required decisions:** **Executor:** Team Lead Agent. **Where:** GitHub Project. Present concise decision requests to the Product Owner and leave routine work autonomous.
 
 - **P8 — Establish Codex engineering workflow:** **Executor:** Codex Engineering Agent. **Where:** Codex Web + GitHub repository. Define how approved Issues become implementation work, tests, documentation, review, and completion.
 - **P8.1 — Create Codex engineering instructions:** **Executor:** Product Owner + ChatGPT; implemented by Codex. **Where:** GitHub repository. Define coding standards, repository rules, testing expectations, security constraints, documentation requirements, and escalation conditions.
-- **P8.2 — Implement first approved task:** **Executor:** Codex Engineering Agent. **Where:** Codex Web + GitHub. Select the first `APPROVED` Issue, implement it, test it, and return it for review.
-- **P8.3 — Validate delivery loop:** **Executor:** Product Owner + Codex Engineering Agent. **Where:** GitHub + Codex Web. Confirm `APPROVED → CODING → REVIEW → TESTING → DONE` works end-to-end.
+- **P8.2 — Implement first approved task:** **Executor:** Codex Engineering Agent. **Where:** Codex Web + GitHub. Select the first approved Issue, implement it, test it, and return it for review.
+- **P8.3 — Validate delivery loop:** **Executor:** Product Owner + Codex Engineering Agent. **Where:** GitHub + Codex Web. Validate the current Project Item Status flow against the actual configured Project options.
 
 - **P9 — Establish quality gates:** **Executor:** Technical/Architecture Agent + Codex Engineering Agent + Product Owner. **Where:** GitHub repository and GitHub Actions where available. Define acceptance criteria, automated checks, review requirements, security expectations, and definition of done.
 - **P9.1 — Define acceptance criteria standard:** **Executor:** Product/Vehicle Agent + Product Owner. **Where:** GitHub Issue templates. Ensure every implementation task has testable completion criteria.
@@ -73,17 +77,17 @@ The initial Jagports AI OS uses four practical layers:
 - **GitHub:** Source code, Issues, Projects Kanban, documentation, decisions, backlog, and agent communication history.
 - **Raspberry Pi 4B / 8GB / 1TB SSD:** Optional free infrastructure for persistent application services, database, files, testing, automation, and backups.
 
-The Kanban is intentionally first because it provides the shared control surface before additional agent processes are introduced.
+The Kanban provides the shared control surface before additional agent processes are introduced.
 
 # 2. GitHub Kanban as the Central Communication Layer
 
+> **WORK IN PROGRESS — NOT THE SOURCE OF TRUTH**
+>
+> This section preserves the original Kanban planning style for ongoing work. The actual work-state silos are the configured GitHub Project **Project Item Status options**. Do not treat this document's example sequence as the authoritative state machine.
+
 The Kanban is the primary operational interface between the Product Owner and agents.
 
-Recommended states:
-
-`BACKLOG → RESEARCH → PROPOSED → DECISION NEEDED → APPROVED → CODING → REVIEW → TESTING → DONE`
-
-`BLOCKED` is an exception state available from any stage where work cannot continue.
+The Project Item Status options are the authoritative Kanban work-state silos. Their names and ordering are defined by the actual GitHub Project configuration, not by this work-plan document.
 
 The Kanban should show at minimum:
 
@@ -196,7 +200,7 @@ Example:
 P1   Open Kanban
 P1.1 Select Kanban tool
 P1.2 Create repository
-P1.3 Configure workflow
+P1.3 Configure Project Item Status options
 P1.4 Define fields
 P2   Open agent access
 P2.1 Define agent identities
@@ -214,9 +218,13 @@ Research should be recorded in GitHub Issues with evidence and confidence rather
 
 # 9. Codex Development Workflow
 
-The intended engineering workflow is:
+> **WORK IN PROGRESS — NOT THE SOURCE OF TRUTH**
+>
+> This section is retained as planning guidance. The authoritative Issue-to-completion lifecycle is maintained in `KNOWLEDGE.md`.
 
-`Approved Issue → Codex inspects repository → Implements → Tests → Documents → Review → Merge → Done`
+The current engineering lifecycle is:
+
+`Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done`
 
 Codex should stay within the approved scope and escalate major architectural or product changes instead of silently deciding them.
 
@@ -253,6 +261,4 @@ Free-tier limits must be treated as real constraints.
 
 # 12. Immediate Next Execution Point
 
-The very first action is **P1 — Open Kanban**.
-
-Nothing else should be treated as the primary implementation task until the central Kanban has been selected and established, because all subsequent agent work should have a visible place to enter, progress, escalate, and complete.
+This document is a work-in-progress planning artifact. Current operational work is controlled by GitHub Issues and the GitHub Project's configured Project Item Status options.
