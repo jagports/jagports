@@ -1,0 +1,1 @@
+Human test fixture for category metadata independence from Project workflow fields.
