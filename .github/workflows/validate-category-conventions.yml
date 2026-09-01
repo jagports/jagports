@@ -25,9 +25,13 @@ jobs:
               ['AGENT /', 'category:agent'],
               ['KNOWLEDGE /', 'category:knowledge']
             ];
-            const match = categories.find(([prefix]) => title.startsWith(prefix));
-            if (!match) return;
-            const [prefix, expectedLabel] = match;
+            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
+            if (matches.length > 1) {
+              core.setFailed('Title contains multiple supported category prefixes; exactly one primary category prefix is permitted.');
+              return;
+            }
+            if (matches.length === 0) return;
+            const [prefix, expectedLabel] = matches[0];
             const currentLabels = (item.labels || []).map(label => typeof label === 'string' ? label : label.name);
             if (!currentLabels.includes(expectedLabel)) {
               const issueOrPr = context.eventName === 'issues' ? context.payload.issue.number : context.payload.pull_request.number;
@@ -64,6 +68,10 @@ jobs:
 
             if (matches.length === 0) {
               core.setFailed(`Title must start with one of: ${categories.map(([prefix]) => prefix).join(', ')}`);
+              return;
+            }
+            if (matches.length > 1) {
+              core.setFailed('Title contains multiple supported category prefixes; exactly one primary category prefix is permitted.');
               return;
             }
             const [prefix, expectedLabel] = matches[0];
