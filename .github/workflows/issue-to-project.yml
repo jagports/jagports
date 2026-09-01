@@ -33,6 +33,7 @@ jobs:
           report_failure() {
             status=$?
             if [ -n "${COMMENT_TOKEN:-}" ]; then
+              sleep 1
               GH_TOKEN="$COMMENT_TOKEN" gh api \
                 "repos/$REPOSITORY/issues/$ISSUE_NUMBER/comments" \
                 -f body="Project automation FAILED for Issue #$ISSUE_NUMBER. The Issue was not verified as a Project Item with Status BACKLOG. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
@@ -48,7 +49,7 @@ jobs:
           fi
 
           echo "Resolving Project $PROJECT_ORG/$PROJECT_NUMBER..."
-          read -r -d '' PROJECT_QUERY <<'GRAPHQL' || true
+          PROJECT_QUERY='
           query($org:String!, $number:Int!) {
             organization(login:$org) {
               projectV2(number:$number) {
@@ -66,8 +67,7 @@ jobs:
                 }
               }
             }
-          }
-          GRAPHQL
+          }'
           project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
           sleep 1
 
@@ -86,7 +86,7 @@ jobs:
           echo "BACKLOG option: $backlog_option_id"
 
           echo "Checking whether Issue #$ISSUE_NUMBER is already a Project Item..."
-          read -r -d '' ITEMS_QUERY <<'GRAPHQL' || true
+          ITEMS_QUERY='
           query($project:ID!) {
             node(id:$project) {
               ... on ProjectV2 {
@@ -100,8 +100,7 @@ jobs:
                 }
               }
             }
-          }
-          GRAPHQL
+          }'
           items_json="$(gh api graphql -f query="$ITEMS_QUERY" -F project="$project_id")"
           sleep 1
 
@@ -109,13 +108,12 @@ jobs:
 
           if [ -z "$item_id" ]; then
             echo "Issue is not yet a Project Item; adding the Issue to the Project..."
-            read -r -d '' ADD_MUTATION <<'GRAPHQL' || true
+            ADD_MUTATION='
             mutation($project:ID!, $issue:ID!) {
               addProjectV2ItemById(input:{projectId:$project, contentId:$issue}) {
                 item { id }
               }
-            }
-            GRAPHQL
+            }'
             item_id="$(gh api graphql -f query="$ADD_MUTATION" -F project="$project_id" -F issue="$ISSUE_NODE_ID" --jq '.data.addProjectV2ItemById.item.id')"
             sleep 1
           else
@@ -125,7 +123,7 @@ jobs:
           [ -n "$item_id" ] || { echo "Project Item creation/lookup returned no item ID."; exit 1; }
 
           echo "Setting Project Item Status to BACKLOG..."
-          read -r -d '' SET_STATUS_MUTATION <<'GRAPHQL' || true
+          SET_STATUS_MUTATION='
           mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) {
             updateProjectV2ItemFieldValue(input:{
               projectId:$project
@@ -135,8 +133,7 @@ jobs:
             }) {
               projectV2Item { id }
             }
-          }
-          GRAPHQL
+          }'
           gh api graphql \
             -f query="$SET_STATUS_MUTATION" \
             -F project="$project_id" \
@@ -147,7 +144,7 @@ jobs:
           sleep 1
 
           echo "Verifying Project Item and Status..."
-          read -r -d '' VERIFY_QUERY <<'GRAPHQL' || true
+          VERIFY_QUERY='
           query($item:ID!) {
             node(id:$item) {
               ... on ProjectV2Item {
@@ -162,8 +159,7 @@ jobs:
                 }
               }
             }
-          }
-          GRAPHQL
+          }'
           verify_json="$(gh api graphql -f query="$VERIFY_QUERY" -F item="$item_id")"
           sleep 1
 

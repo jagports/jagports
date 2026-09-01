@@ -133,3 +133,20 @@ Do not silently delete active work or retain obsolete test artifacts merely beca
 ### Classification metadata and workflow state
 
 Metadata used to classify work should remain independent of workflow state unless the project explicitly defines an integration between them. A classification mechanism should not silently change status, priority, ordering, ownership, or other work-control information.
+
+## GitHub Project creation and automation identity
+
+Creating a GitHub Project that will be managed by automation is a development setup task, not merely a UI configuration task. Project-creation work must establish and verify the automation identity and its credentials before dependent workflows are treated as ready.
+
+For organization-owned Projects:
+
+1. Identify the GitHub user that will act as the automation identity.
+2. Verify that the user has the required organization and repository access before creating dependent automation.
+3. Prefer a dedicated automation user rather than coupling Project automation to a human administrator account.
+4. For a fine-grained personal access token used by Project automation, grant the minimum required permissions. For the Jagports Issue-to-Project pattern this includes organization **Projects: Read and write**, repository **Metadata: Read**, and repository **Issues: Read and write**.
+5. If the organization requires approval for fine-grained token access, complete and verify that approval before testing the automation.
+6. Store the approved token as a repository or organization secret rather than placing the token in source code, workflow files, Issues, comments, or logs.
+7. Verify the token independently against the target Project before relying on a workflow. A successful repository authentication check alone does not prove Project access.
+8. Perform an end-to-end workflow test using the real event that the automation is intended to handle. Verify both the Project Item creation and the required initial Project Item Status.
+
+Project creation tasks are incomplete until the automation identity, token permissions, approval state where applicable, secret configuration, direct Project access, and end-to-end operation have all been verified. This setup must be included in the project creation task plan whenever later automation depends on the Project.
