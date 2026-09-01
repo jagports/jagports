@@ -107,9 +107,11 @@ Windows Git Bash compatibility is an explicit project constraint. Avoid `awk`, B
 - The root `KNOWLEDGE.md` contains cross-domain, repository-wide and organizational knowledge.
 - A nested `KNOWLEDGE.md` contains durable knowledge specific to its containing domain or subfolder.
 - Further nesting is allowed when a domain becomes sufficiently large to justify a more specific knowledge scope.
-- A nested knowledge file should not be deleted merely because it is nested. Consolidate material into the root only when it is genuinely cross-domain.
-- Repository-wide knowledge-maintenance rules belong at the root so they govern all knowledge files without unnecessary duplication.
-- All `KNOWLEDGE.md` files must contain reusable knowledge rather than chronological task history.
+- A nested knowledge file must not be deleted merely because it is nested. Consolidate material into the root only when it is genuinely cross-domain.
+- The hierarchy policy in this section applies to every `KNOWLEDGE.md` in the repository.
+- All `KNOWLEDGE.md` files must contain durable, reusable knowledge rather than chronological task history.
 - Generalize observations before recording them as knowledge. Do not preserve individual Issue numbers, PR numbers, branch names, temporary identifiers, one-off test cases, or one-off category examples unless they are necessary to express a reusable principle.
 - Task-specific evidence, implementation history and temporary operational details belong in the relevant task record, review, test record, project record, or other task-specific documentation.
+- Repository-wide policy should be defined at the root and should not be unnecessarily duplicated in nested knowledge files.
+- A nested knowledge file may briefly identify its scope or point to root policy, while its substantive content should remain domain-specific.
 - Before committing a `KNOWLEDGE.md` change, review the content for task-specific identifiers and one-off examples and generalize or remove them where appropriate.

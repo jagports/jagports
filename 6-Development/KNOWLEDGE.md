@@ -1,5 +1,9 @@
 # Jagports Development Knowledge
 
+## Scope
+
+This file contains durable knowledge specific to development work. Repository-wide `KNOWLEDGE.md` hierarchy and maintenance policy is defined at the repository root; this file should focus on development-specific knowledge.
+
 ## Human testing
 
 ### General principles
