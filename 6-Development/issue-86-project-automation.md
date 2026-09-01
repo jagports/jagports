@@ -1,4 +1,4 @@
-# Issue #86 — Automatic Issue → Project → BACKLOG automation
+# Issue #86 — Automatic Issue to Project Item and BACKLOG Status automation
 
 ## Project definition
 
@@ -9,6 +9,8 @@ The target Project is defined here as the single source of truth for this implem
 - Project name: `Jagports AI OS`
 - URL: https://github.com/orgs/jagports/projects/9
 
+The Project is **organization-owned by `jagports`**. Project mutations are performed using `PROJECTS_TOKEN`, authenticated as an identity that has permission to modify this Project. The verified `tlindi` token has successfully modified Project #9.
+
 ## Implementation
 
 GitHub Actions workflow:
@@ -18,19 +20,19 @@ GitHub Actions workflow:
 The workflow runs when a new Issue is opened and performs the following deterministic sequence:
 
 1. Resolve organization `jagports` Project `9`.
-2. Verify that the project title is `Jagports AI OS`.
+2. Verify that the Project title is `Jagports AI OS`.
 3. Resolve the actual `Status` single-select field and its `BACKLOG` option by ID.
-4. Check whether the Issue already has a Project item.
-5. Add the Issue when no Project item exists.
-6. Identify the resulting Project item.
+4. Check whether the Issue already has a Project Item.
+5. Add the Issue to the Project when no Project Item exists.
+6. Identify the resulting Project Item.
 7. Set the Project Item `Status` to `BACKLOG`.
-8. Independently verify the Project item, Issue identity, non-archived state, `Status` value, and `BACKLOG` option ID.
+8. Independently verify the Project Item, Issue identity, non-archived state, `Status` value, and `BACKLOG` option ID.
 
-The workflow is intentionally limited to the initial `BACKLOG` transition. It does not automate later workflow transitions.
+The workflow is intentionally limited to assigning the initial `BACKLOG` Status. It does not automate later workflow transitions.
 
 ## Idempotency
 
-The workflow checks existing Project items before calling `addProjectV2ItemById`. A rerun for an Issue that is already attached reuses the existing Project item and enforces/verifies `Status = BACKLOG` without creating a duplicate.
+The workflow checks existing Project Items before calling `addProjectV2ItemById`. A rerun for an Issue that is already a Project Item reuses the existing Project Item and enforces/verifies `Status = BACKLOG` without creating a duplicate.
 
 ## Authentication and permissions
 
@@ -38,19 +40,33 @@ The workflow uses a dedicated `PROJECTS_TOKEN` for Project mutations. The token 
 
 `GITHUB_TOKEN` remains separate and is used only to persist a failure comment on the Issue when the Project operation cannot be completed or verified.
 
-The workflow deliberately fails rather than claiming success when `PROJECTS_TOKEN`, the Project, the Status field, the `BACKLOG` option, or verification is unavailable.
+The workflow deliberately fails rather than claiming success when `PROJECTS_TOKEN`, the Project, the `Status` field, the `BACKLOG` option, or verification is unavailable.
+
+## Verified Project values
+
+The Project was verified through GitHub GraphQL as:
+
+- Project ID: `PVT_kwDOEz190s4Bh6vc`
+- Status field ID: `PVTSSF_lADOEz190s4Bh6vczhg0oRE`
+- `BACKLOG` option ID: `3fe9652a`
+
+The workflow resolves these IDs dynamically by Project and field/option name rather than hard-coding them.
+
+A write-access test using the `tlindi` token successfully updated a real Project Item's `Status` to `BACKLOG`.
 
 ## Failure handling
 
-Any Project-operation failure causes the workflow to fail and attempts to add a persistent Issue comment stating that the Project attachment and `BACKLOG` state were not verified.
+Any Project-operation failure causes the workflow to fail and attempts to add a persistent Issue comment stating that the Issue was not verified as a Project Item with `Status = BACKLOG`.
 
 ## Scope boundary
 
-This implementation covers only:
+This implementation covers only the initial Project assignment and Status operation:
 
-`Issue opened → Project item created/identified → Project Item Status = BACKLOG`
+- When an Issue is opened, add the Issue to the `Jagports AI OS` Project as a Project Item when it is not already present.
+- Set that Project Item's `Status` to `BACKLOG`.
+- Verify the Project Item and its `Status`.
 
-No automatic `BACKLOG → RESEARCH` or later transition is introduced by this Issue.
+No automatic `BACKLOG` to `RESEARCH` or later transition is introduced by this Issue.
 
 ## Verification requirement
 
