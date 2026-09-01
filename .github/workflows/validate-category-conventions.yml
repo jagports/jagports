@@ -25,7 +25,7 @@ jobs:
               ['AGENT /', 'category:agent'],
               ['KNOWLEDGE /', 'category:knowledge']
             ];
-            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
+            const matches = categories.filter(([prefix]) => title.includes(prefix));
             if (matches.length > 1) {
               core.setFailed('Title contains multiple supported category prefixes; exactly one primary category prefix is permitted.');
               return;
@@ -56,7 +56,7 @@ jobs:
               ['AGENT /', 'category:agent'],
               ['KNOWLEDGE /', 'category:knowledge']
             ];
-            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
+            const matches = categories.filter(([prefix]) => title.includes(prefix));
 
             // CHORE PRs are repository-maintenance work and are intentionally
             // outside the category-label convention. This allows deployment
@@ -68,6 +68,10 @@ jobs:
 
             if (matches.length === 0) {
               core.setFailed(`Title must start with one of: ${categories.map(([prefix]) => prefix).join(', ')}`);
+              return;
+            }
+            if (!title.startsWith(matches[0][0])) {
+              core.setFailed(`Category prefix ${matches[0][0]} must be at the beginning of the title.`);
               return;
             }
             if (matches.length > 1) {
