@@ -1,1 +1,1 @@
-Human test fixture for #94: Issue/PR consistency.
+Human test fixture for Issue to PR title-prefix consistency.
