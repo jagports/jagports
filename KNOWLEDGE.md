@@ -145,6 +145,12 @@ Agents should consult it when planning project work, but should critically evalu
 
 The GitHub Issues are the primary work and communication records. The GitHub Project provides a visual representation of Issues and their current Project Item Status.
 
+## Agent Communication Protocol Reference
+
+`0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` defines the detailed communication protocol for agents and humans working on Jagports AI OS.
+
+Agents should consult the protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. It complements this knowledge file by providing operational communication rules.
+
 ## Issue-to-Completion Lifecycle
 
 The standard Issue-driven development lifecycle is:
