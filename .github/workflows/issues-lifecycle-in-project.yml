@@ -1,8 +1,8 @@
-name: Add new Issues to Project
+name: Sync Issue Lifecycle to Project
 
 on:
   issues:
-    types: [opened]
+    types: [opened, closed, reopened]
 
 permissions:
   contents: read
@@ -16,16 +16,17 @@ env:
   PROJECT_TITLE: Jagports AI OS
 
 jobs:
-  add-to-project:
+  sync-issue-lifecycle:
     runs-on: ubuntu-latest
     steps:
-      - name: Add Issue to Project and set Project Item Status
+      - name: Add Issue to Project and synchronize Status
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           COMMENT_TOKEN: ${{ github.token }}
           ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPOSITORY: ${{ github.repository }}
+          ISSUE_ACTION: ${{ github.event.action }}
         shell: bash
         run: |
           set -euo pipefail
@@ -36,7 +37,7 @@ jobs:
               sleep 1
               GH_TOKEN="$COMMENT_TOKEN" gh api \
                 "repos/$REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-                -f body="Project automation FAILED for Issue #$ISSUE_NUMBER. The Issue was not verified as a Project Item with Status BACKLOG. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
+                -f body="Project automation FAILED for Issue #$ISSUE_NUMBER. The Issue was not verified as a Project Item with the expected lifecycle Status. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
                 >/dev/null || true
             fi
             exit "$status"
@@ -47,6 +48,23 @@ jobs:
             echo "PROJECTS_TOKEN is not configured. A token with access to the Project is required."
             exit 1
           fi
+
+          case "$ISSUE_ACTION" in
+            opened|reopened)
+              TARGET_LABEL="BACKLOG"
+              ;;
+            closed)
+              TARGET_LABEL="DONE"
+              ;;
+            *)
+              echo "Unhandled action '$ISSUE_ACTION' — nothing to do."
+              exit 0
+              ;;
+          esac
+
+          echo "Issue: #$ISSUE_NUMBER"
+          echo "Lifecycle action: $ISSUE_ACTION"
+          echo "Target Project Status: $TARGET_LABEL"
 
           echo "Resolving Project $PROJECT_ORG/$PROJECT_NUMBER..."
           PROJECT_QUERY='
@@ -74,16 +92,16 @@ jobs:
           project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
           project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
           status_field_id="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .options != null) | .id' <<<"$project_json" | head -n1)"
-          backlog_option_id="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .options != null) | .options[]? | select(.name == "BACKLOG") | .id' <<<"$project_json" | head -n1)"
+          target_option_id="$(jq -r --arg target "$TARGET_LABEL" '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .options != null) | .options[]? | select(.name == $target) | .id' <<<"$project_json" | head -n1)"
 
           [ -n "$project_id" ] || { echo "Project was not found."; exit 1; }
           [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; exit 1; }
           [ -n "$status_field_id" ] || { echo "Status field was not found."; exit 1; }
-          [ -n "$backlog_option_id" ] || { echo "BACKLOG Status option was not found."; exit 1; }
+          [ -n "$target_option_id" ] || { echo "$TARGET_LABEL Status option was not found."; exit 1; }
 
           echo "Project resolved: $project_title"
           echo "Status field: $status_field_id"
-          echo "BACKLOG option: $backlog_option_id"
+          echo "$TARGET_LABEL option: $target_option_id"
 
           echo "Checking whether Issue #$ISSUE_NUMBER is already a Project Item..."
           ITEMS_QUERY='
@@ -122,7 +140,7 @@ jobs:
 
           [ -n "$item_id" ] || { echo "Project Item creation/lookup returned no item ID."; exit 1; }
 
-          echo "Setting Project Item Status to BACKLOG..."
+          echo "Setting Project Item Status to $TARGET_LABEL..."
           SET_STATUS_MUTATION='
           mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) {
             updateProjectV2ItemFieldValue(input:{
@@ -139,7 +157,7 @@ jobs:
             -F project="$project_id" \
             -F item="$item_id" \
             -F field="$status_field_id" \
-            -F option="$backlog_option_id" \
+            -F option="$target_option_id" \
             >/dev/null
           sleep 1
 
@@ -170,8 +188,8 @@ jobs:
 
           [ "$verified_issue" = "$ISSUE_NUMBER" ] || { echo "Verification failed: Project Item does not contain Issue #$ISSUE_NUMBER."; exit 1; }
           [ "$archived" = "false" ] || { echo "Verification failed: Project Item is archived."; exit 1; }
-          [ "$verified_status" = "BACKLOG" ] || { echo "Verification failed: Project Item Status is '$verified_status', not BACKLOG."; exit 1; }
-          [ "$verified_option" = "$backlog_option_id" ] || { echo "Verification failed: Status option ID does not match BACKLOG."; exit 1; }
+          [ "$verified_status" = "$TARGET_LABEL" ] || { echo "Verification failed: Project Item Status is '$verified_status', not $TARGET_LABEL."; exit 1; }
+          [ "$verified_option" = "$target_option_id" ] || { echo "Verification failed: Status option ID does not match $TARGET_LABEL."; exit 1; }
 
-          echo "PASS: Issue #$ISSUE_NUMBER is a Project Item in '$PROJECT_TITLE' with Status BACKLOG."
+          echo "PASS: Issue #$ISSUE_NUMBER is a Project Item in '$PROJECT_TITLE' with Status $TARGET_LABEL."
           trap - ERR
