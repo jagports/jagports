@@ -115,6 +115,16 @@ The workflow state of an Issue is the **Project Item Status**: the value of the
 `Status` field belonging to that Issue's item in the GitHub Project. It is not a
 status of the Project itself.
 
+```text
+GitHub Issue
+     ↓
+Project Item
+     ↓
+Jagports AI OS Project
+     ↓
+Status / <current state>
+```
+
 ---
 
 ## 3. Task Creation
@@ -214,6 +224,26 @@ The controlled workflow is:
 
 The values above are **Project Item Status option values**. They are stored in
 the `Status` field of each Issue's Project item.
+
+```text
+BACKLOG
+   ↓
+RESEARCH
+   ↓
+PROPOSED
+   ↓
+DECISION NEEDED
+   ↓
+APPROVED
+   ↓
+CODING
+   ↓
+REVIEW
+   ↓
+TESTING
+   ↓
+DONE
+```
 
 ### BACKLOG
 
@@ -367,6 +397,16 @@ Review should verify that the actual result matches the task objective.
 Where appropriate:
 
 `CODING → REVIEW → TESTING → DONE`
+
+```text
+CODING
+  ↓
+REVIEW
+  ↓
+TESTING
+  ↓
+DONE
+```
 
 A task should not be marked `DONE` merely because implementation has stopped.
 
