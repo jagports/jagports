@@ -1,0 +1,2 @@
+Controlled negative-test fixture for PR category metadata validation.
+This file exists only to provide a minimal, isolated change for the human test.
