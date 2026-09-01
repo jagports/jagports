@@ -170,4 +170,4 @@ When creating or preparing a GitHub Project for automation, the setup task must 
 7. Store the token as the workflow's `PROJECTS_TOKEN` Actions secret without exposing its value.
 8. Verify that the secret exists by name.
 9. Run an end-to-end workflow test using a real event and verify the resulting Project Item and Project Item `Status`.
-10. Record failures as test evidence and do not claim successful automation until execution and resulting Project state have been verified.
+10. Record failures as test evidence and do not claim successful automation until execution and resulting Project state have both been verified.
