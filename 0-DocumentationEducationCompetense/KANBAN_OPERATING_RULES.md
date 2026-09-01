@@ -116,18 +116,14 @@ The workflow state of an Issue is the **Project Item Status**: the value of the
 status of the Project itself.
 
 ```text
-GitHub Issue
-     ↓
-Project Item
-     ↓
 Jagports AI OS Project
-     │
-     └── Status / <current state>
+       │
+       └── Project Item
+              │
+              └── Status / <current state>
 ```
 
-The `Status` shown here belongs to the **Project Item**. The Project is the
-container to which the Project Item belongs; it does not own the workflow
-status.
+`Status` is a property of the **Project Item**. It is not a property of the Project. The Project is the container to which the Project Item belongs.
 
 ---
 
