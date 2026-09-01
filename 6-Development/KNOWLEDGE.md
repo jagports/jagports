@@ -133,3 +133,43 @@ Do not silently delete active work or retain obsolete test artifacts merely beca
 ### Classification metadata and workflow state
 
 Metadata used to classify work should remain independent of workflow state unless the project explicitly defines an integration between them. A classification mechanism should not silently change status, priority, ordering, ownership, or other work-control information.
+
+## GitHub Project automation credentials
+
+GitHub Project automation that runs in GitHub Actions may require a repository Actions secret containing a credential that can modify the target Project. The Project owner and the automation identity are separate concepts: an organization-owned Project is addressed through the organization, while a dedicated GitHub user can provide the credential used by the workflow.
+
+### Selecting and verifying an automation user
+
+Prefer a dedicated GitHub user for long-lived Project automation rather than a personal administrator account when such an automation identity is available.
+
+Before configuring the workflow credential, verify the intended automation user independently:
+
+1. Authenticate GitHub CLI as the intended automation user.
+2. Verify that the account can read the target organization-owned Project.
+3. Verify that the account can perform the required Project mutation, such as changing a Project Item's `Status`.
+4. Record only the verified capability and account identity in project documentation; never record the credential value.
+
+A token's permission scope alone is not sufficient evidence. The actual Project operation must succeed using the intended automation identity.
+
+### Creating the automation token
+
+Create a dedicated personal access token while authenticated to GitHub as the selected automation user. Use the narrowest permissions that support the workflow's required repository and Project operations, and use an expiration appropriate to the project's security policy.
+
+The token must be stored only as a repository or organization Actions secret, using the secret name expected by the workflow, for example `PROJECTS_TOKEN`.
+
+Do not put a token value in source code, workflow YAML, Issues, Pull Requests, `KNOWLEDGE.md`, scripts, logs, or chat messages. Do not expose the token when verifying the configuration; secret-listing commands should be used only to confirm the secret name exists.
+
+### Project setup checklist
+
+When creating or preparing a GitHub Project for automation, the setup task must include:
+
+1. Identify and record the Project owner, Project number, and Project name.
+2. Verify the required Project fields and option values used by automation.
+3. Select a dedicated automation user where appropriate.
+4. Verify the automation user's read access to the target Project.
+5. Verify the automation user's write access by performing the required Project mutation.
+6. Create a dedicated token for that automation user with the minimum required permissions.
+7. Store the token as the workflow's `PROJECTS_TOKEN` Actions secret without exposing its value.
+8. Verify that the secret exists by name.
+9. Run an end-to-end workflow test using a real event and verify the resulting Project Item and Project Item `Status`.
+10. Record failures as test evidence and do not claim successful automation until execution and resulting Project state have been verified.
