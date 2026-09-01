@@ -9,7 +9,7 @@ permissions:
   issues: write
 
 # The target is the organization-owned Project used as the Jagports AI OS kanban.
-# Project mutations use a dedicated PROJECTS_TOKEN with access to this Project.
+# Project mutations use PROJECTS_TOKEN authenticated as the Project-access identity.
 env:
   PROJECT_ORG: jagports
   PROJECT_NUMBER: "9"
@@ -19,7 +19,7 @@ jobs:
   add-to-project:
     runs-on: ubuntu-latest
     steps:
-      - name: Add Issue to Project and set BACKLOG
+      - name: Add Issue to Project and set Project Item Status
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           COMMENT_TOKEN: ${{ github.token }}
@@ -35,7 +35,7 @@ jobs:
             if [ -n "${COMMENT_TOKEN:-}" ]; then
               GH_TOKEN="$COMMENT_TOKEN" gh api \
                 "repos/$REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-                -f body="Project automation FAILED for Issue #$ISSUE_NUMBER. The Issue was not verified as attached with Project Item Status BACKLOG. Inspect this workflow run for the exact failure. No successful Project state is claimed." \
+                -f body="Project automation FAILED for Issue #$ISSUE_NUMBER. The Issue was not verified as a Project Item with Status BACKLOG. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
                 >/dev/null || true
             fi
             exit "$status"
@@ -85,7 +85,7 @@ jobs:
           echo "Status field: $status_field_id"
           echo "BACKLOG option: $backlog_option_id"
 
-          echo "Checking for an existing Project item for Issue #$ISSUE_NUMBER..."
+          echo "Checking whether Issue #$ISSUE_NUMBER is already a Project Item..."
           read -r -d '' ITEMS_QUERY <<'GRAPHQL' || true
           query($project:ID!) {
             node(id:$project) {
@@ -108,7 +108,7 @@ jobs:
           item_id="$(jq -r --arg issue "$ISSUE_NODE_ID" '.data.node.items.nodes[]? | select(.content.id == $issue) | .id' <<<"$items_json" | head -n1)"
 
           if [ -z "$item_id" ]; then
-            echo "Issue is not attached; adding it now..."
+            echo "Issue is not yet a Project Item; adding the Issue to the Project..."
             read -r -d '' ADD_MUTATION <<'GRAPHQL' || true
             mutation($project:ID!, $issue:ID!) {
               addProjectV2ItemById(input:{projectId:$project, contentId:$issue}) {
@@ -119,10 +119,10 @@ jobs:
             item_id="$(gh api graphql -f query="$ADD_MUTATION" -F project="$project_id" -F issue="$ISSUE_NODE_ID" --jq '.data.addProjectV2ItemById.item.id')"
             sleep 1
           else
-            echo "Existing Project item found: $item_id"
+            echo "Existing Project Item found: $item_id"
           fi
 
-          [ -n "$item_id" ] || { echo "Project item creation/lookup returned no item ID."; exit 1; }
+          [ -n "$item_id" ] || { echo "Project Item creation/lookup returned no item ID."; exit 1; }
 
           echo "Setting Project Item Status to BACKLOG..."
           read -r -d '' SET_STATUS_MUTATION <<'GRAPHQL' || true
@@ -146,7 +146,7 @@ jobs:
             >/dev/null
           sleep 1
 
-          echo "Verifying Project membership and Project Item Status..."
+          echo "Verifying Project Item and Status..."
           read -r -d '' VERIFY_QUERY <<'GRAPHQL' || true
           query($item:ID!) {
             node(id:$item) {
@@ -172,10 +172,10 @@ jobs:
           verified_option="$(jq -r '.data.node.fieldValueByName.optionId // empty' <<<"$verify_json")"
           archived="$(jq -r '.data.node.isArchived' <<<"$verify_json")"
 
-          [ "$verified_issue" = "$ISSUE_NUMBER" ] || { echo "Verification failed: Project item does not contain Issue #$ISSUE_NUMBER."; exit 1; }
-          [ "$archived" = "false" ] || { echo "Verification failed: Project item is archived."; exit 1; }
+          [ "$verified_issue" = "$ISSUE_NUMBER" ] || { echo "Verification failed: Project Item does not contain Issue #$ISSUE_NUMBER."; exit 1; }
+          [ "$archived" = "false" ] || { echo "Verification failed: Project Item is archived."; exit 1; }
           [ "$verified_status" = "BACKLOG" ] || { echo "Verification failed: Project Item Status is '$verified_status', not BACKLOG."; exit 1; }
           [ "$verified_option" = "$backlog_option_id" ] || { echo "Verification failed: Status option ID does not match BACKLOG."; exit 1; }
 
-          echo "PASS: Issue #$ISSUE_NUMBER is attached to '$PROJECT_TITLE' with Project Item Status BACKLOG."
+          echo "PASS: Issue #$ISSUE_NUMBER is a Project Item in '$PROJECT_TITLE' with Status BACKLOG."
           trap - ERR
