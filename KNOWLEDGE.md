@@ -100,6 +100,27 @@ For command sequences whose later steps depend on earlier output, use a temporar
 
 Windows Git Bash compatibility is an explicit project constraint. Avoid `awk`, Bash associative arrays, backslash (`\\`) line continuations, and Windows path-separator assumptions. Prefer forward-slash paths and simple Git Bash-compatible shell constructs. Commands should be verified against these known limitations before being given to the user.
 
+## GitHub Issue and Pull Request Comment Formatting
+
+GitHub Issue and Pull Request comments must be formatted for quick visual scanning and reliable traceability.
+
+- Put each distinct traceability statement on its own line or paragraph.
+- When an Issue or Pull Request is the primary reference for a statement, put its Markdown link at the beginning of the line.
+- Keep the Issue/PR number and title together in the link text when useful; do not bury the reference inside a long sentence.
+- Separate relationship text such as `implements`, `resolves`, `supersedes`, or `previous implementation` from the referenced Issue or Pull Request instead of placing the complete relationship in one long line.
+- Use short headings or labels on their own lines when context is needed before a reference.
+- Do not construct long inline chains containing a PR title, PR number, Issue title, Issue number, and relationship text in the same sentence.
+
+Preferred pattern:
+
+**Previous implementation**
+[PR #<number> — <title>](<PR URL>)
+
+**Implements/resolves**
+[Issue #<number> — <title>](<Issue URL>)
+
+For multiple references, give each primary reference its own line rather than combining them into a single paragraph.
+
 ## KNOWLEDGE.md Hierarchy and Generalization Rules
 
 `KNOWLEDGE.md` files may exist at the repository root and within domain-specific subfolders. Each file contains durable, reusable knowledge appropriate to its scope.
