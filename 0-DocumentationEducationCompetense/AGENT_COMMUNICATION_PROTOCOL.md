@@ -59,6 +59,20 @@ This discovery step is mandatory because the numbered root folders provide the s
 
 `Message created → Agent notified → Agent acknowledges → Action taken → Result recorded → Knowledge updated if reusable`
 
+```text
+Message created
+      ↓
+Agent notified
+      ↓
+Acknowledged
+      ↓
+Action taken
+      ↓
+Result recorded
+      ↓
+Knowledge updated
+```
+
 ### Notification
 
 An agent is considered notified when the relevant persistent GitHub record exists and the agent is explicitly named as responsible in the Issue, Project assignment or hand-off record.
@@ -98,6 +112,23 @@ Every escalation must state:
 - requested human action;
 - responsible owner.
 
+```text
+Work / observation
+       ↓
+Need human visibility?
+    ↙         ↘
+   No         Yes
+   ↓           ↓
+  AUTO     Escalation
+             ↓
+ DECISION / BLOCKED / RISK
+ SCOPE / ACCESS / CONFLICT / FAILURE
+             ↓
+        Owner action
+             ↓
+          Continue
+```
+
 ## Human Decision Gate
 
 A human decision gate is mandatory when an agent cannot proceed without choosing between materially different outcomes, changing an agreed constraint, accepting material risk, or establishing a new project rule.
@@ -108,6 +139,20 @@ The gate has four states:
 2. `DECISION NEEDED` — human input is explicitly required.
 3. `APPROVED` — the human decision authorizes the selected option.
 4. `REJECTED` — the proposed option is not authorized; the Issue records the reason or replacement direction.
+
+```text
+Agent proposal
+      ↓
+   PROPOSED
+      ↓
+DECISION NEEDED
+      ↓
+Human decision
+   ↙       ↘
+REJECTED   APPROVED
+              ↓
+           Proceed
+```
 
 A decision record must contain:
 
@@ -127,6 +172,20 @@ Agents must not silently infer approval from inactivity.
 A hand-off is required when responsibility for an Issue moves from one agent to another agent or from an agent to a human.
 
 The hand-off must be recorded in the Issue and use the repository hand-off template where a new hand-off record is appropriate.
+
+```text
+Source agent
+     ↓
+Issue hand-off record
+     ↓
+Destination agent / human
+     ↓
+Acknowledgement
+     ↓
+Accept / Clarify / Escalate
+     ↓
+Continue work
+```
 
 A valid hand-off contains:
 
@@ -170,9 +229,63 @@ For implementation work:
 
 `Issue → Branch → Pull Request → Review → Merge → Issue closure → Done`
 
+```text
+Issue
+  ↓
+Branch
+  ↓
+Pull Request
+  ↓
+Review
+  ↓
+Merge
+  ↓
+Issue closure
+  ↓
+DONE
+```
+
 The implementing Pull Request must maintain explicit traceability to its initiating Issue. The PR relationship and the later Issue closure are separate lifecycle actions.
 
+### Pull Request review and completion
+
+```text
+Implementation PR
+       ↓
+Ready for review
+       ↓
+Review
+   ↙       ↘
+Changes   Approved
+  ↓           ↓
+Implement    Merge
+  ↓           ↓
+Review      Close Issue
+again           ↓
+              DONE
+```
+
 After a successful merge and completion of the work, the initiating Issue is closed with reason `completed`. The GitHub Project then represents the completed work with the appropriate final Project Status.
+
+## Testing
+
+Implementation validation is recorded through the relevant test Issue or test record.
+
+```text
+Implementation Issue
+        ↓
+   Pull Request
+        ↓
+    Test Issue
+        ↓
+ PASS / FAIL / BLOCKED
+        ↓
+ Review / remediation
+        ↓
+     Completion
+```
+
+A test result must be persistent and traceable to the implementation it validates.
 
 ## Communication Rule of Precedence
 

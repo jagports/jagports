@@ -14,6 +14,22 @@ The GitHub account used for Jagports repository access is:
 
 Do not use the obsolete `tlindi/jagports` repository reference for current Jagports work.
 
+```text
+gh authentication
+       ↓
+   GitHub account
+       ↓
+repository / Project access
+       ↓
+Jagports AI OS Project
+       │
+       └── Project Item
+              │
+              └── Status / <current state>
+```
+
+`Status` is a property of the **Project Item**. It is not a property of the Project. The Project is the container that contains the Project Item.
+
 ## Future Agent Operating Model Investigation
 
 Topic: proactive multi-agent workflow architecture
@@ -137,6 +153,8 @@ For multiple references, give each primary reference its own line rather than co
 - A nested knowledge file may briefly identify its scope or point to root policy, while its substantive content should remain domain-specific.
 - Before committing a `KNOWLEDGE.md` change, review the content for task-specific identifiers and one-off examples and generalize or remove them where appropriate.
 
+Reusable knowledge-flow visualizations belong with documentation/knowledge topics rather than in a central collection of unrelated diagrams. The reusable knowledge-flow diagram is maintained in `0-DocumentationEducationCompetense/KNOWLEDGE_FLOW.md`.
+
 ## Project Work Plan Reference
 
 `5-Implementation-Projects/Jagports_AI_OS_Prioritized_Work_Plan.md` is maintained as a **WORK IN PROGRESS** planning document.
@@ -166,3 +184,5 @@ The initiating Issue remains open while its implementation is being developed, t
 After the implementing Pull Request is successfully merged and the work is complete, close the initiating Issue with reason `completed`. The final Project state for the completed work is `DONE`.
 
 Closing the Issue is a lifecycle step after merge; it is not a substitute for PR-to-Issue traceability and does not require the PR relationship itself to use automatic `Closes #N` wording.
+
+The detailed lifecycle, traceability, review and testing diagrams are maintained in `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md`, beside the communication and implementation rules they describe.
