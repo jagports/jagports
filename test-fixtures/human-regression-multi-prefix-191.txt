@@ -1,0 +1,2 @@
+Human-test fixture for category-prefix validation regression #188.
+This file intentionally contains no category metadata.
