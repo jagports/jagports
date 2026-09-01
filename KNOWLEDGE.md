@@ -22,13 +22,13 @@ gh authentication
 repository / Project access
        ↓
 Jagports AI OS Project
-       ↓
-  Project Item
        │
-       └── Status / <current state>
+       └── Project Item
+              │
+              └── Status / <current state>
 ```
 
-The `Status` shown here belongs to the **Project Item**, not to the Project. The Project is the container for the Project Item.
+`Status` is a property of the **Project Item**. It is not a property of the Project. The Project is the container that contains the Project Item.
 
 ## Future Agent Operating Model Investigation
 
