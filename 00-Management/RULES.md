@@ -115,9 +115,17 @@ When review is required:
 - provide the PR/review link; and
 - hand the work to the review stage.
 
-## Historical Immutability
+## Historical Immutability and Title-Change Exception
 
 Closed Issues and merged PRs are historical records. Their descriptions and comments must not be modified.
+
+**Title changes are an explicit exception for active work:** the title of an open Issue or open PR may be changed when necessary. GitHub records a title change as a `renamed` timeline event, preserving the previous and new title. A title change therefore does not erase the historical title.
+
+Title changes are **recommended when the work scope changes materially**, for example when an Issue is substantially amended or when a PR evolves from implementing one Issue to genuinely resolving multiple Issues. The title should then be updated so that it accurately represents the current scope and improves traceability.
+
+Do not change a title merely for cosmetic wording changes when the work scope and identification remain materially the same.
+
+Closed Issues and merged PRs remain historical records and must not be modified, including their titles.
 
 They may be inspected for historical context and traceability, but they must not be reused as active work items.
 
@@ -128,6 +136,8 @@ The intended chain is:
 `Work request → Issue → PR → Review → Merge → verification`
 
 A PR may connect to multiple Issues when appropriate. Every Issue addressed by that PR must remain explicitly traceable.
+
+When the scope of an active Issue or PR materially changes, its title should be kept aligned with that scope. This is especially important when a PR legitimately resolves multiple Issues rather than one.
 
 ## Authority Order
 
