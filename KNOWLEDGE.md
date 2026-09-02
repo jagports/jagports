@@ -30,6 +30,28 @@ Jagports AI OS Project
 
 `Status` is a property of the **Project Item**. It is not a property of the Project. The Project is the container that contains the Project Item.
 
+For current Management workflow, execution, Project-state, review, testing, and capability rules, use the canonical sources referenced below rather than maintaining parallel rules in this file.
+
+## Current Management Workflow Sources
+
+`00-Management/WORKFLOWS.md` is the canonical normative source for Management workflows.
+
+`00-Management/RULES.md` contains human-readable governance and rationale.
+
+`SKILL.md` contains machine/agent execution guidance and implements or references the canonical workflow.
+
+`.codex/skills/*` contains specialized operational procedures and must reference the canonical workflow rather than redefine it.
+
+`0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` contains the detailed communication protocol for agent/human communication, acknowledgements, hand-offs, escalations, decisions, and implementation traceability.
+
+These sources are authoritative for their respective current rules. `KNOWLEDGE.md` is not an alternative workflow authority.
+
+## Durable Repository Knowledge
+
+The Project's important reusable information must not exist only in private agent context. Decisions, reusable findings, and durable knowledge should be persisted in the appropriate GitHub Issue, documentation, decision record, or knowledge file.
+
+`KNOWLEDGE.md` should contain generalized, durable knowledge rather than chronological task history or copies of current operating procedures.
+
 ## Future Agent Operating Model Investigation
 
 Topic: proactive multi-agent workflow architecture
@@ -82,8 +104,7 @@ Potential architecture options:
   - simplicity and ease of deployment
   - technical complexity
 
-Important principle:
-Important project information must not exist only in private agent context. Decisions, results and reusable knowledge must be persisted into GitHub Issues, documentation, decision logs or knowledge files.
+This remains an investigation topic. It is not a current Management workflow definition.
 
 ## AI Tool Capability Transparency
 
@@ -149,7 +170,7 @@ For multiple references, give each primary reference its own line rather than co
 - All `KNOWLEDGE.md` files must contain durable, reusable knowledge rather than chronological task history.
 - Generalize observations before recording them as knowledge. Do not preserve individual Issue numbers, PR numbers, branch names, temporary identifiers, one-off test cases, or one-off category examples unless they are necessary to express a reusable principle.
 - Task-specific evidence, implementation history and temporary operational details belong in the relevant task record, review, test record, project record, or other task-specific documentation.
-- Repository-wide policy should be defined at the root and should not be unnecessarily duplicated in nested knowledge files.
+- Repository-wide policy should be defined in the appropriate governing source and should not be unnecessarily duplicated in knowledge files.
 - A nested knowledge file may briefly identify its scope or point to root policy, while its substantive content should remain domain-specific.
 - Before committing a `KNOWLEDGE.md` change, review the content for task-specific identifiers and one-off examples and generalize or remove them where appropriate.
 
@@ -161,31 +182,13 @@ Reusable knowledge-flow visualizations belong with documentation/knowledge topic
 
 Agents should consult it when planning project work, but should critically evaluate its descriptions, assumptions and proposed structures. The work plan is not fixed: agents are encouraged to identify inconsistencies, outdated material, missing work, unnecessary complexity and better approaches, and to freely suggest improvements.
 
-The GitHub Issues are the primary work and communication records. The GitHub Project provides a visual representation of Issues and their current Project Item Status.
+GitHub Issues are the primary work and communication records. The GitHub Project provides a visual representation of Issues and their current Project Item Status. Current lifecycle and Project-state rules are defined in `00-Management/WORKFLOWS.md`.
 
 ## Agent Communication Protocol Reference
 
 `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` defines the detailed communication protocol for agents and humans working on Jagports AI OS.
 
-Agents should consult the protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. It complements this knowledge file by providing operational communication rules.
-
-## Issue-to-Completion Lifecycle
-
-The standard Issue-driven development lifecycle is:
-
-**Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
-
-The previous lifecycle **Approved Issue → Codex → Implement → Test → Review → Merge → Done** is obsolete and must not be used.
-
-Current implementation reality: Codex is not yet integrated into the Jagports development workflow. At present, implementation is primarily driven by ChatGPT under the control and direction of `tlindi`.
-
-The initiating Issue remains open while its implementation is being developed, tested and reviewed. The implementing Pull Request should maintain explicit traceability to the initiating Issue using the project's preferred relationship wording.
-
-After the implementing Pull Request is successfully merged and the work is complete, close the initiating Issue with reason `completed`. The final Project state for the completed work is `DONE`.
-
-Closing the Issue is a lifecycle step after merge; it is not a substitute for PR-to-Issue traceability and does not require the PR relationship itself to use automatic `Closes #N` wording.
-
-The detailed lifecycle, traceability, review and testing diagrams are maintained in `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md`, beside the communication and implementation rules they describe.
+Agents should consult that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
 
 ## 4-Production Folder Structure
 
