@@ -2,7 +2,7 @@
 
 ## Canonical workflow
 
-The Management workflow is defined only in [`00-Management/WORKFLOWS.md`](../../00-Management/WORKFLOWS.md).
+The Management workflow is defined only in [`00-Management/WORKFLOWS.md`](../../../00-Management/WORKFLOWS.md).
 
 This specialized skill implements that workflow for Kanban task import. It must not redefine the Management lifecycle, Issue/PR discovery rules, historical-work precedence, or Project verification rules independently.
 
