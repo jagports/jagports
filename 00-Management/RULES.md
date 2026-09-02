@@ -32,6 +32,10 @@ GitHub Issues are the primary work and communication records. GitHub Projects pr
 
 A Project Item's Status is not a property of the Project itself. Project operations must be verified after mutation before success is claimed.
 
+### Human review hand-off
+
+When review is required, GitHub's native PR reviewer request/notification is used; no separate "Waiting for Review" PR status is created. See `WORKFLOWS.md` for the implementation flow.
+
 ### Historical integrity
 
 Closed Issues and merged PRs are historical records. Their descriptions and comments must not be modified.
