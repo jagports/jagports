@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>JEPC Logon</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+		<meta http-equiv="cache-control" content="no-cache" />
+		<link type="text/css" rel="stylesheet" href="../styles/style.css" media="screen" />
+		<script type="text/javascript" language="javascript" src="../js/Constants.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/JEPC.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/JSSerializer.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/Login.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/I18nLabels.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/I18nMessages.js"></script>
+	</head>
+	<body class="localClass" onkeyup="triggerEnter()" onload="clearLangId(); focusLoginId();">
+		<form name="Logon" method="post" action="">
+		<script type="text/javascript" language="javascript">
+			breakFrames();
+
+			function focusLoginId() {
+				try {
+				    document.getElementById("FormInput_logonId").focus();
+				} catch (e) {
+					// Ignore the exception
+				}
+			}
+		</script>
+			<input type="hidden" id="langId" />
+			<br /><br />
+			<table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" summary="Contains the jaguar logo image">
+				<tr>
+					<td width="40">&nbsp;</td>
+					<td>
+						<label class="headerStyle" id="New_Jaguar_EPC">The New Jaguar EPC</label>
+						<img src="../images/pixt.gif" alt="" width="285" height="1" />
+						<img src="../images/logoGrey.jpg" alt="Jaguar" width="158" height="82" class="logoStyle"/>
+					</td>
+					<td width="40">&nbsp;</td>
+				</tr>
+				<tr>
+					<td>&nbsp;</td>
+					<td align="center">
+						<img src="../images/mainBannerImage.jpg" alt="Jaguar" width="758" height="191" class="mainBanner" />
+					</td>
+					<td>&nbsp;</td>
+				</tr>
+			</table>
+			<br />
+			<table class="introTable" cellspacing="0" id="RestrictedSiteAccountDisplay_Table_1" border="0" summary="Contains Login and Password Fields">
+				<tbody>
+					<tr>
+						<td width="40%" id="WC_RestrictedSiteAccountDisplay_TableCell_1"></td>
+						<td id="statusDisplayCol">
+							<label id="statusDisplay" class="redtextLogin"></label>&nbsp;</td>
+						<td width="40%" id="WC_RestrictedSiteAccountDisplay_TableCell_3"></td>
+					</tr>
+					<tr><td>&nbsp;</td></tr>
+					<tr>
+						<td width="20%" id="WC_RestrictedSiteAccountDisplay_TableCell_7"></td>
+						<td class="centerSection" valign="top" width="40%" id="WC_RestrictedSiteAccountDisplay_TableCell_8">
+							<label id="loginLabel" class="loginStyle">Logon ID</label><br />
+							<input class="logon" type="text" name="logonId" id="FormInput_logonId" /><br />
+							<label id="passLabel" class="loginStyle">Password</label><br />
+							<input class="pass" name="logonPassword" type="password" id="FormInput_logonPassword" /><br />
+							<input id="button_Login_ID" name="sub" type="button" class="submit" value="Login" onclick="submitToLogin();" />
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<br /><br />
+			<table width="70%" align="center" border="0" cellspacing="0" cellpadding="0" summary="Contains the language buttons">
+				<tr>
+										<td width="15%"><a href="JavaScript:onLanguageClick('-11')" class="languageFlag"><img border="0" src="../images/netherlands_ft_sm_clr.gif" id="dutch" alt="Dutch" title="Dutch" name="btnDutch" /> Dutch</a></td>
+					<td width="2%">&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('0')" class="languageFlag"><img border="0" src="../images/great_britain_ft_sm_clr.gif" alt="English" title="English" name="btnEnglish" /> English</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('-2')" class="languageFlag"><img border="0" src="../images/france_ft_sm_clr.gif" alt="French" title="French" name="btnFrench" /> French</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('-3')" class="languageFlag"><img border="0" src="../images/germany_ft_sm_clr.gif" alt="German" title="German" name="btnGerman" /> German</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('-4')" class="languageFlag"><img border="0" src="../images/italy_ft_sm_clr.gif" alt="Italian" title="Italian" name="btnItalian" /> Italian</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('-5')" class="languageFlag"><img border="0" src="../images/spain_ft_sm_clr.gif" alt="Spanish" title="Spanish" name="btnSpanish" /> Spanish</a></td>
+				</tr>
+				<tr><td colspan="11">&nbsp;</td></tr>
+				<tr>
+					<td width="15%"><a href="JavaScript:onLanguageClick('0')" class="languageFlag"><img border="0" src="../images/united_states_of_america_ft_sm_clr.gif" alt="USA-English" title="USA-English" name="btnUSEnglish" /> English</a></td>
+					<td width="2%">&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('0')" class="languageFlag"><img border="0" src="../images/canada_ft_sm_clr.gif" alt="Canada-English" title="Canada" name="btnCAEnglish" /> English</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('0')" class="languageFlag"><img border="0" src="../images/mexico_ft_sm_clr.gif" alt="Mexico-English" title="Mexico" name="btnMXEnglish" /> English</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('-2')" class="languageFlag"><img border="0" src="../images/canada_ft_sm_clr.gif" alt="Canada-French" title="Canada"  name="btnCAFrench" /> French</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('-5')" class="languageFlag"><img border="0" src="../images/mexico_ft_sm_clr.gif" alt="Mexico-Spanish" title="Mexico" name="btnMXSpanish" /> Spanish</a></td>
+					<td>&nbsp;</td>
+					<td><a href="JavaScript:onLanguageClick('-10')" class="languageFlag"><img border="0" src="../images/japan_ft_sm_clr.gif" alt="Japan" title="Japan" name="btnJapanese" /> Japanese</a></td>
+				</tr>
+				<tr><td colspan="11">&nbsp;</td></tr>
+				<tr>
+					<td width="15%"><a href="JavaScript:onLanguageClick('-7')" class="languageFlag"><img border="0" src="../images/china_ft_sm_clr.gif" alt="Chinese" title="Chinese" name="btnChinese" /> Chinese</a></td>
+					<td width="2%">&nbsp;</td>
+					<td width="15%"><a href="JavaScript:onLanguageClick('-6')" class="languageFlag"><img border="0" src="../images/russia_ft_sm_clr.gif" alt="Russian" title="Russian" name="btnRussian" /> Russian</a></td>
+					<td width="2%">&nbsp;</td>
+
+				</tr>
+			</table>
+			<table width="88%" border="0" cellpadding="0" cellspacing="0" summary="Contains the forgot password link">
+				<tr>
+					<td align="right">
+						<a href="javascript:openContactScreen()" target="_self" id="forgotPasswordLink" class="forgotPasswordLink">Forgotten Password</a>&nbsp;&nbsp;
+					</td>
+				</tr>
+			</table>
+		</form>
+	</body>
+</html>

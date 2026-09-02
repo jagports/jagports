@@ -1,0 +1,10 @@
+<configuration>
+   <selectURL>https://uit-10898/webapp/wcs/stores/servlet/EPCProductDisplay</selectURL>
+   <hotspotImageSizeX>8175</hotspotImageSizeX>
+   <hotspotImageSizeY>8010</hotspotImageSizeY>
+   <movieWidth>400</movieWidth>
+   <movieHeight>500</movieHeight>
+   <twipsPerInch>1440</twipsPerInch>
+   <blankImage>noimage.jpg</blankImage>
+   <itemParamName>itemNo</itemParamName>
+</configuration>

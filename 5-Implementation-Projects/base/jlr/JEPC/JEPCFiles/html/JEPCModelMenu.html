@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>JEPC - Model Menu</title>
+		<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1" />
+		<meta http-equiv="cache-control" content="no-cache" />
+		<link rel="stylesheet" type="text/css" href="../styles/style.css" media="screen"/>
+		<script type="text/javascript" language="javascript" src="../js/Constants.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/I18nLabels.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/I18nMessages.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/JEPC.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/AJAX_Util.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/ModelMenu.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/fst4-path.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/menuG5LoaderFSX.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/menuG5FX.js"></script>
+	</head>
+	<body bgcolor="white" id="menubody" onload="resetVinDecode();setModelMenu();initSub('Demo');showMenu('Demo');">
+		<form name="modelForm" action="">
+			&nbsp;&nbsp;
+			<br />
+			<table width="100%" height="500" border="0">
+				<tr valign="top">
+					<td width="55%">
+						<div>
+							<table width="100%" cellpadding="3" cellspacing="3" id="modelSlot" summary="Contains the model menu"></table>
+						</div>
+					</td>
+					<td width="45%" id="imageSlot" valign="top">
+						<br /><br /><br /><br /><br /><br /><br /><br />
+						<div align="center">
+							<img id="modelImg" src="../images/leaper-watermark.gif" alt="Jaguar Leaper" />
+						</div>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</body>
+</html>
