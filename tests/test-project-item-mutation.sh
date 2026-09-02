@@ -12,34 +12,41 @@ printf 'Project Item source Issue: #%s\n' "$ISSUE_NUMBER"
 
 sleep 0.4
 
-# Project metadata is used only to obtain the Project ID and Status field/options.
-# The object being mutated is the Project Item, not the Project itself.
-PROJECT_JSON=$(gh project field-list "$PROJECT_NUMBER" --owner "$ORG" --format json)
+# The target of the mutation is the Project Item. Project metadata is used only
+# to obtain the identifiers required by `gh project item-edit`.
+PROJECT_ID=$(gh project view "$PROJECT_NUMBER" --owner "$ORG" --format json --jq '.id')
 
 sleep 0.4
 
-PROJECT_ID=$(gh project list --owner "$ORG" --format json --limit 100 | python -c 'import json,sys; d=json.load(sys.stdin); print(next(p["id"] for p in d if str(p.get("number")) == "9"))')
-
-STATUS_FIELD_ID=$(printf '%s\n' "$PROJECT_JSON" | python -c 'import json,sys; d=json.load(sys.stdin); print(next(f["id"] for f in d["fields"] if f.get("name") == "Status"))')
-
-STATUS_OPTIONS=$(printf '%s\n' "$PROJECT_JSON" | python -c 'import json,sys; d=json.load(sys.stdin); f=next(f for f in d["fields"] if f.get("name") == "Status"); print(json.dumps(f.get("options",[])))')
+STATUS_FIELD_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$ORG" --format json --jq '.fields[] | select(.name == "Status") | .id')
 
 sleep 0.4
 
-ITEMS_JSON=$(gh project item-list "$PROJECT_NUMBER" --owner "$ORG" --limit 200 --format json)
+CURRENT_ITEM=$(gh project item-list "$PROJECT_NUMBER" --owner "$ORG" --limit 200 --format json --jq '.items[] | select(.content.number == 291)')
+
+ITEM_ID=$(printf '%s\n' "$CURRENT_ITEM" | python -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+CURRENT_STATUS=$(printf '%s\n' "$CURRENT_ITEM" | python -c 'import json,sys; print(json.load(sys.stdin).get("status", ""))')
+
+if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$ITEM_ID" ]; then
+  echo 'ERROR: Could not identify Project ID, Status field, or Project Item.'
+  exit 1
+fi
+
+if [ -z "$CURRENT_STATUS" ]; then
+  echo 'ERROR: Project Item has no current Status value to restore.'
+  exit 1
+fi
 
 sleep 0.4
 
-ITEM_ID=$(printf '%s\n' "$ITEMS_JSON" | python -c 'import json,sys; d=json.load(sys.stdin); print(next(i["id"] for i in d["items"] if i.get("content",{}).get("number") == 291))')
-
-CURRENT_STATUS=$(printf '%s\n' "$ITEMS_JSON" | python -c 'import json,sys; d=json.load(sys.stdin); i=next(i for i in d["items"] if i.get("content",{}).get("number") == 291); print(i.get("status", ""))')
+STATUS_OPTIONS=$(gh project field-list "$PROJECT_NUMBER" --owner "$ORG" --format json --jq '.fields[] | select(.name == "Status") | .options')
 
 NEW_STATUS_ID=$(printf '%s\n' "$STATUS_OPTIONS" | python -c 'import json,sys; opts=json.load(sys.stdin); old=sys.argv[1]; print(next(o["id"] for o in opts if o.get("name") != old))' "$CURRENT_STATUS")
-
 NEW_STATUS_NAME=$(printf '%s\n' "$STATUS_OPTIONS" | python -c 'import json,sys; opts=json.load(sys.stdin); oid=sys.argv[1]; print(next(o["name"] for o in opts if o.get("id") == oid))' "$NEW_STATUS_ID")
+OLD_STATUS_ID=$(printf '%s\n' "$STATUS_OPTIONS" | python -c 'import json,sys; opts=json.load(sys.stdin); old=sys.argv[1]; print(next(o["id"] for o in opts if o.get("name") == old))' "$CURRENT_STATUS")
 
-if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$ITEM_ID" ] || [ -z "$NEW_STATUS_ID" ]; then
-  echo 'ERROR: Could not identify Project, Status field, Project Item, or alternate Status option.'
+if [ -z "$NEW_STATUS_ID" ] || [ -z "$NEW_STATUS_NAME" ]; then
+  echo 'ERROR: No alternate Status option was found.'
   exit 1
 fi
 
@@ -47,7 +54,7 @@ echo '--- DISCOVERY ---'
 printf 'Project ID: %s\n' "$PROJECT_ID"
 printf 'Status field ID: %s\n' "$STATUS_FIELD_ID"
 printf 'Project Item ID: %s\n' "$ITEM_ID"
-printf 'Current Status: %s\n' "${CURRENT_STATUS:-<unset>}"
+printf 'Current Status: %s\n' "$CURRENT_STATUS"
 printf 'Test Status: %s (%s)\n' "$NEW_STATUS_NAME" "$NEW_STATUS_ID"
 
 # MUTATE THE PROJECT ITEM.
@@ -62,12 +69,7 @@ sleep 0.4
 
 # Independent read-back of the Project Item.
 echo '--- VERIFY MUTATION ---'
-VERIFY_JSON=$(gh project item-list "$PROJECT_NUMBER" --owner "$ORG" --limit 200 --format json)
-
-sleep 0.4
-
-VERIFIED_STATUS=$(printf '%s\n' "$VERIFY_JSON" | python -c 'import json,sys; d=json.load(sys.stdin); i=next(i for i in d["items"] if i.get("content",{}).get("number") == 291); print(i.get("status", ""))')
-
+VERIFIED_STATUS=$(gh project item-list "$PROJECT_NUMBER" --owner "$ORG" --limit 200 --format json --jq '.items[] | select(.content.number == 291) | .status')
 printf 'Verified Status: %s\n' "$VERIFIED_STATUS"
 
 if [ "$VERIFIED_STATUS" != "$NEW_STATUS_NAME" ]; then
@@ -78,34 +80,25 @@ fi
 echo 'Mutation verified successfully.'
 
 # RESTORE THE ORIGINAL PROJECT ITEM STATUS.
-if [ -n "$CURRENT_STATUS" ]; then
-  OLD_STATUS_ID=$(printf '%s\n' "$STATUS_OPTIONS" | python -c 'import json,sys; opts=json.load(sys.stdin); old=sys.argv[1]; print(next(o["id"] for o in opts if o.get("name") == old))' "$CURRENT_STATUS")
+echo '--- RESTORE PROJECT ITEM ---'
+gh project item-edit \
+  --project-id "$PROJECT_ID" \
+  --id "$ITEM_ID" \
+  --field-id "$STATUS_FIELD_ID" \
+  --single-select-option-id "$OLD_STATUS_ID"
 
-  echo '--- RESTORE PROJECT ITEM ---'
-  gh project item-edit \
-    --project-id "$PROJECT_ID" \
-    --id "$ITEM_ID" \
-    --field-id "$STATUS_FIELD_ID" \
-    --single-select-option-id "$OLD_STATUS_ID"
+sleep 0.4
 
-  sleep 0.4
+echo '--- VERIFY RESTORE ---'
+RESTORED_STATUS=$(gh project item-list "$PROJECT_NUMBER" --owner "$ORG" --limit 200 --format json --jq '.items[] | select(.content.number == 291) | .status')
+printf 'Restored Status: %s\n' "$RESTORED_STATUS"
 
-  echo '--- VERIFY RESTORE ---'
-  RESTORED_JSON=$(gh project item-list "$PROJECT_NUMBER" --owner "$ORG" --limit 200 --format json)
-
-  sleep 0.4
-
-  RESTORED_STATUS=$(printf '%s\n' "$RESTORED_JSON" | python -c 'import json,sys; d=json.load(sys.stdin); i=next(i for i in d["items"] if i.get("content",{}).get("number") == 291); print(i.get("status", ""))')
-
-  printf 'Restored Status: %s\n' "$RESTORED_STATUS"
-
-  if [ "$RESTORED_STATUS" != "$CURRENT_STATUS" ]; then
-    echo 'ERROR: Original Project Item Status was not restored.'
-    exit 1
-  fi
-
-  echo 'Restore verified successfully.'
+if [ "$RESTORED_STATUS" != "$CURRENT_STATUS" ]; then
+  echo 'ERROR: Original Project Item Status was not restored.'
+  exit 1
 fi
+
+echo 'Restore verified successfully.'
 
 echo '=== PROJECT ITEM MUTATION TEST PASSED ==='
 echo 'RESULT=PASS'
