@@ -1,5 +1,62 @@
 # SKILL — Jagports AI OS Operational Rules
 
+## Architecture — Machine Execution View
+
+```text
+INPUT: work_request
+  |
+  +--> classify requester (human | agent)
+  |
+  +--> explicit Issue/PR reference?
+  |       |
+  |       +-- YES --> validate referenced item --> resolve work identity
+  |       |
+  |       +-- NO --> search OPEN Issues
+  |                    |
+  |                    +--> clear match --> reuse Issue
+  |                    |
+  |                    +--> related candidate
+  |                    |      |
+  |                    |      +--> scope/duplication uncertain --> CLARIFY(requester)
+  |                    |      |
+  |                    |      +--> legitimate amendment/extension --> reuse Issue
+  |                    |
+  |                    +--> no suitable Issue --> CREATE Issue
+  |
+  +--> after Issue resolution and no pending clarification
+  |       |
+  |       +--> search OPEN PRs
+  |              |
+  |              +--> clear implementation match --> reuse PR
+  |              |
+  |              +--> related candidate
+  |              |      |
+  |              |      +--> scope/duplication/ownership uncertain --> CLARIFY(requester)
+  |              |      |
+  |              |      +--> legitimate extension --> reuse PR
+  |              |
+  |              +--> no suitable PR --> CREATE PR via Repository Change Gate
+  |
+  +--> resolved Issue + PR identity
+  |
+  +--> execute Implementation Round 1
+  |
+  +--> review required?
+          |
+          +--> YES --> STOP implementation
+          |            DO NOT MERGE
+          |            PROVIDE PR/review link
+          |            HAND OFF TO REVIEW
+          |
+          +--> NO --> continue only where explicitly permitted by workflow
+```
+
+**Execution invariant:** the executing actor must resolve Issue/PR identity and material scope before repository modification. Once identity and scope are resolved and no clarification is pending, execution proceeds automatically through Implementation Round 1. The actor may be ChatGPT, Claude, Codex, another compatible AI agent, or an authorized human operator.
+
+**Decision precedence:** explicit reference → clear existing Issue/PR reuse → legitimate related-work reuse → clarification when uncertainty remains → creation when no suitable existing item exists.
+
+**Authority note:** `00-Management/RULES.md` contains the human-readable governance architecture. This section is its machine-oriented operational representation; the detailed procedures below are authoritative for execution details and exceptions.
+
 ## Mandatory Start-of-Work Procedure
 
 Before doing any Jagports work:
@@ -51,68 +108,7 @@ An Issue and PR do not need to have a one-to-one relationship.
 - When multiple Issues are involved, every Issue must have explicit traceability to the implementing PR.
 - Do not modify the description or comments of a **closed Issue** or **merged PR**. Historical records are immutable.
 
-### Work-request decision chart
-
-```text
-Work request from human OR agent
-              |
-              v
-      Issue/PR explicitly given?
-          /             \
-        YES              NO
-         |                |
-         v                v
-   Use referenced     Search OPEN Issues
-      item                  |
-                            v
-                 Is there a clear match?
-                    /              \
-                  YES               NO
-                   |                 |
-                   v                 v
-              Use Issue      Is there a related
-                              Issue with uncertain
-                              duplicate/separate scope?
-                                /            \
-                              YES             NO
-                               |               |
-                               v               v
-                         Ask requester      Create Issue
-                         for clarification      |
-                               |               |
-                               +-------+-------+
-                                       |
-                                       v
-                         Search OPEN PRs for work
-                                       |
-                                       v
-                              Clear matching PR?
-                                /          \
-                              YES           NO
-                               |             |
-                               v             v
-                           Use PR      Is related PR / duplicate
-                                      scope uncertain?
-                                        /          \
-                                      YES           NO
-                                       |             |
-                                       v             v
-                                  Ask requester   Create PR
-                                  for clarification |
-                                       |             |
-                                       +------+------+
-                                              |
-                                              v
-                                  Implementation Round 1
-                                              |
-                                              v
-                                      Review required?
-                                              |
-                                              v
-                               STOP + provide PR/review link
-```
-
-The chart is a decision aid; the detailed rules in this section and the Repository Change Gate are authoritative.
+The human-readable decision architecture is maintained in `00-Management/RULES.md`. The machine-oriented execution architecture at the top of this file is the compact control-flow representation; the detailed rules in this section resolve edge cases and define required behavior.
 
 ## Repository Change Gate
 
@@ -336,14 +332,23 @@ Rules:
 
 ## Separation of Responsibilities
 
-SKILL.md:
+`00-Management/RULES.md`:
+- Human-readable governance
+- Governing principles
+- Human-readable architecture and decision chart
+- Definitions of ownership and authority
+- High-level execution boundary
+
+`SKILL.md`:
+- Machine-oriented execution architecture
 - Reusable procedures
 - Commands
 - Workflow rules
 - Compatibility requirements
 - Validation requirements
+- Detailed edge-case and exception logic
 
-KNOWLEDGE.md:
+`KNOWLEDGE.md`:
 - Project history
 - Confirmed decisions
 - Environment-specific findings
