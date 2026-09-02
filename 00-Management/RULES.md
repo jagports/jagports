@@ -12,7 +12,7 @@ This file defines high-level human governance for Jagports AI OS. The detailed M
 - Repository Change Gate;
 - GitHub Project / Project Item Status verification;
 - review, testing, and merge boundaries;
-- immutable-history rules and active title changes;
+- record integrity and active title changes;
 - clarification and authority rules;
 - workflow invariants and conflict resolution.
 
@@ -36,9 +36,9 @@ A Project Item's Status is not a property of the Project itself. Project operati
 
 When review is required, GitHub's native PR reviewer request/notification is used; no separate "Waiting for Review" PR status is created. See `WORKFLOWS.md` for the implementation flow.
 
-### Historical integrity
+### Record integrity
 
-Closed Issues and merged PRs are historical records. Their descriptions and comments must not be modified.
+Closed Issues and merged PRs remain GitHub records and must not have their descriptions or comments modified. Their historical content is not copied into current repository documents merely for archival purposes.
 
 An open Issue or open PR may have its title changed when scope materially changes. GitHub records such changes as `renamed` timeline events, preserving the prior title. Cosmetic title changes should be avoided.
 
@@ -50,7 +50,7 @@ Maintain clear traceability from:
 
 A PR may legitimately resolve multiple Issues when it genuinely addresses each one and explicit traceability is maintained.
 
-Historical Issues and merged PRs used as evidence should be explicitly referenced from the active work record.
+Historical Issues and merged PRs may be referenced when needed to establish traceability or verify prior work, but they are not active work items.
 
 ## Document Responsibilities
 
@@ -60,11 +60,13 @@ Historical Issues and merged PRs used as evidence should be explicitly reference
 | `00-Management/RULES.md` | Human governance, rationale, and document authority. |
 | `SKILL.md` | Machine/agent execution instructions that implement/reference the canonical workflows. |
 | `.codex/skills/*` | Specialized operational procedures that reference the canonical workflows. |
-| `KNOWLEDGE.md` | Historical knowledge, decisions, and lessons learned; not workflow authority. |
+| `KNOWLEDGE.md` | Durable knowledge, decisions, and lessons learned; not workflow authority. |
 
 ## Conflict Rule
 
 If a secondary document conflicts with `WORKFLOWS.md`, the canonical workflow takes precedence. The secondary document must be corrected rather than treated as an alternative workflow authority.
+
+If a secondary document conflicts with `WORKFLOWS.md`, an Issue must be raised to correct the conflict rather than silently accepting or bypassing the contradiction.
 
 If the canonical workflow itself is ambiguous or internally contradictory, stop the affected decision and obtain the required clarification/decision before proceeding.
 
