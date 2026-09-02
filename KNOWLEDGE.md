@@ -14,21 +14,27 @@ The GitHub account used for Jagports repository access is:
 
 Do not use the obsolete `tlindi/jagports` repository reference for current Jagports work.
 
-```text
-gh authentication
-       ↓
-   GitHub account
-       ↓
-repository / Project access
-       ↓
-Jagports AI OS Project
-       │
-       └── Project Item
-              │
-              └── Status / <current state>
-```
+For current Management workflow, execution, Project-state, review, testing, and capability rules, use the canonical sources referenced below rather than maintaining parallel rules in this file.
 
-`Status` is a property of the **Project Item**. It is not a property of the Project. The Project is the container that contains the Project Item.
+## Current Management Workflow Sources
+
+`00-Management/WORKFLOWS.md` is the canonical normative source for Management workflows.
+
+`00-Management/RULES.md` contains human-readable governance and rationale.
+
+`SKILL.md` contains machine/agent execution guidance and implements or references the canonical workflow.
+
+`.codex/skills/*` contains specialized operational procedures and must reference the canonical workflow rather than redefine it.
+
+`0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` contains the detailed communication protocol for agent/human communication, acknowledgements, hand-offs, escalations, decisions, and implementation traceability.
+
+These sources are authoritative for their respective current rules. `KNOWLEDGE.md` is not an alternative workflow authority.
+
+## Durable Repository Knowledge
+
+The Project's important reusable information must not exist only in private agent context. Decisions, reusable findings, and durable knowledge should be persisted in the appropriate GitHub Issue, documentation, decision record, or knowledge file.
+
+`KNOWLEDGE.md` should contain generalized, durable knowledge rather than chronological task history or copies of current operating procedures.
 
 ## Future Agent Operating Model Investigation
 
@@ -82,60 +88,7 @@ Potential architecture options:
   - simplicity and ease of deployment
   - technical complexity
 
-Important principle:
-Important project information must not exist only in private agent context. Decisions, results and reusable knowledge must be persisted into GitHub Issues, documentation, decision logs or knowledge files.
-
-## AI Tool Capability Transparency
-
-When an AI agent is expected to perform an external action, the agent must distinguish user/account authorization from the execution capabilities actually available in the current session.
-
-If an expected action cannot be completed, record and communicate the verified cause where possible, such as:
-- required tool operation unavailable
-- insufficient permission
-- authentication problem
-- unavailable integration
-- technical failure
-
-Do not claim that an action was completed without verification. Do not repeatedly retry an unsupported operation without explaining the limitation.
-
-For Jagports, an important operational distinction is:
-- GitHub account/repository permissions determine what the account is authorized to do.
-- The connected agent/tool interface determines which of those operations the agent can actually invoke in a given session.
-
-When capability availability changes or is uncertain, the agent should state the limitation explicitly and identify the available alternative or required next step.
-
-## GitHub Access and Command Execution Lessons
-
-GitHub access must be checked before starting work that depends on GitHub. Repository access alone is not sufficient: the agent must also verify that the specific operation required for the task is available, such as file editing, branch creation, PR creation, Issue comments, or Project field updates.
-
-If required GitHub access or an operation is unavailable, the user must be alerted immediately. The agent must not silently substitute an unperformed action, repeatedly retry an unavailable operation, or unnecessarily make the user execute commands to compensate for the missing agent capability.
-
-When the user explicitly requests commands, provide the requested command sequence in one Markdown code block for easy console pasting. Do not propose creating a script for the user to run when direct commands are sufficient.
-
-For command sequences whose later steps depend on earlier output, use a temporary file in the working directory to carry the required result between commands. Remove those temporary files after the dependent commands have completed successfully.
-
-Windows Git Bash compatibility is an explicit project constraint. Avoid `awk`, Bash associative arrays, backslash (`\\`) line continuations, and Windows path-separator assumptions. Prefer forward-slash paths and simple Git Bash-compatible shell constructs. Commands should be verified against these known limitations before being given to the user.
-
-## GitHub Issue and Pull Request Comment Formatting
-
-GitHub Issue and Pull Request comments must be formatted for quick visual scanning and reliable traceability.
-
-- Put each distinct traceability statement on its own line or paragraph.
-- When an Issue or Pull Request is the primary reference for a statement, put its Markdown link at the beginning of the line.
-- Keep the Issue/PR number and title together in the link text when useful; do not bury the reference inside a long sentence.
-- Separate relationship text such as `implements`, `resolves`, `supersedes`, or `previous implementation` from the referenced Issue or Pull Request instead of placing the complete relationship in one long sentence.
-- Use short headings or labels on their own lines when context is needed before a reference.
-- Do not construct long inline chains containing a PR title, PR number, Issue title, Issue number, and relationship text in the same sentence.
-
-Preferred pattern:
-
-**Previous implementation**
-[PR #<number> — <title>](<PR URL>)
-
-**Implements/resolves**
-[Issue #<number> — <title>](<Issue URL>)
-
-For multiple references, give each primary reference its own line rather than combining them into a single paragraph.
+This remains an investigation topic. It is not a current Management workflow definition.
 
 ## KNOWLEDGE.md Hierarchy and Generalization Rules
 
@@ -149,7 +102,7 @@ For multiple references, give each primary reference its own line rather than co
 - All `KNOWLEDGE.md` files must contain durable, reusable knowledge rather than chronological task history.
 - Generalize observations before recording them as knowledge. Do not preserve individual Issue numbers, PR numbers, branch names, temporary identifiers, one-off test cases, or one-off category examples unless they are necessary to express a reusable principle.
 - Task-specific evidence, implementation history and temporary operational details belong in the relevant task record, review, test record, project record, or other task-specific documentation.
-- Repository-wide policy should be defined at the root and should not be unnecessarily duplicated in nested knowledge files.
+- Repository-wide policy should be defined in the appropriate governing source and should not be unnecessarily duplicated in knowledge files.
 - A nested knowledge file may briefly identify its scope or point to root policy, while its substantive content should remain domain-specific.
 - Before committing a `KNOWLEDGE.md` change, review the content for task-specific identifiers and one-off examples and generalize or remove them where appropriate.
 
@@ -161,31 +114,19 @@ Reusable knowledge-flow visualizations belong with documentation/knowledge topic
 
 Agents should consult it when planning project work, but should critically evaluate its descriptions, assumptions and proposed structures. The work plan is not fixed: agents are encouraged to identify inconsistencies, outdated material, missing work, unnecessary complexity and better approaches, and to freely suggest improvements.
 
-The GitHub Issues are the primary work and communication records. The GitHub Project provides a visual representation of Issues and their current Project Item Status.
+GitHub Issues are the primary work and communication records. The GitHub Project provides a visual representation of Issues and their current Project Item Status. Current lifecycle and Project-state rules are defined in `00-Management/WORKFLOWS.md`.
 
 ## Agent Communication Protocol Reference
 
 `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` defines the detailed communication protocol for agents and humans working on Jagports AI OS.
 
-Agents should consult the protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. It complements this knowledge file by providing operational communication rules.
+Agents should consult that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
 
-## Issue-to-Completion Lifecycle
+## Historical Lifecycle Decision
 
-The standard Issue-driven development lifecycle is:
+A previous Issue-driven lifecycle omitted explicit Issue closure after merge. The project subsequently established that the initiating Issue remains open during implementation, testing and review and is closed after successful merge when the work is complete.
 
-**Approved Issue → Codex → Implement → Test → Review → Merge → Close Issue → Done**
-
-The previous lifecycle **Approved Issue → Codex → Implement → Test → Review → Merge → Done** is obsolete and must not be used.
-
-Current implementation reality: Codex is not yet integrated into the Jagports development workflow. At present, implementation is primarily driven by ChatGPT under the control and direction of `tlindi`.
-
-The initiating Issue remains open while its implementation is being developed, tested and reviewed. The implementing Pull Request should maintain explicit traceability to the initiating Issue using the project's preferred relationship wording.
-
-After the implementing Pull Request is successfully merged and the work is complete, close the initiating Issue with reason `completed`. The final Project state for the completed work is `DONE`.
-
-Closing the Issue is a lifecycle step after merge; it is not a substitute for PR-to-Issue traceability and does not require the PR relationship itself to use automatic `Closes #N` wording.
-
-The detailed lifecycle, traceability, review and testing diagrams are maintained in `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md`, beside the communication and implementation rules they describe.
+The detailed current lifecycle is maintained in `00-Management/WORKFLOWS.md`; this section records only the historical decision that led to that source of truth and does not redefine the current lifecycle.
 
 ## 4-Production Folder Structure
 
