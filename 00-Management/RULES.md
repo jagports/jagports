@@ -44,6 +44,8 @@ Review comments belong to the reviewer who submitted the review. That reviewer i
 
 Closed Issues and merged PRs remain GitHub records and must not have their descriptions or comments modified. Their historical content is not copied into current repository documents merely for archival purposes.
 
+New information should normally be recorded chronologically as a new Issue or PR comment rather than by rewriting existing historical narrative. The current PR-creation traceability exception permits `Will Be Fixed By #<PR>` to be added to a still-open implementing Issue, with the same reference also recorded as a new Issue comment. The detailed conditions and workflow handling for this exception are governed by `WORKFLOWS.md`.
+
 An open Issue or open PR may have its title changed when scope materially changes. GitHub records such changes as `renamed` timeline events, preserving the prior title. Cosmetic title changes should be avoided.
 
 ### Traceability
@@ -55,6 +57,19 @@ Maintain clear traceability from:
 A PR may legitimately resolve multiple Issues when it genuinely addresses each one and explicit traceability is maintained.
 
 Historical Issues and merged PRs may be referenced when needed to establish traceability or verify prior work, but they are not active work items.
+
+## External References / Source of Truth
+
+GitHub provides the technical capabilities and collaboration mechanisms used by the project, but those capabilities do not replace Jagports Management rules.
+
+The following official GitHub documentation is the external technical reference for the relevant GitHub behavior:
+
+- [Managing disruptive comments](https://docs.github.com/en/communities/moderating-comments-and-conversations/managing-disruptive-comments)
+- [Tracking changes in a comment](https://docs.github.com/en/communities/moderating-comments-and-conversations/tracking-changes-in-a-comment)
+- [Commenting on a pull request](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request)
+- [Reviewing proposed changes in a pull request](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request)
+
+These references describe GitHub's technical capabilities and collaboration model. They do **not** replace or override Jagports Management rules; `00-Management/RULES.md` remains the project's human governance authority, while `00-Management/WORKFLOWS.md` remains the canonical normative workflow authority.
 
 ## Document Responsibilities
 
