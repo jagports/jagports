@@ -112,6 +112,8 @@ When review is required, execute the canonical native GitHub hand-off defined in
 
 Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's native review request/notification and review outcome are the review mechanism.
 
+**Review comment resolution is authority-controlled:** the reviewer who submitted a review is the only actor authorized to resolve review comments belonging to that review. The executor, PR author, or any other non-reviewer must not resolve those comments on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined by `WORKFLOWS.md`. When responding to requested changes, the executor may implement the changes and reply to the review comments, but must leave the review comments unresolved for the reviewer to resolve after verifying the response.
+
 Required human validation follows:
 
 **PR branch → pre-merge test → PASS evidence → review/merge gate → merge → optional post-merge smoke/regression test**
