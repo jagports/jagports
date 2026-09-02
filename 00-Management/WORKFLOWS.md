@@ -271,7 +271,7 @@ Rules:
 4. Set the Project Item Status to `REVIEW` and independently verify it.
 5. After the hand-off, the executing actor stops implementation and does not merge.
 6. GitHub review outcomes (`Approve`, `Request changes`, or `Comment`) determine the review result; the workflow must not infer approval from a notification alone.
-7. **Only the reviewer who submitted the review may mark that review's review comments as resolved. The executor or another non-reviewer must not resolve review comments on the reviewer's behalf.**
+7. **The reviewer who submitted a review is the only actor authorized to resolve review comments belonging to that review. The PR executor, PR author, or any other non-reviewer must not resolve those comments on the reviewer's behalf. The repository/project owner or another explicitly designated human authority is an exception and may resolve them when exercising that authority.**
 8. When review changes are requested, the executor may implement the requested changes and reply to the review comments, but must leave the review comments unresolved for the reviewer to resolve after verifying the response.
 
 Required human validation follows the approved testing gate:
