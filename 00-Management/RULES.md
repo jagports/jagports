@@ -29,14 +29,37 @@
                                        YES         NO
                                         |           |
                                         v           v
-                                  Ask requester  Create Issue
-                                        |           |
-                                        +-----+-----+
-                                              |
-                                              v
-                                  Search OPEN PRs
-                                              |
-                                              v
+                                  Ask requester  Continue to
+                                                 historical search
+                                                      |
+                                                      v
+                                      Search CLOSED Issues /
+                                        MERGED PRs for
+                                       exact or similar work
+                                                      |
+                                      +---------------+---------------+
+                                      |                               |
+                                      v                               v
+                              Historical match?                No relevant history
+                                      |                               |
+                                      v                               v
+                               Verify result                  Create Issue
+                                      |
+                           +----------+----------+
+                           |          |          |
+                         valid    insufficient  uncertain
+                           |          |          |
+                           v          v          v
+                      NO DUPLICATE  Create/     Ask requester
+                                   reuse active
+                                    Issue
+                                      |
+                                      +---------------+
+                                                      |
+                                                      v
+                                           Search OPEN PRs
+                                                      |
+                                                      v
                                   +---------------------+
                                   | Clear matching PR?  |
                                   +---------------------+
@@ -50,22 +73,31 @@
                                              YES         NO
                                               |           |
                                               v           v
-                                        Ask requester  Create PR
-                                              |           |
-                                              +-----+-----+
-                                                    |
-                                                    v
-                                           Implementation
-                                             Round 1
-                                                    |
-                                                    v
-                                           Review required?
-                                                    |
-                                                    v
-                                  STOP — provide PR/review link
+                                        Ask requester  Search MERGED PRs
+                                                           |
+                                                           v
+                                                    Historical match?
+                                                           |
+                                             +-------------+-------------+
+                                             |             |             |
+                                           valid      insufficient    uncertain
+                                             |             |             |
+                                             v             v             v
+                                        NO DUPLICATE   Create/active   Ask requester
+                                                      PR as needed
+                                                           |
+                                                           v
+                                                    Implementation
+                                                      Round 1
+                                                           |
+                                                           v
+                                                    Review required?
+                                                           |
+                                                           v
+                                          STOP — provide PR/review link
 ```
 
-**Human interpretation:** reuse existing work whenever it legitimately covers the request; create new work only when necessary; ask the requester only when scope, duplication, ownership, or authority is genuinely uncertain.
+**Human interpretation:** reuse existing work whenever it legitimately covers the request; search historical work before duplicating previously completed or attempted work; create new work only when necessary; ask the requester only when scope, duplication, ownership, authority, or historical sufficiency is genuinely uncertain.
 
 ## Purpose
 
@@ -90,13 +122,27 @@ When a work request does not explicitly identify an Issue or PR:
 3. Reuse an existing Issue when it clearly covers the work.
 4. Reuse a related Issue when the requested work is a legitimate amendment, extension, refinement, follow-up, or completion of that Issue.
 5. If an existing Issue might be the same work but it is uncertain whether the work is a duplicate, amendment, or materially separate task, obtain clarification from the requester before proceeding.
-6. If no suitable open Issue exists, create a new Issue.
+6. If no suitable open Issue exists, perform the required historical-work search before creating a new Issue.
 7. Before creating a PR, search open PRs for an existing implementation.
 8. Reuse an existing PR when it clearly covers the requested implementation or can legitimately be extended without creating ambiguous scope.
 9. If PR duplication, scope, or ownership is uncertain, obtain clarification from the requester before proceeding.
-10. One PR may implement multiple Issues when it genuinely addresses all of them; maintain explicit traceability to every Issue.
+10. If no suitable open PR exists, search merged PRs for an exact or materially similar historical implementation before creating a new PR.
+11. One PR may implement multiple Issues when it genuinely addresses all of them; maintain explicit traceability to every Issue.
 
 A new Issue or PR is not required merely because existing work is related. The decision is based on whether the existing work can legitimately contain the requested change while preserving clear scope and traceability.
+
+## Historical Work Discovery
+
+If no suitable active Issue or PR is found, historical work must be searched before creating new active work.
+
+- Search closed Issues for exact or materially similar prior requests.
+- Search merged PRs for exact or materially similar prior implementations.
+- Historical Issues and merged PRs may be used as references, evidence, and implementation history, but they must not be silently reused as active work items.
+- If historical work appears to claim completion of the same request, verify whether the requested result actually exists and remains valid before creating or proceeding with new work.
+- If the historical work is valid and still satisfies the current request, do not create duplicate work; use the historical implementation/reference and report the result.
+- If the historical work is incomplete, obsolete, superseded, broken, or otherwise does not satisfy the current request, create or reuse the appropriate active Issue and explicitly reference the historical item.
+- If it is uncertain whether the historical work satisfies the current request, obtain clarification from the requester before proceeding.
+- A closed Issue or merged PR remains a historical record and must not be silently converted into an active work item merely to avoid creating a new active record.
 
 ## Clarification
 
@@ -138,6 +184,8 @@ The intended chain is:
 A PR may connect to multiple Issues when appropriate. Every Issue addressed by that PR must remain explicitly traceable.
 
 When the scope of an active Issue or PR materially changes, its title should be kept aligned with that scope. This is especially important when a PR legitimately resolves multiple Issues rather than one.
+
+Historical Issues and merged PRs used as references should also be explicitly linked or cited in the active Issue/PR so that the reason for the new work remains traceable.
 
 ## Authority Order
 
