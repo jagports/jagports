@@ -1,5 +1,72 @@
 # RULES — Jagports AI OS
 
+## Architecture — Human Governance View
+
+```text
+                         WORK REQUEST
+                              |
+                              v
+                  +-----------------------+
+                  | Issue / PR given?     |
+                  +-----------------------+
+                       /             \
+                     YES              NO
+                      |                |
+                      v                v
+               Use the named     Search OPEN Issues
+                  item                |
+                                      v
+                           +----------------------+
+                           | Clear existing match?|
+                           +----------------------+
+                              /              \
+                            YES               NO
+                             |                 |
+                             v                 v
+                       Reuse Issue      Related Issue,
+                                      but scope uncertain?
+                                         /        \
+                                       YES         NO
+                                        |           |
+                                        v           v
+                                  Ask requester  Create Issue
+                                        |           |
+                                        +-----+-----+
+                                              |
+                                              v
+                                  Search OPEN PRs
+                                              |
+                                              v
+                                  +---------------------+
+                                  | Clear matching PR?  |
+                                  +---------------------+
+                                    /             \
+                                  YES              NO
+                                   |                |
+                                   v                v
+                              Reuse PR       Related / duplicate
+                                             scope uncertain?
+                                               /        \
+                                             YES         NO
+                                              |           |
+                                              v           v
+                                        Ask requester  Create PR
+                                              |           |
+                                              +-----+-----+
+                                                    |
+                                                    v
+                                           Implementation
+                                             Round 1
+                                                    |
+                                                    v
+                                           Review required?
+                                                    |
+                                                    v
+                                  STOP — provide PR/review link
+```
+
+**Human interpretation:** reuse existing work whenever it legitimately covers the request; create new work only when necessary; ask the requester only when scope, duplication, ownership, or authority is genuinely uncertain.
+
 ## Purpose
 
 This file defines high-level governance rules for Jagports AI OS. It applies to work performed through ChatGPT, Claude, Codex, other compatible AI agents, or human operators.
