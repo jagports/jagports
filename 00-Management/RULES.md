@@ -1,198 +1,69 @@
 # RULES — Jagports AI OS
 
-## Architecture — Human Governance View
+## Purpose and Authority
 
-```text
-                         WORK REQUEST
-                              |
-                              v
-                  +-----------------------+
-                  | Issue / PR given?     |
-                  +-----------------------+
-                       /             \
-                     YES              NO
-                      |                |
-                      v                v
-               Use the named     Search OPEN Issues
-                  item                |
-                                      v
-                           +----------------------+
-                           | Clear existing match?|
-                           +----------------------+
-                              /              \
-                            YES               NO
-                             |                 |
-                             v                 v
-                       Reuse Issue      Related Issue,
-                                      but scope uncertain?
-                                         /        \
-                                       YES         NO
-                                        |           |
-                                        v           v
-                                  Ask requester  Continue to
-                                                 historical search
-                                                      |
-                                                      v
-                                      Search CLOSED Issues /
-                                        MERGED PRs for
-                                       exact or similar work
-                                                      |
-                                      +---------------+---------------+
-                                      |                               |
-                                      v                               v
-                              Historical match?                No relevant history
-                                      |                               |
-                                      v                               v
-                               Verify result                  Create Issue
-                                      |
-                           +----------+----------+
-                           |          |          |
-                         valid    insufficient  uncertain
-                           |          |          |
-                           v          v          v
-                      NO DUPLICATE  Create/     Ask requester
-                                   reuse active
-                                    Issue
-                                      |
-                                      +---------------+
-                                                      |
-                                                      v
-                                           Search OPEN PRs
-                                                      |
-                                                      v
-                                  +---------------------+
-                                  | Clear matching PR?  |
-                                  +---------------------+
-                                    /             \
-                                  YES              NO
-                                   |                |
-                                   v                v
-                              Reuse PR       Related / duplicate
-                                             scope uncertain?
-                                               /        \
-                                             YES         NO
-                                              |           |
-                                              v           v
-                                        Ask requester  Search MERGED PRs
-                                                           |
-                                                           v
-                                                    Historical match?
-                                                           |
-                                             +-------------+-------------+
-                                             |             |             |
-                                           valid      insufficient    uncertain
-                                             |             |             |
-                                             v             v             v
-                                        NO DUPLICATE   Create/active   Ask requester
-                                                      PR as needed
-                                                           |
-                                                           v
-                                                    Implementation
-                                                      Round 1
-                                                           |
-                                                           v
-                                                    Review required?
-                                                           |
-                                                           v
-                                          STOP — provide PR/review link
-```
+This file defines high-level human governance for Jagports AI OS. The detailed Management workflows are defined **only** in [`00-Management/WORKFLOWS.md`](WORKFLOWS.md).
 
-**Human interpretation:** reuse existing work whenever it legitimately covers the request; search historical work before duplicating previously completed or attempted work; create new work only when necessary; ask the requester only when scope, duplication, ownership, authority, or historical sufficiency is genuinely uncertain.
+`WORKFLOWS.md` is the canonical normative source for:
 
-## Purpose
+- workflow states and transitions;
+- work-request and historical-work discovery;
+- Issue/PR reuse and creation decisions;
+- Repository Change Gate;
+- GitHub Project / Project Item Status verification;
+- review, testing, and merge boundaries;
+- immutable-history rules and active title changes;
+- clarification and authority rules;
+- workflow invariants and conflict resolution.
 
-This file defines high-level governance rules for Jagports AI OS. It applies to work performed through ChatGPT, Claude, Codex, other compatible AI agents, or human operators.
+Other documents may explain, implement, or reference those workflows but must not create a competing normative definition.
 
-`SKILL.md` contains the detailed operational procedures. `RULES.md` defines the governing principles those procedures must follow.
+**Core rule:** A workflow is defined exactly once.
 
-## Work Request Ownership
+## Governance Principles
 
-A work request may originate from a human or from another AI agent. The workflow must not assume that the requester is human.
+### Work ownership
 
-After the relevant Issue and PR have been identified or created, the **executing actor** may proceed automatically when no clarification is required. The executing actor may be ChatGPT, Claude, Codex, another compatible AI agent, or an authorized human operator.
+A work request may originate from a human or an agent. The requester and executing actor are separate concepts. Once work identity and scope are resolved and no clarification is required, the executing actor proceeds according to the canonical workflow without unnecessary human confirmation.
 
-The identity of the requester and the identity of the executing actor are separate concepts. A human may request work that another agent executes, and an agent may request work that another agent executes.
+### GitHub as system of record
 
-## Issue and PR Discovery
+GitHub Issues are the primary work and communication records. GitHub Projects provide the visual representation of workflow state through each Issue's **Project Item Status**.
 
-When a work request does not explicitly identify an Issue or PR:
+A Project Item's Status is not a property of the Project itself. Project operations must be verified after mutation before success is claimed.
 
-1. Treat it as potentially novel.
-2. Search open Issues for an existing item that clearly covers the requested work.
-3. Reuse an existing Issue when it clearly covers the work.
-4. Reuse a related Issue when the requested work is a legitimate amendment, extension, refinement, follow-up, or completion of that Issue.
-5. If an existing Issue might be the same work but it is uncertain whether the work is a duplicate, amendment, or materially separate task, obtain clarification from the requester before proceeding.
-6. If no suitable open Issue exists, perform the required historical-work search before creating a new Issue.
-7. Before creating a PR, search open PRs for an existing implementation.
-8. Reuse an existing PR when it clearly covers the requested implementation or can legitimately be extended without creating ambiguous scope.
-9. If PR duplication, scope, or ownership is uncertain, obtain clarification from the requester before proceeding.
-10. If no suitable open PR exists, search merged PRs for an exact or materially similar historical implementation before creating a new PR.
-11. One PR may implement multiple Issues when it genuinely addresses all of them; maintain explicit traceability to every Issue.
-
-A new Issue or PR is not required merely because existing work is related. The decision is based on whether the existing work can legitimately contain the requested change while preserving clear scope and traceability.
-
-## Historical Work Discovery
-
-If no suitable active Issue or PR is found, historical work must be searched before creating new active work.
-
-- Search closed Issues for exact or materially similar prior requests.
-- Search merged PRs for exact or materially similar prior implementations.
-- Historical Issues and merged PRs may be used as references, evidence, and implementation history, but they must not be silently reused as active work items.
-- If historical work appears to claim completion of the same request, verify whether the requested result actually exists and remains valid before creating or proceeding with new work.
-- If the historical work is valid and still satisfies the current request, do not create duplicate work; use the historical implementation/reference and report the result.
-- If the historical work is incomplete, obsolete, superseded, broken, or otherwise does not satisfy the current request, create or reuse the appropriate active Issue and explicitly reference the historical item.
-- If it is uncertain whether the historical work satisfies the current request, obtain clarification from the requester before proceeding.
-- A closed Issue or merged PR remains a historical record and must not be silently converted into an active work item merely to avoid creating a new active record.
-
-## Clarification
-
-"Ask the human" is not the default rule. Clarification should be requested from the **requester** or the appropriate decision-making actor.
-
-A human decision is required only when the unresolved question specifically requires human authority, preference, approval, or judgment.
-
-## Execution Boundary
-
-Once Issue/PR identity and scope are resolved, the executing actor proceeds through Implementation Round 1 without unnecessary additional confirmation.
-
-When review is required:
-
-- stop implementation;
-- do not merge;
-- provide the PR/review link; and
-- hand the work to the review stage.
-
-## Historical Immutability and Title-Change Exception
+### Historical integrity
 
 Closed Issues and merged PRs are historical records. Their descriptions and comments must not be modified.
 
-**Title changes are an explicit exception for active work:** the title of an open Issue or open PR may be changed when necessary. GitHub records a title change as a `renamed` timeline event, preserving the previous and new title. A title change therefore does not erase the historical title.
+An open Issue or open PR may have its title changed when scope materially changes. GitHub records such changes as `renamed` timeline events, preserving the prior title. Cosmetic title changes should be avoided.
 
-Title changes are **recommended when the work scope changes materially**, for example when an Issue is substantially amended or when a PR evolves from implementing one Issue to genuinely resolving multiple Issues. The title should then be updated so that it accurately represents the current scope and improves traceability.
+### Traceability
 
-Do not change a title merely for cosmetic wording changes when the work scope and identification remain materially the same.
+Maintain clear traceability from:
 
-Closed Issues and merged PRs remain historical records and must not be modified, including their titles.
+`Work request → Issue → PR → Review → Test → Merge → Issue closure → Project verification`
 
-They may be inspected for historical context and traceability, but they must not be reused as active work items.
+A PR may legitimately resolve multiple Issues when it genuinely addresses each one and explicit traceability is maintained.
 
-## Traceability
+Historical Issues and merged PRs used as evidence should be explicitly referenced from the active work record.
 
-The intended chain is:
+## Document Responsibilities
 
-`Work request → Issue → PR → Review → Merge → verification`
+| Document | Responsibility |
+|---|---|
+| `00-Management/WORKFLOWS.md` | Canonical normative Management workflows. |
+| `00-Management/RULES.md` | Human governance, rationale, and document authority. |
+| `SKILL.md` | Machine/agent execution instructions that implement/reference the canonical workflows. |
+| `.codex/skills/*` | Specialized operational procedures that reference the canonical workflows. |
+| `KNOWLEDGE.md` | Historical knowledge, decisions, and lessons learned; not workflow authority. |
 
-A PR may connect to multiple Issues when appropriate. Every Issue addressed by that PR must remain explicitly traceable.
+## Conflict Rule
 
-When the scope of an active Issue or PR materially changes, its title should be kept aligned with that scope. This is especially important when a PR legitimately resolves multiple Issues rather than one.
+If a secondary document conflicts with `WORKFLOWS.md`, the canonical workflow takes precedence. The secondary document must be corrected rather than treated as an alternative workflow authority.
 
-Historical Issues and merged PRs used as references should also be explicitly linked or cited in the active Issue/PR so that the reason for the new work remains traceable.
+If the canonical workflow itself is ambiguous or internally contradictory, stop the affected decision and obtain the required clarification/decision before proceeding.
 
-## Authority Order
+## Scope of this file
 
-When rules overlap:
-
-1. Repository governance in this `RULES.md`.
-2. Detailed operational procedures in `SKILL.md`.
-3. Project facts and historical decisions in `KNOWLEDGE.md`.
-
-Operational procedures must not contradict these governing rules.
+`RULES.md` intentionally does **not** reproduce the Management decision chart or detailed state-machine rules. Those belong in `WORKFLOWS.md` so that humans and agents use one authoritative definition.
