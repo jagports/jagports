@@ -1,0 +1,323 @@
+<!--
+ * Author               : Keane India Pvt Ltd.,
+ * Date of Creation     : 20 January 2008.
+ * Description          : LTC EPC Product Drill down.
+ * Version Number       : 1.01
+ * Modification History :
+ Date           Version  Who            Description of change
+ 2008-01-20     1.0      Keane India    Initial
+ 2011-05-09     1.01     RB1				 Problem with hotspotting following search
+ 2012-01-24	    1.02	 KHC            RFC570 EDIX
+ 2012-07-30		1.03	 RB1			RFC590 - Produce full size image popup.
+ *******************************************************************************/
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>JEPC - Product Display</title>
+        <link href="../styles/style.css" rel="stylesheet" type="text/css" />
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+        <meta http-equiv="cache-control" content="no-cache" />
+        <script type="text/javascript" language="javascript" src="../js/Constants.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/JEPC.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/I18nLabels.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/JSSerializer.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/Login.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/AJAX_Util.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/CategoryPopUp.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/menuUtil.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/JEPCDrillDownDisplay.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/JEPCLanguage_script.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/swfobject.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/JEPCFiltering.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/I18nMessages.js"></script>
+        <script type="text/javascript" language="javascript" src="../js/CartFiles.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/ShoppingCart.js"></script>
+		<script type="text/javascript" language="javascript" src="../js/TechnicalQueryAccessControl.js"></script>
+    </head>
+    <body onload="setValues();" scroll="no">
+    	<div id="fullImage" class="tip" style="position:absolute;top:0px;visibility:hidden;z-index:5000;border:solid thin;width:auto;opacity:none"></div>
+      <div id="vinPopUp" style="position:absolute;left:0px;top:0px;border:inline;z-index:8000"></div>
+    	<form action="" name="DrillDownForm" id="DrillDownForm">
+		<input type="hidden" id="prodImage" value="">
+        <table width="100%" summary="Category drop-down" id="CategoryDropDown" border="0">
+            <tr class="products">
+                <td width="10%" valign="top">
+                    <div id="ddPopUp" style="left:20px;top:2px;border:inline;z-index:8000"></div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+            		<div id="ddSiblings">&nbsp;</div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="displayOptions"></div>
+                    <hr width="100%" />
+                </td>
+            </tr>
+        </table>
+
+        <div id="divContainer">
+        	<div id="ssDisplayAjax" style="position:absolute;visibility:hidden;z-index:9000;border:solid thin;width:auto;opacity:none;"></div>
+           <div id="EDIXDisplayAjax" style="position:absolute;visibility:hidden;z-index:9000;border:solid thin;width:auto;opacity:none;"></div>
+           <div id="oSpan_point" style="position:absolute"></div>
+           <div id="flashimage" style="position:relative"></div>
+		   <div id="imagePrnt" style="position:relative;visibility:hidden;"></div>
+           <div id="jepcDrillDownAjax" style="position:absolute"></div>
+           <div id="attSummaryAjax" class="tip" style="position:absolute;visibility:hidden;"></div>
+        </div>
+        </form>
+    </body>
+        <script type="text/javascript" language="javascript">
+			var retrievedItemNo = false;
+            var retrievedChildId = false;
+            var windows = [];
+            var imagePopup;
+            var categoryId = false;
+            var languageId = false;
+            var modelId = false;
+            var currencyCode = false;
+            var queryParameters = new Array();
+            queryParameters['categoryId'] = null;
+            queryParameters['languageId'] = null;
+            queryParameters['modelId'] = null;
+            queryParameters['currencyCode'] = null;
+            queryParameters['partNumber'] = null;
+            queryParameters['itemNo'] = null;
+            queryParameters['navigate'] = null;
+            var imageValue = false;
+
+            retrieveValues();
+            setValues();
+            menuArray = new Array();
+            categoryPopUpLookUp(modelId, languageId, categoryId);
+
+            var thejepcDrillDown = new jepcdrillDown();
+            thejepcDrillDown.addHeaders ("<span id=\"Span_No_ID\">No.</span>","&nbsp;","<span id=\"Description_ID\">Description</span>","<span id=\"DrillDown_Price_ID\">Price</span>","<span id=\"Quantity_ID\">Qty</span>","<span id=\"FullImage_ID\">Image</span>");
+            jepcTopLevelLookup(modelId, languageId, categoryId);
+
+            setLanguageLabels();
+
+            //pick up the currency and update header item...
+            var ddPriceCol = document.getElementById('DrillDown_Price_ID')
+            ddPriceCol.innerHTML = ddPriceCol.innerHTML + " " + setCurrencySymbol(parent.index_form.legacyCurrency.value);
+
+            //see if any re-display parameters have been passed back...
+            if ((queryParameters['itemNo'] != null) && (queryParameters['partNumber'])) {
+
+               var ddTimeout;
+               var hsTimeout;
+               try {
+                  if (thejepcDrillDown.items.length > 0) {
+                     jepcDrillDownLookup(queryParameters['itemNo'], modelId, categoryId,languageId, queryParameters['partNumber']);
+                  }
+                  else {
+                     ddTimeout = setTimeout("jepcDrillDownLookup("+queryParameters['itemNo']+","+modelId+","+categoryId+","+languageId+",'"+queryParameters['partNumber']+"')",500);
+                  }
+			      hsTimeout = setTimeout("setCurrentHotspot(queryParameters['itemNo'])", 300);
+               }
+               catch (e) {
+                  try {
+                     clearTimeout(ddTimeout);
+                  }
+                  catch (tEx) {
+                  }
+                  try {
+                     clearTimeout(hsTimeout);
+                  }
+                  catch (tEx) {
+                  }
+               }
+            }
+            
+            function checkFlashObjectIsready(flashObj) {
+            	flashObj.onreadystatechange=function() {
+            		if(flashObj.readyState != 4) {
+               			setTimeout("checkFlashObjectIsready('"+flashObj+"')",1000);
+                	}
+               }
+            }
+
+            function setLanguageLabels() {
+               document.getElementById("Description_ID").innerHTML = eval("DESCRIPTION" + languageCode);
+               document.getElementById("DrillDown_Price_ID").innerHTML = eval("PRICE" + languageCode);
+               document.getElementById("Quantity_ID").innerHTML = eval("DD_QTY" + languageCode);
+               document.getElementById("Span_No_ID").innerHTML = eval("DD_NO" + languageCode);
+            }
+
+            function readParameters() {
+                var query = window.location.search.substring(1);
+                var parms = query.split('&');
+                for (var i=0; i<parms.length; i++) {
+                    var pos = parms[i].indexOf('=');
+                    if (pos > 0) {
+                       var key = parms[i].substring(0,pos);
+                       var val = parms[i].substring(pos+1);
+                       queryParameters[key] = val;
+                    }
+                }
+                globalLangID=val;
+
+	            if(queryParameters['navigate'] == null) {
+                   // did not get here by navigation arrow so set home query string
+		           parent.index_form.drillDownHome = query;
+                }
+            }
+
+            function retrieveValues() {
+               readParameters();
+               modelId = queryParameters['modelId'];
+               languageId = parent.index_form.languageId.value;
+               categoryId = queryParameters['categoryId'];
+               try {
+                  currencyCode = parent.index_form.currency.value;
+               }
+               catch (cErr) {
+                  currencyCode = "GBP";
+               }
+            }
+
+        function updateImageFileName(imageFile) {
+            imageValue = imageFile;
+			document.getElementById("prodImage").value = imageFile;
+        }
+
+        /*
+         * Check what is the language id based on the language id load properties file
+         * get the values for heading1, heading2,....heading5 from properties file
+         * passthe values the addHeaders function
+         */
+
+        function setLanguage_page() {
+//            setLanguage(languageId);
+        }
+
+
+        function createFlashImage(productImage) {
+                var so;
+                try {
+                	so = new SWFObject("../flash/PartImage.swf", "PartImage", "400", "500", "7", "#ffffff");
+                
+                	so.addParam("quality", "high");
+                	so.addParam("wmode", "transparent");
+                	so.addParam("allowScriptAccess","sameDomain");
+                	so.addVariable("image", productImage);
+                	so.addVariable("urlPath", "../flash/");
+                	so.addVariable("selectedNo","-1");
+                	so.addVariable("itemNos","-1");
+                	so.write("flashimage");
+                	setDivPositions();
+                	updateImageFileName(productImage);
+            		var imageLink="<a id=\"ImageDisplay\" href='#' onClick=\"openFullImage('../html/JEPCImageDisplay.html?"+productImage+"');\" class=\"categoryLinks\"> <img style='border-style: none;' src='../images/full_size.gif' alt='" + eval("IMAGE_FULLSIZE" + languageCode) + "'/></a>";
+
+            		document.getElementById("FullImage_ID").innerHTML = imageLink;
+                	
+                	checkFlashObjectIsready(so);
+                	
+                }catch(openErr) {
+                	setTimeout("createFlashImage('"+productImage+"')",1000);
+                }
+        }
+        
+        function openFullImage(url) {
+  				
+  				imagePopup = window.open(url,'imagePopup','toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=1,width=900,height=850,left = 300,top = 20');
+  				windows.push(imagePopup);
+  				window.onfocus = function() {
+   				try {
+  						for (x in windows) {
+  							windows[x].close();
+  						}
+  					}catch (closeErr) {
+  					}
+  				}; 
+  				return false;
+        }
+        
+
+        function flashclick(hotspot) {
+            try {
+               hotspotClick(hotspot, modelId, categoryId, languageId);
+               document.getElementById("xItemNo_"+hotspot).scrollIntoView();
+            }
+            catch (hotErr) {
+            }
+        }
+
+        function setNewHotSpot(itemNo) {
+        		var flashObj = document.getElementById("PartImage");
+            flashObj.SetVariable("selectedNo",itemNo);
+            flashObj.SetVariable("redraw","Y");
+            checkFlashObjectIsready(flashObj);
+            flashObj.TCallFrame("/",0);
+        }
+
+        function setDivPositions() {
+
+           var flashImage = document.getElementById("flashimage");
+           var drillDown = document.getElementById("oSpan_point");
+           var container = document.getElementById("divContainer");
+
+           flashImage.style.left = (container.offsetWidth - 400);
+           flashImage.style.top = drillDown.style.top;
+           
+           drillDown.style.width = (container.offsetWidth - 400);
+		   drillDown.style.height = (container.offsetHeight);
+           drillDown.style.overflowY = "scroll";
+           drillDown.style.overflowX = "scroll";
+
+        }
+
+        function categoryNavigate() {
+           var pgList = document.getElementById("pgList");
+           var navUrl = "JEPCProductDrillDown.html?modelId="+modelId+"&languageId="+languageId+"&categoryId="+pgList.value+"&currencyCode="+currencyCode+"&navigate=1";
+           window.location.href = navUrl;
+        }
+
+        function categoryNavigateLeft() {
+           var pgList = document.getElementById("pgList");
+           if (pgList.selectedIndex > 0) {
+              pgList.selectedIndex = pgList.selectedIndex - 1;
+           }
+           categoryNavigate();
+        }
+
+        function categoryNavigateHome() {
+		   window.location.href = "JEPCProductDrillDown.html?" + parent.index_form.drillDownHome;
+        }
+
+        function categoryNavigateRight() {
+           var pgList = document.getElementById("pgList");
+
+           if (pgList.selectedIndex < (pgList.options.length - 1)) {
+              pgList.selectedIndex = pgList.selectedIndex + 1;
+           }
+           categoryNavigate();
+        }
+
+        function setNavigationControls() {
+           var pgList = document.getElementById("pgList");
+           if (pgList.selectedIndex == 0) {
+              var arrowObj = document.getElementById("navLeft");
+			  if(arrowObj) {
+	              arrowObj.disabled = true;
+	              arrowObj = document.getElementById("navLeftImg");
+	              arrowObj.disabled = true;
+			  }
+           }
+           else if (pgList.selectedIndex == (pgList.options.length-1)) {
+              var arrowObj = document.getElementById("navRight");
+              if(arrowObj) {
+	              arrowObj.disabled = true;
+	              arrowObj = document.getElementById("navRightImg");
+	              arrowObj.disabled = true;
+              }
+           }
+        }
+
+		setModelCatId(modelId, categoryId);
+    </script>
+</html>
