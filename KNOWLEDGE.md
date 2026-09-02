@@ -122,12 +122,6 @@ GitHub Issues are the primary work and communication records. The GitHub Project
 
 Agents should consult that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
 
-## Historical Lifecycle Decision
-
-A previous Issue-driven lifecycle omitted explicit Issue closure after merge. The project subsequently established that the initiating Issue remains open during implementation, testing and review and is closed after successful merge when the work is complete.
-
-The detailed current lifecycle is maintained in `00-Management/WORKFLOWS.md`; this section records only the historical decision that led to that source of truth and does not redefine the current lifecycle.
-
 ## 4-Production Folder Structure
 
 `4-Production/` is the repository location for production implementations. It may contain the following approved subfolders:
