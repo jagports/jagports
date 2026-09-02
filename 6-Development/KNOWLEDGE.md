@@ -145,8 +145,10 @@ For organization-owned Projects:
 3. Prefer a dedicated automation user rather than coupling Project automation to a human administrator account.
 4. For a fine-grained personal access token used by Project automation, grant the minimum required permissions. For the Jagports Issue-to-Project pattern this includes organization **Projects: Read and write**, repository **Metadata: Read**, and repository **Issues: Read and write**.
 5. If the organization requires approval for fine-grained token access, complete and verify that approval before testing the automation.
-6. Store the approved token as a repository or organization secret rather than placing the token in source code, workflow files, Issues, comments, or logs.
-7. Verify the token independently against the target Project before relying on a workflow. A successful repository authentication check alone does not prove Project access.
-8. Perform an end-to-end workflow test using the real event that the automation is intended to handle. Verify both the Project Item creation and the required initial Project Item Status.
+6. Store the approved token as a repository or organization secret. Never place the token in source code, workflow files, Issues, Pull Requests, comments, scripts, logs, or chat.
+7. The GitHub Actions secret name used by the Jagports Project automation is `PROJECTS_TOKEN`. The secret name identifies the stored credential; it is not the token value.
+8. `GITHUB_TOKEN` is a separate GitHub Actions-provided credential. Do not substitute it for the dedicated Project automation credential unless its required Project capability has been independently verified.
+9. Verify the automation credential independently against the target Project before relying on a workflow. A successful repository authentication check alone does not prove Project access.
+10. Perform an end-to-end workflow test using the real event that the automation is intended to handle. Verify both the Project Item creation and the required initial Project Item Status.
 
 Project creation tasks are incomplete until the automation identity, token permissions, approval state where applicable, secret configuration, direct Project access, and end-to-end operation have all been verified. This setup must be included in the project creation task plan whenever later automation depends on the Project.

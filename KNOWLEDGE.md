@@ -52,6 +52,22 @@ The Project's important reusable information must not exist only in private agen
 
 `KNOWLEDGE.md` should contain generalized, durable knowledge rather than chronological task history or copies of current operating procedures.
 
+## GitHub Project automation credentials
+
+For organization-owned Project automation, distinguish the automation identity, its credential, and the GitHub Actions secret that stores that credential.
+
+For Jagports Project automation:
+
+- The Project is organization-owned by `jagports`.
+- The dedicated automation identity is `jagports-fi`.
+- `PROJECTS_TOKEN` is the GitHub Actions secret name used to store the Project automation credential.
+- The token value must never be written to repository content, workflow files, Issues, Pull Requests, scripts, logs, or chat.
+- `GITHUB_TOKEN` is a separate GitHub Actions-provided credential. Do not assume it provides the Project mutation capability required by Jagports automation.
+
+Credential possession and Project capability are separate verification points. A token or authentication check must not be treated as proof that the workflow can perform the required Project mutation. Project access and the resulting Project state must be verified independently.
+
+The detailed development-specific setup, permission requirements, and end-to-end verification belong in `6-Development/KNOWLEDGE.md`.
+
 ## Future Agent Operating Model Investigation
 
 Topic: proactive multi-agent workflow architecture
