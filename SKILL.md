@@ -108,6 +108,15 @@ An Issue and PR do not need to have a one-to-one relationship.
 - When multiple Issues are involved, every Issue must have explicit traceability to the implementing PR.
 - Do not modify the description or comments of a **closed Issue** or **merged PR**. Historical records are immutable.
 
+### Issue/PR title change exception
+
+- Changing the title of an **open Issue or open PR** is permitted and does not count as modification of an immutable historical record.
+- GitHub records a title change as a `renamed` timeline event with the previous and current title. The change is therefore auditable rather than silently replacing the historical title.
+- A title change is **recommended when the scope changes materially**, such as when an Issue is substantially amended or when a PR expands from implementing one Issue to genuinely resolving multiple Issues.
+- When the scope changes materially, update the active Issue or PR title so that it accurately represents the current scope and improves traceability.
+- Do not change a title merely for cosmetic wording changes when the work scope and identification remain materially the same.
+- Closed Issues and merged PRs remain immutable, including their titles.
+
 The human-readable decision architecture is maintained in `00-Management/RULES.md`. The machine-oriented execution architecture at the top of this file is the compact control-flow representation; the detailed rules in this section resolve edge cases and define required behavior.
 
 ## Repository Change Gate
