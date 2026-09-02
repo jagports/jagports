@@ -4,14 +4,14 @@
 
 This file is the **single canonical normative source** for Jagports Management workflows.
 
-It defines workflow states, transitions, decision precedence, gates, invariants, Issue/PR discovery and historical-work handling, Project Item Status handling, review boundaries, and immutable-history rules.
+It defines workflow states, transitions, decision precedence, gates, invariants, Issue/PR discovery and historical-work handling, Project Item Status handling, review boundaries, and record-integrity rules.
 
 Other documents may explain, implement, or reference these workflows, but must not independently redefine them:
 
 - `00-Management/RULES.md` — human-readable governance and rationale.
 - `SKILL.md` — machine/agent execution instructions.
 - `.codex/skills/*` — specialized operational instructions.
-- `KNOWLEDGE.md` — historical knowledge, decisions, and lessons learned.
+- `KNOWLEDGE.md` — durable knowledge, decisions, and lessons learned.
 
 **Core rule:** A workflow is defined exactly once.
 
@@ -132,9 +132,9 @@ INPUT: work_request
 5. Reuse a related open Issue when the request is a legitimate amendment, extension, refinement, follow-up, or completion.
 6. If duplication, scope, ownership, authority, or relationship is uncertain, obtain clarification before proceeding.
 7. If no suitable open Issue exists, search **closed Issues** for exact/materially similar historical work before creating an active Issue.
-8. Historical Issues are evidence, not active work items.
+8. Closed Issues are GitHub history and evidence, not active work items.
 9. If historical implementation still satisfies the request, do not create duplicate active work.
-10. If historical implementation is insufficient, obsolete, superseded, broken, or otherwise does not satisfy the request, create or reuse active work and reference the historical item.
+10. If historical implementation is insufficient, obsolete, superseded, broken, or otherwise does not satisfy the request, create or reuse active work.
 11. If historical sufficiency is uncertain, obtain clarification.
 12. After Issue identity and scope are resolved, search **open PRs** before creating a PR.
 13. Reuse an open PR when it clearly implements the work or can legitimately be extended without ambiguous scope.
@@ -194,6 +194,7 @@ If mutation fails, the Project Item cannot be found, the expected field/value ca
 
 - report failure;
 - identify whether the failure occurred during mutation or verification when possible;
+- state that **Project operation FAILED**;
 - state that **no successful Project operation is claimed**;
 - never convert an intended state into a claimed actual state.
 
@@ -281,11 +282,11 @@ A post-merge test cannot substitute for required pre-merge validation.
 
 ---
 
-## 6. Historical Immutability and Active Title Changes
+## 6. Record Integrity and Active Title Changes
 
-Closed Issues and merged PRs are historical records. Their descriptions and comments must not be modified.
+Closed Issues and merged PRs are GitHub records. Their descriptions and comments must not be modified, and their historical content must not be copied into current repository documents merely for archival purposes.
 
-The title of an **open Issue or open PR** may be changed when scope materially changes. GitHub records such a change as a `renamed` event, preserving the previous title in history.
+The title of an **open Issue or open PR** may be changed when scope materially changes. GitHub records such a change as a `renamed` event, preserving the previous title.
 
 Title changes are recommended when scope materially changes, including when a PR legitimately expands to resolve multiple Issues. Cosmetic title changes should be avoided.
 
@@ -311,7 +312,7 @@ Do not ask a human merely to advance routine work when the workflow already dete
 
 - Verify GitHub access and the specific required operation before relying on it.
 - Never claim an external action without verification.
-- Use at least a 1-second delay between GitHub API calls in Jagports operational sequences.
+- Use a minimum 0.33-second delay between GitHub API calls in Jagports operational sequences.
 - After mutations, perform an independent read/verification.
 - Distinguish tool capability, authentication, permission, and operation failure where observable.
 - Never expose credentials, tokens, or secret values.
@@ -342,6 +343,8 @@ If documents disagree about a Management workflow:
 2. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
 3. `SKILL.md` provides machine execution guidance and must implement/reference, not redefine, workflows.
 4. `.codex/skills/*` provides specialized procedures and must reference, not redefine, workflows.
-5. `KNOWLEDGE.md` records history and decisions and is not workflow authority.
+5. `KNOWLEDGE.md` contains durable knowledge and is not workflow authority.
 
-An unresolved contradiction must be treated as a process defect and clarified before relying on the conflicting rule.
+A conflict in a secondary document is a process defect: raise an Issue to correct it rather than silently accepting or bypassing the contradiction.
+
+An unresolved contradiction in the canonical workflow must be treated as a process defect and clarified before relying on the conflicting rule.
