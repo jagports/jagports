@@ -36,6 +36,10 @@ A Project Item's Status is not a property of the Project itself. Project operati
 
 When review is required, GitHub's native PR reviewer request/notification is used; no separate "Waiting for Review" PR status is created. See `WORKFLOWS.md` for the implementation flow.
 
+### Review authority
+
+Review comments belong to the reviewer who submitted the review. That reviewer is the only actor authorized to resolve comments belonging to that review. Executors, PR authors, and other non-reviewers must not resolve those comments on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined in `WORKFLOWS.md`.
+
 ### Record integrity
 
 Closed Issues and merged PRs remain GitHub records and must not have their descriptions or comments modified. Their historical content is not copied into current repository documents merely for archival purposes.
