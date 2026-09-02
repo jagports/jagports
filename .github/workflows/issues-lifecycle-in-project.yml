@@ -25,6 +25,8 @@ jobs:
           COMMENT_TOKEN: ${{ github.token }}
           ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
           REPOSITORY: ${{ github.repository }}
           ISSUE_ACTION: ${{ github.event.action }}
         shell: bash
@@ -35,9 +37,31 @@ jobs:
             status=$?
             if [ -n "${COMMENT_TOKEN:-}" ]; then
               sleep 1
+              comment_body=$(cat <<EOF
+## Project automation failure
+
+[Issue #$ISSUE_NUMBER — $ISSUE_TITLE]($ISSUE_URL)
+
+**Result**
+
+Project automation FAILED.
+
+**Verification**
+
+The Issue was not verified as a Project Item with the expected lifecycle Status.
+
+**Action**
+
+Inspect this workflow run for the exact failure.
+
+**Claim**
+
+No successful Project operation is claimed.
+EOF
+              )
               GH_TOKEN="$COMMENT_TOKEN" gh api \
                 "repos/$REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-                -f body="Project automation FAILED for Issue #$ISSUE_NUMBER. The Issue was not verified as a Project Item with the expected lifecycle Status. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
+                -f body="$comment_body" \
                 >/dev/null || true
             fi
             exit "$status"
