@@ -216,12 +216,60 @@ When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless ano
 
 ## 5. Review, Testing, and Merge Boundary
 
-When review is required:
+When review is required, use GitHub's native pull-request review mechanism as the hand-off mechanism. Do **not** invent a separate GitHub PR status such as "Waiting for Review".
 
-- implementation stops;
-- the PR is not merged;
-- the PR/review link is provided;
-- the work is handed to review.
+### Review hand-off implementation chart
+
+```text
+Implementation complete
+        |
+        v
+PR is open and ready for review
+        |
+        v
+Review required?
+   |                |
+  NO               YES
+   |                |
+   v                v
+continue       Is requester human?
+                  |          |
+                 YES         NO
+                  |           |
+                  v           v
+       Request GitHub review     Request designated
+       from human requester      human reviewer
+                  |           |
+                  +-----+-----+
+                        |
+                        v
+             Project Item Status = REVIEW
+                        |
+                        v
+                 Verify Project Status
+                        |
+                        v
+              Executor STOPS / DO NOT MERGE
+                        |
+                        v
+              GitHub review notification
+                        |
+                        v
+             Human reviewer acts:
+          Approve / Request changes / Comment
+                        |
+                        v
+                 Continue workflow
+```
+
+Rules:
+
+1. When the requester is human and review is required, the executing actor requests that human as a GitHub PR reviewer.
+2. When the requester is an agent, the review request is routed to the designated human reviewer/authority.
+3. The GitHub review request and notification are the native review hand-off mechanism; no additional PR status is invented.
+4. Set the Project Item Status to `REVIEW` and independently verify it.
+5. After the hand-off, the executing actor stops implementation and does not merge.
+6. GitHub review outcomes (`Approve`, `Request changes`, or `Comment`) determine the review result; the workflow must not infer approval from a notification alone.
 
 Required human validation follows the approved testing gate:
 
