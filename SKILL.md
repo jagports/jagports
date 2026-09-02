@@ -10,7 +10,7 @@ The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`]
 
 **OPEN search → HISTORICAL CLOSED/MERGED search → verify claimed result → valid = no duplicate / insufficient or obsolete = active work / uncertain = clarification → only then create new work.**
 
-The canonical workflow also defines the controlled lifecycle, Project Item Status verification, Repository Change Gate, review/testing boundaries, immutable history, title-change exception, and conflict handling.
+The canonical workflow also defines the controlled lifecycle, Project Item Status verification, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling.
 
 ## Mandatory Start-of-Work Procedure
 
@@ -118,7 +118,7 @@ Required human validation follows:
 
 A post-merge test cannot substitute for required pre-merge validation. `FAIL`, `BLOCKED`, or `NOT TESTED` is not successful required pre-merge validation.
 
-## Historical Immutability and Active Title Changes
+## Record Integrity and Active Title Changes
 
 Follow `00-Management/WORKFLOWS.md` for the canonical rules.
 
@@ -165,7 +165,7 @@ Before creating a PR, verify:
 
 ## GitHub API Rules
 
-- Maintain at least a 1-second delay between GitHub API calls in Jagports operational sequences.
+- Maintain a minimum 0.33-second delay between GitHub API calls in Jagports operational sequences.
 - Avoid unnecessary repeated calls.
 - Verify mutations with an independent read.
 - Never expose credentials, tokens, or secret values.
@@ -221,6 +221,6 @@ For UI navigation, provide the direct stable URL to the intended page when known
 - `00-Management/RULES.md` — human governance and rationale; no competing workflow definition.
 - `SKILL.md` — machine/agent execution of the canonical workflows.
 - `.codex/skills/*` — specialized operational procedures referencing the canonical workflows.
-- `KNOWLEDGE.md` — historical knowledge, decisions, and lessons learned; not workflow authority.
+- `KNOWLEDGE.md` — durable knowledge, decisions, and lessons learned; not workflow authority.
 
-If any secondary document conflicts with `WORKFLOWS.md`, follow the canonical workflow and correct the conflicting secondary document. If the canonical workflow itself is ambiguous, stop the affected decision and obtain the required clarification.
+If any secondary document conflicts with `WORKFLOWS.md`, follow the canonical workflow and raise an Issue to correct the conflicting secondary document. If the canonical workflow itself is ambiguous, stop the affected decision and obtain the required clarification.
