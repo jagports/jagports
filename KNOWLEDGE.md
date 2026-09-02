@@ -14,6 +14,22 @@ The GitHub account used for Jagports repository access is:
 
 Do not use the obsolete `tlindi/jagports` repository reference for current Jagports work.
 
+```text
+gh authentication
+       ↓
+   GitHub account
+       ↓
+repository / Project access
+       ↓
+Jagports AI OS Project
+       │
+       └── Project Item
+              │
+              └── Status / <current state>
+```
+
+`Status` is a property of the **Project Item**. It is not a property of the Project. The Project is the container that contains the Project Item.
+
 For current Management workflow, execution, Project-state, review, testing, and capability rules, use the canonical sources referenced below rather than maintaining parallel rules in this file.
 
 ## Current Management Workflow Sources
@@ -89,6 +105,58 @@ Potential architecture options:
   - technical complexity
 
 This remains an investigation topic. It is not a current Management workflow definition.
+
+## AI Tool Capability Transparency
+
+When an AI agent is expected to perform an external action, the agent must distinguish user/account authorization from the execution capabilities actually available in the current session.
+
+If an expected action cannot be completed, record and communicate the verified cause where possible, such as:
+- required tool operation unavailable
+- insufficient permission
+- authentication problem
+- unavailable integration
+- technical failure
+
+Do not claim that an action was completed without verification. Do not repeatedly retry an unsupported operation without explaining the limitation.
+
+For Jagports, an important operational distinction is:
+- GitHub account/repository permissions determine what the account is authorized to do.
+- The connected agent/tool interface determines which of those operations the agent can actually invoke in a given session.
+
+When capability availability changes or is uncertain, the agent should state the limitation explicitly and identify the available alternative or required next step.
+
+## GitHub Access and Command Execution Lessons
+
+GitHub access must be checked before starting work that depends on GitHub. Repository access alone is not sufficient: the agent must also verify that the specific operation required for the task is available, such as file editing, branch creation, PR creation, Issue comments, or Project field updates.
+
+If required GitHub access or an operation is unavailable, the user must be alerted immediately. The agent must not silently substitute an unperformed action, repeatedly retry an unavailable operation, or unnecessarily make the user execute commands to compensate for the missing agent capability.
+
+When the user explicitly requests commands, provide the requested command sequence in one Markdown code block for easy console pasting. Do not propose creating a script for the user to run when direct commands are sufficient.
+
+For command sequences whose later steps depend on earlier output, use a temporary file in the working directory to carry the required result between commands. Remove those temporary files after the dependent commands have completed successfully.
+
+Windows Git Bash compatibility is an explicit project constraint. Avoid `awk`, Bash associative arrays, backslash (`\\`) line continuations, and Windows path-separator assumptions. Prefer forward-slash paths and simple Git Bash-compatible shell constructs. Commands should be verified against these known limitations before being given to the user.
+
+## GitHub Issue and Pull Request Comment Formatting
+
+GitHub Issue and Pull Request comments must be formatted for quick visual scanning and reliable traceability.
+
+- Put each distinct traceability statement on its own line or paragraph.
+- When an Issue or Pull Request is the primary reference for a statement, put its Markdown link at the beginning of the line.
+- Keep the Issue/PR number and title together in the link text when useful; do not bury the reference inside a long sentence.
+- Separate relationship text such as `implements`, `resolves`, `supersedes`, or `previous implementation` from the referenced Issue or Pull Request instead of placing the complete relationship in one long sentence.
+- Use short headings or labels on their own lines when context is needed before a reference.
+- Do not construct long inline chains containing a PR title, PR number, Issue title, Issue number, and relationship text in the same sentence.
+
+Preferred pattern:
+
+**Previous implementation**
+[PR #<number> — <title>](<PR URL>)
+
+**Implements/resolves**
+[Issue #<number> — <title>](<Issue URL>)
+
+For multiple references, give each primary reference its own line rather than combining them into a single paragraph.
 
 ## KNOWLEDGE.md Hierarchy and Generalization Rules
 
