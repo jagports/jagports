@@ -68,6 +68,53 @@ Credential possession and Project capability are separate verification points. A
 
 The detailed development-specific setup, permission requirements, and end-to-end verification belong in `6-Development/KNOWLEDGE.md`.
 
+## ChatGPT Scheduled Project Audit
+
+Jagports has an active recurring **daily project audit** scheduled through the ChatGPT task/automation facility.
+
+The audit targets the authoritative repository:
+
+`jagports/jagports`
+
+The scheduled audit acts as an independent Team Lead-level project review. It must inspect the GitHub repository and Project as the system of record and consult the relevant repository source-of-truth documents, including:
+
+- `00-Management/RULES.md`
+- `00-Management/WORKFLOWS.md`
+- `SKILL.md`
+- `KNOWLEDGE.md` and relevant nested `KNOWLEDGE.md` files
+- relevant management, knowledge, communication and protocol Markdown files
+- `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md`
+- `Jagports_AI_OS_Prioritized_Work_Plan.md`
+
+The audit checks, at minimum:
+
+- Issue priority and work-plan consistency
+- Issue descriptions and required traceability
+- Parent/sub-issue relationships
+- Project Item status and workflow consistency
+- Labels and other relevant Project metadata
+- Pull Request links, review state and implementation traceability
+- stale, blocked or otherwise unattended work
+- management, development and communication-process compliance
+- whether agent communications, acknowledgements, decisions and hand-offs are recorded in the GitHub system of record rather than existing only in private ChatGPT context
+
+The audit is **read-only by default**. It must not modify Issue or Pull Request content, repository files, labels, Project fields or relationships unless an explicit project rule authorizes a non-content state operation.
+
+Audit findings are classified as:
+
+- `AUTO` — suitable for an already authorized, low-risk automated action
+- `REVIEW` — requires human or agent review before action
+- `DECISION` — requires Product Owner or other authorized decision
+- `BLOCKED` — cannot be completed because of a verified access, capability, dependency or technical problem
+
+The audit must report evidence and the applicable source-of-truth document for actionable findings. It must never report a check or corrective action as successful without verification.
+
+The ChatGPT task facility can notify the user through the ChatGPT application, including mobile notifications when the user's notification settings and platform support them. Such notifications are a convenience/alerting channel only; GitHub remains the Jagports system of record for project communication, decisions, implementation traceability and durable knowledge.
+
+The scheduled audit itself does not replace the GitHub Issue/PR communication protocol. Agents must continue to record relevant work communication, decisions, acknowledgements, hand-offs and escalations in the appropriate GitHub records according to `0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` and the canonical Management workflow.
+
+If the scheduled audit cannot access the repository, required source-of-truth documents, GitHub Project data, or another required capability, the audit must report the limitation as `BLOCKED` rather than presenting an incomplete audit as successful.
+
 ## Future Agent Operating Model Investigation
 
 Topic: proactive multi-agent workflow architecture
