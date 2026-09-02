@@ -103,12 +103,14 @@ When substantive work starts, move the Project Item from `BACKLOG` to `RESEARCH`
 
 ## Review and Testing Boundary
 
-When review is required:
+When review is required, execute the canonical native GitHub hand-off defined in `00-Management/WORKFLOWS.md`:
 
-- stop implementation;
-- do not merge;
-- provide the PR/review link;
-- hand the work to review.
+- if the requester is human, request that human as the GitHub PR reviewer;
+- if the requester is an agent, request the designated human reviewer/authority;
+- set Project Item Status to `REVIEW` and independently verify it;
+- stop implementation and do not merge after hand-off.
+
+Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's native review request/notification and review outcome are the review mechanism.
 
 Required human validation follows:
 
