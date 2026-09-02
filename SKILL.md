@@ -15,6 +15,105 @@ Before doing any Jagports work:
 
 - Never claim that an action was performed without verification.
 
+## Work-Request Issue and PR Discovery
+
+This workflow applies to every work request, regardless of whether the requester is a human or another agent.
+
+When the requester does not explicitly identify an Issue or Pull Request, treat the request as potentially novel, but do not immediately create a new work item.
+
+### Issue discovery and reuse
+
+1. Search existing **open Issues** for work that may cover the request.
+2. If an existing open Issue clearly covers the requested work, use that Issue.
+3. A related existing Issue may also be reused when the requested work is a legitimate amendment, extension, follow-up, refinement, or completion of that Issue. Do not create a new Issue merely because the wording of the request differs.
+4. If an existing Issue might cover the request but it is uncertain whether the requested work is duplicate, an amendment, or materially separate work, ask the requester for clarification before proceeding.
+5. If no suitable open Issue covers the request and no clarification is required, create a new Issue before repository modification.
+6. After the Issue has been identified or created, proceed automatically when no further clarification is required.
+
+### Pull Request discovery and reuse
+
+Before creating a new Pull Request, search existing **open PRs** for work implementing the identified Issue or requested change.
+
+1. If an existing open PR clearly implements the requested work, use that PR rather than creating a duplicate PR.
+2. If an existing PR is related and can legitimately be extended to implement the requested work, use the existing PR when doing so preserves clear scope and traceability.
+3. If an existing PR might be the same work but duplication, scope, or ownership is uncertain, ask the requester for clarification before proceeding.
+4. If no suitable open PR exists, create a new PR through the Repository Change Gate.
+5. One PR may legitimately implement or resolve multiple Issues when the PR genuinely addresses each Issue. Maintain explicit traceability for every Issue; do not create separate duplicate PRs solely to obtain one-PR-per-Issue structure.
+6. Closed PRs and merged PRs may be inspected for historical context, but they are not reusable active PRs.
+
+### Related Issue and PR relationships
+
+An Issue and PR do not need to have a one-to-one relationship.
+
+- An existing Issue can remain the authoritative work record while its scope is amended or extended through the normal Issue workflow.
+- A PR can implement multiple Issues when its actual change covers all of them.
+- A new Issue is appropriate when the work is materially separate from existing open Issues, not merely because an existing Issue is related.
+- When multiple Issues are involved, every Issue must have explicit traceability to the implementing PR.
+- Do not modify the description or comments of a **closed Issue** or **merged PR**. Historical records are immutable.
+
+### Work-request decision chart
+
+```text
+Work request from human OR agent
+              |
+              v
+      Issue/PR explicitly given?
+          /             \
+        YES              NO
+         |                |
+         v                v
+   Use referenced     Search OPEN Issues
+      item                  |
+                            v
+                 Is there a clear match?
+                    /              \
+                  YES               NO
+                   |                 |
+                   v                 v
+              Use Issue      Is there a related
+                              Issue with uncertain
+                              duplicate/separate scope?
+                                /            \
+                              YES             NO
+                               |               |
+                               v               v
+                         Ask requester      Create Issue
+                         for clarification      |
+                               |               |
+                               +-------+-------+
+                                       |
+                                       v
+                         Search OPEN PRs for work
+                                       |
+                                       v
+                              Clear matching PR?
+                                /          \
+                              YES           NO
+                               |             |
+                               v             v
+                           Use PR      Is related PR / duplicate
+                                      scope uncertain?
+                                        /          \
+                                      YES           NO
+                                       |             |
+                                       v             v
+                                  Ask requester   Create PR
+                                  for clarification |
+                                       |             |
+                                       +------+------+
+                                              |
+                                              v
+                                  Implementation Round 1
+                                              |
+                                              v
+                                      Review required?
+                                              |
+                                              v
+                               STOP + provide PR/review link
+```
+
+The chart is a decision aid; the detailed rules in this section and the Repository Change Gate are authoritative.
+
 ## Repository Change Gate
 
 Every repository modification is subject to the mandatory Repository Change Gate. This applies before changing documentation, configuration, templates, scripts, source code, or any other repository file. There are no exemptions for documentation-only, small, trivial, cleanup, or seemingly low-risk changes.
@@ -129,7 +228,7 @@ When creating a new GitHub Issue that belongs to the project:
 - Independently verify that the Project item exists and that its **Project Item Status** is `BACKLOG`.
 - After successful verification, communicate the result in the Issue's persistent GitHub record, including that the Issue was added to the Project and its initial **Project Item Status** is `BACKLOG`.
 - If the Project add or **Project Item Status** operation cannot be performed or verified, report the limitation immediately and do not claim that the Project setup succeeded.
-- Do not assume a new Issue has a workflow state until it has been added to the Project and the **Project Item Status** has been verified.
+- Do not assume a new Issue has a workflow state until it has been added to the Project and its **Project Item Status** has been verified.
 - When actual work starts, the first substantive work comment or work action marks the transition from `BACKLOG` to `RESEARCH` unless another workflow state is explicitly appropriate.
 - Subsequent **Project Item Status** changes must be made when the task actually enters the corresponding workflow phase.
 - **Project Item Status** changes are part of the task execution, not optional documentation.
