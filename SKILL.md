@@ -107,6 +107,8 @@ When review is required, execute the canonical native GitHub hand-off defined in
 
 - if the requester is human, request that human as the GitHub PR reviewer;
 - if the requester is an agent, request the designated human reviewer/authority;
+- **verify that the selected reviewer is different from both the PR author and the executing actor before requesting or submitting formal review; if identity is equal or ambiguous, STOP/BLOCK and do not submit a review;**
+- **the PR author/executor may perform a private self-check, but must never submit the formal GitHub review; a self-review, including a `COMMENTED` review, does not satisfy the review gate;**
 - set Project Item Status to `REVIEW` and independently verify it;
 - stop implementation and do not merge after hand-off.
 
