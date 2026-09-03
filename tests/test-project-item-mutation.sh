@@ -36,12 +36,6 @@ if [ -z "$PROJECT_ID" ] || [ -z "$STATUS_FIELD_ID" ] || [ -z "$ITEM_ID" ]; then
   exit 1
 fi
 
-sleep 0.4
-
-STATUS_OPTIONS=$(gh project field-list "$PROJECT_NUMBER" --owner "$ORG" --format json --jq '.fields[] | select(.name == "Status") | .options')
-
-CURRENT_STATUS=$(printf '%s\n' "$ISSUE_JSON" | python -c 'import json,sys; d=json.load(sys.stdin)["data"]["node"]; p=sys.argv[1]; n=int(sys.argv[2]); print("")' "$PROJECT_ID" "$ISSUE_NUMBER")
-
 ITEM_JSON=$(gh api graphql -f query='query($item:ID!){ node(id:$item){ ... on ProjectV2Item { id isArchived project { id title number } content { ... on Issue { id number } } fieldValueByName(name:"Status"){ ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } } } }' -F item="$ITEM_ID")
 
 sleep 0.4
@@ -54,6 +48,9 @@ if [ -z "$CURRENT_STATUS" ] || [ -z "$CURRENT_STATUS_ID" ]; then
   exit 1
 fi
 
+sleep 0.4
+
+STATUS_OPTIONS=$(gh project field-list "$PROJECT_NUMBER" --owner "$ORG" --format json --jq '.fields[] | select(.name == "Status") | .options')
 NEW_STATUS_ID=$(printf '%s\n' "$STATUS_OPTIONS" | python -c 'import json,sys; opts=json.load(sys.stdin); old=sys.argv[1]; matches=[o for o in opts if o.get("name") != old]; print(matches[0]["id"] if matches else "")' "$CURRENT_STATUS")
 NEW_STATUS_NAME=$(printf '%s\n' "$STATUS_OPTIONS" | python -c 'import json,sys; opts=json.load(sys.stdin); oid=sys.argv[1]; matches=[o for o in opts if o.get("id")==oid]; print(matches[0]["name"] if matches else "")' "$NEW_STATUS_ID")
 
@@ -69,13 +66,11 @@ printf 'Project Item ID: %s\n' "$ITEM_ID"
 printf 'Current Status: %s (%s)\n' "$CURRENT_STATUS" "$CURRENT_STATUS_ID"
 printf 'Test Status: %s (%s)\n' "$NEW_STATUS_NAME" "$NEW_STATUS_ID"
 
-# MUTATE THE PROJECT ITEM.
 echo '--- MUTATE PROJECT ITEM ---'
 gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" --field-id "$STATUS_FIELD_ID" --single-select-option-id "$NEW_STATUS_ID"
 
 sleep 0.4
 
-# Independent read-back of the Project Item.
 echo '--- VERIFY MUTATION ---'
 VERIFIED_JSON=$(gh api graphql -f query='query($item:ID!){ node(id:$item){ ... on ProjectV2Item { id isArchived content { ... on Issue { id number } } fieldValueByName(name:"Status"){ ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } } } }' -F item="$ITEM_ID")
 VERIFIED_ISSUE=$(printf '%s\n' "$VERIFIED_JSON" | python -c 'import json,sys; print(json.load(sys.stdin)["data"]["node"]["content"]["number"])')
@@ -93,7 +88,6 @@ fi
 
 echo 'Mutation verified successfully.'
 
-# RESTORE THE ORIGINAL PROJECT ITEM STATUS.
 echo '--- RESTORE PROJECT ITEM ---'
 gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" --field-id "$STATUS_FIELD_ID" --single-select-option-id "$CURRENT_STATUS_ID"
 
