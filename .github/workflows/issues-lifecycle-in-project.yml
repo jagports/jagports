@@ -132,7 +132,7 @@ jobs:
           [ "$verified_issue_id" = "$ISSUE_NODE_ID" ] || { echo "Verification failed: triggering Issue identity could not be independently verified."; exit 1; }
           [ "$verified_issue_number" = "$ISSUE_NUMBER" ] || { echo "Verification failed: triggering Issue number does not match event Issue."; exit 1; }
 
-          item_id="$(jq -r --arg project "$project_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == "'"$ISSUE_NODE_ID"'") | .id' <<<"$issue_json" | head -n1)"
+          item_id="$(jq -r --arg project "$project_id" --arg issue "$ISSUE_NODE_ID" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue) | .id' <<<"$issue_json" | head -n1)"
 
           if [ -z "$item_id" ]; then
             echo "No active Project Item found through Issue.projectItems; adding Issue to the Project..."
@@ -149,7 +149,7 @@ jobs:
             # connection instead of trusting the mutation response as proof.
             issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -F issue="$ISSUE_NODE_ID")"
             sleep 1
-            item_id="$(jq -r --arg project "$project_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == "'"$ISSUE_NODE_ID"'") | .id' <<<"$issue_json" | head -n1)"
+            item_id="$(jq -r --arg project "$project_id" --arg issue "$ISSUE_NODE_ID" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue) | .id' <<<"$issue_json" | head -n1)"
           else
             echo "Existing active Project Item found: $item_id"
           fi
