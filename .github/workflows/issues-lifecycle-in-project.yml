@@ -64,7 +64,7 @@ jobs:
 
           echo "Issue: #$ISSUE_NUMBER"
           echo "Lifecycle action: $ISSUE_ACTION"
-          echo "Target Project Status: $TARGET_LABEL"
+          echo "Target Project Item Status: $TARGET_LABEL"
 
           echo "Resolving Project $PROJECT_ORG/$PROJECT_NUMBER..."
           PROJECT_QUERY='
@@ -103,29 +103,39 @@ jobs:
           echo "Status field: $status_field_id"
           echo "$TARGET_LABEL option: $target_option_id"
 
-          echo "Checking whether Issue #$ISSUE_NUMBER is already a Project Item..."
-          ITEMS_QUERY='
-          query($project:ID!) {
-            node(id:$project) {
-              ... on ProjectV2 {
-                items(first:100) {
+          # ProjectV2.items(...) is intentionally not used here. Under the
+          # Actions PROJECTS_TOKEN it is not authorization-compatible. The
+          # triggering Issue exposes its own Project Item connection instead.
+          echo "Discovering Project Item through Issue.projectItems..."
+          ISSUE_QUERY='
+          query($issue:ID!) {
+            node(id:$issue) {
+              ... on Issue {
+                id
+                number
+                projectItems(first:20) {
                   nodes {
                     id
-                    content {
-                      ... on Issue { id number }
-                    }
+                    isArchived
+                    project { id title number }
+                    content { ... on Issue { id number } }
                   }
                 }
               }
             }
           }'
-          items_json="$(gh api graphql -f query="$ITEMS_QUERY" -F project="$project_id")"
+          issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -F issue="$ISSUE_NODE_ID")"
           sleep 1
 
-          item_id="$(jq -r --arg issue "$ISSUE_NODE_ID" '.data.node.items.nodes[]? | select(.content.id == $issue) | .id' <<<"$items_json" | head -n1)"
+          verified_issue_id="$(jq -r '.data.node.id // empty' <<<"$issue_json")"
+          verified_issue_number="$(jq -r '.data.node.number // empty' <<<"$issue_json")"
+          [ "$verified_issue_id" = "$ISSUE_NODE_ID" ] || { echo "Verification failed: triggering Issue identity could not be independently verified."; exit 1; }
+          [ "$verified_issue_number" = "$ISSUE_NUMBER" ] || { echo "Verification failed: triggering Issue number does not match event Issue."; exit 1; }
+
+          item_id="$(jq -r --arg project "$project_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == "'"$ISSUE_NODE_ID"'") | .id' <<<"$issue_json" | head -n1)"
 
           if [ -z "$item_id" ]; then
-            echo "Issue is not yet a Project Item; adding the Issue to the Project..."
+            echo "No active Project Item found through Issue.projectItems; adding Issue to the Project..."
             ADD_MUTATION='
             mutation($project:ID!, $issue:ID!) {
               addProjectV2ItemById(input:{projectId:$project, contentId:$issue}) {
@@ -134,11 +144,17 @@ jobs:
             }'
             item_id="$(gh api graphql -f query="$ADD_MUTATION" -F project="$project_id" -F issue="$ISSUE_NODE_ID" --jq '.data.addProjectV2ItemById.item.id')"
             sleep 1
+
+            # Re-discover through the same authorization-compatible Issue
+            # connection instead of trusting the mutation response as proof.
+            issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -F issue="$ISSUE_NODE_ID")"
+            sleep 1
+            item_id="$(jq -r --arg project "$project_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == "'"$ISSUE_NODE_ID"'") | .id' <<<"$issue_json" | head -n1)"
           else
-            echo "Existing Project Item found: $item_id"
+            echo "Existing active Project Item found: $item_id"
           fi
 
-          [ -n "$item_id" ] || { echo "Project Item creation/lookup returned no item ID."; exit 1; }
+          [ -n "$item_id" ] || { echo "Project Item creation/lookup returned no active item ID."; exit 1; }
 
           echo "Setting Project Item Status to $TARGET_LABEL..."
           SET_STATUS_MUTATION='
@@ -161,13 +177,14 @@ jobs:
             >/dev/null
           sleep 1
 
-          echo "Verifying Project Item and Status..."
+          echo "Independently verifying Project Item identity, archive state, Status name and option ID..."
           VERIFY_QUERY='
           query($item:ID!) {
             node(id:$item) {
               ... on ProjectV2Item {
                 id
                 isArchived
+                project { id title number }
                 content { ... on Issue { id number } }
                 fieldValueByName(name:"Status") {
                   ... on ProjectV2ItemFieldSingleSelectValue {
@@ -181,15 +198,23 @@ jobs:
           verify_json="$(gh api graphql -f query="$VERIFY_QUERY" -F item="$item_id")"
           sleep 1
 
+          verified_item_id="$(jq -r '.data.node.id // empty' <<<"$verify_json")"
+          verified_project_id="$(jq -r '.data.node.project.id // empty' <<<"$verify_json")"
+          verified_project_title="$(jq -r '.data.node.project.title // empty' <<<"$verify_json")"
+          verified_issue_id="$(jq -r '.data.node.content.id // empty' <<<"$verify_json")"
           verified_issue="$(jq -r '.data.node.content.number // empty' <<<"$verify_json")"
           verified_status="$(jq -r '.data.node.fieldValueByName.name // empty' <<<"$verify_json")"
           verified_option="$(jq -r '.data.node.fieldValueByName.optionId // empty' <<<"$verify_json")"
           archived="$(jq -r '.data.node.isArchived' <<<"$verify_json")"
 
+          [ "$verified_item_id" = "$item_id" ] || { echo "Verification failed: Project Item identity mismatch."; exit 1; }
+          [ "$verified_project_id" = "$project_id" ] || { echo "Verification failed: Project identity mismatch."; exit 1; }
+          [ "$verified_project_title" = "$PROJECT_TITLE" ] || { echo "Verification failed: Project title mismatch."; exit 1; }
+          [ "$verified_issue_id" = "$ISSUE_NODE_ID" ] || { echo "Verification failed: Project Item does not contain the triggering Issue identity."; exit 1; }
           [ "$verified_issue" = "$ISSUE_NUMBER" ] || { echo "Verification failed: Project Item does not contain Issue #$ISSUE_NUMBER."; exit 1; }
           [ "$archived" = "false" ] || { echo "Verification failed: Project Item is archived."; exit 1; }
           [ "$verified_status" = "$TARGET_LABEL" ] || { echo "Verification failed: Project Item Status is '$verified_status', not $TARGET_LABEL."; exit 1; }
           [ "$verified_option" = "$target_option_id" ] || { echo "Verification failed: Status option ID does not match $TARGET_LABEL."; exit 1; }
 
-          echo "PASS: Issue #$ISSUE_NUMBER is a Project Item in '$PROJECT_TITLE' with Status $TARGET_LABEL."
+          echo "PASS: Issue #$ISSUE_NUMBER is verified as active Project Item $item_id in '$PROJECT_TITLE' with Project Item Status $TARGET_LABEL ($target_option_id)."
           trap - ERR
