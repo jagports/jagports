@@ -52,6 +52,77 @@ This workflow applies regardless of whether the requester or executor is a human
 
 **Explicit reference → OPEN active search → HISTORICAL CLOSED/MERGED search → verify claimed result → valid = no duplicate / insufficient or obsolete = active work / uncertain = clarification → only then create new work.**
 
+The complete control flow is:
+
+```text
+INPUT: work_request
+  |
+  +--> classify requester (human | agent)
+  |
+  +--> explicit Issue/PR reference?
+  |       |
+  |       +-- YES --> validate referenced item --> resolve work identity
+  |       |
+  |       +-- NO --> search OPEN Issues
+  |                    |
+  |                    +--> clear match --> reuse Issue
+  |                    |
+  |                    +--> related candidate
+  |                    |      |
+  |                    |      +--> scope/duplication uncertain --> CLARIFY(requester)
+  |                    |      |
+  |                    |      +--> legitimate amendment/extension --> reuse Issue
+  |                    |
+  |                    +--> no suitable Issue --> search CLOSED Issues
+  |                                         |
+  |                                         +--> exact/materially similar historical work?
+  |                                                |
+  |                                                +--> YES --> verify resulting repository state
+  |                                                |             |
+  |                                                |             +--> still satisfies request --> no duplicate active Issue
+  |                                                |             |
+  |                                                |             +--> insufficient/obsolete/broken --> create/reuse active Issue
+  |                                                |
+  |                                                +--> NO --> CREATE Issue
+  |
+  +--> after Issue resolution and no pending clarification
+  |       |
+  |       +--> search OPEN PRs
+  |              |
+  |              +--> clear implementation match --> reuse PR
+  |              |
+  |              +--> related candidate
+  |              |      |
+  |              |      +--> scope/duplication/ownership uncertain --> CLARIFY(requester)
+  |              |      |
+  |              |      +--> legitimate extension --> reuse PR
+  |              |
+  |              +--> no suitable PR --> search MERGED PRs
+  |                                           |
+  |                                           +--> exact/materially similar implementation?
+  |                                                  |
+  |                                                  +--> YES --> verify resulting repository state
+  |                                                  |             |
+  |                                                  |             +--> still satisfies request --> no duplicate PR
+  |                                                  |             |
+  |                                                  |             +--> insufficient/obsolete/broken --> CREATE PR
+  |                                                  |
+  |                                                  +--> NO --> CREATE PR via Repository Change Gate
+  |
+  +--> resolved Issue + PR identity
+  |
+  +--> execute Implementation Round 1
+  |
+  +--> review required?
+          |
+          +--> YES --> STOP implementation
+          |            DO NOT MERGE
+          |            PROVIDE PR/review link
+          |            HAND OFF TO REVIEW
+          |
+          +--> NO --> continue only where explicitly permitted by workflow
+```
+
 ### Rules
 
 1. If an Issue/PR is explicitly supplied, validate it and use it as the starting work identity unless it is invalid or the requested scope is incompatible.
