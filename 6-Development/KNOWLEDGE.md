@@ -90,12 +90,13 @@ Keep human navigation minimal. Put the descriptive link/reference on a separate 
 
 ### Mandatory compact human-test format
 
-Human-test Issues must be easy to execute at a glance. Prefer **12–16 rendered lines for the complete human procedure and result choices**, excluding long URLs rendered by GitHub and optional agent-preparation notes.
+Human-test Issues must be easy to execute at a glance. Prefer **12–20 rendered lines for the complete human procedure and result choices**, excluding long URLs rendered by GitHub and optional agent-preparation notes.
 
 Use this style whenever a human needs to open a specific GitHub resource:
 
 - Put the human action first.
 - Put the descriptive link/reference on the **next line**.
+- If the human must first find a specific test Issue, put the **actual test Issue title as a clickable link on its own line immediately after “find the test Issue:”**.
 - Put the expected result on the **following line**.
 - Keep one clear action per checkbox.
 - Keep the link text descriptive enough that the human knows exactly what resource will open.
@@ -105,36 +106,42 @@ Use this style whenever a human needs to open a specific GitHub resource:
 Canonical example:
 
 ```text
-## HUMAN TEST — do exactly these actions
+HUMAN TEST — do exactly these actions
 Test PR lifecycle behavior: open/reopen → BACKLOG; close → DONE.
 
-### Actions
+Actions
 
-- [ ] **1. Open the**
-  [Project: Jagports AI OS — Project #9](https://github.com/orgs/jagports/projects/9)
-  **and find the test Issue.**
-  **Confirm Status is BACKLOG.**
+1. Open the
+Project: Jagports AI OS — Project #9
+and find the test Issue:
+[P1 TEST] #84 Human lifecycle test v4 — minimal UI verification
+Confirm Status is BACKLOG.
 
-- [ ] **2. Open the**
-  [Test Issue: Human lifecycle test #349](https://github.com/jagports/jagports/issues/349)
-  **and click `Close issue`. Do not change Project Status.**
-  **Confirm the Issue is closed.**
+2. Open the
+[P1 TEST] #84 Human lifecycle test v4 — minimal UI verification
+and click Close issue. Do not change Project Status.
 
-- [ ] **3. Refresh the**
-  [Project: Jagports AI OS — Project #9](https://github.com/orgs/jagports/projects/9)
-  **and find the test Issue.**
-  **Confirm Status is DONE and the Issue is closed.**
+3. Refresh the
+Project: Jagports AI OS — Project #9
+and find the test Issue:
+[P1 TEST] #84 Human lifecycle test v4 — minimal UI verification
+Confirm Status is DONE and the Issue is closed.
 
-### Result — select exactly one
-- [ ] **PASS** — all three actions and expected results were correct.
-- [ ] **FAIL** — an expected result was wrong; describe what you saw.
-- [ ] **BLOCKED** — a required resource/prerequisite was unavailable; explain why.
-- [ ] **NOT TESTED** — the test was not performed.
+Result — select exactly one
 
-**STOP ON FAILURE. Do not repair the test state. After recording the result, close this Issue as housekeeping; closure is not evidence of PASS.**
+PASS — all three actions and expected results were correct.
+
+FAIL — an expected result was wrong; describe what you saw.
+
+BLOCKED — a required resource/prerequisite was unavailable; explain why.
+
+NOT TESTED — the test was not performed.
+STOP ON FAILURE. Do not repair the test state. After recording the result, close this Issue as housekeeping; closure is not evidence of PASS.
 ```
 
-The example is a formatting and usability standard, not a fixed test. Replace the example resources, actions, and expected results with the actual verified resources and conditions. Preserve the same compact structure: action → descriptive link on the next line → expected result on the following line.
+In an actual GitHub Issue, make each resource line above a descriptive Markdown link to the exact resource. The test Issue link must display the **actual title of the newly created test Issue**, not a generic label such as “Test Issue”. Preserve the blank line before every link/reference so GitHub renders the resource on its own line.
+
+The example is a formatting and usability standard, not a fixed test. Replace the example resources, actions, expected results, and actual test Issue title with the verified resources and conditions for the current test. Preserve the same compact structure: action → descriptive resource link on the next line → expected result on the following line. Keep the complete human procedure and result choices short enough to scan at a glance.
 
 Do not ask the human to type a result into chat when a GitHub Issue checklist can record the result directly. The human should normally mark the applicable checkboxes in the test Issue and select exactly one final outcome there. Chat may be used for additional clarification, but it is not a substitute for the persistent test record.
 
@@ -194,7 +201,8 @@ Verify that:
 - it represents the intended starting state;
 - it does not unexpectedly open an already-completed or unrelated operation;
 - the instructions identify the exact action and expected result;
-- the Markdown keeps the descriptive link/reference on the line immediately after the action text and the expected result on the following line.
+- the Markdown keeps the descriptive link/reference on the line immediately after the action text and the expected result on the following line;
+- when a specific test Issue is referenced, the link text is the actual current title of that test Issue.
 
 For any test that depends on a unique resource or isolated state, verify that the resource is actually unique and unused before providing it to the tester.
 
@@ -211,7 +219,7 @@ Before creating a human-test Issue:
 5. Create the complete human-test checklist only after the fixture passes preflight.
 6. Ensure the checklist contains the exact starting state, concrete human actions/observations, expected result for every executable step, a checkbox for every executable step, a stop-on-failure rule, mutually exclusive final result choices, and direct descriptive links for every specific GitHub resource the human must open, inspect, modify, or verify.
 7. Keep deterministic preparation and machine verification out of the human's required action list unless human execution is itself part of the behavior under test.
-8. Format each human step as action → descriptive link on the next line → expected result on the following line. Do not put the link/reference inline in the action sentence.
+8. Format each human step as action → descriptive resource link on the next line → expected result on the following line. When the human must find a test Issue, show the actual test Issue title as the descriptive link on its own line immediately after “find the test Issue:”. Never put the link/reference inline in the action sentence.
 
 After creating the human-test Issue, fetch the actual stored Issue content and perform a handover verification:
 
