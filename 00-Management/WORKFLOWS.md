@@ -52,77 +52,6 @@ This workflow applies regardless of whether the requester or executor is a human
 
 **Explicit reference → OPEN active search → HISTORICAL CLOSED/MERGED search → verify claimed result → valid = no duplicate / insufficient or obsolete = active work / uncertain = clarification → only then create new work.**
 
-The complete control flow is:
-
-```text
-INPUT: work_request
-  |
-  +--> classify requester (human | agent)
-  |
-  +--> explicit Issue/PR reference?
-  |       |
-  |       +-- YES --> validate referenced item --> resolve work identity
-  |       |
-  |       +-- NO --> search OPEN Issues
-  |                    |
-  |                    +--> clear match --> reuse Issue
-  |                    |
-  |                    +--> related candidate
-  |                    |      |
-  |                    |      +--> scope/duplication uncertain --> CLARIFY(requester)
-  |                    |      |
-  |                    |      +--> legitimate amendment/extension --> reuse Issue
-  |                    |
-  |                    +--> no suitable Issue --> search CLOSED Issues
-  |                                         |
-  |                                         +--> exact/materially similar historical work?
-  |                                                |
-  |                                                +--> YES --> verify resulting repository state
-  |                                                |             |
-  |                                                |             +--> still satisfies request --> no duplicate active Issue
-  |                                                |             |
-  |                                                |             +--> insufficient/obsolete/broken --> create/reuse active Issue
-  |                                                |
-  |                                                +--> NO --> CREATE Issue
-  |
-  +--> after Issue resolution and no pending clarification
-  |       |
-  |       +--> search OPEN PRs
-  |              |
-  |              +--> clear implementation match --> reuse PR
-  |              |
-  |              +--> related candidate
-  |              |      |
-  |              |      +--> scope/duplication/ownership uncertain --> CLARIFY(requester)
-  |              |      |
-  |              |      +--> legitimate extension --> reuse PR
-  |              |
-  |              +--> no suitable PR --> search MERGED PRs
-  |                                           |
-  |                                           +--> exact/materially similar implementation?
-  |                                                  |
-  |                                                  +--> YES --> verify resulting repository state
-  |                                                  |             |
-  |                                                  |             +--> still satisfies request --> no duplicate PR
-  |                                                  |             |
-  |                                                  |             +--> insufficient/obsolete/broken --> CREATE PR
-  |                                                  |
-  |                                                  +--> NO --> CREATE PR via Repository Change Gate
-  |
-  +--> resolved Issue + PR identity
-  |
-  +--> execute Implementation Round 1
-  |
-  +--> review required?
-          |
-          +--> YES --> STOP implementation
-          |            DO NOT MERGE
-          |            PROVIDE PR/review link
-          |            HAND OFF TO REVIEW
-          |
-          +--> NO --> continue only where explicitly permitted by workflow
-```
-
 ### Rules
 
 1. If an Issue/PR is explicitly supplied, validate it and use it as the starting work identity unless it is invalid or the requested scope is incompatible.
@@ -233,46 +162,50 @@ Review required?
   NO               YES
    |                |
    v                v
-continue       Is requester human?
-                  |          |
-                 YES         NO
-                  |           |
-                  v           v
-       Request GitHub review     Request designated
-       from human requester      human reviewer
-                  |           |
-                  +-----+-----+
-                        |
-                        v
-             Project Item Status = REVIEW
-                        |
-                        v
-                 Verify Project Status
-                        |
-                        v
-              Executor STOPS / DO NOT MERGE
-                        |
-                        v
-              GitHub review notification
-                        |
-                        v
-             Human reviewer acts:
-          Approve / Request changes / Comment
-                        |
-                        v
-                 Continue workflow
+continue       Identify PR author/executor
+                            |
+                            v
+                  Select authorized reviewer
+                            |
+                            v
+              reviewer == PR author/executor?
+                    |                |
+                   YES               NO
+                    |                 |
+                    v                 v
+             STOP / BLOCK      Request GitHub review
+             no review         from independent reviewer
+             may be submitted          |
+                                       v
+                            Project Item Status = REVIEW
+                                       |
+                                       v
+                                Verify Project Status
+                                       |
+                                       v
+                              EXECUTOR STOPS / DO NOT MERGE
+                                       |
+                                       v
+                              Independent reviewer acts:
+                         APPROVE / REQUEST CHANGES / COMMENT
+                                       |
+                                       v
+                                Continue workflow
 ```
 
 Rules:
 
 1. When the requester is human and review is required, the executing actor requests that human as a GitHub PR reviewer.
 2. When the requester is an agent, the review request is routed to the designated human reviewer/authority.
-3. The GitHub review request and notification are the native review hand-off mechanism; no additional PR status is invented.
-4. Set the Project Item Status to `REVIEW` and independently verify it.
-5. After the hand-off, the executing actor stops implementation and does not merge.
-6. GitHub review outcomes (`Approve`, `Request changes`, or `Comment`) determine the review result; the workflow must not infer approval from a notification alone.
-7. **The reviewer who submitted a review is the only actor authorized to resolve review comments belonging to that review. The PR executor, PR author, or any other non-reviewer must not resolve those comments on the reviewer's behalf. The repository/project owner or another explicitly designated human authority is an exception and may resolve them when exercising that authority.**
-8. When review changes are requested, the executor may implement the requested changes and reply to the review comments, but must leave the review comments unresolved for the reviewer to resolve after verifying the response.
+3. **The formal reviewer must be independent of both the PR author and the executing actor. A PR author/executor may perform a private self-check before hand-off, but must not submit the formal GitHub review on that PR.**
+4. **Before requesting or submitting a formal review, verify reviewer identity against the PR author and current executing actor. If the identities are equal, or reviewer identity cannot be established unambiguously, STOP/BLOCK and do not submit a review.**
+5. **A self-review, including a `COMMENTED` review submitted by the PR author/executor, is not independent review and cannot satisfy the formal review gate.**
+6. The GitHub review request and notification are the native review hand-off mechanism; no additional PR status is invented.
+7. Set the Project Item Status to `REVIEW` and independently verify it.
+8. After the hand-off, the executing actor stops implementation and does not merge.
+9. GitHub review outcomes (`Approve`, `Request changes`, or `Comment`) determine the review result; the workflow must not infer approval from a notification alone.
+10. **The reviewer who submitted a review is the only actor authorized to resolve review comments belonging to that review. The PR executor, PR author, or any other non-reviewer must not resolve those comments on the reviewer's behalf. The repository/project owner or another explicitly designated human authority is an exception and may resolve them when exercising that authority.**
+11. When review changes are requested, the executor may implement the requested changes and reply to the review comments, but must leave the review comments unresolved for the reviewer to resolve after verifying the response.
 
 Required human validation follows the approved testing gate:
 
