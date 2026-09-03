@@ -42,10 +42,13 @@ Do not perform manually an operation that the test is intended to verify as auto
 
 When a test requires technical setup, prepare the environment before handing the test to a human.
 
-- Prepare all required files, configuration, data, services, or other prerequisites.
+- Prepare all required files, configuration, data, services, accounts, permissions, fixtures, and other prerequisites.
 - Use an isolated and reproducible test state when the operation could affect other work.
 - Verify prerequisites before giving the human the test instructions.
-- Ensure that the test state itself does not perform the behavior being tested before the human starts.
+- Ensure that preparation itself does not perform the behavior under test.
+- Where deterministic setup or state transitions can be performed safely by the agent, perform them before human handover rather than making the human execute them.
+- When the purpose of the test is to verify an automated transition, the agent may create the fixture and drive the deterministic transition sequence; the human then verifies the resulting observable state independently.
+- Never use agent preparation to manufacture evidence for the behavior being tested. The human observation must remain independent of the preparation claim.
 
 A test environment is preparation, not test evidence. The expected behavior must still be exercised and observed.
 
@@ -54,11 +57,88 @@ A test environment is preparation, not test evidence. The expected behavior must
 Use humans and automation for the responsibilities each can verify reliably:
 
 1. **Human defines intent** and performs actions requiring human judgment or interaction.
-2. **Automation performs deterministic operations** such as validation, metadata handling, or repeatable checks.
+2. **Automation performs deterministic operations** such as fixture creation, validation, metadata handling, repeatable state transitions, and execution checks when these are part of the test setup or automated behavior under test.
 3. **Human verifies observable results** where the result requires UI observation, real interaction, or judgment.
-4. **The project record captures the request, automated result, review, and human verification.**
+4. **The project record captures the request, automated result, and human verification.**
 
-Do not substitute implementation inspection for human verification when the test explicitly concerns observable behavior. Conversely, do not require a human to perform repetitive deterministic checks that automation can verify consistently.
+For tests where the behavior under test is itself deterministic automation, prefer this pattern:
+
+`agent prepares fixture → agent triggers real test event → automation executes → agent verifies machine-observable result → human independently verifies required observable state`
+
+The human should not repeat deterministic setup or automation actions merely to provide evidence that an agent can establish reliably. Conversely, the agent must not replace human observation when the acceptance criterion is human-observable behavior.
+
+Do not substitute implementation inspection for human verification when the test explicitly concerns observable behavior.
+
+### Human-test Issue checklist design
+
+Every human-test Issue must be executable as a checklist rather than as prose that requires the human to infer a procedure.
+
+The checklist should:
+
+- begin with a clearly identified **Starting state**;
+- state what the agent has already prepared and what the human must **not** change during preparation verification;
+- contain one checkbox for every executable human verification/action step;
+- make each checkbox independently pass/fail observable;
+- put the direct URL required for that step immediately with the step;
+- state the exact expected result for that step;
+- identify whether the step is **human action**, **human observation**, or **agent/automation preparation already completed**;
+- identify the exact Issue, PR, Project, branch, commit, fixture, or other resource under test where applicable;
+- include a **STOP ON FAILURE** rule so later checks are not performed after a failed prerequisite;
+- provide mutually exclusive final result choices: `PASS`, `FAIL`, `BLOCKED`, or `NOT TESTED`;
+- make clear that only the final result selected after all required checks is test evidence.
+
+A useful test Issue structure is:
+
+```text
+## Test classification
+PR-branch pre-merge / post-merge smoke-regression / other explicit class
+
+## Starting state — prepared by agent
+- [x] Fixture exists and has been independently preflight-verified.
+- [x] Exact PR/commit under test is identified and verified.
+- [x] Required automation/configuration is deployed in the intended execution context.
+
+## Human verification
+- [ ] 1. Open <direct URL> and verify <one observable condition>.
+  Expected: <exact result>.
+- [ ] 2. Open <direct URL> and verify <one observable condition>.
+  Expected: <exact result>.
+
+## STOP ON FAILURE
+Stop immediately at the first failed or blocked required step.
+
+## Final result — select exactly one
+- [ ] PASS
+- [ ] FAIL
+- [ ] BLOCKED
+- [ ] NOT TESTED
+```
+
+The example is structural guidance only; test Issues must use their actual verified resources and conditions.
+
+Do not ask the human to type a result into chat when a GitHub Issue checklist can record the result directly. The human should normally mark the applicable checkboxes in the test Issue and select exactly one final outcome there. Chat may be used for additional clarification, but it is not a substitute for the persistent test record.
+
+### Agent-prepared test execution
+
+When technically possible, the agent should prepare and execute all deterministic portions of a test before requesting human verification.
+
+The preferred sequence is:
+
+1. Identify the exact implementation revision under test.
+2. Create or select a fresh isolated test fixture.
+3. Verify every prerequisite and prove the fixture is unused.
+4. Execute any deterministic setup that is not itself the behavior under test.
+5. Trigger the real event or operation under test when this can be done without bypassing the behavior being tested.
+6. Wait for and inspect the resulting automation/execution evidence.
+7. Independently verify machine-observable results.
+8. Prepare the human-test Issue with only the remaining human observations/actions.
+9. Re-fetch the Issue and verify its stored checklist and every direct URL.
+10. Re-verify the linked resources and their current starting state before handover.
+11. Give the human the test Issue only after all preflight and handover checks pass.
+
+For multi-step workflow tests, the agent should pre-stage each step that can safely be automated and then hand the human one verification step at a time. The human should normally perform no state-changing operation unless that operation is specifically the human behavior being tested.
+
+If the agent can safely execute the entire deterministic test sequence, it may do so and leave the human with independent UI/state verification steps. Such an agent-run sequence does not remove the requirement for human verification where the acceptance criterion is human-observable.
 
 ### Workflow and automation testing
 
@@ -68,6 +148,8 @@ When a test depends on automation, verify that the automation is available in th
 - Trigger the real event or operation under test.
 - Inspect the resulting execution status and output.
 - Distinguish warnings from failures according to the acceptance criteria.
+- Record the exact execution/run identifier when it is material to proving that the intended event was processed.
+- Verify that the observed execution corresponds to the exact test fixture and implementation revision under test.
 
 The presence of configuration or workflow source code does not prove that the automation executed successfully. Execution evidence is required.
 
@@ -80,7 +162,7 @@ Test evidence must describe what was actually observed, not what was expected to
 - **BLOCKED:** the test could not be executed because a prerequisite was unavailable.
 - **NOT TESTED:** the environment was prepared but the behavior was not exercised and verified.
 
-Do not record an unexecuted test as successful merely because the implementation or test environment appears correct.
+Do not record an unexecuted test as successful.
 
 ### Reproducible test instructions and URLs
 
@@ -104,16 +186,19 @@ Before creating a human-test Issue:
 1. Select a test case that is not duplicate coverage of an already executed or invalidated test.
 2. Create or establish the complete isolated fixture required by the test.
 3. Verify the actual GitHub state of every required resource, including that unique resources are genuinely unused and that preparation has not already performed the behavior under test.
-4. Create the complete human-test checklist only after the fixture passes preflight.
-5. Ensure the checklist contains the exact starting state, concrete action, expected result, a checkbox for every executable step, a stop-on-failure rule, and mutually exclusive final result choices.
-6. Include a direct URL for every specific GitHub resource the human must open, inspect, modify, or verify.
+4. Identify the exact implementation revision under test, including PR head branch and commit when applicable.
+5. Create the complete human-test checklist only after the fixture passes preflight.
+6. Ensure the checklist contains the exact starting state, concrete human actions/observations, expected result for every executable step, a checkbox for every executable step, a stop-on-failure rule, mutually exclusive final result choices, and direct URLs for every specific GitHub resource the human must open, inspect, modify, or verify.
+7. Keep deterministic preparation and machine verification out of the human's required action list unless human execution is itself part of the behavior under test.
 
 After creating the human-test Issue, fetch the actual stored Issue content and perform a handover verification:
 
 1. Confirm that the stored Issue contains every required test instruction and direct URL.
 2. Confirm that each direct URL resolves to the intended existing resource.
 3. Confirm that the linked resource still has the verified starting state.
-4. Do not hand the human the test Issue URL until these checks succeed.
+4. Confirm that the test Issue identifies the exact implementation revision under test where applicable.
+5. Confirm that the test Issue has no stale, completed, or contradictory instruction that could cause the human to test the wrong state.
+6. Do not hand the human the test Issue URL until these checks succeed.
 
 If any preflight or post-creation handover check fails, do not present the test as ready. Correct the preparation or record the test as blocked/invalid. Never make the human repair a technical fixture that was supposed to be prepared in advance.
 
