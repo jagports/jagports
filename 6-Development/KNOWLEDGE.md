@@ -89,40 +89,49 @@ The checklist should:
 
 Keep human navigation minimal. A direct URL is for a specific resource the human must use; do not add repeated or unnecessary navigation links. If a primary Issue/PR/Project link is needed, put it on its own line or paragraph rather than attaching it to a long instruction sentence.
 
-A useful test Issue structure is:
+### Mandatory compact human-test format
+
+Human-test Issues must be easy to execute at a glance. Prefer **12–16 rendered lines for the complete human procedure and result choices**, excluding long URLs rendered by GitHub and optional agent-preparation notes.
+
+Use this style whenever a human needs to open a specific GitHub resource:
+
+- Put the human action text first.
+- Put the descriptive link/reference on the **next line**, never inline in the action sentence.
+- Keep the action and its expected result in the same checkbox item where practical.
+- Do not create separate navigation instructions when the resource can be linked directly at the point where it must be opened.
+- Keep one clear action per checkbox.
+- Use only the links necessary for the human to execute the test.
+
+Canonical example:
 
 ```text
-## Test classification
-PR-branch pre-merge / post-merge smoke-regression / other explicit class
+## HUMAN TEST — do exactly these actions
+Test PR lifecycle behavior: open/reopen → BACKLOG; close → DONE.
 
-## Starting state — prepared by agent
-- [x] Fixture exists and has been independently preflight-verified.
-- [x] Exact PR/commit under test is identified and verified.
-- [x] Required automation/configuration is deployed in the intended execution context.
+### Actions
 
-## Human verification
-- [ ] 1. Open the test resource and verify <one observable condition>.
+- [ ] **1. Open the**
+  [Project: Jagports AI OS — Project #9](https://github.com/orgs/jagports/projects/9)
+  **and find the test Issue. Confirm Status is BACKLOG.**
 
-  <direct URL>
+- [ ] **2. Open the**
+  [Test Issue: Human lifecycle test #349](https://github.com/jagports/jagports/issues/349)
+  **and click `Close issue`. Do not change Project Status.**
 
-  Expected: <exact result>.
-- [ ] 2. Open the verification resource and verify <one observable condition>.
+- [ ] **3. Refresh the**
+  [Project: Jagports AI OS — Project #9](https://github.com/orgs/jagports/projects/9)
+  **and find the test Issue. Confirm Status is DONE and the Issue is closed.**
 
-  <direct URL>
+### Result — select exactly one
+- [ ] **PASS** — all three actions and expected results were correct.
+- [ ] **FAIL** — an expected result was wrong; describe what you saw.
+- [ ] **BLOCKED** — a required resource/prerequisite was unavailable; explain why.
+- [ ] **NOT TESTED** — the test was not performed.
 
-  Expected: <exact result>.
-
-## STOP ON FAILURE
-Stop immediately at the first failed or blocked required step.
-
-## Final result — select exactly one
-- [ ] PASS
-- [ ] FAIL
-- [ ] BLOCKED
-- [ ] NOT TESTED
+**STOP ON FAILURE. Do not repair the test state. After recording the result, close this Issue as housekeeping; closure is not evidence of PASS.**
 ```
 
-The example is structural guidance only; test Issues must use their actual verified resources and conditions.
+The example is a formatting and usability standard, not a fixed test. Replace the example resources, actions, and expected results with the actual verified resources and conditions. Preserve the same compact structure and the next-line link/reference rule.
 
 Do not ask the human to type a result into chat when a GitHub Issue checklist can record the result directly. The human should normally mark the applicable checkboxes in the test Issue and select exactly one final outcome there. Chat may be used for additional clarification, but it is not a substitute for the persistent test record.
 
