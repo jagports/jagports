@@ -79,13 +79,15 @@ The checklist should:
 - state what the agent has already prepared and what the human must **not** change during preparation verification;
 - contain one checkbox for every executable human verification/action step;
 - make each checkbox independently pass/fail observable;
-- put the direct URL required for that step immediately with the step;
+- put the direct URL required for that step immediately below the step text, on its own line, separated by a blank line;
 - state the exact expected result for that step;
 - identify whether the step is **human action**, **human observation**, or **agent/automation preparation already completed**;
 - identify the exact Issue, PR, Project, branch, commit, fixture, or other resource under test where applicable;
 - include a **STOP ON FAILURE** rule so later checks are not performed after a failed prerequisite;
 - provide mutually exclusive final result choices: `PASS`, `FAIL`, `BLOCKED`, or `NOT TESTED`;
 - make clear that only the final result selected after all required checks is test evidence.
+
+Keep human navigation minimal. A direct URL is for a specific resource the human must use; do not add repeated or unnecessary navigation links. If a primary Issue/PR/Project link is needed, put it on its own line or paragraph rather than attaching it to a long instruction sentence.
 
 A useful test Issue structure is:
 
@@ -99,9 +101,15 @@ PR-branch pre-merge / post-merge smoke-regression / other explicit class
 - [x] Required automation/configuration is deployed in the intended execution context.
 
 ## Human verification
-- [ ] 1. Open <direct URL> and verify <one observable condition>.
+- [ ] 1. Open the test resource and verify <one observable condition>.
+
+  <direct URL>
+
   Expected: <exact result>.
-- [ ] 2. Open <direct URL> and verify <one observable condition>.
+- [ ] 2. Open the verification resource and verify <one observable condition>.
+
+  <direct URL>
+
   Expected: <exact result>.
 
 ## STOP ON FAILURE
@@ -173,7 +181,8 @@ Verify that:
 - the destination exists and is accessible;
 - it represents the intended starting state;
 - it does not unexpectedly open an already-completed or unrelated operation;
-- the instructions identify the exact action and expected result.
+- the instructions identify the exact action and expected result;
+- the Markdown has a blank line before and after a standalone direct URL so the link is visually separated from the instruction text.
 
 For any test that depends on a unique resource or isolated state, verify that the resource is actually unique and unused before providing it to the tester.
 
@@ -190,15 +199,17 @@ Before creating a human-test Issue:
 5. Create the complete human-test checklist only after the fixture passes preflight.
 6. Ensure the checklist contains the exact starting state, concrete human actions/observations, expected result for every executable step, a checkbox for every executable step, a stop-on-failure rule, mutually exclusive final result choices, and direct URLs for every specific GitHub resource the human must open, inspect, modify, or verify.
 7. Keep deterministic preparation and machine verification out of the human's required action list unless human execution is itself part of the behavior under test.
+8. Render each standalone direct URL as its own Markdown paragraph, with a blank line separating it from the surrounding instruction text, and avoid redundant navigation links.
 
 After creating the human-test Issue, fetch the actual stored Issue content and perform a handover verification:
 
 1. Confirm that the stored Issue contains every required test instruction and direct URL.
 2. Confirm that each direct URL resolves to the intended existing resource.
-3. Confirm that the linked resource still has the verified starting state.
-4. Confirm that the test Issue identifies the exact implementation revision under test where applicable.
-5. Confirm that the test Issue has no stale, completed, or contradictory instruction that could cause the human to test the wrong state.
-6. Do not hand the human the test Issue URL until these checks succeed.
+3. Confirm that the Markdown structure preserves the intended paragraph separation around each standalone URL.
+4. Confirm that the linked resource still has the verified starting state.
+5. Confirm that the test Issue identifies the exact implementation revision under test where applicable.
+6. Confirm that the test Issue has no stale, completed, or contradictory instruction that could cause the human to test the wrong state.
+7. Do not hand the human the test Issue URL until these checks succeed.
 
 If any preflight or post-creation handover check fails, do not present the test as ready. Correct the preparation or record the test as blocked/invalid. Never make the human repair a technical fixture that was supposed to be prepared in advance.
 
