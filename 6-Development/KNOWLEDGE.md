@@ -79,7 +79,6 @@ The checklist should:
 - state what the agent has already prepared and what the human must **not** change during preparation verification;
 - contain one checkbox for every executable human verification/action step;
 - make each checkbox independently pass/fail observable;
-- put the direct URL required for that step immediately below the step text, on its own line, separated by a blank line;
 - state the exact expected result for that step;
 - identify whether the step is **human action**, **human observation**, or **agent/automation preparation already completed**;
 - identify the exact Issue, PR, Project, branch, commit, fixture, or other resource under test where applicable;
@@ -87,7 +86,7 @@ The checklist should:
 - provide mutually exclusive final result choices: `PASS`, `FAIL`, `BLOCKED`, or `NOT TESTED`;
 - make clear that only the final result selected after all required checks is test evidence.
 
-Keep human navigation minimal. A direct URL is for a specific resource the human must use; do not add repeated or unnecessary navigation links. If a primary Issue/PR/Project link is needed, put it on its own line or paragraph rather than attaching it to a long instruction sentence.
+Keep human navigation minimal. Put the descriptive link/reference on a separate line immediately after the action text that tells the human what to open. Never embed the link/reference inline in the action sentence. Put the expected result on the following line. Do not create separate navigation instructions when the resource can be linked directly at the point where it must be opened.
 
 ### Mandatory compact human-test format
 
@@ -95,11 +94,12 @@ Human-test Issues must be easy to execute at a glance. Prefer **12–16 rendered
 
 Use this style whenever a human needs to open a specific GitHub resource:
 
-- Put the human action text first.
-- Put the descriptive link/reference on the **next line**, never inline in the action sentence.
-- Keep the action and its expected result in the same checkbox item where practical.
-- Do not create separate navigation instructions when the resource can be linked directly at the point where it must be opened.
+- Put the human action first.
+- Put the descriptive link/reference on the **next line**.
+- Put the expected result on the **following line**.
 - Keep one clear action per checkbox.
+- Keep the link text descriptive enough that the human knows exactly what resource will open.
+- Do not put a GitHub reference or URL inline in the action sentence.
 - Use only the links necessary for the human to execute the test.
 
 Canonical example:
@@ -112,15 +112,18 @@ Test PR lifecycle behavior: open/reopen → BACKLOG; close → DONE.
 
 - [ ] **1. Open the**
   [Project: Jagports AI OS — Project #9](https://github.com/orgs/jagports/projects/9)
-  **and find the test Issue. Confirm Status is BACKLOG.**
+  **and find the test Issue.**
+  **Confirm Status is BACKLOG.**
 
 - [ ] **2. Open the**
   [Test Issue: Human lifecycle test #349](https://github.com/jagports/jagports/issues/349)
   **and click `Close issue`. Do not change Project Status.**
+  **Confirm the Issue is closed.**
 
 - [ ] **3. Refresh the**
   [Project: Jagports AI OS — Project #9](https://github.com/orgs/jagports/projects/9)
-  **and find the test Issue. Confirm Status is DONE and the Issue is closed.**
+  **and find the test Issue.**
+  **Confirm Status is DONE and the Issue is closed.**
 
 ### Result — select exactly one
 - [ ] **PASS** — all three actions and expected results were correct.
@@ -131,7 +134,7 @@ Test PR lifecycle behavior: open/reopen → BACKLOG; close → DONE.
 **STOP ON FAILURE. Do not repair the test state. After recording the result, close this Issue as housekeeping; closure is not evidence of PASS.**
 ```
 
-The example is a formatting and usability standard, not a fixed test. Replace the example resources, actions, and expected results with the actual verified resources and conditions. Preserve the same compact structure and the next-line link/reference rule.
+The example is a formatting and usability standard, not a fixed test. Replace the example resources, actions, and expected results with the actual verified resources and conditions. Preserve the same compact structure: action → descriptive link on the next line → expected result on the following line.
 
 Do not ask the human to type a result into chat when a GitHub Issue checklist can record the result directly. The human should normally mark the applicable checkboxes in the test Issue and select exactly one final outcome there. Chat may be used for additional clarification, but it is not a substitute for the persistent test record.
 
@@ -191,7 +194,7 @@ Verify that:
 - it represents the intended starting state;
 - it does not unexpectedly open an already-completed or unrelated operation;
 - the instructions identify the exact action and expected result;
-- the Markdown has a blank line before and after a standalone direct URL so the link is visually separated from the instruction text.
+- the Markdown keeps the descriptive link/reference on the line immediately after the action text and the expected result on the following line.
 
 For any test that depends on a unique resource or isolated state, verify that the resource is actually unique and unused before providing it to the tester.
 
@@ -206,15 +209,15 @@ Before creating a human-test Issue:
 3. Verify the actual GitHub state of every required resource, including that unique resources are genuinely unused and that preparation has not already performed the behavior under test.
 4. Identify the exact implementation revision under test, including PR head branch and commit when applicable.
 5. Create the complete human-test checklist only after the fixture passes preflight.
-6. Ensure the checklist contains the exact starting state, concrete human actions/observations, expected result for every executable step, a checkbox for every executable step, a stop-on-failure rule, mutually exclusive final result choices, and direct URLs for every specific GitHub resource the human must open, inspect, modify, or verify.
+6. Ensure the checklist contains the exact starting state, concrete human actions/observations, expected result for every executable step, a checkbox for every executable step, a stop-on-failure rule, mutually exclusive final result choices, and direct descriptive links for every specific GitHub resource the human must open, inspect, modify, or verify.
 7. Keep deterministic preparation and machine verification out of the human's required action list unless human execution is itself part of the behavior under test.
-8. Render each standalone direct URL as its own Markdown paragraph, with a blank line separating it from the surrounding instruction text, and avoid redundant navigation links.
+8. Format each human step as action → descriptive link on the next line → expected result on the following line. Do not put the link/reference inline in the action sentence.
 
 After creating the human-test Issue, fetch the actual stored Issue content and perform a handover verification:
 
 1. Confirm that the stored Issue contains every required test instruction and direct URL.
 2. Confirm that each direct URL resolves to the intended existing resource.
-3. Confirm that the Markdown structure preserves the intended paragraph separation around each standalone URL.
+3. Confirm that the Markdown structure preserves the intended action/link/result line structure.
 4. Confirm that the linked resource still has the verified starting state.
 5. Confirm that the test Issue identifies the exact implementation revision under test where applicable.
 6. Confirm that the test Issue has no stale, completed, or contradictory instruction that could cause the human to test the wrong state.
