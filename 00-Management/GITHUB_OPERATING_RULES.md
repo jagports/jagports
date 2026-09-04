@@ -38,7 +38,13 @@ Delegating execution does not transfer ultimate human decision authority.
 
 The Team Lead Agent coordinates GitHub-based execution and keeps the work system consistent.
 
-The Team Lead Agent may coordinate work, propose ordering, identify dependencies and risks, maintain Issue and PR traceability, and perform process checks within delegated authority.
+The Team Lead Agent may:
+
+- coordinate work
+- propose ordering
+- identify dependencies and risks
+- maintain Issue and PR traceability
+- perform process checks within delegated authority
 
 The Team Lead Agent must not silently make a decision reserved for the Product Owner.
 
@@ -80,7 +86,17 @@ Important decisions must not exist only in private chat. If a decision is made o
 
 Create or reuse an Issue according to the discovery and historical-work rules in `WORKFLOWS.md`.
 
-An Issue should contain enough information to understand the objective, expected outcome, reason/context, proposed executor, execution target, dependencies, known risks, required decision or approval, and acceptance criteria where applicable.
+An Issue should contain enough information to understand:
+
+- objective
+- expected outcome
+- reason/context
+- proposed executor
+- execution target
+- dependencies
+- known risks
+- required decision or approval
+- acceptance criteria where applicable
 
 Do not create duplicate Issues when an existing open or historically completed record already satisfies the request. Apply the discovery rules in `WORKFLOWS.md`.
 
@@ -230,6 +246,8 @@ Post-merge testing cannot substitute for required pre-merge validation.
 No actor may merge merely because a PR is technically mergeable.
 
 Required review, testing, approval, and other gates must be satisfied before merge.
+
+All review comments must be resolved in addition to `Review Approved` before merge is allowed.
 
 After merge, verify the resulting repository state and update the relevant work record as required by `WORKFLOWS.md`.
 
