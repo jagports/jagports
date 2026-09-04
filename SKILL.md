@@ -66,6 +66,27 @@ Rules:
 
 A direct-main change is a process violation and requires corrective handling under `WORKFLOWS.md`.
 
+### Mandatory Pre-Merge Review Gate
+
+Before **any** merge operation, the executing actor must perform a fresh, independent review-state check for the target PR. This check is a hard precondition for invoking the merge operation; GitHub's technical `mergeable` result is not a substitute.
+
+The check must:
+
+1. Read the PR's current review submissions immediately before merge.
+2. Determine the effective review state from the review history, including whether a later review supersedes an earlier review.
+3. Treat `CHANGES_REQUESTED` / `REQUEST_CHANGES` as a blocking state. **STOP — DO NOT MERGE.**
+4. Never allow an earlier `APPROVED` review to satisfy the gate when a later blocking review exists.
+5. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
+6. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
+7. Permit merge only when the current review gate is independently verified as passed and all required testing gates have passed.
+8. If the review state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
+
+Required decision rule:
+
+`latest/effective review = CHANGES_REQUESTED → review gate FAILED → STOP → DO NOT MERGE`
+
+This rule applies regardless of whether the requested change is large, small, documentary, mechanical, or apparently implied by the review comment.
+
 ## GitHub Project / Kanban Operations
 
 The GitHub Project represents workflow state through an Issue's **Project Item Status**.
