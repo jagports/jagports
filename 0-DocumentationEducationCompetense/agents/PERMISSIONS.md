@@ -8,13 +8,15 @@ jagports/jagports
 Base branch:
 main
 
-Working branch:
+Validation branch:
 p2.2-validate-leader-rights
 
 Role:
 Team Lead / Chief of Staff
 
 Validation scope:
+- Repository identity
+- Authenticated GitHub identity
 - Repository read access
 - Repository write access
 - Issue management
@@ -25,8 +27,16 @@ Validated
 
 ## Validation Result
 
-Repository access:
+Authenticated GitHub identity: jagports-fi
+
+Repository permission:
 PASS - Admin permission confirmed
+
+Read access:
+PASS
+
+Write access:
+PASS
 
 Issue access:
 PASS - Repository administration allows issue management
@@ -36,6 +46,10 @@ PASS - Operational project management approved
 
 Project administration:
 RESTRICTED - Project create/delete rights are not required for Team Lead operation
+
+## Evidence
+
+The validation was performed against repository `jagports/jagports` using the `p2.2-validate-leader-rights` working branch. Repository identity, authenticated identity, read/write access, issue management capability, and GitHub Project operational access were validated.
 
 Validated date:
 2026-08-30
