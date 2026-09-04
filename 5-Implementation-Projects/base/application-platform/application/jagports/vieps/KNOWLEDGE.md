@@ -2,39 +2,20 @@
 
 ## Scope
 
-This file contains durable, reusable knowledge for the VIEPS application domain, with particular focus on the Parts Data Model and its database boundary. It records conclusions, design reasoning and lessons learned that should remain available to future implementation and research work.
-
-Repository-wide workflow and governance remain defined by the repository root `KNOWLEDGE.md`, `00-Management/WORKFLOWS.md`, `00-Management/RULES.md` and `SKILL.md`.
+This file contains durable, reusable knowledge for the VIEPS application domain, with particular focus on the Parts Data Model and database boundary. Repository-wide workflow and governance remain defined by the repository root `KNOWLEDGE.md`, `00-Management/WORKFLOWS.md`, `00-Management/RULES.md` and `SKILL.md`.
 
 ## Source-of-truth hierarchy
 
-VIEPS data-model work must use existing accepted research before starting new discovery. The following are the primary traceability sources for the current Parts/Stock model:
+VIEPS data-model work must use existing accepted research before starting new discovery.
 
-1. **Issue #354 — Define and implement Parts Data Model**: canonical implementation issue and owner of the Parts Data Model/schema implementation. It consumes accepted research rather than duplicating it.
-2. **Issue #353 — Research Jagports stock data and operational stock model**: owner of the operational stock-model research and its acceptance/validation. Its role is not to rediscover whether Jagports has stock data; existing Jagports Excel work already provides direct evidence of the operational data structures.
-3. **Existing Jagports Excel parts/stock research**: evidence for real fields, relationships, cardinality problems and operational terminology. This evidence must be reconciled into a normalized model rather than copied as a worksheet schema.
-4. **Issue/PR #364 — JEPC parts supersession knowledge**: reusable catalogue supersession knowledge and explicit source/evidence rules. It complements #354 and #353.
-5. **Issue #360 — VIEPS UI requirements**: UI data-consumption requirements that constrain the model, but does not replace the data-model source above.
-6. **Issues #352, #361 and #362**: specialized research for hotspot conversion, vehicle zones/range taxonomy and whole-car/third-party extensions. These are not prerequisites for the basic stock model unless explicitly approved.
+1. **Parts Data Model implementation** owns the canonical normalized model and schema implementation.
+2. **Operational stock-model research** owns stock-model validation/reconciliation.
+3. Existing Jagports Excel parts/stock research is direct source evidence.
+4. Supersession research supplies reusable catalogue supersession knowledge.
+5. VIEPS UI requirements constrain data consumption but do not redefine domain semantics.
+6. Specialized hotspot, zone/taxonomy and third-party research supplies extensions and does not automatically block the basic Stock MVP.
 
-When existing research answers a question, future work should validate its applicability rather than repeat the same discovery. A new research task is justified only where the existing evidence leaves a consequential decision unresolved.
-
-## Existing Jagports Excel stock/parts evidence
-
-The operational stock model has already been investigated using Jagports Excel data. The spreadsheets are source evidence for the database design.
-
-The researched structures include, among other things:
-
-- a parts master/catalogue-oriented dataset containing Jaguar part number, model, description and additional catalogue/operational attributes;
-- stock-oriented data containing part reference, physical shelf/box/sub-location information and stock quantities;
-- lookup structures for physical storage locations and their operational values;
-- real-world evidence that catalogue information and physical stock/location can become inconsistent when represented in separate spreadsheet structures;
-- evidence that not every operational item necessarily has a normal Jaguar catalogue part number, so the model must not silently assume every stock key is a canonical Jaguar PN;
-- operational fields such as quantity, condition/status, storage location, donor/source, price, availability and notes where present in the source material.
-
-The important lesson is not to reproduce `PartsMaster`, `Stock`, `StockUnits` or other worksheet layouts as database tables. The database must normalize stable domain entities and relationships while retaining enough source/provenance information to explain and validate migrated values.
-
-The known spreadsheet structure is therefore **evidence already researched**, while the normalized database representation remains the responsibility of #354 and the accepted stock-model conclusions from #353.
+When existing research answers a question, future work should validate applicability rather than repeat discovery.
 
 ## Core architectural boundary
 
@@ -53,30 +34,34 @@ JEPC / vehicle reference knowledge
      mutable operational data
 ```
 
-A catalogue part describes what a part is and where/how it applies. A stock record describes what Jagports currently possesses and how that physical stock is managed.
+A catalogue part describes what a part is and where/how it applies. A stock record describes what Jagports possesses and how that physical stock is managed. Mutable inventory state must not be embedded in JEPC reference records.
 
-Mutable inventory state must not be embedded in JEPC reference records.
+## Canonical part identity and batches
 
-## Canonical part identity
+A canonical `part` represents a catalogue identity. The same catalogue part can occur in several EPC contexts and must not be duplicated merely because it appears in multiple diagrams, categories, applications or model contexts. Use a separate occurrence/context relationship for those cases.
 
-A canonical `part` represents a catalogue identity. The same catalogue part can occur in several EPC contexts and must not be duplicated merely because it appears in multiple diagrams, categories, applications or model contexts.
+A separate **part batch** concept is also required where source rows with the same part number represent distinct imported stock/provenance batches or otherwise need to remain separately traceable.
 
-Use a separate occurrence/context relationship when the same part appears in multiple contexts.
+Therefore:
 
 ```text
-PART
- │
- └── PART OCCURRENCE / CONTEXT
-       ├── EPC application/context
-       ├── model / range context
-       ├── fitment context
-       ├── category/item context
-       └── diagram/hotspot context
+CANONICAL PART IDENTITY
+        │
+        ├── PART OCCURRENCE / CONTEXT
+        │      ├── EPC application/context
+        │      ├── model / range context
+        │      ├── fitment context
+        │      └── diagram/hotspot context
+        │
+        └── PART BATCH / SOURCE INSTANCE
+               └── batch-specific provenance
 ```
+
+A duplicate Jaguar part number alone is **not** a data error requiring deletion or silent merging. Canonical part identity and batch/source identity are separate concerns. The normalized representation must preserve the distinction and traceability.
 
 ## Vehicle and VIN model
 
-Vehicle concepts must remain distinct:
+Vehicle concepts remain distinct:
 
 ```text
 MODEL RANGE
@@ -88,17 +73,11 @@ VIN RANGE
     └── VIN applicability / boundary information
 ```
 
-`model_range` and `vin_range` are different concepts and must not be collapsed into one entity.
-
-VIN research has demonstrated useful structured information including VIN prefix, serial start/end, model year, production/use-introduction boundary, market, body, engine/engine-variant discriminator, emissions discriminator, transmission/steering discriminator, source and confidence/verification state.
-
-Where a value is decoded or derived, preserve the distinction between source fact and derived interpretation where practical.
+`model_range` and `vin_range` are different concepts and must not be collapsed. VIN research has demonstrated useful structured information including VIN prefix, serial start/end, model year, production/use-introduction boundary, market, body, engine/engine-variant discriminator, emissions discriminator, transmission/steering discriminator, source and confidence/verification state. Preserve the distinction between source facts and derived interpretation where practical.
 
 ## Fitment and source attributes
 
-Fitment is a relationship, not merely descriptive text on a part. The model must support the applicability information needed to determine whether a part fits a vehicle/model/variant.
-
-Where source data provides inclusion and exclusion semantics, both must be preserved. Opaque JEPC attribute groups must not be given invented human meanings. Preserve the source representation and add separately verified semantic interpretation when research establishes it.
+Fitment is a relationship, not merely descriptive text on a part. Where source data provides inclusion and exclusion semantics, both must be preserved. Opaque JEPC attribute groups must not be given invented meanings; preserve the source representation and add verified semantic interpretation only when established by research.
 
 ## EPC occurrence and diagrams
 
@@ -112,99 +91,139 @@ DIAGRAM
           └── PART OCCURRENCE
 ```
 
-Diagram and hotspot information belongs to the reference/context side, not mutable stock.
-
-Hotspot coordinates must retain their source coordinate-system meaning until a verified conversion exists. Do not silently treat unverified geometry as authoritative normalized coordinates.
+Diagram and hotspot information belongs to reference/context, not mutable stock. Hotspot coordinates retain their source coordinate-system meaning until a verified conversion exists.
 
 ## Vehicle location versus stock location
 
-Two meanings of location must remain separate:
+Two meanings of location remain separate:
 
 - **Catalogue/vehicle location** — where the part belongs on the vehicle.
 - **Stock/storage location** — where Jagports physically stores the stock.
 
 Vehicle location belongs to catalogue/occurrence/location modelling. Physical storage belongs to operational stock.
 
-Do not put vehicle-zone semantics into a stock record merely because both concepts are called `location`.
-
 ## Zone presentation and UI concepts
 
-Existing VIEPS UI Concept images under the implementation tree are useful presentation samples for vehicle-zone display. They are not, by themselves, the final database taxonomy or complete geometry specification.
-
-The database should preserve enough structure to associate a part occurrence with a vehicle location/zone without prematurely hard-coding unresolved geometry or taxonomy decisions.
-
-## VIEPS MVP Web UI knowledge
-
-Issue #360 is the consolidated UI requirements record. The UI consumes the canonical part, occurrence/context, fitment, diagram/hotspot, vehicle-location and stock relationships; it does not redefine their domain semantics.
-
-The agreed part-detail concept includes canonical part-number search, parts-tree context, exploded diagram/hotspots, model-specific vehicle location, fitment and stock/supersession indicators. Missing source data must produce an explicit empty/unknown state rather than invented facts.
-
-Hotspot geometry must use the verified conversion from #352. Vehicle-zone mapping follows the accepted Range/zone research from #361/#362 when available.
+Existing VIEPS UI Concept images are presentation samples for vehicle-zone display. They are not the final database taxonomy or complete geometry specification. The database should preserve enough structure to associate a part occurrence with a vehicle location/zone without prematurely hard-coding unresolved geometry or taxonomy decisions.
 
 ## Stock model
 
-Operational stock remains a separate mutable layer linked to canonical catalogue identity.
+Operational stock remains a separate mutable layer linked to canonical catalogue identity where one exists.
 
 ```text
 PART
  │
- ├── Stock record A
- ├── Stock record B
- └── Stock record C
+ ├── STOCK RECORD A
+ ├── STOCK RECORD B
+ └── STOCK RECORD C
 ```
 
-The current accepted MVP stock information includes, as supported by the researched source material and operational requirements:
+The accepted stock model includes:
 
-- reference to the canonical catalogue part where one exists;
-- quantity;
-- condition/status;
-- physical storage location;
-- source/donor reference;
-- availability;
-- operational notes;
-- price information where its exact operational meaning is accepted;
-- provenance/manual-verification information where applicable.
+- one catalogue part may have multiple stock records;
+- quantity is an integer number of physical items; partial items are not required;
+- condition/status uses the controlled values `A=New`, `B=Good-Working`, `C=Fair-Working`, `D=Damaged-WorkingWithFixes`, `E=Damaged-NeedsRepair`;
+- physical storage is hierarchical as `Shelf → Box → BoxSub1 → BoxSub2`; the hierarchy may be recursive and boxes may contain multiple sub-boxes;
+- physical sites are identified by name and the data model must support multiple sites even if MVP initially uses one;
+- **Donor** means a car used to source parts from;
+- **Vendor** means an organization or person;
+- donor and vendor are separate concepts;
+- availability means the item is inventoried and its location and condition are known;
+- price is a numeric sale value in a currency; EUR is the MVP/default currency;
+- non-catalogue stock is supported and must not be assigned a fabricated Jaguar part number;
+- individual stock-unit IDs are not required for MVP;
+- general transaction history is not required for MVP beyond adding an item to stock.
 
-One catalogue part may have multiple stock records where the operational model requires separate physical records.
+The physical storage location must remain separate from vehicle/catalogue location.
 
-The model must also allow the source-data case where an operational item is not yet resolved to a canonical Jaguar catalogue part. Such an item must not be falsely assigned a catalogue identity merely to satisfy a foreign key.
+## Existing Excel stock/parts evidence
 
-### Stock research status
+Jagports Excel parts/stock material is source evidence, not the database schema. The researched structures include a parts master/catalogue dataset, a physical stock dataset, and storage-location lookup data. Their fields and formulas must be normalized into domain entities and relationships while retaining enough provenance to explain migrated values.
 
-The existence and general shape of Jagports stock data are **already researched** from Jagports Excel material. #353 should therefore be treated as the formal validation/reconciliation task for the operational model, not as an instruction to rediscover the spreadsheets.
+Actual researched examples include:
 
-The remaining questions for #353 are implementation decisions such as normalized stock-record cardinality, exact storage-location entities, treatment of non-catalogue stock keys, controlled condition/status values, price semantics, donor versus vendor references, individual-item tracking and transaction history. These decisions must be made from the existing evidence and explicit product requirements.
+- `Jaguar PN (S)` — Jaguar part number, mostly unique but with duplicate source rows;
+- `Vendor PN` — vendor part number, which may equal or differ from Jaguar PN;
+- `Price EU euro` and `Price Euro` — distinct historical price concepts;
+- `Price PoundS` — genuine GBP source price;
+- `URL` — link to a Jaguar part document where available;
+- `Referrence Document` — third-party information URL; the spelling is historical source terminology;
+- `Special Notes` — free-form text;
+- `Vendor / Donor Car` — historical combined source field;
+- `Donor Mileage Kilometers` — donor mileage retained as source data, with the existing source-unit conversion considered reliable;
+- `Vendors` — still has value for stocked parts and was originally used to allocate sales share to the original part owner;
+- `Stock value` — calculated monetary value of similar parts on stock, rather than a primary source price;
+- stock examples including `CCC7028` and non-catalogue key `Balljoint-Boot`;
+- storage examples including `R2A`, `B13`, `B01`, `Lokerikko`, `007`, `009`, `B13.008`, `_N/A`, `1/2`, `2/2`, `R1`, `R2`, and free-text `Valve Caps & Shims`.
+
+The source storage vocabulary identifies at least two sites. Their accepted names are `ESPOO` and `Haaris`. The data model must therefore support explicit physical-site identity rather than infer a site from a shelf code.
+
+`BoxSub2` is overloaded in the source data. Preserve all source values during migration and introduce normalized/unique values only where needed; do not silently discard or reinterpret the original value.
+
+## Accepted provenance decisions
+
+Provenance must preserve the ability to trace catalogue and stock data back to source evidence. Source facts, derived values and interpretations must remain distinguishable.
+
+### Prices
+
+- `Price EU euro` historically represented a planned EU-market sell price including shipping to the EU area; the shipping-inclusive idea was later abandoned.
+- `Price Euro` was planned as a UK-sourced price converted from `Price PoundS` to EUR, but was not meaningfully used.
+- `Price PoundS` contains genuine GBP prices.
+- For MVP, a simple manually maintained `Price` in EUR is sufficient. A later model may retain source price, source currency and conversion rate separately and calculate a normalized price.
+
+Do not treat the old spreadsheet price fields as three independent authoritative current prices.
+
+### Notes and references
+
+- `Special Notes` is free-form text with reasonable length.
+- `URL` is a link to a Jaguar document for the part, where available.
+- `Referrence Document` (historical spelling) is a third-party information URL for the part.
+
+### Vendor versus donor
+
+The historical combined `Vendor / Donor Car` field must be normalized into separate concepts. A row is treated as donor-car provenance when it contains a VIN number or the word `Dismantled`; otherwise it may represent a vendor. Ambiguous source values must remain traceable rather than being silently reclassified.
+
+### Donor mileage
+
+Donor mileage is retained. The researched source units/conversion are considered reliable for migration.
+
+### Vendor ownership information
+
+`Vendors` remains useful for stocked parts. Its original purpose was to identify the original part owner for allocation of a share of sales. It must not be discarded merely because sampled cells were empty.
+
+### Stock value
+
+`Stock value` is a calculated monetary value for similar parts held in stock. It is not the same concept as the manually maintained sale price. Condition classification and batch separation may be used as additional dimensions when calculating or grouping stock value.
+
+### Non-catalogue/NSS provenance
+
+`Balljoint-Boot` is an actual non-catalogue/ad-hoc/NSS stock key. Such stock is supported and requires the same provenance principle as catalogue stock: preserve source/vendor/provenance information and do not fabricate a Jaguar PN. A proposed normalized name such as `MNC1350AA+Boot` is a candidate convention, not an existing source value.
+
+## Provenance representation principle
+
+The normalized model should retain, where applicable:
+
+- source/document identity;
+- source URL or reference;
+- raw/observed value;
+- normalized value;
+- derived interpretation or calculation;
+- verification status and confidence where useful;
+- vendor reference;
+- donor vehicle/reference;
+- batch/source-instance identity.
+
+Source provenance belongs with the data entity or source instance it explains. A migrated value must remain explainable without relying on an obsolete spreadsheet formula or hidden agent knowledge.
 
 ## Supersession
 
-Supersession is a first-class catalogue relationship between part identities, not replacement of one database part by another.
+Supersession is a first-class catalogue relationship between part identities, not replacement of one database part by another. Historical part numbers remain addressable and may be connected by directed relationships supporting chains and one-to-many relationships, with provenance/evidence and verification information.
 
-Historical part numbers remain addressable and may be connected by directed supersession relationships. The model should support one-to-many relationships and chains, with provenance/evidence and verification information.
-
-Supersession is **not a priority dependency for the basic Stock Management MVP**. Do not overwrite the stocked catalogue identity with a newer number.
-
-PR #364 supplies reusable JEPC supersession knowledge and the explicit `MNA7691AA → XR847031` test relationship. It complements #354; it does not replace the canonical Parts Data Model issue.
-
-## Provenance and evidence
-
-VIEPS combines source data, researched facts and derived interpretations. These must not be silently treated as equivalent.
-
-For externally derived or interpreted information, preserve sufficient provenance to identify, where available:
-
-- source;
-- source reference/URL;
-- observed/raw value;
-- derived interpretation;
-- verification status;
-- confidence where appropriate.
-
-The database should make it possible to determine whether a value came directly from a source or was derived by Jagports logic.
+Supersession is not a priority dependency for the basic Stock Management MVP. Do not overwrite the stocked catalogue identity with a newer number.
 
 ## Third-party parts
 
-Third-party parts, vendor data and cross-reference semantics are extensions of the core catalogue/stock model. They must not distort the canonical Jaguar catalogue identity or conflate component-of, equivalence and supersession relationships.
-
-Complete third-party modelling follows the dedicated specification/research and is not a prerequisite for basic Stock Management unless explicitly approved.
+Third-party parts, vendor data and cross-reference semantics are extensions of the core catalogue/stock model. They must not distort canonical Jaguar catalogue identity or conflate component-of, equivalence and supersession relationships. Complete third-party modelling is not a prerequisite for basic Stock Management unless explicitly approved.
 
 ## MVP database scope
 
@@ -230,16 +249,17 @@ The MVP foundation should cover:
 2. canonical catalogue part;
 3. part occurrence/context;
 4. fitment/application relationships;
-5. source/provenance information needed to distinguish source facts from interpretation;
-6. diagram/location relationships where already supported by reliable source knowledge;
-7. operational stock linked to catalogue parts, with an explicit handling path for unresolved/non-catalogue stock;
-8. relational constraints, indexes and automated integrity tests.
+5. source/provenance information required for traceability;
+6. diagram/location relationships where reliable source knowledge exists;
+7. operational stock linked to catalogue parts, with an explicit path for unresolved/non-catalogue stock;
+8. part-batch/source-instance representation where separate source/provenance identity must be retained;
+9. relational constraints, indexes and automated integrity tests.
 
 ## What must not block Stock Management MVP
 
 The following are deliberately not prerequisites for a usable first Stock Management release:
 
-- complete Flash hotspot coordinate conversion;
+- complete hotspot coordinate conversion;
 - complete whole-car zone taxonomy and geometry;
 - complete silhouette/range mapping;
 - complete third-party parts and vendor model;
@@ -256,7 +276,11 @@ JEPC exports and Jagports Excel research are evidence. Their columns and present
 
 ### Separate stable identity from context
 
-A catalogue part is an identity. Occurrences, applications, diagrams and fitment contexts are relationships around that identity.
+A catalogue part is an identity. Occurrences, applications, diagrams, fitment contexts and source instances are relationships around that identity.
+
+### Separate canonical identity from source/batch identity
+
+Duplicate source rows may legitimately represent distinct batches or provenance instances. Do not collapse them merely because their part number is identical.
 
 ### Separate reference state from operational state
 
@@ -283,11 +307,12 @@ Representative fixtures should exercise relationships rather than merely prove t
 - positive and exclusion fitment constraints;
 - diagram/hotspot association where geometry is established;
 - one catalogue part with multiple stock records;
+- duplicate part-number source rows represented as separate batches where provenance requires it;
 - stock linked to a donor vehicle/reference;
 - an unresolved/non-catalogue operational stock item;
 - source provenance on imported/derived data;
 - invalid foreign-key references;
-- duplicate catalogue identity attempts;
+- duplicate canonical identity attempts;
 - invalid uniqueness cases.
 
 Supersession can be tested as a relationship, but richer supersession semantics must not become a prerequisite for basic stock tests.
@@ -300,10 +325,10 @@ The practical sequence is:
 Existing Excel/source evidence
             │
             ▼
-#353 Stock model validation / reconciliation
+Stock model validation / reconciliation
             │
             ▼
-#354 Parts Data Model foundation
+Parts Data Model foundation
             │
             ▼
 Database schema + tests
@@ -312,7 +337,7 @@ Database schema + tests
 Stock Management MVP
             │
             ▼
-#355 JEPC data importer
+JEPC data importer
             │
             ▼
 VIEPS UI vertical slice
@@ -321,19 +346,10 @@ VIEPS UI vertical slice
 richer VIEPS extensions
 ```
 
-The sequence explicitly acknowledges that stock data discovery has already occurred. New research should address unresolved decisions, validation and normalization rather than repeat known source inspection.
+The sequence explicitly acknowledges that stock-data discovery has already occurred. New research should address unresolved decisions, validation and normalization rather than repeat known source inspection.
 
 ## Decision discipline
 
 When a consequential domain decision remains unresolved, keep it explicitly unresolved and follow the project's decision workflow. Do not silently convert an Excel convention, JEPC field or UI mock-up into an authoritative database rule.
 
-Implementation issue ownership remains:
-
-- **#353** — operational stock-model research/validation;
-- **#354** — canonical Parts Data Model and schema implementation;
-- **#355** — JEPC importer;
-- **#360** — VIEPS UI requirements;
-- **#364** — reusable JEPC supersession knowledge;
-- **#352/#361/#362** — specialized hotspot, zone/taxonomy and third-party research.
-
-These records form the traceability chain for the VIEPS data model. The domain knowledge file records the generalized conclusions so future agents do not repeat already-settled research.
+The domain knowledge file records generalized conclusions so future agents do not repeat already-settled research. Task-specific evidence and implementation history remain in their GitHub work records.
