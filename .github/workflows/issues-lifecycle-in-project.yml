@@ -3,6 +3,17 @@ name: Sync Issue Lifecycle to Project
 on:
   issues:
     types: [opened, closed, reopened]
+  workflow_dispatch:
+    inputs:
+      test_issue_number:
+        description: "Existing Issue number to use as the isolated test fixture"
+        required: true
+        type: string
+      test_failure:
+        description: "Force the failure handler after resolving the test Issue, without changing Project state"
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -23,12 +34,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           COMMENT_TOKEN: ${{ github.token }}
-          ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_URL: ${{ github.event.issue.html_url }}
+          EVENT_ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+          EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          EVENT_ISSUE_TITLE: ${{ github.event.issue.title }}
+          EVENT_ISSUE_URL: ${{ github.event.issue.html_url }}
           REPOSITORY: ${{ github.repository }}
           ISSUE_ACTION: ${{ github.event.action }}
+          TEST_ISSUE_NUMBER: ${{ inputs.test_issue_number }}
+          TEST_FAILURE: ${{ inputs.test_failure }}
         shell: bash
         run: |
           set -euo pipefail
@@ -67,6 +80,28 @@ EOF
             exit "$status"
           }
           trap report_failure ERR
+
+          if [ -n "${TEST_ISSUE_NUMBER:-}" ]; then
+            ISSUE_NUMBER="$TEST_ISSUE_NUMBER"
+            issue_json="$(GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER")"
+            ISSUE_NODE_ID="$(jq -r '.node_id // empty' <<<"$issue_json")"
+            ISSUE_TITLE="$(jq -r '.title // empty' <<<"$issue_json")"
+            ISSUE_URL="$(jq -r '.html_url // empty' <<<"$issue_json")"
+            ISSUE_ACTION="test"
+            [ -n "$ISSUE_NODE_ID" ] || { echo "Test Issue #$ISSUE_NUMBER was not found."; exit 1; }
+            [ -n "$ISSUE_TITLE" ] || { echo "Test Issue #$ISSUE_NUMBER has no title."; exit 1; }
+            [ -n "$ISSUE_URL" ] || { echo "Test Issue #$ISSUE_NUMBER has no URL."; exit 1; }
+            echo "Deterministic PR-branch test mode for Issue #$ISSUE_NUMBER"
+            if [ "$TEST_FAILURE" = "true" ]; then
+              echo "Forcing the failure handler before any Project mutation."
+              exit 97
+            fi
+          else
+            ISSUE_NODE_ID="$EVENT_ISSUE_NODE_ID"
+            ISSUE_NUMBER="$EVENT_ISSUE_NUMBER"
+            ISSUE_TITLE="$EVENT_ISSUE_TITLE"
+            ISSUE_URL="$EVENT_ISSUE_URL"
+          fi
 
           if [ -z "${GH_TOKEN:-}" ]; then
             echo "PROJECTS_TOKEN is not configured. A token with access to the Project is required."
