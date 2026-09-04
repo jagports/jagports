@@ -2,17 +2,7 @@
 
 ## Before Beginning Work
 
-Before beginning work on any GitHub Issue, inspect all nine semantic root folders, including empty folders. Use their names as the first-level semantic map to identify the domains relevant to the Issue.
-
-- `0-DocumentationEducationCompetense` — Documentation, education, competencies, and agent protocol.
-- `00-Management` — Repository and project management; performed by human `tlindi`.
-- `1-CustomerService` — Customer service and customer-facing operational matters.
-- `2-Sales` — Sales, customers, and commercial matters.
-- `3-Deployment` — Deployment, installation, and operational deployment.
-- `4-Production` — Production implementations and production data, organized through the repository's established production hierarchy. The approved top-level production folders are documented in the root `KNOWLEDGE.md`.
-- `5-Implementation-Projects` — Active implementation projects.
-- `6-Development` — Software, engineering, and technical development.
-- `7-Research` — Research, investigation, evidence, and verification.
+Before beginning work on any GitHub Issue, inspect all nine semantic root folders, including empty folders. Use the canonical first-level semantic map defined in `0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md` to identify the domains relevant to the Issue. Do not duplicate the folder list in this file.
 
 ## Documentation Discovery
 
