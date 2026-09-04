@@ -141,6 +141,26 @@ For Jagports, an important operational distinction is:
 
 When capability availability changes or is uncertain, the agent should state the limitation explicitly and identify the available alternative or required next step.
 
+### GitHub Project Operations Available to the Agent
+
+The connected GitHub tool may provide repository, Issue, and Pull Request operations without providing GitHub Project Item mutation or independent Project Item read operations. This is a limitation of the current agent/tool interface, not evidence that the GitHub Project architecture or its automation credentials are broken.
+
+Normal Jagports Project task management is designed to use dedicated Project automation rather than requiring every agent or user to have direct Project administration capability. The dedicated `jagports-fi` automation identity and `PROJECTS_TOKEN` are used by the repository's Project automation path for Project Item operations.
+
+Therefore:
+
+- Do not interpret inability of the current agent connection to mutate or read Project Items directly as a failure of Project automation.
+- Do not claim that a Project Item was added, its Status changed, or the resulting Project state was verified unless the required operation and independent verification are actually available and successful.
+- Do not create duplicate Issues merely because Project Item state cannot be verified through the current connection.
+- Keep the relevant verification task open when its completion depends on Project state that cannot be independently verified.
+- If Project mutation is unavailable, continue with repository/Issue verification, record the limitation, and use the Project automation path when its result can be independently verified.
+
+The required verification principle is:
+
+**MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS**
+
+If the required Project mutation or independent Project read is unavailable, the result is **unverified**, not successful. This capability limitation is current-session operational knowledge and may change if the connected GitHub tool gains additional Project operations.
+
 ## GitHub Access and Command Execution Lessons
 
 GitHub access must be checked before starting work that depends on GitHub. Repository access alone is not sufficient: the agent must also verify that the specific operation required for the task is available, such as file editing, branch creation, PR creation, Issue comments, or Project field updates.
