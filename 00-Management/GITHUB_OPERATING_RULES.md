@@ -4,7 +4,7 @@
 
 This document defines how Jagports uses GitHub records for work control and traceability.
 
-It covers GitHub Issues, Pull Requests, Project Items, reviews, testing evidence, comments, and record integrity.
+It covers GitHub Issues, Pull Requests, reviews, testing evidence, comments, Project information, and record integrity.
 
 It does **not** define the Management workflow state machine. The single canonical normative source for workflow states, transitions, gates, and workflow invariants is:
 
@@ -32,31 +32,19 @@ The Product Owner is the final human authority for:
 - acceptance of materially important outcomes
 - decisions explicitly requiring human approval
 
-The Product Owner may create, edit, prioritize, assign, approve, block, review, and close GitHub work records.
-
 Delegating execution does not transfer ultimate human decision authority.
 
 ### Team Lead Agent
 
 The Team Lead Agent coordinates GitHub-based execution and keeps the work system consistent.
 
-The Team Lead Agent may:
-
-- decompose approved goals into Issues where appropriate
-- propose priorities and ordering
-- assign work to suitable executing entities
-- coordinate Specialist Agents
-- perform routine Project Item operations
-- identify dependencies and risks
-- identify decisions requiring the Product Owner
-- maintain Issue and PR traceability
-- perform process checks and reviews within delegated authority
+The Team Lead Agent may coordinate work, propose ordering, identify dependencies and risks, maintain Issue and PR traceability, and perform process checks within delegated authority.
 
 The Team Lead Agent must not silently make a decision reserved for the Product Owner.
 
 ### Specialist Agent / Human Contributor
 
-An executing agent or human contributor performs assigned work within the approved scope.
+An executing agent or human contributor performs assigned work within approved scope.
 
 The executor must report material findings, blockers, risks, dependencies, scope changes, and proposed decisions in the relevant GitHub record.
 
@@ -74,7 +62,7 @@ The Issue is the authoritative work record for:
 
 - objective and expected outcome
 - reason and context
-- priority
+- priority when explicitly requested
 - executing entity
 - execution target
 - dependencies
@@ -86,52 +74,35 @@ The Issue is the authoritative work record for:
 - test evidence
 - acceptance and completion evidence
 
-Important decisions must not exist only in private chat.
-
-Where a decision is made outside GitHub, record the resulting decision in the relevant Issue or durable project documentation.
+Important decisions must not exist only in private chat. If a decision is made outside GitHub, record the resulting decision in the relevant Issue or durable project documentation.
 
 ### 2.2 Issue Creation
 
 Create or reuse an Issue according to the discovery and historical-work rules in `WORKFLOWS.md`.
 
-An Issue should contain enough information to understand:
-
-- objective
-- expected outcome
-- reason/context
-- proposed executor
-- execution target
-- dependencies
-- known risks
-- required decision or approval
-- acceptance criteria where applicable
+An Issue should contain enough information to understand the objective, expected outcome, reason/context, proposed executor, execution target, dependencies, known risks, required decision or approval, and acceptance criteria where applicable.
 
 Do not create duplicate Issues when an existing open or historically completed record already satisfies the request. Apply the discovery rules in `WORKFLOWS.md`.
 
 ### 2.3 Priority
 
-Priority must be explicit.
+Priority is **optional**.
 
-Use the established project priority hierarchy. Where exact ordering matters, use sub-priorities such as `P1.1`, `P1.2`, or `P2.1`.
+Priority must be used only when explicitly requested by the requester, a human, or the Product Owner. It must not be added merely because an agent considers it useful.
 
-The Product Owner has final authority over priority. The Team Lead Agent may propose and maintain execution ordering within that authority.
+When priority is explicitly requested, record it in the appropriate structured Issue/Project field or Issue content. **Never put priority in an Issue title or filename.**
 
-A lower-priority Issue must not displace a higher-priority Issue without an explicit reason or priority change.
+Where exact ordering is explicitly required, sub-priorities such as `P1.1`, `P1.2`, or `P2.1` may be used.
+
+The Product Owner has final authority over priority.
 
 ### 2.4 Assignment and Execution Target
 
 Each executable Issue should identify the actual executing entity.
 
-Use the Project `Executing Entity` field where applicable to distinguish:
+Use the project's configured execution field where applicable and use GitHub `Assignees` to identify the actual GitHub account when available.
 
-- Product Owner
-- Team Lead Agent
-- Specialist Agent
-- Human
-
-The GitHub `Assignees` field should identify the actual GitHub account when available.
-
-The Issue should identify the concrete execution target where relevant, such as a repository, Project, Issue, file, website, external system, or development environment.
+The Issue should identify the concrete execution target where relevant, such as a repository, Issue, file, website, external system, or development environment.
 
 ### 2.5 Decisions
 
@@ -146,20 +117,15 @@ Record, as applicable:
 5. Product Owner decision
 6. date and record of decision
 
-Use the project's configured `Decision Status` values. Do not redefine those values here; their authoritative workflow meaning belongs to `WORKFLOWS.md` and the configured Project field.
+Use configured Project values where they exist. Do not create competing workflow or enum definitions in this document.
 
 A rejected proposal must not silently continue as approved work.
 
 ### 2.6 Dependencies and Risks
 
-Record material dependencies and risks in the relevant Project fields and/or Issue description.
+Record material dependencies and risks in the relevant Issue and/or configured Project information when such Project editing is explicitly authorized and available.
 
-If a dependency prevents progress, use the workflow state required by `WORKFLOWS.md` and document:
-
-- blocker
-- impact
-- required resolution
-- responsible party where known
+If a dependency prevents progress, use the workflow state required by `WORKFLOWS.md` and document the blocker, impact, required resolution, and responsible party where known.
 
 Do not invent alternative workflow states in an Issue.
 
@@ -167,7 +133,7 @@ Do not invent alternative workflow states in an Issue.
 
 Closing an Issue is not merely an administrative action.
 
-Before closure, verify the completion obligations defined by `WORKFLOWS.md` and the Issue itself, including implementation, review, testing, merge, acceptance, and Project verification where applicable.
+Before closure, verify the completion obligations defined by `WORKFLOWS.md` and the Issue itself, including implementation, review, testing, merge, and acceptance where applicable.
 
 A merged PR does not by itself prove that the Issue is complete.
 
@@ -187,9 +153,7 @@ One PR may legitimately address multiple Issues when it genuinely implements eac
 
 The PR title and description must accurately represent the current implementation scope.
 
-When an open PR materially expands or changes scope, its title may be updated. GitHub preserves the previous title through its event history.
-
-Do not use title changes to obscure history.
+When an open PR materially expands or changes scope, its title may be updated. GitHub preserves the previous title through its event history. Do not use title changes to obscure history.
 
 A PR should identify, where applicable:
 
@@ -206,7 +170,7 @@ When review is required, the PR is the formal review hand-off mechanism.
 
 The executing actor must stop at the review boundary defined by `WORKFLOWS.md` and must not merge its own implementation merely because GitHub reports the PR as mergeable.
 
-Do not invent a separate PR status such as `Waiting for Review`. Use the canonical workflow state and GitHub's native PR review mechanism.
+Do not invent a separate PR workflow status. Use the canonical workflow state and GitHub's native PR review mechanism.
 
 ### 3.4 Independent Review
 
@@ -243,8 +207,6 @@ The reviewer who submitted a review is the normal authority for resolving commen
 
 The PR executor, PR author, or another non-reviewer must not resolve those review comments on the reviewer's behalf.
 
-The repository/project owner or another explicitly designated human authority may resolve them when exercising that authority.
-
 When changes are requested, the executor may implement the requested changes and reply to the review comments, but should leave the reviewer's comments unresolved for the reviewer to resolve after verification.
 
 ### 3.7 Testing Evidence
@@ -269,40 +231,31 @@ No actor may merge merely because a PR is technically mergeable.
 
 Required review, testing, approval, and other gates must be satisfied before merge.
 
-After merge, verify the resulting repository state and the associated Issue/Project records as required by `WORKFLOWS.md`.
+After merge, verify the resulting repository state and update the relevant work record as required by `WORKFLOWS.md`.
 
 ---
 
-## 4. GitHub Project and Project Item Rules
+## 4. GitHub Project Rules
 
-The GitHub Project provides the Kanban representation of work.
-
-An Issue may be represented by a Project Item. The workflow state is stored in the Project Item's `Status` field.
+The GitHub Project provides the Kanban representation of work and exposes structured project information.
 
 The Project is not a replacement for the Issue work record.
 
-### 4.1 Mutation Must Be Verified
+### 4.1 Project Mutation Restriction
 
-Every relevant Project operation follows:
+Agents must **not mutate GitHub Project configuration or Project Item state** unless a later authoritative project capability rule explicitly grants that capability.
 
-**MUTATE → VERIFY**
+This includes, at minimum:
 
-A successful mutation response is not, by itself, proof that the desired Project state exists.
+- adding or removing Project Items
+- changing Project Item Status
+- changing Project Item fields
+- changing Project views
+- changing Project configuration
 
-After adding an Issue, changing Status, or performing another relevant Project mutation:
+The current operating model treats Project state as **read-only to agents**. Do not claim that a Project mutation has succeeded.
 
-1. identify the intended Project;
-2. identify the resulting Project Item;
-3. read the resulting Project state independently;
-4. verify the exact expected field and value;
-5. only then claim success.
-
-If mutation fails, the Project Item cannot be found, the expected field/value cannot be verified, or the result is ambiguous:
-
-- report failure;
-- identify mutation versus verification failure where possible;
-- state `Project operation FAILED`;
-- do not claim the intended state as actual state.
+When Project state is relevant to work, inspect/read it when the required read capability is available and report the observed state. Do not create a workaround that silently changes Project state through another mechanism.
 
 ### 4.2 Workflow State Authority
 
@@ -320,8 +273,6 @@ Use `WORKFLOWS.md` for:
 - historical-work discovery
 - workflow invariants
 
-The Project Item `Status` value must be interpreted according to `WORKFLOWS.md`.
-
 ---
 
 ## 5. Communication and Traceability
@@ -332,18 +283,19 @@ Material project communication belongs in the relevant Issue, PR, review, or lin
 
 Important information must not depend on one person's private conversation history.
 
-Issue and PR comments must be formatted for quick visual scanning and reliable traceability.
+Issue and PR **Descriptions and Comments must always** be formatted for quick visual scanning and reliable traceability.
 
-When practical:
+Use clear, separate lines or paragraphs for:
 
-- put primary Issue/PR links at the beginning of a line;
-- put distinct traceability statements on separate lines or paragraphs;
-- identify the evidence or action being reported;
-- avoid burying important state or decision information in unrelated prose.
+- primary Issue/PR links
+- traceability statements
+- evidence or actions being reported
+- decisions and their outcomes
+- important state information
 
 Maintain the traceability chain:
 
-`Work request → Issue → PR → Review → Test → Merge → Issue closure → Project verification`
+`Work request → Issue → PR → Review → Test → Merge → Issue closure`
 
 Historical references used to justify active work should be explicitly linked in the active record.
 
@@ -369,9 +321,9 @@ Historical records may be used as evidence when applying the discovery and histo
 
 Labels provide classification for Issues and PRs.
 
-Project fields provide structured management information.
+Project fields provide structured management information when available for reading.
 
-Labels should supplement, not replace, structured Project fields or Issue/PR content.
+Labels should supplement, not replace, structured Issue/PR content.
 
 Do not create a second unofficial enum in this document when the authoritative value is already defined by a Project field or `WORKFLOWS.md`.
 
@@ -397,9 +349,10 @@ A contradiction in a secondary document is a process defect and should be raised
 - Verify GitHub access and the specific required operation before relying on it.
 - Never claim an external GitHub action without verification.
 - Use the project's current GitHub API pacing rule for operational sequences.
-- After mutations, perform an independent read/verification.
+- After supported mutations, perform an independent read/verification.
 - Distinguish capability, authentication, permission, mutation, and verification failures where observable.
 - Never expose credentials, tokens, or secret values.
+- Do not attempt Project mutations under the current read-only Project operating model.
 
 If a required GitHub operation is unavailable, follow the current capability-alert wording defined by `WORKFLOWS.md` and applicable agent instructions.
 
@@ -409,7 +362,7 @@ If a required GitHub operation is unavailable, follow the current capability-ale
 
 GitHub Issues and Pull Requests are durable work records, not disposable chat containers.
 
-The Project provides the Kanban representation and structured Project Item fields.
+The Project provides the Kanban representation and structured information available for reading.
 
 `WORKFLOWS.md` defines how work moves.
 
