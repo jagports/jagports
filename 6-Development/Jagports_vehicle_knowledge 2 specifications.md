@@ -173,11 +173,6 @@ Powers goal §2.I ("click a location on the car image"). Two layers:
                            set)
     created_by, created_date, notes
   ```
-zone.name — controlled vocabulary, extensible:
-  front | rear | left | center | right | top | middle | bottom |
-  engine compartment | trunk | front seats | rear seats | dashboard
-  (admin may add further values as needed)
-
 
 ### 6.7 Third-party parts and pricing
 Vendors (SNG Barratt, British Parts, etc. — seen as free text in the Excel
@@ -435,9 +430,3 @@ The two tables serve different purposes and are linked, not merged:
   `resolved_confirmed_issue`) is always a human action, regardless of how the flag
   was raised — an automated adapter can raise a flag but should never be allowed
   to resolve one.
-
-### 6.13 Application settings
-app_setting
-  key (e.g. 'supersession_verification_enabled')
-  value
-  description
