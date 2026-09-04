@@ -12,6 +12,12 @@ A supersession relationship is directed: the source part is the superseded part 
 
 A relationship may be one-to-one, one-to-many, or part of a longer replacement chain. The representation must therefore support multiple replacement relationships and chains without losing the historical links.
 
+### JEPC UI indication
+
+The VIEPS concept UI / parts-list reference images preserve an important observation from the JEPC interface: supersession is visually indicated in the parts list by a **round-arrow icon** associated with the superseded part entry. This icon is a catalogue/UI indication of a supersession relationship and is therefore useful evidence when interpreting or validating JEPC parts-list data.
+
+The icon should not be treated as a replacement for the underlying relationship data. The historical part number, replacement relationship, direction, and provenance remain explicit data requirements. The UI indication should be preserved as source-specific evidence/metadata where the imported source representation allows it.
+
 ## Evidence and relationship strength
 
 Authoritative catalogue or manufacturer statements that explicitly identify a replacement are strong evidence for a supersession relationship.
