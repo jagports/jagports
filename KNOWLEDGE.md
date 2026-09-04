@@ -169,26 +169,117 @@ For command sequences whose later steps depend on earlier output, use a temporar
 
 Windows Git Bash compatibility is an explicit project constraint. Avoid `awk`, Bash associative arrays, backslash (`\\`) line continuations, and Windows path-separator assumptions. Prefer forward-slash paths and simple Git Bash-compatible shell constructs. Commands should be verified against these known limitations before being given to the user.
 
-## GitHub Issue and Pull Request Comment Formatting
+## GitHub Issue and Pull Request Message Formatting
 
-GitHub Issue and Pull Request comments must be formatted for quick visual scanning and reliable traceability.
+GitHub Issue and Pull Request **descriptions and comments** must be formatted for quick visual scanning and reliable traceability. This applies to both human-authored and automated messages.
+
+The purpose is not to shorten or remove information. The purpose is to present the complete information in a structure that lets a reader identify the primary record, relationship, result, action, evidence, decision, and other important context quickly.
+
+### General formatting rules
+
+- Put each distinct statement, fact, action, decision, result, or traceability relationship on its own line or paragraph.
+- When an Issue or Pull Request is the primary reference for a statement, put its Markdown link at the beginning of its own line.
+- Keep the Issue/PR number and title together in the link text when useful; do not bury the primary reference inside a long sentence.
+- Separate relationship text such as `implements`, `resolves`, `supersedes`, `previous implementation`, or `related work` from the referenced Issue or Pull Request.
+- Use short headings or labels on their own lines when they improve scanning.
+- Use lists for multiple independent facts, actions, requirements, or results.
+- Do not construct long inline chains containing Issue/PR titles, numbers, links, and relationship text in the same sentence.
+- Preserve exact traceability, diagnostic meaning, decision meaning, and other information when reformatting.
+- Do not use formatting rules as a reason to omit information that is needed to understand or verify the work.
+
+### Issue descriptions
+
+An Issue description should make the work understandable without requiring the reader to reconstruct context from a dense paragraph. Where applicable, separate:
+
+- purpose/objective;
+- expected outcome;
+- reason or context;
+- executor and execution target;
+- dependencies and risks;
+- decisions or decisions needed;
+- acceptance criteria;
+- implementation and testing traceability.
+
+Primary related Issue/PR references should normally appear on their own lines, with the relationship identified separately.
+
+Preferred pattern:
+
+**Implements / follows**
+[Issue or PR #<number> — <title>](<URL>)
+
+**Purpose**
+<short purpose>
+
+**Acceptance**
+- <criterion>
+- <criterion>
+
+### Pull Request descriptions
+
+A Pull Request description should make the proposed repository change understandable without requiring the reader to reconstruct scope from a long paragraph. Where applicable, separate:
+
+- summary/purpose;
+- implementation scope;
+- affected files or areas;
+- important design decisions;
+- tests and results;
+- known limitations;
+- related Issues and historical implementations.
+
+Each primary Issue or PR reference should normally have its own line. Relationship wording should be separate from the reference.
+
+Preferred pattern:
+
+**Implements / resolves**
+[Issue #<number> — <title>](<Issue URL>)
+
+**Previous implementation**
+[PR #<number> — <title>](<PR URL>)
+
+**Result**
+<short result>
+
+### Issue and Pull Request comments
+
+Comments should be treated as durable project communication rather than disposable chat text.
 
 - Put each distinct traceability statement on its own line or paragraph.
-- When an Issue or Pull Request is the primary reference for a statement, put its Markdown link at the beginning of the line.
-- Keep the Issue/PR number and title together in the link text when useful; do not bury the reference inside a long sentence.
-- Separate relationship text such as `implements`, `resolves`, `supersedes`, or `previous implementation` from the referenced Issue or Pull Request instead of placing the complete relationship in one long sentence.
-- Use short headings or labels on their own lines when context is needed before a reference.
-- Do not construct long inline chains containing a PR title, PR number, Issue title, Issue number, and relationship text in the same sentence.
+- Put primary Issue/PR references at the beginning of their own lines.
+- Separate relationship text from the referenced record.
+- Use short headings such as `Result`, `Action`, `Verification`, `Decision`, `Test`, or `Next step` when they improve scanning.
+- Keep diagnostic and traceability information intact.
+- For failure messages, clearly distinguish the failure/result, what was verified, what was not verified, the required action, and any claim that must not be inferred.
+
+Preferred pattern:
+
+**Result**
+<result>
+
+**Verification**
+<what was verified or not verified>
+
+**Action**
+<required next action>
+
+**Traceability**
+[Issue/PR #<number> — <title>](<URL>)
+
+### Relationship formatting
+
+For multiple related records, do not compress the entire relationship into one sentence. Give each important primary reference its own line and identify the relationship separately.
 
 Preferred pattern:
 
 **Previous implementation**
 [PR #<number> — <title>](<PR URL>)
 
-**Implements/resolves**
+**Implements / resolves**
 [Issue #<number> — <title>](<Issue URL>)
 
-For multiple references, give each primary reference its own line rather than combining them into a single paragraph.
+**Related**
+[Issue/PR #<number> — <title>](<URL>)
+
+This convention applies whether the message is an Issue description, PR description, Issue comment, PR conversation comment, review-related communication, or an automated diagnostic message.
 
 ## KNOWLEDGE.md Hierarchy and Generalization Rules
 
