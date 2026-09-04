@@ -3,19 +3,6 @@ name: Sync Issue Lifecycle to Project
 on:
   issues:
     types: [opened, closed, reopened]
-  pull_request:
-    types: [edited]
-  workflow_dispatch:
-    inputs:
-      test_issue_number:
-        description: "Existing Issue number to use as the isolated test fixture"
-        required: true
-        type: string
-      test_failure:
-        description: "Force the failure handler after resolving the test Issue, without changing Project state"
-        required: false
-        default: true
-        type: boolean
 
 permissions:
   contents: read
@@ -27,7 +14,6 @@ env:
   PROJECT_ORG: jagports
   PROJECT_NUMBER: "9"
   PROJECT_TITLE: Jagports AI OS
-  PR_TEST_MARKER: "<!-- jagports-test: issue-comment-formatting -->"
 
 jobs:
   sync-issue-lifecycle:
@@ -37,19 +23,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           COMMENT_TOKEN: ${{ github.token }}
-          EVENT_ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
-          EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          EVENT_ISSUE_TITLE: ${{ github.event.issue.title }}
-          EVENT_ISSUE_URL: ${{ github.event.issue.html_url }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          PR_BODY: ${{ github.event.pull_request.body }}
+          ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPOSITORY: ${{ github.repository }}
           ISSUE_ACTION: ${{ github.event.action }}
-          TEST_ISSUE_NUMBER: ${{ inputs.test_issue_number }}
-          TEST_FAILURE: ${{ inputs.test_failure }}
-          EVENT_NAME: ${{ github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -58,74 +35,14 @@ jobs:
             status=$?
             if [ -n "${COMMENT_TOKEN:-}" ]; then
               sleep 1
-              comment_body=$(cat <<EOF
-## Project automation failure
-
-[Issue #$ISSUE_NUMBER — $ISSUE_TITLE]($ISSUE_URL)
-
-**Result**
-
-Project automation FAILED.
-
-**Verification**
-
-The Issue was not verified as a Project Item with the expected lifecycle Status.
-
-**Action**
-
-Inspect this workflow run for the exact failure.
-
-**Claim**
-
-No successful Project operation is claimed.
-EOF
-              )
               GH_TOKEN="$COMMENT_TOKEN" gh api \
                 "repos/$REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-                -f body="$comment_body" \
+                -f body="Project automation FAILED for Issue #$ISSUE_NUMBER. The Issue was not verified as a Project Item with the expected lifecycle Status. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
                 >/dev/null || true
             fi
             exit "$status"
           }
           trap report_failure ERR
-
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            if [[ "$PR_BODY" != *"$PR_TEST_MARKER"* ]]; then
-              echo "Pull-request edit without the test marker — no production action is performed."
-              exit 0
-            fi
-
-            ISSUE_NUMBER="$PR_NUMBER"
-            ISSUE_NODE_ID=""
-            ISSUE_TITLE="$PR_TITLE"
-            ISSUE_URL="$PR_URL"
-            ISSUE_ACTION="test"
-            echo "Deterministic PR-branch test mode for PR #$ISSUE_NUMBER"
-            echo "Test marker detected. Forcing the failure handler before any Project mutation."
-            exit 97
-          fi
-
-          if [ -n "${TEST_ISSUE_NUMBER:-}" ]; then
-            ISSUE_NUMBER="$TEST_ISSUE_NUMBER"
-            issue_json="$(GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER")"
-            ISSUE_NODE_ID="$(jq -r '.node_id // empty' <<<"$issue_json")"
-            ISSUE_TITLE="$(jq -r '.title // empty' <<<"$issue_json")"
-            ISSUE_URL="$(jq -r '.html_url // empty' <<<"$issue_json")"
-            ISSUE_ACTION="test"
-            [ -n "$ISSUE_NODE_ID" ] || { echo "Test Issue #$ISSUE_NUMBER was not found."; exit 1; }
-            [ -n "$ISSUE_TITLE" ] || { echo "Test Issue #$ISSUE_NUMBER has no title."; exit 1; }
-            [ -n "$ISSUE_URL" ] || { echo "Test Issue #$ISSUE_NUMBER has no URL."; exit 1; }
-            echo "Deterministic manual test mode for Issue #$ISSUE_NUMBER"
-            if [ "$TEST_FAILURE" = "true" ]; then
-              echo "Forcing the failure handler before any Project mutation."
-              exit 97
-            fi
-          else
-            ISSUE_NODE_ID="$EVENT_ISSUE_NODE_ID"
-            ISSUE_NUMBER="$EVENT_ISSUE_NUMBER"
-            ISSUE_TITLE="$EVENT_ISSUE_TITLE"
-            ISSUE_URL="$EVENT_ISSUE_URL"
-          fi
 
           if [ -z "${GH_TOKEN:-}" ]; then
             echo "PROJECTS_TOKEN is not configured. A token with access to the Project is required."
