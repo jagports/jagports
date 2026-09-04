@@ -8,9 +8,17 @@ This is a **tool-capability limitation**, not evidence that the Project state is
 
 Consequently, an agent must not claim that a Project Item was added, that its Status was changed, or that a final Project state was independently verified unless the required mutation and subsequent independent read operations are both available and successful.
 
+## Architecture and Issue #72
+
+Issue #72 established that normal Jagports Project task management is designed to operate through Project automation rather than requiring direct Project administration access for each agent/user. The dedicated `jagports-fi` automation identity / `PROJECTS_TOKEN` performs Project Item mutations when the automation path is functioning.
+
+Therefore, the connector limitation described here must not be interpreted as a failure of the Jagports Project architecture or automation credentials. It means only that this agent session cannot directly perform or independently verify those Project Item operations.
+
+Issue #72 is the historical record of that access conclusion; this document preserves the narrower connector limitation as durable operational knowledge so it is not buried in Issue history.
+
 ## Required Workaround
 
-When Project mutation operations are unavailable:
+When Project mutation or direct Project read operations are unavailable:
 
 1. Continue with all repository and Issue verification that can be performed read-only.
 2. Record the exact Project operation that could not be performed or independently verified.
@@ -23,7 +31,7 @@ The operational rule remains:
 
 **MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS**
 
-If mutation is unavailable, the correct result is **unverified**, not successful.
+If mutation or the required independent read is unavailable, the correct result is **unverified**, not successful.
 
 ## Relation to Issue #336
 
