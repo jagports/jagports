@@ -134,6 +134,71 @@ Zone semantics may be extended as the Range taxonomy and whole-car mapping resea
 
 Different model/range silhouettes may require different geometry even when the conceptual zone vocabulary is shared.
 
+## VIEPS MVP Web UI knowledge
+
+The agreed VIEPS part-detail UI is a concrete MVP implementation target, not merely a visual concept. Issue #360 is the requirements record and should remain the primary traceability point for UI behaviour.
+
+The core interaction is a canonical Jaguar part-number search feeding a three-pane part-detail view:
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Search part #: [ MJB7703AA ]                                                │
+├───────────────────────┬────────────────────────┬─────────────────────────────┤
+│ PARTS TREE             │ PART EXPLODING IMAGE   │ LOCATION AT CAR             │
+│ category hierarchy     │ diagram + callouts     │ model-specific silhouette   │
+│ highlighted path       │ item/hotspot selection │ + highlighted zone          │
+│ nested item rows       │ drawing code           │ Fits to car models          │
+└───────────────────────┴────────────────────────┴─────────────────────────────┘
+```
+
+The wheel-style parent/child table is another rendering of the same underlying parts tree and must not introduce a separate domain model.
+
+### UI behaviour established so far
+
+- Search uses the canonical Jaguar part number and resolves the catalogue part plus relevant occurrence/context.
+- The parts tree is reconstructed from JEPC category parent/child relationships; the matched path is expanded/highlighted client-side.
+- The exploded diagram is sourced from JEPC diagram/illustration data and uses numbered item hotspots from JEPC Flash data.
+- Hotspot geometry must use the verified coordinate conversion from Issue #352. Do not invent or silently assume coordinate semantics.
+- The round-arrow supersession icon means a newer/current supersession exists. It must not be inferred solely from JEPC's historical `isSuperSeded` flag.
+- Current supersession should come from the Jagports supersession relationship and appropriate current-source adapter/evidence, including JLR Classic Parts where applicable.
+- The Jaguar Classic shield represents JEPC `isClassic` status as of the JEPC release/snapshot, not necessarily current live Classic status.
+- The car silhouette is dual-purpose: before search it can initiate a location/zone search; after search it displays the found part's vehicle location when a Jagports-owned zone/pin mapping exists.
+- No location should be invented when no Jagports mapping exists.
+- WDS/UFM silhouettes are presentation assets. SVG/PNG/VSG representations may be imported as appropriate, with zones authored per silhouette image.
+- Different model/range silhouettes may have different geometry. The exact Range/model/variant selector granularity remains a decision unless resolved by accepted research.
+- Model selection changes the silhouette set and the zone/search context.
+- Fitment is evaluated from the whole JEPC application/attribute model. The UI shows only actual matches and exposes meaningful qualifiers such as `XK8 — 4.0L supercharged only`.
+- Stock must remain linked to the actual stocked catalogue part. If that part is superseded, the UI may show the newer/current supersession without replacing the stocked part identity.
+
+### UI-to-data mapping
+
+| UI element | Required data | Source/boundary |
+|---|---|---|
+| Part search | canonical part number | JEPC/Jagports catalogue model |
+| Parts tree | category id, parent category id, name, leaf state | JEPC category navigation |
+| Highlighted tree path | occurrence/category ancestry | application/client traversal |
+| Group headers | JEPC description/breakpoint text | JEPC item XML |
+| Leaf item | part number, catalogue/item identifiers, internal PN | JEPC item XML |
+| Classic shield | `isClassic` | JEPC snapshot |
+| Supersession icon | newer/current relationship exists | Jagports supersession + current-source adapter |
+| Exploded diagram | verified image/diagram identifier and asset | JEPC illustration data |
+| Hotspots | item number and geometry | JEPC Flash hotspot XML + #352 conversion |
+| Car location | zone/pin + model/silhouette | Jagports location schema + WDS/UFM assets |
+| Model selector | Range/model/variant taxonomy | Jagports vehicle taxonomy |
+| Fitment list | applicable models/variants | JEPC application + attribute rules |
+| Fitment qualifier | required attributes such as supercharger | JEPC attribute constraints |
+| Stock supersession | stocked PN → newer/current PN | inventory + catalogue supersession/xref |
+
+### Implementation and testing boundary
+
+The first concrete VIEPS UI vertical slice should build on the existing application MVP foundation where practical rather than creating a parallel application stack. An earlier merged MVP vertical slice (PR #281) demonstrated a generic browser UI/API/DB foundation, but it is not the VIEPS-specific three-pane implementation and must not be treated as completed VIEPS UI work.
+
+VIEPS UI implementation must be incremental and testable. Each implementation PR should have a narrow purpose, explicit acceptance criteria and automated checks. Principal failure paths include invalid/nonexistent part numbers, missing diagram/hotspot data, missing vehicle-zone mapping, fitment exclusions, supersession absence, stale/historical Classic status, and stock linked to a superseded part.
+
+The UI must not fabricate catalogue, fitment, location, hotspot or supersession facts merely to make the screen look complete. Missing source data must produce an explicit empty/unknown state appropriate to the UI.
+
+Issue #360 remains the consolidated UI requirements record. Coordinate with #352 (hotspot conversion), #354 (Parts Data Model), #355 (JEPC importer), #361 (Range taxonomy/whole-car mapping research) and #362 (whole-car zones/third-party model specification).
+
 ## Stock model
 
 Operational stock remains a separate mutable layer linked to the canonical catalogue part.
@@ -322,13 +387,25 @@ Stock research / accepted operational requirements
                     ▼
              JEPC data importer
                     │
-                    ├── diagrams/hotspots
-                    ├── richer location/zone model
+                    ▼
+             VIEPS UI vertical slice
+                    │
+                    ├── part search
+                    ├── parts tree
+                    ├── diagram/hotspots
+                    ├── vehicle location/silhouette
+                    ├── fitment
+                    ├── supersession/classic indicators
+                    └── stock integration
+                    │
+                    ▼
+             richer VIEPS extensions
+                    ├── complete zone taxonomy
                     ├── VIN decoding
                     └── third-party extensions
 ```
 
-This sequencing allows the operational MVP to become useful without waiting for every long-term VIEPS research topic to be resolved.
+This sequencing allows the operational MVP to become useful without waiting for every long-term VIEPS research topic to be resolved, while establishing a concrete path to the VIEPS web UI.
 
 ## Decision discipline
 
