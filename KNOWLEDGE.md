@@ -143,7 +143,7 @@ When capability availability changes or is uncertain, the agent should state the
 
 ### GitHub Project Operations Available to the Agent
 
-The current connected GitHub tool does not provide Project Item mutation or independent Project Item read operations. This is the current operational state and must be treated as a persistent limitation unless and until the available tool capability is explicitly changed and verified.
+The current connected GitHub tool does not provide GitHub Project Item mutation or independent Project Item read operations. This is the current operational state and must be treated as a persistent limitation until further notice. No future availability of these operations is assumed.
 
 Normal Jagports Project task management is designed to use dedicated Project automation rather than requiring every agent or user to have direct Project administration capability. The dedicated `jagports-fi` automation identity and `PROJECTS_TOKEN` are used by the repository's Project automation path for Project Item operations.
 
@@ -155,7 +155,7 @@ Therefore:
 - Continue repository and Issue work that can be performed and verified through the available connection.
 - When a task requires Project Item mutation or independent Project Item verification, record that the operation cannot be performed through the current connection and do not represent the Project state as verified.
 
-The `MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS` rule is not implementable for Project Item operations through the current agent connection. It must not be presented as a currently executable requirement for those operations. This limitation applies until further notice.
+The `MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS` rule is not implementable for GitHub Project Item operations through the current agent connection. It is not a current executable requirement for those operations and must not be presented as one. This limitation applies until further notice.
 
 ## GitHub Access and Command Execution Lessons
 
