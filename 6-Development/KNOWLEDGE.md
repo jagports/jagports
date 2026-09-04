@@ -180,6 +180,24 @@ When a test depends on automation, verify that the automation is available in th
 
 The presence of configuration or workflow source code does not prove that the automation executed successfully. Execution evidence is required.
 
+### Pre-merge validation, test chronology, and evidence
+
+For a change requiring human verification, the primary acceptance test must run before merge against the exact PR implementation being proposed:
+
+`PR branch / exact head commit → isolated fixture → human test → PASS evidence → review/merge gate → merge → optional post-merge smoke/regression test`
+
+- Identify the exact PR head branch and commit under test.
+- Do not substitute a default-branch or already-merged implementation for required pre-merge validation.
+- Record the human-test Issue and result on the PR before merge when human verification is required.
+- `FAIL`, `BLOCKED`, or `NOT TESTED` does not satisfy a required pre-merge test.
+- A post-merge smoke/regression test is additional evidence and cannot substitute for required pre-merge validation.
+- Every test execution gets a new test Issue. A closed test Issue is an immutable historical execution record and must never be reused for a later execution.
+- A blocked or failed test remains historical evidence; a retest gets a new Issue and a new result.
+- A human tester closes the human-test Issue after recording the outcome so completed test records do not remain in the active backlog. Closing the test Issue is housekeeping only and must never be interpreted as PASS.
+- Historical test Issues may be referenced for chronology or evidence, but their descriptions/comments must not be rewritten and they must not be reused as current test records.
+
+A human-test Issue is the persistent detailed execution record. The PR is the implementation record and must link to the test evidence when that evidence is required for the merge gate. This preserves traceability without turning a closed test Issue into an active work item.
+
 ### Test evidence
 
 Test evidence must describe what was actually observed, not what was expected to happen.
