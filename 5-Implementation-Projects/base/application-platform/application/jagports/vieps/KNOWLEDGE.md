@@ -466,3 +466,41 @@ This separation prevents repository assets, mockups and design baselines from be
 ### UI implementation consequence
 
 The VIEPS UI should be implemented as a sequence of narrow vertical slices against the established data contracts. The concept baseline is useful for acceptance testing, but production UI must use real imported/reference data and explicit empty/unknown states where the underlying data is not yet available.
+
+## JEPC Data Importer lessons learned
+
+The JEPC Data Importer populates the VIEPS catalogue/reference layer from the complete JEPC dataset supplied to the importer. It imports all catalogue parts and their supplied JEPC-related data; it is not an inventory/stock importer and must not filter catalogue records by Jagports stock, quantity, condition, storage location, donor vehicle, or other operational stock state.
+
+Jagports stock remains a separate mutable operational layer linked to canonical catalogue part identity. The importer must therefore preserve catalogue/reference semantics independently of current inventory state.
+
+### JEPC structure must be preserved
+
+The importer should preserve the source distinction between category/group/item/application/attribute data rather than flattening the source into duplicated part-number records. The data model needs to retain the context needed for:
+
+- canonical part identity and description;
+- category/parent-category hierarchy;
+- part occurrence within EPC contexts;
+- vehicle/model/range applicability;
+- application and attribute constraints used for fitment;
+- illustration/diagram identity;
+- diagram item/hotspot association where supplied;
+- JEPC `isClassic` snapshot information;
+- JEPC supersession-related source information where supplied.
+
+A catalogue part can occur in multiple EPC contexts without becoming multiple catalogue identities.
+
+### VIN boundary
+
+VIN decoding is a vehicle-context capability. A decoded VIN may provide vehicle identity and attributes used to constrain JEPC fitment/application selection, but VIN decoding is not a requirement to populate every catalogue-part record and must not be embedded in the catalogue-part entity.
+
+### Complete versus partial source datasets
+
+The normal production import consumes the complete JEPC source dataset required by the defined importer. Related JEPC files may be dependencies of that import. Partial or missing related files are useful test cases for validating failure/partial-dataset behaviour; they do not redefine the normal production importer boundary.
+
+The importer must not silently invent values when source information required by the MVP is absent. Unsupported or unavailable source data should be detected and reported according to the defined import behaviour.
+
+### Repeatability and validation
+
+JEPC import processing should be deterministic and safely repeatable. Tests must cover parsing, source-to-model mapping, validation, duplicate handling, rerun/idempotency, representative malformed records, and partial related datasets. Import reporting should make processed, imported/updated, skipped/quarantined and failed records distinguishable.
+
+These are generalized implementation lessons derived from the VIEPS MVP JEPC importer work and must remain consistent with the approved Parts Data Model. They do not authorize changing the approved data model without the project's decision workflow.
