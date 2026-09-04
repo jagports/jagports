@@ -2,13 +2,11 @@
 
 ## Purpose
 
-This document defines the practical repository architecture used to store durable knowledge and to distinguish it from work records, research evidence, implementation material, and operating rules.
+This document defines the repository architecture used to store durable knowledge and to distinguish it from work records, research evidence, implementation material, and operating rules.
 
-## Current status
+## Canonical semantic root map
 
-The repository now has a usable hierarchical knowledge structure, but it must be treated as a maintained architecture rather than as a flat collection of Markdown files.
-
-The semantic root map is:
+The repository's first-level semantic map is:
 
 ```text
 0-DocumentationEducationCompetense
@@ -22,14 +20,16 @@ The semantic root map is:
 7-Research
 ```
 
+These are semantic domains, not a statement that every domain must contain the same kinds or number of files.
+
 The root `KNOWLEDGE.md` is the cross-domain knowledge layer. A nested `KNOWLEDGE.md` is a domain/subdomain knowledge layer and is authoritative only for durable knowledge within that scope.
 
-## Current knowledge locations
+## Knowledge locations
 
-The current repository contains these established knowledge files:
+Established durable-knowledge files include:
 
 - `KNOWLEDGE.md` — repository-wide and cross-domain durable knowledge.
-- `0-DocumentationEducationCompetense/KNOWLEDGE.md` — documentation/competence-area knowledge file, currently containing parts-supersession domain knowledge that should be reviewed for future relocation to a more domain-specific scope.
+- `0-DocumentationEducationCompetense/KNOWLEDGE.md` — documentation/competence-area knowledge.
 - `6-Development/KNOWLEDGE.md` — development-specific durable knowledge.
 - `5-Implementation-Projects/base/application-platform/application/jagports/vieps/KNOWLEDGE.md` — VIEPS-specific durable domain knowledge.
 
@@ -78,7 +78,7 @@ Is it durable?
 
 ## Generalization rule
 
-Knowledge files must contain generalized conclusions, not chronological history. Remove or generalize Issue numbers, PR numbers, branch names, temporary identifiers, one-off test cases, temporary filenames, and implementation-session details unless they are required to establish a reusable rule or provenance.
+Knowledge files contain generalized conclusions, not chronological history. Do not record Issue numbers, PR numbers, branch names, temporary identifiers, one-off test cases, temporary filenames, or implementation-session details unless they are required to establish a reusable rule or provenance.
 
 Research evidence remains evidence. It should not be copied wholesale into knowledge merely because it is relevant. Extract the durable conclusion and retain the evidence in its appropriate research or task record.
 
@@ -107,29 +107,33 @@ An agent should discover knowledge in this order:
 2. Inspect the nine semantic root folders.
 3. Identify the domains relevant to the Issue.
 4. Read the relevant `KNOWLEDGE.md` files from the root toward the narrowest relevant scope.
-5. Consult research, implementation, or other Markdown only when the task specifically requires evidence, procedure, design, or history.
+5. Consult research, implementation, or other Markdown only when the task specifically requires evidence, procedure, design, or other non-memory information.
 
 This prevents general knowledge discovery from becoming an uncontrolled scan of every Markdown file in the repository.
 
-## Current usability assessment
+## Architecture validation rule
 
-The architecture is **usable as persistent project memory**, with the following qualifications:
+The semantic root map above is the canonical repository map for knowledge discovery. No other Markdown document should define a competing first-level semantic folder list.
 
-- The root `KNOWLEDGE.md` successfully provides repository-wide durable context and explicitly defines the nested knowledge hierarchy.
-- The VIEPS knowledge file demonstrates that detailed domain knowledge can be kept at a narrow scope without polluting repository-wide memory.
-- The development knowledge file provides a separate engineering scope.
-- Research and implementation material are physically distinguishable from durable knowledge.
-- The former parallel root `docs/` area has been removed, eliminating a competing documentation root.
-- The former root `6-Architecture/` area has been removed, eliminating the duplicate `6` semantic root.
-- `1-CustomerService` now exists in the semantic root map.
-- The remaining main structural defect found during validation is documentation drift: `AGENTS.md` previously described eight root folders and omitted `1-CustomerService`. This is corrected by this implementation.
-- `0-DocumentationEducationCompetense/KNOWLEDGE.md` is structurally valid as a nested knowledge file but its current parts-supersession content is semantically better suited to a product/domain scope. This is recorded as a follow-up normalization consideration, not as a reason to invalidate the whole architecture.
-- `4-Production` is intentionally not normalized further by this change. Its established deeper production hierarchy is an implementation/domain concern and must be understood from its actual contents before structural changes are proposed.
+When changing the root structure, validate all repository Markdown that defines repository organization or knowledge discovery and update every authoritative reference in the same implementation. Do not accept a structure change when an obsolete or conflicting root-folder map remains in an authoritative instruction file.
+
+Validation should check at minimum:
+
+- the actual repository root tree;
+- `AGENTS.md`;
+- root `KNOWLEDGE.md`;
+- `SKILL.md`;
+- `00-Management/RULES.md`;
+- `00-Management/WORKFLOWS.md`;
+- this architecture document; and
+- any other Markdown document that explicitly defines repository organization or knowledge discovery.
+
+The validation result must distinguish between a semantic folder map and descriptions of deeper application, production, deployment, or implementation hierarchies. A deeper hierarchy is not a competing first-level map merely because it contains folder names.
 
 ## Enforcement objective
 
-The architecture is not complete merely because the directories exist. Future work must preserve the invariant:
+The architecture is maintained through the invariant:
 
 **one semantic map → one knowledge hierarchy → one clear scope per knowledge file → no accidental duplication between knowledge, research, workflow, and task history.**
 
-Structural changes to knowledge locations must be performed through the normal Issue → branch → PR → review → testing → merge process and must preserve traceability.
+Structural changes to knowledge locations must be performed through the normal Issue → branch → PR → review → testing → merge process and must preserve traceability in the project work records.
