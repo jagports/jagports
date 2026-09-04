@@ -14,71 +14,75 @@ jobs:
       pull-requests: write
       contents: read
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Set matching category label
         uses: actions/github-script@v7
         with:
           script: |
+            const { getCategorySyncPlan } = require('./.github/scripts/category-conventions.js');
             const item = context.eventName === 'issues' ? context.payload.issue : context.payload.pull_request;
+            const issueOrPr = item.number;
             const title = item.title || '';
-            const categories = [
-              ['SKILL /', 'category:skill'],
-              ['AGENT /', 'category:agent'],
-              ['KNOWLEDGE /', 'category:knowledge']
-            ];
-            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
-            if (matches.length === 0) return;
-            const [prefix, expectedLabel] = matches[0];
             const currentLabels = (item.labels || []).map(label => typeof label === 'string' ? label : label.name);
-            if (!currentLabels.includes(expectedLabel)) {
-              const issueOrPr = context.eventName === 'issues' ? context.payload.issue.number : context.payload.pull_request.number;
+            const plan = getCategorySyncPlan(title, currentLabels);
+
+            if (!plan.expectedLabel) return;
+
+            if (plan.add.length > 0) {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueOrPr,
-                labels: [expectedLabel]
+                labels: plan.add
               });
-              core.info(`Added ${expectedLabel} for ${prefix}`);
+              core.info(`Added ${plan.add.join(', ')} for ${plan.prefix}`);
+            }
+
+            for (const label of plan.remove) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueOrPr,
+                name: label
+              });
+              core.info(`Removed stale ${label} for ${plan.prefix}`);
             }
 
       - name: Validate title prefix and category label
         uses: actions/github-script@v7
         with:
           script: |
+            const { getCategorySyncPlan } = require('./.github/scripts/category-conventions.js');
             const event = context.eventName;
             const item = event === 'issues' ? context.payload.issue : context.payload.pull_request;
             const title = item.title || '';
-            const categories = [
-              ['SKILL /', 'category:skill'],
-              ['AGENT /', 'category:agent'],
-              ['KNOWLEDGE /', 'category:knowledge']
-            ];
-            const matches = categories.filter(([prefix]) => title.startsWith(prefix));
+            const currentLabels = (item.labels || []).map(label => typeof label === 'string' ? label : label.name);
+            const plan = getCategorySyncPlan(title, currentLabels);
 
             // Ordinary titles are valid and do not require a category prefix.
-            // Prefix-specific validation applies only when a known prefix starts the title.
-            if (matches.length === 0) {
+            if (!plan.expectedLabel) {
               core.info('No known category prefix: ordinary title, no category validation required.');
               return;
             }
-            if (matches.length > 1) {
-              core.setFailed('Title contains multiple supported category prefixes; exactly one primary category prefix is permitted.');
+            if (plan.error) {
+              core.setFailed(plan.error);
               return;
             }
-            const [prefix, expectedLabel] = matches[0];
+
             const refreshed = await github.rest.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: event === 'issues' ? context.payload.issue.number : context.payload.pull_request.number
+              issue_number: item.number
             });
             const refreshedLabels = refreshed.data.labels.map(label => typeof label === 'string' ? label : label.name);
-            if (!refreshedLabels.includes(expectedLabel)) {
-              core.setFailed(`Title prefix ${prefix} requires label ${expectedLabel}.`);
+            if (!refreshedLabels.includes(plan.expectedLabel)) {
+              core.setFailed(`Title prefix ${plan.prefix} requires label ${plan.expectedLabel}.`);
               return;
             }
-            const categoryLabels = categories.map(([, label]) => label);
-            const conflicting = refreshedLabels.filter(label => categoryLabels.includes(label) && label !== expectedLabel);
-            if (conflicting.length > 0) {
-              core.setFailed(`Category label does not match title prefix: ${conflicting.join(', ')}`);
+            if (plan.remove.some(label => refreshedLabels.includes(label))) {
+              core.setFailed(`Category label does not match title prefix: ${plan.remove.filter(label => refreshedLabels.includes(label)).join(', ')}`);
               return;
             }
-            core.info(`Category convention valid: ${prefix} ↔ ${expectedLabel}`);
+            core.info(`Category convention valid: ${plan.prefix} ↔ ${plan.expectedLabel}`);
