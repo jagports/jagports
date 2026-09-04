@@ -37,7 +37,9 @@ test('ordinary title is a valid no-op', () => {
   assert.equal(plan.error, null);
 });
 
-test('multiple supported prefixes are rejected', () => {
-  const plan = getCategorySyncPlan('SKILL / AGENT / invalid title', ['category:skill']);
-  assert.equal(plan.error, null);
+test('known prefix takes only its matching category label', () => {
+  const plan = getCategorySyncPlan('SKILL / TEST FIXTURE', ['category:skill', 'category:agent', 'category:knowledge']);
+  assert.deepEqual(plan.add, []);
+  assert.deepEqual(plan.remove, ['category:agent', 'category:knowledge']);
+  assert.equal(plan.expectedLabel, 'category:skill');
 });
