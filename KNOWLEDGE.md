@@ -143,23 +143,19 @@ When capability availability changes or is uncertain, the agent should state the
 
 ### GitHub Project Operations Available to the Agent
 
-The connected GitHub tool may provide repository, Issue, and Pull Request operations without providing GitHub Project Item mutation or independent Project Item read operations. This is a limitation of the current agent/tool interface, not evidence that the GitHub Project architecture or its automation credentials are broken.
+The current connected GitHub tool does not provide Project Item mutation or independent Project Item read operations. This is the current operational state and must be treated as a persistent limitation unless and until the available tool capability is explicitly changed and verified.
 
 Normal Jagports Project task management is designed to use dedicated Project automation rather than requiring every agent or user to have direct Project administration capability. The dedicated `jagports-fi` automation identity and `PROJECTS_TOKEN` are used by the repository's Project automation path for Project Item operations.
 
 Therefore:
 
-- Do not interpret inability of the current agent connection to mutate or read Project Items directly as a failure of Project automation.
-- Do not claim that a Project Item was added, its Status changed, or the resulting Project state was verified unless the required operation and independent verification are actually available and successful.
-- Do not create duplicate Issues merely because Project Item state cannot be verified through the current connection.
-- Keep the relevant verification task open when its completion depends on Project state that cannot be independently verified.
-- If Project mutation is unavailable, continue with repository/Issue verification, record the limitation, and use the Project automation path when its result can be independently verified.
+- Do not interpret the current agent connection's inability to mutate or independently read Project Items as a failure of the Jagports Project architecture or Project automation credentials.
+- Do not claim that a Project Item was added, its Status changed, or the resulting Project state was independently verified through this agent connection.
+- Do not create duplicate Issues because Project Item state cannot be verified through this agent connection.
+- Continue repository and Issue work that can be performed and verified through the available connection.
+- When a task requires Project Item mutation or independent Project Item verification, record that the operation cannot be performed through the current connection and do not represent the Project state as verified.
 
-The required verification principle is:
-
-**MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS**
-
-If the required Project mutation or independent Project read is unavailable, the result is **unverified**, not successful. This capability limitation is current-session operational knowledge and may change if the connected GitHub tool gains additional Project operations.
+The `MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS` rule is not implementable for Project Item operations through the current agent connection. It must not be presented as a currently executable requirement for those operations. This limitation applies until further notice.
 
 ## GitHub Access and Command Execution Lessons
 
