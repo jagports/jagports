@@ -414,3 +414,55 @@ When a consequential domain decision remains unresolved, it must remain explicit
 At the same time, unresolved extension semantics should not be allowed to block a stable MVP boundary when the required core relationships are already sufficiently understood.
 
 The objective is a database that is both implementable now and capable of receiving later VIEPS knowledge without corrupting catalogue identity or operational stock state.
+
+## UI lessons learned during VIEPS UI concept integration
+
+The UI concept work produced additional durable implementation knowledge that should be preserved with the data-model decisions.
+
+### UI concepts are repository-resident design inputs
+
+The VIEPS UI concept images and presentation material are now stored under:
+
+`5-Implementation-Projects/base/application-platform/application/jagports/vieps/VIEPS UI/`
+
+They are design inputs for the MVP and should be referenced by implementation work rather than treated as disposable chat artifacts.
+
+PR #366, `[VIEPS UI] Add UI concepts and X100 WDS silhouette assets`, merged these concept artifacts and initial X100 WDS silhouette assets into `main`. The merge established an asset/design baseline; it did **not** implement the VIEPS UI itself and does not close Issue #360.
+
+### UI concept versus authoritative domain model
+
+The concept images establish intended interaction and presentation, but visual appearance must not be used to infer unresolved database semantics. In particular:
+
+- a visual zone is not automatically a database zone definition;
+- a silhouette is not automatically a universal geometry definition;
+- a displayed fitment row is not proof of a fitment rule;
+- a displayed supersession indicator is not proof of current supersession state.
+
+Implementation must map each visual element to an identified source or derived domain relationship.
+
+### WDS/UFM assets and per-silhouette mapping
+
+WDS/UFM vehicle representations are useful source/presentation assets for the whole-car location panel. The same conceptual zone may require different geometry for different model/range silhouettes.
+
+Therefore the location model should support:
+
+```text
+MODEL / RANGE
+      │
+      ▼
+SILHOUETTE ASSET
+      │
+      └── ZONE / PIN MAPPING
+```
+
+A single global set of pixel coordinates must not be assumed to apply to every vehicle silhouette.
+
+### UI asset PR boundary
+
+An asset/design PR can be valuable and mergeable independently of application implementation when its scope is explicit. Such a PR should state clearly that it does not complete the corresponding UI implementation issue.
+
+This separation prevents repository assets, mockups and design baselines from being mistaken for production behaviour.
+
+### UI implementation consequence
+
+The VIEPS UI should be implemented as a sequence of narrow vertical slices against the established data contracts. The concept baseline is useful for acceptance testing, but production UI must use real imported/reference data and explicit empty/unknown states where the underlying data is not yet available.
