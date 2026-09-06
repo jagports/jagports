@@ -1,6 +1,6 @@
 # Scheduled Jagports Project Audits
 
-## AI OS audit task
+## AI OS project task
 
 **Title:** Jagports Daily Audit  
 **Target repository:** `jagports/jagports`  
@@ -10,11 +10,11 @@
 
 ### Durable procedure
 
-`00-Management/DAILY_AUDIT.md`
+`00-Management/PROJECT_DAILY_AUDIT.md`
 
 ### Live task prompt
 
-> Read `00-Management/DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
+> Read `00-Management/PROJECT_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
 
 ## VIEPS App audit task
 
@@ -33,7 +33,7 @@
 
 ## Scheduling rule
 
-The scheduled task is only the execution/notification mechanism. The repository Markdown files are the durable source of truth for what each audit does.
+The scheduled task is only the execution/notification mechanism. The repository Markdown files are the durable source of truth for what each task does.
 
 Changes to either procedure or this scheduling documentation require Issue → branch → PR → review → merge.
 
