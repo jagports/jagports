@@ -1,1 +1,0 @@
-End of durable daily audit procedure implementation.
