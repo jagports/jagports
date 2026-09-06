@@ -1,1 +1,0 @@
-Procedure change is tracked by the PR implementing Issue #397.
