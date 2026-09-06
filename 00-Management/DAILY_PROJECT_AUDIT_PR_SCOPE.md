@@ -1,1 +1,0 @@
-Issue #397 changes the durable daily audit procedure so the scheduled task reads `00-Management/DAILY_PROJECT_AUDIT.md` on every run. The live task keeps a stable bootstrap; procedure changes are delivered through reviewed PRs.
