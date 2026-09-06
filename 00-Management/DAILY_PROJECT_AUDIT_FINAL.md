@@ -1,1 +1,0 @@
-The reviewed procedure is in `DAILY_PROJECT_AUDIT.md`.
