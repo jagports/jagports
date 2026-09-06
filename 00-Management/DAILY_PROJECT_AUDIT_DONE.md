@@ -1,1 +1,0 @@
-The daily audit procedure is maintained in `DAILY_PROJECT_AUDIT.md` and requires PR review before merge.
