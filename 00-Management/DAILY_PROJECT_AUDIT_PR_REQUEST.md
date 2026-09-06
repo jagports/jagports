@@ -1,1 +1,0 @@
-Review the PR implementing Issue #397.
