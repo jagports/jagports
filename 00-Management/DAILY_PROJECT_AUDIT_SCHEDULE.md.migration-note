@@ -1,3 +1,0 @@
-The existing `DAILY_PROJECT_AUDIT_SCHEDULE.md` remains the historical schedule record. The reviewed scheduling bootstrap is defined in `DAILY_PROJECT_AUDIT_SCHEDULE_SETUP.md`; the repeating procedure is defined in `DAILY_PROJECT_AUDIT.md`.
-
-The live scheduled task should use the stable bootstrap instruction documented in `DAILY_PROJECT_AUDIT_SCHEDULE_SETUP.md`.
