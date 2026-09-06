@@ -10,7 +10,7 @@ A successful creation or execution of an automation must not be treated as evide
 
 ## Scheduled Audit Knowledge
 
-A recurring Team Lead audit is supported by ChatGPT automation. Its current schedule, prompt, and verified automation metadata are maintained in the scoped management document `00-Management/DAILY_PROJECT_AUDIT_SCHEDULE.md` rather than duplicated here.
+A recurring Team Lead audit is supported by ChatGPT automation. Its current schedule, prompt, and verified automation metadata are maintained in the scoped management document `00-Management/DAILY_AUDIT_SCHEDULE.md` rather than duplicated here.
 
 The audit is intended to be read-only by default and to identify actionable exceptions while respecting the authoritative Management, workflow, communication, and knowledge sources.
 
