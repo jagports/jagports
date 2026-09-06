@@ -1,0 +1,1 @@
+Issue #397 is implemented on this branch. The repeating procedure is in `DAILY_PROJECT_AUDIT.md`; the stable scheduling bootstrap is in `DAILY_PROJECT_AUDIT_SCHEDULE_BOOTSTRAP.md`.
