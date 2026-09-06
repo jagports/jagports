@@ -20,9 +20,26 @@
 
 **Current verification:** The scheduling facility confirmed that the task exists and is enabled. The task uses `FREQ=DAILY`.
 
-## Audit prompt
+## Live scheduled-task prompt
 
-Act as the Jagports Team Lead Agent and perform an independent daily project audit of the GitHub repository jagports/jagports and its GitHub Project(s), using them as the system of record. Read the repository's 00-Management/RULES.md, SKILL.md, KNOWLEDGE.md, all relevant management/knowledge Markdown files, all relevant agent-communication/protocol Markdown files like COMMUNICATION_PROTOCOL.md files wherever they present, and Jagports_AI_OS_Prioritized_Work_Plan.md when accessible. Treat these repository Markdown documents as operational source-of-truth instructions, not merely background. Check Issues and PRs for priority/work-plan consistency, missing or incorrect descriptions, parent/sub-issue relationships, labels and workflow status, linked PRs and review state, stale or blocked work, communication/documentation gaps, and violations of the documented management/development/communication process. Do not use the obsolete tlindi/jagports repository. Do not modify Issue or PR text, repository content, labels, Project fields, or relationships unless an explicit project rule authorizes a non-content state operation; default to read-only audit. Report only actionable exceptions. Classify findings as AUTO, REVIEW, DECISION, or BLOCKED, and for each include issue/PR number, title, problem, evidence, applicable source-of-truth document, and recommended next action. Pay particular attention to whether agent communications and decisions are recorded in the GitHub system of record rather than being left only in ChatGPT. If no problems are found, state that the daily audit passed. Never claim a check succeeded when required repository access or verification failed.
+The live scheduled task contains only this stable bootstrap instruction:
+
+> Read `00-Management/DAILY_PROJECT_AUDIT.md` from the current `jagports/jagports` repository and execute its instructions as the complete operational procedure for this scheduled run. Treat that file as the durable source of truth for the repeating task procedure. Do not use an obsolete repository. If the file cannot be read, report the task as `BLOCKED` rather than executing from an old cached copy or claiming success.
+
+Do not duplicate the operational audit procedure in the scheduled task prompt.
+
+## Changing the daily-run procedure
+
+To change what the daily run does, change `00-Management/DAILY_PROJECT_AUDIT.md` through the normal GitHub workflow:
+
+1. Create or use an Issue describing the required procedure change.
+2. Make the change on a dedicated branch.
+3. Open a Pull Request.
+4. Obtain independent review and approval.
+5. Perform the required tests/verification.
+6. Merge the PR.
+
+The next scheduled run reads the merged `DAILY_PROJECT_AUDIT.md`. The live scheduled-task prompt normally does not need to change when the procedure changes.
 
 ## System-of-record boundary
 
