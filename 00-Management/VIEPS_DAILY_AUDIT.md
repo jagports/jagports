@@ -1,72 +1,69 @@
-# Jagports VIEPS App Daily Audit — Task Instructions
+# Jagports VIEPS App Daily Audit
 
 ## Purpose
 
-This file is the durable operational source for the recurring `Jagports VIEPS App Daily Audit` ChatGPT task.
+Daily decision-support audit for the Issues and PRs that materially affect VIEPS App creation and operation.
 
-The task audits Issues and PRs that materially progress the Jagports VIEPS application. It is not a general repository audit.
+This is not a general repository/project-progress audit. AI OS creation/operation is audited separately by `00-Management/AI_OS_DAILY_AUDIT.md`, except for direct VIEPS dependencies.
 
-Changes to this procedure must use Issue → branch → PR → review → merge.
+## Audit
 
-## Audit execution
+Read `RULES.md`, `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, `SKILL.md`, `KNOWLEDGE.md`, relevant VIEPS/domain/research/specification documents, and this file.
 
-Act as the Jagports Team Lead Agent and audit `jagports/jagports` using GitHub as the system of record.
+Use `jagports/jagports` as the system of record. Do not use obsolete `tlindi/jagports`.
 
-Read:
-- `00-Management/RULES.md`
-- `00-Management/WORKFLOWS.md`
-- `00-Management/GITHUB_OPERATING_RULES.md`
-- `SKILL.md`
-- `KNOWLEDGE.md`
-- relevant VIEPS/domain/research/specification Markdown
-- this file
+### SHOW-STOPPERS
 
-Do not use obsolete `tlindi/jagports`.
+Identify the few open Issues/PRs, dependencies, missing product/domain decisions, broken capabilities, missing evidence or other conditions that can materially prevent or seriously delay VIEPS progress. Require evidence of material impact.
+
+### DO FIRST
+
+Give a short ordered list of the most valuable next VIEPS actions using current evidence, dependency order, impact, urgency, unblock value, readiness and MVP relevance. Do not simply reproduce an old priority list.
+
+### LOW-HANGING FRUITS
+
+Identify small, well-understood, low-risk actions that can finish existing VIEPS work, add useful tests/evidence, remove stale/obsolete work, unblock another item, improve traceability, or otherwise reduce active work. Prefer completion/consolidation over opening new Issues.
+
+### QUEUE CLEANUP
+
+Find duplicate, overlapping, stale, obsolete, over-split or otherwise consolidatable VIEPS Issues/PRs. Recommend completing, consolidating, superseding or closing them through the normal workflow. Keep the VIEPS queue small, current and actionable without hiding legitimate work or losing traceability.
 
 ## VIEPS scope
 
-Focus on open and recently changed Issues and PRs that progress the VIEPS App, including:
-
-- VIEPS UI and application implementation;
+Include work materially related to:
+- VIEPS UI/application implementation;
 - Parts Data Model and API/data integration;
 - JEPC Data Importer and catalogue/reference data;
-- fitment and vehicle/model/VIN applicability;
+- fitment, vehicle/model/VIN applicability;
 - EPC diagrams and verified hotspot conversion;
-- vehicle silhouettes, zones and location mapping;
+- silhouettes, zones and location mapping;
 - supersession and Jaguar Classic semantics;
 - operational stock integration;
 - VIEPS dependencies, blockers and research/specification decisions;
 - automated tests and required human verification;
 - PR review state and implementation readiness;
-- documentation, communication and traceability.
+- VIEPS documentation, communication and traceability.
 
-Start from the VIEPS work represented by #360 and #368 and follow their explicitly linked dependencies, without assuming those are the only relevant VIEPS Issues/PRs.
+Start from the VIEPS work represented by #360 and #368 and follow explicitly linked dependencies, without assuming those are the only relevant VIEPS Issues/PRs.
 
-Issues do not require review. PRs do require review.
+## Required output
 
-## Verification rules
+- **OVERALL STATE** — is a genuine VIEPS show-stopper preventing the next meaningful progress?
+- **SHOW-STOPPERS** — exact Issue/PR, evidence, dependency and next action.
+- **DO FIRST** — short ordered execution list.
+- **LOW-HANGING FRUITS** — quick useful actions.
+- **QUEUE CLEANUP** — work that should be completed/consolidated/closed.
+- **DECISIONS NEEDED** — only decisions requiring human authority.
+- **BLOCKED** — capability/access blockers with evidence.
 
-Default to read-only. Never claim a check succeeded when required evidence or access is unavailable.
+Every actionable finding must include exact Issue/PR, evidence/source and next action. Keep the report short and action-oriented.
 
-Do not silently resolve product/domain decisions. Report unresolved decisions as `DECISION`.
+## Rules
 
-For every actionable finding report:
-- Issue/PR number and title;
-- problem;
-- evidence;
-- applicable source-of-truth document;
-- next action.
-
-Classify findings as `AUTO`, `REVIEW`, `DECISION`, or `BLOCKED`.
-
-## Output
-
-Return a concise report containing:
-- overall VIEPS audit state;
-- actionable exceptions only;
-- exact Issue/PR references;
-- evidence/source references;
-- blockers and decisions;
-- next actions.
-
-If no actionable exceptions are found, state that the VIEPS audit passed.
+- Read-only by default.
+- Do not create Issues/PRs merely to record audit observations.
+- Prefer finishing/consolidating existing work over increasing the active queue.
+- Do not silently resolve product/domain decisions; report them as **DECISIONS NEEDED**.
+- Issues do not require review; PRs do require review.
+- GitHub is the system of record.
+- Changes to this procedure use Issue → branch → PR → review → merge.
