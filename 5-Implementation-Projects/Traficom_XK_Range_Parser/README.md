@@ -20,7 +20,11 @@ The output filename is formed as:
 
 `<script-name>+<source-file-name>-output.txt`
 
-The output is created in the script directory.
+The output is created under:
+
+`5-Implementation-Projects/base/traficom/AvoinData/tieliikenne/`
+
+The parser resolves this destination relative to the parser script location, so the output location does not depend on the PowerShell current working directory.
 
 ## Large-file lesson
 
