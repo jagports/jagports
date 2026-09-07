@@ -2,15 +2,13 @@
 
 ## Purpose
 
-Daily decision-support audit for the small set of Issues and PRs that materially affect creation and operation of the Jagports AI OS.
-
-This is not a general repository/project-progress audit and does not cover VIEPS App implementation or VIEPS product requirements, except for direct AI OS dependencies or show-stoppers.
+Daily decision-support audit for the Issues and PRs that materially affect creation and operation of the Jagports AI OS.
 
 ## Audit
 
 Read `RULES.md`, `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, `SKILL.md`, `KNOWLEDGE.md`, relevant management/agent-communication documents, the AI OS prioritized work plan when available, and this file.
 
-Use `jagports/jagports` as the system of record. Do not use obsolete `tlindi/jagports`.
+Use `jagports/jagports` as the system of record.
 
 ### SHOW-STOPPERS
 
@@ -18,32 +16,31 @@ Identify the few open Issues/PRs, dependencies, missing decisions, broken capabi
 
 ### DO FIRST
 
-Give a short ordered list of the most valuable next actions using current evidence, dependency order, impact, urgency, unblock value and readiness. Do not simply reproduce an old priority list.
+Give a short ordered list of the most valuable next actions using current evidence, dependency order, impact, urgency, unblock value and readiness. Prioritize actions that create or restore forward progress.
 
 ### LOW-HANGING FRUITS
 
-Identify small, well-understood, low-risk actions that can finish existing work, unblock work, remove stale/obsolete work, improve traceability, or otherwise reduce active work. Prefer completion/consolidation over opening new Issues.
+Identify small, well-understood, low-risk actions that can finish existing work, unblock work, improve traceability, add useful verification, or reduce active work. Prefer completion and consolidation.
 
 ### QUEUE CLEANUP
 
-Find duplicate, overlapping, stale, obsolete, over-split or otherwise consolidatable Issues/PRs. Recommend completing, consolidating, superseding or closing them through the normal workflow. Keep the queue small, current and actionable without hiding legitimate work or losing traceability.
+Find duplicate, overlapping, stale, obsolete, over-split or otherwise consolidatable Issues/PRs. Recommend completing, consolidating, superseding or closing them through the normal workflow. Keep the active queue small and actionable while preserving traceability.
 
 ## Required output
 
-- **OVERALL STATE** — is a genuine AI OS show-stopper preventing the next meaningful progress?
+- **OVERALL STATE** — current AI OS progress condition and the most important constraint.
 - **SHOW-STOPPERS** — exact Issue/PR, evidence, dependency and next action.
 - **DO FIRST** — short ordered execution list.
 - **LOW-HANGING FRUITS** — quick useful actions.
-- **QUEUE CLEANUP** — work that should be completed/consolidated/closed.
-- **DECISIONS NEEDED** — only decisions requiring human authority.
+- **QUEUE CLEANUP** — work to complete, consolidate, supersede or close.
+- **DECISIONS NEEDED** — decisions requiring human authority.
 - **BLOCKED** — capability/access blockers with evidence.
 
 Every actionable finding must include exact Issue/PR, evidence/source and next action. Keep the report short and action-oriented.
 
-## Rules
+## Operating rules
 
 - Read-only by default.
-- Do not create Issues/PRs merely to record audit observations.
 - Prefer finishing/consolidating existing work over increasing the active queue.
 - Issues do not require review; PRs do require review.
 - GitHub is the system of record.
@@ -51,6 +48,6 @@ Every actionable finding must include exact Issue/PR, evidence/source and next a
 
 ## Project V2 verification
 
-Track `openai/codex#43297` as the external blocker where Project V2 verification is relevant. Closure alone is not resolution. Resolution requires an actual functional test covering the `Jagports AI OS` Project, items, Status and required fields/relationships. If the test fails, report the blocker and do not claim Project verification.
+Track `openai/codex#43297` as the external dependency for Project V2 verification. Resolution requires an actual functional test covering the `Jagports AI OS` Project, items, Status and required fields/relationships. Record the tested capabilities and resulting state with evidence.
 
 Changes to this procedure use Issue → branch → PR → review → merge.
