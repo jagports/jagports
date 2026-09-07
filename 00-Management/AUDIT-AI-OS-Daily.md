@@ -25,11 +25,7 @@ Find only real blockers. A blocker must have evidence that it can stop or seriou
 
 Find the few actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
 
-### WORK PATHS
-
-For the important work represented by DO FIRST, build dependency/enabling paths.
-
-Each path must show, in order:
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path. A work path should show, in order:
 
 `work item → problem/capability it solves → capability/work it enables → next meaningful work`
 
@@ -37,37 +33,52 @@ A work path may contain multiple existing Issues/PRs when that dependency relati
 
 Do not invent dependencies merely to make a path longer.
 
-A path should explain why the first work item is first and what concrete progress becomes possible when it is completed.
-
 ### LOW-HANGING FRUITS
 
-Find small, clear and low-risk actions that can be completed quickly and are not already represented by a DO FIRST work-path item.
+Find small, clear and low-risk actions that can be completed quickly and are not already represented by a DO FIRST work item.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
 
 ### QUEUE CLEANUP
 
 Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small, excluding work already represented by DO FIRST.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+
+### DECISIONS NEEDED
+
+Find human decisions that are actually needed now.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+
+### BLOCKED
+
+Find capability/access blockers that are actually blocking AI OS progress.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
 
 ## Required output
 
 Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
-- **DO FIRST** — the few actions that should be done, in order, with linked GitHub Issue/PR number and title.
-- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next. Issue/PR references may be used when they are necessary to identify the work items in the path.
-- **LOW-HANGING FRUITS** — quick actions that can be completed with low risk. Issue/PR references may be used when they identify the relevant work.
-- **QUEUE CLEANUP** — cleanup actions. Issue/PR references may be used when they identify the relevant work.
-- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`. Issue/PR references may be used when they identify the relevant decision or affected work.
-- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`. Issue/PR references may be used when they identify the relevant blocker or affected work.
+- **DO FIRST** — the few actions that should be done, in order, with linked GitHub Issue/PR number and title where applicable. Include relevant work paths when they clarify dependencies or enabling relationships.
+- **LOW-HANGING FRUITS** — quick actions, or `None`. Include relevant Issue/PR references and work paths when applicable.
+- **QUEUE CLEANUP** — cleanup actions, or `None`. Include relevant Issue/PR references and work paths when applicable.
+- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`. Include relevant Issue/PR references and work paths when applicable.
+- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`. Include relevant Issue/PR references and work paths when applicable.
 
-### Output discipline
+## Output discipline
 
 - Follow the repository's inherited communication protocol for presentation and traceability formatting.
 - Issue and PR references are allowed in every report section when relevant to that section.
-- Use the reference where it provides useful traceability; do not force an Issue/PR reference into a section merely because one exists elsewhere in the report.
+- A work path is a presentation style for showing dependency/enabling relationships between relevant work items; it is not a report category.
+- Any report category may contain one or more work paths when relevant Issues/PRs exist.
+- Use Issue/PR references where they provide useful traceability; do not force a reference into a section merely because one exists elsewhere in the report.
 - The same Issue or PR may be referenced in more than one section when it is genuinely relevant to each section; this is not considered an error or duplication by itself.
 - Do not create duplicate work items merely because the same Issue/PR is relevant to multiple audit categories.
 - If an Issue/PR is both a blocker and a DO FIRST action, it may be referenced in both sections when both references materially help the reader understand the situation.
-- LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
+- Sections with no qualifying item must say `None`.
 - Do not fill empty sections with general advice, principles or commentary.
 - Keep the report short and use simple language.
 - Prefer finishing, testing, merging, consolidating and closing existing work over creating new work.
