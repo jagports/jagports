@@ -25,8 +25,6 @@ Find only real blockers. A blocker must have evidence that it can stop or seriou
 
 Find the few actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
 
-For each selected work item, assign a temporary work-path identifier such as `WF-1`, `WF-2`, etc. The identifier is for this audit report only and is not a repository identifier.
-
 ### WORK PATHS
 
 For the important work represented by DO FIRST, build dependency/enabling paths.
@@ -37,7 +35,7 @@ Each path must show, in order:
 
 A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
 
-Use the DO FIRST work-path identifiers to refer back to the selected work items instead of repeating Issue/PR references. Do not invent dependencies merely to make a path longer.
+Do not invent dependencies merely to make a path longer.
 
 A path should explain why the first work item is first and what concrete progress becomes possible when it is completed.
 
@@ -54,8 +52,8 @@ Find work that can be finished, merged, consolidated, superseded or closed so th
 Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
-- **DO FIRST** — the few actions that should be done, in order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a linked GitHub Issue/PR number and title.
-- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next, using the DO FIRST work-path identifier rather than repeating the Issue/PR reference.
+- **DO FIRST** — the few actions that should be done, in order, with linked GitHub Issue/PR number and title.
+- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next.
 - **LOW-HANGING FRUITS** — quick actions not already in DO FIRST or its work paths, or `None`.
 - **QUEUE CLEANUP** — cleanup actions not already in DO FIRST or its work paths, or `None`.
 - **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`.
