@@ -18,15 +18,22 @@ test("part number normalization rejects non-string values", () => {
   assert.equal(normalizePartNumber(123), "");
 });
 
-test("empty normalized part numbers are not valid PART identities", () => {
+test("empty normalized part numbers are not valid catalogue identities", () => {
   assert.equal(normalizePartNumber("   -  "), "");
 });
 
-test("PART migration defines raw and normalized identities", () => {
-  assert.match(migration, /CREATE TABLE part_new/);
-  assert.match(migration, /part_number_raw TEXT NOT NULL/);
-  assert.match(migration, /part_number_normalized TEXT NOT NULL UNIQUE/);
+test("PART migration permits unknown part numbers and uniquely indexes known ones", () => {
+  assert.match(migration, /part_number_raw TEXT,/);
+  assert.match(migration, /part_number_normalized TEXT,/);
+  assert.match(migration, /CREATE UNIQUE INDEX idx_part_number_normalized_unique/);
+  assert.match(migration, /WHERE part_number_normalized IS NOT NULL/);
+  assert.doesNotMatch(migration, /part_number_normalized TEXT NOT NULL UNIQUE/);
+  assert.match(migration, /CHECK \(part_number_raw IS NULL OR TRIM\(part_number_raw\) <> ''\)/);
   assert.match(migration, /ALTER TABLE part_new RENAME TO part/);
-  assert.match(migration, /CREATE INDEX idx_part_number_normalized ON part\(part_number_normalized\)/);
   assert.doesNotMatch(migration, /CREATE TABLE part_new[\s\S]*applicability/i);
+});
+
+test("PART migration does not make descriptions unique", () => {
+  assert.doesNotMatch(migration, /UNIQUE\s*\(\s*description\s*\)/i);
+  assert.doesNotMatch(migration, /description\s+TEXT\s+UNIQUE/i);
 });
