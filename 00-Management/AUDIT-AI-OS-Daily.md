@@ -13,9 +13,7 @@ Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
 ## Audit
 
-Read `RULES.md`, `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, `SKILL.md`, `KNOWLEDGE.md`, relevant management/agent-communication documents, the AI OS prioritized work plan when available, and this file.
-
-Use `jagports/jagports` as the system of record.
+Use `jagports/jagports` as the system of record and operate according to the repository's authoritative knowledge and operating rules.
 
 ### SHOW-STOPPERS
 
@@ -38,18 +36,18 @@ Find work that can be finished, merged, consolidated, superseded or closed so th
 Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
-- **WORK PATH** — the few actions that should be done, in order.
-- **LOW-HANGING FRUITS** — quick actions not already in WORK PATH, or `None`.
-- **QUEUE CLEANUP** — cleanup actions not already in WORK PATH, or `None`.
+- **DO FIRST** — the few actions that should be done, in order.
+- **LOW-HANGING FRUITS** — quick actions not already in DO FIRST, or `None`.
+- **QUEUE CLEANUP** — cleanup actions not already in DO FIRST, or `None`.
 - **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`.
 - **BLOCKED** — capability/access blockers that are actually blocking work, or `None`.
 
 ### Output discipline
 
-- WORK PATH is the only normal list of active Issue/PR work.
+- DO FIRST is the only normal list of active Issue/PR work.
 - Do not repeat an Issue or PR in another section.
 - Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one section.
-- If an Issue/PR is both a blocker and a DO FIRST action, put it once in WORK PATH and include both facts in its task line.
+- If an Issue/PR is both a blocker and a DO FIRST action, put it once in DO FIRST and include both facts in its task line.
 - Every Issue/PR reference in the report must be a directly accessible GitHub link and must show the Issue/PR number and title.
 - Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
 - LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
