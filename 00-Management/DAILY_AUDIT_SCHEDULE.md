@@ -1,48 +1,39 @@
 # Scheduled Jagports Audits
 
-## AI OS Showstopper & Priority Audit task
+## AI OS Daily Audit
 
-**Title:** Jagports AI OS Showstopper & Priority Audit  
+**Title:** Jagports AI OS Daily Audit  
 **Target repository:** `jagports/jagports`  
 **Recurrence:** Daily  
 **Timezone:** `Europe/Helsinki`  
 **Automation ID:** `6a989c25ed848191a35b887495126b71`
 
-### Durable procedure
+**Procedure:** `00-Management/AI_OS_DAILY_AUDIT.md`
 
-`00-Management/AI_OS_SHOWSTOPPER_PRIORITY_AUDIT.md`
+**Prompt:** Read `00-Management/AI_OS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
 
-### Live task prompt
-
-> Read `00-Management/AI_OS_SHOWSTOPPER_PRIORITY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
-
-The audit identifies important AI OS show-stoppers, determines what should be done first, identifies low-hanging fruits, and actively seeks opportunities to keep the actionable Issue/PR queue small. It is not a general project/repository audit and does not audit VIEPS App implementation or VIEPS product requirements except where directly relevant as an AI OS dependency or show-stopper.
-
-## VIEPS App audit task
+## VIEPS App Daily Audit
 
 **Title:** Jagports VIEPS App Daily Audit  
 **Target repository:** `jagports/jagports`  
 **Recurrence:** Daily  
 **Timezone:** `Europe/Helsinki`
 
-### Durable procedure
+**Procedure:** `00-Management/VIEPS_DAILY_AUDIT.md`
 
-`00-Management/VIEPS_DAILY_AUDIT.md`
+**Prompt:** Read `00-Management/VIEPS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
 
-### Live task prompt
+## Shared operating principle
 
-> Read `00-Management/VIEPS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
+Both audits use the same compact decision logic:
 
-## Scheduling rule
+1. **SHOW-STOPPERS** — what can materially block progress?
+2. **DO FIRST** — what should be done next, in priority order?
+3. **LOW-HANGING FRUITS** — what useful work can be completed quickly?
+4. **QUEUE CLEANUP** — what can be completed, consolidated, superseded or closed so active Issues/PRs stay few and actionable?
 
-The scheduled task is only the execution/notification mechanism. The repository Markdown files are the durable source of truth for what each task does.
+The AI OS audit covers AI OS creation/operation and excludes ordinary VIEPS implementation/requirements. The VIEPS audit covers VIEPS implementation and requirements. Neither is a general repository/project-progress audit.
 
-Changes to either procedure or this scheduling documentation require Issue → branch → PR → review → merge.
+The scheduled task is only the execution mechanism. The repository Markdown files are the durable source of truth.
 
-## Operating rules
-
-- GitHub is the system of record.
-- Audits are read-only by default.
-- Issues do not require review; PRs do.
-- Never claim successful verification without actual evidence.
-- Do not use obsolete `tlindi/jagports`.
+Changes to either procedure or this schedule require Issue → branch → PR → review → merge.
