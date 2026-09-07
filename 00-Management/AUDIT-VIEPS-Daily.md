@@ -4,7 +4,7 @@
 
 Daily audit of the Issues and PRs that directly concern VIEPS App creation and operation.
 
-The audit must identify both the immediate work to execute and the dependency-ordered work paths that show what each important work item solves and what capability it enables next.
+The audit must identify both the immediate work to execute and dependency/enabling relationships that show what important work solves and what capability it enables next.
 
 ## Execution precondition
 
@@ -75,8 +75,9 @@ Produce a compact report with exactly these sections:
 - A work path is a presentation style for showing dependency/enabling relationships between relevant work items; it is not a report category.
 - Any report category may contain one or more work paths when relevant Issues/PRs exist.
 - Use Issue/PR references where they provide useful traceability; do not force a reference into a section merely because one exists elsewhere in the report.
-- The same Issue or PR may be referenced in more than one section when it is genuinely relevant to each section; this is not considered an error or duplication by itself.
-- Do not create duplicate work items merely because the same Issue/PR is relevant to multiple audit categories.
+- Each category is evaluated independently. Do not suppress, exclude or omit a qualifying work item because the same work item, Issue or PR appears in another category.
+- The same Issue or PR may be referenced in multiple categories whenever it independently qualifies for those categories.
+- Do not merge, consolidate or deduplicate category findings merely to avoid repeated references.
 - If an Issue/PR is both a blocker and a DO FIRST action, it may be referenced in both sections when both references materially help the reader understand the situation.
 - Do not put generic advice into empty categories.
 - If a category has no qualifying item, write exactly `None`.
