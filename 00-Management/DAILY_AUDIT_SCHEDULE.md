@@ -10,7 +10,7 @@
 
 **Procedure:** `00-Management/AI_OS_DAILY_AUDIT.md`
 
-**Prompt:** Read `00-Management/AI_OS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
+**Prompt:** Read `00-Management/AI_OS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure.
 
 ## VIEPS App Daily Audit
 
@@ -21,7 +21,7 @@
 
 **Procedure:** `00-Management/VIEPS_DAILY_AUDIT.md`
 
-**Prompt:** Read `00-Management/VIEPS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
+**Prompt:** Read `00-Management/VIEPS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure.
 
 ## Shared operating principle
 
@@ -32,8 +32,6 @@ Both audits use the same compact decision logic:
 3. **LOW-HANGING FRUITS** — what useful work can be completed quickly?
 4. **QUEUE CLEANUP** — what can be completed, consolidated, superseded or closed so active Issues/PRs stay few and actionable?
 
-The AI OS audit covers AI OS creation/operation and excludes ordinary VIEPS implementation/requirements. The VIEPS audit covers VIEPS implementation and requirements. Neither is a general repository/project-progress audit.
-
-The scheduled task is only the execution mechanism. The repository Markdown files are the durable source of truth.
+The scheduled task is the execution mechanism. The repository Markdown procedures are the durable source of truth.
 
 Changes to either procedure or this schedule require Issue → branch → PR → review → merge.
