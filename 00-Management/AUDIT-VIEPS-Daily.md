@@ -25,9 +25,11 @@ Find only real blockers. A blocker must have evidence that it can stop or seriou
 
 Find the few VIEPS actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
 
-When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path. A work path should show, in order:
+When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR. A work path should show, in order:
 
 `work item → problem/capability it solves → capability/work it enables → next meaningful work`
+
+When the source Issue/PR defines a concrete sequence of Issues/PRs, show that sequence explicitly in the work path, using the Issue/PR numbers and titles as applicable.
 
 A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
 
@@ -37,36 +39,36 @@ Do not invent dependencies merely to make a path longer.
 
 Find small VIEPS work that can be completed quickly.
 
-When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
 
 ### QUEUE CLEANUP
 
 Find VIEPS work that can be completed, consolidated, superseded or closed so the active queue stays small.
 
-When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
 
 ### DECISIONS NEEDED
 
 Find only decisions that require human authority.
 
-When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
 
 ### BLOCKED
 
 Find only direct VIEPS capability/access blockers.
 
-When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
 
 ## Required output
 
 Produce a compact report with exactly these sections:
 
 - **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
-- **DO FIRST** — the few VIEPS actions that should be acted on, in priority order, with linked GitHub Issue/PR number and title where applicable. Include relevant work paths when they clarify dependencies or enabling relationships.
-- **LOW-HANGING FRUITS** — quick VIEPS actions, or `None`. Include relevant Issue/PR references and work paths when applicable.
-- **QUEUE CLEANUP** — VIEPS cleanup actions, or `None`. Include relevant Issue/PR references and work paths when applicable.
-- **DECISIONS NEEDED** — only decisions that require human authority, or `None`. Include relevant Issue/PR references and work paths when applicable.
-- **BLOCKED** — only direct VIEPS capability/access blockers, or `None`. Include relevant Issue/PR references and work paths when applicable.
+- **DO FIRST** — the few VIEPS actions that should be acted on, in priority order, with linked GitHub Issue/PR number and title where applicable. Whenever a listed Issue/PR has a defined or proposed work path, show that work path directly with the item.
+- **LOW-HANGING FRUITS** — quick VIEPS actions, or `None`. Include relevant Issue/PR references and, whenever a listed Issue/PR has a defined or proposed work path, show that work path directly with the item.
+- **QUEUE CLEANUP** — VIEPS cleanup actions, or `None`. Include relevant Issue/PR references and, whenever a listed Issue/PR has a defined or proposed work path, show that work path directly with the item.
+- **DECISIONS NEEDED** — only decisions that require human authority, or `None`. Include relevant Issue/PR references and, whenever a listed Issue/PR has a defined or proposed work path, show that work path directly with the item.
+- **BLOCKED** — only direct VIEPS capability/access blockers, or `None`. Include relevant Issue/PR references and, whenever a listed Issue/PR has a defined or proposed work path, show that work path directly with the item.
 
 ## Output rules
 
@@ -74,6 +76,7 @@ Produce a compact report with exactly these sections:
 - Issue and PR references are allowed in every report section when relevant.
 - A work path is a presentation style for showing dependency/enabling relationships between relevant work items; it is not a report category.
 - Any report category may contain one or more work paths when relevant Issues/PRs exist.
+- If an Issue/PR has a defined or proposed work path, showing that work path is mandatory; do not omit it because the Issue/PR is in a category other than DO FIRST.
 - Every Issue or PR may be shown in **one and only one** report category.
 - Before producing the report, assign each qualifying Issue/PR to the single category where it most appropriately belongs.
 - If an Issue/PR could qualify for multiple categories, place it only in the first applicable category following the report's category order: **SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
