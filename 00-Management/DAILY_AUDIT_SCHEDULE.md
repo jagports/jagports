@@ -10,7 +10,7 @@
 
 **Procedure:** `00-Management/AUDIT-AI-OS-Daily.md`
 
-**Prompt:** Read `00-Management/AUDIT-AI-OS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`.
+**Prompt:** Read `00-Management/AUDIT-AI-OS-Daily.md` from branch `redesign/421-ai-os-showstopper-priority-audit` of the `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read from that branch, report `BLOCKED`.
 
 ## VIEPS App Daily Audit
 
@@ -21,7 +21,7 @@
 
 **Procedure:** `00-Management/AUDIT-VIEPS-Daily.md`
 
-**Prompt:** Read `00-Management/AUDIT-VIEPS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`.
+**Prompt:** Read `00-Management/AUDIT-VIEPS-Daily.md` from branch `redesign/421-ai-os-showstopper-priority-audit` of the `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read from that branch, report `BLOCKED`.
 
 ## Shared operating principle
 
