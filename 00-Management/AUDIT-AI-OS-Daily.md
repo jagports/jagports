@@ -31,7 +31,7 @@ Find duplicate, overlapping, stale, obsolete, over-split or otherwise consolidat
 Produce a compact report with this structure:
 
 - **OVERALL STATE** — one short statement of current AI OS condition and the main constraint.
-- **WORK PATH** — one ranked list of the few actions that matter most. Each work item must be written as a clear path: `Issue/PR → action → expected result`. Put the directly accessible GitHub Issue/PR link on the immediately following line. Use each Issue/PR exactly once in the entire report, even when it is both a blocker and a next action. Consolidate all relevant evidence, blocker impact and execution guidance for that Issue/PR into its single work item.
+- **WORK PATH** — one ranked list of the few actions that matter most. Each work path must contain only linked Issue/PR/resource identifiers and arrows, for example: `#355 → #354 → PR #xxx`. Put any task description, evidence, rationale, expected result or next-action sentence on the following line, never on the work-path line. Put the directly accessible GitHub link on the immediately following line when the path identifier is actionable. Use each Issue/PR exactly once in the entire report, even when it is both a blocker and a next action. Consolidate all relevant evidence, blocker impact and execution guidance for that Issue/PR into its single work item.
 - **LOW-HANGING FRUITS** — quick useful actions that are not already represented in WORK PATH; do not introduce duplicate Issue/PR references.
 - **QUEUE CLEANUP** — consolidation/completion/closure actions that are not already represented in WORK PATH; do not introduce duplicate Issue/PR references.
 - **DECISIONS NEEDED** — only decisions requiring human authority; do not repeat an Issue/PR already listed in WORK PATH.
@@ -42,7 +42,8 @@ Produce a compact report with this structure:
 - WORK PATH is the single authoritative list of actionable Issues/PRs. SHOW-STOPPERS and DO FIRST are analysis criteria, not separate lists of work items.
 - Never list the same Issue/PR in more than one section.
 - Never mention an Issue/PR number without its directly accessible GitHub link.
-- Put the work path/action line first, then its GitHub link on the next line, then continue with the next item.
+- Work-path lines contain only linked identifiers/resources and arrows. Never put a sentence on the work-path line.
+- Any explanation or task description starts on the following line.
 - Keep each work item short; include only evidence that changes the priority or action.
 - Prefer completion, consolidation and closure over creating new work.
 
