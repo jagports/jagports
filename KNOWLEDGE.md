@@ -52,7 +52,7 @@ When starting Jagports work in a new chat or agent session, use this bootstrap i
 
 For a task that names a repository procedure, append the task request after the bootstrap instruction. For example:
 
-> Read and process the repository-root `KNOWLEDGE.md` first. Follow all mandatory references and operating instructions defined by it, including the applicable management/governance and communication protocol. Then read `00-Management/AUDIT-AI-OS-Daily.md` from branch `redesign/421-ai-os-showstopper-priority-audit` and execute it as the complete operational procedure under that context.
+> Read and process the repository-root `KNOWLEDGE.md` first. Follow all mandatory references and operating instructions defined by it, including the applicable management/governance and communication protocol. Then read `00-Management/AUDIT-AI-OS-Daily.md` and execute it as the complete operational procedure under that context.
 
 This prompt is the recommended bootstrap mechanism for a new chat. `KNOWLEDGE.md` defines the operating hierarchy; it does not rely on the chat platform automatically loading repository files.
 
