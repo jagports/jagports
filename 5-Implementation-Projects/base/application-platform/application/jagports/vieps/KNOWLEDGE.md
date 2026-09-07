@@ -45,13 +45,15 @@ A canonical `part` represents a catalogue identity. The same catalogue part may 
 
 Use occurrence/context relationships for EPC, fitment, model, diagram and similar context. Preserve separate source/batch identity where source provenance requires it. A duplicate Jaguar part number is not by itself proof that source rows should be merged.
 
+A separate source/batch identity is important where source rows with the same part number represent distinct imported stock/provenance batches or otherwise need separate traceability. Do not silently discard that distinction merely because the canonical part number is identical.
+
 The detailed persistent entity definitions, constraints and fixtures belong to #354 and its authoritative implementation documentation.
 
 ## Vehicle and VIN boundary
 
 `model_range`, `model`/`variant` and `vin_range` are distinct concepts. VIN decoding is a vehicle-context capability: decoded VIN information may constrain fitment/application selection, but VIN decoding itself is not part of the catalogue-part identity.
 
-Source VIN facts and decoded/derived interpretation must remain distinguishable where practical so later research can revise an interpretation without destroying the source evidence.
+The existing VIN research has demonstrated useful structured evidence dimensions including VIN prefix, serial start/end, model year, production/use-introduction boundary, market, body, engine/engine-variant discriminator, emissions discriminator, transmission/steering discriminator, source and confidence/verification state. Preserve the distinction between source facts and decoded/derived interpretation where practical.
 
 The detailed VIN schema and decoder implementation are owned by their dedicated VIN work, not by this knowledge file.
 
