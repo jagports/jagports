@@ -24,9 +24,7 @@ $InputFile = (Resolve-Path -LiteralPath $InputFile).Path
 $scriptName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
 $sourceFileName = [System.IO.Path]::GetFileNameWithoutExtension($InputFile)
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$outputDir = Join-Path $scriptDir "..\base\traficom\AvoinData\tieliikenne"
-$outputDir = (Resolve-Path -LiteralPath $outputDir).Path
-$outputFile = Join-Path $outputDir ($scriptName + "+" + $sourceFileName + "-output.txt")
+$outputFile = Join-Path $scriptDir ($scriptName + "+" + $sourceFileName + "-output.txt")
 
 $regexModel = '(?i)\b(XK8|XKR|XK)\b'
 $cutoffYear = 1995
@@ -65,11 +63,13 @@ try {
     }
 
     $writer = New-Object System.IO.StreamWriter($outputFile, $false, [System.Text.Encoding]::UTF8)
+
     $writer.WriteLine($header)
 
     while (($line = $reader.ReadLine()) -ne $null) {
 
         $lineNumber++
+
         Write-Host "`rScanned lines: $lineNumber    Matches: $matchCount" -NoNewline
 
         $fields = $line.Split(';')
