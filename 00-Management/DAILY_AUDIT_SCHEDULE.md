@@ -10,7 +10,7 @@
 
 **Procedure:** `00-Management/AUDIT-AI-OS-Daily.md`
 
-**Prompt:** Read `00-Management/AUDIT-AI-OS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`.
+**Prompt:** Read `00-Management/AUDIT-AI-OS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`. Produce a compact, action-oriented result. For every actionable Issue/PR, give a clear work path and next action on one line, then put the directly accessible GitHub Issue/PR link on the immediately following line. Reference each Issue/PR at most once in the entire result; combine all relevant findings for the same Issue/PR into that single entry. Every Issue/PR reference must have its directly accessible link.
 
 ## VIEPS App Daily Audit
 
@@ -21,7 +21,7 @@
 
 **Procedure:** `00-Management/AUDIT-VIEPS-Daily.md`
 
-**Prompt:** Read `00-Management/AUDIT-VIEPS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`.
+**Prompt:** Read `00-Management/AUDIT-VIEPS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`. Produce a compact, action-oriented result. For every actionable Issue/PR, give a clear work path and next action on one line, then put the directly accessible GitHub Issue/PR link on the immediately following line. Reference each Issue/PR at most once in the entire result; combine all relevant findings for the same Issue/PR into that single entry. Every Issue/PR reference must have its directly accessible link.
 
 ## Shared operating principle
 
