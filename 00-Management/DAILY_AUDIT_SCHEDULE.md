@@ -1,8 +1,8 @@
-# Scheduled Jagports Project Audits
+# Scheduled Jagports Audits
 
-## AI OS project task
+## AI OS Showstopper & Priority Audit task
 
-**Title:** Jagports Daily Audit  
+**Title:** Jagports AI OS Showstopper & Priority Audit  
 **Target repository:** `jagports/jagports`  
 **Recurrence:** Daily  
 **Timezone:** `Europe/Helsinki`  
@@ -10,11 +10,13 @@
 
 ### Durable procedure
 
-`00-Management/PROJECT_DAILY_AUDIT.md`
+`00-Management/AI_OS_SHOWSTOPPER_PRIORITY_AUDIT.md`
 
 ### Live task prompt
 
-> Read `00-Management/PROJECT_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
+> Read `00-Management/AI_OS_SHOWSTOPPER_PRIORITY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
+
+The audit identifies important AI OS show-stoppers, determines what should be done first, identifies low-hanging fruits, and actively seeks opportunities to keep the actionable Issue/PR queue small. It is not a general project/repository audit and does not audit VIEPS App implementation or VIEPS product requirements except where directly relevant as an AI OS dependency or show-stopper.
 
 ## VIEPS App audit task
 
