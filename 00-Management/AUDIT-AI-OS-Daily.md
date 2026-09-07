@@ -4,6 +4,8 @@
 
 Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
+The audit must identify both the immediate work to execute and the dependency-ordered work paths that show what each important work item solves and what capability it enables next.
+
 ## Execution precondition
 
 - The audit procedure MUST be read from the exact branch specified by the caller.
@@ -23,31 +25,49 @@ Find only real blockers. A blocker must have evidence that it can stop or seriou
 
 Find the few actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
 
+For each selected work item, assign a temporary work-path identifier such as `WF-1`, `WF-2`, etc. The identifier is for this audit report only and is not a repository identifier.
+
+### WORK PATHS
+
+For the important work represented by DO FIRST, build dependency/enabling paths.
+
+Each path must show, in order:
+
+`work item → problem/capability it solves → capability/work it enables → next meaningful work`
+
+A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
+
+Use the DO FIRST work-path identifiers to refer back to the selected work items instead of repeating Issue/PR references. Do not invent dependencies merely to make a path longer.
+
+A path should explain why the first work item is first and what concrete progress becomes possible when it is completed.
+
 ### LOW-HANGING FRUITS
 
-Find small, clear and low-risk actions that can be completed quickly.
+Find small, clear and low-risk actions that can be completed quickly and are not already represented by a DO FIRST work-path item.
 
 ### QUEUE CLEANUP
 
-Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small.
+Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small, excluding work already represented by DO FIRST.
 
 ## Required output
 
 Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
-- **DO FIRST** — the few actions that should be done, in order.
-- **LOW-HANGING FRUITS** — quick actions not already in DO FIRST, or `None`.
-- **QUEUE CLEANUP** — cleanup actions not already in DO FIRST, or `None`.
+- **DO FIRST** — the few actions that should be done, in order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a directly accessible GitHub Issue/PR link showing its number and title.
+- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next, using the DO FIRST work-path identifier rather than repeating the Issue/PR reference.
+- **LOW-HANGING FRUITS** — quick actions not already in DO FIRST or its work paths, or `None`.
+- **QUEUE CLEANUP** — cleanup actions not already in DO FIRST or its work paths, or `None`.
 - **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`.
 - **BLOCKED** — capability/access blockers that are actually blocking work, or `None`.
 
 ### Output discipline
 
 - DO FIRST is the only normal list of active Issue/PR work.
-- Do not repeat an Issue or PR in another section.
-- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one section.
-- If an Issue/PR is both a blocker and a DO FIRST action, put it once in DO FIRST and include both facts in its task line.
+- WORK PATHS explain the dependency and enabling value of that active work; they are not a second Issue/PR queue.
+- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one active work item or cleanup category.
+- An Issue/PR must not be introduced as a separate item in more than one report category.
+- If an Issue/PR is both a blocker and a DO FIRST action, put it once in DO FIRST and include both facts in its task line and work path.
 - Every Issue/PR reference in the report must be a directly accessible GitHub link and must show the Issue/PR number and title.
 - Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
 - LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
