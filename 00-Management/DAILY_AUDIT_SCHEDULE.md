@@ -8,9 +8,9 @@
 **Timezone:** `Europe/Helsinki`  
 **Automation ID:** `6a989c25ed848191a35b887495126b71`
 
-**Procedure:** `00-Management/AI_OS_DAILY_AUDIT.md`
+**Procedure:** `00-Management/AUDIT-AI-OS-Daily.md`
 
-**Prompt:** Read `00-Management/AI_OS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure.
+**Prompt:** Read `00-Management/AUDIT-AI-OS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`.
 
 ## VIEPS App Daily Audit
 
@@ -19,9 +19,9 @@
 **Recurrence:** Daily  
 **Timezone:** `Europe/Helsinki`
 
-**Procedure:** `00-Management/VIEPS_DAILY_AUDIT.md`
+**Procedure:** `00-Management/AUDIT-VIEPS-Daily.md`
 
-**Prompt:** Read `00-Management/VIEPS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure.
+**Prompt:** Read `00-Management/AUDIT-VIEPS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`.
 
 ## Shared operating principle
 
@@ -32,6 +32,6 @@ Both audits use the same compact decision logic:
 3. **LOW-HANGING FRUITS** — what useful work can be completed quickly?
 4. **QUEUE CLEANUP** — what can be completed, consolidated, superseded or closed so active Issues/PRs stay few and actionable?
 
-The scheduled task is the execution mechanism. The repository Markdown procedures are the durable source of truth.
+The scheduled task is only the execution mechanism. The repository Markdown files are the durable source of truth.
 
 Changes to either procedure or this schedule require Issue → branch → PR → review → merge.
