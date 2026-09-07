@@ -4,6 +4,8 @@
 
 Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
+The audit must identify both the immediate work to execute and dependency/enabling relationships that show what important work solves and what capability it enables next.
+
 ## Execution precondition
 
 - The audit procedure MUST be read from the exact branch specified by the caller.
@@ -31,26 +33,43 @@ Find small, clear and low-risk actions that can be completed quickly.
 
 Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small.
 
+## Work-path presentation
+
+When relevant Issues/PRs exist, any audit category may contain one or more dependency/enabling work paths.
+
+A work path shows, in order:
+
+`work item → problem/capability it solves → capability/work it enables → next meaningful work`
+
+A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
+
+Do not invent dependencies merely to make a path longer.
+
+Use work paths where they clarify why work matters, how work is related, or what concrete progress becomes possible. They are a presentation style, not a separate audit category.
+
 ## Required output
 
 Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
-- **DO FIRST** — the few actions that should be done, in order.
-- **LOW-HANGING FRUITS** — quick actions not already in DO FIRST, or `None`.
-- **QUEUE CLEANUP** — cleanup actions not already in DO FIRST, or `None`.
+- **DO FIRST** — the few actions that should be done, in order, with linked GitHub Issue/PR number and title when applicable.
+- **LOW-HANGING FRUITS** — quick actions, or `None`.
+- **QUEUE CLEANUP** — cleanup actions, or `None`.
 - **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`.
 - **BLOCKED** — capability/access blockers that are actually blocking work, or `None`.
 
-### Output discipline
+## Output discipline
 
-- DO FIRST is the only normal list of active Issue/PR work.
-- Do not repeat an Issue or PR in another section.
-- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one section.
-- If an Issue/PR is both a blocker and a DO FIRST action, put it once in DO FIRST and include both facts in its task line.
-- Every Issue/PR reference in the report must be a directly accessible GitHub link and must show the Issue/PR number and title.
-- Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
-- LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
+- Follow the repository's inherited communication protocol for presentation and traceability formatting.
+- Issue and PR references are allowed in every report section when relevant.
+- A work path is a presentation style, not a report category.
+- Any report category may contain one or more work paths when relevant Issues/PRs exist.
+- Every Issue or PR may be shown in **one and only one** report category.
+- Before producing the report, assign each qualifying Issue/PR to the single category where it most appropriately belongs.
+- If an Issue/PR could qualify for multiple categories, place it only in the first applicable category following the report's category order: **SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
+- A work path may explain relationships to Issues/PRs assigned to other categories, but must not repeat their Issue/PR references as separate category items.
+- Do not repeat, cross-list, or duplicate an Issue/PR in multiple categories.
+- Empty sections must say `None`.
 - Do not fill empty sections with general advice, principles or commentary.
 - Keep the report short and use simple language.
 - Prefer finishing, testing, merging, consolidating and closing existing work over creating new work.
