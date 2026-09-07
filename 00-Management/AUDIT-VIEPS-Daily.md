@@ -25,11 +25,7 @@ Find only real blockers. A blocker must have evidence that it can stop or seriou
 
 Find the few VIEPS actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
 
-### WORK PATHS
-
-For the important work represented by DO FIRST, build dependency/enabling paths.
-
-Each path must show, in order:
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path. A work path should show, in order:
 
 `work item → problem/capability it solves → capability/work it enables → next meaningful work`
 
@@ -37,37 +33,52 @@ A work path may contain multiple existing Issues/PRs when that dependency relati
 
 Do not invent dependencies merely to make a path longer.
 
-A path should explain why the first work item is first and what concrete VIEPS progress becomes possible when it is completed.
-
 ### LOW-HANGING FRUITS
 
-Find small VIEPS work that can be completed quickly and is not already represented by a DO FIRST work-path item.
+Find small VIEPS work that can be completed quickly and is not already represented by a DO FIRST work item.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
 
 ### QUEUE CLEANUP
 
 Find VIEPS work that can be completed, consolidated, superseded or closed so the active queue stays small, excluding work already represented by DO FIRST.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+
+### DECISIONS NEEDED
+
+Find only decisions that require human authority.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
+
+### BLOCKED
+
+Find only direct VIEPS capability/access blockers.
+
+When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
 
 ## Required output
 
 Produce a compact report with exactly these sections:
 
 - **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
-- **DO FIRST** — the few VIEPS actions that should be acted on, in priority order, with linked GitHub Issue/PR number and title.
-- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next. Issue/PR references may be used when they are necessary to identify the work items in the path.
-- **LOW-HANGING FRUITS** — quick VIEPS actions. If none, say `None`. Issue/PR references may be used when they identify the relevant work.
-- **QUEUE CLEANUP** — VIEPS cleanup actions. If none, say `None`. Issue/PR references may be used when they identify the relevant work.
-- **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`. Issue/PR references may be used when they identify the relevant decision or affected work.
-- **BLOCKED** — only direct VIEPS capability/access blockers. If none, say `None`. Issue/PR references may be used when they identify the relevant blocker or affected work.
+- **DO FIRST** — the few VIEPS actions that should be acted on, in priority order, with linked GitHub Issue/PR number and title where applicable. Include relevant work paths when they clarify dependencies or enabling relationships.
+- **LOW-HANGING FRUITS** — quick VIEPS actions, or `None`. Include relevant Issue/PR references and work paths when applicable.
+- **QUEUE CLEANUP** — VIEPS cleanup actions, or `None`. Include relevant Issue/PR references and work paths when applicable.
+- **DECISIONS NEEDED** — only decisions that require human authority, or `None`. Include relevant Issue/PR references and work paths when applicable.
+- **BLOCKED** — only direct VIEPS capability/access blockers, or `None`. Include relevant Issue/PR references and work paths when applicable.
 
 ## Output rules
 
 - Follow the repository's inherited communication protocol for presentation and traceability formatting.
 - Issue and PR references are allowed in every report section when relevant to that section.
-- Use the reference where it provides useful traceability; do not force an Issue/PR reference into a section merely because one exists elsewhere in the report.
+- A work path is a presentation style for showing dependency/enabling relationships between relevant work items; it is not a report category.
+- Any report category may contain one or more work paths when relevant Issues/PRs exist.
+- Use Issue/PR references where they provide useful traceability; do not force a reference into a section merely because one exists elsewhere in the report.
 - The same Issue or PR may be referenced in more than one section when it is genuinely relevant to each section; this is not considered an error or duplication by itself.
 - Do not create duplicate work items merely because the same Issue/PR is relevant to multiple audit categories.
 - If an Issue/PR is both a blocker and a DO FIRST action, it may be referenced in both sections when both references materially help the reader understand the situation.
-- Do not put generic advice into LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED.
+- Do not put generic advice into empty categories.
 - If a category has no qualifying item, write exactly `None`.
 - Keep the report short.
 - Prefer completing existing VIEPS work over creating new work.
