@@ -46,19 +46,25 @@ Produce a short report with exactly these sections:
 
 ### WORK PATH format
 
-Every WORK PATH item must identify the actual GitHub Issue or PR, including its number and title, and the task. Use this format:
+Every WORK PATH item must identify the actual GitHub Issue or PR, including its number and title, and the task.
+
+The path MUST use one path item per line. The first path item starts at the beginning of its line. Every subsequent path item MUST start with `→` at the beginning of a new line, followed by a space and the linked Issue/PR number and title.
+
+Example:
 
 `[#123 — Issue title](https://github.com/jagports/jagports/issues/123)`
 `→ [#456 — Issue title](https://github.com/jagports/jagports/issues/456)`
+`→ [PR #789 — PR title](https://github.com/jagports/jagports/pull/789)`
 
-`Do #123 first because it provides the dependency needed by #456.`
+The task explanation starts on the line after the complete path:
+
+`Implement #123 first because it provides the dependency needed by #456.`
+
+For a PR path:
 
 `[PR #789 — PR title](https://github.com/jagports/jagports/pull/789)`
-`→ merge after review`
 
-`Review and merge the PR so the dependent work can continue.`
-
-The first line is the first work-path item. Each subsequent path item starts with `→` on a new line. The following line says what to do and why, in simple language.
+`Review, test and merge the PR so the dependent work can continue.`
 
 Use the actual Issue/PR numbers and titles found during the audit. Do not use placeholder numbers.
 
