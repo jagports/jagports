@@ -46,19 +46,21 @@ Produce a short report with exactly these sections:
 
 ### WORK PATH format
 
-Every WORK PATH item must identify the actual GitHub Issue or PR and the task. Use this format:
+Every WORK PATH item must identify the actual GitHub Issue or PR, including its number and title, and the task. Use this format:
 
-`[Issue #123](https://github.com/jagports/jagports/issues/123) → [Issue #456](https://github.com/jagports/jagports/issues/456)`
+`[#123 — Issue title](https://github.com/jagports/jagports/issues/123)`
+`→ [#456 — Issue title](https://github.com/jagports/jagports/issues/456)`
 
 `Do #123 first because it provides the dependency needed by #456.`
 
-`[PR #789](https://github.com/jagports/jagports/pull/789) → merge after review`
+`[PR #789 — PR title](https://github.com/jagports/jagports/pull/789)`
+`→ merge after review`
 
 `Review and merge the PR so the dependent work can continue.`
 
-The first line is the work path. The second line says what to do and why, in simple language.
+The first line is the first work-path item. Each subsequent path item starts with `→` on a new line. The following line says what to do and why, in simple language.
 
-Use the actual Issue/PR numbers found during the audit. Do not use placeholder numbers.
+Use the actual Issue/PR numbers and titles found during the audit. Do not use placeholder numbers.
 
 ### Output discipline
 
@@ -66,7 +68,7 @@ Use the actual Issue/PR numbers found during the audit. Do not use placeholder n
 - Do not repeat an Issue or PR in another section.
 - Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one section.
 - If an Issue/PR is both a blocker and a DO FIRST action, put it once in WORK PATH and include both facts in its task line.
-- Every Issue/PR reference in the report must be a directly accessible GitHub link.
+- Every Issue/PR reference in the report must be a directly accessible GitHub link and must show the Issue/PR number and title.
 - Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
 - LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
 - Do not fill empty sections with general advice, principles or commentary.
