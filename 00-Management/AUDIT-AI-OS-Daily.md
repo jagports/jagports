@@ -53,21 +53,20 @@ Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
 - **DO FIRST** — the few actions that should be done, in order, with linked GitHub Issue/PR number and title.
-- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next. Do not repeat or introduce Issue/PR references here.
-- **LOW-HANGING FRUITS** — quick actions not already in DO FIRST or its work paths, or `None`. Do not introduce Issue/PR references here.
-- **QUEUE CLEANUP** — cleanup actions not already in DO FIRST or its work paths, or `None`. Do not introduce Issue/PR references here.
-- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`. Do not introduce Issue/PR references here.
-- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`. Do not introduce Issue/PR references here.
+- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next. Issue/PR references may be used when they are necessary to identify the work items in the path.
+- **LOW-HANGING FRUITS** — quick actions that can be completed with low risk. Issue/PR references may be used when they identify the relevant work.
+- **QUEUE CLEANUP** — cleanup actions. Issue/PR references may be used when they identify the relevant work.
+- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`. Issue/PR references may be used when they identify the relevant decision or affected work.
+- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`. Issue/PR references may be used when they identify the relevant blocker or affected work.
 
 ### Output discipline
 
 - Follow the repository's inherited communication protocol for presentation and traceability formatting.
-- DO FIRST is the only section that may introduce or identify an Issue or PR.
-- WORK PATHS explain the dependency and enabling value of DO FIRST work without repeating Issue/PR references.
-- LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must not introduce or identify an Issue or PR.
-- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to DO FIRST or omit it from the report.
-- An Issue/PR must not be introduced as a separate item in more than one report category.
-- If an Issue/PR is both a blocker and a DO FIRST action, identify it only in DO FIRST and describe the blocker there and in the relevant work-path reasoning without repeating its identifier.
+- Issue and PR references are allowed in every report section when relevant to that section.
+- Use the reference where it provides useful traceability; do not force an Issue/PR reference into a section merely because one exists elsewhere in the report.
+- The same Issue or PR may be referenced in more than one section when it is genuinely relevant to each section; this is not considered an error or duplication by itself.
+- Do not create duplicate work items merely because the same Issue/PR is relevant to multiple audit categories.
+- If an Issue/PR is both a blocker and a DO FIRST action, it may be referenced in both sections when both references materially help the reader understand the situation.
 - LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
 - Do not fill empty sections with general advice, principles or commentary.
 - Keep the report short and use simple language.
