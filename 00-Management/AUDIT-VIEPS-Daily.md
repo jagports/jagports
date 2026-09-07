@@ -73,7 +73,7 @@ Find VIEPS work that can be completed, consolidated, superseded or closed so the
 Produce a compact report with exactly these sections:
 
 - **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
-- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a directly accessible GitHub Issue/PR link showing its number and title.
+- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a linked GitHub Issue/PR number and title.
 - **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next, using the DO FIRST work-path identifier rather than repeating the Issue/PR reference.
 - **LOW-HANGING FRUITS** — quick VIEPS actions not already in DO FIRST or its work paths. If none, say `None`.
 - **QUEUE CLEANUP** — VIEPS cleanup actions not already in DO FIRST or its work paths. If none, say `None`.
@@ -82,13 +82,12 @@ Produce a compact report with exactly these sections:
 
 ## Output rules
 
+- Follow the repository's inherited communication protocol for presentation and traceability formatting.
 - DO FIRST is the only normal list of active Issue/PR work.
 - WORK PATHS explain the dependency and enabling value of that active work; they are not a second Issue/PR queue.
 - Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one active work item or cleanup category.
 - An Issue or PR may not be introduced as a separate item in more than one report category.
 - If the same Issue or PR is both a blocker and the next action, include it once in DO FIRST and describe both facts in its sentence and work path.
-- Never mention an Issue or PR number without a directly accessible GitHub link.
-- Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
 - Do not put generic advice into LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED.
 - If a category has no qualifying item, write exactly `None`.
 - Keep the report short.
