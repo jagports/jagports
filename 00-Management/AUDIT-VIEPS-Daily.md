@@ -59,19 +59,27 @@ Produce a compact report with exactly these sections:
 
 Every WORK PATH item must be a real VIEPS Issue or PR.
 
-First line: linked Issue/PR identifiers and arrows only.
+Each path item must be on its own visually rendered line.
 
-Second line: one short sentence saying what to do and what it achieves.
+The first path item starts on its own line. Every subsequent path item starts on a new line with `→` immediately followed by the linked Issue/PR identifier and title.
 
-Third line: the directly accessible GitHub link.
+Use Markdown hard line breaks between path items so the rendered answer cannot collapse them into one paragraph.
+
+Each Issue/PR must be a single direct GitHub link containing both its number and title.
+
+Do not put arrows on separate lines.
+
+Do not put the complete path into one line.
+
+Do not put a separate raw GitHub URL on a third line for a path item; the Issue/PR link itself is the directly accessible link.
 
 Example:
 
-`[Issue #354](https://github.com/jagports/jagports/issues/354) → [Issue #355](https://github.com/jagports/jagports/issues/355) → [Issue #368](https://github.com/jagports/jagports/issues/368)`
+`[Issue #354 — Create Parts Data Model](https://github.com/jagports/jagports/issues/354)`  
+`→ [Issue #355 — Build JEPC Data Importer](https://github.com/jagports/jagports/issues/355)`  
+`→ [Issue #368 — Implement VIEPS UI](https://github.com/jagports/jagports/issues/368)`
 
-`Complete the data foundation, then the importer, then the UI.`
-
-`https://github.com/jagports/jagports/issues/354`
+After the complete path, add one short sentence explaining what the sequence accomplishes.
 
 Use real current Issue/PR numbers and links. Do not invent numbers.
 
