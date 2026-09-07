@@ -4,6 +4,8 @@
 
 Daily audit of the Issues and PRs that directly concern VIEPS App creation and operation.
 
+The audit must identify both the immediate VIEPS work to execute and the dependency-ordered work paths that show what each important work item solves and what capability it enables next.
+
 ## Execution precondition
 
 - The audit procedure MUST be read from the exact branch specified by the caller.
@@ -40,27 +42,53 @@ Use these questions:
 
 **DO FIRST** — What VIEPS work should be done next?
 
-**LOW-HANGING FRUITS** — What small VIEPS work can be completed quickly?
+For each selected work item, assign a temporary work-path identifier such as `WF-1`, `WF-2`, etc. The identifier is for this audit report only and is not a repository identifier.
 
-**QUEUE CLEANUP** — What VIEPS work can be completed, consolidated, superseded or closed?
+**WORK PATHS** — For the important work represented by DO FIRST, what problem does each item solve, what VIEPS capability does that solution enable, and what meaningful work becomes possible next?
+
+### Work-path construction
+
+Build dependency/enabling paths from the evidence available in the repository and GitHub work records.
+
+Each path must show, in order:
+
+`work item → problem/capability it solves → capability/work it enables → next meaningful work`
+
+A path may contain multiple existing Issues/PRs when the dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
+
+Use the DO FIRST work-path identifiers to refer back to selected work items instead of repeating Issue/PR references. Do not invent dependencies merely to make a path longer.
+
+The purpose of the path is to explain why the work is prioritized and what concrete VIEPS progress it unlocks when completed.
+
+### LOW-HANGING FRUITS
+
+Find small VIEPS work that can be completed quickly and is not already represented by a DO FIRST work-path item.
+
+### QUEUE CLEANUP
+
+Find VIEPS work that can be completed, consolidated, superseded or closed so the active queue stays small, excluding work already represented by DO FIRST.
 
 ## Required output
 
 Produce a compact report with exactly these sections:
 
 - **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
-- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order.
-- **LOW-HANGING FRUITS** — quick VIEPS actions not already in DO FIRST. If none, say `None`.
-- **QUEUE CLEANUP** — VIEPS cleanup actions not already in DO FIRST. If none, say `None`.
+- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a directly accessible GitHub Issue/PR link showing its number and title.
+- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next, using the DO FIRST work-path identifier rather than repeating the Issue/PR reference.
+- **LOW-HANGING FRUITS** — quick VIEPS actions not already in DO FIRST or its work paths. If none, say `None`.
+- **QUEUE CLEANUP** — VIEPS cleanup actions not already in DO FIRST or its work paths. If none, say `None`.
 - **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`.
 - **BLOCKED** — only direct VIEPS capability/access blockers. If none, say `None`.
 
 ## Output rules
 
-- Do not produce separate SHOW-STOPPERS or DO FIRST lists. SHOW-STOPPERS is a criterion for choosing DO FIRST.
-- An Issue or PR may appear only once in the entire report.
-- If the same Issue or PR is both a blocker and the next action, include it once in DO FIRST and describe both facts in its sentence.
+- DO FIRST is the only normal list of active Issue/PR work.
+- WORK PATHS explain the dependency and enabling value of that active work; they are not a second Issue/PR queue.
+- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one active work item or cleanup category.
+- An Issue or PR may not be introduced as a separate item in more than one report category.
+- If the same Issue or PR is both a blocker and the next action, include it once in DO FIRST and describe both facts in its sentence and work path.
 - Never mention an Issue or PR number without a directly accessible GitHub link.
+- Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
 - Do not put generic advice into LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED.
 - If a category has no qualifying item, write exactly `None`.
 - Keep the report short.
