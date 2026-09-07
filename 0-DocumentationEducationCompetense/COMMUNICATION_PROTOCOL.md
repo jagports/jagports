@@ -295,14 +295,18 @@ When communication exists in multiple places, the latest authoritative decision 
 
 When an answer, report, hand-off, audit, or other communication presents a sequential work path using arrows, the work-path formatting is generic and applies regardless of the originating procedure or document.
 
-The work path must render as one path item per visual line:
+The work path must render as one Issue/PR item per visual line. Each Issue/PR item must be an actual Markdown link containing its number and full title.
 
-`First item`  
-`→ Second item`  
-`→ Third item`
+A downward arrow (`↓`) must occupy its own visual line between consecutive path items. Do not place multiple arrows on one line, and do not compress multiple path items into one paragraph or inline chain.
 
-Each transition must use a Markdown hard line break after the preceding path item. Do not rely on an ordinary Markdown newline alone, because Markdown renderers may collapse an ordinary newline within a paragraph into a space.
+A short explanatory relationship such as `enables:`, `solves:`, or `capability:` may appear after the downward arrow and before the next Issue/PR link when it helps explain the relationship.
 
-The arrow and the next path item must begin immediately on the following visual line. Do not put the arrow on a separate line, and do not compress multiple path items into one paragraph.
+Example:
 
-When a path item is an Issue or Pull Request reference, the complete linked number and title should remain together on that path line. Explanatory text belongs after the complete path rather than being inserted between path items.
+[**#354 — Define and implement Parts Data Model**](https://github.com/jagports/jagports/issues/354)
+↓
+**enables:** [**#355 — Create JEPC Data Importer for MVP**](https://github.com/jagports/jagports/issues/355)
+↓
+**enables:** [**#368 — VIEPS UI / Implement MVP Web UI**](https://github.com/jagports/jagports/issues/368)
+
+The work path may use other concise relationship labels when supported by evidence. Do not invent dependencies or relationships merely to create a work path.
