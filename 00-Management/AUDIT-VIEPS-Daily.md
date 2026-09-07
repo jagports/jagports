@@ -49,17 +49,17 @@ Use these questions:
 Produce a compact report with exactly these sections:
 
 - **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
-- **WORK PATH** — the few VIEPS Issues/PRs that should be acted on, in priority order.
-- **LOW-HANGING FRUITS** — quick VIEPS actions not already in WORK PATH. If none, say `None`.
-- **QUEUE CLEANUP** — VIEPS cleanup actions not already in WORK PATH. If none, say `None`.
+- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order.
+- **LOW-HANGING FRUITS** — quick VIEPS actions not already in DO FIRST. If none, say `None`.
+- **QUEUE CLEANUP** — VIEPS cleanup actions not already in DO FIRST. If none, say `None`.
 - **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`.
 - **BLOCKED** — only direct VIEPS capability/access blockers. If none, say `None`.
 
 ## Output rules
 
-- Do not produce separate SHOW-STOPPERS or DO FIRST lists. They are only criteria for choosing WORK PATH.
+- Do not produce separate SHOW-STOPPERS or DO FIRST lists. SHOW-STOPPERS is a criterion for choosing DO FIRST.
 - An Issue or PR may appear only once in the entire report.
-- If the same Issue or PR is both a blocker and the next action, include it once in WORK PATH and describe both facts in its sentence.
+- If the same Issue or PR is both a blocker and the next action, include it once in DO FIRST and describe both facts in its sentence.
 - Never mention an Issue or PR number without a directly accessible GitHub link.
 - Do not put generic advice into LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED.
 - If a category has no qualifying item, write exactly `None`.
