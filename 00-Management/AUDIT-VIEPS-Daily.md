@@ -35,13 +35,13 @@ Do not invent dependencies merely to make a path longer.
 
 ### LOW-HANGING FRUITS
 
-Find small VIEPS work that can be completed quickly and is not already represented by a DO FIRST work item.
+Find small VIEPS work that can be completed quickly.
 
 When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
 
 ### QUEUE CLEANUP
 
-Find VIEPS work that can be completed, consolidated, superseded or closed so the active queue stays small, excluding work already represented by DO FIRST.
+Find VIEPS work that can be completed, consolidated, superseded or closed so the active queue stays small.
 
 When relevant Issues/PRs form a dependency or enabling sequence, show that relationship as a work path using the same format.
 
