@@ -44,6 +44,18 @@ The mandatory reference hierarchy is:
 
 The references below are part of the default Jagports operating context. A task-specific procedure must not assume that repeating these references is necessary.
 
+### Standard knowledge bootstrap prompt
+
+When starting Jagports work in a new chat or agent session, use this bootstrap instruction before giving the task-specific request:
+
+> Read and process the repository-root `KNOWLEDGE.md` first. Follow all mandatory references and operating instructions defined by it, including the applicable management/governance and communication protocol. Then process the task-specific request under that inherited context.
+
+For a task that names a repository procedure, append the task request after the bootstrap instruction. For example:
+
+> Read and process the repository-root `KNOWLEDGE.md` first. Follow all mandatory references and operating instructions defined by it, including the applicable management/governance and communication protocol. Then read `00-Management/AUDIT-AI-OS-Daily.md` from branch `redesign/421-ai-os-showstopper-priority-audit` and execute it as the complete operational procedure under that context.
+
+This prompt is the recommended bootstrap mechanism for a new chat. `KNOWLEDGE.md` defines the operating hierarchy; it does not rely on the chat platform automatically loading repository files.
+
 ## Current Management Workflow Sources
 
 `00-Management/WORKFLOWS.md` is the canonical normative source for Management workflows.
