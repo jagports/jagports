@@ -4,7 +4,7 @@
 
 Daily audit of the Issues and PRs that directly concern VIEPS App creation and operation.
 
-The audit must identify both the immediate VIEPS work to execute and the dependency-ordered work paths that show what each important work item solves and what capability it enables next.
+The audit must identify both the immediate work to execute and the dependency-ordered work paths that show what each important work item solves and what capability it enables next.
 
 ## Execution precondition
 
@@ -15,50 +15,29 @@ The audit must identify both the immediate VIEPS work to execute and the depende
 
 ## Audit
 
-Read `RULES.md`, `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, `SKILL.md`, `KNOWLEDGE.md`, relevant VIEPS/domain/research/specification documents, and this file.
+Use `jagports/jagports` as the system of record and operate according to the repository's authoritative knowledge and operating rules.
 
-Use `jagports/jagports` as the system of record.
+### SHOW-STOPPERS
 
-### Scope filter
+Find only real blockers. A blocker must have evidence that it can stop or seriously delay VIEPS progress.
 
-Include an Issue or PR only when its actual work directly concerns VIEPS App implementation or a direct VIEPS dependency.
+### DO FIRST
 
-Do not include AI OS management, audit, automation, Kanban or general process work merely because it may affect VIEPS indirectly.
+Find the few VIEPS actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
 
-If an Issue or PR is not clearly VIEPS work or a direct VIEPS dependency, leave it out.
+### WORK PATHS
 
-### Priority analysis
-
-Identify the few VIEPS Issues/PRs that matter most using:
-- whether the work directly affects VIEPS;
-- dependency order;
-- ability to unblock implementation;
-- MVP relevance;
-- readiness and impact.
-
-Use these questions:
-
-**SHOW-STOPPERS** — Is there anything that directly blocks or seriously delays VIEPS?
-
-**DO FIRST** — What VIEPS work should be done next?
-
-For each selected work item, assign a temporary work-path identifier such as `WF-1`, `WF-2`, etc. The identifier is for this audit report only and is not a repository identifier.
-
-**WORK PATHS** — For the important work represented by DO FIRST, what problem does each item solve, what VIEPS capability does that solution enable, and what meaningful work becomes possible next?
-
-### Work-path construction
-
-Build dependency/enabling paths from the evidence available in the repository and GitHub work records.
+For the important work represented by DO FIRST, build dependency/enabling paths.
 
 Each path must show, in order:
 
 `work item → problem/capability it solves → capability/work it enables → next meaningful work`
 
-A path may contain multiple existing Issues/PRs when the dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
+A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
 
-Use the DO FIRST work-path identifiers to refer back to selected work items instead of repeating Issue/PR references. Do not invent dependencies merely to make a path longer.
+Do not invent dependencies merely to make a path longer.
 
-The purpose of the path is to explain why the work is prioritized and what concrete VIEPS progress it unlocks when completed.
+A path should explain why the first work item is first and what concrete VIEPS progress becomes possible when it is completed.
 
 ### LOW-HANGING FRUITS
 
@@ -73,8 +52,8 @@ Find VIEPS work that can be completed, consolidated, superseded or closed so the
 Produce a compact report with exactly these sections:
 
 - **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
-- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a linked GitHub Issue/PR number and title.
-- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next, using the DO FIRST work-path identifier rather than repeating the Issue/PR reference.
+- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order, with linked GitHub Issue/PR number and title.
+- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next.
 - **LOW-HANGING FRUITS** — quick VIEPS actions not already in DO FIRST or its work paths. If none, say `None`.
 - **QUEUE CLEANUP** — VIEPS cleanup actions not already in DO FIRST or its work paths. If none, say `None`.
 - **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`.
