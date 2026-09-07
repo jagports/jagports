@@ -4,7 +4,7 @@
 
 Daily audit of the Issues and PRs that directly concern VIEPS App creation and operation.
 
-The audit must identify both the immediate work to execute and dependency/enabling relationships that show what important work solves and what capability it enables next.
+The audit must identify both the immediate work to execute and dependency/enabling relationships between related work items.
 
 ## Execution precondition
 
@@ -17,47 +17,57 @@ The audit must identify both the immediate work to execute and dependency/enabli
 
 Use `jagports/jagports` as the system of record and operate according to the repository's authoritative knowledge and operating rules.
 
-### SHOW-STOPPERS
-
-Find only real blockers. A blocker must have evidence that it can stop or seriously delay VIEPS progress.
-
 ### DO FIRST
 
 Find the few VIEPS actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
-
-When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR. A work path should show, in order:
-
-`work item → problem/capability it solves → capability/work it enables → next meaningful work`
-
-When the source Issue/PR defines a concrete sequence of Issues/PRs, show that sequence explicitly in the work path, using the Issue/PR numbers and titles as applicable.
-
-A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
-
-Do not invent dependencies merely to make a path longer.
 
 ### LOW-HANGING FRUITS
 
 Find small VIEPS work that can be completed quickly.
 
-When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
-
 ### QUEUE CLEANUP
 
 Find VIEPS work that can be completed, consolidated, superseded or closed so the active queue stays small.
-
-When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
 
 ### DECISIONS NEEDED
 
 Find only decisions that require human authority.
 
-When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
-
 ### BLOCKED
 
 Find only direct VIEPS capability/access blockers.
 
-When a relevant Issue/PR has a defined or proposed work path, the work path MUST always be shown with that Issue/PR, using the same format and evidence rules as DO FIRST.
+## Work-path presentation
+
+When an Issue/PR has a defined or explicitly proposed work path, that work path MUST always be shown when the Issue/PR is reported, regardless of which audit category contains it.
+
+The work path MUST be shown directly under the relevant Issue/PR. It is a presentation style, not a separate audit category.
+
+A work path shows related Issues/PRs in dependency or execution order.
+
+Each Issue/PR in a work path MUST be represented by an actual Markdown link to its GitHub Issue or Pull Request URL. The link text MUST contain the Issue/PR number and full title.
+
+Each Issue/PR MUST appear on its own line.
+
+A downward arrow (`↓`) MUST appear on its own line between consecutive work items. Multiple arrows MUST NOT be placed on one line.
+
+A short explanatory relationship such as `enables:`, `solves:`, or `capability:` MAY appear after the downward arrow and before the next Issue/PR link when it helps explain the relationship.
+
+Example:
+
+[**#354 — Define and implement Parts Data Model**](https://github.com/jagports/jagports/issues/354)
+↓
+**enables:** [**#355 — Create JEPC Data Importer for MVP**](https://github.com/jagports/jagports/issues/355)
+↓
+**enables:** [**#368 — VIEPS UI / Implement MVP Web UI**](https://github.com/jagports/jagports/issues/368)
+
+Do not construct long inline chains containing multiple Issue/PR references or multiple arrows.
+
+Do not invent dependencies, relationships or implementation steps merely to create a work path.
+
+Do not omit an existing/proposed work path because the item is in LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED rather than DO FIRST.
+
+Do not duplicate an Issue/PR as a separate report item merely because it appears inside another item's work path. Each Issue/PR is assigned to one report category only.
 
 ## Required output
 
@@ -79,7 +89,7 @@ Produce a compact report with exactly these sections:
 - If an Issue/PR has a defined or proposed work path, showing that work path is mandatory; do not omit it because the Issue/PR is in a category other than DO FIRST.
 - Every Issue or PR may be shown in **one and only one** report category.
 - Before producing the report, assign each qualifying Issue/PR to the single category where it most appropriately belongs.
-- If an Issue/PR could qualify for multiple categories, place it only in the first applicable category following the report's category order: **SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
+- If an Issue/PR could qualify for multiple categories, place it only in the first applicable category following the report's category order: **DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
 - A work path may explain relationships to Issues/PRs assigned to other categories, but must not repeat their Issue/PR references as separate category items.
 - Do not repeat, cross-list, or duplicate an Issue/PR in multiple categories.
 - Do not create duplicate work items merely because the same underlying work is relevant to multiple audit categories; assign the existing Issue/PR to its single category.
