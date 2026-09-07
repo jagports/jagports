@@ -4,6 +4,13 @@
 
 Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
+## Execution precondition
+
+- The audit procedure MUST be read from the exact branch specified by the caller.
+- If this file cannot be read from that exact branch, output `BLOCKED` and stop.
+- Successful reading of this file MUST NOT be reported.
+- If the file is successfully read, execute the complete procedure and return only the required audit output defined below.
+
 ## Audit
 
 Read `RULES.md`, `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, `SKILL.md`, `KNOWLEDGE.md`, relevant management/agent-communication documents, the AI OS prioritized work plan when available, and this file.
