@@ -4,7 +4,7 @@
 
 Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
-The audit must identify both the immediate work to execute and dependency/enabling relationships that show what important work solves and what capability it enables next.
+The audit must identify both the immediate work to execute and dependency/enabling relationships between related work items.
 
 ## Execution precondition
 
@@ -16,10 +16,6 @@ The audit must identify both the immediate work to execute and dependency/enabli
 ## Audit
 
 Use `jagports/jagports` as the system of record and operate according to the repository's authoritative knowledge and operating rules.
-
-### SHOW-STOPPERS
-
-Find only real blockers. A blocker must have evidence that it can stop or seriously delay AI OS progress.
 
 ### DO FIRST
 
@@ -39,15 +35,27 @@ When an Issue/PR has a defined or explicitly proposed work path, that work path 
 
 The work path MUST be shown directly under the relevant Issue/PR. It is a presentation style, not a separate audit category.
 
-A work path shows, in order:
+A work path shows related Issues/PRs in dependency or execution order.
 
-`work item → problem/capability it solves → capability/work it enables → next meaningful work`
+Each Issue/PR in a work path MUST be represented by an actual Markdown link to its GitHub Issue or Pull Request URL. The link text MUST contain the Issue/PR number and full title.
 
-Where an Issue/PR explicitly defines a concrete implementation sequence, show that sequence using the relevant existing Issue/PR numbers and titles or work steps.
+Each Issue/PR MUST appear on its own line.
 
-A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
+A downward arrow (`↓`) MUST appear on its own line between consecutive work items. Multiple arrows MUST NOT be placed on one line.
 
-Do not invent dependencies or implementation steps merely to create a work path.
+A short explanatory relationship such as `enables:`, `solves:`, or `capability:` MAY appear after the downward arrow and before the next Issue/PR link when it helps explain the relationship.
+
+Example:
+
+[**#354 — Define and implement Parts Data Model**](https://github.com/jagports/jagports/issues/354)
+↓
+**enables:** [**#355 — Create JEPC Data Importer for MVP**](https://github.com/jagports/jagports/issues/355)
+↓
+**enables:** [**#368 — VIEPS UI / Implement MVP Web UI**](https://github.com/jagports/jagports/issues/368)
+
+Do not construct long inline chains containing multiple Issue/PR references or multiple arrows.
+
+Do not invent dependencies, relationships or implementation steps merely to create a work path.
 
 Do not omit an existing/proposed work path because the item is in LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED rather than DO FIRST.
 
@@ -73,7 +81,7 @@ Produce a short report with exactly these sections:
 - Any report category may contain one or more work paths when relevant Issues/PRs exist.
 - Every Issue or PR may be shown in **one and only one** report category.
 - Before producing the report, assign each qualifying Issue/PR to the single category where it most appropriately belongs.
-- If an Issue/PR could qualify for multiple categories, place it only in the first applicable category following the report's category order: **SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
+- If an Issue/PR could qualify for multiple categories, place it only in the first applicable category following the report's category order: **DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
 - A work path may explain relationships to Issues/PRs assigned to other categories, but must not repeat their Issue/PR references as separate category items.
 - Do not repeat, cross-list, or duplicate an Issue/PR in multiple categories.
 - Empty sections must say `None`.
