@@ -24,7 +24,9 @@ $InputFile = (Resolve-Path -LiteralPath $InputFile).Path
 $scriptName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
 $sourceFileName = [System.IO.Path]::GetFileNameWithoutExtension($InputFile)
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$outputFile = Join-Path $scriptDir ($scriptName + "+" + $sourceFileName + "-output.txt")
+$outputDir = Join-Path $scriptDir "..\base\traficom\AvoinData\tieliikenne"
+$outputDir = (Resolve-Path -LiteralPath $outputDir).Path
+$outputFile = Join-Path $outputDir ($scriptName + "+" + $sourceFileName + "-output.txt")
 
 $regexModel = '(?i)\b(XK8|XKR|XK)\b'
 $cutoffYear = 1995
