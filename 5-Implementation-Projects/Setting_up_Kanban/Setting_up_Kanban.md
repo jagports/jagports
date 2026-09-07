@@ -1,50 +1,62 @@
 # Setting Up Kanban — Jagports GitHub Project
 
-Date: 2026-08-30
+Date: 2026-09-07
 Repository: `jagports/jagports`
 Project: `Jagports Vehicle Information and EPC System`
 
 ## Purpose
 
-This is the current Kanban setup record. Earlier setup work used a different repository owner before the repository transfer. Commands and reusable scripts must not depend on that historical owner.
+This document is the reusable setup and verification procedure for the Jagports GitHub Projects Kanban configuration.
 
-## Current repository configuration
+The document consolidates the previously separate setup steps into a small number of repeatable procedures. It contains reusable technical knowledge and verification rules, not a chronological execution log.
 
-The repository is:
+`KNOWLEDGE.md` remains the repository-wide durable knowledge entry point. `00-Management/WORKFLOWS.md` remains the canonical normative Management workflow. This document must not redefine those authorities.
 
-```text
-jagports/jagports
-```
+## 1. Repository and Project discovery
 
-Scripts in this directory discover the repository from the active checkout by default:
+Never embed a historical repository owner or transfer target in a new setup procedure.
+
+From a checkout of the target repository, discover the active repository:
 
 ```bash
 REPO="${REPO:-$(gh repo view --json nameWithOwner --jq '.nameWithOwner')}"
 PROJECT_OWNER="${PROJECT_OWNER:-${REPO%%/*}}"
+printf 'Repository: %s\nProject owner: %s\n' "$REPO" "$PROJECT_OWNER"
 ```
 
-A caller may override `REPO` and `PROJECT_OWNER` explicitly when operating on another repository/project.
+Verify access before mutation:
 
-Project-specific values such as `PROJECT_ID`, `STATUS_FIELD_ID`, `PRIORITY_FIELD_ID`, and Status option IDs are configuration, not repository identity. They must be supplied for scripts that edit Project fields.
+```bash
+gh auth status
+gh repo view --json nameWithOwner,private,defaultBranchRef
+gh project list --owner "$PROJECT_OWNER"
+```
 
-## P1 task definition
+For an organization-owned Project, the Project owner is the organization containing the Project. Repository identity and Project-specific IDs are separate configuration values.
 
-The P1 group is:
+Do not assume that repository access proves Project mutation capability. Required authentication, permission/scope, and the specific available tool operation must be verified independently.
 
-| Priority | Task | Completion requirement |
-|---|---|---|
-| P1 | Open Kanban | GitHub Project is available and usable |
-| P1.1 | Select Kanban tool | GitHub Projects selected as the $0 work-control system |
-| P1.2 | Create Jagports GitHub repository | `jagports/jagports` exists and is accessible |
-| P1.3 | Configure Kanban workflow | Controlled Project Item Status workflow is configured and verified |
-| P1.4 | Define Kanban fields and labels | Required Project fields and repository labels exist |
-| P1.5 | Define Kanban operating rules | Rules are committed in `0-DocumentationEducationCompetense/KANBAN_OPERATING_RULES.md` |
+## 2. Project discovery and configuration inspection
 
-The task list records these P1 items as DONE, but completion should be treated as valid only after verification against the current repository/project after the repository transfer.
+Discover the current Project number rather than copying it from historical work. Then inspect its fields:
 
-## Required workflow
+```bash
+gh project field-list PROJECT_NUMBER --owner PROJECT_OWNER --format json
+```
 
-The workflow states below are **Project Item Status** option values. They are stored in the `Status` field of each Issue's item in the GitHub Project. They are not statuses of the Project itself.
+Use the current result to identify the `Status` field and the IDs of its options. Project IDs, field IDs, option IDs, and view IDs are Project-specific and must not be guessed or copied from another Project.
+
+Inspect Project views before changing layout. For an organization-owned Project:
+
+```bash
+gh api graphql -f query='query($organization:String!,$number:Int!){organization(login:$organization){projectV2(number:$number){views(first:20){nodes{id number name layout}}}}}' -f organization=PROJECT_OWNER -F number=PROJECT_NUMBER
+```
+
+## 3. Required Kanban workflow
+
+The workflow states are **Project Item Status option values**. They are properties of an Issue's Project item, not statuses of the Project container.
+
+Required normal workflow:
 
 ```text
 BACKLOG
@@ -58,75 +70,222 @@ BACKLOG
 → DONE
 ```
 
-Exceptional Project Item Status:
+Exceptional state:
 
 ```text
 BLOCKED
 ```
 
-## Required Project data
+After configuring the Status options, independently read them back and verify that all required names exist exactly once and that existing option IDs were preserved when existing options were retained.
 
-At minimum:
+## 4. Project view configuration
 
-- `Status` — the Project Item Status field containing the controlled workflow state of an Issue's Project item
-- `Priority` — ordered values such as `P1`, `P1.1`, `P1.2`, `P2`
-- `Executing Entity` — Product Owner / Team Lead Agent / Specialist Agent / Human
-- `Execution Target` — concrete system, repository, issue, file, or device where applicable
-- `Decision Status` — decision gate state where applicable
-- `Dependencies` — blocking or prerequisite work
-- `Risk` — material delivery risk
-
-Repository labels supplement Project fields; they do not replace structured Project Item Status or other Project fields.
-
-## Project Item Status operations
-
-When an Issue is intended to participate in the Kanban workflow:
-
-1. Create or identify the Issue.
-2. Add the Issue to the GitHub Project, creating the Project item.
-3. Set the Project Item Status field to `BACKLOG` unless another initial state is explicitly justified.
-4. Independently verify that the Project item exists and that its Project Item Status is the expected value.
-5. When work enters another workflow phase, update the same Project Item Status field to the corresponding option and verify the mutation.
-
-Automatic Issue-to-Project-to-BACKLOG triggering is **not currently implemented**. Documentation must not imply that opening an Issue automatically creates a Project item or assigns its Project Item Status.
-
-## P1 verification
-
-Run the repository-level checks from the current checkout:
+If the intended Kanban view is not already a board, change the appropriate existing view to `BOARD_LAYOUT`:
 
 ```bash
-gh auth status
-gh repo view --json nameWithOwner,private,defaultBranchRef
-REPO="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
-PROJECT_OWNER="${REPO%%/*}"
-gh project list --owner "$PROJECT_OWNER"
+gh api graphql -f query='mutation { updateProjectV2View(input:{viewId:"VIEW_ID",layout:BOARD_LAYOUT}) { projectV2View { id name layout } } }'
 ```
 
-Then inspect the Project fields and views using the commands in `Setting_up_Kanban_v2.md`.
+The returned value must be independently checked. Do not claim that the Project is configured as Kanban merely because the mutation returned successfully.
 
-For a Project mutation, the GitHub token needs the `project` scope. GitHub documents GraphQL as the API for automating Project configuration.
+## 5. GraphQL schema discovery before mutation
 
-## P1 scripts
+Do not guess GitHub GraphQL mutation syntax. Inspect the schema when creating or updating Project fields:
 
-The following scripts are designed to operate without a hardcoded historical repository name:
+```bash
+gh api graphql -f query='{ __type(name:"UpdateProjectV2FieldInput") { inputFields { name type { kind name ofType { kind name ofType { kind name } } } } } }'
+gh api graphql -f query='{ __type(name:"ProjectV2SingleSelectFieldOptionInput") { inputFields { name type { kind name ofType { kind name } } } } }'
+gh api graphql -f query='{ __type(name:"ProjectV2SingleSelectFieldOptionColor") { enumValues { name } } }'
+```
 
-- `fix_p1_and_verify.sh` — verifies/fixes the P1 item
-- `fix_stranded_items.sh` — repairs Project items that were left without fields
-- `import_jagports_tasks.sh` — idempotent full backlog import
-- `make_jagports_subissues.sh` — creates and verifies priority-based sub-issue relationships
-- `push_jagports_backlog.sh` — backlog creation/recovery helper
-- `push_remaining_backlog.sh` — remaining backlog recovery helper
+The relevant Project field mutation argument is `singleSelectOptions`.
 
-All scripts now obtain the repository as `owner/name` from `gh repo view` unless `REPO` is explicitly supplied.
+`ProjectV2SingleSelectField` and related Project field configuration types are GraphQL unions/interfaces in places where direct fields cannot be selected. Use the required inline fragment, for example:
 
-These scripts perform explicit Project item operations. They must be understood as manual/semi-automatic setup tooling, not as an automatic Issue event trigger.
+```text
+projectV2Field{... on ProjectV2SingleSelectField{id name options{id name color description}}}
+```
 
-## Historical evidence
+Do not query union-only fields such as `id` or `name` without the applicable inline fragment.
 
-`Setting_up_Kanban-console.log` is retained as historical execution evidence. It contains pre-transfer repository/account names because changing historical console output would falsify the record. It is not a source for current repository configuration.
+## 6. Safe single-select field update pattern
 
-## Current operating rule
+For complex mutations, use GraphQL variables and a JSON request file instead of fragile shell interpolation.
 
-The repository and Project are the system of record. Do not copy repository owner/name values from historical logs into new scripts or commands. Discover the current repository identity first, then configure the Project explicitly.
+Example configuration structure:
 
-When this document says `Status` in the context of workflow state, it means the **Project Item Status field** of the Issue's Project item. The GitHub Project itself does not have a separate workflow status represented by these values.
+```text
+{"fieldId":"STATUS_FIELD_ID","options":[{"id":"OPTION_ID","name":"STATUS_NAME","color":"GRAY","description":"Description"}]}
+```
+
+Generate a request containing variables and submit it with:
+
+```bash
+gh api graphql --input project-graphql.json
+```
+
+When updating an existing single-select field, preserve the IDs of existing options that are intentionally retained. Omitting existing option IDs can replace rather than preserve the existing Project option identity and values.
+
+The validated mutation pattern is:
+
+```text
+mutation($fieldId:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]) {
+  updateProjectV2Field(
+    input:{fieldId:$fieldId,singleSelectOptions:$options}
+  ) {
+    projectV2Field {
+      ... on ProjectV2SingleSelectField {
+        id
+        name
+        options { id name color description }
+      }
+    }
+  }
+}
+```
+
+Use the exact current schema and current IDs. If the schema differs, stop and rediscover it rather than adapting by guesswork.
+
+## 7. Git Bash and request-file reliability
+
+Windows Git Bash is a project constraint.
+
+Avoid embedding GraphQL containing `!` inside double-quoted shell strings. Bash history expansion can turn valid GraphQL into an invalid shell command.
+
+Avoid fragile inline Python one-liners containing GraphQL type syntax. A reliable pattern is a single-quoted heredoc for a short Python helper that reads JSON configuration and writes the GraphQL request JSON.
+
+Keep dependent temporary files in the working directory rather than `/tmp`, because the latter may not survive the complete command sequence in the execution environment.
+
+After all dependent operations succeed, remove temporary request/configuration files and verify that cleanup succeeded.
+
+For command sequences, avoid `awk`, Bash associative arrays, backslash line continuations, and Windows path separators. Prefer simple Git Bash-compatible commands and forward-slash paths.
+
+## 8. Required Project fields and repository labels
+
+At minimum, the Project configuration uses:
+
+- `Status` — controlled Project Item workflow state
+- `Priority` — work priority
+- `Executing Entity` — Product Owner / Team Lead Agent / Specialist Agent / Human
+- `Execution Target` — concrete system, repository, issue, file, device, or other target where applicable
+- `Decision Status` — decision gate state where applicable
+- `Dependencies` — prerequisite or blocking work
+- `Risk` — material delivery risk
+
+Repository labels supplement structured Project fields; they do not replace them.
+
+Operational labels include `agent`, `human`, `decision-needed`, `dependency`, and `blocked`. Existing standard repository labels must not be removed merely because these operational labels exist.
+
+When configuring fields or labels, first inspect the current state. Create only missing configuration and verify the resulting state.
+
+## 9. Project Item procedure
+
+When an Issue participates in the Kanban workflow:
+
+1. Identify or create the Issue through the canonical Management work-discovery process.
+2. Add the Issue to the intended Project.
+3. Set the Project Item Status to `BACKLOG`, unless another canonical initial state is explicitly justified.
+4. Independently read the resulting Project Item.
+5. Verify both the Project identity and the exact `Status` value.
+6. When work changes phase, update the same Project Item Status and independently verify the resulting value.
+
+The required verification pattern is:
+
+`MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS`
+
+An API mutation response alone is not sufficient evidence.
+
+Automatic Issue-to-Project-to-BACKLOG triggering is not currently implemented. Opening an Issue must not be documented as automatically creating a Project item or assigning its Status.
+
+## 10. Idempotency and safe reruns
+
+A reusable setup procedure must be safe to rerun.
+
+Before each mutation:
+
+1. Discover the current target.
+2. Determine whether the desired configuration already exists.
+3. If it already exists and is correct, do not mutate it unnecessarily; verify and continue.
+4. If it exists but is incorrect, make the smallest required correction.
+5. If it does not exist, create it.
+6. Verify the exact resulting state.
+
+Never use a historical ID as evidence that the current object exists.
+
+A failed verification must not be converted into a success claim simply because the mutation returned HTTP/API success.
+
+## 11. Error handling and fail-closed behavior
+
+Every mutation procedure must distinguish at least:
+
+- authentication/capability failure;
+- insufficient permission/scope;
+- discovery failure;
+- mutation/API failure;
+- post-mutation verification failure;
+- cleanup failure.
+
+If the expected state cannot be independently verified:
+
+- report the operation as unverified or failed;
+- do not report the intended state as the actual state;
+- do not proceed as if the configuration were correct when that correctness is a prerequisite for later work.
+
+Do not repeatedly retry an unsupported operation. Record the verified limitation and use the supported path instead.
+
+## 12. End-to-end P1 verification
+
+P1 Kanban setup is complete only after the current repository and Project have been checked for:
+
+- repository exists and is accessible;
+- intended Project exists and is accessible;
+- Project is linked to the intended repository where applicable;
+- board/Kanban view is configured;
+- required Status workflow exists exactly as intended;
+- required Project fields exist;
+- required repository labels exist;
+- operating rules are committed in the repository;
+- Issue → Project attachment has been tested;
+- Project Item Status assignment has been tested;
+- Priority assignment has been tested;
+- temporary test material has been removed;
+- temporary working files have been removed;
+- final reads confirm the expected configuration.
+
+A clean final verification is required after setup rather than relying only on intermediate mutation responses.
+
+## 13. P1 setup decomposition
+
+The historical one-by-one P1 work is consolidated conceptually as:
+
+```text
+P1   Open Kanban
+ ├─ P1.1 Select GitHub Projects
+ ├─ P1.2 Establish/verify repository
+ ├─ P1.3 Configure and verify workflow
+ ├─ P1.4 Configure and verify fields/labels
+ └─ P1.5 Define and commit operating rules
+```
+
+These are planning/traceability units, not a reason to duplicate command fragments. The reusable implementation procedure is the sequence in this document.
+
+## 14. Historical evidence
+
+`Setting_up_Kanban-console.log` is historical execution evidence. It may contain obsolete repository/account names from before a repository transfer. Historical evidence must not be edited merely to make it match current configuration, because doing so would falsify the historical record.
+
+Historical logs are not authoritative configuration. Always discover the current repository, Project, fields, views, and option IDs before mutation.
+
+## 15. Source-of-truth boundaries
+
+- `KNOWLEDGE.md` — repository-wide durable knowledge and generalized lessons.
+- `00-Management/WORKFLOWS.md` — canonical normative Management workflow.
+- `00-Management/RULES.md` — human governance and rationale.
+- `SKILL.md` — machine/agent execution guidance.
+- `5-Implementation-Projects/Setting_up_Kanban/Setting_up_Kanban.md` — reusable Kanban setup and verification procedure.
+- `Setting_up_Kanban-console.log` — historical execution evidence only.
+
+Do not create another parallel Kanban operating-rules authority.
+
+## 16. Related consolidation issue
+
+The consolidation requirements were recorded in GitHub Issue #437. The durable reusable knowledge from that Issue is incorporated here as procedure, test/error-check requirements, and troubleshooting guidance. The Issue remains the historical work record; this document is the reusable source for future setup work.
