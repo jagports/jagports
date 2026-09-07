@@ -290,3 +290,19 @@ A test result must be persistent and traceable to the implementation it validate
 ## Communication Rule of Precedence
 
 When communication exists in multiple places, the latest authoritative decision recorded on the relevant GitHub Issue or in repository documentation takes precedence over transient agent context. Project Status is used to represent workflow state and does not replace the Issue's communication record.
+
+## Generic Work-Path and Rendered Line-Break Formatting
+
+When an answer, report, hand-off, audit, or other communication presents a sequential work path using arrows, the work-path formatting is generic and applies regardless of the originating procedure or document.
+
+The work path must render as one path item per visual line:
+
+`First item`  
+`→ Second item`  
+`→ Third item`
+
+Each transition must use a Markdown hard line break after the preceding path item. Do not rely on an ordinary Markdown newline alone, because Markdown renderers may collapse an ordinary newline within a paragraph into a space.
+
+The arrow and the next path item must begin immediately on the following visual line. Do not put the arrow on a separate line, and do not compress multiple path items into one paragraph.
+
+When a path item is an Issue or Pull Request reference, the complete linked number and title should remain together on that path line. Explanatory text belongs after the complete path rather than being inserted between path items.
