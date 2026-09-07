@@ -55,34 +55,6 @@ Produce a compact report with exactly these sections:
 - **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`.
 - **BLOCKED** — only direct VIEPS capability/access blockers. If none, say `None`.
 
-## WORK PATH format
-
-Every WORK PATH item must be a real VIEPS Issue or PR.
-
-Each path item must be on its own visually rendered line.
-
-The first path item starts on its own line. Every subsequent path item starts on a new line with `→` immediately followed by the linked Issue/PR identifier and title.
-
-Use Markdown hard line breaks between path items so the rendered answer cannot collapse them into one paragraph.
-
-Each Issue/PR must be a single direct GitHub link containing both its number and title.
-
-Do not put arrows on separate lines.
-
-Do not put the complete path into one line.
-
-Do not put a separate raw GitHub URL on a third line for a path item; the Issue/PR link itself is the directly accessible link.
-
-Example:
-
-`[Issue #354 — Create Parts Data Model](https://github.com/jagports/jagports/issues/354)`  
-`→ [Issue #355 — Build JEPC Data Importer](https://github.com/jagports/jagports/issues/355)`  
-`→ [Issue #368 — Implement VIEPS UI](https://github.com/jagports/jagports/issues/368)`
-
-After the complete path, add one short sentence explaining what the sequence accomplishes.
-
-Use real current Issue/PR numbers and links. Do not invent numbers.
-
 ## Output rules
 
 - Do not produce separate SHOW-STOPPERS or DO FIRST lists. They are only criteria for choosing WORK PATH.
