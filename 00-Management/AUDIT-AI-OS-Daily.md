@@ -4,7 +4,7 @@
 
 Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
-The audit must identify both the immediate work to execute and the dependency-ordered work paths that show what each important work item solves and what capability it enables next.
+The audit must identify both the immediate work to execute and dependency/enabling relationships that show what important work solves and what capability it enables next.
 
 ## Execution precondition
 
@@ -63,9 +63,9 @@ Produce a short report with exactly these sections:
 - Follow the repository's inherited communication protocol for presentation and traceability formatting.
 - Issue and PR references are allowed in every report section when relevant to that section.
 - Use work paths in any category when they materially improve traceability or explain dependencies/enabling relationships.
-- The same Issue or PR may be referenced in more than one section when it is genuinely relevant to each section.
-- Do not suppress relevant work merely because it or a related Issue/PR appears elsewhere in the report.
-- Do not create duplicate work items merely because the same Issue/PR is relevant to multiple audit categories.
+- Each category is evaluated independently. Do not suppress, exclude or omit a qualifying work item because the same work item, Issue or PR appears in another category.
+- The same Issue or PR may be referenced in multiple categories whenever it independently qualifies for those categories.
+- Do not merge, consolidate or deduplicate category findings merely to avoid repeated references.
 - Empty sections must say `None`.
 - Do not fill empty sections with general advice, principles or commentary.
 - Keep the report short and use simple language.
