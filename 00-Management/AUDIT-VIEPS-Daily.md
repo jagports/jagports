@@ -76,7 +76,7 @@ Produce a compact report with exactly these sections:
 - Any report category may contain one or more work paths when relevant Issues/PRs exist.
 - Every Issue or PR may be shown in **one and only one** report category.
 - Before producing the report, assign each qualifying Issue/PR to the single category where it most appropriately belongs.
-- If an Issue/PR could qualify for multiple categories, place it only in the highest-priority applicable category using this precedence: **BLOCKED → DECISIONS NEEDED → DO FIRST → QUEUE CLEANUP → LOW-HANGING FRUITS**.
+- If an Issue/PR could qualify for multiple categories, place it only in the first applicable category following the report's category order: **SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
 - A work path may explain relationships to Issues/PRs assigned to other categories, but must not repeat their Issue/PR references as separate category items.
 - Do not repeat, cross-list, or duplicate an Issue/PR in multiple categories.
 - Do not create duplicate work items merely because the same underlying work is relevant to multiple audit categories; assign the existing Issue/PR to its single category.
