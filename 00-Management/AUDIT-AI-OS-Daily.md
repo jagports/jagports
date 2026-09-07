@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Daily decision-support audit for the Issues and PRs that materially affect creation and operation of the Jagports AI OS.
+Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
 ## Audit
 
@@ -12,40 +12,59 @@ Use `jagports/jagports` as the system of record.
 
 ### SHOW-STOPPERS
 
-Identify the few open Issues/PRs, dependencies, missing decisions, broken capabilities or process conditions that can materially prevent or seriously delay AI OS progress. Require evidence of material impact.
+Find only real blockers. A blocker must have evidence that it can stop or seriously delay AI OS progress.
 
 ### DO FIRST
 
-Give a short ordered list of the most valuable next actions using current evidence, dependency order, impact, urgency, unblock value and readiness. Prioritize actions that create or restore forward progress.
+Find the few actions that should be done first. Use dependency, impact, urgency, readiness and unblock value.
 
 ### LOW-HANGING FRUITS
 
-Identify small, well-understood, low-risk actions that can finish existing work, unblock work, improve traceability, add useful verification, or reduce active work. Prefer completion and consolidation.
+Find small, clear and low-risk actions that can be completed quickly.
 
 ### QUEUE CLEANUP
 
-Find duplicate, overlapping, stale, obsolete, over-split or otherwise consolidatable Issues/PRs. Recommend completing, consolidating, superseding or closing them through the normal workflow. Keep the active queue small and actionable while preserving traceability.
+Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small.
 
 ## Required output
 
-Produce a compact report with this structure:
+Produce a short report with exactly these sections:
 
-- **OVERALL STATE** — one short statement of current AI OS condition and the main constraint.
-- **WORK PATH** — one ranked list of the few actions that matter most. Each work path must contain only linked Issue/PR/resource identifiers and arrows, for example: `#355 → #354 → PR #xxx`. Put any task description, evidence, rationale, expected result or next-action sentence on the following line, never on the work-path line. Put the directly accessible GitHub link on the immediately following line when the path identifier is actionable. Use each Issue/PR exactly once in the entire report, even when it is both a blocker and a next action. Consolidate all relevant evidence, blocker impact and execution guidance for that Issue/PR into its single work item.
-- **LOW-HANGING FRUITS** — quick useful actions that are not already represented in WORK PATH; do not introduce duplicate Issue/PR references.
-- **QUEUE CLEANUP** — consolidation/completion/closure actions that are not already represented in WORK PATH; do not introduce duplicate Issue/PR references.
-- **DECISIONS NEEDED** — only decisions requiring human authority; do not repeat an Issue/PR already listed in WORK PATH.
-- **BLOCKED** — only capability/access blockers not already represented in WORK PATH; do not repeat an Issue/PR.
+- **OVERALL STATE** — one short sentence.
+- **WORK PATH** — the few actions that should be done, in order.
+- **LOW-HANGING FRUITS** — quick actions not already in WORK PATH, or `None`.
+- **QUEUE CLEANUP** — cleanup actions not already in WORK PATH, or `None`.
+- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`.
+- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`.
+
+### WORK PATH format
+
+Every WORK PATH item must identify the actual GitHub Issue or PR and the task. Use this format:
+
+`[Issue #123](https://github.com/jagports/jagports/issues/123) → [Issue #456](https://github.com/jagports/jagports/issues/456)`
+
+`Do #123 first because it provides the dependency needed by #456.`
+
+`[PR #789](https://github.com/jagports/jagports/pull/789) → merge after review`
+
+`Review and merge the PR so the dependent work can continue.`
+
+The first line is the work path. The second line says what to do and why, in simple language.
+
+Use the actual Issue/PR numbers found during the audit. Do not use placeholder numbers.
 
 ### Output discipline
 
-- WORK PATH is the single authoritative list of actionable Issues/PRs. SHOW-STOPPERS and DO FIRST are analysis criteria, not separate lists of work items.
-- Never list the same Issue/PR in more than one section.
-- Never mention an Issue/PR number without its directly accessible GitHub link.
-- Work-path lines contain only linked identifiers/resources and arrows. Never put a sentence on the work-path line.
-- Any explanation or task description starts on the following line.
-- Keep each work item short; include only evidence that changes the priority or action.
-- Prefer completion, consolidation and closure over creating new work.
+- WORK PATH is the only normal list of active Issue/PR work.
+- Do not repeat an Issue or PR in another section.
+- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one section.
+- If an Issue/PR is both a blocker and a DO FIRST action, put it once in WORK PATH and include both facts in its task line.
+- Every Issue/PR reference in the report must be a directly accessible GitHub link.
+- Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
+- LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
+- Do not fill empty sections with general advice, principles or commentary.
+- Keep the report short and use simple language.
+- Prefer finishing, testing, merging, consolidating and closing existing work over creating new work.
 
 ## Operating rules
 
@@ -57,6 +76,6 @@ Produce a compact report with this structure:
 
 ## Project V2 verification
 
-Track `openai/codex#43297` as the external dependency for Project V2 verification. Resolution requires an actual functional test covering the `Jagports AI OS` Project, items, Status and required fields/relationships. Record the tested capabilities and resulting state with evidence.
+Track the external Project V2 verification dependency in `openai/codex` and require an actual functional test covering the `Jagports AI OS` Project, its items, Status and required fields/relationships. Record the tested capabilities and resulting state with evidence.
 
 Changes to this procedure use Issue → branch → PR → review → merge.
