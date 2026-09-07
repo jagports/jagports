@@ -344,6 +344,7 @@ Agents should follow that protocol when handling Issue communication, acknowledg
 - `base/` — shared/base production infrastructure and foundational runtime components.
 - `platform/` — platform-level production components.
 - `application-platform/` — reusable application-platform/runtime services used by applications.
+- `application/` — production application implementations.
 - `customer/` — customer-specific production components and configuration.
 
 Existing production subfolders remain valid unless explicitly reorganized through an approved Issue and Pull Request.
