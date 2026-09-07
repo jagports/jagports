@@ -71,14 +71,15 @@ Produce a compact report with exactly these sections:
 ## Output rules
 
 - Follow the repository's inherited communication protocol for presentation and traceability formatting.
-- Issue and PR references are allowed in every report section when relevant to that section.
+- Issue and PR references are allowed in every report section when relevant.
 - A work path is a presentation style for showing dependency/enabling relationships between relevant work items; it is not a report category.
 - Any report category may contain one or more work paths when relevant Issues/PRs exist.
-- Use Issue/PR references where they provide useful traceability; do not force a reference into a section merely because one exists elsewhere in the report.
-- Each category is evaluated independently. Do not suppress, exclude or omit a qualifying work item because the same work item, Issue or PR appears in another category.
-- The same Issue or PR may be referenced in multiple categories whenever it independently qualifies for those categories.
-- Do not merge, consolidate or deduplicate category findings merely to avoid repeated references.
-- If an Issue/PR is both a blocker and a DO FIRST action, it may be referenced in both sections when both references materially help the reader understand the situation.
+- Every Issue or PR may be shown in **one and only one** report category.
+- Before producing the report, assign each qualifying Issue/PR to the single category where it most appropriately belongs.
+- If an Issue/PR could qualify for multiple categories, place it only in the highest-priority applicable category using this precedence: **BLOCKED → DECISIONS NEEDED → DO FIRST → QUEUE CLEANUP → LOW-HANGING FRUITS**.
+- A work path may explain relationships to Issues/PRs assigned to other categories, but must not repeat their Issue/PR references as separate category items.
+- Do not repeat, cross-list, or duplicate an Issue/PR in multiple categories.
+- Do not create duplicate work items merely because the same underlying work is relevant to multiple audit categories; assign the existing Issue/PR to its single category.
 - Do not put generic advice into empty categories.
 - If a category has no qualifying item, write exactly `None`.
 - Keep the report short.
