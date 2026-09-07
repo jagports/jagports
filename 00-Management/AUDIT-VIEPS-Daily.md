@@ -52,22 +52,21 @@ Find VIEPS work that can be completed, consolidated, superseded or closed so the
 Produce a compact report with exactly these sections:
 
 - **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
-- **DO FIRST** — the few VIEPS Issues/PRs that should be acted on, in priority order, with linked GitHub Issue/PR number and title.
-- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next. Do not repeat or introduce Issue/PR references here.
-- **LOW-HANGING FRUITS** — quick VIEPS actions not already in DO FIRST or its work paths. If none, say `None`. Do not introduce Issue/PR references here.
-- **QUEUE CLEANUP** — VIEPS cleanup actions not already in DO FIRST or its work paths. If none, say `None`. Do not introduce Issue/PR references here.
-- **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`. Do not introduce Issue/PR references here.
-- **BLOCKED** — only direct VIEPS capability/access blockers. If none, say `None`. Do not introduce Issue/PR references here.
+- **DO FIRST** — the few VIEPS actions that should be acted on, in priority order, with linked GitHub Issue/PR number and title.
+- **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next. Issue/PR references may be used when they are necessary to identify the work items in the path.
+- **LOW-HANGING FRUITS** — quick VIEPS actions. If none, say `None`. Issue/PR references may be used when they identify the relevant work.
+- **QUEUE CLEANUP** — VIEPS cleanup actions. If none, say `None`. Issue/PR references may be used when they identify the relevant work.
+- **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`. Issue/PR references may be used when they identify the relevant decision or affected work.
+- **BLOCKED** — only direct VIEPS capability/access blockers. If none, say `None`. Issue/PR references may be used when they identify the relevant blocker or affected work.
 
 ## Output rules
 
 - Follow the repository's inherited communication protocol for presentation and traceability formatting.
-- DO FIRST is the only section that may introduce or identify an Issue or PR.
-- WORK PATHS explain the dependency and enabling value of DO FIRST work without repeating Issue/PR references.
-- LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must not introduce or identify an Issue or PR.
-- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to DO FIRST or omit it from the report.
-- An Issue or PR may not be introduced as a separate item in more than one report category.
-- If the same Issue or PR is both a blocker and the next action, identify it only in DO FIRST and describe the blocker there and in the relevant work-path reasoning without repeating its identifier.
+- Issue and PR references are allowed in every report section when relevant to that section.
+- Use the reference where it provides useful traceability; do not force an Issue/PR reference into a section merely because one exists elsewhere in the report.
+- The same Issue or PR may be referenced in more than one section when it is genuinely relevant to each section; this is not considered an error or duplication by itself.
+- Do not create duplicate work items merely because the same Issue/PR is relevant to multiple audit categories.
+- If an Issue/PR is both a blocker and a DO FIRST action, it may be referenced in both sections when both references materially help the reader understand the situation.
 - Do not put generic advice into LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED.
 - If a category has no qualifying item, write exactly `None`.
 - Keep the report short.
