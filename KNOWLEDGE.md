@@ -32,6 +32,30 @@ Jagports AI OS Project
 
 For current Management workflow, execution, Project-state, review, testing, and capability rules, use the canonical sources referenced below rather than maintaining parallel rules in this file.
 
+## Root Operating Context and Mandatory References
+
+`KNOWLEDGE.md` is the root entry point for Jagports repository knowledge and operating context.
+
+Before executing Jagports work, an agent or scheduled task must load the root `KNOWLEDGE.md` and then follow the mandatory authoritative references identified here, together with any task-specific procedure required by the work request.
+
+The mandatory reference hierarchy is:
+
+`KNOWLEDGE.md → canonical Management workflow / governance → communication protocol → task-specific procedure → execution`
+
+The references below are part of the default Jagports operating context. A task-specific procedure must not assume that repeating these references is necessary.
+
+### Standard knowledge bootstrap prompt
+
+When starting Jagports work in a new chat or agent session, use this bootstrap instruction before giving the task-specific request:
+
+> Read and process the repository-root `KNOWLEDGE.md` first. Follow all mandatory references and operating instructions defined by it, including the applicable management/governance and communication protocol. Then process the task-specific request under that inherited context.
+
+For a task that names a repository procedure, append the task request after the bootstrap instruction. For example:
+
+> Read and process the repository-root `KNOWLEDGE.md` first. Follow all mandatory references and operating instructions defined by it, including the applicable management/governance and communication protocol. Then read `00-Management/AUDIT-AI-OS-Daily.md` and execute it as the complete operational procedure under that context.
+
+This prompt is the recommended bootstrap mechanism for a new chat. `KNOWLEDGE.md` defines the operating hierarchy; it does not rely on the chat platform automatically loading repository files.
+
 ## Current Management Workflow Sources
 
 `00-Management/WORKFLOWS.md` is the canonical normative source for Management workflows.
@@ -42,7 +66,7 @@ For current Management workflow, execution, Project-state, review, testing, and 
 
 `.codex/skills/*` contains specialized operational procedures and must reference the canonical workflow rather than redefine it.
 
-`0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` contains the detailed communication protocol for agent/human communication, acknowledgements, hand-offs, escalations, decisions, and implementation traceability.
+`0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md` contains the detailed communication protocol for agent/human communication, acknowledgements, hand-offs, escalations, decisions, and implementation traceability.
 
 These sources are authoritative for their respective current rules. `KNOWLEDGE.md` is not an alternative workflow authority.
 
@@ -309,9 +333,9 @@ GitHub Issues are the primary work and communication records. The GitHub Project
 
 ## Agent Communication Protocol Reference
 
-`0-DocumentationEducationCompetense/AGENT_COMMUNICATION_PROTOCOL.md` defines the detailed communication protocol for agents and humans working on Jagports AI OS.
+`0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md` defines the detailed communication protocol for agents and humans working on Jagports AI OS.
 
-Agents should consult that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
+Agents should follow that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
 
 ## 4-Production Folder Structure
 

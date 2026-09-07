@@ -1,46 +1,37 @@
-# Scheduled Jagports Project Audits
+# Scheduled Jagports Audits
 
-## AI OS project task
+## AI OS Daily Audit
 
-**Title:** Jagports Daily Audit  
+**Title:** Jagports AI OS Daily Audit  
 **Target repository:** `jagports/jagports`  
 **Recurrence:** Daily  
 **Timezone:** `Europe/Helsinki`  
 **Automation ID:** `6a989c25ed848191a35b887495126b71`
 
-### Durable procedure
+**Procedure:** `00-Management/AUDIT-AI-OS-Daily.md`
 
-`00-Management/PROJECT_DAILY_AUDIT.md`
+**Prompt:** Read `00-Management/AUDIT-AI-OS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`. Produce a compact, action-oriented result. Reference each Issue/PR at most once in the entire result; combine all relevant findings for the same Issue/PR into that single entry. Every Issue/PR reference must have its directly accessible link.
 
-### Live task prompt
-
-> Read `00-Management/PROJECT_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
-
-## VIEPS App audit task
+## VIEPS App Daily Audit
 
 **Title:** Jagports VIEPS App Daily Audit  
 **Target repository:** `jagports/jagports`  
 **Recurrence:** Daily  
 **Timezone:** `Europe/Helsinki`
 
-### Durable procedure
+**Procedure:** `00-Management/AUDIT-VIEPS-Daily.md`
 
-`00-Management/VIEPS_DAILY_AUDIT.md`
+**Prompt:** Read `00-Management/AUDIT-VIEPS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure. If it cannot be read, report `BLOCKED`. Produce a compact, action-oriented result. Reference each Issue/PR at most once in the entire result; combine all relevant findings for the same Issue/PR into that single entry. Every Issue/PR reference must have its directly accessible link.
 
-### Live task prompt
+## Shared operating principle
 
-> Read `00-Management/VIEPS_DAILY_AUDIT.md` from the current `jagports/jagports` repository and execute it as the complete operational procedure for this scheduled run. If it cannot be read, report `BLOCKED`; do not use an obsolete or cached procedure.
+Both audits use the same compact decision logic:
 
-## Scheduling rule
+1. **SHOW-STOPPERS** — what can materially block progress?
+2. **DO FIRST** — what should be done next, in priority order?
+3. **LOW-HANGING FRUITS** — what useful work can be completed quickly?
+4. **QUEUE CLEANUP** — what can be completed, consolidated, superseded or closed so active Issues/PRs stay few and actionable?
 
-The scheduled task is only the execution/notification mechanism. The repository Markdown files are the durable source of truth for what each task does.
+The scheduled task is only the execution mechanism. The repository Markdown files are the durable source of truth.
 
-Changes to either procedure or this scheduling documentation require Issue → branch → PR → review → merge.
-
-## Operating rules
-
-- GitHub is the system of record.
-- Audits are read-only by default.
-- Issues do not require review; PRs do.
-- Never claim successful verification without actual evidence.
-- Do not use obsolete `tlindi/jagports`.
+Changes to either procedure or this schedule require Issue → branch → PR → review → merge.
