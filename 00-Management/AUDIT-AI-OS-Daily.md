@@ -35,33 +35,40 @@ Find work that can be finished, merged, consolidated, superseded or closed so th
 
 ## Work-path presentation
 
-When relevant Issues/PRs exist, any audit category may contain one or more dependency/enabling work paths.
+When an Issue/PR has a defined or explicitly proposed work path, that work path MUST always be shown when the Issue/PR is reported, regardless of which audit category contains it.
+
+The work path MUST be shown directly under the relevant Issue/PR. It is a presentation style, not a separate audit category.
 
 A work path shows, in order:
 
 `work item → problem/capability it solves → capability/work it enables → next meaningful work`
 
+Where an Issue/PR explicitly defines a concrete implementation sequence, show that sequence using the relevant existing Issue/PR numbers and titles or work steps.
+
 A work path may contain multiple existing Issues/PRs when that dependency relationship is evidenced by repository knowledge, Issue/PR content, implementation state or testing evidence.
 
-Do not invent dependencies merely to make a path longer.
+Do not invent dependencies or implementation steps merely to create a work path.
 
-Use work paths where they clarify why work matters, how work is related, or what concrete progress becomes possible. They are a presentation style, not a separate audit category.
+Do not omit an existing/proposed work path because the item is in LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED rather than DO FIRST.
+
+Do not duplicate an Issue/PR as a separate report item merely because it appears inside another item's work path. Each Issue/PR is assigned to one report category only.
 
 ## Required output
 
 Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
-- **DO FIRST** — the few actions that should be done, in order, with linked GitHub Issue/PR number and title when applicable.
-- **LOW-HANGING FRUITS** — quick actions, or `None`.
-- **QUEUE CLEANUP** — cleanup actions, or `None`.
-- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`.
-- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`.
+- **DO FIRST** — the few actions that should be done, in order, with linked GitHub Issue/PR number and title when applicable. If a listed Issue/PR has a defined or explicitly proposed work path, show it directly under that item.
+- **LOW-HANGING FRUITS** — quick actions, or `None`. If a listed Issue/PR has a defined or explicitly proposed work path, show it directly under that item.
+- **QUEUE CLEANUP** — cleanup actions, or `None`. If a listed Issue/PR has a defined or explicitly proposed work path, show it directly under that item.
+- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`. If a listed Issue/PR has a defined or explicitly proposed work path, show it directly under that item.
+- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`. If a listed Issue/PR has a defined or explicitly proposed work path, show it directly under that item.
 
 ## Output discipline
 
 - Follow the repository's inherited communication protocol for presentation and traceability formatting.
 - Issue and PR references are allowed in every report section when relevant.
+- If an Issue/PR has a defined or explicitly proposed work path, showing that work path is mandatory; do not omit it because the item is outside DO FIRST.
 - A work path is a presentation style, not a report category.
 - Any report category may contain one or more work paths when relevant Issues/PRs exist.
 - Every Issue or PR may be shown in **one and only one** report category.
