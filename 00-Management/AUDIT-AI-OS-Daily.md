@@ -54,7 +54,7 @@ Find work that can be finished, merged, consolidated, superseded or closed so th
 Produce a short report with exactly these sections:
 
 - **OVERALL STATE** — one short sentence.
-- **DO FIRST** — the few actions that should be done, in order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a directly accessible GitHub Issue/PR link showing its number and title.
+- **DO FIRST** — the few actions that should be done, in order. Give each selected item a temporary work-path identifier (`WF-1`, `WF-2`, etc.) and a linked GitHub Issue/PR number and title.
 - **WORK PATHS** — the dependency/enabling paths for the DO FIRST items. For each path, state what the work solves and what it enables next, using the DO FIRST work-path identifier rather than repeating the Issue/PR reference.
 - **LOW-HANGING FRUITS** — quick actions not already in DO FIRST or its work paths, or `None`.
 - **QUEUE CLEANUP** — cleanup actions not already in DO FIRST or its work paths, or `None`.
@@ -63,13 +63,12 @@ Produce a short report with exactly these sections:
 
 ### Output discipline
 
+- Follow the repository's inherited communication protocol for presentation and traceability formatting.
 - DO FIRST is the only normal list of active Issue/PR work.
 - WORK PATHS explain the dependency and enabling value of that active work; they are not a second Issue/PR queue.
 - Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one active work item or cleanup category.
 - An Issue/PR must not be introduced as a separate item in more than one report category.
 - If an Issue/PR is both a blocker and a DO FIRST action, put it once in DO FIRST and include both facts in its task line and work path.
-- Every Issue/PR reference in the report must be a directly accessible GitHub link and must show the Issue/PR number and title.
-- Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
 - LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
 - Do not fill empty sections with general advice, principles or commentary.
 - Keep the report short and use simple language.
