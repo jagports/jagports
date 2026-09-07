@@ -1,3 +1,5 @@
+import { normalizePartNumber } from "./part.js";
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -34,9 +36,12 @@ async function handleApi(request, env) {
 
   if (path === "/api/parts" && request.method === "GET") {
     const q = text(url.searchParams.get("q"));
+    const normalized = normalizePartNumber(q);
     const stmt = q
-      ? env.DB.prepare("SELECT * FROM part_reference WHERE part_number LIKE ? OR description LIKE ? ORDER BY part_number LIMIT 100").bind(`%${q}%`, `%${q}%`)
-      : env.DB.prepare("SELECT * FROM part_reference ORDER BY part_number LIMIT 100");
+      ? env.DB.prepare(
+          "SELECT * FROM part WHERE part_number_raw LIKE ? OR part_number_normalized LIKE ? OR description LIKE ? ORDER BY part_number_normalized LIMIT 100"
+        ).bind(`%${q}%`, `%${normalized}%`, `%${q}%`)
+      : env.DB.prepare("SELECT * FROM part ORDER BY part_number_normalized LIMIT 100");
     const { results } = await stmt.all();
     return json({ results });
   }
@@ -126,4 +131,4 @@ export default {
   },
 };
 
-export { isAuthorized, text };
+export { isAuthorized, text, normalizePartNumber };
