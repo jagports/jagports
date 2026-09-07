@@ -1,17 +1,20 @@
 PRAGMA foreign_keys = ON;
 
 -- Replace the MVP part_reference identity with the canonical PART model.
--- Existing part numbers are preserved verbatim as part_number_raw and
--- normalized for stable lookup. Invalid or colliding identities intentionally
--- fail the migration rather than silently dropping or merging catalogue data.
+-- A PART may exist before a catalogue part number is known. The internal id
+-- is the stable identity; when a part number is known, its normalized form is
+-- unique. Invalid or colliding identities intentionally fail the migration
+-- rather than silently dropping or merging catalogue data.
 CREATE TABLE part_new (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  part_number_raw TEXT NOT NULL,
-  part_number_normalized TEXT NOT NULL UNIQUE,
+  part_number_raw TEXT,
+  part_number_normalized TEXT,
   description TEXT,
   source TEXT,
   source_ref TEXT,
-  verification_status TEXT NOT NULL DEFAULT 'unverified'
+  verification_status TEXT NOT NULL DEFAULT 'unverified',
+  CHECK (part_number_raw IS NULL OR TRIM(part_number_raw) <> ''),
+  CHECK (part_number_normalized IS NULL OR TRIM(part_number_normalized) <> '')
 );
 
 INSERT INTO part_new (
@@ -53,5 +56,7 @@ FROM part_reference;
 DROP TABLE part_reference;
 ALTER TABLE part_new RENAME TO part;
 
-CREATE INDEX idx_part_number_normalized ON part(part_number_normalized);
+CREATE UNIQUE INDEX idx_part_number_normalized_unique
+  ON part(part_number_normalized)
+  WHERE part_number_normalized IS NOT NULL;
 CREATE INDEX idx_part_number_raw ON part(part_number_raw);
