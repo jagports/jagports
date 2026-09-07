@@ -30,15 +30,17 @@ SELECT
     REPLACE(
       REPLACE(
         REPLACE(
-          REPLACE(TRIM(part_number), ' ', ''),
+          REPLACE(
+            REPLACE(TRIM(part_number), ' ', ''),
+            '-', ''
+          ),
           char(9), ''
         ),
         char(10), ''
       ),
       char(13), ''
     )
-  )
-  ,
+  ),
   description,
   source,
   source_ref,
