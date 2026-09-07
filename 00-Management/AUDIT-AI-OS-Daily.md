@@ -48,21 +48,23 @@ Produce a short report with exactly these sections:
 
 Every WORK PATH item must identify the actual GitHub Issue or PR, including its number and title, and the task.
 
-The path MUST use one path item per line. The first path item starts at the beginning of its line. Every subsequent path item MUST start with `→` at the beginning of a new line, followed by a space and the linked Issue/PR number and title.
+The path MUST use one path item per visual line. The first path item starts at the beginning of its line. Every subsequent path item MUST start with `→` immediately at the beginning of the following visual line, followed by a space and the linked Issue/PR number and title.
+
+A visual line break MUST be forced after every path item except the final item. In Markdown, use a hard line break: end the preceding path line with two spaces, then insert the newline. Do NOT rely on an ordinary single Markdown newline, because it may render as a space and place the arrow on the same visual line.
 
 Example:
 
-`[#123 — Issue title](https://github.com/jagports/jagports/issues/123)`
-`→ [#456 — Issue title](https://github.com/jagports/jagports/issues/456)`
+`[#123 — Issue title](https://github.com/jagports/jagports/issues/123)`  
+`→ [#456 — Issue title](https://github.com/jagports/jagports/issues/456)`  
 `→ [PR #789 — PR title](https://github.com/jagports/jagports/pull/789)`
 
-The task explanation starts on the line after the complete path:
+The task explanation starts on the visual line after the complete path:
 
 `Implement #123 first because it provides the dependency needed by #456.`
 
-For a PR path:
+For a PR path, the linked PR line MUST also be followed by a hard line break before the task explanation:
 
-`[PR #789 — PR title](https://github.com/jagports/jagports/pull/789)`
+`[PR #789 — PR title](https://github.com/jagports/jagports/pull/789)`  
 
 `Review, test and merge the PR so the dependent work can continue.`
 
