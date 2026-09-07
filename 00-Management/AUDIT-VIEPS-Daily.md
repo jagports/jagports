@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Daily audit of the Issues and PRs that matter for VIEPS App progress.
+Daily audit of the Issues and PRs that directly concern VIEPS App creation and operation.
 
 ## Audit
 
@@ -10,25 +10,78 @@ Read `RULES.md`, `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, `SKILL.md`, `KNOWL
 
 Use `jagports/jagports` as the system of record.
 
-### SHOW-STOPPERS
+### Scope filter
 
-Find only real blockers. A blocker must have evidence that it can stop or seriously delay VIEPS progress.
+Include an Issue or PR only when its actual work directly concerns VIEPS App implementation or a direct VIEPS dependency.
 
-### DO FIRST
+Do not include AI OS management, audit, automation, Kanban or general process work merely because it may affect VIEPS indirectly.
 
-Find the few actions that should be done first. Use dependency, impact, urgency, readiness and MVP relevance.
+If an Issue or PR is not clearly VIEPS work or a direct VIEPS dependency, leave it out.
 
-### LOW-HANGING FRUITS
+### Priority analysis
 
-Find small, clear and low-risk actions that can be completed quickly.
+Identify the few VIEPS Issues/PRs that matter most using:
+- whether the work directly affects VIEPS;
+- dependency order;
+- ability to unblock implementation;
+- MVP relevance;
+- readiness and impact.
 
-### QUEUE CLEANUP
+Use these questions:
 
-Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small.
+**SHOW-STOPPERS** — Is there anything that directly blocks or seriously delays VIEPS?
+
+**DO FIRST** — What VIEPS work should be done next?
+
+**LOW-HANGING FRUITS** — What small VIEPS work can be completed quickly?
+
+**QUEUE CLEANUP** — What VIEPS work can be completed, consolidated, superseded or closed?
+
+## Required output
+
+Produce a compact report with exactly these sections:
+
+- **OVERALL STATE** — one short statement. If there is no important VIEPS problem, say `None`.
+- **WORK PATH** — the few VIEPS Issues/PRs that should be acted on, in priority order.
+- **LOW-HANGING FRUITS** — quick VIEPS actions not already in WORK PATH. If none, say `None`.
+- **QUEUE CLEANUP** — VIEPS cleanup actions not already in WORK PATH. If none, say `None`.
+- **DECISIONS NEEDED** — only decisions that require human authority. If none, say `None`.
+- **BLOCKED** — only direct VIEPS capability/access blockers. If none, say `None`.
+
+## WORK PATH format
+
+Every WORK PATH item must be a real VIEPS Issue or PR.
+
+First line: linked Issue/PR identifiers and arrows only.
+
+Second line: one short sentence saying what to do and what it achieves.
+
+Third line: the directly accessible GitHub link.
+
+Example:
+
+`[Issue #354](https://github.com/jagports/jagports/issues/354) → [Issue #355](https://github.com/jagports/jagports/issues/355) → [Issue #368](https://github.com/jagports/jagports/issues/368)`
+
+`Complete the data foundation, then the importer, then the UI.`
+
+`https://github.com/jagports/jagports/issues/354`
+
+Use real current Issue/PR numbers and links. Do not invent numbers.
+
+## Output rules
+
+- Do not produce separate SHOW-STOPPERS or DO FIRST lists. They are only criteria for choosing WORK PATH.
+- An Issue or PR may appear only once in the entire report.
+- If the same Issue or PR is both a blocker and the next action, include it once in WORK PATH and describe both facts in its sentence.
+- Never mention an Issue or PR number without a directly accessible GitHub link.
+- Do not put generic advice into LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED or BLOCKED.
+- If a category has no qualifying item, write exactly `None`.
+- Keep the report short.
+- Prefer completing existing VIEPS work over creating new work.
 
 ## VIEPS scope
 
-Include work materially related to:
+Relevant work includes:
 - VIEPS UI/application implementation;
 - Parts Data Model and API/data integration;
 - JEPC Data Importer and catalogue/reference data;
@@ -37,59 +90,16 @@ Include work materially related to:
 - silhouettes, zones and location mapping;
 - supersession and Jaguar Classic semantics;
 - operational stock integration;
-- VIEPS dependencies, blockers and research/specification decisions;
+- VIEPS dependencies and VIEPS-specific research/specification decisions;
 - automated tests and required human verification;
-- PR review state and implementation readiness;
-- VIEPS documentation, communication and traceability.
-
-Start from the main VIEPS MVP and UI implementation work and follow explicitly linked dependencies. Use current GitHub state to find the work that matters most.
-
-## Required output
-
-Produce a short report with exactly these sections:
-
-- **OVERALL STATE** — one short sentence.
-- **WORK PATH** — the few actions that should be done, in order.
-- **LOW-HANGING FRUITS** — quick actions not already in WORK PATH, or `None`.
-- **QUEUE CLEANUP** — cleanup actions not already in WORK PATH, or `None`.
-- **DECISIONS NEEDED** — human decisions that are actually needed now, or `None`.
-- **BLOCKED** — capability/access blockers that are actually blocking work, or `None`.
-
-### WORK PATH format
-
-Every WORK PATH item must identify the actual GitHub Issue or PR and the task. Use this format:
-
-`[Issue #123](https://github.com/jagports/jagports/issues/123) → [Issue #456](https://github.com/jagports/jagports/issues/456)`
-
-`Do #123 first because it provides the dependency needed by #456.`
-
-`[PR #789](https://github.com/jagports/jagports/pull/789) → merge after review`
-
-`Review and merge the PR so the dependent work can continue.`
-
-The first line is the work path. The second line says what to do and why, in simple language.
-
-Use the actual Issue/PR numbers found during the audit. Do not use placeholder numbers.
-
-### Output discipline
-
-- WORK PATH is the only normal list of active Issue/PR work.
-- Do not repeat an Issue or PR in another section.
-- Before writing the report, make one deduplicated list of Issues/PRs and assign each one to only one section.
-- If an Issue/PR is both a blocker and a DO FIRST action, put it once in WORK PATH and include both facts in its task line.
-- Every Issue/PR reference in the report must be a directly accessible GitHub link.
-- Never write a bare `#123`, `Issue #123` or `PR #123` in the report.
-- LOW-HANGING FRUITS, QUEUE CLEANUP, DECISIONS NEEDED and BLOCKED must say `None` when they contain no item.
-- Do not fill empty sections with general advice, principles or commentary.
-- Keep the report short and use simple language.
-- Prefer finishing, testing, merging, consolidating and closing existing work over creating new work.
+- VIEPS implementation readiness and documentation.
 
 ## Operating rules
 
 - Read-only by default.
-- Prefer finishing/consolidating existing work over increasing the active queue.
-- Record unresolved product/domain choices under **DECISIONS NEEDED** only when a human decision is needed now.
-- Issues do not require review; PRs do require review.
 - GitHub is the system of record.
+- Issues do not require review; PRs do require review.
+- Do not claim Project Item Status unless independently verified.
+- Unresolved VIEPS product/domain choices go under **DECISIONS NEEDED**.
 
 Changes to this procedure use Issue → branch → PR → review → merge.
