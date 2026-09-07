@@ -2,8 +2,8 @@ PRAGMA foreign_keys = ON;
 
 -- Replace the MVP part_reference identity with the canonical PART model.
 -- Existing part numbers are preserved verbatim as part_number_raw and
--- normalized for stable lookup. A normalization collision intentionally
--- fails the migration rather than silently merging catalogue identities.
+-- normalized for stable lookup. Invalid or colliding identities intentionally
+-- fail the migration rather than silently dropping or merging catalogue data.
 CREATE TABLE part_new (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   part_number_raw TEXT NOT NULL,
@@ -26,27 +26,29 @@ INSERT INTO part_new (
 SELECT
   id,
   part_number,
-  UPPER(
-    REPLACE(
+  NULLIF(
+    UPPER(
       REPLACE(
         REPLACE(
           REPLACE(
-            REPLACE(TRIM(part_number), ' ', ''),
-            '-', ''
+            REPLACE(
+              REPLACE(TRIM(part_number), ' ', ''),
+              '-', ''
+            ),
+            char(9), ''
           ),
-          char(9), ''
+          char(10), ''
         ),
-        char(10), ''
-      ),
-      char(13), ''
-    )
+        char(13), ''
+      )
+    ),
+    ''
   ),
   description,
   source,
   source_ref,
   verification_status
-FROM part_reference
-WHERE TRIM(part_number) <> '';
+FROM part_reference;
 
 DROP TABLE part_reference;
 ALTER TABLE part_new RENAME TO part;
