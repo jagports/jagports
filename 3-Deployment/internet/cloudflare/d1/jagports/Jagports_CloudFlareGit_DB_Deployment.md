@@ -6,10 +6,10 @@ Deployment procedure for the Jagports production D1 database used by the VIEPS a
 
 D1 is a separate Cloudflare resource from the Worker. The Worker depends on D1 through the Wrangler `DB` binding, but database creation, schema migration, verification, and recovery are separate operational concerns.
 
-Production application source remains:
+The production D1 representation is:
 
 ```text
-4-Production/base/application-platform/application/jagports/
+4-Production/internet/cloudflare/d1/jagports/vieps/
 ```
 
 The VIEPS implementation project remains technology-independent under:
@@ -17,6 +17,24 @@ The VIEPS implementation project remains technology-independent under:
 ```text
 5-Implementation-Projects/base/application-platform/application/jagports/vieps/
 ```
+
+## Repository structure
+
+```text
+3-Deployment/internet/cloudflare/d1/jagports/
+    └── Jagports_CloudFlareGit_DB_Deployment.md
+
+4-Production/internet/cloudflare/d1/jagports/vieps/
+    └── production D1 deployment representation
+
+4-Production/internet/cloudflare/workers/jagports/vieps/
+    └── production Worker deployment representation
+
+5-Implementation-Projects/base/application-platform/application/jagports/vieps/
+    └── technology-independent VIEPS implementation project
+```
+
+The production tree represents the deployed technology/resource. The implementation project is deliberately kept independent of Cloudflare.
 
 ## Database
 
@@ -30,14 +48,16 @@ The actual Cloudflare D1 database ID is environment configuration. It is not a p
 
 ## Relationship to the Worker
 
-The Worker configuration contains:
+The production Worker configuration contains the D1 binding:
 
 ```text
-[[d1_databases]]
-binding = "DB"
-database_name = "jagports"
-database_id = "<production database ID>"
-migrations_dir = "migrations"
+4-Production/internet/cloudflare/workers/jagports/vieps/wrangler.toml
+```
+
+The D1 production resource is represented separately:
+
+```text
+4-Production/internet/cloudflare/d1/jagports/vieps/
 ```
 
 The Worker and D1 are deployed and verified separately:
@@ -82,23 +102,23 @@ Create the production database when it does not already exist:
 npx wrangler d1 create jagports
 ```
 
-Record the returned production database ID through a reviewed repository change to:
+Record the returned production database ID through a reviewed repository change to the production Worker configuration:
 
 ```text
-4-Production/base/application-platform/application/jagports/wrangler.toml
+4-Production/internet/cloudflare/workers/jagports/vieps/wrangler.toml
 ```
 
 Do not replace the production database ID with a development or placeholder ID.
 
 ## Migration source
 
-The migration directory is version controlled with the production application:
+The migration directory belongs to the production D1 representation:
 
 ```text
-4-Production/base/application-platform/application/jagports/migrations/
+4-Production/internet/cloudflare/d1/jagports/vieps/migrations/
 ```
 
-Migration files are the authoritative schema change history for the application.
+Migration files are the authoritative schema change history for the deployed application.
 
 Before applying a production migration:
 
@@ -132,7 +152,7 @@ After applying migrations, verify:
 
 - the intended Cloudflare account was used;
 - the intended production database was used;
-- the expected migration files are present in the repository;
+- the expected migration files are present in the production D1 representation;
 - remote migration state contains the required migrations;
 - the Worker `DB` binding points to the intended database;
 - the application can read required data;
