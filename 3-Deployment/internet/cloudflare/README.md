@@ -50,7 +50,7 @@ Defines the operation record format without storing credentials or duplicating G
 
 ## Production management
 
-[VIEPS Production Worker Management Tasks](../../../../4-Production/internet/cloudflare/workers/jagports/vieps/VIEPS_Management_Tasks.md)
+[VIEPS Production Worker Management Tasks](../../../4-Production/internet/cloudflare/workers/jagports/vieps/VIEPS_Management_Tasks.md)
 
 Defines repeatable production Worker management tasks.
 
