@@ -4,10 +4,10 @@
 
 Deployment procedure for the public Jagports VIEPS application running as a Cloudflare Worker.
 
-The production application source is:
+The production Worker representation is:
 
 ```text
-4-Production/base/application-platform/application/jagports/
+4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
 The VIEPS implementation project remains technology-independent under:
@@ -17,6 +17,24 @@ The VIEPS implementation project remains technology-independent under:
 ```
 
 This document covers the Worker deployment only. D1 deployment is documented separately.
+
+## Repository structure
+
+```text
+3-Deployment/internet/cloudflare/workers/jagports/
+    └── Jagports_CloudFlareGit_App_Deployment.md
+
+4-Production/internet/cloudflare/workers/jagports/vieps/
+    └── production Worker deployment representation
+
+4-Production/internet/cloudflare/d1/jagports/vieps/
+    └── production D1 deployment representation
+
+5-Implementation-Projects/base/application-platform/application/jagports/vieps/
+    └── technology-independent VIEPS implementation project
+```
+
+The production tree represents the deployed technology/resource. The implementation project is deliberately kept independent of Cloudflare.
 
 ## Architecture
 
@@ -33,7 +51,6 @@ GitHub repository
             v
        Worker: jagports
             |
-            +--> static assets
             +--> application/API
                     |
                     v
@@ -78,10 +95,10 @@ Recommended setup:
 
 ## Worker configuration
 
-Production source directory:
+Production Worker directory:
 
 ```text
-4-Production/base/application-platform/application/jagports/
+4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
 Worker name:
@@ -101,13 +118,13 @@ Recommended Workers Builds configuration:
 ```text
 Repository:             jagports/jagports
 Production branch:     main
-Root directory:        4-Production/base/application-platform/application/jagports/
+Root directory:        4-Production/internet/cloudflare/workers/jagports/vieps/
 Build command:          leave empty unless a build step is introduced
 Deploy command:         npx wrangler deploy
 Preview deploy command: npx wrangler versions upload
 ```
 
-The repository's `package.json` currently provides the local development/test/deploy scripts. Production deployment should normally occur through the Git-integrated `main` path after review and merge.
+The production Worker directory is the deployment representation. Implementation-project material belongs under `5-Implementation-Projects/.../vieps/` and is not itself the Cloudflare deployment root.
 
 ## Public VIEPS access model
 
@@ -164,10 +181,16 @@ Do not mark the hostname as `VERIFIED` until the actual DNS/Cloudflare configura
 
 ## D1 dependency
 
-The Worker uses the D1 binding declared in the production Wrangler configuration:
+The Worker uses the D1 binding declared in the production Worker configuration:
 
 ```text
-4-Production/base/application-platform/application/jagports/wrangler.toml
+4-Production/internet/cloudflare/workers/jagports/vieps/wrangler.toml
+```
+
+The D1 production representation is separate:
+
+```text
+4-Production/internet/cloudflare/d1/jagports/vieps/
 ```
 
 The D1 database and migrations are separate deployment concerns. A successful Worker build/deployment does not prove that the required D1 migrations have been applied.
@@ -196,6 +219,9 @@ Cloudflare Workers Build
     |
     v
 Production Worker
+    |
+    v
+4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
 For preview branches, use the configured preview deployment mechanism and verify it separately from production.
@@ -235,7 +261,7 @@ After deployment, independently verify:
 
 - the Cloudflare build corresponds to the intended GitHub commit;
 - the intended Worker version is active;
-- the Worker uses the intended production root;
+- the intended production Worker directory/configuration is used;
 - the D1 binding is present;
 - required D1 migrations are applied;
 - the public VIEPS application loads;
