@@ -148,11 +148,11 @@ A preceding successful task does not prove a later task. `BLOCKED`, `FAIL`, or `
 
 Use CLI/API first. Use UI only where no supported programmatic operation is available.
 
-## Execution record
+## Execution task result record
 
-Use the single common template:
+Use the single VIEPS execution task result template:
 
-`3-Deployment/internet/solution/jagports/ExecutionRecordTemplate.md`
+`3-Deployment/internet/jagports/solution/vieps/deployment_ExecutionTaskResultTemplate.md`
 
 Record actual execution evidence in the relevant GitHub Issue/PR and execution record. Do not maintain a duplicate task-tracking system in deployment Markdown.
 
