@@ -1,121 +1,39 @@
-# VIEPS Deployment Setup Management
+# VIEPS Application Setup Management
 
 ## Purpose
 
-Define how VIEPS deployment setup is managed as a sequence of independently executable and verifiable tasks.
+Define application-level setup for the VIEPS administrator authentication mechanism.
 
-This document coordinates the solution-level deployment work. It does not replace the detailed Cloudflare account, GitHub integration, Worker, D1, migration, or testing procedures.
+This file does not contain Cloudflare deployment orchestration, DNS deployment, Worker/D1 setup, testing, or operational production management.
 
-## Task sequence
+## Administrator setup
 
-### P1 — Cloudflare account
+Initial administrator identity:
 
-Execute:
+```text
+parts@jagports.fi
+```
 
-`3-Deployment/internet/cloudflare/account/Jagports_CloudFlare_Account_Setup.md`
+The accepted authorization model is application-level username/password authentication. No Google/Microsoft external identity provider is selected at this stage.
 
-Verify:
+The administrator password must be stored using the application's secure password-hash mechanism. Plaintext passwords and password hashes must not be committed to GitHub or written into deployment documentation.
 
-- account exists;
-- intended owner/operator can authenticate;
-- 2FA is enabled.
+If the application requires a bootstrap secret or other operational secret, provide it through the approved Cloudflare secret/credential mechanism at deployment time.
 
-### P2 — GitHub integration
+## Setup verification
 
-Execute:
+Verify only after the application authentication implementation is available:
 
-`3-Deployment/internet/cloudflare/github/Jagports_CloudFlare_GitHub_Integration_Setup.md`
+- `parts@jagports.fi` is configured as the intended administrator;
+- plaintext password is not stored in repository content;
+- password material is represented only through the application's approved secure mechanism;
+- public users do not receive administrator authorization;
+- administrator authentication is required for stock add/modify operations.
 
-Verify:
-
-- `jagports/jagports` is connected;
-- production branch is `main`;
-- Worker builds are configured.
-
-### P3 — Worker deployment
-
-Execute the Worker procedure from the Cloudflare deployment documentation.
-
-Verify:
-
-- Worker configuration passes dry-run;
-- Worker version is created;
-- expected deployment is active in the intended environment.
-
-### P4 — D1 database
-
-Execute the D1 deployment procedure.
-
-Verify:
-
-- intended D1 database exists;
-- production Worker binding points to it.
-
-### P5 — D1 migrations
-
-Execute:
-
-`3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Migrations.md`
-
-Verify:
-
-- reviewed migrations are applied;
-- remote migration state is correct.
-
-### P6 — DNS/endpoint
-
-Execute only after the accepted endpoint architecture is available.
-
-Target:
-
-`vieps.jagports.fi`
-
-Current state: **BLOCKED** until the Cloudflare/DNS architecture is resolved.
-
-### P7 — VIEPS application testing
-
-Execute:
+Application functional testing is defined in:
 
 `3-Deployment/internet/jagports/solution/vieps/SetupTesting.md`
 
-Verify:
+Operational production management is defined in:
 
-- public/read access;
-- administrator-only stock mutation;
-- persistence;
-- deployment chain.
-
-## Management rule
-
-A task is not considered complete because a preceding task succeeded.
-
-Each task requires its own:
-
-```text
-EXECUTED -> VERIFIED
-```
-
-state transition.
-
-A blocked prerequisite remains `BLOCKED` and must not be represented as verified.
-
-## CLI-first rule
-
-For every task, use the supported CLI/API command when one exists and use UI only where the supported API/CLI path does not provide the required operation.
-
-Document the exact command and the UI path in the task-specific procedure.
-
-## Traceability
-
-GitHub Issues and Pull Requests are the task traceability system.
-
-Do not maintain duplicate Issue/PR traceability lists in this document.
-
-Use GitHub to record:
-
-- implementation;
-- review;
-- test result;
-- decision;
-- blocker;
-- completion.
+`4-Production/internet/cloudflare/workers/jagports/vieps/Management_Tasks.md`
