@@ -2,33 +2,21 @@
 
 ## Purpose
 
-This file coordinates the actual VIEPS Cloudflare deployment work. Detailed instructions are kept in task-specific documents so Worker, D1, account, GitHub integration, testing, and management procedures can be repeated independently.
+This file coordinates the actual VIEPS Cloudflare deployment work. Reusable Cloudflare resource procedures are kept in PR #445; VIEPS solution execution and testing are kept here.
 
-## Procedure index
+## Cloudflare procedure index
 
-Start here:
+[PR #445 — Split Cloudflare Worker and D1 deployment documentation](https://github.com/jagports/jagports/pull/445)
 
-`3-Deployment/internet/cloudflare/README.md`
+Reusable procedures in PR #445:
 
-Account:
+- Cloudflare account setup: `3-Deployment/internet/cloudflare/account/Jagports_CloudFlare_Account_Setup.md`
+- GitHub integration: `3-Deployment/internet/cloudflare/github/Jagports_CloudFlare_GitHub_Integration_Setup.md`
+- Worker deployment: `3-Deployment/internet/cloudflare/workers/jagports/Jagports_CloudFlareGit_App_Deployment.md`
+- D1 deployment: `3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Deployment.md`
+- D1 migrations: `3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Migrations.md`
 
-`3-Deployment/internet/cloudflare/account/Jagports_CloudFlare_Account_Setup.md`
-
-GitHub integration:
-
-`3-Deployment/internet/cloudflare/github/Jagports_CloudFlare_GitHub_Integration_Setup.md`
-
-Worker:
-
-`3-Deployment/internet/cloudflare/workers/jagports/Jagports_CloudFlareGit_App_Deployment.md`
-
-D1:
-
-`3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Deployment.md`
-
-D1 migrations:
-
-`3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Migrations.md`
+## VIEPS execution procedures
 
 VIEPS testing:
 
@@ -54,7 +42,7 @@ Application FQDN requirement:
 
 ### P1 — Cloudflare account
 
-Follow the account procedure.
+Follow the account procedure in PR #445.
 
 Result required:
 
@@ -83,11 +71,11 @@ Verify that `whoami` identifies the intended Cloudflare account/operator.
 
 ### P3 — GitHub integration
 
-Follow the GitHub integration procedure.
+Follow the GitHub integration procedure in PR #445.
 
 The initial Cloudflare Workers & Pages GitHub App installation is UI-required. There is no Wrangler command replacing that operation.
 
-After the one-time installation, Cloudflare's Workers Builds API can automate repository connections, triggers, environment variables, build triggering, build listing, and logs.
+After the one-time GitHub App installation, Cloudflare's Workers Builds API can automate repository connections, triggers, environment variables, build triggering, build listing, and logs.
 
 API reference:
 
@@ -95,7 +83,7 @@ https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/
 
 ### P4 — Worker configuration/deployment
 
-Follow the Worker procedure from the index.
+Follow the Worker procedure in PR #445.
 
 CLI validation from the repository root:
 
@@ -121,7 +109,7 @@ reviewed PR
 
 ### P5 — D1 resource
 
-Follow the D1 procedure.
+Follow the D1 procedure in PR #445.
 
 Creation, only when the database does not already exist:
 
@@ -133,7 +121,7 @@ Before changing production configuration, verify the returned database ID belong
 
 ### P6 — D1 migration
 
-Follow the separate migration procedure.
+Follow the separate migration procedure in PR #445.
 
 Inspect:
 
@@ -182,7 +170,7 @@ Follow:
 
 `3-Deployment/internet/jagports/solution/vieps/SetupTesting.md`
 
-The minimum test set is:
+Minimum test set:
 
 ```text
 public application loads
