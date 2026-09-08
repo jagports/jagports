@@ -1,349 +1,282 @@
-# Jagports Cloudflare Git Integrated Application Deployment — Execution Plan
+# Jagports Cloudflare Git Integrated Application Deployment — Execution Orchestrator
 
 ## Purpose
 
-This document is the execution companion and UI/CLI runbook for the Cloudflare Git-integrated Jagports application deployment.
+This file coordinates the actual VIEPS Cloudflare deployment work. Detailed instructions are kept in task-specific documents so Worker, D1, account, GitHub integration, testing, and management procedures can be repeated independently.
 
-It explicitly distinguishes **UI**, **CLI**, and **VERIFY** actions.
+## Procedure index
 
-The reusable deployment procedures are separated into:
+Start here:
+
+`3-Deployment/internet/cloudflare/README.md`
+
+Account:
+
+`3-Deployment/internet/cloudflare/account/Jagports_CloudFlare_Account_Setup.md`
+
+GitHub integration:
+
+`3-Deployment/internet/cloudflare/github/Jagports_CloudFlare_GitHub_Integration_Setup.md`
+
+Worker:
 
 `3-Deployment/internet/cloudflare/workers/jagports/Jagports_CloudFlareGit_App_Deployment.md`
 
+D1:
+
 `3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Deployment.md`
 
-## Current execution state
+D1 migrations:
 
-No live Cloudflare environment operation is claimed by this repository change.
+`3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Migrations.md`
 
-The actual setup must be executed against the intended Cloudflare account and recorded after the operator has authenticated to the target environment.
+VIEPS testing:
 
-Status vocabulary:
+`3-Deployment/internet/jagports/solution/vieps/SetupTesting.md`
+
+VIEPS setup management:
+
+`3-Deployment/internet/jagports/solution/vieps/SetupManagement.md`
+
+Execution-record format:
+
+`3-Deployment/internet/jagports/solution/vieps/SetupDocumentationRecordFormat.md`
+
+Production Worker management:
+
+`4-Production/internet/cloudflare/workers/jagports/vieps/VIEPS_Management_Tasks.md`
+
+Application FQDN requirement:
+
+`5-Implementation-Projects/base/application-platform/application/jagports/vieps/FQDN_requirements.md`
+
+## Execution order
+
+### P1 — Cloudflare account
+
+Follow the account procedure.
+
+Result required:
 
 ```text
-RESEARCHED  = procedure checked against current documentation
-EXECUTED    = operation actually performed
-VERIFIED    = resulting state independently checked
-BLOCKED     = required access, capability, or prerequisite unavailable
+EXECUTED -> VERIFIED
 ```
 
-## Accepted account and application model
+### P2 — Wrangler authentication
 
-Cloudflare account:
+Open Windows Terminal with PowerShell or Git Bash at the repository root:
 
-- Create a new Jagports Cloudflare account.
-- Use `parts@jagports.fi` as the organizational account contact/initial identity.
-- Verify email and enable 2FA.
-- Store recovery information outside GitHub.
+```text
+jagports/jagports/
+```
 
-VIEPS application:
-
-- Public Internet application.
-- Public/read functionality is available without administrator authentication.
-- Stock add/modify requires administrator authentication and authorization.
-- Initial administrator identity is `parts@jagports.fi`.
-- No Google/Microsoft external IdP is selected at this stage.
-- Administrator password is represented by secure password credential material outside repository plaintext.
-
-The current application still uses `ADMIN_TOKEN`/`x-admin-token`. The accepted administrator username/password model is tracked separately in Issue #448 and must not be claimed implemented until that work is reviewed and tested.
-
-## Execution sequence
-
-### 1. Cloudflare account and security
-
-**UI**
-
-1. Create the new Jagports Cloudflare account.
-2. Use `parts@jagports.fi` as the organizational contact/initial identity.
-3. Verify the account email.
-4. Enable 2FA.
-5. Identify the durable account owner/administrator.
-6. Add individual members with least-privilege roles.
-7. Store recovery information in the approved credential store.
-
-**CLI**
-
-No Wrangler command is used for initial account creation, account-member administration, or enabling user 2FA. These are account-management operations and should be marked **UI-required** unless an explicitly supported Cloudflare API/automation path is adopted by Jagports.
-
-**VERIFY**
-
-Confirm through the Cloudflare dashboard that the account is verified, 2FA is enabled, and required members/roles exist.
-
-### 2. Wrangler authentication
-
-**CLI**
+Run:
 
 ```text
 npx wrangler login
 npx wrangler whoami
 ```
 
-**VERIFY**
+The browser authentication flow is expected for `wrangler login`.
 
-Confirm the authenticated identity is the intended deployment operator. Authentication success is not proof that all required deployment permissions are available.
+Verify that `whoami` identifies the intended Cloudflare account/operator.
 
-### 3. GitHub-to-Cloudflare integration
+### P3 — GitHub integration
 
-**UI**
+Follow the GitHub integration procedure.
 
-1. Open Cloudflare Workers & Pages.
-2. Create/import the Worker from Git.
-3. Connect the GitHub account/organization.
-4. Authorize the Cloudflare GitHub App for `jagports`.
-5. Restrict repository access to `jagports/jagports` where supported.
-6. Select `jagports/jagports`.
-7. Configure the Worker root and deployment commands.
+The initial Cloudflare Workers & Pages GitHub App installation is UI-required. There is no Wrangler command replacing that operation.
 
-**CLI**
+After the one-time installation, Cloudflare's Workers Builds API can automate repository connections, triggers, environment variables, build triggering, build listing, and logs.
 
-There is no Wrangler command that replaces the Workers Builds GitHub repository connection. Do not invent a CLI equivalent.
+API reference:
 
-**VERIFY**
+https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/
 
-Confirm the connected repository is exactly `jagports/jagports` and the production branch is `main`.
+### P4 — Worker configuration/deployment
 
-### 4. Worker configuration
+Follow the Worker procedure from the index.
 
-**Repository source**
-
-```text
-4-Production/base/application-platform/application/jagports/
-```
-
-**Expected Workers Builds configuration**
-
-```text
-Worker name:             jagports
-Production branch:       main
-Root directory:          4-Production/base/application-platform/application/jagports/
-Build command:           empty unless a build step is introduced
-Deploy command:          npx wrangler deploy
-Preview deploy command:  npx wrangler versions upload
-```
-
-**CLI verification**
+CLI validation from the repository root:
 
 ```text
 npx wrangler deploy --dry-run
 ```
 
-A dry run is configuration/package validation only and must not be represented as a production deployment.
-
-**VERIFY**
-
-Confirm Worker name, source root, branch, bindings and deployment settings in Cloudflare.
-
-### 5. D1 database
-
-**CLI**
-
-Create the database only if it does not already exist:
-
-```text
-npx wrangler d1 create jagports
-```
-
-Record the returned database identifier in the intended reviewed configuration change. Never record credentials.
-
-**UI alternative**
-
-Cloudflare Dashboard -> D1 -> create or inspect the `jagports` database.
-
-**VERIFY**
-
-Confirm database name and ID before changing the production binding.
-
-### 6. Production D1 binding
-
-The production configuration is:
-
-`4-Production/base/application-platform/application/jagports/wrangler.toml`
-
-The binding must use the real production database ID. The current placeholder is:
-
-```text
-database_id = "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID"
-```
-
-This placeholder must not be deployed as the production configuration.
-
-**VERIFY**
-
-Confirm the configured ID belongs to the intended production database and account.
-
-### 7. D1 migrations
-
-**CLI**
-
-```text
-npx wrangler d1 migrations list jagports --remote
-npx wrangler d1 migrations apply jagports --remote
-```
-
-Review migrations before applying them.
-
-**VERIFY**
-
-Run the migration-list command again and confirm the intended migrations are applied. Record migration status only; never record credentials.
-
-### 8. Application administrator credential
-
-The current implementation uses `ADMIN_TOKEN`. That mechanism is transitional and does not represent the accepted administrator username/password model.
-
-The accepted model is implemented separately under:
-
-[Issue #448 — Implement public VIEPS access with administrator stock authorization](https://github.com/jagports/jagports/issues/448)
-
-**VERIFY**
-
-Do not mark the administrator authentication requirement `VERIFIED` until #448 has been independently reviewed, tested, and merged.
-
-### 9. Production endpoint / DNS
-
-Desired public hostname:
-
-```text
-vieps.jagports.fi
-```
-
-**UI / infrastructure decision required**
-
-Current Cloudflare documentation establishes:
-
-- Worker Custom Domains require an active Cloudflare zone and Cloudflare-managed DNS record creation.
-- Worker Routes require a DNS record proxied through Cloudflare.
-
-Therefore the combination of `vieps.jagports.fi` and DNS remaining entirely at another DNS hoster is currently a **BLOCKED prerequisite** for the intended Worker-origin deployment.
-
-Resolve this before production endpoint verification by either:
-
-1. placing the required `jagports.fi` DNS zone/subdomain management in Cloudflare; or
-2. selecting another supported public endpoint architecture.
-
-**VERIFY**
-
-Do not record the hostname as `VERIFIED` until the actual DNS/Cloudflare endpoint resolves to the intended Worker and is independently tested.
-
-### 10. Public application verification
-
-**VERIFY**
-
-At minimum verify:
-
-```text
-Public Internet request
-        |
-        +--> application loads
-        +--> public/read functionality succeeds
-        +--> public stock mutation is rejected
-
-Administrator
-        |
-        +--> authentication succeeds
-        +--> authorized stock mutation succeeds
-        +--> D1 data persists
-```
-
-Also verify:
-
-```text
-GitHub commit
-    -> Cloudflare build
-    -> deployed Worker version
-    -> active production version
-```
-
-### 11. Preview deployment
-
-**CLI / Workers Builds**
-
-For a non-production branch:
-
-```text
-npx wrangler versions upload
-```
-
-**VERIFY**
-
-Confirm the preview version is not promoted as production and test it before merge where preview builds are enabled.
-
-### 12. Production deployment
-
-**Preferred path: Workers Builds triggered by GitHub**
-
-```text
-Pull Request
-    -> independent review
-    -> merge to main
-    -> Cloudflare Workers Build
-    -> npx wrangler deploy
-    -> production Worker
-```
-
-**CLI fallback**
+Production deployment fallback, only when the Git-integrated path is unavailable:
 
 ```text
 npx wrangler deploy
 ```
 
-Use direct CLI deployment only for controlled bootstrap/troubleshooting when the Git-integrated path cannot yet perform the deployment. Record the reason.
-
-**VERIFY**
-
-Confirm GitHub and Cloudflare show the intended commit/build/version and that the expected production Worker version is active.
-
-### 13. Rollback readiness
-
-Worker code rollback uses a known-good Worker version/deployment. D1 schema rollback is a separate operation.
-
-Do not assume a Worker rollback reverses a D1 migration.
-
-**VERIFY**
-
-Where operationally safe, perform a rollback/recovery test before declaring the deployment operationally complete.
-
-## UI versus CLI rule
-
-Use a CLI command only when the command is actually supported by the relevant Cloudflare tooling.
-
-Use **UI-required** when the operation is dashboard/account configuration and no supported Wrangler command replaces it.
-
-Do not replace a missing CLI capability with an invented command.
-
-## Actual execution record
-
-Populate this section during the real setup.
+Preferred production path:
 
 ```text
-Date/time:
-Operator:
-Environment: production
-Operation:
-Interface: UI | CLI
-Status: RESEARCHED | EXECUTED | VERIFIED | BLOCKED
-Command / dashboard action:
-Result:
-Verification:
-Deviation / decision:
+reviewed PR
+    -> merge to main
+    -> Workers Build
+    -> npx wrangler deploy
+    -> production Worker
 ```
 
-Repeat one record per operation. Never record passwords, password hashes, recovery codes, API tokens, secret values, or other credentials.
+### P5 — D1 resource
 
-## Blocking prerequisites
+Follow the D1 procedure.
 
-- [ ] Target Cloudflare account created and verified.
-- [ ] Operator has authorized Cloudflare access.
-- [ ] Wrangler authentication verified with `npx wrangler whoami`.
-- [ ] Workers Builds GitHub integration can access `jagports/jagports`.
-- [ ] Production Worker `jagports` exists or can be created.
-- [ ] Production D1 database `jagports` exists or can be created.
-- [ ] Real D1 database ID is available for production configuration.
-- [ ] D1 migrations have been reviewed and can be applied.
-- [ ] Administrator authentication implementation #448 is reviewed/tested/merged before production verification.
-- [ ] Public application access and administrator-only stock mutation can be tested.
-- [ ] `vieps.jagports.fi` endpoint architecture is resolved.
-- [ ] First Git-integrated deployment can be triggered.
-- [ ] Pre-merge and post-deployment verification can be executed.
+Creation, only when the database does not already exist:
+
+```text
+npx wrangler d1 create jagports
+```
+
+Before changing production configuration, verify the returned database ID belongs to the intended Cloudflare account/database.
+
+### P6 — D1 migration
+
+Follow the separate migration procedure.
+
+Inspect:
+
+```text
+npx wrangler d1 migrations list jagports --remote
+```
+
+Apply reviewed migrations:
+
+```text
+npx wrangler d1 migrations apply jagports --remote
+```
+
+Verify again:
+
+```text
+npx wrangler d1 migrations list jagports --remote
+```
+
+Migration review and application are separate from database creation. Do not recreate the database for every migration.
+
+### P7 — Preview/development deployment
+
+Enable non-production branch builds in Cloudflare when preview testing is required.
+
+For a preview version:
+
+```text
+npx wrangler versions upload
+```
+
+Cloudflare Workers Builds uses the preview deploy command for non-production branches and can provide a preview URL when supported.
+
+Branch-control UI path:
+
+**Workers & Pages -> Worker -> Settings -> Build -> Branch control**
+
+Configure:
+
+- production branch: `main`;
+- non-production branch builds: enabled when needed.
+
+### P8 — VIEPS application testing
+
+Follow:
+
+`3-Deployment/internet/jagports/solution/vieps/SetupTesting.md`
+
+The minimum test set is:
+
+```text
+public application loads
+public/read functionality works
+public stock mutation is denied
+administrator authentication works only after #448 is merged
+administrator stock mutation works only after #448 is merged
+D1 persistence is verified
+GitHub -> Cloudflare build -> Worker version is verified
+```
+
+### P9 — Production endpoint
+
+Required hostname:
+
+```text
+vieps.jagports.fi
+```
+
+Current state: **BLOCKED** until the supported Cloudflare/DNS architecture is selected.
+
+Do not mark the endpoint verified through a `workers.dev` test or by DNS resolution alone.
+
+The current Cloudflare documentation requires an active Cloudflare zone for a Custom Domain. Worker Routes require a DNS record proxied through Cloudflare.
+
+References:
+
+https://developers.cloudflare.com/workers/configuration/routing/custom-domains/
+https://developers.cloudflare.com/workers/configuration/routing/routes/
+
+### P10 — Production management
+
+After deployment, use:
+
+`4-Production/internet/cloudflare/workers/jagports/vieps/VIEPS_Management_Tasks.md`
+
+Do not put operational task history into the deployment procedure.
+
+## CLI/API/UI rule
+
+Use CLI/API first where the supported operation exists.
+
+Use UI where Cloudflare requires dashboard/account interaction and no supported CLI/API replacement is being used.
+
+Do not invent commands.
+
+For every task record:
+
+```text
+command or UI path
+result
+verification
+status
+```
+
+Use the execution record format:
+
+`3-Deployment/internet/jagports/solution/vieps/SetupDocumentationRecordFormat.md`
+
+## Credentials
+
+Never record:
+
+- passwords;
+- password hashes;
+- recovery codes;
+- Cloudflare API tokens;
+- GitHub credentials;
+- Cloudflare secrets;
+- secret values.
+
+Store operational credentials only in the approved credential/secret system.
+
+## Traceability
+
+GitHub Issues and Pull Requests are the authoritative traceability system.
+
+Do not maintain a second Issue/PR tracking table in deployment Markdown.
+
+## Current architectural decisions
+
+- VIEPS is a public Internet application.
+- Public/read access does not require whole-application Cloudflare Access.
+- Stock add/modify requires application-level administrator authorization.
+- Initial administrator identity is `parts@jagports.fi`.
+- No Google/Microsoft external IdP is selected at this stage.
+- D1 is a separate operational resource from the Worker.
+- `vieps.jagports.fi` remains a deployment blocker until the DNS/Cloudflare architecture is resolved.
+
+## Status boundary
+
+This repository change documents procedures and execution orchestration. It does **not** claim that the Cloudflare account, Worker, D1 database, GitHub integration, secrets, DNS, administrator authentication, or production deployment has been executed.
+
+Live execution must be recorded only after the operator actually performs and verifies the operation.
 
 ## Traceability
 
@@ -351,10 +284,8 @@ Repeat one record per operation. Never record passwords, password hashes, recove
 
 [Issue #446 — Document Cloudflare Git integration and D1 deployment procedure](https://github.com/jagports/jagports/issues/446)
 
-**Related implementation**
+**Related**
+
+[PR #445 — Split Cloudflare Worker and D1 deployment documentation](https://github.com/jagports/jagports/pull/445)
 
 [Issue #448 — Implement public VIEPS access with administrator stock authorization](https://github.com/jagports/jagports/issues/448)
-
-**Related documentation**
-
-[PR #445 — Cloudflare Git integration deployment documentation](https://github.com/jagports/jagports/pull/445)
