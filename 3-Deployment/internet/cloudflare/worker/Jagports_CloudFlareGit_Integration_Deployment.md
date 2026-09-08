@@ -4,7 +4,7 @@
 
 Deployment knowledge and deployment procedures for the Jagports application.
 
-The application implementation is under `4-Production/application/jagports-mvp/`. This document belongs under `3-Deployment/` because it describes how that product is deployed and operated.
+The application implementation is under `4-Production/application/`. This document belongs under `3-Deployment/` because it describes how that product is deployed and operated.
 
 ## Runtime
 
@@ -26,7 +26,7 @@ Cloudflare Worker
 ## Deployment procedure
 
 1. Connect `jagports/jagports` to Cloudflare Git integration.
-2. Configure the Worker project root as `4-Production/application/jagports-mvp/`.
+2. Configure the Worker project root as the application implementation directory.
 3. Create/configure the D1 database and binding.
 4. Apply the committed migration.
 5. Configure `ADMIN_TOKEN` as a Cloudflare secret; never commit secrets.
