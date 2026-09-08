@@ -1,6 +1,20 @@
-# Jagports Application
+# Jagports Application Source
 
-This directory contains the production VIEPS application.
+This directory contains the current VIEPS application source and development/runtime material retained under the base application-platform structure.
+
+The technology-specific production deployment representation is now organized separately under `4-Production/internet/cloudflare/`:
+
+```text
+4-Production/internet/cloudflare/
+├── workers/jagports/vieps/
+└── d1/jagports/vieps/
+```
+
+The VIEPS implementation project remains technology-independent under:
+
+```text
+5-Implementation-Projects/base/application-platform/application/jagports/vieps/
+```
 
 ## Local development
 
@@ -58,17 +72,23 @@ Execution runbook:
 3-Deployment/internet/cloudflare/worker/Jagports_CloudFlareGit_Integration_Deployment_Execution.md
 ```
 
+The execution runbook path remains tracked by PR #447 and will be aligned with the final Workers deployment documentation structure there.
+
 ## D1 configuration
 
-The production Wrangler configuration is:
+The current application source contains the development/base configuration. The production Worker configuration belongs under:
 
 ```text
-wrangler.toml
+4-Production/internet/cloudflare/workers/jagports/vieps/wrangler.toml
 ```
 
-It contains the D1 `DB` binding and production database identifier.
+The production D1 representation belongs under:
 
-A real production database ID must be established through a reviewed configuration change. The placeholder database ID must not be deployed.
+```text
+4-Production/internet/cloudflare/d1/jagports/vieps/
+```
+
+A real production database ID must be established through a reviewed configuration change. A placeholder database ID must not be deployed.
 
 Remote migrations are applied explicitly:
 
