@@ -4,11 +4,13 @@
 
 This document is the execution companion and UI/CLI runbook for the Cloudflare Git-integrated Jagports application deployment.
 
-It converts the deployment procedure into an operator sequence that explicitly distinguishes **UI**, **CLI**, and **VERIFY** actions.
+It explicitly distinguishes **UI**, **CLI**, and **VERIFY** actions.
 
-The reusable deployment procedure remains in:
+The reusable deployment procedures are separated into:
 
-`3-Deployment/internet/cloudflare/worker/Jagports_CloudFlareGit_Integration_Deployment.md`
+`3-Deployment/internet/cloudflare/workers/jagports/Jagports_CloudFlareGit_App_Deployment.md`
+
+`3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Deployment.md`
 
 ## Current execution state
 
@@ -25,18 +27,39 @@ VERIFIED    = resulting state independently checked
 BLOCKED     = required access, capability, or prerequisite unavailable
 ```
 
+## Accepted account and application model
+
+Cloudflare account:
+
+- Create a new Jagports Cloudflare account.
+- Use `parts@jagports.fi` as the organizational account contact/initial identity.
+- Verify email and enable 2FA.
+- Store recovery information outside GitHub.
+
+VIEPS application:
+
+- Public Internet application.
+- Public/read functionality is available without administrator authentication.
+- Stock add/modify requires administrator authentication and authorization.
+- Initial administrator identity is `parts@jagports.fi`.
+- No Google/Microsoft external IdP is selected at this stage.
+- Administrator password is represented by secure password credential material outside repository plaintext.
+
+The current application still uses `ADMIN_TOKEN`/`x-admin-token`. The accepted administrator username/password model is tracked separately in Issue #448 and must not be claimed implemented until that work is reviewed and tested.
+
 ## Execution sequence
 
 ### 1. Cloudflare account and security
 
 **UI**
 
-1. Create or identify the Jagports Cloudflare account.
-2. Verify the account email.
-3. Enable 2FA.
-4. Identify the durable account owner/administrator.
-5. Add individual members with least-privilege roles.
-6. Store recovery information in the approved credential store.
+1. Create the new Jagports Cloudflare account.
+2. Use `parts@jagports.fi` as the organizational contact/initial identity.
+3. Verify the account email.
+4. Enable 2FA.
+5. Identify the durable account owner/administrator.
+6. Add individual members with least-privilege roles.
+7. Store recovery information in the approved credential store.
 
 **CLI**
 
@@ -54,8 +77,6 @@ Confirm through the Cloudflare dashboard that the account is verified, 2FA is en
 npx wrangler login
 npx wrangler whoami
 ```
-
-`wrangler login` authenticates the operator. `wrangler whoami` verifies the identity used by Wrangler.
 
 **VERIFY**
 
@@ -102,8 +123,6 @@ Preview deploy command:  npx wrangler versions upload
 
 **CLI verification**
 
-After Wrangler authentication:
-
 ```text
 npx wrangler deploy --dry-run
 ```
@@ -124,7 +143,7 @@ Create the database only if it does not already exist:
 npx wrangler d1 create jagports
 ```
 
-Record the returned database identifier in the intended configuration change. Never record credentials.
+Record the returned database identifier in the intended reviewed configuration change. Never record credentials.
 
 **UI alternative**
 
@@ -167,51 +186,74 @@ Review migrations before applying them.
 
 Run the migration-list command again and confirm the intended migrations are applied. Record migration status only; never record credentials.
 
-### 8. Application secret
+### 8. Application administrator credential
 
-The application expects:
+The current implementation uses `ADMIN_TOKEN`. That mechanism is transitional and does not represent the accepted administrator username/password model.
 
-```text
-ADMIN_TOKEN
-```
+The accepted model is implemented separately under:
 
-**CLI**
-
-```text
-npx wrangler secret put ADMIN_TOKEN
-```
-
-The value must never be placed in GitHub content, Issues, Pull Requests, documentation, scripts, or logs.
-
-**UI alternative**
-
-Cloudflare Worker -> Settings -> Variables and Secrets -> add the encrypted `ADMIN_TOKEN` secret.
+[Issue #448 — Implement public VIEPS access with administrator stock authorization](https://github.com/jagports/jagports/issues/448)
 
 **VERIFY**
 
-Confirm the secret exists by name/configuration state only. Never expose its value.
+Do not mark the administrator authentication requirement `VERIFIED` until #448 has been independently reviewed, tested, and merged.
 
-### 9. Cloudflare Access
+### 9. Production endpoint / DNS
 
-**UI**
+Desired public hostname:
 
-1. Enable/use Cloudflare Zero Trust as required.
-2. Create the Access application for the deployed Worker endpoint.
-3. Configure the intended identity provider.
-4. Define permitted users/groups.
-5. Apply the policy before exposing real inventory data.
+```text
+vieps.jagports.fi
+```
 
-**CLI**
+**UI / infrastructure decision required**
 
-No Wrangler command replaces Access application/policy configuration. Mark this **UI-required** unless a separate approved Cloudflare API/IaC procedure is adopted.
+Current Cloudflare documentation establishes:
+
+- Worker Custom Domains require an active Cloudflare zone and Cloudflare-managed DNS record creation.
+- Worker Routes require a DNS record proxied through Cloudflare.
+
+Therefore the combination of `vieps.jagports.fi` and DNS remaining entirely at another DNS hoster is currently a **BLOCKED prerequisite** for the intended Worker-origin deployment.
+
+Resolve this before production endpoint verification by either:
+
+1. placing the required `jagports.fi` DNS zone/subdomain management in Cloudflare; or
+2. selecting another supported public endpoint architecture.
 
 **VERIFY**
 
-- Unauthenticated request is rejected.
-- Authorized request reaches the application.
-- Access policy does not unintentionally expose the application.
+Do not record the hostname as `VERIFIED` until the actual DNS/Cloudflare endpoint resolves to the intended Worker and is independently tested.
 
-### 10. Preview deployment
+### 10. Public application verification
+
+**VERIFY**
+
+At minimum verify:
+
+```text
+Public Internet request
+        |
+        +--> application loads
+        +--> public/read functionality succeeds
+        +--> public stock mutation is rejected
+
+Administrator
+        |
+        +--> authentication succeeds
+        +--> authorized stock mutation succeeds
+        +--> D1 data persists
+```
+
+Also verify:
+
+```text
+GitHub commit
+    -> Cloudflare build
+    -> deployed Worker version
+    -> active production version
+```
+
+### 11. Preview deployment
 
 **CLI / Workers Builds**
 
@@ -225,13 +267,13 @@ npx wrangler versions upload
 
 Confirm the preview version is not promoted as production and test it before merge where preview builds are enabled.
 
-### 11. Production deployment
+### 12. Production deployment
 
 **Preferred path: Workers Builds triggered by GitHub**
 
 ```text
 Pull Request
-    -> review
+    -> independent review
     -> merge to main
     -> Cloudflare Workers Build
     -> npx wrangler deploy
@@ -250,37 +292,7 @@ Use direct CLI deployment only for controlled bootstrap/troubleshooting when the
 
 Confirm GitHub and Cloudflare show the intended commit/build/version and that the expected production Worker version is active.
 
-### 12. Application verification
-
-**VERIFY**
-
-At minimum verify:
-
-```text
-Access rejects unauthenticated request
-        |
-        v
-Authorized request reaches Worker
-        |
-        +--> application loads
-        +--> health check succeeds
-        +--> part lookup succeeds
-        +--> authorized stock CRUD succeeds
-        +--> D1 data persists
-```
-
-Also verify:
-
-```text
-GitHub commit
-    -> Cloudflare build
-    -> deployed Worker version
-    -> active production version
-```
-
 ### 13. Rollback readiness
-
-**CLI / Cloudflare deployment controls**
 
 Worker code rollback uses a known-good Worker version/deployment. D1 schema rollback is a separate operation.
 
@@ -315,11 +327,11 @@ Verification:
 Deviation / decision:
 ```
 
-Repeat one record per operation. Never record passwords, recovery codes, API tokens, secret values, or other credentials.
+Repeat one record per operation. Never record passwords, password hashes, recovery codes, API tokens, secret values, or other credentials.
 
 ## Blocking prerequisites
 
-- [ ] Target Cloudflare account identified.
+- [ ] Target Cloudflare account created and verified.
 - [ ] Operator has authorized Cloudflare access.
 - [ ] Wrangler authentication verified with `npx wrangler whoami`.
 - [ ] Workers Builds GitHub integration can access `jagports/jagports`.
@@ -327,8 +339,9 @@ Repeat one record per operation. Never record passwords, recovery codes, API tok
 - [ ] Production D1 database `jagports` exists or can be created.
 - [ ] Real D1 database ID is available for production configuration.
 - [ ] D1 migrations have been reviewed and can be applied.
-- [ ] `ADMIN_TOKEN` can be provisioned securely.
-- [ ] Cloudflare Access identity/policy requirements are decided.
+- [ ] Administrator authentication implementation #448 is reviewed/tested/merged before production verification.
+- [ ] Public application access and administrator-only stock mutation can be tested.
+- [ ] `vieps.jagports.fi` endpoint architecture is resolved.
 - [ ] First Git-integrated deployment can be triggered.
 - [ ] Pre-merge and post-deployment verification can be executed.
 
@@ -337,6 +350,10 @@ Repeat one record per operation. Never record passwords, recovery codes, API tok
 **Implements**
 
 [Issue #446 — Document Cloudflare Git integration and D1 deployment procedure](https://github.com/jagports/jagports/issues/446)
+
+**Related implementation**
+
+[Issue #448 — Implement public VIEPS access with administrator stock authorization](https://github.com/jagports/jagports/issues/448)
 
 **Related documentation**
 
