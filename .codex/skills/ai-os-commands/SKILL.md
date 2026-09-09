@@ -26,7 +26,7 @@ Resolve the target from the supplied identifier and current repository state. Do
 
 Resolve implementation details from the Issue, review history, repository state, governing documentation, and existing work. Proceed automatically through routine implementation steps without unnecessary confirmation.
 
-When review is required, stop at the canonical review boundary and hand off for independent review. Do not merge.
+When review is required, stop at the canonical review boundary and hand off for independent review. Do not merge before the required review approval is present.
 
 ## `@continue`
 
@@ -39,7 +39,13 @@ When review is required, stop at the canonical review boundary and hand off for 
 - Continue through routine intermediate actions automatically.
 - Do not stop merely to report an intermediate state when the requested work can continue.
 - Continue until the applicable workflow completion boundary is reached, or until a genuine prerequisite, authority decision, or unavailable required capability prevents further progress.
-- If review is required, the completion boundary for the executor is the native GitHub PR review hand-off defined by `00-Management/WORKFLOWS.md`: implementation complete, PR ready, required review hand-off performed, and execution stopped without merging.
+- If the PR has reached the required reviewed/approved state, `@continue` is permission to proceed with the remaining merge-and-close workflow without requesting another user confirmation.
+- Before merging, verify the current PR review state and that no unresolved required review condition prevents merge. Do not infer approval from an old or superseded review.
+- Before closing the work, add the required completion comments to both the Issue and PR, preserving Issue/PR traceability and repository rules.
+- Merge the approved PR according to the canonical workflow. A successful merge closes the PR; then close the linked Issue when its completion conditions are satisfied.
+- After merge/close, independently verify the resulting PR and Issue states to the extent the current GitHub connection supports them. Do not claim verification that the connection cannot perform.
+- If review is required but approval is absent, stop at the review hand-off boundary and do not merge.
+- If review has requested changes, implement the required corrections and return to independent review before merge.
 
 ## ChatGPT UI command boundary
 
