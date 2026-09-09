@@ -110,7 +110,29 @@ Use:
 
 The functional tests cover public/read access, unauthorized stock mutation, administrator authentication/mutation after Issue #448 is implemented, and persistence.
 
-### P8 — Production DNS/address
+### P8 — Pre-Production DNS/address
+
+Follow:
+
+`3-Deployment/internet/dns/hosting/jagports/setupPre-ProductionAddress.md`
+
+Implementation procedure:
+
+`5-Implementation-Projects/internet/cloudflare/jagports/vieps/setupPre-ProductionDNSAddress.md`
+
+Before any create/enable operation, run the prerequisite/state test:
+
+`5-Implementation-Projects/internet/cloudflare/jagports/vieps/setupPre-ProductionDNSAddress-test.md`
+
+The accepted pre-production endpoint is:
+
+```text
+https://vieps.jagports.workers.dev
+```
+
+Do not configure the production `vieps.jagports.fi` hostname as part of pre-production.
+
+### P9 — Production DNS/address
 
 Follow:
 
@@ -126,9 +148,9 @@ Target:
 vieps.jagports.fi
 ```
 
-Current state: **BLOCKED** until the supported Cloudflare/DNS architecture is available. Do not treat a `workers.dev` URL or DNS lookup alone as production endpoint verification.
+Production DNS/address execution is separate from pre-production Workers hostname setup.
 
-### P9 — Production management
+### P10 — Production management
 
 After deployment, use:
 
@@ -159,7 +181,3 @@ Record actual execution evidence in the relevant GitHub Issue/PR and execution r
 ## Credentials
 
 Never record passwords, password hashes, recovery codes, API tokens, GitHub credentials, Cloudflare secrets, or secret values. Retrieve operational credentials through the approved credential/secret system at execution time.
-
-## Current architectural blocker
-
-`vieps.jagports.fi` remains intentionally blocked until DNS/Cloudflare deployment architecture is resolved. Do not remove this blocker from the execution plan before the prerequisite is actually verified.
