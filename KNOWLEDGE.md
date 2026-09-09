@@ -181,6 +181,14 @@ Therefore:
 
 The `MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS` rule is not implementable for GitHub Project Item operations through the current agent connection. It is not a current executable requirement for those operations and must not be presented as one. This limitation applies until further notice.
 
+### Capability Limitation Is Not Project Blockage
+
+An unavailable operation in the current agent or tool connection must not by itself be classified as a project-state blocker.
+
+Inability to independently verify a Project Item or other project state through the current agent connection is a tooling/capability limitation. It must not by itself be classified as a blocker for the project using that capability.
+
+Report `BLOCKED` only when a specific work item is actually prevented from progressing by the unavailable capability. When no such dependency exists, record the unavailable operation as a capability limitation and continue the work that can be performed and verified through the available connection.
+
 ## GitHub Access and Command Execution Lessons
 
 GitHub access must be checked before starting work that depends on GitHub. Repository access alone is not sufficient: the agent must also verify that the specific operation required for the task is available, such as file editing, branch creation, PR creation, Issue comments, or Project field updates.
