@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Canonical processing method shared by the AI OS and VIEPS daily audits.
+Canonical processing method for daily audits.
 
-The individual audit files define scope. This file defines the common prioritisation, category discipline and output rules.
+Individual audit procedures define their own scope. This file defines the common prioritisation, category discipline and output rules so the audit logic is maintained in one place.
 
 ## Processing order
 
@@ -48,9 +48,9 @@ Use the inherited Communication Protocol for the required work-path and Issue/PR
 
 - Every Issue or PR may be shown in one and only one report category.
 - Apply the priority order: SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP.
-- A work path may explain relationships to Issues/PRs assigned to another category, but must not repeat those Issue/PRs as separate category items.
+- A work path may explain relationships to Issues/PRs assigned to another category, but must not repeat those Issues/PRs as separate category items.
 - Do not repeat, cross-list, or duplicate an Issue/PR in multiple categories.
-- Do not create duplicate work items merely because the same underlying work is relevant to multiple categories.
+- Do not create duplicate work items merely because the same underlying work is relevant to multiple audit categories.
 - If a category has no qualifying item, write exactly `None`.
 - Prefer finishing, testing, merging, consolidating and closing existing work over creating new work.
 - Report a human decision only when it is genuinely required; identify the affected Issue/PR in the applicable priority category or state that a decision is required in the item text.
@@ -69,4 +69,4 @@ Show any defined or explicitly proposed work path directly under the relevant it
 
 ## Capability boundary
 
-Do not require or claim Project V2 operations that the current agent connection cannot perform or independently verify.
+Do not require or claim operations that the current agent connection cannot perform or independently verify.
