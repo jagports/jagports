@@ -23,7 +23,7 @@ CLOUDFLARE_ACCOUNT_ID = Cloudflare Account ID of the intended account
 CLOUDFLARE_API_TOKEN  = API token supplied through the approved credential mechanism
 ACCOUNT_SUBDOMAIN     = jagports
 WORKER_NAME           = vieps
-EXPECTED_HOSTNAME    = vieps.jagports.workers.dev
+EXPECTED_HOSTNAME     = vieps.jagports.workers.dev
 ```
 
 `CLOUDFLARE_ACCOUNT_ID` is obtained from the intended Cloudflare account at `https://dash.cloudflare.com/`.
