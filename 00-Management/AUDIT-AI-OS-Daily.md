@@ -75,10 +75,4 @@ Produce a short report with exactly these sections:
 
 Track the external Project V2 verification dependency in `openai/codex` and require an actual functional test covering the `Jagports AI OS` Project, its items, Status and required fields/relationships when that capability is available.
 
-The current agent GitHub connection does not provide independent Project Item read/Status verification. Treat this as a **tooling/capability limitation**, not as a project-state blocker.
-
-Project V2 is optional and the inability to verify Project Items through the current connection does **not** by itself block Jagports AI OS implementation or operational work.
-
-When Project V2 verification is unavailable, report the limitation factually when relevant, but do not put it in **BLOCKED** unless a specific work item is actually prevented from progressing by that unavailable capability.
-
-If Project V2 verification becomes available, perform the required functional test and record the tested capabilities and resulting state with evidence before claiming Project V2 verification success.
+If Project V2 verification is available, perform the required functional test and record the tested capabilities and resulting state with evidence before claiming Project V2 verification success.
