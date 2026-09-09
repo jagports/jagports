@@ -4,7 +4,7 @@
 
 Daily audit of the Issues and PRs that matter for Jagports AI OS progress.
 
-This file defines the AI OS scope. The canonical audit processing method is defined in `00-Management/AUDIT-Common-Daily.md` and MUST be applied without creating a second or modified priority logic.
+This file defines the AI OS-specific scope. The canonical audit processing method is defined in `00-Management/AUDIT-Common-Daily.md` and MUST be applied without creating a second or modified priority logic.
 
 ## Execution precondition
 
@@ -15,12 +15,6 @@ This file defines the AI OS scope. The canonical audit processing method is defi
 
 ## Scope
 
+Use the repository's inherited operating context and communication protocol. This procedure defines the AI OS-specific audit scope.
+
 This procedure covers Jagports AI OS work, including its Management, implementation, documentation, research, tooling and enabling work where that work materially affects AI OS progress.
-
-Use the repository's inherited operating context and communication protocol.
-
-## Project V2 verification
-
-Track the external Project V2 verification dependency in `openai/codex` when applicable. Require an actual functional test before claiming that the `Jagports AI OS` Project, its items, Status and required fields/relationships have been verified. Record tested capabilities and resulting state with evidence.
-
-Project Item capability limitations are not blockers by themselves. Do not require Project V2 operations that the current agent connection cannot perform or independently verify.
