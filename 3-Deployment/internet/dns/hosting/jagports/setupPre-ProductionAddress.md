@@ -82,7 +82,7 @@ Select the intended account, then **Workers & Pages** and the account Workers su
 
 ### API
 
-The reusable implementation procedure defines:
+The implementation procedure defines:
 
 ```text
 PUT https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/subdomain
