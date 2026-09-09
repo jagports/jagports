@@ -70,9 +70,3 @@ Produce a short report with exactly these sections:
 - If a category has no qualifying item, write exactly `None`.
 - Keep the report short and use simple language.
 - Prefer finishing, testing, merging, consolidating and closing existing work over creating new work.
-
-## Project V2 verification
-
-Track the external Project V2 verification dependency in `openai/codex` and require an actual functional test covering the `Jagports AI OS` Project, its items, Status and required fields/relationships when that capability is available.
-
-If Project V2 verification is available, perform the required functional test and record the tested capabilities and resulting state with evidence before claiming Project V2 verification success.
