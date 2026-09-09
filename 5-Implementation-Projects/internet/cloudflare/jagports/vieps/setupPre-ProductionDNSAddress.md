@@ -64,29 +64,25 @@ WORKERS_DEV_HOSTNAME = vieps.jagports.workers.dev
 
 `ACCOUNT_SUBDOMAIN` is the text value selected for the account's Workers subdomain. It is not the Cloudflare account ID.
 
-`WORKER_NAME` is the Worker/script name shown by Cloudflare and used by the Worker deployment configuration/API path. It is not the display name of the VIEPS application unless that is also the actual Worker name.
+`WORKER_NAME` is the Worker/script name shown by Cloudflare and used by the Worker deployment configuration/API path. For VIEPS it is `vieps`.
 
 ## Finding required identifiers before API execution
 
 ### Cloudflare account ID
 
-Use the Cloudflare Dashboard while signed in to the intended account:
+Open the Cloudflare Dashboard while signed in to the intended account:
 
 `https://dash.cloudflare.com/`
 
 Select the intended account and obtain its **Account ID** from the account information/API area. Use that value as `CLOUDFLARE_ACCOUNT_ID`.
 
-Do not copy the account ID from an unrelated account or from a different Cloudflare login.
-
 ### Worker/script name
 
-Use the VIEPS Worker deployment configuration and Cloudflare Worker listing. The intended value for this deployment is:
+Confirm the VIEPS Worker name from the Worker deployment configuration and Cloudflare Worker listing. The intended value is:
 
 ```text
 vieps
 ```
-
-Use exactly the Worker/script name shown by Cloudflare for the deployed Worker when constructing API URLs.
 
 ### Account subdomain
 
@@ -235,7 +231,7 @@ Request body:
 }
 ```
 
-`{account_id}` is the Cloudflare Account ID obtained before API execution. `{script_name}` is the actual Worker/script name; for VIEPS it is `vieps`. The subdomain in this operation is not a free-form hostname: the account-level Workers subdomain is already selected, and the Worker is enabled on it.
+`{account_id}` is the Cloudflare Account ID obtained before API execution. `{script_name}` is the actual Worker/script name; for VIEPS it is `vieps`.
 
 ### PowerShell
 
@@ -308,7 +304,7 @@ Reusable prerequisite/state verification is maintained separately in:
 5-Implementation-Projects/internet/cloudflare/jagports/vieps/setupPre-ProductionDNSAddress-test.md
 ```
 
-The test implementation is intended to verify prerequisites and current Cloudflare state before any create/enable operation is attempted. It must not create resources as part of a prerequisite test.
+The test implementation verifies prerequisites and current Cloudflare state before any create/enable operation is attempted. It must not create resources as part of a prerequisite test.
 
 ## Pre-production versus production
 
@@ -319,12 +315,10 @@ Pre-production:
 vieps.jagports.workers.dev
 
 Production:
-separate production deployment decision
+separate production deployment
 ```
 
-The production hostname requirement is already decided separately. It applies to production deployment only and does not constrain the current pre-production Workers hostname.
-
-`vieps.jagports.fi` is therefore not a pre-production prerequisite.
+The production hostname requirement is a separate production deployment concern and does not constrain the current pre-production Workers hostname.
 
 ## Security
 
@@ -343,7 +337,3 @@ The production hostname requirement is already decided separately. It applies to
 - Cloudflare routing: https://developers.cloudflare.com/workers/configuration/routing/
 - Create account Workers subdomain API: https://developers.cloudflare.com/api/resources/workers/subresources/subdomains/methods/update/
 - Worker subdomain API: https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/subdomain/
-
-## Boundary
-
-This file defines the implementation method and target values only. Execution evidence belongs to the deployment task and GitHub work records.
