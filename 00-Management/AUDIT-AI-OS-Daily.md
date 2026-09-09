@@ -17,4 +17,11 @@ This file defines the AI OS-specific scope. The canonical audit processing metho
 
 Use the repository's inherited operating context and communication protocol. This procedure defines the AI OS-specific audit scope.
 
-This procedure covers Jagports AI OS work, including its Management, implementation, documentation, research, tooling and enabling work where that work materially affects AI OS progress.
+Relevant work includes:
+- Jagports AI OS Management and governance;
+- AI OS implementation, architecture and infrastructure;
+- AI OS documentation and durable knowledge;
+- AI OS research, tooling and agent capabilities;
+- capabilities and enabling work that is part of AI OS or is specifically required to enable AI OS operation or development.
+
+**Dependency boundary:** AI OS enables downstream applications such as VIEPS. Downstream application work is not AI OS audit work merely because it depends on AI OS. The AI OS audit may consider downstream work only as evidence of an AI OS dependency, capability gap, or enabling requirement when that relationship is directly relevant to AI OS progress. Report the AI OS work or AI OS consequence, not the downstream application work itself.
