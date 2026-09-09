@@ -185,7 +185,7 @@ The `MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS` rule is not implementabl
 
 An unavailable operation in the current agent or tool connection must not by itself be classified as a project-state blocker.
 
-In particular, inability to independently verify GitHub Project Item state through the current agent connection is a tooling/capability limitation. Project V2 is optional, and this limitation does not by itself block Jagports AI OS implementation or operational work.
+Inability to independently verify a Project Item or other project state through the current agent connection is a tooling/capability limitation. It must not by itself be classified as a blocker for the project using that capability.
 
 Report `BLOCKED` only when a specific work item is actually prevented from progressing by the unavailable capability. When no such dependency exists, record the unavailable operation as a capability limitation and continue the work that can be performed and verified through the available connection.
 
@@ -311,7 +311,7 @@ Preferred pattern:
 **Related**
 [Issue/PR #<number> — <title>](<URL>)
 
-This convention applies whether the message is an Issue description, PR description, Issue comment, PR conversation comment, review-related communication, or an automated diagnostic message.
+This convention applies whether the message is an Issue description, PR description, Issue comment, PR description, review-related communication, or an automated diagnostic message.
 
 ## KNOWLEDGE.md Hierarchy and Generalization Rules
 
