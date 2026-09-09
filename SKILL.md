@@ -240,6 +240,22 @@ Prefer forward-slash paths and simple Git Bash-compatible commands.
 
 For UI navigation, provide the direct stable URL to the intended page when known. Do not make the user traverse unnecessary menus.
 
+## AI OS Command Semantics
+
+Short Jagports AI OS commands identify the intended operation. They do not require the user to repeat workflow rules, authorization already established by the session/repository, verification requirements, or completion criteria already defined by authoritative repository sources.
+
+`@open <target>` means open and process the identified Jagports work item or resource using the applicable canonical workflow. Resolve the target from the supplied identifier and current repository state.
+
+`@implement <target>` means implement the identified work according to the applicable Issue/PR scope and canonical workflow. Proceed through routine implementation steps automatically. When the canonical workflow requires review, stop at that review boundary and require **independent review**; do not merge before the required review and testing gates are satisfied.
+
+`@continue [<target>]` means continue the current work from its actual state. If a target is supplied, use it as the work identity; otherwise use the active work identity. Re-read the current state, determine the next action from the canonical workflow and current records, and continue through routine intermediate actions automatically. Do not stop merely to report an intermediate state when the work can continue.
+
+`@continue` continues until the applicable workflow completion boundary, or until a genuine prerequisite, authority decision, or unavailable required capability prevents further progress. Once the current canonical review/merge gate has been independently satisfied by the required current approval, `@continue` authorizes continuation through the remaining canonical merge, post-merge verification, Issue-closure, and completion steps without another user confirmation. A stale or superseded approval does not satisfy this condition.
+
+Review change requests may be implemented and answered by the executor, but the corresponding review comments remain unresolved for the reviewing authority/requestor to resolve under the canonical workflow. These command semantics do not create a separate review, testing, merge, Project, or Issue-closure workflow.
+
+These semantics describe agent interpretation of equivalent short commands. Repository documentation does not register or modify ChatGPT UI `@` menu entries; UI availability is controlled by the interface/app configuration.
+
 ## Separation of Responsibilities
 
 - `00-Management/WORKFLOWS.md` — canonical normative Management workflows.
