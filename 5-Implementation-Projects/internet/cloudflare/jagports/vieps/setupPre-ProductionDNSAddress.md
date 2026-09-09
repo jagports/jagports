@@ -23,8 +23,6 @@ Pre-production hostname:  vieps.jagports.workers.dev
 Pre-production URL:       https://vieps.jagports.workers.dev
 ```
 
-This is a Cloudflare-provided Workers hostname.
-
 ## General hostname model
 
 Cloudflare provides an account-level Workers subdomain:
@@ -139,12 +137,6 @@ https://vieps.jagports.workers.dev
 No external custom DNS hostname is configured as part of this pre-production task.
 
 ## Method B — Wrangler CLI
-
-Open **Windows Terminal** and use **PowerShell or Git Bash**. Start from the VIEPS repository root:
-
-```text
-jagports/jagports/
-```
 
 Use the Worker deployment procedure for the exact Worker working directory/configuration. From the configured Worker project, the standard commands are:
 
