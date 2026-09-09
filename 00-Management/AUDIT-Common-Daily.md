@@ -52,7 +52,7 @@ Exclude closed Issues and completed/closed PRs from the active audit list. They 
 
 ## Work paths
 
-When an Issue/PR has a defined or explicitly proposed work path, show that work path whenever the Issue/PR is reported.
+When an Issue/PR has a defined or explicitly proposed work path, show that work path whenever the Issue/PR is reported, regardless of its audit category.
 
 A work path shows related Issues/PRs in dependency or execution order. It must be supported by repository evidence, Issue/PR content, implementation state or testing evidence.
 
@@ -75,15 +75,17 @@ Use the inherited Communication Protocol for the required work-path and Issue/PR
 
 ## Output
 
-Produce a concise, action-oriented report with exactly these sections, in this order:
+Produce a short, concise and action-oriented report with exactly these sections, in this order:
 
 - **OVERALL STATE** — one short sentence.
 - **SHOW-STOPPERS** — genuine blockers to progress, or `None`.
-- **DO FIRST** — the few actions that should be done next, in order, with linked GitHub Issue/PR number and title when applicable.
+- **DO FIRST** — the few actions that should be done next, in priority order, with linked GitHub Issue/PR number and title when applicable.
 - **LOW-HANGING FRUITS** — quick, high-value actions, or `None`.
 - **QUEUE CLEANUP** — cleanup actions, or `None`.
 
-Show any defined or explicitly proposed work path directly under the relevant item.
+For every reported Issue/PR, show any defined or explicitly proposed work path directly under that item, regardless of the category in which the item appears.
+
+Use simple language and keep the report short. Do not add separate `DECISIONS NEEDED` or `BLOCKED` sections. A required human decision belongs in the applicable priority category. A capability/access limitation belongs in the applicable item only when it actually prevents that work item from progressing.
 
 ## Capability boundary
 
