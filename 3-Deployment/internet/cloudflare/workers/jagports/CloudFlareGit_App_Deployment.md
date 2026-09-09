@@ -16,13 +16,19 @@ The actual Worker source/configuration directory is the project directory select
 
 ## Configuration
 
-The Worker configuration is a `wrangler.toml` file owned by the Worker project. The configuration must define the Worker name and deployment settings. For pre-production, the Workers hostname is enabled with:
+The pre-production Worker configuration file is:
+
+```text
+5-Implementation-Projects/internet/cloudflare/jagports/vieps/wrangler.toml
+```
+
+It is an actual repository configuration file owned by the VIEPS Worker implementation. Its pre-production Workers hostname setting is:
 
 ```toml
 workers_dev = true
 ```
 
-The configuration file is not a credential store. D1 IDs and other environment-specific values must be supplied through the approved configuration/secret mechanism.
+D1 IDs and other environment-specific values must be supplied through the approved configuration/secret mechanism; the Wrangler file is not a credential store.
 
 ## Git-integrated deployment
 
