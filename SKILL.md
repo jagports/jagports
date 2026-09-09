@@ -256,6 +256,8 @@ Short Jagports AI OS commands identify the intended operation. They do not requi
 
 Review change requests may be implemented and answered by the executor, but the corresponding review comments remain unresolved for the reviewing authority/requestor to resolve under the canonical workflow. These command semantics do not create a separate review, testing, merge, Project, or Issue-closure workflow.
 
+These semantics describe agent interpretation of equivalent short commands. Repository documentation does not register or modify ChatGPT UI `@` menu entries; UI availability is controlled by the interface/app configuration.
+
 ## Separation of Responsibilities
 
 - `00-Management/WORKFLOWS.md` — canonical normative Management workflows.
