@@ -23,7 +23,7 @@ Pre-production hostname:  vieps.jagports.workers.dev
 Pre-production URL:       https://vieps.jagports.workers.dev
 ```
 
-This is a Cloudflare-provided Workers hostname. It is not a DNS record under `jagports.fi`.
+This is a Cloudflare-provided Workers hostname.
 
 ## General hostname model
 
@@ -136,7 +136,7 @@ Do not place API tokens, passwords, account secrets or recovery credentials in r
 https://vieps.jagports.workers.dev
 ```
 
-Do not configure `vieps.jagports.fi` as part of this pre-production task.
+No external custom DNS hostname is configured as part of this pre-production task.
 
 ## Method B — Wrangler CLI
 
