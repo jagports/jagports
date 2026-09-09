@@ -4,7 +4,7 @@
 
 Verify VIEPS application behaviour after the infrastructure and application deployment tasks have completed.
 
-Cloudflare account, GitHub integration, Worker, D1, migration, and DNS setup tests belong to those task-specific procedures. This file contains only VIEPS application-level functional tests.
+Cloudflare account, GitHub integration, Worker, D1, migration, and DNS setup tests belong to those task-specific procedures. This file contains VIEPS application-level functional tests plus verification that the deployed application is connected to the expected GitHub-to-Cloudflare deployment chain.
 
 ## Test environment
 
@@ -22,6 +22,7 @@ Verify:
 - public/read functionality works without administrator authentication;
 - public users cannot add stock;
 - public users cannot modify stock;
+- public stock mutation is rejected;
 - unauthorized mutation requests return the intended denial response.
 
 Use `curl.exe` in PowerShell or `curl` in Git Bash where HTTP verification is appropriate:
@@ -56,6 +57,21 @@ After an authorized stock mutation:
 4. read the record again after the normal deployment/restart boundary;
 5. confirm that the expected record remains available.
 
+## Deployment chain verification
+
+Also verify the deployment trace for the tested Worker version:
+
+```text
+GitHub commit
+    -> Cloudflare build
+    -> deployed Worker version
+    -> active production version
+```
+
+Verify that the tested deployed Worker version can be traced to the intended GitHub commit, that the corresponding Cloudflare build completed successfully, that the Worker version was deployed, and that the expected version is the active production version for the tested environment.
+
+This verifies deployment traceability and active-version selection; Cloudflare account, GitHub integration, Worker creation, D1 creation, and DNS setup remain covered by their task-specific procedures.
+
 ## Failure classification
 
 Use:
@@ -71,4 +87,25 @@ For a failure record the exact endpoint/operation, expected result, observed res
 
 ## Acceptance
 
-Application testing is complete only when public/read behaviour, unauthorized mutation denial, administrator authorization, and persistence have each been independently verified for the intended environment.
+Application testing is complete only when all of the following have been independently verified for the intended environment:
+
+```text
+Public Internet request
+        |
+        +--> application loads
+        +--> public/read functionality succeeds
+        +--> public stock mutation is rejected
+
+Administrator
+        |
+        +--> authentication succeeds
+        +--> authorized stock mutation succeeds
+        +--> D1 data persists
+
+Deployment trace
+        |
+        +--> GitHub commit
+        +--> Cloudflare build
+        +--> deployed Worker version
+        +--> active production version
+```
