@@ -137,6 +137,8 @@ Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's
 
 **Review comment resolution is authority-controlled:** the reviewer who submitted a review is the only actor authorized to resolve review comments belonging to that review. The executor, PR author, or any other non-reviewer must not resolve those comments on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined by `WORKFLOWS.md`. When responding to requested changes, the executor may implement the changes and reply to the review comments, but must leave the review comments unresolved for the reviewer to resolve after verifying the response.
 
+**Review change implementation replies must include line-specific evidence:** after implementing a requested change, the executor must reply to the applicable review comment with (1) a concise statement of what was changed to comply and (2) a direct GitHub link to the actual changed implementation lines. Prefer a stable commit-pinned `blob/<commit>/<path>#Lx-Ly` link to the resulting lines; an equivalent direct PR diff/review location that visibly identifies the changed lines is also acceptable. A PR-level or file-level link alone is insufficient when a specific line link can be provided. The executor must identify the exact changed file and resulting line range before replying, include a separate direct line-specific link for each distinct relevant range when necessary, and verify that each link leads to the intended changed lines. The reply is evidence for reviewer verification; it does not resolve the review comment or satisfy the review approval gate. Review comments remain unresolved for the reviewer to verify and resolve under the existing authority rule.
+
 Required human validation follows:
 
 **PR branch → pre-merge test → PASS evidence → review/merge gate → merge → optional post-merge smoke/regression test**
@@ -253,8 +255,6 @@ Short Jagports AI OS commands identify the intended operation. They do not requi
 `@continue` continues until the applicable workflow completion boundary, or until a genuine prerequisite, authority decision, or unavailable required capability prevents further progress. Once the current canonical review/merge gate has been independently satisfied by the required current approval, `@continue` authorizes continuation through the remaining canonical merge, post-merge verification, Issue-closure, and completion steps without another user confirmation. A stale or superseded approval does not satisfy this condition.
 
 Review change requests may be implemented and answered by the executor, but the corresponding review comments remain unresolved for the reviewing authority/requestor to resolve under the canonical workflow. These command semantics do not create a separate review, testing, merge, Project, or Issue-closure workflow.
-
-These semantics describe agent interpretation of equivalent short commands. Repository documentation does not register or modify ChatGPT UI `@` menu entries; UI availability is controlled by the interface/app configuration.
 
 ## Separation of Responsibilities
 
