@@ -30,7 +30,13 @@ Find small, clear, low-risk actions that can be completed quickly and have usefu
 
 Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small.
 
-Human decisions are reported only when a decision is genuinely required to proceed. They do not create a separate priority category.
+### DECISIONS NEEDED
+
+Find only decisions that require human authority.
+
+### BLOCKED
+
+Find only direct capability/access blockers that actually prevent work from progressing.
 
 ## Audit checks
 
@@ -65,27 +71,26 @@ Use the inherited Communication Protocol for the required work-path and Issue/PR
 ## Category discipline
 
 - Every Issue or PR may be shown in one and only one report category.
-- Apply the priority order: SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP.
+- If an Issue/PR could qualify for multiple categories, place it only in the first applicable category: **SHOW-STOPPERS → DO FIRST → LOW-HANGING FRUITS → QUEUE CLEANUP → DECISIONS NEEDED → BLOCKED**.
 - A work path may explain relationships to Issues/PRs assigned to another category, but must not repeat those Issues/PRs as separate category items.
 - Do not repeat, cross-list, or duplicate an Issue/PR in multiple categories.
 - Do not create duplicate work items merely because the same underlying work is relevant to multiple audit categories.
 - If a category has no qualifying item, write exactly `None`.
 - Prefer finishing, testing, merging, consolidating and closing existing work over creating new work.
-- Report a human decision only when it is genuinely required; identify the affected Issue/PR in the applicable priority category or state that a decision is required in the item text.
 
-## Output
+## Required output
 
-Produce a short, concise and action-oriented report with exactly these sections, in this order:
+Produce a compact report with exactly these sections:
 
-- **OVERALL STATE** — one short sentence.
-- **SHOW-STOPPERS** — genuine blockers to progress, or `None`.
-- **DO FIRST** — the few actions that should be done next, in priority order, with linked GitHub Issue/PR number and title when applicable.
-- **LOW-HANGING FRUITS** — quick, high-value actions, or `None`.
-- **QUEUE CLEANUP** — cleanup actions, or `None`.
+- **OVERALL STATE** — one short statement. If there is no important problem within the audit scope, say `None`.
+- **SHOW-STOPPERS** — genuine blockers to progress, or `None`. Show any defined or proposed work path directly with the item.
+- **DO FIRST** — the few actions that should be acted on, in priority order, with linked GitHub Issue/PR number and title where applicable. Show any defined or proposed work path directly with the item.
+- **LOW-HANGING FRUITS** — quick actions, or `None`. Show any defined or proposed work path directly with the item.
+- **QUEUE CLEANUP** — cleanup actions, or `None`. Show any defined or proposed work path directly with the item.
+- **DECISIONS NEEDED** — only decisions that require human authority, or `None`. Show any defined or proposed work path directly with the item.
+- **BLOCKED** — only direct capability/access blockers, or `None`. Show any defined or proposed work path directly with the item.
 
-For every reported Issue/PR, show any defined or explicitly proposed work path directly under that item, regardless of the category in which the item appears.
-
-Use simple language and keep the report short. Do not add separate `DECISIONS NEEDED` or `BLOCKED` sections. A required human decision belongs in the applicable priority category. A capability/access limitation belongs in the applicable item only when it actually prevents that work item from progressing.
+Keep the report short and use simple, action-oriented language.
 
 ## Capability boundary
 
