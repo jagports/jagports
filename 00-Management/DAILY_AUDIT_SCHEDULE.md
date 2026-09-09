@@ -10,7 +10,9 @@
 
 **Procedure:** `00-Management/AUDIT-AI-OS-Daily.md`
 
-**Prompt:** Read and process the repository-root `KNOWLEDGE.md` first. Follow the mandatory management/governance and communication references defined by it. Then read `00-Management/AUDIT-AI-OS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational audit procedure. Do not use the obsolete `tlindi/jagports` repository. Apply the procedure's defined scope and the canonical method in `00-Management/AUDIT-Common-Daily.md`. If a required procedure or repository source cannot be read, report `BLOCKED` and do not substitute another procedure. The common method defines the audit checks, processing order, category discipline, work-path rules, output format and capability boundary. The scheduled task is only the execution mechanism; do not reproduce or create a competing audit logic here.
+**Scheduler prompt:** `00-Management/AUDIT-Daily-SchedulerPrompt.md`
+
+The automation uses the canonical Scheduler Prompt file. The prompt explicitly loads `00-Management/AUDIT-Common-Daily.md` from `main` and then executes the AI OS and VIEPS scope procedures from `main` under that common method.
 
 ## VIEPS App Daily Audit
 
@@ -21,12 +23,16 @@
 
 **Procedure:** `00-Management/AUDIT-VIEPS-Daily.md`
 
-**Prompt:** Read and process the repository-root `KNOWLEDGE.md` first. Follow the mandatory management/governance and communication references defined by it. Then read `00-Management/AUDIT-VIEPS-Daily.md` from the current `jagports/jagports` repository and execute it as the complete operational audit procedure. Do not use the obsolete `tlindi/jagports` repository. Apply the procedure's defined scope and the canonical method in `00-Management/AUDIT-Common-Daily.md`. If a required procedure or repository source cannot be read, report `BLOCKED` and do not substitute another procedure. The common method defines the audit checks, processing order, category discipline, work-path rules, output format and capability boundary. The scheduled task is only the execution mechanism; do not reproduce or create a competing audit logic here.
+**Scheduler prompt:** `00-Management/AUDIT-Daily-SchedulerPrompt.md`
+
+The same scheduled automation prompt is the canonical execution entry point. AI OS and VIEPS results remain separate and within their respective scopes.
 
 ## Shared operating principle
 
-Both audits use the same canonical processing method defined by `00-Management/AUDIT-Common-Daily.md`. Individual audit procedures define their own scope; this schedule defines only the execution entry point and does not create a competing audit logic.
+Both audits use the same canonical processing method defined by `00-Management/AUDIT-Common-Daily.md`. Individual audit procedures define their own scope; the scheduler prompt defines only the execution instructions and does not create a competing audit logic.
 
 The scheduled task is only the execution mechanism. The repository Markdown files are the durable source of truth.
 
-Changes to either procedure or this schedule require Issue → branch → PR → review → merge.
+**Create / Modify prompt:** `00-Management/AUDIT-Daily-SchedulerPrompt.md`
+
+Changes to either procedure, the scheduler prompt, or this schedule require Issue → branch → PR → review → merge.
