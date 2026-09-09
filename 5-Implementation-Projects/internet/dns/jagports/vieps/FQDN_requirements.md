@@ -2,50 +2,57 @@
 
 ## Purpose
 
-Define the application-level requirement for the public VIEPS hostname independently from DNS and Cloudflare deployment implementation.
+Define the application-level public hostname requirement independently from DNS and Cloudflare deployment implementation.
 
-## Required public hostname
+## Production hostname decision
+
+The accepted production hostname is:
 
 ```text
 vieps.jagports.fi
 ```
 
-The hostname is an application/product requirement. The mechanism used to provide it is a deployment/infrastructure decision.
+This is a completed production-hostname decision. It is not a pre-production prerequisite.
 
-## Requirements
+## Production requirements
 
-- VIEPS must be reachable from the public Internet through the accepted production hostname.
+- VIEPS must be reachable from the public Internet through `vieps.jagports.fi` after production deployment.
 - Public/read functionality must not require administrator authentication.
 - Stock add/modify functionality must require application-level administrator authorization.
 - The hostname must resolve to the intended production application endpoint.
 - TLS must be valid for the hostname.
 - DNS and routing must be independently verified before production endpoint acceptance.
 
-## Current deployment constraint
+## Pre-production boundary
 
-The intended production application uses `vieps.jagports.fi`.
+VIEPS development is first being executed in pre-production using the Cloudflare-provided Workers hostname:
 
-For the current Cloudflare Worker design, Cloudflare documents that Custom Domains require an active Cloudflare zone and Routes require a DNS record proxied through Cloudflare.
+```text
+vieps.jagports.workers.dev
+```
 
-References:
+The pre-production hostname is intentionally separate from the production hostname requirement.
 
-https://developers.cloudflare.com/workers/configuration/routing/custom-domains/
-https://developers.cloudflare.com/workers/configuration/routing/routes/
+Therefore `vieps.jagports.fi` must not block pre-production deployment.
 
-Therefore an external-DNS-only architecture remains a **BLOCKED deployment prerequisite** for the intended Worker-origin design until a supported architecture is selected.
+## Production deployment condition
+
+For the intended Cloudflare Worker production architecture, the production hostname requires a supported Cloudflare DNS/routing arrangement. The deployment task must verify the applicable Cloudflare Custom Domain/Route and DNS prerequisites before attempting production hostname activation.
+
+If the current external-DNS arrangement cannot satisfy the required Cloudflare architecture, production deployment must stop until a supported architecture is selected.
 
 ## Acceptance
 
-Do not mark this requirement satisfied until all are verified:
+Do not mark the production hostname requirement satisfied until all are verified:
 
 ```text
 DNS resolution
-    -> intended public endpoint
+    -> intended production endpoint
     -> TLS certificate valid
-    -> Cloudflare Worker invoked
+    -> intended production Worker invoked
     -> VIEPS application responds
     -> public/read access works
     -> unauthorized stock mutation is denied
 ```
 
-This file records the requirement. Deployment execution and blocker evidence belong to the DNS deployment task and GitHub Issue/PR records.
+This file records the production requirement and its completed hostname decision. Deployment execution and evidence belong to the relevant deployment task and GitHub work records.
