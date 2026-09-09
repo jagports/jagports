@@ -311,7 +311,7 @@ Preferred pattern:
 **Related**
 [Issue/PR #<number> — <title>](<URL>)
 
-This convention applies whether the message is an Issue description, PR description, PR conversation comment, review-related communication, or an automated diagnostic message.
+This convention applies whether the message is an Issue description, PR description, Issue comment, PR conversation comment, review-related communication, or an automated diagnostic message.
 
 ## KNOWLEDGE.md Hierarchy and Generalization Rules
 
