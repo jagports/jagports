@@ -20,7 +20,6 @@ Verification command / test:
 Verification result:
 Status: RESEARCHED | EXECUTED | VERIFIED | BLOCKED | FAILED
 Deviation / decision:
-Related Issue/PR:
 ```
 
 ## Rules
@@ -61,7 +60,6 @@ Verification command / test: HTTP request to supplied preview URL
 Verification result: application loaded; public read test passed
 Status: VERIFIED
 Deviation / decision: none
-Related Issue/PR: recorded in GitHub
 ```
 
 The example contains no secret material and is illustrative only; actual execution evidence belongs in the relevant task record.
