@@ -4,7 +4,7 @@
 
 Canonical processing method for daily audits.
 
-Individual audit procedures define their own scope. This file defines the common prioritisation, category discipline and output rules so the audit logic is maintained in one place.
+Individual audit procedures define their own scope. This file defines the common audit logic, prioritisation, category discipline and output rules so the audit method is maintained in one place.
 
 ## Processing order
 
@@ -16,7 +16,7 @@ Process applicable work in this exact order:
 
 Identify only work that genuinely prevents progress within the audit scope and requires immediate attention.
 
-Ordinary backlog, unavailable tooling capability, or inability to independently verify Project Item state is not a show-stopper by itself. A specific work item must actually be prevented from progressing.
+Ordinary backlog or unavailable tooling capability is not a show-stopper by itself. A specific work item must actually be prevented from progressing.
 
 ### DO FIRST
 
@@ -31,6 +31,24 @@ Find small, clear, low-risk actions that can be completed quickly and have usefu
 Find work that can be finished, merged, consolidated, superseded or closed so the active queue stays small.
 
 Human decisions are reported only when a decision is genuinely required to proceed. They do not create a separate priority category.
+
+## Audit checks
+
+Within the applicable scope, inspect Issues and PRs for actionable exceptions including:
+
+- priority and work-plan consistency;
+- incorrect, missing or stale information;
+- parent/sub-issue relationships and other required relationships;
+- labels and documented workflow state;
+- linked PRs and review state;
+- stale, blocked or otherwise stalled work;
+- communication and documentation gaps;
+- violations of documented management, development, testing or communication processes;
+- missing agent communications, decisions, hand-offs, results or implementation traceability in the GitHub system of record.
+
+Use repository, Issue, PR, review, implementation and testing evidence. Do not claim a check succeeded when the required evidence or access was unavailable.
+
+Exclude closed Issues and completed/closed PRs from the active audit list. They may be referenced as historical evidence when needed, but they must not be reported as current audit work.
 
 ## Work paths
 
@@ -69,4 +87,4 @@ Show any defined or explicitly proposed work path directly under the relevant it
 
 ## Capability boundary
 
-Do not require or claim operations that the current agent connection cannot perform or independently verify.
+Do not require or claim operations that the current agent connection cannot perform or independently verify. When a required operation or evidence source is unavailable, record the limitation accurately and continue work that can be performed and verified.
