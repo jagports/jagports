@@ -18,7 +18,7 @@ const partModel = await readFile(
 test("model range and VIN range remain distinct entities", () => {
   assert.match(migration, /CREATE TABLE model_range/i);
   assert.match(migration, /CREATE TABLE vin_range/i);
-  assert.match(partModel, /model_range.*vin_range are distinct concepts/is);
+  assert.match(partModel, /`model_range` and `vin_range` are distinct concepts/i);
 });
 
 test("PART has explicit model-range and VIN-range relationships", () => {
