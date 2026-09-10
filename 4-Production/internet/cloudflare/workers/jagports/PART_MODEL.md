@@ -71,6 +71,22 @@ One PART may have multiple `part_image` records. The relationship uses the stabl
 
 Image descriptions are not identity fields. Duplicate image identity is constrained by `(part_id, image_ref)` so the same image reference is not attached repeatedly to the same PART while different descriptions remain possible.
 
+## PART vehicle and VIN applicability
+
+Vehicle applicability is represented outside the canonical `part` row. Model-range and VIN-range applicability are distinct relationships and are not collapsed into one entity.
+
+### Model range
+
+`model_range` represents a named vehicle/model-range classification. A PART may be linked to multiple model ranges through `part_model_range`.
+
+### VIN range
+
+`vin_range` represents an explicit VIN serial applicability range and retains source/derived discriminators without claiming complete VIN decoding. The MVP fields include VIN prefix, serial start/end, model year when established, production/use-introduction boundary when established, market, body, engine variant, emissions, transmission/steering discriminator, source, source reference and verification status.
+
+A PART may be linked to multiple VIN ranges through `part_vin_range`.
+
+VIN-derived interpretation must remain distinguishable from source facts. This model step does not use KOVuosi as a source for VIN decoding, VIN-range selection or model-year inference, and does not implement a complete VIN decoder.
+
 ## Architectural boundary
 
 `PART` contains catalogue/reference identity only. It has no direct vehicle applicability field and no mutable stock state.
@@ -78,6 +94,8 @@ Image descriptions are not identity fields. Duplicate image identity is constrai
 `PART_IMAGE` is evidence associated with that stable identity; it does not become part of the catalogue identity itself.
 
 Applicability belongs to occurrence/fitment/context relationships. Operational inventory belongs to separate stock records.
+
+`model_range` and `vin_range` are distinct concepts even where a VIN range happens to correspond to a particular model range.
 
 ## Migrations
 
@@ -87,36 +105,20 @@ Migration `0004_part_occurrence_context.sql` establishes the separate `part_occu
 
 Migration `0005_part_image.sql` establishes `part_image` as a separate child entity of `part`, with a foreign key, required non-blank image reference, per-PART image-reference uniqueness, and lookup indexes.
 
+Migration `0006_part_vehicle_vin_applicability.sql` establishes distinct `model_range` and `vin_range` entities and the `part_model_range` and `part_vin_range` relationships.
+
 ## Testing and fixtures
 
 The PART model tests cover deterministic part-number normalization, nullable/unique part-number identity, non-unique descriptions, and separation from vehicle applicability.
 
 The PART occurrence tests cover the separate EPC/application/context relationship.
 
-The PART image tests cover:
+The PART image tests cover separate `part_image` persistence, FK linkage, multiple image references, non-unique image descriptions, source/provenance and verification metadata, blank-reference rejection, and image evidence attached to an unidentified PART.
 
-- separate `part_image` persistence;
-- FK linkage to canonical `part`;
-- multiple image references for one PART;
-- non-unique image descriptions;
-- source/provenance and verification metadata;
-- rejection of blank image references;
-- image evidence attached to an unidentified PART.
-
-The representative image fixture includes an unidentified PART with no catalogue part number and two independent image references.
+The vehicle/VIN applicability tests cover separate model-range and VIN-range entities, PART relationships, representative fixture links, foreign-key structure and relationship uniqueness.
 
 ## MVP boundary
 
-The implemented image step is limited to the persistent relationship and metadata needed to associate image evidence with a PART.
+The implemented vehicle/VIN applicability step is limited to explicit persistent relationships and structured VIN-range records needed by the MVP. It does not implement complete VIN decoding, automatic VIN-range inference, complete fitment semantics, vehicle-location/hotspot conversion, supersession, stock, or JEPC import.
 
-It does not implement:
-
-- image binary storage;
-- upload services;
-- OCR or automated image recognition;
-- image-coordinate/hotspot modelling;
-- vehicle silhouette/zone images;
-- JEPC image import;
-- image transformation or processing pipelines.
-
-Later model steps remain responsible for vehicle/model/VIN applicability, fitment, diagram/hotspot relationships, supersession, stock, and other Parts Data Model relationships.
+Later model steps remain responsible for full fitment/attribute semantics, diagram/hotspot relationships, supersession, stock, and other Parts Data Model relationships.
