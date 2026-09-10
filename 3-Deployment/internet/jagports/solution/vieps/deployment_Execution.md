@@ -78,9 +78,9 @@ Follow:
 
 `3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md`
 
-Migration source:
+Worker migration source:
 
-`4-Production/internet/cloudflare/d1/jagports/vieps/migrations/`
+`4-Production/internet/cloudflare/workers/jagports/migrations/`
 
 Inspect production state before apply and verify it after apply:
 
@@ -124,13 +124,7 @@ Before any create/enable operation, run the prerequisite/state test:
 
 `5-Implementation-Projects/internet/cloudflare/jagports/vieps/setupPre-ProductionDNSAddress-test.md`
 
-The accepted pre-production endpoint is:
-
-```text
-https://vieps.jagports.workers.dev
-```
-
-Do not configure the production `vieps.jagports.fi` hostname as part of pre-production.
+The accepted pre-production endpoint must be established from actual Cloudflare deployment evidence. Do not infer the account subdomain from the Worker name.
 
 ### P9 — Production DNS/address
 
@@ -150,11 +144,11 @@ vieps.jagports.fi
 
 Production DNS/address execution is separate from pre-production Workers hostname setup.
 
-### P10 — Production management
+### P10 — Worker management
 
 After deployment, use:
 
-`4-Production/internet/cloudflare/workers/jagports/vieps/Management_Tasks.md`
+`4-Production/internet/cloudflare/workers/jagports/Management_Tasks.md`
 
 Operational management is not duplicated here.
 

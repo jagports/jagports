@@ -1,14 +1,16 @@
-# VIEPS Production Worker Management Tasks
+# VIEPS Worker Management Tasks
 
 ## Purpose
 
-Manage the deployed VIEPS Worker after deployment without mixing operational management with deployment procedure or implementation knowledge.
+Manage the VIEPS pre-production Worker after deployment without mixing operational management with deployment procedure or implementation knowledge.
 
-## Production resource
+## Worker resource
 
 ```text
-4-Production/internet/cloudflare/workers/jagports/vieps/
+4-Production/internet/cloudflare/workers/jagports/
 ```
+
+The Worker identity configured by Wrangler is `vieps`.
 
 ## Management tasks
 
@@ -28,7 +30,7 @@ Use a non-production branch and the configured preview mechanism:
 npx wrangler versions upload
 ```
 
-Verify the preview version separately from production.
+Verify the preview version separately from the pre-production deployment.
 
 ### Roll back Worker code
 
@@ -48,7 +50,7 @@ Keep the Worker publicly reachable for public/read functions. Application-level 
 
 Do not introduce whole-application Cloudflare Access merely to protect stock management.
 
-## Production verification
+## Verification
 
 Use the VIEPS application functional tests:
 

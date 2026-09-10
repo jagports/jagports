@@ -31,7 +31,7 @@ Established durable-knowledge files include:
 - `KNOWLEDGE.md` — repository-wide and cross-domain durable knowledge.
 - `0-DocumentationEducationCompetense/KNOWLEDGE.md` — documentation/competence-area knowledge.
 - `6-Development/KNOWLEDGE.md` — development-specific durable knowledge.
-- `5-Implementation-Projects/base/application-platform/application/jagports/vieps/KNOWLEDGE.md` — VIEPS-specific durable domain knowledge.
+- `5-Implementation-Projects/internet/cloudflare/jagports/vieps/KNOWLEDGE.md` — VIEPS-specific durable domain knowledge.
 
 The absence of a `KNOWLEDGE.md` in a semantic root is not itself an error. A knowledge file should exist where durable knowledge actually exists and where its scope can be stated clearly. Empty or not-yet-populated domains do not require artificial knowledge files.
 
