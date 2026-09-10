@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Deploy the public Jagports VIEPS application as a Cloudflare Worker.
+Deploy the public Jagports VIEPS application as Cloudflare Workers.
 
 This procedure covers Worker deployment only. Cloudflare account setup, GitHub integration, D1 deployment/migrations, DNS deployment, and VIEPS application management are separate tasks.
 
@@ -13,7 +13,7 @@ Pre-production Worker: vieps
 Production Worker:     jagports
 ```
 
-The existing Deployment-1 MVP deployment remains the non-production/pre-production `jagports` Worker until the separate production deployment is established.
+The existing Deployment-1 MVP deployment remains the non-production/pre-production `jagports` Worker until the separate production Worker is established.
 
 ## Pre-production representation
 
@@ -21,26 +21,41 @@ The existing Deployment-1 MVP deployment remains the non-production/pre-producti
 4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
-The `vieps` Worker configuration in this directory represents the pre-production VIEPS deployment.
+The default Wrangler configuration in this directory represents the pre-production VIEPS Worker:
+
+```text
+Worker name: vieps
+```
+
+Default deployment:
+
+```text
+npx wrangler deploy
+```
 
 ## Production representation
 
-The production Worker must use a separate production representation/configuration with Worker name `jagports`.
+Production uses the same repository configuration with the Wrangler `production` environment:
+
+```text
+Worker name: jagports
+Wrangler environment: production
+```
+
+Production deployment:
+
+```text
+npx wrangler deploy --env production
+```
 
 The existing `jagports` Deployment-1 MVP Worker must not be renamed or deleted merely to establish the production configuration. Production resource creation/configuration is a separate deployment step and must be explicitly verified in Cloudflare.
 
 ## Worker configuration
 
-Pre-production Worker name:
+Repository:
 
 ```text
-vieps
-```
-
-Production Worker name:
-
-```text
-jagports
+jagports/jagports
 ```
 
 Production branch:
@@ -49,26 +64,41 @@ Production branch:
 main
 ```
 
-Workers Builds configuration must identify the intended environment and Worker explicitly. Do not reuse the existing Deployment-1 MVP Worker resource when establishing the separate production Worker.
-
-Common repository/deployment settings:
+Root directory:
 
 ```text
-Repository:             jagports/jagports
-Production branch:     main
-Build command:          leave empty unless a build step is introduced
-Deploy command:         npx wrangler deploy
-Preview deploy command: npx wrangler versions upload
+4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
+
+Build command:
+
+```text
+leave empty unless a build step is introduced
+```
+
+Deploy commands:
+
+```text
+Pre-production: npx wrangler deploy
+Production:     npx wrangler deploy --env production
+```
+
+Preview deploy command:
+
+```text
+npx wrangler versions upload
+```
+
+Workers Builds configuration must identify the intended environment and Worker explicitly. Do not reuse the existing Deployment-1 MVP Worker resource when establishing the separate production Worker.
 
 The Cloudflare GitHub integration is configured in `3-Deployment/internet/cloudflare/CloudFlare_GitHub_Integration_Setup.md`.
 
 ## CLI execution
 
-Open Windows Terminal using PowerShell or Git Bash at the repository root:
+Open Windows Terminal using PowerShell or Git Bash at the Worker root:
 
 ```text
-jagports/jagports/
+jagports/jagports/4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
 Authenticate first if required:
@@ -78,16 +108,28 @@ npx wrangler login
 npx wrangler whoami
 ```
 
-Validate the Worker configuration without deploying:
+Validate the default pre-production Worker configuration without deploying:
 
 ```text
 npx wrangler deploy --dry-run
+```
+
+Validate the production environment configuration without deploying:
+
+```text
+npx wrangler deploy --env production --dry-run
 ```
 
 A controlled direct deployment fallback is:
 
 ```text
 npx wrangler deploy
+```
+
+or, for production:
+
+```text
+npx wrangler deploy --env production
 ```
 
 Use direct deployment only when the Git-integrated deployment path is unavailable or for an explicitly recorded bootstrap/troubleshooting case.
@@ -127,24 +169,21 @@ A successful Worker deployment does not prove that the required D1 migrations ha
 The target production endpoint is:
 
 ```text
-https://vieps.jagports.fi
+https://jagports.jagports.fi
 ```
 
-DNS/production-address deployment is a separate task:
-
-```text
-3-Deployment/internet/dns/hosting/jagports/setupProductionAddress.md
-```
+DNS/production-address deployment is a separate task.
 
 Do not mark the endpoint verified until that task has established and independently tested the supported DNS/Cloudflare architecture.
 
 ## Verification
 
-Run from the repository root:
+From the Worker root:
 
 ```text
 npx wrangler whoami
 npx wrangler deploy --dry-run
+npx wrangler deploy --env production --dry-run
 ```
 
 After deployment verify, using the supported CLI/API first and UI only where required:
@@ -153,8 +192,9 @@ After deployment verify, using the supported CLI/API first and UI only where req
 - the intended Worker version is active;
 - the Worker uses the intended deployment root/configuration;
 - the D1 binding is present;
-- the pre-production and production Worker resources are distinct;
-- the public VIEPS production endpoint serves the intended production Worker once DNS deployment is unblocked.
+- the pre-production `vieps` and production `jagports` Worker resources are distinct;
+- the existing Deployment-1 MVP `jagports` resource is preserved until the separate production resource is deliberately established and verified;
+- the public Jagports production endpoint serves the intended production Worker once DNS deployment is established.
 
 Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
 
