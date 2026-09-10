@@ -57,7 +57,7 @@ Record the returned database ID through a reviewed repository change. Do not sto
 The Worker configuration that consumes the database is:
 
 ```text
-4-Production/internet/cloudflare/workers/jagports/vieps/wrangler.toml
+4-Production/internet/cloudflare/workers/jagports/wrangler.toml
 ```
 
 The D1 production representation is separate:
@@ -95,8 +95,3 @@ Use CLI/API verification first. Use the Cloudflare dashboard only when the requi
 Cloudflare account access is restored through the approved credential-management/recovery process. API tokens and secrets are supplied to CLI/API tools from that system when needed.
 
 Do not record passwords, recovery codes, API tokens, or secret values here.
-
-## Official references
-
-- Wrangler D1 commands: https://developers.cloudflare.com/d1/wrangler-commands/
-- D1 migrations: https://developers.cloudflare.com/d1/reference/migrations/
