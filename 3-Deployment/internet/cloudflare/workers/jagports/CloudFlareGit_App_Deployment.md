@@ -166,13 +166,19 @@ A successful Worker deployment does not prove that the required D1 migrations ha
 
 ## Production endpoint dependency
 
-The target production endpoint is:
+The target production endpoint remains:
 
 ```text
-https://jagports.jagports.fi
+https://vieps.jagports.fi
 ```
 
-DNS/production-address deployment is a separate task.
+The public DNS name is independent of the internal Cloudflare Worker name. The production Worker is `jagports`; the public production hostname remains the VIEPS application hostname.
+
+DNS/production-address deployment is a separate task:
+
+```text
+3-Deployment/internet/dns/hosting/jagports/setupProductionAddress.md
+```
 
 Do not mark the endpoint verified until that task has established and independently tested the supported DNS/Cloudflare architecture.
 
@@ -194,7 +200,7 @@ After deployment verify, using the supported CLI/API first and UI only where req
 - the D1 binding is present;
 - the pre-production `vieps` and production `jagports` Worker resources are distinct;
 - the existing Deployment-1 MVP `jagports` resource is preserved until the separate production resource is deliberately established and verified;
-- the public Jagports production endpoint serves the intended production Worker once DNS deployment is established.
+- the public VIEPS production endpoint serves the intended production Worker once DNS deployment is established.
 
 Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
 
