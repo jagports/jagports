@@ -1,66 +1,129 @@
-# Cloudflare D1 Migrations
+# Jagports Cloudflare D1 Migration Operations
 
 ## Purpose
 
-Apply version-controlled D1 migrations as a separate repeatable deployment task. Database creation is not repeated when a migration changes.
+Repeatable procedure for reviewing, applying, and verifying D1 schema migrations during VIEPS development and deployment.
 
-## Migration source
+Database creation and migration are separate tasks. Applying a new migration does not recreate the database.
 
-The production migration source is:
+## Migration source and selection
+
+Reviewed migration files are repository-controlled SQL files under the VIEPS D1 production representation:
 
 ```text
 4-Production/internet/cloudflare/d1/jagports/vieps/migrations/
 ```
 
-Migration files are reviewed through the normal GitHub Issue/PR workflow before they are merged to the branch used for deployment.
+Select the migration by its versioned filename/order from the reviewed change. Before applying, verify that the exact migration file is present in the checkout being used and that the target database/environment is the intended one.
 
-## Operator environment
+## Review rule
 
-Open Windows Terminal using PowerShell or Git Bash at the Jagports repository root:
+Every migration is a repository change and must pass normal Jagports review before production application.
+
+Review at minimum:
+
+1. filename/version ordering;
+2. SQL correctness;
+3. application compatibility;
+4. data-loss/destructive-operation risk;
+5. deployment order;
+6. recovery implications;
+7. target environment.
+
+Do not apply an unreviewed migration directly to production.
+
+## CLI execution
+
+Open Windows Terminal using PowerShell or Git Bash at:
 
 ```text
 jagports/jagports/
 ```
 
-The `npx` command is supplied by the installed Node.js/npm toolchain and invokes the repository's Wrangler CLI dependency.
-
-## Pre-apply verification
-
-Authenticate:
+Verify tooling and authentication:
 
 ```text
+node --version
+npm --version
+npx wrangler --version
 npx wrangler whoami
 ```
 
-Verify the database exists and inspect migration state:
+## Production migration state
+
+Inspect the intended remote database before applying:
 
 ```text
-npx wrangler d1 list
 npx wrangler d1 migrations list jagports --remote
 ```
 
-Stop if the intended database cannot be identified or the migration source is not the reviewed production migration set.
-
-## Apply
-
-Apply the reviewed pending migrations:
+Compare the result with the reviewed migration sequence. Apply only the required reviewed migrations:
 
 ```text
 npx wrangler d1 migrations apply jagports --remote
 ```
 
-Do not recreate the database to apply a new migration.
-
-## Post-apply verification
-
-Run:
+Verify again:
 
 ```text
 npx wrangler d1 migrations list jagports --remote
 ```
 
-Verify that the intended migration versions are applied and that the command exits successfully.
+The database name/ID and Cloudflare account must be checked before apply. Do not infer migration state from Worker deployment status.
 
-## Credentials
+## Preview and local migration state
 
-API tokens and other secrets are supplied through the approved credential mechanism at execution time. Never store them in GitHub or migration files.
+Preview D1 state is separate from production state. Where a preview D1 database is configured, use the preview environment/configuration and the installed Wrangler version's supported `--preview` behavior.
+
+For local testing:
+
+```text
+npx wrangler d1 migrations list jagports --local
+npx wrangler d1 migrations apply jagports --local
+```
+
+Never use local or preview migration state as evidence of production migration state.
+
+## Repeatability
+
+```text
+reviewed migration
+    -> preview/local test
+    -> merge
+    -> inspect production migration state
+    -> apply required migration
+    -> verify production migration state
+```
+
+No database recreation is required for each new migration.
+
+## Migration production record
+
+Production migration records use:
+
+```text
+4-Production/internet/cloudflare/d1/jagports/vieps/migration_<migrationShortDescription>.md
+```
+
+The record identifies the migration and evidence; the executable SQL remains in the reviewed migration source directory. Do not confuse the record with the SQL migration itself.
+
+Use the single execution-record template:
+
+```text
+3-Deployment/internet/solution/jagports/ExecutionRecordTemplate.md
+```
+
+## Rollback/recovery
+
+Do not assume application rollback reverses a D1 migration. For destructive changes, establish the recovery/data-impact strategy before production application.
+
+## Verification boundary
+
+Use CLI/API first. Use Cloudflare UI only where the required state is not available through supported CLI/API operations.
+
+Never record passwords, API tokens, recovery codes, password hashes, or other secret values.
+
+## Official references
+
+- D1 migrations: https://developers.cloudflare.com/d1/reference/migrations/
+- Wrangler D1 commands: https://developers.cloudflare.com/d1/wrangler-commands/

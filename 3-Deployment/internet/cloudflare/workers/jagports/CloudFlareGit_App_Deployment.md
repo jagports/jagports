@@ -1,70 +1,145 @@
-# Cloudflare Git-integrated VIEPS Worker Deployment
+# Jagports Cloudflare Git Worker Deployment
 
 ## Purpose
 
-Deploy and verify the VIEPS Worker through the configured Cloudflare Workers deployment path.
+Deploy the public Jagports VIEPS application as a Cloudflare Worker.
 
-## Operator environment
+This procedure covers Worker deployment only. Cloudflare account setup, GitHub integration, D1 deployment/migrations, DNS deployment, and VIEPS application management are separate tasks.
 
-Open Windows Terminal using PowerShell or Git Bash at the Jagports repository root:
+## Production representation
+
+```text
+4-Production/internet/cloudflare/workers/jagports/vieps/
+```
+
+## Worker configuration
+
+Worker name:
+
+```text
+jagports
+```
+
+Production branch:
+
+```text
+main
+```
+
+Workers Builds configuration:
+
+```text
+Repository:             jagports/jagports
+Production branch:     main
+Root directory:        4-Production/internet/cloudflare/workers/jagports/vieps/
+Build command:          leave empty unless a build step is introduced
+Deploy command:         npx wrangler deploy
+Preview deploy command: npx wrangler versions upload
+```
+
+The Cloudflare GitHub integration is configured in `3-Deployment/internet/cloudflare/CloudFlare_GitHub_Integration_Setup.md`.
+
+## CLI execution
+
+Open Windows Terminal using PowerShell or Git Bash at the repository root:
 
 ```text
 jagports/jagports/
 ```
 
-The actual Worker source/configuration directory is the project directory selected by the Cloudflare Git integration. Do not invent a second Worker project.
-
-## Configuration
-
-The pre-production Worker configuration file is:
+Authenticate first if required:
 
 ```text
-5-Implementation-Projects/internet/cloudflare/jagports/vieps/wrangler.toml
+npx wrangler login
+npx wrangler whoami
 ```
 
-It is an actual repository configuration file owned by the VIEPS Worker implementation. Its pre-production Workers hostname setting is:
+Validate the Worker configuration without deploying:
 
-```toml
-workers_dev = true
+```text
+npx wrangler deploy --dry-run
 ```
 
-D1 IDs and other environment-specific values must be supplied through the approved configuration/secret mechanism; the Wrangler file is not a credential store.
+A controlled direct deployment fallback is:
 
-## Git-integrated deployment
+```text
+npx wrangler deploy
+```
 
-Production deployment uses reviewed `main` through Cloudflare Workers Builds. Do not use a direct deployment as the normal production path.
+Use direct deployment only when the Git-integrated deployment path is unavailable or for an explicitly recorded bootstrap/troubleshooting case.
 
-## CLI validation
+## Preview deployment
 
-From the configured Worker project:
+Use non-production branch builds for development/testing. Keep production on `main`.
+
+Preview version upload:
+
+```text
+npx wrangler versions upload
+```
+
+A preview deployment must not be treated as production deployment evidence.
+
+## D1 dependency
+
+The production Worker configuration uses a D1 binding. D1 creation and migrations are separate deployment tasks.
+
+D1 deployment procedure:
+
+```text
+3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Deployment.md
+```
+
+D1 migration procedure:
+
+```text
+3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md
+```
+
+A successful Worker deployment does not prove that the required D1 migrations have been applied.
+
+## Production endpoint dependency
+
+The target endpoint is:
+
+```text
+https://vieps.jagports.fi
+```
+
+DNS/production-address deployment is a separate task:
+
+```text
+3-Deployment/internet/dns/hosting/jagports/setupProductionAddress.md
+```
+
+Do not mark the endpoint verified until that task has established and independently tested the supported DNS/Cloudflare architecture.
+
+## Verification
+
+Run from the repository root:
 
 ```text
 npx wrangler whoami
 npx wrangler deploy --dry-run
 ```
 
-The dry run must complete successfully before an actual deployment is attempted.
+After deployment verify, using the supported CLI/API first and UI only where required:
 
-For an explicitly recorded bootstrap/fallback operation only:
+- the build corresponds to the intended GitHub commit;
+- the intended Worker version is active;
+- the Worker uses the intended deployment root/configuration;
+- the D1 binding is present;
+- the public VIEPS endpoint serves the intended Worker once DNS deployment is unblocked.
 
-```text
-npx wrangler deploy
-```
+Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
 
-## Preview/version deployment
+## Rollback
 
-For non-production branches use the configured preview/version mechanism:
+Worker rollback and D1 schema rollback are separate operations. Do not assume that restoring a Worker version reverses a D1 migration.
 
-```text
-npx wrangler versions upload
-```
+## Official references
 
-Keep production on `main`. Preview validation must not modify production state.
-
-## Verification
-
-Verify the deployed Worker name and endpoint through the task-specific address procedure. A successful Wrangler deployment alone does not prove application functionality or administrator authorization.
-
-## Credentials
-
-Never commit API tokens, passwords or other secrets. Wrangler authentication obtains credentials through its supported login/credential mechanism.
+- Workers Builds: https://developers.cloudflare.com/workers/ci-cd/builds/
+- Worker routing: https://developers.cloudflare.com/workers/configuration/routing/
+- Custom Domains: https://developers.cloudflare.com/workers/configuration/routing/custom-domains/
+- Wrangler configuration: https://developers.cloudflare.com/workers/wrangler/configuration/
