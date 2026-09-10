@@ -4,7 +4,7 @@
 
 Define application-level setup for the VIEPS administrator authentication mechanism.
 
-This file does not contain Cloudflare deployment orchestration, DNS deployment, Worker/D1 setup, testing, or operational production management.
+This file does not contain Cloudflare deployment orchestration, DNS deployment, Worker/D1 setup, testing, or operational Worker management.
 
 ## Administrator setup
 
@@ -34,6 +34,6 @@ Application functional testing is defined in:
 
 `3-Deployment/internet/jagports/solution/vieps/SetupTesting.md`
 
-Operational production management is defined in:
+Operational Worker management is defined in:
 
-`4-Production/internet/cloudflare/workers/jagports/vieps/Management_Tasks.md`
+`4-Production/internet/cloudflare/workers/jagports/Management_Tasks.md`

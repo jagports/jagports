@@ -41,7 +41,7 @@ Common repository settings:
 ```text
 Repository:         jagports/jagports
 Production branch:  main
-Root directory:     4-Production/internet/cloudflare/workers/jagports/vieps/
+Root directory:     4-Production/internet/cloudflare/workers/jagports/
 ```
 
 Pre-production deployment command:
@@ -69,7 +69,7 @@ Workers Builds configuration for this task must target the `vieps` Worker. Do no
 Workers Builds should be limited to changes relevant to the VIEPS Worker where watch-path configuration is used. The initial concrete list is:
 
 ```text
-4-Production/internet/cloudflare/workers/jagports/vieps/**
+4-Production/internet/cloudflare/workers/jagports/**
 4-Production/internet/cloudflare/d1/jagports/vieps/migrations/**
 ```
 
@@ -115,7 +115,7 @@ Do not commit either value.
 From the Worker root:
 
 ```text
-jagports/jagports/4-Production/internet/cloudflare/workers/jagports/vieps/
+jagports/jagports/4-Production/internet/cloudflare/workers/jagports/
 ```
 
 CLI verification where applicable:
@@ -144,12 +144,3 @@ Verify in GitHub:
 Use a controlled test commit to verify the complete GitHub -> Workers Build connection before relying on it for the pre-production deployment.
 
 Production Worker identity `jagports` remains reserved for a later, separate production deployment and is outside the scope of this configuration.
-
-## Official references
-
-- Workers Builds: https://developers.cloudflare.com/workers/ci-cd/builds/
-- GitHub integration: https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/github-integration/
-- Builds configuration: https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
-- Build branches: https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/
-- Build watch paths: https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/
-- Builds API: https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/

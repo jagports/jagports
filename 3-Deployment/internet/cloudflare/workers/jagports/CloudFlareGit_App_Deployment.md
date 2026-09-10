@@ -18,7 +18,7 @@ The existing Deployment-1 MVP `jagports.parts-5ec.workers.dev` deployment is sup
 ## Pre-production representation
 
 ```text
-4-Production/internet/cloudflare/workers/jagports/vieps/
+4-Production/internet/cloudflare/workers/jagports/
 ```
 
 The default Wrangler configuration in this directory represents the pre-production VIEPS Worker:
@@ -58,7 +58,7 @@ main
 Root directory:
 
 ```text
-4-Production/internet/cloudflare/workers/jagports/vieps/
+4-Production/internet/cloudflare/workers/jagports/
 ```
 
 Build command:
@@ -81,12 +81,14 @@ npx wrangler versions upload
 
 Workers Builds configuration must identify `vieps` as the pre-production Worker. Do not configure or deploy a production `jagports` Worker as part of this pre-production task.
 
+The Worker configuration, application source, public assets, migrations and tests are contained in the Worker directory. The obsolete `/base` hierarchy is not a deployment dependency.
+
 ## CLI execution
 
 Open Windows Terminal using PowerShell or Git Bash at the Worker root:
 
 ```text
-jagports/jagports/4-Production/internet/cloudflare/workers/jagports/vieps/
+jagports/jagports/4-Production/internet/cloudflare/workers/jagports/
 ```
 
 Authenticate first if required:
@@ -189,10 +191,3 @@ Record actual test evidence in the relevant Issue/PR or execution record, not as
 ## Rollback
 
 Worker rollback and D1 schema rollback are separate operations. Do not assume that restoring a Worker version reverses a D1 migration.
-
-## Official references
-
-- Workers Builds: https://developers.cloudflare.com/workers/ci-cd/builds/
-- Worker routing: https://developers.cloudflare.com/workers/configuration/routing/
-- Custom Domains: https://developers.cloudflare.com/workers/configuration/routing/custom-domains/
-- Wrangler configuration: https://developers.cloudflare.com/workers/wrangler/configuration/

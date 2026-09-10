@@ -52,17 +52,21 @@ The target hostname is `vieps.jagports.fi`. The DNS/Cloudflare architecture bloc
 
 ## Production representation
 
-Worker:
+Worker deployment directory:
 
-`4-Production/internet/cloudflare/workers/jagports/vieps/`
+`4-Production/internet/cloudflare/workers/jagports/`
+
+The Worker identity configured for the current pre-production deployment is `vieps`.
 
 D1:
 
 `4-Production/internet/cloudflare/d1/jagports/vieps/`
 
-Production Worker management:
+Worker management:
 
-`4-Production/internet/cloudflare/workers/jagports/vieps/Management_Tasks.md`
+`4-Production/internet/cloudflare/workers/jagports/Management_Tasks.md`
+
+The obsolete `/base` hierarchy is not a deployment/runtime dependency.
 
 ## Implementation requirements
 

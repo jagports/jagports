@@ -9,10 +9,10 @@ This directory represents the production VIEPS database deployment as a Cloudfla
 - D1-specific operational and recovery references;
 - migration-state verification records where appropriate.
 
-The technology-independent VIEPS implementation project remains under:
+The VIEPS implementation knowledge and specifications are maintained under:
 
 ```text
-5-Implementation-Projects/base/application-platform/application/jagports/vieps/
+5-Implementation-Projects/internet/cloudflare/jagports/vieps/
 ```
 
 The D1 deployment procedure is documented under:
@@ -21,18 +21,20 @@ The D1 deployment procedure is documented under:
 3-Deployment/internet/cloudflare/d1/jagports/Jagports_CloudFlareGit_DB_Deployment.md
 ```
 
-The Worker production representation is separate:
+The Worker production/runtime representation is separate:
 
 ```text
-4-Production/internet/cloudflare/workers/jagports/vieps/
+4-Production/internet/cloudflare/workers/jagports/
 ```
+
+The current pre-production Worker identity is `vieps`. The later production Worker identity is `jagports`.
 
 ## Production architecture
 
 The VIEPS Worker uses this D1 resource for persistent application data.
 
 ```text
-Cloudflare Worker: jagports / VIEPS
+Cloudflare Worker: vieps (pre-production)
       |
       v
 Cloudflare D1: jagports
