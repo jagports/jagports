@@ -12,3 +12,6 @@ run_worker_first = ["/api/*"]
 binding = "DB"
 database_name = "jagports"
 migrations_dir = "../../../../../base/application-platform/application/jagports/migrations"
+
+[env.production]
+name = "jagports"
