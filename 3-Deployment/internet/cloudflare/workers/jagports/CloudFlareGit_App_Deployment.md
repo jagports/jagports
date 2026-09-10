@@ -13,7 +13,7 @@ Pre-production Worker: vieps
 Production Worker:     jagports
 ```
 
-The existing Deployment-1 MVP deployment remains the non-production/pre-production `jagports` Worker until the separate production Worker is established.
+The existing Deployment-1 MVP Worker `jagports` is the production Worker identity. Its existing Workers.dev endpoint is preserved; production DNS/custom-domain work is a separate task.
 
 ## Pre-production representation
 
@@ -35,7 +35,7 @@ npx wrangler deploy
 
 ## Production representation
 
-Production uses the same repository configuration with the Wrangler `production` environment:
+Production uses the Wrangler `production` environment in the same repository configuration:
 
 ```text
 Worker name: jagports
@@ -48,7 +48,7 @@ Production deployment:
 npx wrangler deploy --env production
 ```
 
-The existing `jagports` Deployment-1 MVP Worker must not be renamed or deleted merely to establish the production configuration. Production resource creation/configuration is a separate deployment step and must be explicitly verified in Cloudflare.
+The existing Deployment-1 `jagports` Worker is the production Worker resource. It must not be renamed or deleted merely to implement this environment model.
 
 ## Worker configuration
 
@@ -89,7 +89,7 @@ Preview deploy command:
 npx wrangler versions upload
 ```
 
-Workers Builds configuration must identify the intended environment and Worker explicitly. Do not reuse the existing Deployment-1 MVP Worker resource when establishing the separate production Worker.
+Workers Builds configuration must identify the intended environment and Worker explicitly.
 
 The Cloudflare GitHub integration is configured in `3-Deployment/internet/cloudflare/CloudFlare_GitHub_Integration_Setup.md`.
 
@@ -166,7 +166,13 @@ A successful Worker deployment does not prove that the required D1 migrations ha
 
 ## Production endpoint dependency
 
-The target production endpoint remains:
+The current production Worker retains the observed Workers.dev endpoint:
+
+```text
+https://jagports.parts-5ec.workers.dev
+```
+
+The intended public VIEPS production hostname remains:
 
 ```text
 https://vieps.jagports.fi
@@ -180,7 +186,7 @@ DNS/production-address deployment is a separate task:
 3-Deployment/internet/dns/hosting/jagports/setupProductionAddress.md
 ```
 
-Do not mark the endpoint verified until that task has established and independently tested the supported DNS/Cloudflare architecture.
+Do not mark the custom production endpoint verified until that task has established and independently tested the supported DNS/Cloudflare architecture.
 
 ## Verification
 
@@ -198,8 +204,8 @@ After deployment verify, using the supported CLI/API first and UI only where req
 - the intended Worker version is active;
 - the Worker uses the intended deployment root/configuration;
 - the D1 binding is present;
-- the pre-production `vieps` and production `jagports` Worker resources are distinct;
-- the existing Deployment-1 MVP `jagports` resource is preserved until the separate production resource is deliberately established and verified;
+- the pre-production `vieps` and production `jagports` Worker identities are correct;
+- the existing Deployment-1 `jagports` Worker remains the production Worker;
 - the public VIEPS production endpoint serves the intended production Worker once DNS deployment is established.
 
 Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
