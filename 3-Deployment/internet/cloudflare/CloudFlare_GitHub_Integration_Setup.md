@@ -27,34 +27,48 @@ There is no Wrangler command replacing this initial GitHub App authorization.
 
 ## Worker Builds configuration
 
-Intended Worker:
+The VIEPS deployment uses two distinct Worker resources/environments:
 
 ```text
-jagports
+Pre-production Worker: vieps
+Production Worker:     jagports
 ```
 
-Intended production branch:
+The existing Deployment-1 MVP `jagports` Worker is retained as the current non-production deployment. A separate production `jagports` resource/configuration must not be assumed to be the same resource until Cloudflare resource identity is explicitly verified.
+
+Common repository settings:
 
 ```text
-main
+Repository:         jagports/jagports
+Production branch:  main
+Root directory:     4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
-Production Worker root:
+Pre-production deployment command:
 
 ```text
-4-Production/internet/cloudflare/workers/jagports/vieps/
+npx wrangler deploy
 ```
 
-Recommended build configuration:
+Production deployment command:
 
 ```text
-Repository:             jagports/jagports
-Production branch:     main
-Root directory:        4-Production/internet/cloudflare/workers/jagports/vieps/
-Build command:          leave empty unless a build step is introduced
-Deploy command:         npx wrangler deploy
-Preview deploy command: npx wrangler versions upload
+npx wrangler deploy --env production
 ```
+
+Build command:
+
+```text
+leave empty unless a build step is introduced
+```
+
+Preview deploy command:
+
+```text
+npx wrangler versions upload
+```
+
+Workers Builds configuration must identify the intended Worker/environment explicitly. The production build must use the Wrangler `production` environment, whose Worker name is `jagports`.
 
 ## Build watch paths
 
@@ -83,7 +97,7 @@ Preview versions use:
 npx wrangler versions upload
 ```
 
-Multiple development branches may therefore produce non-production versions without changing the production Worker on `main`.
+A preview deployment must not be treated as production deployment evidence.
 
 ## API automation boundary
 
@@ -106,10 +120,10 @@ Do not commit either value.
 
 ## Verification
 
-From Windows Terminal using PowerShell or Git Bash at:
+From the Worker root:
 
 ```text
-jagports/jagports/
+jagports/jagports/4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
 CLI verification where applicable:
@@ -117,6 +131,7 @@ CLI verification where applicable:
 ```text
 npx wrangler whoami
 npx wrangler deploy --dry-run
+npx wrangler deploy --env production --dry-run
 ```
 
 Verify in Cloudflare:
@@ -124,7 +139,9 @@ Verify in Cloudflare:
 - GitHub organization is `jagports`;
 - repository is exactly `jagports/jagports`;
 - production branch is `main`;
-- Worker name matches the Wrangler configuration;
+- pre-production Worker is `vieps`;
+- production Worker is `jagports`;
+- the existing Deployment-1 MVP `jagports` resource is not accidentally renamed, deleted, or repurposed;
 - root/build/deploy commands are correct;
 - preview branch builds are configured as intended;
 - watch paths are configured as intended.
