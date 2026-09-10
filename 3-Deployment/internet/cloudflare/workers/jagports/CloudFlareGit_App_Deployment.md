@@ -6,15 +6,38 @@ Deploy the public Jagports VIEPS application as a Cloudflare Worker.
 
 This procedure covers Worker deployment only. Cloudflare account setup, GitHub integration, D1 deployment/migrations, DNS deployment, and VIEPS application management are separate tasks.
 
-## Production representation
+## Environment model
+
+```text
+Pre-production Worker: vieps
+Production Worker:     jagports
+```
+
+The existing Deployment-1 MVP deployment remains the non-production/pre-production `jagports` Worker until the separate production deployment is established.
+
+## Pre-production representation
 
 ```text
 4-Production/internet/cloudflare/workers/jagports/vieps/
 ```
 
+The `vieps` Worker configuration in this directory represents the pre-production VIEPS deployment.
+
+## Production representation
+
+The production Worker must use a separate production representation/configuration with Worker name `jagports`.
+
+The existing `jagports` Deployment-1 MVP Worker must not be renamed or deleted merely to establish the production configuration. Production resource creation/configuration is a separate deployment step and must be explicitly verified in Cloudflare.
+
 ## Worker configuration
 
-Worker name:
+Pre-production Worker name:
+
+```text
+vieps
+```
+
+Production Worker name:
 
 ```text
 jagports
@@ -26,12 +49,13 @@ Production branch:
 main
 ```
 
-Workers Builds configuration:
+Workers Builds configuration must identify the intended environment and Worker explicitly. Do not reuse the existing Deployment-1 MVP Worker resource when establishing the separate production Worker.
+
+Common repository/deployment settings:
 
 ```text
 Repository:             jagports/jagports
 Production branch:     main
-Root directory:        4-Production/internet/cloudflare/workers/jagports/vieps/
 Build command:          leave empty unless a build step is introduced
 Deploy command:         npx wrangler deploy
 Preview deploy command: npx wrangler versions upload
@@ -82,7 +106,7 @@ A preview deployment must not be treated as production deployment evidence.
 
 ## D1 dependency
 
-The production Worker configuration uses a D1 binding. D1 creation and migrations are separate deployment tasks.
+The Worker configuration uses a D1 binding. D1 creation and migrations are separate deployment tasks.
 
 D1 deployment procedure:
 
@@ -100,7 +124,7 @@ A successful Worker deployment does not prove that the required D1 migrations ha
 
 ## Production endpoint dependency
 
-The target endpoint is:
+The target production endpoint is:
 
 ```text
 https://vieps.jagports.fi
@@ -129,7 +153,8 @@ After deployment verify, using the supported CLI/API first and UI only where req
 - the intended Worker version is active;
 - the Worker uses the intended deployment root/configuration;
 - the D1 binding is present;
-- the public VIEPS endpoint serves the intended Worker once DNS deployment is unblocked.
+- the pre-production and production Worker resources are distinct;
+- the public VIEPS production endpoint serves the intended production Worker once DNS deployment is unblocked.
 
 Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
 
