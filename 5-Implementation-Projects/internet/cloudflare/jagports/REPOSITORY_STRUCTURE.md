@@ -1,18 +1,35 @@
 # VIEPS Repository Structure
 
 **Status:** Canonical path rule for structural cleanup
-**Related:** #516, #519
+**Related:** #516, #519, #523, #524
 **Governance predecessor:** #449
 
 ## Rule
 
-The application name `vieps` must not be introduced as an additional repository directory level below an already application-, solution-, technology-, or resource-specific path solely to identify the application.
+The application/resource identifier `vieps` is permitted as the **final repository directory element when the resulting path is 5 or fewer directory levels deep**.
 
-The application identity belongs in the content, configuration, metadata, or runtime identifier where required. It does not justify an otherwise redundant directory level.
+A final `vieps` element must not be removed merely because it identifies the application. The repository must not add `vieps` as a redundant application-name directory at **directory level 6 or deeper** solely for identification.
 
-## Canonical Deployment-1 paths
+The depth count applies to repository directory levels and excludes the filename.
 
-The current Worker path is already canonical:
+Existing valid paths must be preserved. Structural cleanup must not mechanically remove every occurrence of `vieps`.
+
+## Examples
+
+The following final `vieps` paths are valid because `vieps` is at directory level 5 or less:
+
+```text
+3-Deployment/internet/jagports/solution/vieps/
+4-Production/internet/cloudflare/d1/jagports/vieps/
+5-Implementation-Projects/internet/cloudflare/jagports/vieps/
+5-Implementation-Projects/internet/dns/jagports/vieps/
+```
+
+A path where `vieps` would become directory level 6 or deeper solely as an application-name marker is not valid.
+
+## Canonical Deployment-1 Worker path
+
+The current Worker path remains canonical:
 
 ```text
 4-Production/internet/cloudflare/workers/jagports/
@@ -24,44 +41,28 @@ The Worker name remains a runtime/deployment identifier in `wrangler.toml`:
 name = "vieps"
 ```
 
-This does **not** require:
+The Worker name does not determine repository directory depth.
 
-```text
-4-Production/internet/cloudflare/workers/jagports/vieps/
-```
+## Layer guidance
 
-The D1 production resource similarly uses the resource path without an additional application-name directory:
+Technology-specific production trees remain valid where required by repository architecture. A final `vieps` directory within the allowed depth is also valid when it represents the application/resource boundary for that layer.
 
-```text
-4-Production/internet/cloudflare/d1/jagports/
-```
+The rule is therefore based on **path depth plus architectural justification**, not on the presence of the string `vieps` itself.
 
-## Layer targets
+## Runtime identifiers
 
-| Layer | Canonical target pattern | Redundant pattern to remove |
-|---|---|---|
-| Deployment | `3-Deployment/internet/jagports/solution/` | `3-Deployment/internet/jagports/solution/vieps/` |
-| Cloudflare implementation | `5-Implementation-Projects/internet/cloudflare/jagports/` | `5-Implementation-Projects/internet/cloudflare/jagports/vieps/` |
-| DNS implementation | `5-Implementation-Projects/internet/dns/jagports/` | `5-Implementation-Projects/internet/dns/jagports/vieps/` |
-| Cloudflare D1 production | `4-Production/internet/cloudflare/d1/jagports/` | `4-Production/internet/cloudflare/d1/jagports/vieps/` |
-| Cloudflare Worker production | `4-Production/internet/cloudflare/workers/jagports/` | `4-Production/internet/cloudflare/workers/jagports/vieps/` |
+This repository-directory rule does not rename or prohibit legitimate runtime identifiers such as:
 
-These targets are repository-directory rules. They do not rename runtime routes, Worker names, DNS hostnames, database names, or other identifiers that legitimately contain `vieps`.
+- Worker name `vieps`;
+- `/api/vieps/...` routes;
+- DNS hostnames containing `vieps`;
+- database/resource names containing `vieps`;
+- configuration or content identifiers containing `vieps`.
 
 ## Migration rule
 
-Structural cleanup must proceed in this order:
+Do not perform structural migration merely to remove a final `vieps` element when it is at directory level 5 or less.
 
-1. establish the canonical path specification;
-2. update references and specifications;
-3. move implementation/deployment/test files to the canonical paths;
-4. remove obsolete redundant directories;
-5. verify Wrangler, Workers Builds, D1 migrations, fixtures, tests, and documentation from the canonical paths.
+Where a redundant `vieps` directory exists at level 6 or deeper solely as an application-name marker, address it through the normal Issue → branch → PR → review → merge workflow.
 
-Historical closed/merged Issue and PR text must not be rewritten.
-
-## Scope boundary
-
-A technology-specific production tree remains valid where required by repository architecture. This rule removes only the extra application-name level that duplicates an already established application/resource identity.
-
-Runtime paths such as `/api/vieps/...` are outside this repository-directory rule and must remain unchanged unless a separate API specification explicitly changes them.
+Historical closed/merged Issue and PR text must not be rewritten. Corrections are recorded through new Issues, comments, commits, and reviewed PRs.
