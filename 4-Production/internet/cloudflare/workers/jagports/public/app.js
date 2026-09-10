@@ -1,28 +1,92 @@
 const $ = (id) => document.getElementById(id);
-let adminToken = sessionStorage.getItem("jagports-admin-token") || "";
-$("token").value = adminToken;
-function authHeaders() { return adminToken ? { "x-admin-token": adminToken } : {}; }
-async function api(path, options = {}) {
-  const headers = { ...authHeaders(), ...(options.headers || {}) };
-  if (options.body) headers["content-type"] = "application/json";
-  const response = await fetch(path, { ...options, headers });
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>\"]/g, (ch) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+  }[ch]));
+}
+
+async function resolvePart(partNumber) {
+  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || `${response.status} ${response.statusText}`);
   return data;
 }
-function renderTable(target, rows) {
-  if (!rows.length) { $(target).innerHTML = '<p class="muted">No results.</p>'; return; }
-  const keys = Object.keys(rows[0]);
-  $(target).innerHTML = `<table><thead><tr>${keys.map(k => `<th>${escapeHtml(k)}</th>`).join("")}</tr></thead><tbody>${rows.map(row => `<tr>${keys.map(k => `<td>${escapeHtml(row[k])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+
+function renderPart(part) {
+  const number = part.part_number_normalized || "No Jaguar part number";
+  const raw = part.part_number_raw || "Not supplied";
+  $("partCard").innerHTML = `
+    <strong>${escapeHtml(number)}</strong>
+    <p>${escapeHtml(part.description || "No description")}</p>
+    <dl>
+      <dt>Raw part number</dt><dd>${escapeHtml(raw)}</dd>
+      <dt>Verification</dt><dd>${escapeHtml(part.verification_status)}</dd>
+      <dt>Source</dt><dd>${escapeHtml(part.source || "Not recorded")}</dd>
+    </dl>`;
 }
-function escapeHtml(value) { return String(value ?? "").replace(/[&<>\"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch])); }
-$("saveToken").onclick = () => { adminToken = $("token").value.trim(); sessionStorage.setItem("jagports-admin-token", adminToken); $("authStatus").textContent = adminToken ? "Token loaded" : "Not authenticated"; };
-document.querySelectorAll("nav button").forEach(button => { button.onclick = () => { document.querySelectorAll("main section").forEach(s => s.hidden = true); $(button.dataset.section).hidden = false; }; });
-$("findParts").onclick = async () => { try { renderTable("partResults", (await api(`/api/parts?q=${encodeURIComponent($("partQuery").value)}`)).results); } catch (e) { $("partResults").textContent = e.message; } };
-$("addStock").onclick = async () => { try { await api("/api/stock", { method: "POST", body: JSON.stringify({ part_number: $("stockPart").value, quantity: Number($("stockQty").value), condition: $("stockCondition").value, status: $("stockStatus").value, location: $("stockLocation").value, donor_vehicle: $("stockDonor").value, source_ref: $("stockSource").value, notes: $("stockNotes").value }) }); await loadStock(); } catch (e) { $("stockResults").textContent = e.message; } };
-async function loadStock() { try { renderTable("stockResults", (await api(`/api/stock?q=${encodeURIComponent($("stockQuery").value)}`)).results); } catch (e) { $("stockResults").textContent = e.message; } }
-$("findStock").onclick = loadStock;
-$("saveVehicle").onclick = async () => { try { await api("/api/vehicles", { method: "POST", body: JSON.stringify({ vin_raw: $("vehicleVin").value, serial: $("vehicleSerial").value, model_range: $("vehicleModel").value, market: $("vehicleMarket").value, identity_status: "unresolved" }) }); await loadVehicles(); } catch (e) { $("vehicleResults").textContent = e.message; } };
-async function loadVehicles() { try { renderTable("vehicleResults", (await api(`/api/vehicles?q=${encodeURIComponent($("vehicleVin").value)}`)).results); } catch (e) { $("vehicleResults").textContent = e.message; } }
-$("findVehicles").onclick = loadVehicles;
-$("health").onclick = async () => { try { $("healthResult").textContent = JSON.stringify(await api("/api/health"), null, 2); } catch (e) { $("healthResult").textContent = e.message; } };
+
+function renderTree(paths) {
+  if (!paths.length) {
+    $("tree").innerHTML = '<p class="empty">No Parts Tree context is available.</p>';
+    return;
+  }
+  $("tree").innerHTML = paths.map((entry) =>
+    `<div class="path">${entry.path.map((label) => `<span class="badge">${escapeHtml(label)}</span>`).join(" → ")}</div>`
+  ).join("");
+}
+
+function renderVisuals(images, diagrams) {
+  const imageCards = images.map((image) => {
+    const content = image.image_url
+      ? `<img src="${escapeHtml(image.image_url)}" alt="${escapeHtml(image.description || "Part image")}">`
+      : '<p class="empty">Image unavailable.</p>';
+    return `<div class="card"><h3>Part image</h3>${content}<p>${escapeHtml(image.description || "")}</p></div>`;
+  });
+  const diagramCards = diagrams.map((diagram) => {
+    const content = diagram.image_url
+      ? `<img src="${escapeHtml(diagram.image_url)}" alt="${escapeHtml(diagram.title)}">`
+      : `<p class="empty">Diagram unavailable.</p>`;
+    return `<div class="card"><h3>${escapeHtml(diagram.title)}</h3>${content}<p>Status: ${escapeHtml(diagram.availability_status)}</p></div>`;
+  });
+  $("visuals").innerHTML = [...imageCards, ...diagramCards].join("") || '<p class="empty">No image or diagram context is available.</p>';
+}
+
+function renderFitment(fitment) {
+  if (!fitment.length) {
+    $("fitment").innerHTML = '<p class="empty">No vehicle applicability is available.</p>';
+    return;
+  }
+  $("fitment").innerHTML = fitment.map((item) => `
+    <div class="card">
+      <strong>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</strong>
+      <p>Variation: ${escapeHtml(item.variation || "Not specified")}</p>
+      <p>Qualifier: ${escapeHtml(item.qualifier || "None")}</p>
+      <p class="muted">${escapeHtml(item.verification_status)}</p>
+    </div>`).join("");
+}
+
+$("partSearch").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const partNumber = $("partNumber").value.trim();
+  if (!partNumber) return;
+  $("searchStatus").textContent = "Resolving PART…";
+  $("searchStatus").className = "muted";
+  $("result").hidden = true;
+
+  try {
+    const data = await resolvePart(partNumber);
+    renderPart(data.part);
+    renderTree(data.parts_tree || []);
+    renderVisuals(data.images || [], data.diagrams || []);
+    renderFitment(data.fitment || []);
+    $("result").hidden = false;
+    $("searchStatus").textContent = "PART resolved.";
+  } catch (error) {
+    $("searchStatus").textContent = error.message;
+    $("searchStatus").className = "error";
+  }
+});
