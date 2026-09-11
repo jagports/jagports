@@ -219,7 +219,7 @@ When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless ano
 
 When review is required, use GitHub's native pull-request review mechanism as the hand-off mechanism. Do **not** invent a separate GitHub PR status such as "Waiting for Review".
 
-### Review hand-off implementation chart
+### Review hand-off and discussion implementation chart
 
 ```text
 Implementation complete
@@ -257,14 +257,48 @@ continue       Identify PR author/executor
                               EXECUTOR STOPS / DO NOT MERGE
                                        |
                                        v
-                              Independent reviewer acts:
-                         APPROVE / REQUEST CHANGES / COMMENT
+                              Independent reviewer inspects
                                        |
                                        v
-                                Continue workflow
+                    Actionable finding needs discussion?
+                            |                    |
+                           YES                   NO
+                            |                    |
+                            v                    |
+                  Use immediately visible       |
+                  discussion mechanism:         |
+                  standalone submitted PR       |
+                  review comment when anchored; |
+                  otherwise PR Conversation     |
+                  comment with line/file links  |
+                            |                    |
+                            v                    |
+                Maker/executor replies and/or   |
+                changes implementation          |
+                            |                    |
+                            v                    |
+                Reviewer verifies discussion    |
+                            |                    |
+                            +----------<---------+
+                                       |
+                                       v
+                     All actionable concerns completed?
+                            |                    |
+                           NO                   YES
+                            |                    |
+                            v                    v
+                     Continue discussion   Verify acceptance/
+                     or REQUEST_CHANGES    checklist gates
+                                                   |
+                                                   v
+                                      Submit formal GitHub review
+                                      APPROVE / REQUEST_CHANGES
+                                                   |
+                                                   v
+                                            Continue workflow
 ```
 
-Rules:
+### Review discussion and formal review rules
 
 1. When the requester is human and review is required, the executing actor requests that human as a GitHub PR reviewer.
 2. When the requester is an agent, the review request is routed to the designated human reviewer/authority.
@@ -273,13 +307,22 @@ Rules:
 5. **A self-review, including a `COMMENTED` review submitted by the PR author/executor, is not independent review and cannot satisfy the formal review gate.**
 6. The GitHub review request and notification are the native review hand-off mechanism; no additional PR status is invented.
 7. Set the Project Item Status to `REVIEW` and independently verify it.
-8. After the hand-off, the executing actor stops implementation and does not merge.
-9. GitHub review outcomes (`Approve`, `Request changes`, or `Comment`) determine the review result; the workflow must not infer approval from a notification alone.
-10. **The reviewer who submitted a review is the only actor authorized to resolve review comments belonging to that review. The PR executor, PR author, or any other non-reviewer must not resolve those comments on the reviewer's behalf. The repository/project owner or another explicitly designated human authority is an exception and may resolve them when exercising that authority.**
-11. When review changes are requested, the executor may implement the requested changes and reply to the review comments, but must leave the review comments unresolved for the reviewer to resolve after verifying the response.
-12. **Every reply to a review comment that reports implementation of a requested change must state what was changed to comply and include a direct, line-specific GitHub link to the actual implementation lines. Prefer a stable commit-pinned `blob/<commit>/<path>#Lx-Ly` link to the resulting lines; where GitHub provides an equivalent direct PR diff/review location that visibly identifies the changed lines, that may be used instead. A PR-level or file-level link alone is insufficient when a specific line link can be provided. The link must open the specific lines that implement the requested change, not merely the repository, PR, or file overview.**
-13. **The executor must establish the exact changed file and resulting line range before posting the reply. If the implementation spans multiple distinct line ranges, include a direct line-specific link for each relevant range. Do not claim line-specific implementation evidence until the link has been checked to lead to the intended changed lines.**
-14. **The line-specific implementation reply is evidence for reviewer verification; it does not resolve the review comment and does not satisfy the review approval gate by itself. The reviewer remains responsible for verifying and resolving the review comment under the existing authority rule.**
+8. After the hand-off, the executing actor stops implementation and does not merge except when responding to reviewer discussion or requested changes under these rules.
+9. **Review discussion and formal review submission are distinct.** A finding that needs maker/executor interaction before the formal review outcome must be communicated through an immediately visible channel.
+10. A GitHub `PENDING` review is only a draft review. Line-level and file-level comments created inside the normal pending-review flow remain part of that pending review and are visible only to the reviewer until submission. Therefore `line comment` or `file comment` alone does not mean the comment is immediately visible.
+11. When anchored diff discussion is needed before formal review submission, prefer a **standalone submitted PR review comment** created directly through the review-comment mechanism/API/tool when that mechanism supports immediate submission without holding a `PENDING` review.
+12. If standalone anchored submission is unavailable in the current UI/tool, use an immediately visible top-level PR Conversation comment and include direct file/line links where needed for precise implementation context.
+13. The maker/executor may reply to visible review discussion and implement requested changes before a formal `APPROVE`, `REQUEST_CHANGES`, or `COMMENT` review outcome has been submitted. Such replies and changes are not approval.
+14. The reviewer must verify the maker/executor response and resulting implementation before treating the underlying concern as completed.
+15. An anchored submitted diff/line discussion may become GitHub `outdated` when a later commit changes the referenced code. `outdated` is a diff-state signal only; it does not prove that the underlying review concern was satisfied.
+16. If a discussion becomes `outdated`, the reviewer must determine whether the concern was actually addressed, remains applicable elsewhere, or no longer applies before considering it complete.
+17. **A formal review should not normally be submitted while actionable review discussion from that review round remains unresolved.** When discussion establishes an unresolved blocking concern, continue discussion or submit `REQUEST_CHANGES`; do not submit `APPROVE`.
+18. GitHub formal review outcomes (`APPROVE`, `REQUEST_CHANGES`, or `COMMENT`) determine the submitted review result; approval must not be inferred from a notification, discussion comment, reply, implementation change, resolved thread, outdated state, checkbox state, or inactivity.
+19. **The reviewer who owns a review concern is the only actor authorized to resolve that concern on the reviewer's behalf. The PR executor, PR author, or any other non-reviewer must not resolve it. The repository/project owner or another explicitly designated human authority is an exception and may resolve it when exercising that authority.**
+20. When review changes are requested, the executor may implement the requested changes and reply to the relevant discussion, but must leave reviewer-owned concerns unresolved for the reviewer to verify and resolve.
+21. **Every reply to a review comment that reports implementation of a requested change must state what was changed to comply and include a direct, line-specific GitHub link to the actual implementation lines. Prefer a stable commit-pinned `blob/<commit>/<path>#Lx-Ly` link to the resulting lines; where GitHub provides an equivalent direct PR diff/review location that visibly identifies the changed lines, that may be used instead. A PR-level or file-level link alone is insufficient when a specific line link can be provided. The link must open the specific lines that implement the requested change, not merely the repository, PR, or file overview.**
+22. **The executor must establish the exact changed file and resulting line range before posting the reply. If the implementation spans multiple distinct line ranges, include a direct line-specific link for each relevant range. Do not claim line-specific implementation evidence until the link has been checked to lead to the intended changed lines.**
+23. **The line-specific implementation reply is evidence for reviewer verification; it does not resolve the review concern and does not satisfy the formal review approval gate by itself. The reviewer remains responsible for verification and resolution under the existing authority rule.**
 
 Required human validation follows the approved testing gate:
 
