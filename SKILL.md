@@ -137,10 +137,12 @@ Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's
 
 During independent review, distinguish **visible review discussion** from **formal review submission** exactly as defined in `WORKFLOWS.md`:
 
-- a GitHub `PENDING` review and its pending comments are reviewer-private until submission and must not be used as the reviewer↔maker discussion channel;
-- when interaction is needed before the formal review outcome, the reviewer uses an immediately visible single diff/line comment tied to the relevant PR diff/commit;
+- a GitHub `PENDING` review and its pending comments are reviewer-private until submission; line-level and file-level comments created inside the normal pending-review flow are also pending and must not be used as the reviewer↔maker discussion channel;
+- do not infer immediate visibility merely because a comment is anchored to a file or line;
+- when anchored interaction is needed before the formal review outcome, use a standalone submitted PR review comment created directly through the review-comment mechanism/API/tool when the available mechanism supports immediate submission without a pending review;
+- if standalone anchored submission is unavailable, use an immediately visible top-level PR Conversation comment and include direct file/line links where needed;
 - the maker/executor may reply and implement changes before formal review submission, but this does not constitute approval;
-- if the referenced code changes and GitHub marks a discussion `outdated`, do not infer that the concern is satisfied; the reviewer must verify whether the concern was actually addressed or remains applicable;
+- if the referenced code changes and GitHub marks an anchored discussion `outdated`, do not infer that the concern is satisfied; the reviewer must verify whether the concern was actually addressed or remains applicable;
 - formal `APPROVED` remains the independent review gate where required, and unresolved blocking concerns must not result in approval.
 
 Review-comment resolution, requested-change implementation replies, line-specific implementation evidence, and reviewer-controlled resolution are governed by the canonical rules in `00-Management/WORKFLOWS.md`; this skill must execute those rules rather than redefine them.
