@@ -87,6 +87,29 @@ A PART may be linked to multiple VIN ranges through `part_vin_range`.
 
 VIN-derived interpretation must remain distinguishable from source facts. This model step does not use KOVuosi as a source for VIN decoding, VIN-range selection or model-year inference, and does not implement a complete VIN decoder.
 
+## PART supersession
+
+`part_supersession` is a separate directed relationship between canonical `part` identities.
+
+| Field | Requirement | Meaning |
+|---|---|---|
+| `superseded_part_id` | required | Canonical PART identity being replaced. |
+| `superseding_part_id` | required | Canonical PART identity that replaces it. |
+| `source` | optional | Source system/document identifier for the relationship. |
+| `source_ref` | optional | Evidence/reference for the relationship. |
+| `verification_status` | required | Verification state; defaults to `unverified`. |
+| `confidence` | optional | Confidence information where the source/research model provides it. |
+| `effective_from` | optional | Effective boundary where established. |
+| `effective_to` | optional | Historical/end boundary where established. |
+
+The relationship is directed: `superseded_part_id → superseding_part_id`. Both PART identities remain independently addressable and searchable. A superseding PART may replace multiple historical PARTs, and chains such as `A → B → C` are representable.
+
+Supersession is not a generic interchangeability or equivalence relation. It must not be inferred solely from similar part numbers, descriptions, fitment, or historical JEPC `isSuperSeded` state. Explicit manufacturer/catalogue evidence and inferred interchangeability remain distinct concepts.
+
+The same directed pair may occur only once. A PART cannot supersede itself. Supersession does not mutate a stock record's historical catalogue identity; stock integration remains a separate model step.
+
+Representative evidence fixture: `MNA7691AA → XR847031`.
+
 ## Architectural boundary
 
 `PART` contains catalogue/reference identity only. It has no direct vehicle applicability field and no mutable stock state.
@@ -96,6 +119,8 @@ VIN-derived interpretation must remain distinguishable from source facts. This m
 Applicability belongs to occurrence/fitment/context relationships. Operational inventory belongs to separate stock records.
 
 `model_range` and `vin_range` are distinct concepts even where a VIN range happens to correspond to a particular model range.
+
+Supersession is a catalogue/reference relationship and does not replace or mutate historical PART identities or operational stock records.
 
 ## Migrations
 
@@ -107,6 +132,8 @@ Migration `0005_part_image.sql` establishes `part_image` as a separate child ent
 
 Migration `0006_part_vehicle_vin_applicability.sql` establishes distinct `model_range` and `vin_range` entities and the `part_model_range` and `part_vin_range` relationships.
 
+Migration `0007_part_supersession.sql` establishes the directed `part_supersession` relationship with provenance/verification metadata, effective boundaries, bidirectional lookup indexes, pair uniqueness and self-link rejection.
+
 ## Testing and fixtures
 
 The PART model tests cover deterministic part-number normalization, nullable/unique part-number identity, non-unique descriptions, and separation from vehicle applicability.
@@ -117,8 +144,10 @@ The PART image tests cover separate `part_image` persistence, FK linkage, multip
 
 The vehicle/VIN applicability tests cover separate model-range and VIN-range entities, PART relationships, representative fixture links, foreign-key structure and relationship uniqueness.
 
+The supersession tests cover the directed PART-to-PART relationship, provenance and effective metadata, pair uniqueness, self-link rejection, representative `MNA7691AA → XR847031` evidence, and a multi-step supersession chain.
+
 ## MVP boundary
 
-The implemented vehicle/VIN applicability step is limited to explicit persistent relationships and structured VIN-range records needed by the MVP. It does not implement complete VIN decoding, automatic VIN-range inference, complete fitment semantics, vehicle-location/hotspot conversion, supersession, stock, or JEPC import.
+The implemented vehicle/VIN applicability step is limited to explicit persistent relationships and structured VIN-range records needed by the MVP. The supersession step is limited to explicit directed catalogue relationships and their evidence metadata. Neither step implements complete VIN decoding, automatic VIN-range inference, complete fitment semantics, vehicle-location/hotspot conversion, stock, or JEPC import.
 
-Later model steps remain responsible for full fitment/attribute semantics, diagram/hotspot relationships, supersession, stock, and other Parts Data Model relationships.
+Later model steps remain responsible for full fitment/attribute semantics, diagram/hotspot relationships, stock, and other Parts Data Model relationships.
