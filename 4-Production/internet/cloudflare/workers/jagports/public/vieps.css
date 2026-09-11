@@ -1,0 +1,254 @@
+:root {
+  --vieps-surface: #ffffff;
+  --vieps-surface-muted: #f6f8fa;
+  --vieps-border: #d9e0e6;
+  --vieps-text-muted: #66727d;
+  --vieps-accent-soft: #edf3f7;
+  --vieps-shadow: 0 8px 24px rgba(35, 49, 60, 0.08);
+  --pico-border-radius: 0.65rem;
+  --pico-form-element-spacing-vertical: 0.65rem;
+  --pico-form-element-spacing-horizontal: 0.8rem;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--vieps-surface-muted);
+}
+
+.app-shell {
+  max-width: 1440px;
+  padding-block: 1.5rem 3rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem 0.15rem;
+}
+
+.app-header h1,
+.section-heading h2 {
+  margin-bottom: 0;
+}
+
+.app-summary {
+  max-width: 46rem;
+  margin: 0 0 0.2rem;
+  text-align: right;
+}
+
+.eyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--vieps-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.muted,
+.compact-note,
+.empty {
+  color: var(--vieps-text-muted);
+}
+
+.panel {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--vieps-border);
+  border-radius: 0.75rem;
+  background: var(--vieps-surface);
+  box-shadow: var(--vieps-shadow);
+}
+
+.search-panel {
+  margin-bottom: 1rem;
+}
+
+.section-heading {
+  margin-bottom: 0.9rem;
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1fr) auto;
+  gap: 0.65rem;
+  align-items: start;
+  margin: 0;
+}
+
+.search-form input,
+.search-form button {
+  margin: 0;
+}
+
+.status-line {
+  min-height: 1.5rem;
+  margin: 0.55rem 0 0;
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 1.35fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.fitment-panel {
+  grid-column: 1 / -1;
+}
+
+.fitment-heading-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.compact-note {
+  margin: 0 0 0.15rem;
+  font-size: 0.9rem;
+}
+
+.card {
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--vieps-border);
+  border-radius: 0.6rem;
+  background: #fff;
+}
+
+.card > :last-child {
+  margin-bottom: 0;
+}
+
+.card dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0;
+}
+
+.card dt {
+  color: var(--vieps-text-muted);
+  font-weight: 600;
+}
+
+.card dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--vieps-border);
+  border-radius: 999px;
+  background: var(--vieps-accent-soft);
+  font-size: 0.85rem;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+}
+
+.fitment-grid {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.visual-panel img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 26rem;
+  object-fit: contain;
+  border-radius: 0.45rem;
+  background: var(--vieps-surface-muted);
+}
+
+.empty {
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px dashed var(--vieps-border);
+  border-radius: 0.5rem;
+  background: var(--vieps-surface-muted);
+  font-style: italic;
+}
+
+.error {
+  color: #8a1c1c;
+  font-weight: 600;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 980px) {
+  .concept-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .visual-panel,
+  .fitment-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-shell {
+    padding-top: 1rem;
+  }
+
+  .app-header,
+  .fitment-heading-row {
+    align-items: start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .app-summary {
+    text-align: left;
+  }
+
+  .search-form,
+  .concept-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .visual-panel,
+  .fitment-panel {
+    grid-column: auto;
+  }
+
+  .search-form button {
+    width: 100%;
+  }
+
+  .card dl {
+    grid-template-columns: 1fr;
+  }
+}
