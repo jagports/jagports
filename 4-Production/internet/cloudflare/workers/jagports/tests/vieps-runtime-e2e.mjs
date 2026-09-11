@@ -5,7 +5,7 @@ const baseUrl = process.env.VIEPS_BASE_URL?.replace(/\/$/, "");
 const partNumber = process.env.VIEPS_PART_NUMBER || "MJB7703AA";
 
 if (!baseUrl) {
-  test("Deployment-1 deployed runtime validation requires VIEPS_BASE_URL", { skip: "No deployed VIEPS URL supplied" }, () => {});
+  test("VIEPS deployed runtime validation requires VIEPS_BASE_URL", { skip: "No deployed VIEPS URL supplied" }, () => {});
 } else {
   test("deployed VIEPS UI is reachable", async () => {
     const response = await fetch(baseUrl);
@@ -22,7 +22,7 @@ if (!baseUrl) {
     assert.equal(data.database, "ok");
   });
 
-  test("canonical part search returns Deployment-1 context", async () => {
+  test("canonical part search returns VIEPS context", async () => {
     const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
     assert.equal(response.status, 200);
     const data = await response.json();

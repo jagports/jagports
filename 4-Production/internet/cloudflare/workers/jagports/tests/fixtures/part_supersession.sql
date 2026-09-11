@@ -5,9 +5,9 @@ INSERT OR IGNORE INTO part (
 ) VALUES
   ('MNA7691AA', 'MNA7691AA', 'Fan Warning Label', 'fixture-supersession', 'supersession-001', 'fixture'),
   ('XR847031', 'XR847031', 'Fan Warning Label Replacement', 'fixture-supersession', 'supersession-002', 'fixture'),
-  ('FIX-A', 'FIX-A', 'Supersession Chain A', 'fixture-supersession', 'chain-a', 'fixture'),
-  ('FIX-B', 'FIX-B', 'Supersession Chain B', 'fixture-supersession', 'chain-b', 'fixture'),
-  ('FIX-C', 'FIX-C', 'Supersession Chain C', 'fixture-supersession', 'chain-c', 'fixture');
+  ('FIX-A', 'FIXA', 'Supersession Chain A', 'fixture-supersession', 'chain-a', 'fixture'),
+  ('FIX-B', 'FIXB', 'Supersession Chain B', 'fixture-supersession', 'chain-b', 'fixture'),
+  ('FIX-C', 'FIXC', 'Supersession Chain C', 'fixture-supersession', 'chain-c', 'fixture');
 
 INSERT OR IGNORE INTO part_supersession (
   superseded_part_id, superseding_part_id, source, source_ref, verification_status, confidence
@@ -24,8 +24,8 @@ INSERT OR IGNORE INTO part_supersession (
 SELECT p_old.id, p_new.id, 'fixture-supersession', 'chain-a-b', 'fixture', 'fixture'
 FROM part p_old
 CROSS JOIN part p_new
-WHERE p_old.part_number_normalized = 'FIX-A'
-  AND p_new.part_number_normalized = 'FIX-B';
+WHERE p_old.part_number_normalized = 'FIXA'
+  AND p_new.part_number_normalized = 'FIXB';
 
 INSERT OR IGNORE INTO part_supersession (
   superseded_part_id, superseding_part_id, source, source_ref, verification_status, confidence
@@ -33,5 +33,5 @@ INSERT OR IGNORE INTO part_supersession (
 SELECT p_old.id, p_new.id, 'fixture-supersession', 'chain-b-c', 'fixture', 'fixture'
 FROM part p_old
 CROSS JOIN part p_new
-WHERE p_old.part_number_normalized = 'FIX-B'
-  AND p_new.part_number_normalized = 'FIX-C';
+WHERE p_old.part_number_normalized = 'FIXB'
+  AND p_new.part_number_normalized = 'FIXC';

@@ -48,7 +48,7 @@ export async function handleViepsPart(request, env) {
        ORDER BY sort_order, id`
     ).bind(part.id).all(),
     env.DB.prepare(
-      `SELECT id, image_url, image_kind, description, verification_status
+      `SELECT id, image_ref AS image_url, image_kind, description, verification_status, availability_status
        FROM part_image WHERE part_id = ? ORDER BY id`
     ).bind(part.id).all(),
     env.DB.prepare(
@@ -59,7 +59,7 @@ export async function handleViepsPart(request, env) {
       `SELECT f.id, r.range_code, r.name AS range_name, f.variation, f.qualifier, f.verification_status
        FROM part_fitment f
        INNER JOIN vehicle_range r ON r.id = f.vehicle_range_id
-       WHERE f.part_id = ?
+       WHERE f.part_id = ? AND f.vehicle_range_id IS NOT NULL
        ORDER BY r.range_code, f.variation, f.qualifier`
     ).bind(part.id).all(),
   ]);
