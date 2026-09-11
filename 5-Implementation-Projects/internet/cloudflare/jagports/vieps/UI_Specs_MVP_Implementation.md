@@ -10,6 +10,8 @@ This document defines the implementation-level UI element and behaviour contract
 
 **Visual source artifact:** PR #467 — UI concept 1
 
+**Concept UI image:** `5-Implementation-Projects/internet/cloudflare/jagports/vieps/VIEPS UI/VIEPS UI-Concept-1.emf`
+
 **Baseline UI specification:** `UI_Specs.md`
 
 ## MVP flow
@@ -102,9 +104,13 @@ Required behaviour:
 
 Verified diagram/hotspot rendering and vehicle-location mapping are later capabilities. Their absence must not prevent the Part Image step from being implemented where suitable image data exists.
 
-## Concept View-1 ASCII UI map
+## Concept View-1 visual reference and ASCII UI map
 
-The following map is the normative visual representation of the minimum demonstrable Concept View-1 UI. It describes UI element placement and relationships; it is not intended to define pixel dimensions.
+**Concept UI image source:** `5-Implementation-Projects/internet/cloudflare/jagports/vieps/VIEPS UI/VIEPS UI-Concept-1.emf`
+
+**Visual source PR:** [PR #467 — UI concept 1](https://github.com/jagports/jagports/pull/467)
+
+The following map is the normative text representation of the minimum demonstrable Concept View-1 UI derived from the Concept UI image. It describes UI element placement and relationships; it is not intended to define pixel dimensions.
 
 ```text
 +------------------------------------------------------------------------------------------------+
@@ -159,6 +165,20 @@ The ASCII map establishes the six MVP information areas and their relationships:
 6. Main View containing the verified Part Image or an explicit unavailable state.
 
 The map must remain consistent with the six-step MVP flow and must not imply that post-MVP entry paths are part of the current acceptance boundary.
+
+### Previous implementation lineage by UI element
+
+The following references identify earlier specification, domain-model, API and browser-UI work that has participated in establishing each Concept View-1 element. These links provide implementation lineage; they do not by themselves mark the current #541–#546 work complete.
+
+| Concept View-1 element | Participating Issues | Participating PRs |
+|---|---|---|
+| Part-number entry / Search status | [#280](https://github.com/jagports/jagports/issues/280), [#354](https://github.com/jagports/jagports/issues/354), [#435](https://github.com/jagports/jagports/issues/435), [#472](https://github.com/jagports/jagports/issues/472), [#499](https://github.com/jagports/jagports/issues/499), [#500](https://github.com/jagports/jagports/issues/500), [#541](https://github.com/jagports/jagports/issues/541) | [#281](https://github.com/jagports/jagports/pull/281), [#433](https://github.com/jagports/jagports/pull/433), [#504](https://github.com/jagports/jagports/pull/504), [#505](https://github.com/jagports/jagports/pull/505), [#547](https://github.com/jagports/jagports/pull/547) |
+| Canonical PART / identity and EPC occurrence context | [#354](https://github.com/jagports/jagports/issues/354), [#435](https://github.com/jagports/jagports/issues/435), [#525](https://github.com/jagports/jagports/issues/525), [#472](https://github.com/jagports/jagports/issues/472), [#499](https://github.com/jagports/jagports/issues/499), [#541](https://github.com/jagports/jagports/issues/541) | [#433](https://github.com/jagports/jagports/pull/433), [#526](https://github.com/jagports/jagports/pull/526), [#504](https://github.com/jagports/jagports/pull/504), [#547](https://github.com/jagports/jagports/pull/547) |
+| Parts Tree branch / selected occurrence | [#360](https://github.com/jagports/jagports/issues/360), [#368](https://github.com/jagports/jagports/issues/368), [#474](https://github.com/jagports/jagports/issues/474), [#499](https://github.com/jagports/jagports/issues/499), [#500](https://github.com/jagports/jagports/issues/500), [#542](https://github.com/jagports/jagports/issues/542) | [#467](https://github.com/jagports/jagports/pull/467), [#469](https://github.com/jagports/jagports/pull/469), [#526](https://github.com/jagports/jagports/pull/526), [#504](https://github.com/jagports/jagports/pull/504), [#505](https://github.com/jagports/jagports/pull/505) |
+| Suitability Model Ranges | [#354](https://github.com/jagports/jagports/issues/354), [#477](https://github.com/jagports/jagports/issues/477), [#529](https://github.com/jagports/jagports/issues/529), [#499](https://github.com/jagports/jagports/issues/499), [#500](https://github.com/jagports/jagports/issues/500), [#543](https://github.com/jagports/jagports/issues/543) | [#469](https://github.com/jagports/jagports/pull/469), [#530](https://github.com/jagports/jagports/pull/530), [#535](https://github.com/jagports/jagports/pull/535), [#504](https://github.com/jagports/jagports/pull/504), [#505](https://github.com/jagports/jagports/pull/505) |
+| Selected Range / Variations and qualifiers | [#354](https://github.com/jagports/jagports/issues/354), [#477](https://github.com/jagports/jagports/issues/477), [#478](https://github.com/jagports/jagports/issues/478), [#499](https://github.com/jagports/jagports/issues/499), [#500](https://github.com/jagports/jagports/issues/500), [#544](https://github.com/jagports/jagports/issues/544) | [#469](https://github.com/jagports/jagports/pull/469), [#530](https://github.com/jagports/jagports/pull/530), [#535](https://github.com/jagports/jagports/pull/535), [#504](https://github.com/jagports/jagports/pull/504), [#505](https://github.com/jagports/jagports/pull/505) |
+| Main View / Part Image | [#354](https://github.com/jagports/jagports/issues/354), [#475](https://github.com/jagports/jagports/issues/475), [#527](https://github.com/jagports/jagports/issues/527), [#499](https://github.com/jagports/jagports/issues/499), [#500](https://github.com/jagports/jagports/issues/500), [#545](https://github.com/jagports/jagports/issues/545) | [#467](https://github.com/jagports/jagports/pull/467), [#469](https://github.com/jagports/jagports/pull/469), [#528](https://github.com/jagports/jagports/pull/528), [#536](https://github.com/jagports/jagports/pull/536), [#504](https://github.com/jagports/jagports/pull/504), [#505](https://github.com/jagports/jagports/pull/505) |
+| Coordinated end-to-end Concept View-1 flow | [#368](https://github.com/jagports/jagports/issues/368), [#468](https://github.com/jagports/jagports/issues/468), [#483](https://github.com/jagports/jagports/issues/483), [#496](https://github.com/jagports/jagports/issues/496), [#501](https://github.com/jagports/jagports/issues/501), [#546](https://github.com/jagports/jagports/issues/546) | [#467](https://github.com/jagports/jagports/pull/467), [#469](https://github.com/jagports/jagports/pull/469), [#504](https://github.com/jagports/jagports/pull/504), [#505](https://github.com/jagports/jagports/pull/505), [#506](https://github.com/jagports/jagports/pull/506), [#540](https://github.com/jagports/jagports/pull/540) |
 
 ## Cross-element interaction
 
@@ -243,6 +263,10 @@ These may remain represented by stable placeholders or explicit unavailable stat
 **Visual source artifact**
 
 PR #467 — UI concept 1
+
+**Concept UI image**
+
+`5-Implementation-Projects/internet/cloudflare/jagports/vieps/VIEPS UI/VIEPS UI-Concept-1.emf`
 
 **Existing durable UI contracts**
 
