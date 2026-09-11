@@ -82,10 +82,15 @@ Availability does not imply a sale transaction, reservation state, or positive q
 
 Migration 0011 adds indexes for the accepted MVP stock filters:
 
-- condition code;
-- normalized storage location;
-- source party;
-- currency and price.
+- `idx_stock_item_condition_code` on controlled condition code;
+- `idx_stock_item_storage_location` on normalized storage location;
+- `idx_stock_item_source_party` on source party;
+- `idx_stock_item_price_currency` on currency and price;
+- `idx_stock_location_root_identity` for root location identity within a site;
+- `idx_stock_location_child_identity` for child location identity within its parent;
+- `idx_stock_location_site` for site lookups;
+- `idx_stock_location_parent` for recursive parent/child traversal;
+- `idx_stock_source_party_type_name` for source-party filtering.
 
 Existing stock indexes continue to cover canonical PART, stocked part number, status, availability, donor vehicle, source, and legacy location.
 
