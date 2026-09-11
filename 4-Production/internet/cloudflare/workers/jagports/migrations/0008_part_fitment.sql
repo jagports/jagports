@@ -1,9 +1,11 @@
 PRAGMA foreign_keys = ON;
 
 -- Persistent schema names describe domain semantics only. Deployment/release or
--- compatibility status must never leak into table names. Rebuild part_fitment
--- in place and drop the migration-only temporary table before commit.
-ALTER TABLE part_fitment RENAME TO _part_fitment_migration_old;
+-- compatibility status must never leak into table names.
+-- temp_part_fitment_migration exists only while this migration copies the old
+-- part_fitment rows into the evolved normal part_fitment table. It is dropped
+-- before the migration completes and is not part of the application schema.
+ALTER TABLE part_fitment RENAME TO temp_part_fitment_migration;
 DROP INDEX idx_part_fitment_unique;
 DROP INDEX idx_part_fitment_part;
 DROP INDEX idx_part_fitment_range;
@@ -47,9 +49,9 @@ SELECT
   qualifier,
   'applicable',
   verification_status
-FROM _part_fitment_migration_old;
+FROM temp_part_fitment_migration;
 
-DROP TABLE _part_fitment_migration_old;
+DROP TABLE temp_part_fitment_migration;
 
 CREATE UNIQUE INDEX idx_part_fitment_range_identity
   ON part_fitment(
