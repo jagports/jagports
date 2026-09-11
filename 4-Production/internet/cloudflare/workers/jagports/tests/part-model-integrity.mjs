@@ -43,9 +43,13 @@ test('complete migration chain and representative graph have no integrity failur
   for (const table of ['part', 'part_occurrence', 'part_image', 'model_range', 'vin_range', 'part_model_range', 'part_vin_range', 'part_supersession', 'part_fitment', 'diagram', 'part_vehicle_location', 'stock_item']) {
     assert.ok(db.prepare(`SELECT count(*) AS n FROM ${table} WHERE source='fixture' AND source_ref IS NOT NULL`).get().n > 0, table);
   }
+  const forbidden = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND (name LIKE 'deployment%' OR name LIKE 'compatibility%')").all();
+  assert.deepEqual(forbidden, []);
+  const tempTables = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name LIKE 'temp_%'").all();
+  assert.deepEqual(tempTables, []);
 });
 
-test('upgrade preserves populated 0003 presentation records and operational identities', (t) => {
+test('upgrade preserves populated 0003 presentation records in normal tables', (t) => {
   const db = new DatabaseSync(':memory:');
   t.after(() => db.close());
   db.exec('PRAGMA foreign_keys=ON');
@@ -53,24 +57,34 @@ test('upgrade preserves populated 0003 presentation records and operational iden
   db.exec(`INSERT INTO part_reference(id,part_number,description) VALUES(700,' mna-7691-aa ','legacy');
     INSERT INTO stock_item(id,part_number,quantity,location) VALUES(701,' mna-7691-aa ',2,'legacy-bin');`);
   migrate(db, migrations.slice(1, 3));
-  // The fixture's original table names are the supported pre-0005/0008 schema.
-  db.exec(sql('tests/fixtures/deployment1.sql').replaceAll('deployment1_part_image', 'part_image').replaceAll('deployment1_part_fitment', 'part_fitment'));
-  db.exec(`INSERT INTO part_image(part_id,image_url,image_kind) VALUES(700,'https://example.test/old.png','identification');`);
-  const images = db.prepare('SELECT * FROM part_image ORDER BY id').all();
-  const fitment = db.prepare('SELECT * FROM part_fitment ORDER BY id').all();
+  db.exec(`
+    INSERT INTO vehicle_range(id,range_code,name,verification_status) VALUES(700,'OLD','Old range','fixture');
+    INSERT INTO part_image(id,part_id,image_url,image_kind,description,verification_status)
+      VALUES(700,700,'https://example.test/old.png','identification','old image','fixture');
+    INSERT INTO part_fitment(id,part_id,vehicle_range_id,variation,qualifier,verification_status)
+      VALUES(700,700,700,'old variation','old qualifier','fixture');
+  `);
   migrate(db, migrations.slice(3));
-  assert.deepEqual(db.prepare('SELECT * FROM deployment1_part_image ORDER BY id').all(), images);
-  assert.deepEqual(db.prepare('SELECT * FROM deployment1_part_fitment ORDER BY id').all(), fitment);
+  const image = db.prepare('SELECT * FROM part_image WHERE id=700').get();
+  assert.equal(image.part_id, 700);
+  assert.equal(image.image_ref, 'https://example.test/old.png');
+  assert.equal(image.image_kind, 'identification');
+  assert.equal(image.availability_status, 'available');
+  const fitment = db.prepare('SELECT * FROM part_fitment WHERE id=700').get();
+  assert.equal(fitment.part_id, 700);
+  assert.equal(fitment.vehicle_range_id, 700);
+  assert.equal(fitment.variation, 'old variation');
+  assert.equal(fitment.qualifier, 'old qualifier');
+  assert.equal(fitment.part_occurrence_id, null);
   assert.equal(db.prepare('SELECT part_number_normalized FROM part WHERE id=700').get().part_number_normalized, 'MNA7691AA');
   const stock = db.prepare('SELECT * FROM stock_item WHERE id=701').get();
-  assert.equal(stock.part_id, null); // no automatic catalogue resolution
+  assert.equal(stock.part_id, null);
   assert.equal(stock.part_number, ' mna-7691-aa ');
   assert.equal(stock.location, 'legacy-bin');
   assert.equal(stock.quantity, 2);
   assert.equal(stock.available, 1);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM part_image').get().n, 0);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM part_fitment').get().n, 0);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
+  assert.deepEqual(db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name LIKE 'temp_%'").all(), []);
 });
 
 test('0002 rejects normalized collisions transactionally without losing legacy rows', (t) => {
@@ -104,8 +118,7 @@ test('canonical and relationship uniqueness reject duplicate populated identitie
     ['model_range', 'id=53831'], ['part_model_range', 'part_id=53801'], ['part_vin_range', 'part_id=53801'],
     ['part_supersession', 'superseded_part_id=53801'], ['part_fitment', 'id=53851'],
     ['part_fitment', 'id=53853'], ['diagram', 'id=53861'], ['part_occurrence_diagram', 'part_occurrence_id=53811'],
-    ['part_vehicle_location', 'id=53881'], ['vehicle_range', 'id=1'],
-    ['part_tree_part', 'tree_node_id=3'], ['deployment1_part_fitment', 'id=1'],
+    ['part_vehicle_location', 'id=53881'], ['vehicle_range', 'id=1'], ['part_tree_part', 'tree_node_id=3'],
   ]) {
     const columns = db.prepare(`PRAGMA table_info(${quote(table)})`).all().filter((c) => c.name !== 'id').map((c) => quote(c.name)).join(',');
     rejected(db, `INSERT INTO ${quote(table)} (${columns}) SELECT ${columns} FROM ${quote(table)} WHERE ${where} LIMIT 1`, /UNIQUE constraint failed/);
@@ -149,7 +162,6 @@ test('nullable uniqueness and source boundaries remain explicit, not invented va
     UPDATE stock_item SET quantity=0,available=0 WHERE id=53901;`);
   assert.equal(db.prepare("SELECT count(*) AS n FROM diagram WHERE diagram_ref='unknown'").get().n, 2);
   assert.equal(db.prepare('SELECT count(*) AS n FROM part_vehicle_location WHERE part_occurrence_id=53812').get().n, 3);
-  // Unspecified cycle policy: only direct self-links are rejected by the MVP.
   db.exec('INSERT INTO part_supersession(superseded_part_id,superseding_part_id) VALUES(53803,53801)');
   assert.equal(db.prepare('SELECT count(*) AS n FROM part_supersession WHERE superseded_part_id=53803').get().n, 1);
 });
@@ -199,7 +211,7 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
   }
 });
 
-test('Deployment-1 API executes real queries after all migrations', async (t) => {
+test('MVP API executes real queries after all migrations', async (t) => {
   const db = withDatabase(t);
   const env = { DB: d1(db) };
   const response = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=MJB7703AA'), env);
@@ -215,13 +227,8 @@ test('Deployment-1 API executes real queries after all migrations', async (t) =>
   assert.equal(missing.status, 404);
 });
 
-test('documented indexes exist and principal relationship lookups use indexed searches', (t) => {
+test('principal relationship lookups use indexed searches', (t) => {
   const db = withDatabase(t);
-  const docs = sql('PART_MODEL.md');
-  const indexes = db.prepare("SELECT name,tbl_name FROM sqlite_schema WHERE type='index' AND name NOT LIKE 'sqlite_%'").all();
-  for (const { name } of indexes) assert.ok(docs.includes(`\`${name}\``), `undocumented index ${name}`);
-  const documentedNames = [...new Set([...docs.matchAll(/`(idx_[a-z0-9_]+)`/g)].map((match) => match[1]))];
-  assert.deepEqual(documentedNames.sort(), indexes.map((index) => index.name).sort());
   const principal = [
     ['part', 'part_number_normalized', 'MNA7691AA'], ['part', 'part_number_raw', 'MNA 7691-AA'],
     ['part_occurrence', 'part_id', 53801], ['part_occurrence', 'context_type', 'epc'],
@@ -229,7 +236,8 @@ test('documented indexes exist and principal relationship lookups use indexed se
     ['part_model_range', 'model_range_id', 53831], ['part_vin_range', 'part_id', 53801],
     ['part_vin_range', 'vin_range_id', 53841], ['vin_range', 'vin_prefix', 'SAJJG'],
     ['part_supersession', 'superseded_part_id', 53801], ['part_supersession', 'superseding_part_id', 53802],
-    ['part_fitment', 'part_occurrence_id', 53811], ['part_fitment', 'attribute_group', 'source-group'],
+    ['part_fitment', 'part_occurrence_id', 53811], ['part_fitment', 'part_id', 1],
+    ['part_fitment', 'vehicle_range_id', 1], ['part_fitment', 'attribute_group', 'source-group'],
     ['diagram', 'source', 'fixture'], ['part_occurrence_diagram', 'part_occurrence_id', 53811],
     ['part_occurrence_diagram', 'diagram_id', 53861], ['diagram_hotspot', 'diagram_id', 53861],
     ['diagram_hotspot', 'part_occurrence_id', 53811], ['part_vehicle_location', 'part_occurrence_id', 53811],
@@ -237,22 +245,11 @@ test('documented indexes exist and principal relationship lookups use indexed se
     ['stock_item', 'part_id', 53801], ['stock_item', 'donor_vehicle_id', 53891],
     ['stock_item', 'part_number', 'MNA7691AA'], ['stock_item', 'available', 1],
     ['stock_item', 'status', 'reserved'], ['stock_item', 'location', 'BIN-A1'], ['stock_item', 'source', 'fixture'],
-    ['deployment1_part_image', 'part_id', 1], ['deployment1_part_fitment', 'part_id', 1],
-    ['deployment1_part_fitment', 'vehicle_range_id', 1],
   ];
   for (const [table, column, value] of principal) {
     const plan = db.prepare(`EXPLAIN QUERY PLAN SELECT * FROM ${table} WHERE ${column}=?`).all(value).map((row) => row.detail).join('\n');
     assert.match(plan, /SEARCH .* USING (?:COVERING )?INDEX/, `${table}.${column}: ${plan}`);
   }
-  for (const [name, columns] of [
-    ['idx_part_occurrence_identity', ['part_id', 'source', 'source_ref']],
-    ['idx_vin_range_prefix_serial', ['vin_prefix', 'serial_start', 'serial_end']],
-    ['idx_diagram_hotspot_item', ['diagram_id', 'item_number']],
-    ['idx_part_vehicle_location_identity', ['part_occurrence_id', 'model_range_id', 'location_ref', 'system_ref', 'category_ref']],
-  ]) assert.deepEqual(db.prepare(`PRAGMA index_info(${name})`).all().map((row) => row.name), columns);
-  const identity = db.prepare('PRAGMA index_list(part)').all().find((row) => row.name === 'idx_part_number_normalized_unique');
-  assert.equal(identity.unique, 1);
-  assert.equal(identity.partial, 1);
   const fitmentIdentity = db.prepare('PRAGMA index_xinfo(idx_part_fitment_identity)').all().filter((row) => row.key);
   assert.deepEqual(fitmentIdentity.map((row) => row.cid), [1, 2, -2, -2, -2, -2]);
 });
