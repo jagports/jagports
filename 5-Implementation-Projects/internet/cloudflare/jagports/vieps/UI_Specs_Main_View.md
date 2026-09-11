@@ -20,6 +20,15 @@ Missing diagram or hotspot data is an explicit `unavailable` state. No geometry 
 
 Deterministic fixture geometry is permitted initially and must use the same contract as future verified #352 hotspot conversion output.
 
+## MVP Part Image behaviour
+For the minimum demonstrable Concept View-1 flow, the Main View must be capable of showing the image associated with the resolved PART when verified image data exists.
+
+- Show the resolved PART image or an explicit unavailable state.
+- Keep the image associated with the selected canonical PART and occurrence/context.
+- Do not substitute an unrelated image merely because one is available.
+- Preserve the Main View as the stable visual container so verified diagram, hotspot and vehicle-location views can be integrated later without changing the information architecture.
+- Verified diagram/hotspot rendering and vehicle-location mapping are not prerequisites for demonstrating the Part Image step when suitable image data exists.
+
 ## UI/API contract
 ```text
 MainViewRequest
@@ -30,6 +39,7 @@ MainViewRequest
 MainViewResult
   state
   part_context
+  part_image when available
   diagram
   items[] / hotspots[]
   selected_item_id
@@ -42,9 +52,10 @@ MainViewResult
 - `error` means processing/API failure.
 - Tree and diagram selection refer to the same item/occurrence identity.
 - If geometry is absent, item identity may still be presented without a hotspot.
+- Missing Part Image data is an unavailable visual state; it does not change PART identity or applicability.
 
 ## Deterministic fixtures
-Cover diagram available, diagram unavailable, diagram with numbered items, hotspot unavailable, and synchronized tree/diagram selection.
+Cover Part Image available, Part Image unavailable, diagram available, diagram unavailable, diagram with numbered items, hotspot unavailable, and synchronized tree/diagram selection.
 
 ## Concept-1 integration
 The Main View component exists in its permanent Concept-1 position from the first implementation. Fixture-backed content can later be replaced by imported/verified data without changing the UI contract.
@@ -54,6 +65,7 @@ Follows #472 Part Search and #474 Parts Tree. #352 owns hotspot coordinate conve
 
 ## Acceptance criteria
 - [ ] Main View context contract is defined.
+- [ ] Part Image available/unavailable behaviour is defined for the minimum MVP.
 - [ ] Diagram identity and availability semantics are defined.
 - [ ] Item/hotspot availability and selection semantics are defined.
 - [ ] Tree and diagram selection synchronization is defined.
