@@ -1,5 +1,9 @@
 PRAGMA foreign_keys = ON;
 
+-- This fixture targets the normal application schema. Deployment/release names
+-- must not be used for persistent tables. Any migration-only staging table must
+-- use an explicit temp_* name and be dropped before the migration completes.
+
 INSERT OR IGNORE INTO vehicle_range (range_code, name, verification_status)
 VALUES
   ('X100', 'XK8 / X100', 'fixture'),
