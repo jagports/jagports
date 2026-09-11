@@ -172,7 +172,7 @@ During independent review, distinguish **visible review discussion** from **form
 - if the referenced code changes and GitHub marks an anchored discussion `outdated`, do not infer that the concern is satisfied; the reviewer must verify whether the concern was actually addressed or remains applicable;
 - formal `APPROVED` remains the independent review gate where required, and unresolved blocking concerns must not result in approval.
 
-Review-conversation resolution, requested-change implementation replies, line-specific implementation evidence, checkbox handling, and reviewer-controlled resolution are governed by the canonical rules in `00-Management/WORKFLOWS.md`; this skill must execute those rules rather than redefine them.
+Review conversation resolution, requested-change implementation replies, line-specific implementation evidence, checkbox handling, and reviewer-controlled resolution are governed by the canonical rules in `00-Management/WORKFLOWS.md`; this skill must execute those rules rather than redefine them.
 
 Required human validation follows:
 
