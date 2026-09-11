@@ -135,6 +135,14 @@ When review is required, execute the canonical native GitHub hand-off defined in
 
 Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's native review request/notification and review outcome are the review mechanism.
 
+During independent review, distinguish **visible review discussion** from **formal review submission** exactly as defined in `WORKFLOWS.md`:
+
+- a GitHub `PENDING` review and its pending comments are reviewer-private until submission and must not be used as the reviewer↔maker discussion channel;
+- when interaction is needed before the formal review outcome, the reviewer uses an immediately visible single diff/line comment tied to the relevant PR diff/commit;
+- the maker/executor may reply and implement changes before formal review submission, but this does not constitute approval;
+- if the referenced code changes and GitHub marks a discussion `outdated`, do not infer that the concern is satisfied; the reviewer must verify whether the concern was actually addressed or remains applicable;
+- formal `APPROVED` remains the independent review gate where required, and unresolved blocking concerns must not result in approval.
+
 Review-comment resolution, requested-change implementation replies, line-specific implementation evidence, and reviewer-controlled resolution are governed by the canonical rules in `00-Management/WORKFLOWS.md`; this skill must execute those rules rather than redefine them.
 
 Required human validation follows:
