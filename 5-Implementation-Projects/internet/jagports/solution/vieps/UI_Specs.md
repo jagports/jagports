@@ -58,52 +58,38 @@ The exact visual arrangement may be refined during implementation without changi
 
 **Concept UI image source:** `5-Implementation-Projects/internet/jagports/solution/vieps/VIEPS UI/VIEPS UI-Concept-1.emf`
 
-The following map is the normative text representation of the minimum demonstrable Concept View-1 UI derived from that Concept UI image. It defines UI element placement and relationships, not pixel dimensions.
+The following map is the normative text representation of Concept View-1. The EMF is the placement authority: tree left; search, vehicle location, combined part details/image and detailed suitability in the centre; model ranges right. This supersedes the earlier minimum-MVP arrangement with PART left, tree middle and image right. It defines placement and relationships, not pixel dimensions.
 
 ```text
-+------------------------------------------------------------------------------------------------+
-| VIEPS — Concept View-1                                                                         |
-|                                                                                                |
-|  [ Jaguar part number __________________________ ] [ Search ]                                   |
-|  Search status:  [empty / invalid / not found / resolved / error]                              |
-+------------------------------------------------------------------------------------------------+
-|                                                                                                |
-|  PART / identity                 Parts Tree branch                    Main View / Part Image    |
-|  +-------------------------+     +--------------------------------+    +---------------------+  |
-|  | Canonical PART          |     | Category                       |    |                     |  |
-|  | Part number / desc.     |     |   └─ Parent                    |    |    PART IMAGE       |  |
-|  | Raw number (if any)     |     |      └─ Selected PART          |    |                     |  |
-|  | Verification / source   |     |         └─ occurrence/context |    |  or                 |  |
-|  |                         |     |                                |    |  [Image unavailable]|  |
-|  | EPC occurrence context  |     +--------------------------------+    |                     |  |
-|  +-------------------------+                                           +---------------------+  |
-|                                                                                                |
-+------------------------------------------------------------------------------------------------+
-|  Suitability Model Ranges                       |  Selected Range / Variations                 |
-|  +----------------------------------------------+---------------------------------------------+|
-|  | All suitable Ranges/models                   |  Range: [selected suitable Range]           ||
-|  |                                              |                                             ||
-|  |  [Range A]                                   |  Applicable variations / qualifiers:        ||
-|  |  [Range B]                                   |                                             ||
-|  |  [Range C]                                   |   [Variation 1]  [Qualifier]               ||
-|  |  ...                                         |   [Variation 2]  [Qualifier]               ||
-|  |                                              |   ...                                       ||
-|  |  [No applicability / unavailable state]     |  [No variations / unavailable state]       ||
-|  +----------------------------------------------+---------------------------------------------+|
-+------------------------------------------------------------------------------------------------+
++-----------------------+--------------------------------------------+------------------------+
+| Parts Tree            | Search part number [____________] [Search] | Suitability Model      |
+| relevant path(s)      | Search status                              | Ranges                 |
+|                       +--------------------------------------------+                        |
+| Category              | Location at car                            | Model range selection  |
+|   Parent              | [Top view]             [Side view]         | All applicable ranges  |
+|     Selected context  | Verified location or explicit unavailable  |                        |
+|                       +--------------------------------------------+                        |
+|                       | PART details                               |                        |
+|                       | Number / description / source / verification|                        |
+|                       | One selected part image / diagram          |                        |
+|                       | or explicit unavailable state              |                        |
+|                       +--------------------------------------------+                        |
+|                       | Suitability for selected range             |                        |
+|                       | Variations / qualifiers / verification     |                        |
++-----------------------+--------------------------------------------+------------------------+
 
-Interaction / identity flow:
-
-  Search
-    │
-    ▼
-  canonical PART
-    ├──────────────► Parts Tree branch / selected occurrence
-    ├──────────────► all suitable Ranges ──► selected Range ──► variations / qualifiers
-    └──────────────► Part Image in Main View
+Search -> canonical PART -> relevant tree path
+                         -> applicable ranges -> selected range -> variations
+                         -> part details and one selected image/diagram
 ```
 
 The minimum map establishes six information areas: part-number entry/search status, resolved PART identity/context, Parts Tree branch, suitable vehicle Ranges, selected Range with variations/qualifiers, and Main View with Part Image or explicit unavailable state.
+
+### Initial and transitional states
+
+All regions are visible before Search and remain in their permanent positions during loading, empty, not-found and error states. Initial content is explicit empty/unavailable guidance, not a preselected or fabricated part. Clearing the query resets the context. Responses to superseded queries must not overwrite the current view.
+
+The EMF's empty-search stock browsing remains unavailable until an approved data contract supplies stock-based tree levels and model ranges; do not invent those entries. Vehicle top/side regions remain visible with unavailable states until verified model-specific views and location mapping are supplied. Image selection shows one image/diagram at a time, with part identity above it. Model-range selection filters the variations/qualifiers below without changing canonical PART identity.
 
 ## 1. Part search
 

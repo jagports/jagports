@@ -37,11 +37,12 @@ If the external stylesheet cannot be loaded, semantic HTML and the local stylesh
 
 ## Visual target
 
-The implementation follows the hierarchy of the #564 visualization rather than attempting a pixel-perfect copy:
+The implementation uses the EMF placement authority and the aligned ASCII map in UI_Specs.md, with the #564 visualization guiding typography and panel treatment:
 
-- prominent top search area;
-- coordinated PART, Parts Tree and Main View panels on normal desktop widths;
-- full-width suitability/variation area below them;
+- tree on the left and model ranges on the right;
+- search, vehicle top/side regions, combined part details/image and detailed suitability stacked in the centre;
+- a complete visible shell before Search, with explicit empty/unavailable states;
+- one image/diagram displayed at a time and variations filtered by selected range;
 - consistent panel/card treatment, spacing and typography;
 - explicit unavailable states remain visually distinct without inventing data;
 - the layout collapses to two columns and then one column at narrower widths.
