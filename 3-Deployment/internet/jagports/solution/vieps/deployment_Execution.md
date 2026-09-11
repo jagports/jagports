@@ -166,11 +166,17 @@ Use CLI/API first. Use UI only where no supported programmatic operation is avai
 
 ## Execution task result record
 
-Use the single VIEPS execution task result template:
+Use the single VIEPS execution task result template for **every actual P1–P10 execution-task result**:
 
 `3-Deployment/internet/jagports/solution/vieps/deployment_ExecutionTaskResultTemplate.md`
 
+The template is the required minimum record structure, not merely a reference example. Copy/use its fields in the relevant GitHub Issue or Pull Request comment for each actual task result.
+
+At minimum, each record must identify the date/time, operator, task, environment, resource, interface, command/dashboard path, expected result, observed result, status, verification evidence, and any deviation/decision.
+
 Record actual execution evidence in the relevant GitHub Issue/PR and execution record. Do not maintain a duplicate task-tracking system in deployment Markdown.
+
+Historical Issue/PR comments must not be rewritten merely to retrofit this template. The requirement applies to subsequent execution records.
 
 ## Credentials
 
