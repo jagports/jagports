@@ -262,9 +262,9 @@ Changes          Approved
   ↓                 ↓
 Implement          Merge
   ↓                 ↓
-Review conversation Close Issue
-continues             ↓
-                    DONE
+Review conversation    Close Issue
+continues                 ↓
+                        DONE
 ```
 
 ### Review conversation terminology
