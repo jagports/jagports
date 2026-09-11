@@ -254,16 +254,26 @@ Implementation PR
        ↓
 Ready for review
        ↓
-Review
-   ↙       ↘
-Changes   Approved
-  ↓           ↓
-Implement    Merge
-  ↓           ↓
-Review      Close Issue
-again           ↓
-              DONE
+Visible review discussion as needed
+       ↓
+Formal review outcome
+   ↙              ↘
+Changes          Approved
+  ↓                 ↓
+Implement          Merge
+  ↓                 ↓
+Discussion        Close Issue
+continues             ↓
+                    DONE
 ```
+
+Review communication follows the canonical semantics in `00-Management/WORKFLOWS.md`:
+
+- A GitHub `PENDING` review is a reviewer-private draft until submission. Pending review comments therefore cannot be relied upon for reviewer↔maker discussion.
+- When a reviewer needs interaction before submitting the formal review outcome, use an immediately visible single diff/line comment tied to the relevant PR diff/commit.
+- The maker/executor may reply and implement changes while the formal review is still unsubmitted.
+- If GitHub later marks a discussion `outdated` because the referenced diff changed, that state alone does not prove the concern was satisfied; the reviewer verifies whether it was addressed or remains applicable.
+- Formal review submission is the review conclusion. Where independent approval is required, `APPROVED` remains mandatory and must not be inferred from discussion activity, replies, implementation changes, resolved/outdated state, checkboxes, or inactivity.
 
 After a successful merge and completion of the work, the initiating Issue is closed with reason `completed`. The GitHub Project then represents the completed work with the appropriate final Project Status.
 
