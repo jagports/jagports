@@ -336,12 +336,12 @@ continue       Identify PR author/executor
 23. **Every reply to a review comment that reports implementation of a requested change must state what was changed to comply and include a direct, line-specific GitHub link to the actual implementation lines. Prefer a stable commit-pinned `blob/<commit>/<path>#Lx-Ly` link to the resulting lines; where GitHub provides an equivalent direct PR diff/review location that visibly identifies the changed lines, that may be used instead. A PR-level or file-level link alone is insufficient when a specific line link can be provided. The link must open the specific lines that implement the requested change, not merely the repository, PR, or file overview.**
 24. **The executor must establish the exact changed file and resulting line range before posting the reply. If the implementation spans multiple distinct line ranges, include a direct line-specific link for each relevant range. Do not claim line-specific implementation evidence until the link has been checked to lead to the intended changed lines.**
 25. **The line-specific implementation reply is evidence for reviewer verification; it does not resolve the review concern and does not satisfy the formal review approval gate by itself. The reviewer remains responsible for verification and resolution under the existing authority rule.**
-26. **Immediately before merge, the executing actor must freshly verify all applicable Issue Acceptance checkboxes, all required PR checklist checkboxes, current/effective review state, required review-comment resolution state, and required testing state.**
-27. **Merge is permitted only when all applicable Issue Acceptance boxes are `[x]`, all required PR checklist boxes are `[x]`, required tests are `PASS`, the current independent review state is `APPROVED`, and all actionable reviewer-owned concerns required for completion have been verified/resolved. Any failed component blocks merge.**
+26. **Immediately before merge, the executing actor must freshly verify all applicable Issue Acceptance checkboxes, all required PR checklist checkboxes, current/effective review state, and required testing state.**
+27. **Merge is permitted only when all applicable Issue Acceptance boxes are `[x]`, all required PR checklist boxes are `[x]`, required tests are `PASS`, and the current independent review state is `APPROVED`. Any failed component blocks merge.**
 
 Required human validation follows the approved testing gate:
 
-**Issue Acceptance all `[x]` + PR required checklist all `[x]` + actionable reviewer-owned concerns complete + required tests `PASS` + independent review `APPROVED` → merge permitted**
+**Issue Acceptance all `[x]` + PR required checklist all `[x]` + required tests `PASS` + independent review `APPROVED` → merge permitted**
 
 A post-merge test cannot substitute for required pre-merge validation.
 
@@ -412,8 +412,8 @@ If documents disagree about a Management workflow:
 2. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
 3. `SKILL.md` provides machine execution guidance and must implement/reference, not redefine, workflows.
 4. `.codex/skills/*` provides specialized procedures and must reference, not redefine, workflows.
-5. `KNOWLEDGE.md` contains durable knowledge and is not workflow authority.
+5. `KNOWLEDGE.md` contains durable knowledge, decisions, and lessons learned; not workflow authority.
 
-A conflict in a secondary document is a process defect: raise an Issue to correct the conflict rather than silently accepting or bypassing the contradiction.
+A conflict in a secondary document is a process defect: raise an Issue to correct it rather than silently accepting or bypassing the contradiction.
 
 An unresolved contradiction in the canonical workflow must be treated as a process defect and clarified before relying on the conflicting rule.
