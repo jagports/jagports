@@ -20,7 +20,7 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 10);
+  assert.equal(migrations.length, 11);
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
@@ -145,7 +145,7 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
       checked++;
     }
   }
-  assert.equal(checked, 24, 'all 24 FKs in the consolidated schema are exercised');
+  assert.equal(checked, 28, 'all 28 FKs in the consolidated schema are exercised');
 });
 
 test('canonical and relationship uniqueness reject duplicate populated identities', (t) => {
@@ -240,6 +240,18 @@ test('range and evidence deletion cascades do not delete catalogue parts', (t) =
 test('each existing step fixture executes with explicit prerequisites', (t) => {
   const fixtures = ['part_occurrence', 'part_image', 'part_vehicle_vin_applicability', 'part_supersession', 'part_fitment', 'part_diagram_location', 'part_stock_relationship'];
   for (const fixture of fixtures) {
+    if (fixture === 'part_stock_relationship') {
+      const db = new DatabaseSync(':memory:');
+      t.after(() => db.close());
+      db.exec('PRAGMA foreign_keys=ON');
+      const mvpStockMigration = migrations.indexOf('0011_mvp_stock_model.sql');
+      migrate(db, migrations.slice(0, mvpStockMigration));
+      db.exec(sql(`tests/fixtures/${fixture}.sql`));
+      migrate(db, migrations.slice(mvpStockMigration));
+      assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
+      assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);
+      continue;
+    }
     const db = withDatabase(t, { fixtures: false });
     if (fixture === 'part_occurrence') db.exec("INSERT INTO part(id,description) VALUES(1,'fixture prerequisite')");
     if (fixture === 'part_vehicle_vin_applicability') db.exec("INSERT INTO part(part_number_raw,part_number_normalized) VALUES('MNA7691AA','MNA7691AA')");
@@ -267,7 +279,7 @@ test('MVP API executes real queries after all migrations', async (t) => {
 
 test('documented indexes exist and principal relationship lookups use indexed searches', (t) => {
   const db = withDatabase(t);
-  const docs = sql('PART_MODEL.md');
+  const docs = `${sql('PART_MODEL.md')}\n${sql('MVP_STOCK_MODEL.md')}`;
   const indexes = db.prepare("SELECT name FROM sqlite_schema WHERE type='index' AND name NOT LIKE 'sqlite_%'").all();
   const documentedNames = [...new Set([...docs.matchAll(/`(idx_[a-z0-9_]+)`/g)].map((match) => match[1]))];
   assert.deepEqual(documentedNames.sort(), indexes.map((index) => index.name).sort());
