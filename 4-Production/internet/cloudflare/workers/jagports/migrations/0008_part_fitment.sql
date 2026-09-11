@@ -19,7 +19,14 @@ CREATE TABLE part_fitment (
 );
 
 CREATE UNIQUE INDEX idx_part_fitment_identity
-  ON part_fitment(part_occurrence_id, applicability_state, attribute_group, attribute_key, source_value, except_flag);
+  ON part_fitment(
+    part_occurrence_id,
+    applicability_state,
+    COALESCE(attribute_group, ''),
+    COALESCE(attribute_key, ''),
+    COALESCE(source_value, ''),
+    COALESCE(except_flag, '')
+  );
 CREATE INDEX idx_part_fitment_occurrence
   ON part_fitment(part_occurrence_id);
 CREATE INDEX idx_part_fitment_attribute
