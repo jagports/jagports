@@ -54,6 +54,57 @@ The UI is driven by a part-number search and presents three coordinated areas:
 
 The exact visual arrangement may be refined during implementation without changing the information architecture or data contract.
 
+### Concept View-1 visual source and minimum MVP ASCII map
+
+**Concept UI image source:** `5-Implementation-Projects/internet/cloudflare/jagports/vieps/VIEPS UI/VIEPS UI-Concept-1.emf`
+
+The following map is the normative text representation of the minimum demonstrable Concept View-1 UI derived from that Concept UI image. It defines UI element placement and relationships, not pixel dimensions.
+
+```text
++------------------------------------------------------------------------------------------------+
+| VIEPS — Concept View-1                                                                         |
+|                                                                                                |
+|  [ Jaguar part number __________________________ ] [ Search ]                                   |
+|  Search status:  [empty / invalid / not found / resolved / error]                              |
++------------------------------------------------------------------------------------------------+
+|                                                                                                |
+|  PART / identity                 Parts Tree branch                    Main View / Part Image    |
+|  +-------------------------+     +--------------------------------+    +---------------------+  |
+|  | Canonical PART          |     | Category                       |    |                     |  |
+|  | Part number / desc.     |     |   └─ Parent                    |    |    PART IMAGE       |  |
+|  | Raw number (if any)     |     |      └─ Selected PART          |    |                     |  |
+|  | Verification / source   |     |         └─ occurrence/context |    |  or                 |  |
+|  |                         |     |                                |    |  [Image unavailable]|  |
+|  | EPC occurrence context  |     +--------------------------------+    |                     |  |
+|  +-------------------------+                                           +---------------------+  |
+|                                                                                                |
++------------------------------------------------------------------------------------------------+
+|  Suitability Model Ranges                       |  Selected Range / Variations                 |
+|  +----------------------------------------------+---------------------------------------------+|
+|  | All suitable Ranges/models                   |  Range: [selected suitable Range]           ||
+|  |                                              |                                             ||
+|  |  [Range A]                                   |  Applicable variations / qualifiers:        ||
+|  |  [Range B]                                   |                                             ||
+|  |  [Range C]                                   |   [Variation 1]  [Qualifier]               ||
+|  |  ...                                         |   [Variation 2]  [Qualifier]               ||
+|  |                                              |   ...                                       ||
+|  |  [No applicability / unavailable state]     |  [No variations / unavailable state]       ||
+|  +----------------------------------------------+---------------------------------------------+|
++------------------------------------------------------------------------------------------------+
+
+Interaction / identity flow:
+
+  Search
+    │
+    ▼
+  canonical PART
+    ├──────────────► Parts Tree branch / selected occurrence
+    ├──────────────► all suitable Ranges ──► selected Range ──► variations / qualifiers
+    └──────────────► Part Image in Main View
+```
+
+The minimum map establishes six information areas: part-number entry/search status, resolved PART identity/context, Parts Tree branch, suitable vehicle Ranges, selected Range with variations/qualifiers, and Main View with Part Image or explicit unavailable state.
+
 ## 1. Part search
 
 - Search by canonical Jaguar part number.
