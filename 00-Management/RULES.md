@@ -38,7 +38,9 @@ When review is required, GitHub's native PR reviewer request/notification is use
 
 ### Review authority
 
-Review comments belong to the reviewer who submitted the review. That reviewer is the only actor authorized to resolve comments belonging to that review. Executors, PR authors, and other non-reviewers must not resolve those comments on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined in `WORKFLOWS.md`.
+Reviewer-owned review concerns remain under that reviewer's resolution authority whether they are raised through visible PR diff/line discussion before formal review submission or through comments associated with a submitted review. Executors, PR authors, and other non-reviewers must not resolve those concerns on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined in `WORKFLOWS.md`.
+
+A GitHub `PENDING` review is a reviewer-private draft until submission. When reviewer↔maker interaction is required before the formal review outcome, visible submitted diff/line comments are used according to `WORKFLOWS.md`. A discussion becoming `outdated` because the referenced diff changed is not by itself acceptance or semantic resolution of the underlying concern.
 
 ### Record integrity
 
