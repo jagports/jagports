@@ -15,7 +15,8 @@ const fixture = await readFile(
 test("PART_IMAGE is a separate entity linked to canonical PART", () => {
   assert.match(migration, /CREATE TABLE part_image/i);
   assert.match(migration, /part_id INTEGER NOT NULL REFERENCES part\(id\) ON DELETE CASCADE/i);
-  assert.match(migration, /image_ref TEXT NOT NULL/i);
+  assert.match(migration, /image_ref TEXT,/i);
+  assert.match(migration, /CHECK \(image_ref IS NOT NULL OR availability_status = 'unavailable'\)/i);
   assert.doesNotMatch(migration, /image_data|BLOB/i);
 });
 
@@ -43,5 +44,5 @@ test("image evidence can be attached to an unidentified PART", () => {
 });
 
 test("image reference must not be blank", () => {
-  assert.match(migration, /CHECK \(TRIM\(image_ref\) <> ''\)/i);
+  assert.match(migration, /CHECK \(image_ref IS NULL OR TRIM\(image_ref\) <> ''\)/i);
 });

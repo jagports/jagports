@@ -26,7 +26,12 @@ CREATE TABLE part_fitment (
   vehicle_range_id INTEGER REFERENCES vehicle_range(id) ON DELETE CASCADE,
   variation TEXT,
   qualifier TEXT,
-  CHECK (part_occurrence_id IS NOT NULL OR part_id IS NOT NULL),
+  -- One scope per row: source occurrence, or the existing PART/range pair.
+  -- Reject mixed scopes that could identify two different catalogue parts.
+  CHECK (
+    (part_occurrence_id IS NOT NULL AND part_id IS NULL AND vehicle_range_id IS NULL)
+    OR (part_occurrence_id IS NULL AND part_id IS NOT NULL AND vehicle_range_id IS NOT NULL)
+  ),
   CHECK (TRIM(applicability_state) <> ''),
   CHECK (applicability_state IN ('applicable', 'excluded', 'unavailable')),
   CHECK (source_value IS NULL OR TRIM(source_value) <> ''),
@@ -48,7 +53,8 @@ SELECT
   vehicle_range_id,
   variation,
   qualifier,
-  'applicable',
+  -- Preserve the old qualifier without inventing a verified attribute meaning.
+  'unavailable',
   verification_status
 FROM temp_part_fitment_migration;
 
@@ -58,8 +64,8 @@ CREATE UNIQUE INDEX idx_part_fitment_range_identity
   ON part_fitment(
     part_id,
     vehicle_range_id,
-    COALESCE(variation, ''),
-    COALESCE(qualifier, '')
+    variation,
+    qualifier
   )
   WHERE part_id IS NOT NULL AND vehicle_range_id IS NOT NULL AND part_occurrence_id IS NULL;
 

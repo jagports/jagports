@@ -34,7 +34,7 @@ Examples: `MNA 7691-AA` → `MNA7691AA`; `mna-7691-aa` → `MNA7691AA`; `XR84703
 
 ## PART image and identification evidence
 
-`part_image` is a separate child entity of canonical `part`. It stores a stable image record ID, `part_id`, required opaque `image_ref`, source/provenance, optional description, and verification status. One PART may have multiple images, including before its catalogue part number is known. Image descriptions are not identity fields and image identity is constrained per PART by `(part_id, image_ref)`.
+`part_image` is a separate child entity of canonical `part`. It stores a stable image record ID, `part_id`, opaque `image_ref` (required for available evidence), source/provenance, optional description, and verification status. One PART may have multiple images, including before its catalogue part number is known. Image descriptions are not identity fields and non-NULL image identity is constrained per PART by `(part_id, image_ref)`. An unavailable image placeholder has `image_ref = NULL` and `availability_status = unavailable`; no invented reference is needed.
 
 ## PART vehicle and VIN applicability
 
@@ -54,12 +54,12 @@ This is an explicit directed relationship between catalogue parts, not a generic
 
 ## PART fitment and attribute applicability
 
-`part_fitment` is an occurrence-level relationship used to preserve applicability constraints without duplicating canonical PART identity.
+`part_fitment` stores source occurrence constraints and retained PART/range qualifiers in one domain table. Every row has exactly one scope: an occurrence, or a PART plus `vehicle_range` pair. It cannot name both scopes. Retained range qualifiers remain source text; migration sets their canonical applicability state to `unavailable` rather than inventing verified attribute semantics.
 
 | Field | Requirement | Meaning |
 |---|---|---|
 | `id` | required | Stable fitment-record identifier. |
-| `part_occurrence_id` | required | FK to the EPC/application occurrence whose applicability is being described. |
+| `part_occurrence_id` | required for occurrence scope | FK to the EPC/application occurrence; NULL only for a PART/range row. |
 | `applicability_state` | required | `applicable`, `excluded`, or `unavailable`. |
 | `attribute_group` | optional | Original/source attribute group identifier. |
 | `attribute_key` | optional | Original/source attribute key. |
@@ -135,22 +135,22 @@ Apply `migrations/*.sql` once in filename order, with foreign keys enabled, usin
 | 0002 | Replaces `part_reference` with `part`, retaining IDs/provenance; normalizes known numbers and rejects collisions rather than merging records. |
 | 0003 | Deployment-1 `vehicle_range`, tree, image, diagram and range/variation fitment presentation tables. |
 | 0004 | Canonical PART occurrences with source identity. |
-| 0005 | Renames the 0003 image table to `deployment1_part_image`, preserves all rows, then creates canonical `part_image`. |
+| 0005 | Rebuilds `part_image` using migration-only `temp_part_image_migration`; copies IDs, image URLs into `image_ref`, kind, caption and verification, marks NULL URLs unavailable, then drops staging. |
 | 0006 | Canonical model/VIN ranges and PART links. |
 | 0007 | Directed supersession. |
-| 0008 | Renames the 0003 fitment table to `deployment1_part_fitment`, preserves all rows, then creates canonical occurrence-level `part_fitment`. |
+| 0008 | Rebuilds `part_fitment` using migration-only `temp_part_fitment_migration`; preserves PART/range qualifiers and IDs, adds occurrence scope, then drops staging. |
 | 0009 | Canonical diagram, occurrence link, hotspot and vehicle-location evidence. |
 | 0010 | Nullable PART/donor FKs plus provenance and availability on stock; existing stock remains unresolved, without an inferred backfill. |
 
-The uncorrected 0005/0008 scripts collided with the tables already created by 0003. This consolidation repairs those transitions rather than adding a late migration that could never be reached. Supported paths are a fresh database and a database with the original ordered migrations applied through 0003/0004 (or later successfully completed prefixes). The upgrade tests load populated 0003 data and verify preservation. Existing image placeholders are not converted to invented `image_ref` values, and range/variation rows are not interpreted as source fitment attributes.
+The uncorrected 0005/0008 scripts collided with the tables already created by 0003. This consolidation repairs those transitions rather than adding a late migration that could never be reached. Supported paths are a fresh database and a database with the original ordered migrations applied through 0003/0004 (or later successfully completed prefixes). The upgrade tests load populated 0003 data and verify preservation, including multiple NULL image placeholders and duplicate NULL-bearing range qualifiers. Existing image placeholders are not converted to invented `image_ref` values, and range/variation rows are not interpreted as source fitment attributes. Persistent names describe the domain; migration-only staging uses `temp_*` and is dropped before completion.
 
-Before upgrading an existing D1 database, inspect its migration ledger and table shapes. A database that skipped 0003, manually applied 0005/0008, or marked failed migrations as applied has a divergent history and needs an explicit reconciliation plan; do not replay scripts or rename tables blindly. No remote D1 migration or deployment is performed by this consolidation. Back up the database and deploy the compatible Worker together with the migration upgrade. The updated Worker expects both compatibility tables after 0008.
+Before upgrading an existing D1 database, inspect its migration ledger and table shapes. A database that skipped 0003, manually applied 0005/0008, or marked failed migrations as applied has a divergent history and needs an explicit reconciliation plan; do not replay scripts or rename tables blindly. No remote D1 migration or deployment is performed by this consolidation. Back up the database and deploy the updated Worker together with the migration upgrade. The updated Worker expects the evolved `part_image` and `part_fitment` shapes after 0008. A repeated non-NULL image reference for the same PART, or a blank legacy URL, needs explicit source reconciliation: 0005 rejects it transactionally and retains the original table/rows rather than silently discarding evidence. D1 migration application must retain its transaction boundary.
 
-`src/vieps.js` continues to consume Deployment-1 presentation data from the renamed image/fitment tables, `part_diagram`, `vehicle_range`, and tree tables. It does not yet expose canonical image/fitment records. Canonical ingestion/API integration is subsequent work. This table-routing correction preserves the existing response fields and does not add UI behavior.
+`src/vieps.js` reads images from `part_image`, projecting `image_ref AS image_url` and adding `availability_status`. It reads range qualifiers from PART-scoped `part_fitment` rows; occurrence constraints are not yet exposed by this endpoint. It also consumes `part_diagram`, `vehicle_range`, and tree tables. Existing response fields remain; image availability is now explicit. No UI behavior is added. A reference remains opaque evidence; the API alias alone does not guarantee a browser-renderable URL.
 
 ## Complete field dictionary
 
-The dictionary describes the resulting schema through 0010, including retained compatibility entities. `?` means SQL NULL is allowed: absent/unknown/not supplied, never an inferred positive or negative claim. Unless a special meaning is stated below, optional text is source evidence with no assumed taxonomy. Required text may still be blank unless a CHECK is explicitly documented. SQLite affinities are not strict types; application/import validation is still necessary.
+The dictionary describes the resulting schema through 0010, including retained range/tree/presentation entities. `?` means SQL NULL is allowed: absent/unknown/not supplied, never an inferred positive or negative claim. Unless a special meaning is stated below, optional text is source evidence with no assumed taxonomy. Required text may still be blank unless a CHECK is explicitly documented. SQLite affinities are not strict types; application/import validation is still necessary.
 
 Every standalone `id` below is `INTEGER PRIMARY KEY AUTOINCREMENT`: a stable row identity, automatically assigned when omitted. Link tables use the listed composite primary key instead. All FKs reference integer IDs, never descriptions or part-number text. IDs must be preserved across imports/updates; AUTOINCREMENT does not make catalogue data immutable.
 
@@ -162,7 +162,7 @@ Where listed, these definitions apply individually to each field, not to entitie
 |---|---|---|
 | `source` | TEXT ? | Source system/document identifier; required and nonblank on `part_occurrence`. |
 | `source_ref` | TEXT ? | Evidence URL/reference; required and nonblank on `part_occurrence`. A reference is not necessarily a URL. |
-| `verification_status` | TEXT required, default `unverified` | Source/manual verification claim, not a controlled enum. Retained Deployment-1 entities default to `fixture`. No claim is independently verified merely by setting this field. |
+| `verification_status` | TEXT required, default `unverified` | Source/manual verification claim, not a controlled enum. Retained `vehicle_range` and `part_diagram` default to `fixture`; rebuilt image/fitment tables default to `unverified` and retain each migrated row's original status. No claim is independently verified merely by setting this field. |
 | `confidence` | TEXT ? on supersession/fitment/diagram/location; REAL ? on stock | Source confidence value. There is no shared vocabulary, numeric interval or conversion policy. |
 | `created_at`, `updated_at` | TEXT required, default CURRENT_TIMESTAMP | On vehicle and stock only. Creation/insertion defaults; `updated_at` has no automatic update trigger. Writers must maintain it. |
 
@@ -172,7 +172,7 @@ Where listed, these definitions apply individually to each field, not to entitie
 |---|---|
 | `part` | `id`; `part_number_raw` TEXT ? original number; `part_number_normalized` TEXT ? lookup key; `description` TEXT ? non-unique description; `source`, `source_ref`, `verification_status`. Raw and normalized values are independently nullable; SQL does not derive or check agreement between them. |
 | `part_occurrence` | `id`; `part_id` INTEGER required FK; `source`, `source_ref`; `context_type` TEXT required default `epc`, nonblank source context kind; `context_ref` TEXT ? source application reference; `category_ref` TEXT ? source category; `item_number` TEXT ? source item identifier; `diagram_ref` TEXT ? unresolved/source diagram identifier; `diagram_item_number` TEXT ? source diagram item; `verification_status`. Diagram text is evidence, not a relational FK. |
-| `part_image` | `id`; `part_id` INTEGER required FK; `image_ref` TEXT required nonblank opaque evidence reference; `source`, `source_ref`; `description` TEXT ? image caption; `verification_status`. Multiple views of an unidentified PART are permitted. No image encoding/storage format is prescribed. |
+| `part_image` | `id`; `part_id` INTEGER required FK; `image_ref` TEXT ? nonblank opaque evidence reference when supplied; `image_kind` TEXT required default `representative`, unconstrained source kind; `description` TEXT ? caption; `source`, `source_ref`, `verification_status`; `availability_status` TEXT required default `available`, enum `available`/`unavailable`. NULL reference requires `unavailable`; an unavailable row may retain a non-NULL reference. Multiple unidentified views and NULL placeholders are permitted. No image encoding/storage format is prescribed. |
 
 ### Applicability and supersession
 
@@ -183,7 +183,7 @@ Where listed, these definitions apply individually to each field, not to entitie
 | `part_model_range` | Composite PK `part_id`, `model_range_id` (INTEGER required FKs); `source`, `source_ref`, `verification_status` describe evidence for this link. |
 | `part_vin_range` | Composite PK `part_id`, `vin_range_id` (INTEGER required FKs); `source`, `source_ref`, `verification_status` describe evidence for this link. |
 | `part_supersession` | Composite PK `superseded_part_id`, `superseding_part_id` (INTEGER required FKs); `source`, `source_ref`, `verification_status`, `confidence`; `effective_from`, `effective_to` TEXT ? source historical boundaries. NULL is an unknown/unsupplied boundary, not proof of unlimited validity. |
-| `part_fitment` | `id`; `part_occurrence_id` INTEGER required FK; `applicability_state` TEXT required default `applicable`, enum `applicable`/`excluded`/`unavailable`; `attribute_group`, `attribute_key` TEXT ? original attribute identifiers; `source_value` TEXT ? nonblank original value when supplied; `except_flag` TEXT ? nonblank original exclusion indicator; `source`, `source_ref`, `verification_status`, `confidence`. A row's default is not evidence of applicability: ingestion must choose the state explicitly. |
+| `part_fitment` | `id`; `part_occurrence_id` INTEGER ? FK; `part_id` INTEGER ? FK; `vehicle_range_id` INTEGER ? FK to retained `vehicle_range`; `variation`, `qualifier` TEXT ? retained source range qualifiers. Exactly one scope is required: occurrence with both direct IDs NULL, or PART/range pair with occurrence NULL; `applicability_state` TEXT required default `applicable`, enum `applicable`/`excluded`/`unavailable`; `attribute_group`, `attribute_key` TEXT ? original attribute identifiers; `source_value` TEXT ? nonblank original value when supplied; `except_flag` TEXT ? nonblank original exclusion indicator; `source`, `source_ref`, `verification_status`, `confidence`. A row's default is not evidence of applicability: ingestion must choose the state explicitly. |
 
 ### Diagrams, hotspots and catalogue location
 
@@ -202,18 +202,16 @@ Where listed, these definitions apply individually to each field, not to entitie
 | `vehicle_identifier` | `id`; `vehicle_id` INTEGER required FK; `identifier_type` TEXT required source identifier kind; `location` TEXT ? where the identifier was observed on the vehicle; `raw_value` TEXT required observed value; `normalized_value` TEXT ? derived lookup representation; `source_ref`, `verification_status`. Multiple/conflicting observations remain representable. |
 | `stock_item` | `id`; `part_number` TEXT required historical/stocked reference (not canonical identity); `quantity` INTEGER required default 0, CHECK >=0; `condition` TEXT required default `unknown`; `status` TEXT required default `available`; `location` TEXT ? physical storage; `donor_vehicle` TEXT ? original donor text; `source_ref`; `notes` TEXT ? operational notes; `created_at`, `updated_at`; `part_id` INTEGER ? FK (unresolved or deleted catalogue identity); `donor_vehicle_id` INTEGER ? FK (unresolved or deleted donor); `source`, `verification_status`, `confidence`; `available` INTEGER required default 1, enum 0/1. Status/condition are not enums; status, available and quantity are not automatically synchronized. Price is not implemented. |
 
-### Retained Deployment-1 compatibility entities
+### Retained range and presentation entities
 
-These retain their original presentation semantics and fixture defaults. They are not aliases for canonical model ranges, images, fitment or diagrams.
+These retain their original presentation semantics. `vehicle_range` is not an alias for `model_range`; no unverified conversion or collapse is performed. Rebuilt images and fitment use their normal domain tables documented above. There are no persistent deployment-specific or compatibility tables.
 
 | Entity | Fields and purposes |
 |---|---|
 | `vehicle_range` | `id`; `range_code` TEXT required unique presentation range code; `name` TEXT required display name; `verification_status` default `fixture`. |
 | `part_tree_node` | `id`; `parent_id` INTEGER ? self FK (NULL root); `label` TEXT required presentation label; `sort_order` INTEGER required default 0. No cycle CHECK. |
 | `part_tree_part` | Composite PK `tree_node_id`, `part_id` (INTEGER required FKs); many-to-many presentation tree membership. |
-| `deployment1_part_image` | `id`; `part_id` INTEGER required FK; `image_url` TEXT ? unavailable if NULL; `image_kind` TEXT required default `representative` (unconstrained kind); `description` TEXT ? caption; `verification_status` default `fixture`. Retains placeholders rather than fabricating canonical evidence. |
 | `part_diagram` | `id`; `part_id` INTEGER required FK; `title` TEXT required display title; `image_url` TEXT ? image URL; `availability_status` TEXT required default `available`, unconstrained status; `source_ref`; `verification_status` default `fixture`. |
-| `deployment1_part_fitment` | `id`; `part_id`, `vehicle_range_id` INTEGER required FKs; `variation`, `qualifier` TEXT ? presentation/source qualifiers; `verification_status` default `fixture`. Not occurrence-level applicability. |
 
 ## Cardinalities, identity and deletion
 
@@ -224,7 +222,8 @@ All parents may have zero children. FKs reject nonexistent non-NULL parents. All
 | PART → occurrence / image | 1:N, each child has exactly one PART; cascade deletes children. Occurrence identity `(part_id, source, source_ref)`; image identity `(part_id, image_ref)`. |
 | PART ↔ model / VIN range | N:M via composite link PKs. Deleting either endpoint removes links, not the other endpoint. |
 | PART → superseding PART | Directed N:M graph, ordered pair PK; self-links rejected. Deleting either PART removes incident edges, not other PARTs or stock. |
-| Occurrence → fitment | 1:N, required occurrence FK. Expression unique index uses occurrence/state plus `COALESCE(..., '')` for all four attribute/value/exclusion fields. NULL and empty group/key therefore collide; different source references alone do not distinguish the same fitment identity. |
+| Occurrence → fitment | 1:N for occurrence-scoped rows. Partial expression unique index uses occurrence/state plus `COALESCE(..., '')` for all four attribute/value/exclusion fields. NULL and empty group/key therefore collide; different source references alone do not distinguish the same fitment identity. |
+| PART / vehicle range → fitment | Both required for range-scoped rows; each parent 1:N. The occurrence must be NULL. Partial unique key `(part_id, vehicle_range_id, variation, qualifier)` retains ordinary nullable uniqueness. Deleting either parent cascades the row; the other parent remains. |
 | Occurrence ↔ diagram | N:M composite PK. Deleting either endpoint removes links. |
 | Diagram → hotspot | 1:N required diagram; deleting diagram removes hotspots. |
 | Occurrence → hotspot | 1:N optional occurrence; deleting occurrence SET NULL preserves hotspot/source evidence. Independent FKs do not enforce occurrence-diagram membership in the link table. |
@@ -232,11 +231,11 @@ All parents may have zero children. FKs reject nonexistent non-NULL parents. All
 | PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 PART and 0..1 donor. Deleting either parent SET NULL preserves stock identity, quantity, historical number, donor text and location. Supersession never mutates stock. |
 | Vehicle → identifiers | 1:N; cascade on vehicle deletion. Identifier text is not unique. |
 | Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. N:M PART membership; deleting either endpoint removes memberships. |
-| PART → Deployment-1 image / diagram / fitment | 1:N; cascade on PART deletion. `vehicle_range` → Deployment-1 fitment also 1:N with cascade. |
+| PART → part diagram | 1:N; cascade on PART deletion. |
 
 The normalized PART number has a partial unique index for non-NULL values; multiple NULL identities and duplicate descriptions are valid. The database does not compute normalization on new writes. JS normalization removes Unicode whitespace/hyphens and uppercases; 0002's historical SQL removes ASCII space/tab/CR/LF/hyphen with SQLite UPPER. They are not a universal Unicode equivalence contract. Importers should use the approved normalization and detect collisions explicitly.
 
-`diagram(source, source_ref, diagram_ref)`, `part_vehicle_location(part_occurrence_id, model_range_id, location_ref, system_ref, category_ref)` and the Deployment-1 fitment unique index use SQLite's ordinary NULL semantics: duplicates are possible when any indexed component is NULL. These are not nullable-key deduplication guarantees. Empty strings and NULL may also differ. Fixture replay/import idempotency must not rely on `INSERT OR IGNORE` alone for these entities.
+`diagram(source, source_ref, diagram_ref)`, `part_vehicle_location(part_occurrence_id, model_range_id, location_ref, system_ref, category_ref)` and the PART/range-scoped fitment unique index use SQLite's ordinary NULL semantics: duplicates are possible when any indexed component is NULL. These are not nullable-key deduplication guarantees. Empty strings and NULL may also differ. Fixture replay/import idempotency must not rely on `INSERT OR IGNORE` alone for these entities.
 
 ## Index inventory and query contract
 
@@ -246,11 +245,11 @@ The executable tests inspect the actual index catalogue and column order, unique
 |---|---|
 | `part` | `idx_part_number_normalized_unique` UNIQUE (`part_number_normalized`) WHERE non-NULL; `idx_part_number_raw` (`part_number_raw`). |
 | `part_occurrence` | `idx_part_occurrence_identity` UNIQUE (`part_id`, `source`, `source_ref`); `idx_part_occurrence_part` (`part_id`); `idx_part_occurrence_context` (`context_type`, `context_ref`); `idx_part_occurrence_diagram` (`diagram_ref`, `diagram_item_number`). |
-| `part_image` | `idx_part_image_identity` UNIQUE (`part_id`, `image_ref`); `idx_part_image_part` (`part_id`); `idx_part_image_source` (`source`, `source_ref`). |
+| `part_image` | `idx_part_image_identity` UNIQUE (`part_id`, `image_ref`) WHERE non-NULL reference; `idx_part_image_part` (`part_id`); `idx_part_image_source` (`source`, `source_ref`). |
 | `vin_range` | `idx_vin_range_prefix_serial` (`vin_prefix`, `serial_start`, `serial_end`). Text ordering alone is not VIN applicability. |
 | `part_model_range`, `part_vin_range` | `idx_part_model_range_range` (`model_range_id`); `idx_part_vin_range_range` (`vin_range_id`). Composite PKs support PART-first lookups. |
 | `part_supersession` | `idx_part_supersession_superseding` (`superseding_part_id`); `idx_part_supersession_superseded` (`superseded_part_id`). The latter overlaps the PK prefix but remains present. |
-| `part_fitment` | `idx_part_fitment_identity` UNIQUE expression key described above; `idx_part_fitment_occurrence` (`part_occurrence_id`); `idx_part_fitment_attribute` (`attribute_group`, `attribute_key`, `source_value`). |
+| `part_fitment` | `idx_part_fitment_identity` UNIQUE expression key WHERE occurrence non-NULL; `idx_part_fitment_range_identity` UNIQUE (`part_id`, `vehicle_range_id`, `variation`, `qualifier`) WHERE PART/range non-NULL and occurrence NULL; `idx_part_fitment_part` (`part_id`); `idx_part_fitment_occurrence` (`part_occurrence_id`); `idx_part_fitment_range` (`vehicle_range_id`); `idx_part_fitment_attribute` (`attribute_group`, `attribute_key`, `source_value`). |
 | `diagram` | `idx_diagram_identity` UNIQUE (`source`, `source_ref`, `diagram_ref`). Use a complete source identity or ID; `diagram_ref` alone is not globally unique/index-leading. |
 | `part_occurrence_diagram` | `idx_part_occurrence_diagram_diagram` (`diagram_id`); PK supports occurrence-first lookup. |
 | `diagram_hotspot` | `idx_diagram_hotspot_diagram` (`diagram_id`); `idx_diagram_hotspot_occurrence` (`part_occurrence_id`); `idx_diagram_hotspot_item` (`diagram_id`, `item_number`). |
@@ -258,8 +257,7 @@ The executable tests inspect the actual index catalogue and column order, unique
 | `stock_item` | `idx_stock_item_part_number` (`part_number`); `idx_stock_item_status` (`status`); `idx_stock_item_location` (`location`); `idx_stock_item_part_id` (`part_id`); `idx_stock_item_available` (`available`); `idx_stock_item_donor_vehicle` (`donor_vehicle_id`); `idx_stock_item_source` (`source`). |
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw` (`vin_raw`); `idx_vehicle_serial` (`serial`); `idx_vehicle_identifier_normalized` (`normalized_value`). No vehicle-first identifier index is present; assess separately at operational scale. |
 | `part_tree_node`, `part_tree_part` | `idx_part_tree_parent` (`parent_id`, `sort_order`); `idx_part_tree_part_part` (`part_id`), plus membership PK. |
-| Compatibility images / diagrams | `idx_deployment1_part_image_part` (`part_id`); `idx_part_diagram_part` (`part_id`). |
-| Compatibility fitment | `idx_deployment1_part_fitment_unique` UNIQUE (`part_id`, `vehicle_range_id`, `variation`, `qualifier`); `idx_deployment1_part_fitment_part` (`part_id`); `idx_deployment1_part_fitment_range` (`vehicle_range_id`). |
+| `part_diagram` | `idx_part_diagram_part` (`part_id`). |
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID. Reverse range/supersession/diagram/donor queries use the reverse indexes. Stock filters have independent indexes; combined predicates and sorts require query-plan measurement with representative inventory before adding composite indexes. The current Deployment-1 API combines normalized/raw/description with OR and ordering; unindexed description fallback can scan `part`. Canonical index presence does not prove that entire mixed query is indexed. Do not make descriptions unique to improve lookup.
 
@@ -269,7 +267,7 @@ Run `npm test` from this Worker directory using Node 24 or newer. Tests use buil
 
 `tests/fixtures/part_model_integrity.sql` is a coherent single-load synthetic graph, not real inventory. It demonstrates all eleven representative fixture requirements in #354, with IDs in the 538xx/539xx range: multiple occurrences and unidentified images, model/VIN links, positive/excluded/unavailable fitment, mapped/unmapped hotspots, verified/unavailable locations, `MNA7691AA → XR847031` and a longer synthetic chain, many-to-one replacement, multiple stock records, donor identity and unresolved stock. Provenance is explicitly fixture evidence. Never present synthetic vehicle zones or VINs as verified domain facts.
 
-`deployment1.sql` targets the completed schema and remains presentation data. The upgrade test uses its original table names at the 0003 stage to prove row-for-row preservation. Individual older step fixtures run in separate fresh databases; the occurrence fixture needs PART ID 1, and the VIN fixture needs `MNA7691AA`. They are not a combined or idempotent production seed set: some reuse numbers/IDs and nullable identities. The acceptance graph supplies coherent combined coverage instead.
+`deployment1.sql` is a historical filename for an MVP presentation fixture targeting the completed normal schema, not a schema naming convention. The upgrade test inserts original 0003-shaped rows and compares every retained field after rebuilding, including nullable duplicates and unavailable placeholders. A collision test proves transactional rollback retains original image records. Individual older step fixtures run in separate fresh databases; the occurrence fixture needs PART ID 1, and the VIN fixture needs `MNA7691AA`. They are not a combined or idempotent production seed set: some reuse numbers/IDs and nullable identities. The acceptance graph supplies coherent combined coverage instead.
 
 Tests execute every declared FK against a nonexistent parent, concrete unique collisions, required/CHECK boundaries, nullable exceptions, cascading and SET NULL deletion, normalization-collision rollback, and principal indexed queries. The older SQL-text assertions remain supplemental structure checks, not proof that the schema can execute.
 
@@ -279,7 +277,7 @@ These remain open boundaries, not silently selected product rules. They do not p
 
 | Decision / gap | Current representation and owner for later resolution |
 |---|---|
-| Dedicated model/variant and occurrence-scoped range links | PART-level links only; source context text on occurrences. #354/#355 must approve any richer source-to-model mapping. |
+| Dedicated model/variant and occurrence-scoped range links | PART-level links plus retained PART/vehicle-range qualifiers; source context text on occurrences. #354/#355 must approve richer source-to-model mapping. Range-partitioned D1 routing/cross-database identity remain separate follow-up #555; current local FKs are not a permanent single-D1 architecture. |
 | VIN ordering, inclusion, decoding and derived provenance | Source TEXT fields only, no ordered-boundary CHECK or decoder, no confidence/derivation column. Dedicated VIN work and #354 own a future typed contract. KOVuosi is not an inference source. |
 | Confidence and verification vocabularies | Uncontrolled text, with REAL affinity only on stock confidence. #353/#354/#355 must define any conversion or controlled states. |
 | Nullable identity / import idempotency | NULL-bearing diagram/location keys allow repeats; importer #355 must define evidence identity/deduplication before imposing stronger uniqueness. |
@@ -287,7 +285,7 @@ These remain open boundaries, not silently selected product rules. They do not p
 | Vehicle zone/system/category taxonomy | Opaque references with explicit mapping state, not authoritative geometry/classification. #361/#362 own final taxonomy. |
 | Fitment semantic interpretation | Source attributes/except flag retained; no consistency rule or typed interpretation relation. #355 must establish source semantics before mapping. |
 | Supersession cycles, chronology and evidence multiplicity | Directed pair, no multi-hop cycle/date ordering checks; one evidence tuple per pair. #354/#364 own future graph/evidence policy. Traversal must bound/track visited IDs. |
-| Canonical versus Deployment-1 presentation data | Compatibility records preserved without semantic conversion; canonical image/fitment API exposure and legacy retirement require explicit importer/API follow-up. |
+| Occurrence versus PART/range fitment | One domain table with mutually exclusive scopes; retained range qualifiers are not verified source attributes. The current API projects range qualifiers only. Importer/API work must consume the scope and provenance explicitly. |
 | JEPC source/release/snapshot identity | Source/reference text exists, but no dedicated release, snapshot or `isClassic` field/entity is implemented. #354/#355 own that contract; do not infer Classic state from supersession or stock. |
 | Stock status, quantities and price | Quantity >=0 and available 0/1 only; SQLite INTEGER affinity does not reject every fractional value. No status/availability synchronization, price/currency, transactions or reservations implementation. #353/#280 own additions and approved operational validation. |
 | Canonical normalization and raw agreement | Import/application responsibility; SQL accepts independently supplied values. Universal Unicode normalization and collision policy require explicit approval before broadening existing ASCII catalogue behavior. |
