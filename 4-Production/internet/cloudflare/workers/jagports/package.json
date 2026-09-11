@@ -5,7 +5,7 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "test": "node --test tests/*.mjs",
-    "test:deployment1": "node --test tests/deployment1-e2e.mjs",
+    "test:runtime": "node --test tests/vieps-runtime-e2e.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },

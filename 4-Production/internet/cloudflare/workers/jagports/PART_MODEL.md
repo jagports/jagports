@@ -133,7 +133,7 @@ Apply `migrations/*.sql` once in filename order, with foreign keys enabled, usin
 |---|---|
 | 0001 | Operational `stock_item`, `vehicle`, `vehicle_identifier`; historical `part_reference`. |
 | 0002 | Replaces `part_reference` with `part`, retaining IDs/provenance; normalizes known numbers and rejects collisions rather than merging records. |
-| 0003 | Deployment-1 `vehicle_range`, tree, image, diagram and range/variation fitment presentation tables. |
+| 0003 | VIEPS `vehicle_range`, tree, image, diagram and range/variation fitment presentation tables. |
 | 0004 | Canonical PART occurrences with source identity. |
 | 0005 | Rebuilds `part_image` using migration-only `temp_part_image_migration`; copies IDs, image URLs into `image_ref`, kind, caption and verification, marks NULL URLs unavailable, then drops staging. |
 | 0006 | Canonical model/VIN ranges and PART links. |
@@ -259,7 +259,7 @@ The executable tests inspect the actual index catalogue and column order, unique
 | `part_tree_node`, `part_tree_part` | `idx_part_tree_parent` (`parent_id`, `sort_order`); `idx_part_tree_part_part` (`part_id`), plus membership PK. |
 | `part_diagram` | `idx_part_diagram_part` (`part_id`). |
 
-Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID. Reverse range/supersession/diagram/donor queries use the reverse indexes. Stock filters have independent indexes; combined predicates and sorts require query-plan measurement with representative inventory before adding composite indexes. The current Deployment-1 API combines normalized/raw/description with OR and ordering; unindexed description fallback can scan `part`. Canonical index presence does not prove that entire mixed query is indexed. Do not make descriptions unique to improve lookup.
+Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID. Reverse range/supersession/diagram/donor queries use the reverse indexes. Stock filters have independent indexes; combined predicates and sorts require query-plan measurement with representative inventory before adding composite indexes. The current VIEPS API combines normalized/raw/description with OR and ordering; unindexed description fallback can scan `part`. Canonical index presence does not prove that entire mixed query is indexed. Do not make descriptions unique to improve lookup.
 
 ## Executable acceptance evidence and fixture usage
 
@@ -267,7 +267,7 @@ Run `npm test` from this Worker directory using Node 24 or newer. Tests use buil
 
 `tests/fixtures/part_model_integrity.sql` is a coherent single-load synthetic graph, not real inventory. It demonstrates all eleven representative fixture requirements in #354, with IDs in the 538xx/539xx range: multiple occurrences and unidentified images, model/VIN links, positive/excluded/unavailable fitment, mapped/unmapped hotspots, verified/unavailable locations, `MNA7691AA → XR847031` and a longer synthetic chain, many-to-one replacement, multiple stock records, donor identity and unresolved stock. Provenance is explicitly fixture evidence. Never present synthetic vehicle zones or VINs as verified domain facts.
 
-`deployment1.sql` is a historical filename for an MVP presentation fixture targeting the completed normal schema, not a schema naming convention. The upgrade test inserts original 0003-shaped rows and compares every retained field after rebuilding, including nullable duplicates and unavailable placeholders. A collision test proves transactional rollback retains original image records. Individual older step fixtures run in separate fresh databases; the occurrence fixture needs PART ID 1, and the VIN fixture needs `MNA7691AA`. They are not a combined or idempotent production seed set: some reuse numbers/IDs and nullable identities. The acceptance graph supplies coherent combined coverage instead.
+`part_presentation.sql` contains MVP part-presentation fixtures targeting the completed normal schema. The upgrade test inserts original 0003-shaped rows and compares every retained field after rebuilding, including nullable duplicates and unavailable placeholders. A collision test proves transactional rollback retains original image records. Individual older step fixtures run in separate fresh databases; the occurrence fixture needs PART ID 1, and the VIN fixture needs `MNA7691AA`. They are not a combined or idempotent production seed set: some reuse numbers/IDs and nullable identities. The acceptance graph supplies coherent combined coverage instead.
 
 Tests execute every declared FK against a nonexistent parent, concrete unique collisions, required/CHECK boundaries, nullable exceptions, cascading and SET NULL deletion, normalization-collision rollback, and principal indexed queries. The older SQL-text assertions remain supplemental structure checks, not proof that the schema can execute.
 

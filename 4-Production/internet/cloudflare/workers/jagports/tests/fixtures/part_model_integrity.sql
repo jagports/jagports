@@ -1,5 +1,5 @@
--- Synthetic, isolated acceptance graph for #538, not real inventory or VIN evidence.
--- Load once after all migrations (may coexist with deployment1.sql).
+-- Synthetic, isolated Parts Model acceptance graph, not real inventory or VIN evidence.
+-- Load once after all migrations (may coexist with part_presentation.sql).
 INSERT INTO part (id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status) VALUES
   (53801, 'MNA 7691-AA', 'MNA7691AA', 'Fan Warning Label', 'fixture', 'fixture:538:old', 'fixture'),
   (53802, 'XR847031', 'XR847031', 'Replacement label', 'fixture', 'fixture:538:replacement', 'fixture'),

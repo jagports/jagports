@@ -24,7 +24,7 @@ export function database({ fixtures = true } = {}) {
   db.exec('PRAGMA foreign_keys = ON');
   migrate(db);
   if (fixtures) {
-    db.exec(sql('tests/fixtures/deployment1.sql'));
+    db.exec(sql('tests/fixtures/part_presentation.sql'));
     db.exec(sql('tests/fixtures/part_model_integrity.sql'));
   }
   return db;
