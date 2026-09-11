@@ -102,6 +102,64 @@ Required behaviour:
 
 Verified diagram/hotspot rendering and vehicle-location mapping are later capabilities. Their absence must not prevent the Part Image step from being implemented where suitable image data exists.
 
+## Concept View-1 ASCII UI map
+
+The following map is the normative visual representation of the minimum demonstrable Concept View-1 UI. It describes UI element placement and relationships; it is not intended to define pixel dimensions.
+
+```text
++------------------------------------------------------------------------------------------------+
+| VIEPS — Concept View-1                                                                         |
+|                                                                                                |
+|  [ Jaguar part number __________________________ ] [ Search ]                                 |
+|  Search status:  [empty / invalid / not found / resolved / error]                              |
++------------------------------------------------------------------------------------------------+
+|                                                                                                |
+|  PART / identity                 Parts Tree branch                    Main View / Part Image   |
+|  +-------------------------+     +--------------------------------+    +---------------------+ |
+|  | Canonical PART          |     | Category                         |    |                     | |
+|  | Part number / desc.     |     |   └─ Parent                      |    |    PART IMAGE       | |
+|  | Raw number (if any)     |     |      └─ Selected PART            |    |                     | |
+|  | Verification / source   |     |         └─ occurrence/context    |    |  or                 | |
+|  |                         |     |                                  |    |  [Image unavailable] | |
+|  | EPC occurrence context  |     +--------------------------------+    |                     | |
+|  +-------------------------+                                             +---------------------+ |
+|                                                                                                |
++------------------------------------------------------------------------------------------------+
+|  Suitability Model Ranges                       |  Selected Range / Variations               |
+|  +----------------------------------------------+---------------------------------------------+|
+|  | All suitable Ranges/models                   |  Range: [selected suitable Range]          ||
+|  |                                              |                                             ||
+|  |  [Range A]                                   |  Applicable variations / qualifiers:       ||
+|  |  [Range B]                                   |                                             ||
+|  |  [Range C]                                   |   [Variation 1]  [Qualifier]              ||
+|  |  ...                                         |   [Variation 2]  [Qualifier]              ||
+|  |                                              |   ...                                       ||
+|  |  [No applicability / unavailable state]     |  [No variations / unavailable state]      ||
+|  +----------------------------------------------+---------------------------------------------+|
++------------------------------------------------------------------------------------------------+
+
+Interaction / identity flow:
+
+  Search
+    │
+    ▼
+  canonical PART
+    ├──────────────► Parts Tree branch / selected occurrence
+    ├──────────────► all suitable Ranges ──► selected Range ──► variations / qualifiers
+    └──────────────► Part Image in Main View
+```
+
+The ASCII map establishes the six MVP information areas and their relationships:
+
+1. Part-number entry and search status;
+2. resolved PART identity/context;
+3. Parts Tree branch;
+4. all suitable vehicle Ranges;
+5. selected Range and applicable variations/qualifiers;
+6. Main View containing the verified Part Image or an explicit unavailable state.
+
+The map must remain consistent with the six-step MVP flow and must not imply that post-MVP entry paths are part of the current acceptance boundary.
+
 ## Cross-element interaction
 
 The six implementation steps form one coordinated workflow, not six independent screens.
