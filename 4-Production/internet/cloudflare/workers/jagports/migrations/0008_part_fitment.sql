@@ -3,8 +3,8 @@ PRAGMA foreign_keys = ON;
 -- Persistent schema names describe domain semantics only. Deployment/release or
 -- compatibility status must never leak into table names.
 -- temp_part_fitment_migration exists only while this migration copies the old
--- part_fitment rows into the evolved normal part_fitment table. It is dropped
--- before the migration completes and is not part of the application schema.
+-- part-level range rows into the evolved normal part_fitment table. It is
+-- dropped before the migration completes and is not part of the application schema.
 ALTER TABLE part_fitment RENAME TO temp_part_fitment_migration;
 DROP INDEX idx_part_fitment_unique;
 DROP INDEX idx_part_fitment_part;
@@ -12,11 +12,7 @@ DROP INDEX idx_part_fitment_range;
 
 CREATE TABLE part_fitment (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  part_id INTEGER NOT NULL REFERENCES part(id) ON DELETE CASCADE,
   part_occurrence_id INTEGER REFERENCES part_occurrence(id) ON DELETE CASCADE,
-  vehicle_range_id INTEGER REFERENCES vehicle_range(id) ON DELETE CASCADE,
-  variation TEXT,
-  qualifier TEXT,
   applicability_state TEXT NOT NULL DEFAULT 'applicable',
   attribute_group TEXT,
   attribute_key TEXT,
@@ -26,6 +22,11 @@ CREATE TABLE part_fitment (
   source_ref TEXT,
   verification_status TEXT NOT NULL DEFAULT 'unverified',
   confidence TEXT,
+  part_id INTEGER REFERENCES part(id) ON DELETE CASCADE,
+  vehicle_range_id INTEGER REFERENCES vehicle_range(id) ON DELETE CASCADE,
+  variation TEXT,
+  qualifier TEXT,
+  CHECK (part_occurrence_id IS NOT NULL OR part_id IS NOT NULL),
   CHECK (TRIM(applicability_state) <> ''),
   CHECK (applicability_state IN ('applicable', 'excluded', 'unavailable')),
   CHECK (source_value IS NULL OR TRIM(source_value) <> ''),
@@ -60,9 +61,9 @@ CREATE UNIQUE INDEX idx_part_fitment_range_identity
     COALESCE(variation, ''),
     COALESCE(qualifier, '')
   )
-  WHERE vehicle_range_id IS NOT NULL AND part_occurrence_id IS NULL;
+  WHERE part_id IS NOT NULL AND vehicle_range_id IS NOT NULL AND part_occurrence_id IS NULL;
 
-CREATE UNIQUE INDEX idx_part_fitment_occurrence_identity
+CREATE UNIQUE INDEX idx_part_fitment_identity
   ON part_fitment(
     part_occurrence_id,
     applicability_state,
