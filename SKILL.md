@@ -60,11 +60,24 @@ Rules:
 - Every change integrates through a PR.
 - The PR must explicitly trace to every Issue it implements/resolves.
 - Required Project Item Status transitions must be performed and independently verified.
-- Required review and testing gates must pass before merge.
+- Required review, checkbox, and testing gates must pass before merge.
 - Never treat GitHub's `mergeable` state as proof of review or approval.
 - After merge, verify repository, PR, Issue, and Project state.
 
 A direct-main change is a process violation and requires corrective handling under `WORKFLOWS.md`.
+
+### Checkbox handling
+
+Execute the Issue/PR checkbox roles defined canonically in `WORKFLOWS.md`:
+
+- Issue Acceptance boxes describe required work outcomes; `[x]` is an executor implementation-completion claim, not independent approval.
+- PR checklist boxes describe PR-local integration readiness and must not duplicate the full Issue Acceptance list.
+- An executor/agent may check or uncheck existing **executor-controlled** Issue Acceptance and PR checklist boxes when objective implementation/readiness evidence changes.
+- Checkbox-only edits are permitted on open Issue/PR descriptions for this purpose; do not rewrite criterion/checklist text or unrelated description content under this exception.
+- Never change a reviewer-only checkbox on the reviewer's behalf.
+- A reviewer may return an unsupported executor-controlled checkbox to `[ ]`.
+- Before final approval, all applicable Issue Acceptance and required PR checklist boxes must be `[x]`.
+- Checked boxes do not constitute approval; independent formal GitHub review remains required.
 
 ### Mandatory Pre-Merge Review Gate
 
@@ -76,14 +89,18 @@ The check must:
 2. Determine the effective review state from the review history, including whether a later review supersedes an earlier review.
 3. Treat `CHANGES_REQUESTED` / `REQUEST_CHANGES` as a blocking state. **STOP — DO NOT MERGE.**
 4. Never allow an earlier `APPROVED` review to satisfy the gate when a later blocking review exists.
-5. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
-6. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
-7. Permit merge only when the current review gate is independently verified as passed and all required testing gates have passed.
-8. If the review state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
+5. Verify all applicable Issue Acceptance checkboxes are `[x]`.
+6. Verify all required PR checklist checkboxes are `[x]`.
+7. Verify required tests are `PASS`.
+8. Verify all actionable reviewer-owned concerns required for completion have been verified/resolved under the canonical review rules.
+9. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
+10. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
+11. Permit merge only when the current review gate, checkbox gates, reviewer-comment completion gate, and required testing gates have all independently passed.
+12. If any required state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
 
 Required decision rule:
 
-`latest/effective review = CHANGES_REQUESTED → review gate FAILED → STOP → DO NOT MERGE`
+`Issue Acceptance all [x] + PR required checklist all [x] + actionable reviewer-owned concerns complete + required tests PASS + independent review APPROVED → merge permitted`
 
 This rule applies regardless of whether the requested change is large, small, documentary, mechanical, or apparently implied by the review comment.
 
@@ -130,8 +147,9 @@ When review is required, execute the canonical native GitHub hand-off defined in
 - if the requester is an agent, request the designated human reviewer/authority;
 - **verify that the selected reviewer is different from both the PR author and the executing actor before requesting or submitting formal review; if identity is equal or ambiguous, STOP/BLOCK and do not submit a review;**
 - **the PR author/executor may perform a private self-check, but must never submit the formal GitHub review; a self-review, including a `COMMENTED` review, does not satisfy the review gate;**
+- ensure applicable executor-controlled Issue Acceptance and required PR checklist boxes reflect actual implementation/readiness state before final approval;
 - set Project Item Status to `REVIEW` and independently verify it;
-- stop implementation and do not merge after hand-off.
+- stop implementation and do not merge after hand-off except when responding to reviewer discussion or requested changes as permitted by the canonical workflow.
 
 Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's native review request/notification and review outcome are the review mechanism.
 
@@ -145,15 +163,15 @@ During independent review, distinguish **visible review discussion** from **form
 - if the referenced code changes and GitHub marks an anchored discussion `outdated`, do not infer that the concern is satisfied; the reviewer must verify whether the concern was actually addressed or remains applicable;
 - formal `APPROVED` remains the independent review gate where required, and unresolved blocking concerns must not result in approval.
 
-Review-comment resolution, requested-change implementation replies, line-specific implementation evidence, and reviewer-controlled resolution are governed by the canonical rules in `00-Management/WORKFLOWS.md`; this skill must execute those rules rather than redefine them.
+Review-comment resolution, requested-change implementation replies, line-specific implementation evidence, checkbox handling, and reviewer-controlled resolution are governed by the canonical rules in `00-Management/WORKFLOWS.md`; this skill must execute those rules rather than redefine them.
 
 Required human validation follows:
 
-**PR branch → pre-merge test → PASS evidence → review/merge gate → merge → optional post-merge smoke/regression test**
+**Issue Acceptance all `[x]` + PR required checklist all `[x]` + actionable reviewer-owned concerns complete + required tests `PASS` + independent review `APPROVED` → merge permitted**
 
 A post-merge test cannot substitute for required pre-merge validation. `FAIL`, `BLOCKED`, or `NOT TESTED` is not successful required pre-merge validation.
 
-## Record Integrity and Active Title Changes
+## Record Integrity and Active Record Changes
 
 Follow `00-Management/WORKFLOWS.md` for the canonical rules.
 
@@ -161,6 +179,9 @@ Follow `00-Management/WORKFLOWS.md` for the canonical rules.
 - An open Issue or open PR may have its title changed when scope materially changes.
 - Such title changes are auditable through GitHub's `renamed` history event.
 - Cosmetic title changes should be avoided.
+- An executor/agent may edit an open Issue or PR description solely to check/uncheck existing executor-controlled checkboxes as permitted by the canonical checkbox-state exception.
+- A reviewer may change reviewer-controlled boxes and return unsupported executor claims to `[ ]`.
+- Do not use the checkbox exception to rewrite criteria, checklist wording, or unrelated description content.
 
 ## GitHub Issue Closing Syntax
 
