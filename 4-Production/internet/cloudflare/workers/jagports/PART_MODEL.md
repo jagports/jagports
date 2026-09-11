@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document records the concrete MVP steps of Issue #354 for canonical catalogue `PART` identity and its image/identification evidence relationship.
+This document records the concrete MVP steps of Issue #354 for canonical catalogue `PART` identity and its relationships to reference evidence and operational stock.
 
 ## Canonical PART identity
 
@@ -85,20 +85,34 @@ The diagram/location step keeps EPC illustration identity, hotspot evidence, and
 
 Physical stock/storage location is not stored in this entity; it remains part of the operational stock model.
 
+## PART to operational stock
+
+`stock_item` is an operational record and is not a catalogue PART identity. Migration `0010_part_stock_relationship.sql` adds a nullable `stock_item.part_id` foreign key to canonical `part(id)`, allowing a resolved stock record to point to the catalogue identity while leaving unresolved/non-catalogue stock with `part_id = NULL`.
+
+The existing `stock_item.part_number` field is retained as the stocked/historical part-number reference. It is not the relational identity and does not require a matching canonical PART. This preserves old stocked numbers even when a catalogue PART is superseded or when the stock item cannot yet be identified.
+
+One canonical PART may have multiple independent stock records. Each stock record may carry quantity, condition, status, physical `location`, historical/stocked part number, source/donor reference, notes, explicit `available` state, provenance, verification status and confidence.
+
+Donor vehicle identity is represented separately by nullable `stock_item.donor_vehicle_id → vehicle(id)`. This is distinct from catalogue vehicle/model/VIN applicability and from physical stock/storage location. The legacy `donor_vehicle` text field is retained as a source/reference value.
+
+Unresolved/non-catalogue operational stock is therefore representable without fabricating a canonical PART. The MVP does not require an unresolved item to be inserted into `part` merely to make it stockable.
+
+The stock relationship does not implement warehouse transaction history, reservations, sales workflow, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
+
 ## Architectural boundary
 
 `PART` contains catalogue/reference identity only. It has no direct vehicle applicability field and no mutable stock state. `PART_IMAGE` is evidence associated with that stable identity. Applicability belongs to occurrence/fitment/context relationships. Diagram/hotspot/location evidence belongs to their explicit relationships. Operational inventory belongs to separate stock records. Catalogue vehicle location and physical stock/storage location are distinct concepts.
 
 ## Migrations
 
-Migration `0002_part_model.sql` establishes canonical PART identity. Migration `0004_part_occurrence_context.sql` establishes EPC/application context. Migration `0005_part_image.sql` establishes `part_image`. Migration `0006_part_vehicle_vin_applicability.sql` establishes distinct model/VIN ranges and relationships. Migration `0007_part_supersession.sql` establishes directed supersession. Migration `0008_part_fitment.sql` establishes occurrence-level applicability constraints. Migration `0009_part_diagram_location.sql` establishes diagrams, occurrence-to-diagram links, source-preserving hotspots, and model-scoped catalogue vehicle-location mappings.
+Migration `0002_part_model.sql` establishes canonical PART identity. Migration `0004_part_occurrence_context.sql` establishes EPC/application context. Migration `0005_part_image.sql` establishes `part_image`. Migration `0006_part_vehicle_vin_applicability.sql` establishes distinct model/VIN ranges and relationships. Migration `0007_part_supersession.sql` establishes directed supersession. Migration `0008_part_fitment.sql` establishes occurrence-level applicability constraints. Migration `0009_part_diagram_location.sql` establishes diagrams, occurrence-to-diagram links, source-preserving hotspots, and model-scoped catalogue vehicle-location mappings. Migration `0010_part_stock_relationship.sql` adds the canonical PART and donor-vehicle relationships to operational stock while preserving nullable resolution.
 
 ## Testing and fixtures
 
-Tests and fixtures cover canonical PART identity, occurrences, images, model/VIN applicability, supersession, fitment/exclusion, and now diagram/hotspot/location relationships. The diagram/location fixtures include a deterministic diagram and hotspot with source coordinate-system reference, a verified model-specific vehicle location, and an explicit unavailable mapping. Integrity tests cover foreign keys, relationship uniqueness and key boundary constraints.
+Tests and fixtures cover canonical PART identity, occurrences, images, model/VIN applicability, supersession, fitment/exclusion, diagram/hotspot/location relationships, and the PART-to-stock relationship. The stock fixtures include two independent stock records for one canonical PART, a donor vehicle relationship, and an unresolved/non-catalogue stock record with no fabricated PART identity. Integrity tests cover foreign keys, relationship uniqueness and key boundary constraints.
 
 ## MVP boundary
 
-The implemented model steps provide the persistent spine required for part-number search, part detail, EPC context, explicit vehicle/model/VIN applicability, fitment constraints, diagram/hotspot references, verified catalogue vehicle-location mappings, supersession and the later stock relationship. They do not implement complete VIN decoding, automatic VIN-range inference, complete JEPC semantic interpretation, hotspot coordinate conversion, final whole-car zone taxonomy, stock, or JEPC import.
+The implemented model steps provide the persistent spine required for part-number search, part detail, EPC context, explicit vehicle/model/VIN applicability, fitment constraints, diagram/hotspot references, verified catalogue vehicle-location mappings, supersession and catalogue-to-stock linkage. They do not implement complete VIN decoding, automatic VIN-range inference, complete JEPC semantic interpretation, hotspot coordinate conversion, final whole-car zone taxonomy, warehouse transaction history, sales/reservation workflows, or JEPC import.
 
 #352 remains the authority for JEPC Flash hotspot coordinate conversion. #361/#362 remain the authority for final Range/whole-car zone taxonomy. Unresolved geometry or taxonomy decisions must not be encoded as authoritative schema semantics.
