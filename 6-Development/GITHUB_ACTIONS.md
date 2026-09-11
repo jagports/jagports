@@ -6,14 +6,20 @@ This file records durable development knowledge about GitHub Actions design, tri
 
 ## 2026 category-convention trigger amplification incident
 
-Issue #574 was opened after repository Actions history showed that a small metadata-validation workflow had become the dominant source of workflow executions.
+The workflow involved is **`Validate category conventions`**, configured in:
+
+`.github/workflows/validate-category-conventions.yml`
+
+Its purpose is to keep supported Issue/PR title category prefixes synchronized with the matching GitHub category label and validate that mapping.
+
+Issue #574 was opened after repository Actions history showed that this small metadata-validation workflow had become the dominant source of workflow executions.
 
 At the investigation snapshot there were **2,035 repository workflow runs**. The two dominant workflows accounted for **2,001 runs (98.3%)**:
 
 - `Validate category conventions`: **1,600 runs** — **869 `issues` events + 731 `pull_request` events**.
 - `Sync Issue Lifecycle to Project`: **401 runs** — all `issues` events.
 
-The lifecycle workflow was already narrowly scoped to `issues: [opened, closed, reopened]`. The amplification problem was therefore concentrated in `.github/workflows/validate-category-conventions.yml`.
+The lifecycle workflow was already narrowly scoped to `issues: [opened, closed, reopened]`. The amplification problem was therefore concentrated in the `Validate category conventions` workflow at `.github/workflows/validate-category-conventions.yml`.
 
 The category workflow originally listened to:
 
@@ -31,7 +37,7 @@ This was much broader than the behavior being protected. Category classification
 2. `edited` fired for body-only edits even though only title changes affect the category mapping.
 3. `labeled` and `unlabeled` could fire after label mutations, including labels changed by the category workflow itself, creating self-amplifying metadata activity.
 
-PR #575 changes the workflow to listen only to `opened` and `edited`, with the job gated so an `edited` event allocates work only when `github.event.changes.title` exists.
+PR #575 changes `.github/workflows/validate-category-conventions.yml` to listen only to `opened` and `edited`, with the `validate-category` job gated so an `edited` event allocates work only when `github.event.changes.title` exists.
 
 The GitHub Actions timing API returned zero billable milliseconds for sampled runs even when runs had measurable wall-clock duration, so historical workflow-run counts are the reliable evidence used here. Do not treat those API timing fields as an exact per-workflow billing ledger unless GitHub exposes a verified usage source.
 
@@ -67,5 +73,7 @@ For every case, record whether the expected result is **run**, **skipped/no runn
 
 ## Traceability
 
+- Workflow: `Validate category conventions`
+- Configuration: `.github/workflows/validate-category-conventions.yml`
 - Issue #574 — `GitHub Actions / Reduce category-convention trigger amplification and Actions-minute usage`
 - PR #575 — `GitHub Actions / Reduce category workflow trigger amplification`
