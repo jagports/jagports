@@ -34,6 +34,9 @@ export function database({ fixtures = true } = {}) {
       db.exec(sql('tests/fixtures/part_presentation.sql'));
       db.exec(sql('tests/fixtures/part_model_integrity.sql'));
       migrate(db, migrations.slice(mvpStockMigration));
+      // Load normalized post-0011 stock fixtures as well so new foreign keys and
+      // indexes are exercised alongside preserved legacy rows.
+      db.exec(sql('tests/fixtures/mvp_stock_storage.sql'));
       return db;
     }
   }
