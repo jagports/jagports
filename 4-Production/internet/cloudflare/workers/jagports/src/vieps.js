@@ -19,6 +19,8 @@ export async function handleViepsPart(request, env) {
   if (!query) return json({ error: "part-number query is required" }, 400);
 
   const normalized = normalizePartNumber(query);
+  if (!normalized) return json({ error: "invalid part-number query", query }, 400);
+
   const part = await env.DB.prepare(
     `SELECT id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status
      FROM part
@@ -31,7 +33,14 @@ export async function handleViepsPart(request, env) {
 
   if (!part) return json({ error: "part not found", query }, 404);
 
-  const [treeResult, imageResult, diagramResult, fitmentResult] = await Promise.all([
+  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult] = await Promise.all([
+    env.DB.prepare(
+      `SELECT id, source, source_ref, context_type, context_ref, category_ref,
+              item_number, diagram_ref, diagram_item_number, verification_status
+       FROM part_occurrence
+       WHERE part_id = ?
+       ORDER BY id`
+    ).bind(part.id).all(),
     env.DB.prepare(
       `WITH RECURSIVE tree(id, parent_id, label, sort_order) AS (
          SELECT n.id, n.parent_id, n.label, n.sort_order
@@ -81,6 +90,7 @@ export async function handleViepsPart(request, env) {
 
   return json({
     part,
+    occurrences: occurrenceResult.results || [],
     parts_tree: paths,
     images: imageResult.results || [],
     diagrams: diagramResult.results || [],
