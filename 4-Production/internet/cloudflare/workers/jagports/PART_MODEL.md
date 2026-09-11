@@ -110,6 +110,28 @@ The same directed pair may occur only once. A PART cannot supersede itself. Supe
 
 Representative evidence fixture: `MNA7691AA → XR847031`.
 
+## PART fitment and attribute applicability
+
+`part_fitment` is an occurrence-level relationship used to preserve applicability constraints without duplicating canonical PART identity.
+
+| Field | Requirement | Meaning |
+|---|---|---|
+| `id` | required | Stable fitment-record identifier. |
+| `part_occurrence_id` | required | FK to the EPC/application occurrence whose applicability is being described. |
+| `applicability_state` | required | Controlled MVP state: `applicable`, `excluded`, or `unavailable`. |
+| `attribute_group` | optional | Original/source attribute group identifier where supplied. |
+| `attribute_key` | optional | Original/source attribute key where supplied. |
+| `source_value` | optional | Original/source attribute value; not interpreted unless its meaning is established. |
+| `except_flag` | optional | Original source exclusion indicator, retained without replacing the source representation. |
+| `source` | optional | Source system/document identifier. |
+| `source_ref` | optional | Evidence/reference for the constraint. |
+| `verification_status` | required | Verification state; defaults to `unverified`. |
+| `confidence` | optional | Confidence information where appropriate. |
+
+A PART occurrence may have multiple fitment constraints. Positive and excluded applicability are explicit where the source supports them; unavailable remains distinct from a positive match. Opaque JEPC attribute groups remain source data until semantic interpretation has been verified. The MVP does not infer applicability from model naming, generic model year or KOVuosi.
+
+The representative fixture contains a positive engine applicability value and an excluded convertible-body value with `except_flag` preserved.
+
 ## Architectural boundary
 
 `PART` contains catalogue/reference identity only. It has no direct vehicle applicability field and no mutable stock state.
@@ -134,6 +156,8 @@ Migration `0006_part_vehicle_vin_applicability.sql` establishes distinct `model_
 
 Migration `0007_part_supersession.sql` establishes the directed `part_supersession` relationship with provenance/verification metadata, effective boundaries, bidirectional lookup indexes, pair uniqueness and self-link rejection.
 
+Migration `0008_part_fitment.sql` establishes occurrence-level fitment constraints with explicit applicability state, preserved source attribute/exclusion representation, provenance/verification metadata, and lookup/uniqueness indexes.
+
 ## Testing and fixtures
 
 The PART model tests cover deterministic part-number normalization, nullable/unique part-number identity, non-unique descriptions, and separation from vehicle applicability.
@@ -146,8 +170,10 @@ The vehicle/VIN applicability tests cover separate model-range and VIN-range ent
 
 The supersession tests cover the directed PART-to-PART relationship, provenance and effective metadata, pair uniqueness, self-link rejection, representative `MNA7691AA → XR847031` evidence, and a multi-step supersession chain.
 
+The fitment tests cover occurrence-level relationship structure, explicit applicable/excluded/unavailable states, preserved source attributes and `exceptFlag`, provenance/verification, uniqueness/indexing, and representative positive/exclusion fixtures.
+
 ## MVP boundary
 
-The implemented vehicle/VIN applicability step is limited to explicit persistent relationships and structured VIN-range records needed by the MVP. The supersession step is limited to explicit directed catalogue relationships and their evidence metadata. Neither step implements complete VIN decoding, automatic VIN-range inference, complete fitment semantics, vehicle-location/hotspot conversion, stock, or JEPC import.
+The implemented vehicle/VIN applicability step is limited to explicit persistent relationships and structured VIN-range records needed by the MVP. The supersession step is limited to explicit directed catalogue relationships and their evidence metadata. The fitment step is limited to explicit occurrence-level applicability constraints and preserved source attribute representation. These steps do not implement complete VIN decoding, automatic VIN-range inference, complete JEPC semantic interpretation, vehicle-location/hotspot conversion, stock, or JEPC import.
 
-Later model steps remain responsible for full fitment/attribute semantics, diagram/hotspot relationships, stock, and other Parts Data Model relationships.
+Later model steps remain responsible for diagram/hotspot relationships, catalogue vehicle-location mappings, stock, and other Parts Data Model relationships.
