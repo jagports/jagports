@@ -1,5 +1,16 @@
 PRAGMA foreign_keys = ON;
 
+-- Retain the 0003 range/variation presentation rows separately. There is no
+-- verified conversion from these rows to occurrence-level source attributes.
+ALTER TABLE part_fitment RENAME TO deployment1_part_fitment;
+DROP INDEX idx_part_fitment_unique;
+DROP INDEX idx_part_fitment_part;
+DROP INDEX idx_part_fitment_range;
+CREATE UNIQUE INDEX idx_deployment1_part_fitment_unique
+  ON deployment1_part_fitment(part_id, vehicle_range_id, variation, qualifier);
+CREATE INDEX idx_deployment1_part_fitment_part ON deployment1_part_fitment(part_id);
+CREATE INDEX idx_deployment1_part_fitment_range ON deployment1_part_fitment(vehicle_range_id);
+
 CREATE TABLE part_fitment (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   part_occurrence_id INTEGER NOT NULL REFERENCES part_occurrence(id) ON DELETE CASCADE,

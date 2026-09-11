@@ -23,12 +23,12 @@ SELECT 3, id FROM part WHERE part_number_normalized = 'MJB7703AA';
 INSERT OR IGNORE INTO part_tree_part (tree_node_id, part_id)
 SELECT 3, id FROM part WHERE description IN ('firtree1', 'firtree2');
 
-INSERT OR IGNORE INTO part_image (part_id, image_url, image_kind, description, verification_status)
+INSERT OR IGNORE INTO deployment1_part_image (part_id, image_url, image_kind, description, verification_status)
 SELECT id, NULL, 'representative', 'Representative part image not yet available', 'fixture'
 FROM part
 WHERE part_number_normalized = 'MJB7703AA';
 
-INSERT OR IGNORE INTO part_image (part_id, image_url, image_kind, description, verification_status)
+INSERT OR IGNORE INTO deployment1_part_image (part_id, image_url, image_kind, description, verification_status)
 SELECT id, NULL, 'identification', 'Identification image not yet available', 'fixture'
 FROM part
 WHERE description IN ('firtree1', 'firtree2');
@@ -38,12 +38,12 @@ SELECT id, 'Representative Deployment-1 exploded context', NULL, 'unavailable', 
 FROM part
 WHERE part_number_normalized = 'MJB7703AA';
 
-INSERT OR IGNORE INTO part_fitment (part_id, vehicle_range_id, variation, qualifier, verification_status)
+INSERT OR IGNORE INTO deployment1_part_fitment (part_id, vehicle_range_id, variation, qualifier, verification_status)
 SELECT p.id, r.id, '4.0 Coupe', 'Representative fixture applicability', 'fixture'
 FROM part p CROSS JOIN vehicle_range r
 WHERE p.part_number_normalized = 'MJB7703AA' AND r.range_code IN ('X100', 'X150');
 
-INSERT OR IGNORE INTO part_fitment (part_id, vehicle_range_id, variation, qualifier, verification_status)
+INSERT OR IGNORE INTO deployment1_part_fitment (part_id, vehicle_range_id, variation, qualifier, verification_status)
 SELECT p.id, r.id, '4.0 Convertible', 'Representative fixture applicability', 'fixture'
 FROM part p CROSS JOIN vehicle_range r
 WHERE p.part_number_normalized = 'MJB7703AA' AND r.range_code IN ('X100', 'X150');
