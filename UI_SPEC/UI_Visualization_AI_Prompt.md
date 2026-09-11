@@ -4,6 +4,12 @@ Generate mockup visualization image PNG from modern looking web browser where is
 
 Follow elements from specs and .emf. Parts location on car area must exist. Shows single parts on tree and open branche, show only one part image, suitability view must show many vehicle models. Don't include menu, cause any of my specs doesn't define such.
 
+## Required input: actual part image
+
+**The actual part/exploded-view image MUST be attached to the AI prompt when this prompt is used. Do not generate the visualization without the attached part image and do not substitute an invented part image.**
+
+For this sample, attach and use `5-Implementation-Projects/internet/jagports/solution/vieps/UI/UI_Visualization_MNC1628AA.png` as the actual part/exploded-view image for `MNC1628AA`. The attached image is the primary visual source for the part-details/explosion area; the external JLR Classic page below is supporting reference only.
+
 Use real part number MNC1628AA and as part details view the attached image. Append parts details above Explosion image, do not generate two parts elements.
 
 Make sure part left/right is correctly set. Left and right are determined from driver's seat when looking towards the car's front. It is front wheel left vertical link. Determine search suitability to cars and location etc. from internet and then prompt to yourself so image would be more to specs.
@@ -29,6 +35,7 @@ Use `5-Implementation-Projects/internet/jagports/solution/vieps/UI/UI_Visualizat
 - `MNC1628AA` is the front-left vertical link context for this visualization.
 - Part details appear above the exploded/part image in the same details area.
 - Show only one part/exploded-image element; do not create a second independent part-image panel.
+- The actual part/exploded-view image must be attached to the prompt and used as the visual source; never fabricate a replacement when the attachment is missing.
 - Use the supplied Jaguar exploded-view image as the visual reference for the part-details/explosion area and preserve its recognizable component arrangement while styling it for the VIEPS mockup.
 - Suitability must be a list/table containing multiple applicable vehicle/model entries, using only a reasonable subset of the referenced suitability source rather than reproducing its entire list.
 - MVP and post-MVP elements may be shown only when supported by current open issues or the latest superseding/closed specifications and PRs.
