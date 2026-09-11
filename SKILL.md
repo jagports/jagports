@@ -92,15 +92,14 @@ The check must:
 5. Verify all applicable Issue Acceptance checkboxes are `[x]`.
 6. Verify all required PR checklist checkboxes are `[x]`.
 7. Verify required tests are `PASS`.
-8. Verify all actionable reviewer-owned concerns required for completion have been verified/resolved under the canonical review rules.
-9. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
-10. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
-11. Permit merge only when the current review gate, checkbox gates, reviewer-comment completion gate, and required testing gates have all independently passed.
-12. If any required state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
+8. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
+9. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
+10. Permit merge only when the current review gate is independently verified as passed and all checkbox/testing gates have passed.
+11. If any required state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
 
 Required decision rule:
 
-`Issue Acceptance all [x] + PR required checklist all [x] + actionable reviewer-owned concerns complete + required tests PASS + independent review APPROVED → merge permitted`
+`Issue Acceptance all [x] + PR required checklist all [x] + required tests PASS + independent review APPROVED → merge permitted`
 
 This rule applies regardless of whether the requested change is large, small, documentary, mechanical, or apparently implied by the review comment.
 
@@ -149,7 +148,7 @@ When review is required, execute the canonical native GitHub hand-off defined in
 - **the PR author/executor may perform a private self-check, but must never submit the formal GitHub review; a self-review, including a `COMMENTED` review, does not satisfy the review gate;**
 - ensure applicable executor-controlled Issue Acceptance and required PR checklist boxes reflect actual implementation/readiness state before final approval;
 - set Project Item Status to `REVIEW` and independently verify it;
-- stop implementation and do not merge after hand-off except when responding to reviewer discussion or requested changes as permitted by the canonical workflow.
+- stop implementation and do not merge after hand-off.
 
 Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's native review request/notification and review outcome are the review mechanism.
 
@@ -167,7 +166,7 @@ Review-comment resolution, requested-change implementation replies, line-specifi
 
 Required human validation follows:
 
-**Issue Acceptance all `[x]` + PR required checklist all `[x]` + actionable reviewer-owned concerns complete + required tests `PASS` + independent review `APPROVED` → merge permitted**
+**Issue Acceptance all `[x]` + PR required checklist all `[x]` + required tests `PASS` + independent review `APPROVED` → merge permitted**
 
 A post-merge test cannot substitute for required pre-merge validation. `FAIL`, `BLOCKED`, or `NOT TESTED` is not successful required pre-merge validation.
 
