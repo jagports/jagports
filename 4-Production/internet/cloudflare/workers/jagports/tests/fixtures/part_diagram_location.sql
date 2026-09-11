@@ -1,3 +1,8 @@
+INSERT OR IGNORE INTO model_range (range_code, name, source, source_ref, verification_status)
+VALUES ('FIXTURE-XJ', 'Fixture XJ Range', 'fixture-diagram-location', 'fixture:model-range:xj', 'fixture');
+INSERT OR IGNORE INTO model_range (range_code, name, source, source_ref, verification_status)
+VALUES ('FIXTURE-XK', 'Fixture XK Range', 'fixture-diagram-location', 'fixture:model-range:xk', 'fixture');
+
 INSERT OR IGNORE INTO part (part_number_raw, part_number_normalized, description, source, source_ref, verification_status)
 VALUES ('MJB7703AA', 'MJB7703AA', 'Fixture diagram/location part', 'fixture-diagram-location', 'fixture:part', 'fixture');
 
