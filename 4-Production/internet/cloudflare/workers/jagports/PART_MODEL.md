@@ -24,89 +24,27 @@ The internal `id` is the stable PART identity. A part number can be attached lat
 
 ## Unidentified parts
 
-A PART can initially have:
-
-- no part number;
-- a useful description, such as `Fir tree clip`;
-- source/provenance information when available;
-- later identification through a verified catalogue part number.
-
-Descriptions must not be made unique. If human-readable unique labels are required for a workflow, that is a separate identification concern and should not be confused with catalogue description.
+A PART can initially have no part number, a useful description such as `Fir tree clip`, and source/provenance information when available. It can later be identified through a verified catalogue part number. Descriptions are not unique identifiers.
 
 ## Part-number normalization
 
-The MVP normalization is deliberately deterministic and conservative:
+The MVP normalization is deterministic and conservative: require a string when supplied, trim surrounding whitespace, convert to uppercase, remove whitespace and hyphen separators, and preserve the original representation in `part_number_raw`.
 
-1. Require a string value when a part number is supplied.
-2. Trim surrounding whitespace.
-3. Convert to uppercase.
-4. Remove whitespace and hyphen separators.
-5. Preserve the original representation in `part_number_raw`.
-
-Examples:
-
-- `MNA 7691-AA` → `MNA7691AA`
-- `mna-7691-aa` → `MNA7691AA`
-- `XR847031` → `XR847031`
-
-When no part number is known, both part-number fields are NULL. When a part number is known, its normalized value must be unique. Two non-null raw values producing the same normalized value therefore conflict with the unique index unless they are intentionally reconciled later.
+Examples: `MNA 7691-AA` → `MNA7691AA`; `mna-7691-aa` → `MNA7691AA`; `XR847031` → `XR847031`.
 
 ## PART image and identification evidence
 
-`part_image` is a separate child entity of canonical `part`.
-
-| Field | Requirement | Meaning |
-|---|---|---|
-| `id` | required | Stable image-record identifier. |
-| `part_id` | required | FK to the canonical `part(id)`. |
-| `image_ref` | required, unique per PART | Opaque reference to an externally stored or otherwise addressable image. The storage technology is outside this model step. |
-| `source` | optional | Source system/document identifier for the image. |
-| `source_ref` | optional | Source reference where available. |
-| `description` | optional, non-unique | Human-readable description of the image/evidence. |
-| `verification_status` | required | Verification state; defaults to `unverified`. |
-
-One PART may have multiple `part_image` records. The relationship uses the stable PART `id`, so an unidentified PART can have image evidence before a catalogue part number is known.
-
-`image_ref` identifies the image resource for this relationship. The MVP does not prescribe a URL scheme, object-storage provider, binary column, upload service, OCR process, or image-recognition system.
-
-Image descriptions are not identity fields. Duplicate image identity is constrained by `(part_id, image_ref)` so the same image reference is not attached repeatedly to the same PART while different descriptions remain possible.
+`part_image` is a separate child entity of canonical `part`. It stores a stable image record ID, `part_id`, required opaque `image_ref`, source/provenance, optional description, and verification status. One PART may have multiple images, including before its catalogue part number is known. Image descriptions are not identity fields and image identity is constrained per PART by `(part_id, image_ref)`.
 
 ## PART vehicle and VIN applicability
 
-Vehicle applicability is represented outside the canonical `part` row. Model-range and VIN-range applicability are distinct relationships and are not collapsed into one entity.
+Vehicle applicability is represented outside the canonical `part` row. Model-range and VIN-range applicability are distinct relationships and are not collapsed into one entity. `model_range` represents named vehicle/model-range classifications; `vin_range` represents explicit VIN serial applicability ranges with source/derived discriminators. A PART can link to multiple ranges through `part_model_range` and `part_vin_range`.
 
-### Model range
-
-`model_range` represents a named vehicle/model-range classification. A PART may be linked to multiple model ranges through `part_model_range`.
-
-### VIN range
-
-`vin_range` represents an explicit VIN serial applicability range and retains source/derived discriminators without claiming complete VIN decoding. The MVP fields include VIN prefix, serial start/end, model year when established, production/use-introduction boundary when established, market, body, engine variant, emissions, transmission/steering discriminator, source, source reference and verification status.
-
-A PART may be linked to multiple VIN ranges through `part_vin_range`.
-
-VIN-derived interpretation must remain distinguishable from source facts. This model step does not use KOVuosi as a source for VIN decoding, VIN-range selection or model-year inference, and does not implement a complete VIN decoder.
+VIN-derived interpretation must remain distinguishable from source facts. This model does not use KOVuosi as a source for VIN decoding, VIN-range selection or model-year inference and does not implement a complete VIN decoder.
 
 ## PART supersession
 
-`part_supersession` is a separate directed relationship between canonical `part` identities.
-
-| Field | Requirement | Meaning |
-|---|---|---|
-| `superseded_part_id` | required | Canonical PART identity being replaced. |
-| `superseding_part_id` | required | Canonical PART identity that replaces it. |
-| `source` | optional | Source system/document identifier for the relationship. |
-| `source_ref` | optional | Evidence/reference for the relationship. |
-| `verification_status` | required | Verification state; defaults to `unverified`. |
-| `confidence` | optional | Confidence information where the source/research model provides it. |
-| `effective_from` | optional | Effective boundary where established. |
-| `effective_to` | optional | Historical/end boundary where established. |
-
-The relationship is directed: `superseded_part_id → superseding_part_id`. Both PART identities remain independently addressable and searchable. A superseding PART may replace multiple historical PARTs, and chains such as `A → B → C` are representable.
-
-Supersession is not a generic interchangeability or equivalence relation. It must not be inferred solely from similar part numbers, descriptions, fitment, or historical JEPC `isSuperSeded` state. Explicit manufacturer/catalogue evidence and inferred interchangeability remain distinct concepts.
-
-The same directed pair may occur only once. A PART cannot supersede itself. Supersession does not mutate a stock record's historical catalogue identity; stock integration remains a separate model step.
+`part_supersession` is a separate directed relationship between canonical `part` identities. `superseded_part_id → superseding_part_id` preserves both historical and replacement identities. One replacement may supersede multiple historical parts and chains such as `A → B → C` are representable. Source, source reference, verification, confidence and effective boundaries are retained where established. Supersession is not generic interchangeability and is not inferred solely from similar numbers, descriptions, fitment or historical `isSuperSeded` state. Stock identity remains separate.
 
 Representative evidence fixture: `MNA7691AA → XR847031`.
 
@@ -118,62 +56,49 @@ Representative evidence fixture: `MNA7691AA → XR847031`.
 |---|---|---|
 | `id` | required | Stable fitment-record identifier. |
 | `part_occurrence_id` | required | FK to the EPC/application occurrence whose applicability is being described. |
-| `applicability_state` | required | Controlled MVP state: `applicable`, `excluded`, or `unavailable`. |
-| `attribute_group` | optional | Original/source attribute group identifier where supplied. |
-| `attribute_key` | optional | Original/source attribute key where supplied. |
-| `source_value` | optional | Original/source attribute value; not interpreted unless its meaning is established. |
-| `except_flag` | optional | Original source exclusion indicator, retained without replacing the source representation. |
-| `source` | optional | Source system/document identifier. |
-| `source_ref` | optional | Evidence/reference for the constraint. |
-| `verification_status` | required | Verification state; defaults to `unverified`. |
-| `confidence` | optional | Confidence information where appropriate. |
+| `applicability_state` | required | `applicable`, `excluded`, or `unavailable`. |
+| `attribute_group` | optional | Original/source attribute group identifier. |
+| `attribute_key` | optional | Original/source attribute key. |
+| `source_value` | optional | Original/source attribute value; not interpreted unless established. |
+| `except_flag` | optional | Original source exclusion indicator. |
+| `source` / `source_ref` | optional | Provenance/evidence. |
+| `verification_status` | required | Verification state. |
+| `confidence` | optional | Confidence where appropriate. |
 
-A PART occurrence may have multiple fitment constraints. Positive and excluded applicability are explicit where the source supports them; unavailable remains distinct from a positive match. Opaque JEPC attribute groups remain source data until semantic interpretation has been verified. The MVP does not infer applicability from model naming, generic model year or KOVuosi.
+A PART occurrence may have multiple fitment constraints. Opaque JEPC attribute groups remain source data until semantic interpretation is verified. The MVP does not infer applicability from model naming, generic model year or KOVuosi.
 
-The representative fixture contains a positive engine applicability value and an excluded convertible-body value with `except_flag` preserved.
+## PART diagram, hotspot and vehicle location
+
+The diagram/location step keeps EPC illustration identity, hotspot evidence, and catalogue vehicle-location mapping separate from both canonical PART identity and physical stock storage.
+
+### Diagram
+
+`diagram` represents an EPC/exploded illustration reference. It may carry a source/source reference, diagram reference, title, image reference, verification state and confidence. A diagram is linked to one or more `part_occurrence` records through `part_occurrence_diagram` so the same canonical PART can remain represented in multiple EPC contexts without duplication.
+
+### Hotspot
+
+`diagram_hotspot` represents an item/hotspot on a diagram and may link to the corresponding `part_occurrence`. The MVP preserves `item_number`, source X/Y or source geometry, and `coordinate_system`/source reference. Source coordinates are retained as source evidence; no normalized VIEPS geometry is implied until the approved #352 coordinate-conversion semantics exist. A hotspot without a verified occurrence mapping remains representable.
+
+### Catalogue vehicle location
+
+`part_vehicle_location` represents a catalogue-side vehicle-location mapping scoped to a PART occurrence and, where applicable, a `model_range`. `mapping_state` is explicitly `verified` or `unavailable`. A verified mapping requires a location reference. An unavailable mapping records that no verified mapping is available and must not fabricate a zone or coordinate. System/category references remain separate fields where supported by evidence.
+
+Physical stock/storage location is not stored in this entity; it remains part of the operational stock model.
 
 ## Architectural boundary
 
-`PART` contains catalogue/reference identity only. It has no direct vehicle applicability field and no mutable stock state.
-
-`PART_IMAGE` is evidence associated with that stable identity; it does not become part of the catalogue identity itself.
-
-Applicability belongs to occurrence/fitment/context relationships. Operational inventory belongs to separate stock records.
-
-`model_range` and `vin_range` are distinct concepts even where a VIN range happens to correspond to a particular model range.
-
-Supersession is a catalogue/reference relationship and does not replace or mutate historical PART identities or operational stock records.
+`PART` contains catalogue/reference identity only. It has no direct vehicle applicability field and no mutable stock state. `PART_IMAGE` is evidence associated with that stable identity. Applicability belongs to occurrence/fitment/context relationships. Diagram/hotspot/location evidence belongs to their explicit relationships. Operational inventory belongs to separate stock records. Catalogue vehicle location and physical stock/storage location are distinct concepts.
 
 ## Migrations
 
-Migration `0002_part_model.sql` establishes the canonical `part` identity and its nullable/unique part-number model.
-
-Migration `0004_part_occurrence_context.sql` establishes the separate `part_occurrence` relationship for EPC/application/context data.
-
-Migration `0005_part_image.sql` establishes `part_image` as a separate child entity of `part`, with a foreign key, required non-blank image reference, per-PART image-reference uniqueness, and lookup indexes.
-
-Migration `0006_part_vehicle_vin_applicability.sql` establishes distinct `model_range` and `vin_range` entities and the `part_model_range` and `part_vin_range` relationships.
-
-Migration `0007_part_supersession.sql` establishes the directed `part_supersession` relationship with provenance/verification metadata, effective boundaries, bidirectional lookup indexes, pair uniqueness and self-link rejection.
-
-Migration `0008_part_fitment.sql` establishes occurrence-level fitment constraints with explicit applicability state, preserved source attribute/exclusion representation, provenance/verification metadata, and lookup/uniqueness indexes.
+Migration `0002_part_model.sql` establishes canonical PART identity. Migration `0004_part_occurrence_context.sql` establishes EPC/application context. Migration `0005_part_image.sql` establishes `part_image`. Migration `0006_part_vehicle_vin_applicability.sql` establishes distinct model/VIN ranges and relationships. Migration `0007_part_supersession.sql` establishes directed supersession. Migration `0008_part_fitment.sql` establishes occurrence-level applicability constraints. Migration `0009_part_diagram_location.sql` establishes diagrams, occurrence-to-diagram links, source-preserving hotspots, and model-scoped catalogue vehicle-location mappings.
 
 ## Testing and fixtures
 
-The PART model tests cover deterministic part-number normalization, nullable/unique part-number identity, non-unique descriptions, and separation from vehicle applicability.
-
-The PART occurrence tests cover the separate EPC/application/context relationship.
-
-The PART image tests cover separate `part_image` persistence, FK linkage, multiple image references, non-unique image descriptions, source/provenance and verification metadata, blank-reference rejection, and image evidence attached to an unidentified PART.
-
-The vehicle/VIN applicability tests cover separate model-range and VIN-range entities, PART relationships, representative fixture links, foreign-key structure and relationship uniqueness.
-
-The supersession tests cover the directed PART-to-PART relationship, provenance and effective metadata, pair uniqueness, self-link rejection, representative `MNA7691AA → XR847031` evidence, and a multi-step supersession chain.
-
-The fitment tests cover occurrence-level relationship structure, explicit applicable/excluded/unavailable states, preserved source attributes and `exceptFlag`, provenance/verification, uniqueness/indexing, and representative positive/exclusion fixtures.
+Tests and fixtures cover canonical PART identity, occurrences, images, model/VIN applicability, supersession, fitment/exclusion, and now diagram/hotspot/location relationships. The diagram/location fixtures include a deterministic diagram and hotspot with source coordinate-system reference, a verified model-specific vehicle location, and an explicit unavailable mapping. Integrity tests cover foreign keys, relationship uniqueness and key boundary constraints.
 
 ## MVP boundary
 
-The implemented vehicle/VIN applicability step is limited to explicit persistent relationships and structured VIN-range records needed by the MVP. The supersession step is limited to explicit directed catalogue relationships and their evidence metadata. The fitment step is limited to explicit occurrence-level applicability constraints and preserved source attribute representation. These steps do not implement complete VIN decoding, automatic VIN-range inference, complete JEPC semantic interpretation, vehicle-location/hotspot conversion, stock, or JEPC import.
+The implemented model steps provide the persistent spine required for part-number search, part detail, EPC context, explicit vehicle/model/VIN applicability, fitment constraints, diagram/hotspot references, verified catalogue vehicle-location mappings, supersession and the later stock relationship. They do not implement complete VIN decoding, automatic VIN-range inference, complete JEPC semantic interpretation, hotspot coordinate conversion, final whole-car zone taxonomy, stock, or JEPC import.
 
-Later model steps remain responsible for diagram/hotspot relationships, catalogue vehicle-location mappings, stock, and other Parts Data Model relationships.
+#352 remains the authority for JEPC Flash hotspot coordinate conversion. #361/#362 remain the authority for final Range/whole-car zone taxonomy. Unresolved geometry or taxonomy decisions must not be encoded as authoritative schema semantics.
