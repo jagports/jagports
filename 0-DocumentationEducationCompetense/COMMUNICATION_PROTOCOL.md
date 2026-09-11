@@ -254,7 +254,7 @@ Implementation PR
        ↓
 Ready for review
        ↓
-Visible review discussion as needed
+Visible Review conversation as needed
        ↓
 Formal review outcome
    ↙              ↘
@@ -262,10 +262,20 @@ Changes          Approved
   ↓                 ↓
 Implement          Merge
   ↓                 ↓
-Discussion        Close Issue
-continues             ↓
-                    DONE
+Review conversation    Close Issue
+continues                 ↓
+                        DONE
 ```
+
+### Review conversation terminology
+
+Use GitHub UI terminology for human-facing communication:
+
+- **Review conversation** means an inline Pull Request review discussion.
+- When its state matters, say **Unresolved Review conversation** or **Resolved Review conversation**.
+- Reserve **review thread** or **review thread object** for GitHub API, GraphQL, and tool implementation details.
+- The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
+- Agents must translate API/tool vocabulary into the human-facing UI term before reporting review state to users.
 
 Review communication follows the canonical semantics in `00-Management/WORKFLOWS.md`:
 
@@ -274,8 +284,8 @@ Review communication follows the canonical semantics in `00-Management/WORKFLOWS
 - When anchored interaction is needed before formal review submission, prefer a standalone submitted PR review comment created directly through the review-comment mechanism/API/tool when immediate submission without a pending review is supported.
 - If standalone anchored submission is unavailable in the current UI/tool, use an immediately visible top-level PR Conversation comment and include direct file/line links where needed.
 - The maker/executor may reply and implement changes while the formal review is still unsubmitted.
-- If GitHub later marks an anchored discussion `outdated` because the referenced diff changed, that state alone does not prove the concern was satisfied; the reviewer verifies whether it was addressed or remains applicable.
-- Formal review submission is the review conclusion. Where independent approval is required, `APPROVED` remains mandatory and must not be inferred from discussion activity, replies, implementation changes, resolved/outdated state, checkboxes, or inactivity.
+- If GitHub later marks an anchored Review conversation `outdated` because the referenced diff changed, that state alone does not prove the concern was satisfied; the reviewer verifies whether it was addressed or remains applicable.
+- Formal review submission is the review conclusion. Where independent approval is required, `APPROVED` remains mandatory and must not be inferred from discussion activity, replies, implementation changes, Resolved/Unresolved Review conversation state, checkboxes, or inactivity.
 
 After a successful merge and completion of the work, the initiating Issue is closed with reason `completed`. The GitHub Project then represents the completed work with the appropriate final Project Status.
 

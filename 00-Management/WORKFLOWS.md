@@ -309,6 +309,15 @@ continue       Identify PR author/executor
                                             Continue workflow
 ```
 
+### Review conversation terminology
+
+For human-facing Jagports documentation and communication, use GitHub UI vocabulary:
+
+- **Review conversation** is the preferred term for an inline Pull Request review discussion.
+- Use **Unresolved Review conversation** and **Resolved Review conversation** when describing its state.
+- Reserve **review thread** or **review thread object** for GitHub API, GraphQL, or tool implementation details.
+- The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
+
 ### Review discussion and formal review rules
 
 1. When the requester is human and review is required, the executing actor requests that human as a GitHub PR reviewer.
@@ -327,15 +336,15 @@ continue       Identify PR author/executor
 14. If standalone anchored submission is unavailable in the current UI/tool, use an immediately visible top-level PR Conversation comment and include direct file/line links where needed for precise implementation context.
 15. The maker/executor may reply to visible review discussion and implement requested changes before a formal `APPROVE`, `REQUEST_CHANGES`, or `COMMENT` review outcome has been submitted. Such replies and changes are not approval.
 16. The reviewer must verify the maker/executor response and resulting implementation before treating the underlying concern as completed.
-17. An anchored submitted diff/line discussion may become GitHub `outdated` when a later commit changes the referenced code. `outdated` is a diff-state signal only; it does not prove that the underlying review concern was satisfied.
-18. If a discussion becomes `outdated`, the reviewer must determine whether the concern was actually addressed, remains applicable elsewhere, or no longer applies before considering it complete.
-19. **A formal review should not normally be submitted while actionable review discussion from that review round remains unresolved.** When discussion establishes an unresolved blocking concern, continue discussion or submit `REQUEST_CHANGES`; do not submit `APPROVE`.
-20. GitHub formal review outcomes (`APPROVE`, `REQUEST_CHANGES`, or `COMMENT`) determine the submitted review result; approval must not be inferred from a notification, discussion comment, reply, implementation change, resolved thread, outdated state, checkbox state, or inactivity.
+17. An anchored submitted diff/line Review conversation may become GitHub `outdated` when a later commit changes the referenced code. `outdated` is a diff-state signal only; it does not prove that the underlying review concern was satisfied.
+18. If a Review conversation becomes `outdated`, the reviewer must determine whether the concern was actually addressed, remains applicable elsewhere, or no longer applies before considering it complete.
+19. **A formal review should not normally be submitted while an actionable Review conversation from that review round remains unresolved.** When discussion establishes an unresolved blocking concern, continue the Review conversation or submit `REQUEST_CHANGES`; do not submit `APPROVE`.
+20. GitHub formal review outcomes (`APPROVE`, `REQUEST_CHANGES`, or `COMMENT`) determine the submitted review result; approval must not be inferred from a notification, discussion comment, reply, implementation change, Resolved Review conversation state, outdated state, checkbox state, or inactivity.
 21. **The reviewer who owns a review concern is the only actor authorized to resolve that concern on the reviewer's behalf. The PR executor, PR author, or any other non-reviewer must not resolve it. The repository/project owner or another explicitly designated human authority is an exception and may resolve it when exercising that authority.**
-22. When review changes are requested, the executor may implement the requested changes, update executor-controlled checkbox state to reflect the actual implementation state, and reply to the relevant discussion, but must leave reviewer-owned concerns unresolved for the reviewer to verify and resolve.
+22. When review changes are requested, the executor may implement the requested changes, update executor-controlled checkbox state to reflect the actual implementation state, and reply to the relevant Review conversation, but must leave reviewer-owned concerns unresolved for the reviewer to verify and resolve.
 23. **Every reply to a review comment that reports implementation of a requested change must state what was changed to comply and include a direct, line-specific GitHub link to the actual implementation lines. Prefer a stable commit-pinned `blob/<commit>/<path>#Lx-Ly` link to the resulting lines; where GitHub provides an equivalent direct PR diff/review location that visibly identifies the changed lines, that may be used instead. A PR-level or file-level link alone is insufficient when a specific line link can be provided. The link must open the specific lines that implement the requested change, not merely the repository, PR, or file overview.**
 24. **The executor must establish the exact changed file and resulting line range before posting the reply. If the implementation spans multiple distinct line ranges, include a direct line-specific link for each relevant range. Do not claim line-specific implementation evidence until the link has been checked to lead to the intended changed lines.**
-25. **The line-specific implementation reply is evidence for reviewer verification; it does not resolve the review concern and does not satisfy the formal review approval gate by itself. The reviewer remains responsible for verification and resolution under the existing authority rule.**
+25. **The line-specific implementation reply is evidence for reviewer verification; it does not resolve the Review conversation and does not satisfy the formal review approval gate by itself. The reviewer remains responsible for verification and resolution under the existing authority rule.**
 26. **Immediately before merge, the executing actor must freshly verify all applicable Issue Acceptance checkboxes, all required PR checklist checkboxes, current/effective review state, and required testing state.**
 27. **Merge is permitted only when all applicable Issue Acceptance boxes are `[x]`, all required PR checklist boxes are `[x]`, required tests are `PASS`, and the current independent review state is `APPROVED`. Any failed component blocks merge.**
 
