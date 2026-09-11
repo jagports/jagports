@@ -1,9 +1,11 @@
 PRAGMA foreign_keys = ON;
 
 -- Persistent schema names describe domain semantics only. Deployment/release or
--- compatibility status must never leak into table names. Rebuild part_image in
--- place and use a migration-only temporary table that is dropped before commit.
-ALTER TABLE part_image RENAME TO _part_image_migration_old;
+-- compatibility status must never leak into table names.
+-- temp_part_image_migration exists only while this migration copies the old
+-- part_image rows into the evolved normal part_image table. It is dropped
+-- before the migration completes and is not part of the application schema.
+ALTER TABLE part_image RENAME TO temp_part_image_migration;
 DROP INDEX idx_part_image_part;
 
 CREATE TABLE part_image (
@@ -32,9 +34,9 @@ SELECT
   description,
   verification_status,
   CASE WHEN image_url IS NULL THEN 'unavailable' ELSE 'available' END
-FROM _part_image_migration_old;
+FROM temp_part_image_migration;
 
-DROP TABLE _part_image_migration_old;
+DROP TABLE temp_part_image_migration;
 
 CREATE UNIQUE INDEX idx_part_image_identity
   ON part_image(part_id, image_ref)
