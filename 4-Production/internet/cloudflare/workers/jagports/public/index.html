@@ -4,52 +4,70 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>VIEPS</title>
-  <style>
-    :root{font-family:system-ui,sans-serif;color:#171717;background:#f7f7f7}
-    body{max-width:1200px;margin:auto;padding:1rem;line-height:1.45}
-    header,section{background:#fff;border:1px solid #d7d7d7;border-radius:8px;padding:1rem;margin:1rem 0}
-    form{display:flex;gap:.5rem;flex-wrap:wrap}input,button{font:inherit;padding:.6rem}input{min-width:20rem;flex:1}button{cursor:pointer}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
-    .card{border:1px solid #ddd;border-radius:6px;padding:.8rem}.muted{color:#666}.error{border-color:#b00020;color:#8a0018}
-    .path{margin:.35rem 0}.badge{display:inline-block;border:1px solid #aaa;border-radius:999px;padding:.15rem .5rem;font-size:.85rem;margin:.15rem}
-    img{max-width:100%;height:auto}.empty{color:#666;font-style:italic}
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="vieps.css">
 </head>
 <body>
-  <header>
-    <h1>VIEPS</h1>
-    <p class="muted">Minimum demonstrable VIEPS UI: part-number → PART → Parts Tree → image/diagram context → vehicle ranges → variations.</p>
-  </header>
+  <main class="app-shell container">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Jagports Vehicle Information and EPC System</p>
+        <h1>VIEPS</h1>
+      </div>
+      <p class="muted app-summary">Part-number → PART → Parts Tree → image/diagram context → vehicle ranges → variations.</p>
+    </header>
 
-  <section aria-labelledby="search-heading">
-    <h2 id="search-heading">Search Jaguar part number</h2>
-    <form id="partSearch">
-      <input id="partNumber" name="partNumber" autocomplete="off" placeholder="e.g. MJB7703AA" aria-label="Jaguar part number" required>
-      <button type="submit">Resolve PART</button>
-    </form>
-    <p id="searchStatus" class="muted" role="status"></p>
-  </section>
-
-  <main id="result" hidden>
-    <section>
-      <h2>PART</h2>
-      <div id="partCard" class="card"></div>
+    <section class="panel search-panel" aria-labelledby="search-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Part search</p>
+          <h2 id="search-heading">Search Jaguar part number</h2>
+        </div>
+      </div>
+      <form id="partSearch" class="search-form">
+        <label for="partNumber" class="visually-hidden">Jaguar part number</label>
+        <input id="partNumber" name="partNumber" autocomplete="off" placeholder="e.g. MJB7703AA" aria-label="Jaguar part number" required>
+        <button type="submit">Resolve PART</button>
+      </form>
+      <p id="searchStatus" class="muted status-line" role="status"></p>
     </section>
 
-    <section>
-      <h2>Parts Tree</h2>
-      <div id="tree"></div>
-    </section>
+    <div id="result" class="concept-grid" hidden>
+      <section class="panel part-panel" aria-labelledby="part-heading">
+        <div class="section-heading">
+          <p class="eyebrow">Identity</p>
+          <h2 id="part-heading">PART</h2>
+        </div>
+        <div id="partCard" class="card"></div>
+      </section>
 
-    <section>
-      <h2>Part Image / Diagram</h2>
-      <div id="visuals" class="grid"></div>
-    </section>
+      <section class="panel tree-panel" aria-labelledby="tree-heading">
+        <div class="section-heading">
+          <p class="eyebrow">Catalogue context</p>
+          <h2 id="tree-heading">Parts Tree</h2>
+        </div>
+        <div id="tree"></div>
+      </section>
 
-    <section>
-      <h2>Suitable Vehicle Ranges / Models</h2>
-      <div id="fitment" class="grid"></div>
-    </section>
+      <section class="panel visual-panel" aria-labelledby="visual-heading">
+        <div class="section-heading">
+          <p class="eyebrow">Main View</p>
+          <h2 id="visual-heading">Part Image / Diagram</h2>
+        </div>
+        <div id="visuals" class="content-grid"></div>
+      </section>
+
+      <section class="panel fitment-panel" aria-labelledby="fitment-heading">
+        <div class="section-heading fitment-heading-row">
+          <div>
+            <p class="eyebrow">Applicability</p>
+            <h2 id="fitment-heading">Suitable Vehicle Ranges / Models</h2>
+          </div>
+          <p class="muted compact-note">Only available applicability/variation data is shown.</p>
+        </div>
+        <div id="fitment" class="content-grid fitment-grid"></div>
+      </section>
+    </div>
   </main>
 
   <script src="app.js"></script>
