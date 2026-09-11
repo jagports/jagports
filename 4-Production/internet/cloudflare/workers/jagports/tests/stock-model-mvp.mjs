@@ -68,7 +68,7 @@ const stock = db.prepare(`
          donor_vehicle_id, price, currency, available
   FROM stock_item WHERE part_number = 'C2P0001'
 `).get();
-assert.deepEqual(stock, {
+assert.deepEqual({ ...stock }, {
   quantity: 2,
   condition_code: 'B',
   storage_location_id: 57011,
