@@ -1,19 +1,20 @@
 PRAGMA foreign_keys = ON;
 
--- Retain the 0003 range/variation presentation rows separately. There is no
--- verified conversion from these rows to occurrence-level source attributes.
-ALTER TABLE part_fitment RENAME TO deployment1_part_fitment;
+-- Persistent schema names describe domain semantics only. Deployment/release or
+-- compatibility status must never leak into table names. Rebuild part_fitment
+-- in place and drop the migration-only temporary table before commit.
+ALTER TABLE part_fitment RENAME TO _part_fitment_migration_old;
 DROP INDEX idx_part_fitment_unique;
 DROP INDEX idx_part_fitment_part;
 DROP INDEX idx_part_fitment_range;
-CREATE UNIQUE INDEX idx_deployment1_part_fitment_unique
-  ON deployment1_part_fitment(part_id, vehicle_range_id, variation, qualifier);
-CREATE INDEX idx_deployment1_part_fitment_part ON deployment1_part_fitment(part_id);
-CREATE INDEX idx_deployment1_part_fitment_range ON deployment1_part_fitment(vehicle_range_id);
 
 CREATE TABLE part_fitment (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  part_occurrence_id INTEGER NOT NULL REFERENCES part_occurrence(id) ON DELETE CASCADE,
+  part_id INTEGER NOT NULL REFERENCES part(id) ON DELETE CASCADE,
+  part_occurrence_id INTEGER REFERENCES part_occurrence(id) ON DELETE CASCADE,
+  vehicle_range_id INTEGER REFERENCES vehicle_range(id) ON DELETE CASCADE,
+  variation TEXT,
+  qualifier TEXT,
   applicability_state TEXT NOT NULL DEFAULT 'applicable',
   attribute_group TEXT,
   attribute_key TEXT,
@@ -29,7 +30,37 @@ CREATE TABLE part_fitment (
   CHECK (except_flag IS NULL OR TRIM(except_flag) <> '')
 );
 
-CREATE UNIQUE INDEX idx_part_fitment_identity
+INSERT INTO part_fitment (
+  id,
+  part_id,
+  vehicle_range_id,
+  variation,
+  qualifier,
+  applicability_state,
+  verification_status
+)
+SELECT
+  id,
+  part_id,
+  vehicle_range_id,
+  variation,
+  qualifier,
+  'applicable',
+  verification_status
+FROM _part_fitment_migration_old;
+
+DROP TABLE _part_fitment_migration_old;
+
+CREATE UNIQUE INDEX idx_part_fitment_range_identity
+  ON part_fitment(
+    part_id,
+    vehicle_range_id,
+    COALESCE(variation, ''),
+    COALESCE(qualifier, '')
+  )
+  WHERE vehicle_range_id IS NOT NULL AND part_occurrence_id IS NULL;
+
+CREATE UNIQUE INDEX idx_part_fitment_occurrence_identity
   ON part_fitment(
     part_occurrence_id,
     applicability_state,
@@ -37,8 +68,14 @@ CREATE UNIQUE INDEX idx_part_fitment_identity
     COALESCE(attribute_key, ''),
     COALESCE(source_value, ''),
     COALESCE(except_flag, '')
-  );
+  )
+  WHERE part_occurrence_id IS NOT NULL;
+
+CREATE INDEX idx_part_fitment_part
+  ON part_fitment(part_id);
 CREATE INDEX idx_part_fitment_occurrence
   ON part_fitment(part_occurrence_id);
+CREATE INDEX idx_part_fitment_range
+  ON part_fitment(vehicle_range_id);
 CREATE INDEX idx_part_fitment_attribute
   ON part_fitment(attribute_group, attribute_key, source_value);
