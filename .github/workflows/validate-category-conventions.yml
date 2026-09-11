@@ -2,12 +2,15 @@ name: Validate category conventions
 
 on:
   issues:
-    types: [opened, edited, labeled, unlabeled]
+    types: [opened, edited]
   pull_request:
-    types: [opened, edited, labeled, unlabeled, synchronize]
+    types: [opened, edited]
 
 jobs:
   validate-category:
+    if: >-
+      github.event.action != 'edited' ||
+      github.event.changes.title != null
     runs-on: ubuntu-latest
     permissions:
       issues: write
