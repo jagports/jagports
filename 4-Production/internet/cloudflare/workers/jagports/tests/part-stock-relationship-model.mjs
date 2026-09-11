@@ -21,7 +21,7 @@ assert.match(fixture, /9301/);
 assert.match(fixture, /9302/);
 assert.match(fixture, /part_id, donor_vehicle_id/);
 assert.match(fixture, /9303/);
-assert.match(fixture, /NULL, NULL,\n   'fixture', 'unverified'/);
+assert.match(fixture, /NULL, NULL,\s+'fixture', 'unverified'/);
 assert.match(docs, /PART to operational stock/);
 assert.match(docs, /multiple stock records/);
 assert.match(docs, /unresolved\/non-catalogue stock/);
