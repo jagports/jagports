@@ -6,4 +6,4 @@ jagports AI OS
 
 and 
 
-jagports VIES (Vehicle Information & EPC (Electic Parts Catalog) System
+jagports VIEPS (Vehicle Information & EPC (Electic Parts Catalog) System
