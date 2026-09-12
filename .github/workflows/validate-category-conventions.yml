@@ -2,12 +2,15 @@ name: Validate category conventions
 
 on:
   issues:
-    types: [opened, edited, labeled, unlabeled]
+    types: [opened, edited]
   pull_request:
-    types: [opened, edited, labeled, unlabeled, synchronize]
+    types: [opened, edited]
 
 jobs:
   validate-category:
+    if: >-
+      github.event.action != 'edited' ||
+      github.event.changes.title != null
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -15,13 +18,13 @@ jobs:
       contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run category synchronization tests
         run: node --test .github/scripts/category-conventions.test.js
 
       - name: Set matching category label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { getCategorySyncPlan } = require('./.github/scripts/category-conventions.js');
@@ -54,7 +57,7 @@ jobs:
             }
 
       - name: Validate title prefix and category label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { getCategorySyncPlan } = require('./.github/scripts/category-conventions.js');

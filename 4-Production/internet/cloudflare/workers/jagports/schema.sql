@@ -1,4 +1,7 @@
 PRAGMA foreign_keys = ON;
+-- Historical 0001 bootstrap only, not the current schema snapshot.
+-- Apply migrations/0001_initial.sql through 0010 in filename order instead.
+-- Do not run this file on an already migrated database (it recreates part_reference).
 
 CREATE TABLE IF NOT EXISTS part_reference (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

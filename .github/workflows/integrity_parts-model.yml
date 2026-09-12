@@ -1,0 +1,33 @@
+name: Parts model integrity tests
+
+on:
+  pull_request:
+    paths:
+      - '4-Production/internet/cloudflare/workers/jagports/**'
+      - '.github/workflows/integrity_parts-model.yml'
+      - '3-Deployment/internet/github/actions/tests/integrity_parts_model.md'
+  push:
+    branches: [main]
+    paths:
+      - '4-Production/internet/cloudflare/workers/jagports/**'
+      - '.github/workflows/integrity_parts-model.yml'
+      - '3-Deployment/internet/github/actions/tests/integrity_parts_model.md'
+
+permissions:
+  contents: read
+
+jobs:
+  model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            4-Production/internet/cloudflare/workers/jagports
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Execute model, migration and Worker tests
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+        run: npm test

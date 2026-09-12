@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(new URL('.', import.meta.url).pathname, '..');
+const root = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const migration = fs.readFileSync(path.join(root, 'migrations/0010_part_stock_relationship.sql'), 'utf8');
 const fixture = fs.readFileSync(path.join(root, 'tests/fixtures/part_stock_relationship.sql'), 'utf8');
 const docs = fs.readFileSync(path.join(root, 'PART_MODEL.md'), 'utf8');
@@ -20,7 +21,7 @@ assert.match(fixture, /9301/);
 assert.match(fixture, /9302/);
 assert.match(fixture, /part_id, donor_vehicle_id/);
 assert.match(fixture, /9303/);
-assert.match(fixture, /NULL, NULL,\n   'fixture', 'unverified'/);
+assert.match(fixture, /NULL, NULL,\s+'fixture', 'unverified'/);
 assert.match(docs, /PART to operational stock/);
 assert.match(docs, /multiple stock records/);
 assert.match(docs, /unresolved\/non-catalogue stock/);
