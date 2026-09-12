@@ -98,37 +98,12 @@ Purpose:
 - illustration references
 - category identifiers
 
-Example hierarchy:
-
-```
-XJ6
- |
- +-- ELECTRICAL DISTRIBUTION SYSTEM
-       |
-       +-- RELAYS
-             |
-             +-- TRUNK COMPARTMENT RELAY
-```
-
 ### tl_ files
-
-Example:
-
-`tl_M2220_C10657_L0.xml`
 
 Purpose:
 
 - translated descriptions
 - displayed names for catalogue entries
-
-Example:
-
-```
-1 Relay mounting bracket
-3 Reverse inhibit relay
-4 Relay
-6 Relay cover
-```
 
 ### Itm_ files
 
@@ -138,43 +113,9 @@ Purpose:
 - part references
 - item decision trees
 
-Example resolved item:
-
-```
-Model:
-pl_id_2220
-
-Category:
-C10657
-
-Item:
-Itm_M2220_C10657_I1_L0.xml
-
-Part:
-DBC2672
-```
-
 ## Applicability model
 
 Applicability is not only a VIN range. JEPC samples show reusable condition groups.
-
-Examples:
-
-```
-1224,[A6,3271,0,0]
-```
-
-and:
-
-```
-16844,[A6,3271,0,0][C,M62936,0,0][C,N52047,1,0]
-```
-
-and:
-
-```
-272264,[A23,154,0,0][A152,2723,0,0][C,V63538,0,0]
-```
 
 General model:
 
@@ -196,9 +137,50 @@ Part
 Rules:
 
 - Store raw JEPC attribute codes and values.
-- Do not hard-code meanings of A6, A23, A152, C until verified.
-- Interpret applicability progressively.
+- Do not hard-code meanings of attribute codes until verified.
 - Keep applicability separate from part identity.
+
+## JEPC file inventory snapshot
+
+The complete JEPC installation contains a large number of files. A file inventory snapshot is included:
+
+```
+JEPC-files-TREE.zip
+```
+
+The inventory is generated from the original JEPC installation using:
+
+```
+tree . /F /A > JEPC-files-TREE.txt
+```
+
+Purpose:
+
+- Document the analysed JEPC source installation.
+- Provide a reproducible view of available files.
+- Support parser development.
+- Identify model, catalogue, XML and media structures.
+
+The inventory is not imported directly as application data. It is an input for creating a parser index.
+
+Import flow:
+
+```
+JEPC installation
+        |
+        v
+JEPC file inventory
+        |
+        v
+Inventory parser
+        |
+        v
+File index
+        |
+        +-- XML parser
+        |
+        +-- Media converter
+```
 
 ## Database sizing and import strategy
 
