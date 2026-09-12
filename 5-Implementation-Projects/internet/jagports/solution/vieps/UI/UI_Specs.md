@@ -56,7 +56,7 @@ The exact visual arrangement may be refined during implementation without changi
 
 ### Concept View-1 visual source and minimum MVP ASCII map
 
-**Concept UI image source:** `5-Implementation-Projects/internet/jagports/solution/vieps/VIEPS UI/VIEPS UI-Concept-1.emf`
+**Concept UI image source:** `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/VIEPS UI-Concept-1.emf`
 
 The following map is the normative text representation of Concept View-1. The EMF is the placement authority: tree left; search, vehicle location, combined part details/image and detailed suitability in the centre; model ranges right. This supersedes the earlier minimum-MVP arrangement with PART left, tree middle and image right. It defines placement and relationships, not pixel dimensions.
 

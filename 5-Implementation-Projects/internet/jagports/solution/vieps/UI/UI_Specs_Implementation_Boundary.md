@@ -11,7 +11,7 @@ Define the ownership and traceability boundary for completing the Concept View-1
 ## Ownership
 - #468 is the controlling Concept View-1 specification while its acceptance criteria are completed.
 - #368 is the implementation parent for the actual VIEPS UI.
-- Each priority can have a dedicated specification issue and durable `UI_Specs_<Topic>.md` file in the existing `vieps/` directory.
+- Each priority can have a dedicated specification issue and durable `UI_Specs_<Topic>.md` file in the existing `vieps/UI/` directory.
 - #360 remains obsolete and is not a requirements source.
 - #366 remains superseded by #468.
 
@@ -25,7 +25,7 @@ The complete Concept-1 page should be established early. Components whose contra
 Detailed UI specifications use the existing directory only:
 
 ```text
-5-Implementation-Projects/internet/cloudflare/jagports/vieps/
+5-Implementation-Projects/internet/jagports/solution/vieps/UI/
   UI_Specs.md
   UI_Specs_Part_Search.md
   UI_Specs_Parts_Tree.md
