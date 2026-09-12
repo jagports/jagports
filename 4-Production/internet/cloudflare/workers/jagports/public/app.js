@@ -17,7 +17,10 @@ async function resolvePart(partNumber) {
   return data;
 }
 
-function renderPart(part) {
+function renderPart(part, occurrences = []) {
+  const occurrenceText = occurrences.length
+    ? `${occurrences.length} EPC occurrence${occurrences.length === 1 ? "" : "s"}`
+    : "No EPC occurrence context available";
   $("partCard").innerHTML = `
     <strong>${escapeHtml(part.part_number_normalized || "No Jaguar part number")}</strong>
     <p>${escapeHtml(part.description || "No description")}</p>
@@ -25,6 +28,7 @@ function renderPart(part) {
       <dt>Raw part number</dt><dd>${escapeHtml(part.part_number_raw || "Not supplied")}</dd>
       <dt>Verification</dt><dd>${escapeHtml(part.verification_status || "Not recorded")}</dd>
       <dt>Source</dt><dd>${escapeHtml(part.source || "Not recorded")}</dd>
+      <dt>EPC context</dt><dd>${escapeHtml(occurrenceText)}</dd>
     </dl>`;
 }
 
@@ -132,7 +136,7 @@ $("partSearch").addEventListener("submit", async (event) => {
   try {
     const data = await resolvePart(partNumber);
     if (version !== requestVersion) return;
-    renderPart(data.part);
+    renderPart(data.part, data.occurrences || []);
     renderTree(data.parts_tree || []);
     renderVisuals(data.images || [], data.diagrams || []);
     renderFitment(data.fitment || []);
