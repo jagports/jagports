@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-# resolve_range_ids.py — usage: python resolve_range_ids.py models_l_id_0.xml "XK"
-import re, sys
+# resolve_range_ids.py — usage: python resolve_range_ids.py models_l_id_0.xml "Daimler"
+import sys
 
 def parse_records(text):
-    # bracket-delimited, quote-aware split — handles commas inside 'quoted names'
     records = []
     for line in text.splitlines():
         line = line.strip()
@@ -30,20 +29,29 @@ def main():
     text = open(path, encoding='latin-1').read()
     records = parse_records(text)
 
-    parent_ids = {p for (_, p, _) in records}
     matched_groups = [(i, n) for (i, p, n) in records
                        if p == 10001 and pattern.lower() in n.lower()]
-
     print(f"# matched top-level groups for '{pattern}':", file=sys.stderr)
     for gid, gname in matched_groups:
         print(f"#   {gid}  {gname}", file=sys.stderr)
 
-    group_ids = {gid for gid, _ in matched_groups}
-    leaves = [(i, n) for (i, p, n) in records
-              if p in group_ids and i not in parent_ids]
+    # children[parent_id] -> list of (own_id, name)
+    children = {}
+    for i, p, n in records:
+        children.setdefault(p, []).append((i, n))
 
-    for leaf_id, name in leaves:
-        print(f"{leaf_id}\t{name}")
+    # collect EVERY descendant at any depth, not just direct children
+    seen_ids = set()
+    def walk(pid):
+        for cid, cname in children.get(pid, []):
+            if cid in seen_ids:
+                continue
+            seen_ids.add(cid)
+            print(f"{cid}\t{cname}")
+            walk(cid)  # recurse — don't assume only 2 levels
+
+    for gid, _ in matched_groups:
+        walk(gid)
 
 if __name__ == '__main__':
     main()

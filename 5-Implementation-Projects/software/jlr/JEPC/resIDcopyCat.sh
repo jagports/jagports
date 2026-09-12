@@ -2,7 +2,7 @@
 set -uo pipefail
 
 SOURCE_ROOT="/c/Program Files/JEPC/applications/JEPC"
-DEST_ROOT="/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports/5-Implementation-Projects/software/jlr/JEPC/JEPCFiles"
+DEST_ROOT="/c/temp/jepc"
 ID_LIST="xk_range_ids.txt"
 
 while IFS= read -r plid_num; do
