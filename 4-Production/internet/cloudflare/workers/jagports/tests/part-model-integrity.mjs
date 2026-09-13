@@ -158,108 +158,167 @@ test('canonical and relationship uniqueness reject duplicate populated identitie
     ['part_vehicle_location', 'id=53881'], ['vehicle_range', 'id=1'], ['part_tree_part', 'tree_node_id=3'],
     ['part_fitment', 'id=1'],
   ]) {
-    assert.ok(db.prepare(`SELECT 1 FROM ${table} WHERE ${where}`).get(), `${table} fixture ${where}`);
+    const columns = db.prepare(`PRAGMA table_info(${quote(table)})`).all().filter((c) => c.name !== 'id').map((c) => quote(c.name)).join(',');
+    rejected(db, `INSERT INTO ${quote(table)} (${columns}) SELECT ${columns} FROM ${quote(table)} WHERE ${where} LIMIT 1`, /UNIQUE constraint failed/);
   }
-  rejected(db, "INSERT INTO part(part_number_raw,part_number_normalized) VALUES('MNA-7691-AA','MNA7691AA')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part(part_number_raw,part_number_normalized) VALUES(NULL,'MNA7691AA')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part(part_number_raw,part_number_normalized) VALUES(NULL,'')", /CHECK constraint failed/);
-  rejected(db, "INSERT INTO model_range(range_code,name) VALUES('X100','duplicate')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO vin_range(range_code,serial_start,serial_end) VALUES('X100','A','B')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_occurrence(part_id,source,source_ref,context_type,context_ref) VALUES(53801,'fixture','jepc:sheet:warning-label','epc','emission')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_image(part_id,image_ref,image_kind) VALUES(53801,'fixture://jepc/warning-label.png','diagram')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_model_range(part_id,model_range_id,source_ref) VALUES(53801,53831,'fixture:jepc:model')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_vin_range(part_id,vin_range_id,source_ref) VALUES(53801,53841,'fixture:jepc:vin')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_supersession(superseded_part_id,superseding_part_id,source_ref) VALUES(53801,53802,'fixture:classic:supersession')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_fitment(part_occurrence_id,applicability_state,attribute,source_ref) VALUES(53811,'applicable','A/R','fixture:jepc:fitment')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_fitment(part_occurrence_id,applicability_state,attribute,source_ref) VALUES(53813,'excluded','except VIN before A99999','fixture:jepc:exclusion')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO diagram(id,diagram_ref) VALUES(53861,'JHM538-AIR')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_occurrence_diagram(part_occurrence_id,diagram_id,item_number) VALUES(53811,53861,'3')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_vehicle_location(part_id,vehicle_range_id,location_path,source_ref) VALUES(53801,1,'Engine bay / Front / Warning label','fixture:jepc:vehicle-location')", /UNIQUE constraint failed/);
-  rejected(db, "INSERT INTO part_tree_part(tree_node_id,part_id) VALUES(3,1)", /UNIQUE constraint failed/);
 });
 
 test('required values and documented CHECK boundaries reject invalid data', (t) => {
   const db = withDatabase(t);
-  const checks = [
-    ['part_image', "INSERT INTO part_image(part_id,availability_status) VALUES(53801,'unknown')"],
-    ['part_image', "INSERT INTO part_image(part_id,availability_status) VALUES(53801,'available')"],
-    ['part_image', "INSERT INTO part_image(part_id,image_ref,image_kind,availability_status) VALUES(53801,'x','kind','unavailable')"],
-    ['part_image', "INSERT INTO part_image(part_id,image_ref,image_kind,availability_status) VALUES(53801,'x','kind','available')"],
-    ['part_fitment', "INSERT INTO part_fitment(part_occurrence_id,applicability_state) VALUES(53811,'maybe')"],
-    ['part_fitment', "INSERT INTO part_fitment(part_occurrence_id,applicability_state) VALUES(53811,'unavailable')"],
-    ['part_fitment', "INSERT INTO part_fitment(part_occurrence_id,applicability_state) VALUES(53811,'applicable')"],
-    ['part_fitment', "INSERT INTO part_fitment(part_occurrence_id,applicability_state,except_flag) VALUES(53811,'excluded','maybe')"],
-    ['part_fitment', "INSERT INTO part_fitment(part_occurrence_id,applicability_state,except_flag) VALUES(53811,'excluded','0')"],
-    ['part_supersession', "INSERT INTO part_supersession(superseded_part_id,superseding_part_id,relationship_type) VALUES(53801,53802,'interchange')"],
-    ['part_supersession', "INSERT INTO part_supersession(superseded_part_id,superseding_part_id,relationship_type) VALUES(53801,53801,'supersedes')"],
-    ['stock_item', "INSERT INTO stock_item(part_id,quantity,available) VALUES(53801,-1,1)"],
-    ['stock_item', "INSERT INTO stock_item(part_id,quantity,available) VALUES(53801,0,2)"],
-    ['stock_item', "INSERT INTO stock_item(part_id,condition_code) VALUES(53801,'Z')"],
-    ['stock_item', "INSERT INTO stock_item(part_id,confidence) VALUES(53801,1.2)"],
-    ['vehicle', "INSERT INTO vehicle(vin_raw,vin_normalized,model_year) VALUES('short','SHORT',2000)"],
-    ['part_vehicle_location', "INSERT INTO part_vehicle_location(part_id,vehicle_range_id,location_path) VALUES(53801,1,'')"],
-  ];
-  for (const [table, query] of checks) {
-    rejected(db, query, /constraint failed/i);
-    assert.ok(table);
-  }
+  for (const query of [
+    "UPDATE part SET part_number_raw=' ' WHERE id=53801",
+    "UPDATE part SET part_number_normalized='' WHERE id=53801",
+    "UPDATE part SET verification_status=NULL WHERE id=53801",
+    ...['source', 'source_ref', 'context_type'].map((field) => `UPDATE part_occurrence SET ${field}=' ' WHERE id=53811`),
+    "UPDATE part_image SET image_ref='' WHERE id=53821",
+    ...['range_code', 'name'].map((field) => `UPDATE model_range SET ${field}=' ' WHERE id=53831`),
+    ...['vin_prefix', 'serial_start', 'serial_end'].map((field) => `UPDATE vin_range SET ${field}=' ' WHERE id=53841`),
+    'UPDATE part_supersession SET superseding_part_id=superseded_part_id WHERE superseded_part_id=53801',
+    "UPDATE part_fitment SET applicability_state='maybe' WHERE id=53851",
+    "UPDATE part_fitment SET source_value=' ' WHERE id=53851",
+    "UPDATE part_fitment SET except_flag='' WHERE id=53851",
+    "UPDATE diagram SET diagram_ref='' WHERE id=53861",
+    "UPDATE diagram_hotspot SET item_number='' WHERE id=53871",
+    "UPDATE diagram_hotspot SET coordinate_system='' WHERE id=53871",
+    'UPDATE diagram_hotspot SET source_y=NULL WHERE id=53871',
+    "UPDATE part_vehicle_location SET mapping_state='maybe' WHERE id=53881",
+    'UPDATE part_vehicle_location SET location_ref=NULL WHERE id=53881',
+    ...['location_ref', 'system_ref', 'category_ref'].map((field) => `UPDATE part_vehicle_location SET ${field}='' WHERE id=53881`),
+    'UPDATE stock_item SET quantity=-1 WHERE id=53901',
+    'UPDATE stock_item SET available=2 WHERE id=53901',
+    'UPDATE stock_item SET available=NULL WHERE id=53901',
+  ]) rejected(db, query);
 });
 
 test('nullable uniqueness and source boundaries remain explicit, not invented validation', (t) => {
   const db = withDatabase(t);
-  db.exec("INSERT INTO part(part_number_raw,part_number_normalized,description) VALUES(NULL,NULL,'unknown fastener one'),(NULL,NULL,'unknown fastener one')");
-  db.exec("INSERT INTO part_image(part_id,image_ref,image_kind) VALUES(53801,NULL,'reference'),(53801,NULL,'reference')");
-  db.exec("INSERT INTO part_occurrence(part_id,source,source_ref,context_type,context_ref) VALUES(53801,'fixture','nullable-a','epc','a'),(53801,'fixture','nullable-b','epc','b')");
-  db.exec("INSERT INTO stock_item(part_number,quantity,source_ref) VALUES('unmapped legacy',1,'same'),('unmapped legacy',1,'same')");
+  db.exec(`INSERT INTO part(description) VALUES('Unidentified clip'),('Unidentified clip');
+    INSERT INTO diagram(diagram_ref) VALUES('unknown'),('unknown');
+    INSERT INTO part_vehicle_location(part_occurrence_id) VALUES(53812),(53812);
+    UPDATE vin_range SET serial_start='Z9',serial_end='A1' WHERE id=53841;
+    UPDATE diagram_hotspot SET coordinate_system=NULL WHERE id=53871;
+    UPDATE stock_item SET quantity=0,available=0 WHERE id=53901;`);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM diagram WHERE diagram_ref='unknown'").get().n, 2);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_vehicle_location WHERE part_occurrence_id=53812').get().n, 3);
+  db.exec('INSERT INTO part_supersession(superseded_part_id,superseding_part_id) VALUES(53803,53801)');
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_supersession WHERE superseded_part_id=53803').get().n, 1);
 });
 
 test('deleting catalogue identity preserves stock and unmapped hotspot evidence', (t) => {
   const db = withDatabase(t);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM stock_item WHERE part_id=53801').get().n > 0, true);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM diagram_hotspot WHERE part_id=53801').get().n > 0, true);
+  const before = { ...db.prepare('SELECT * FROM stock_item WHERE id=53901').get() };
   db.exec('DELETE FROM part WHERE id=53801');
-  assert.equal(db.prepare('SELECT count(*) AS n FROM stock_item WHERE part_id IS NULL AND part_number IS NOT NULL').get().n > 0, true);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM diagram_hotspot WHERE part_id IS NULL AND diagram_id IS NOT NULL').get().n > 0, true);
+  assert.deepEqual({ ...db.prepare('SELECT * FROM stock_item WHERE id=53901').get() }, { ...before, part_id: null });
+  for (const table of ['part_occurrence', 'part_model_range', 'part_vin_range']) {
+    assert.equal(db.prepare(`SELECT count(*) AS n FROM ${table} WHERE part_id=53801`).get().n, 0);
+  }
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_fitment WHERE part_occurrence_id IN (53811,53812)').get().n, 0);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_vehicle_location WHERE part_occurrence_id IN (53811,53812)').get().n, 0);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_occurrence_diagram').get().n, 0);
+  assert.equal(db.prepare('SELECT part_occurrence_id FROM diagram_hotspot WHERE id=53871').get().part_occurrence_id, null);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_supersession WHERE superseded_part_id=53801 OR superseding_part_id=53801').get().n, 0);
+  assert.ok(db.prepare('SELECT id FROM part WHERE id=53802').get());
+  db.exec('DELETE FROM vehicle WHERE id=53891');
+  assert.equal(db.prepare('SELECT donor_vehicle_id FROM stock_item WHERE id=53901').get().donor_vehicle_id, null);
+  assert.equal(db.prepare('SELECT donor_vehicle FROM stock_item WHERE id=53901').get().donor_vehicle, 'source donor text');
+  assert.equal(db.prepare('SELECT count(*) AS n FROM vehicle_identifier WHERE vehicle_id=53891').get().n, 0);
+  db.exec('DELETE FROM diagram WHERE id=53861');
+  assert.equal(db.prepare('SELECT count(*) AS n FROM diagram_hotspot').get().n, 0);
+  assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
 });
 
 test('range and evidence deletion cascades do not delete catalogue parts', (t) => {
   const db = withDatabase(t);
-  assert.ok(db.prepare('SELECT 1 FROM part_model_range WHERE part_id=53801 AND model_range_id=53831').get());
-  assert.ok(db.prepare('SELECT 1 FROM part_vin_range WHERE part_id=53801 AND vin_range_id=53841').get());
-  assert.ok(db.prepare('SELECT 1 FROM part_occurrence WHERE part_id=53801').get());
-  assert.ok(db.prepare('SELECT 1 FROM part_image WHERE part_id=53801').get());
-  assert.ok(db.prepare('SELECT 1 FROM diagram_hotspot WHERE part_id=53801').get());
-  assert.ok(db.prepare('SELECT 1 FROM part_vehicle_location WHERE part_id=53801').get());
-  db.exec('DELETE FROM model_range WHERE id=53831');
-  db.exec('DELETE FROM vin_range WHERE id=53841');
-  db.exec('DELETE FROM part_occurrence WHERE id=53811');
-  db.exec('DELETE FROM part_image WHERE id=53821');
-  db.exec('DELETE FROM diagram WHERE id=53861');
-  db.exec('DELETE FROM part_vehicle_location WHERE id=53881');
-  assert.ok(db.prepare('SELECT 1 FROM part WHERE id=53801').get());
+  db.exec('DELETE FROM model_range WHERE id=53831; DELETE FROM vin_range WHERE id=53841; DELETE FROM part WHERE id=53804');
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_model_range').get().n, 0);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_vin_range').get().n, 0);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_vehicle_location WHERE id=53881').get().n, 0);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM part_image WHERE part_id=53804').get().n, 0);
+  assert.ok(db.prepare('SELECT id FROM part WHERE id=53801').get());
 });
 
 test('each existing step fixture executes with explicit prerequisites', (t) => {
-  for (let index = 0; index < migrations.length; index += 1) {
-    const db = new DatabaseSync(':memory:');
-    t.after(() => db.close());
-    db.exec('PRAGMA foreign_keys=ON');
-    migrate(db, migrations.slice(0, index + 1));
-    for (const fixture of sql.fixturesByStep[index + 1] || []) db.exec(fixture);
-    assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], `step ${index + 1}`);
-    assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok', `step ${index + 1}`);
+  const fixtures = ['part_occurrence', 'part_image', 'part_vehicle_vin_applicability', 'part_supersession', 'part_fitment', 'part_diagram_location', 'part_stock_relationship'];
+  for (const fixture of fixtures) {
+    if (fixture === 'part_stock_relationship') {
+      const db = new DatabaseSync(':memory:');
+      t.after(() => db.close());
+      db.exec('PRAGMA foreign_keys=ON');
+      const mvpStockMigration = migrations.indexOf('0011_mvp_stock_model.sql');
+      migrate(db, migrations.slice(0, mvpStockMigration));
+      db.exec(sql(`tests/fixtures/${fixture}.sql`));
+      migrate(db, migrations.slice(mvpStockMigration));
+      assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
+      assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);
+      continue;
+    }
+    const db = withDatabase(t, { fixtures: false });
+    if (fixture === 'part_occurrence') db.exec("INSERT INTO part(id,description) VALUES(1,'fixture prerequisite')");
+    if (fixture === 'part_vehicle_vin_applicability') db.exec("INSERT INTO part(part_number_raw,part_number_normalized) VALUES('MNA7691AA','MNA7691AA')");
+    db.exec(sql(`tests/fixtures/${fixture}.sql`));
+    assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
+    assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);
   }
 });
 
 test('MVP API executes real queries after all migrations', async (t) => {
   const db = withDatabase(t);
-  const response = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=MJB7703AA'), { DB: d1(db) });
+  const env = { DB: d1(db) };
+  const response = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=MJB7703AA'), env);
   assert.equal(response.status, 200);
-  const payload = await response.json();
-  assert.equal(payload.part.part_number_normalized, 'MJB7703AA');
-  assert.ok(Array.isArray(payload.parts_tree));
-  assert.ok(Array.isArray(payload.images));
-  assert.ok(Array.isArray(payload.fitment));
-  assert.ok(Array.isArray(payload.diagrams));
-  assert.ok(Array.isArray(payload.stock));
+  const result = await response.json();
+  assert.equal(result.part.part_number_normalized, 'MJB7703AA');
+  assert.equal(result.images.length, 1);
+  assert.equal(result.images[0].image_url, null);
+  assert.equal(result.fitment.length, 4);
+  assert.equal(result.diagrams[0].availability_status, 'unavailable');
+  assert.deepEqual(result.parts_tree[0].path, ['Body', 'Exterior', 'Clips and Fasteners']);
+  const missing = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=DOESNOTEXIST'), env);
+  assert.equal(missing.status, 404);
+});
+
+test('documented indexes exist and principal relationship lookups use indexed searches', (t) => {
+  const db = withDatabase(t);
+  const docs = `${sql('PART_MODEL.md')}\n${sql('MVP_STOCK_MODEL.md')}`;
+  const indexes = db.prepare("SELECT name FROM sqlite_schema WHERE type='index' AND name NOT LIKE 'sqlite_%'").all();
+  const documentedNames = [...new Set([...docs.matchAll(/`(idx_[a-z0-9_]+)`/g)].map((match) => match[1]))];
+  assert.deepEqual(documentedNames.sort(), indexes.map((index) => index.name).sort());
+  const principal = [
+    ['part', 'part_number_normalized', 'MNA7691AA'], ['part', 'part_number_raw', 'MNA 7691-AA'],
+    ['part_occurrence', 'part_id', 53801], ['part_occurrence', 'context_type', 'epc'],
+    ['part_image', 'part_id', 53804], ['part_model_range', 'part_id', 53801],
+    ['part_model_range', 'model_range_id', 53831], ['part_vin_range', 'part_id', 53801],
+    ['part_vin_range', 'vin_range_id', 53841], ['vin_range', 'vin_prefix', 'SAJJG'],
+    ['part_supersession', 'superseded_part_id', 53801], ['part_supersession', 'superseding_part_id', 53802],
+    ['part_fitment', 'part_occurrence_id', 53811], ['part_fitment', 'part_id', 1],
+    ['part_fitment', 'vehicle_range_id', 1], ['part_fitment', 'attribute_group', 'source-group'],
+    ['diagram', 'source', 'fixture'], ['part_occurrence_diagram', 'part_occurrence_id', 53811],
+    ['part_occurrence_diagram', 'diagram_id', 53861], ['diagram_hotspot', 'diagram_id', 53861],
+    ['diagram_hotspot', 'part_occurrence_id', 53811], ['part_vehicle_location', 'part_occurrence_id', 53811],
+    ['part_vehicle_location', 'model_range_id', 53831], ['part_vehicle_location', 'mapping_state', 'verified'],
+    ['stock_item', 'part_id', 53801], ['stock_item', 'donor_vehicle_id', 53891],
+    ['stock_item', 'part_number', 'MNA7691AA'], ['stock_item', 'available', 1],
+    ['stock_item', 'status', 'reserved'], ['stock_item', 'location', 'BIN-A1'], ['stock_item', 'source', 'fixture'],
+  ];
+  for (const [table, column, value] of principal) {
+    const plan = db.prepare(`EXPLAIN QUERY PLAN SELECT * FROM ${table} WHERE ${column}=?`).all(value).map((row) => row.detail).join('\n');
+    assert.match(plan, /SEARCH .* USING (?:COVERING )?INDEX/, `${table}.${column}: ${plan}`);
+  }
+  for (const [name, columns] of [
+    ['idx_part_occurrence_identity', ['part_id', 'source', 'source_ref']],
+    ['idx_vin_range_prefix_serial', ['vin_prefix', 'serial_start', 'serial_end']],
+    ['idx_diagram_hotspot_item', ['diagram_id', 'item_number']],
+    ['idx_part_vehicle_location_identity', ['part_occurrence_id', 'model_range_id', 'location_ref', 'system_ref', 'category_ref']],
+    ['idx_part_fitment_range_identity', ['part_id', 'vehicle_range_id', 'variation', 'qualifier']],
+  ]) assert.deepEqual(db.prepare(`PRAGMA index_info(${name})`).all().map((row) => row.name), columns);
+  for (const [table, name] of [
+    ['part', 'idx_part_number_normalized_unique'], ['part_image', 'idx_part_image_identity'],
+    ['part_fitment', 'idx_part_fitment_identity'], ['part_fitment', 'idx_part_fitment_range_identity'],
+  ]) {
+    const index = db.prepare(`PRAGMA index_list(${table})`).all().find((row) => row.name === name);
+    assert.equal(index.unique, 1, name);
+    assert.equal(index.partial, 1, name);
+  }
+  const fitmentIdentity = db.prepare('PRAGMA index_xinfo(idx_part_fitment_identity)').all().filter((row) => row.key);
+  assert.deepEqual(fitmentIdentity.map((row) => row.cid), [1, 2, -2, -2, -2, -2]);
 });
