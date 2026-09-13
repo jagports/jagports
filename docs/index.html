@@ -8,19 +8,19 @@
 <body>
   <img
     id="page-image"
-    src="7de7aff2-90ec-4133-8454-e0697df99961 (1).png"
-    alt="Jagports VIEPS information page 1 of 3"
+    src="f6f67440-1fe6-41f1-a9f6-51332b306ffb (1).png"
+    alt="Jagports XK information page 1 of 3"
     role="button"
     tabindex="0"
-    aria-label="Jagports VIEPS information page 1 of 3. Activate to show the next page."
+    aria-label="Jagports XK information page 1 of 3. Activate to show the next page."
     style="cursor: pointer; max-width: 100%; height: auto;"
   >
 
   <script>
     const pages = [
-      "7de7aff2-90ec-4133-8454-e0697df99961 (1).png",
-      "9a191fcc-5185-4749-8188-571266893f61 (2).png",
-      "a7941daf-423a-45a4-9677-3695ed52cb49 (3).png"
+      "f6f67440-1fe6-41f1-a9f6-51332b306ffb (1).png",
+      "88eda77d-a27f-43ed-b6ca-7ab6ddf688fd (2).png",
+      "75eb8b2c-f9dc-445a-8f81-37b0f2650ee6 (3).png"
     ];
     const pageImage = document.getElementById("page-image");
     let currentPage = 0;
@@ -30,10 +30,10 @@
       const pageNumber = currentPage + 1;
 
       pageImage.src = pages[currentPage];
-      pageImage.alt = `Jagports VIEPS information page ${pageNumber} of ${pages.length}`;
+      pageImage.alt = `Jagports XK information page ${pageNumber} of ${pages.length}`;
       pageImage.setAttribute(
         "aria-label",
-        `Jagports VIEPS information page ${pageNumber} of ${pages.length}. Activate to show the next page.`
+        `Jagports XK information page ${pageNumber} of ${pages.length}. Activate to show the next page.`
       );
     }
 
