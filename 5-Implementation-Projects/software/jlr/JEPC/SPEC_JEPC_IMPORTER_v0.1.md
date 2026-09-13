@@ -20,10 +20,12 @@ It shall:
 2. process one persistent source bundle at a time;
 3. detect source structures it already understands;
 4. preserve and report structures it does not yet understand;
-5. extend parser behavior when an existing schema can already represent newly understood source data;
-6. extend the normalized schema only when a genuinely new source concept cannot be represented correctly by the existing approved model;
-7. re-evaluate earlier unresolved data when later discoveries explain it;
-8. commit progress transactionally so the importer can be stopped, corrected, and restarted safely.
+5. continue processing safely when an unknown structure can be preserved for later reprocessing;
+6. extend parser behavior when an existing schema can already represent newly understood source data;
+7. extend staging/discovery storage where doing so avoids rereading source files and preserves newly observed fields losslessly;
+8. extend the normalized schema only when a genuinely new source concept cannot be represented correctly by the existing approved model;
+9. re-evaluate earlier unresolved data when later discoveries explain it;
+10. commit progress transactionally so the importer can be stopped, corrected, and restarted safely.
 
 ## Source file bundle concept
 
@@ -43,19 +45,19 @@ The importer shall preserve and use the identifiers encoded in filenames rather 
 Observed interpretation to validate across multiple datasets:
 
 - `M<n>` — JEPC Model_ID.
-- `C<n>` — category identifier.
+- `C<n>` — JEPC Category_ID.
 - `I<n>` — numbered top-level catalogue item within that category; current evidence strongly supports `I1` meaning top-level item 1, but this remains subject to verification across exceptional/missing-number cases.
 - `L<n>` — language identifier.
 
 The importer must preserve source scope because related files exist at different levels, including model/category/language and model/category/item/language scopes.
 
-## Source index
+## Incremental source index / processing ledger
 
-### First start
+The importer shall not build or hold an in-memory array of the complete JEPC installation before processing. The source installation can contain roughly one million files and may differ between JEPC installations/packages.
 
-On first start, the importer shall scan the configured JEPC source directory and create a persistent source-file index.
+The persistent index is primarily a **processed/discovered bundle ledger**, built incrementally as bundles are encountered.
 
-The index should record at least:
+For each discovered bundle/file, record at least:
 
 ```text
 path
@@ -66,27 +68,47 @@ category_id
 item_id
 language_id
 size
-modified time
+modified time (informational only)
+checksum
 processing status
+parser version
+schema version
 ```
 
-A checksum may be stored where stronger change detection is justified.
+A checksum is mandatory for source identity/change detection. File edit/modification time must not be trusted as authoritative because different JEPC installation/packages may carry identical or changed source with unreliable timestamps.
 
-### Later starts
+### First start
 
-On later starts, the importer must not blindly trust the old index.
+On first start there is no requirement for a pre-existing full source index.
 
-It shall verify whether the source directory has been expanded or changed and reconcile the persistent index.
+The importer shall:
+
+1. locate the configured JEPC source root;
+2. load the selected model/sub-range/Region profile;
+3. search deterministically for the next source bundle not yet present in the processing ledger;
+4. read/process that one bundle;
+5. calculate checksums for its source files;
+6. add/update the bundle and files in the persistent ledger;
+7. mark the bundle with its resulting processing status;
+8. then determine the next bundle and repeat.
+
+Source discovery must stream/traverse incrementally. It must not materialize or repeatedly loop over an array containing the whole million-file installation.
+
+### Later starts and expanded source directories
+
+On later starts, the importer shall use the existing processing ledger and ask/verify whether the configured JEPC source directory has been expanded or replaced/changed.
+
+If source verification is requested or indicated, reconciliation must still be incremental: examine candidate files/bundles one at a time, calculate/compare checksums, update affected ledger entries, and continue. A complete file list need not be loaded into memory.
 
 Detected changes shall be handled at least as follows:
 
 ```text
-new file      -> add as UNPROCESSED
-changed file  -> mark affected source bundle NEEDS_REPROCESS
-missing file  -> retain history and mark MISSING/REMOVED
+new bundle/file      -> add when encountered and process
+checksum changed     -> mark affected bundle NEEDS_REPROCESS
+missing source       -> retain ledger history and mark MISSING/REMOVED
 ```
 
-A complete million-file rescan must not be required for every processing loop. Index reconciliation is a startup/inventory concern; normal import processing shall use the persistent index.
+A complete million-file scan must not be required for **any normal processing loop**. Each loop processes one bundle and then determines the next bundle.
 
 ## Configurable import scope
 
@@ -107,6 +129,8 @@ Initial v0.1/MVP validation profiles:
 
 Related durable source knowledge establishes that the corresponding Canada/USA XK8 and Canada/Mexico/USA X308 source variants represent `Region = Americas`.
 
+Where a short region token such as `Region=NA` is used, it must be represented as a Region/market value and kept semantically distinct from the engine-option abbreviation `N/A`, meaning Non-Aspirated/non-Supercharged. Region and aspiration/supercharger state are separate dimensions.
+
 ## Incremental processing loop
 
 The normal processing loop shall be restartable and persistent:
@@ -114,45 +138,48 @@ The normal processing loop shall be restartable and persistent:
 ```text
 1. Open database.
 2. Check previous importer run state.
-3. Run startup database health checks.
-4. Verify/reconcile source index when required.
-5. Load selected model/sub-range/Region profile(s).
-6. Select the first indexed source bundle whose status requires processing.
-7. Mark the bundle PROCESSING.
-8. Begin a database transaction.
-9. Read and interpret only the files belonging to that source bundle.
-10. Insert/update known normalized data and preserve unresolved source data.
-11. Validate the bundle result.
-12. COMMIT, or ROLLBACK on failure.
-13. Mark the bundle PROCESSED, UNKNOWN_STRUCTURE, NEEDS_REPROCESS, or ERROR as applicable.
-14. Check whether new parser/schema knowledge explains earlier unresolved records.
-15. Mark affected earlier bundles NEEDS_REPROCESS when required.
-16. Check for a safe-stop request.
-17. Repeat.
+3. Run startup database health checks before any bundle processing.
+4. Load selected model/sub-range/Region profile(s).
+5. Prefer any indexed bundle explicitly marked NEEDS_REPROCESS when the active parser/schema version can improve it.
+6. Otherwise search deterministically for the next source bundle not yet present in the processing ledger.
+7. Mark the selected bundle PROCESSING in the ledger.
+8. Begin the bundle parsing/import transaction(s).
+9. Read and interpret only files belonging to that source bundle.
+10. Insert/update known normalized data and preserve unresolved/raw source data.
+11. If a new but preservable structure is encountered, record sufficient raw/staging data, mark the bundle NEEDS_REPROCESS, log the discovery, and continue rather than stopping the whole import.
+12. Validate the bundle result.
+13. COMMIT, or ROLLBACK on failure.
+14. Mark/update the bundle in the index as PROCESSED, NEEDS_REPROCESS, UNKNOWN_STRUCTURE, or ERROR as applicable.
+15. Check whether new parser/schema knowledge explains earlier unresolved records.
+16. Mark affected earlier bundles NEEDS_REPROCESS when required.
+17. Check for a safe-stop request.
+18. Determine the next bundle and repeat.
 ```
 
-The importer must not rediscover/sort the entire million-file source tree before every bundle. It shall simply select the next indexed bundle that requires work.
+The importer must not rediscover/sort the entire million-file source tree before any bundle. It shall process one bundle, persist its ledger state, then determine the next not-yet-indexed or reprocessable bundle.
 
 ## Persistent processing states
 
 At minimum, source bundles should support states equivalent to:
 
 ```text
-UNPROCESSED
 PROCESSING
 PROCESSED
 UNKNOWN_STRUCTURE
 NEEDS_REPROCESS
 ERROR
+MISSING/REMOVED
 ```
 
-Persist sufficient metadata to make restart behavior explainable, including parser/schema version where useful.
+A not-yet-discovered bundle has no ledger row yet; it does not need a pre-created `UNPROCESSED` index row.
+
+Persist sufficient metadata to make restart behavior explainable, including parser/schema version and source checksums.
 
 ## Adaptive source/schema discovery
 
 A newly encountered source element must never be silently discarded.
 
-Discoveries shall be classified before deciding whether the database schema needs to change.
+Discoveries shall be classified before deciding whether the parser, staging schema, or normalized schema needs to change.
 
 ### 1. New value
 
@@ -166,21 +193,29 @@ The generic known source structure can already preserve the value, but its human
 
 Example: a new JEPC applicability code appears in a structure already known to represent applicability.
 
-Action: preserve raw code/value/flags and provenance. No schema change merely because the code is new.
+Action: preserve raw code/value/flags and provenance. Mark the affected bundle `NEEDS_REPROCESS` when later semantic/parser improvement could enrich it. Do not stop the whole import when the unknown can be preserved safely.
 
-### 3. New source format
+### 3. New source format / parser structure
 
-The source carries an already understood domain concept using a previously unseen record/file layout.
+The source carries an already understood or partially understood domain concept using a previously unseen record/file layout.
 
-Action: extend the parser, preserve evidence, then retry/reprocess affected bundles.
+Action:
+
+- preserve enough raw/staging representation to avoid losing information;
+- where useful, add explicit staging/discovery columns so a later parser version can work from preserved database values instead of rereading source files;
+- record the parser-extension requirement in the run report;
+- mark affected bundle(s) `NEEDS_REPROCESS`;
+- continue with later bundles when data integrity is not compromised.
+
+A parser extension should result in a new parser/software version identifier so reprocessing can determine which bundles were handled by an older parser.
 
 ### 4. New normalized data concept
 
 The source demonstrates a genuine relationship/entity/property that the approved normalized model cannot represent correctly.
 
-Action: document the evidence and required semantic change, extend the schema through a controlled migration, update parser behavior, and reprocess affected source bundles.
+Action: document the evidence and required semantic change, extend the normalized schema through a controlled migration, update parser behavior, and reprocess affected source bundles.
 
-The importer must not create arbitrary SQL columns merely because a new JEPC attribute code/value appears.
+The importer may add staging/discovery columns for lossless capture and later acceleration when justified. It must not, however, treat every new JEPC code/value as a new normalized production column or entity without semantic justification.
 
 ## Learning must also apply backwards
 
@@ -194,17 +229,19 @@ Conceptually:
 new verified understanding
         |
         +-- document discovery
-        +-- update parser/decoder/schema as required
+        +-- increment parser/schema version as applicable
+        +-- update parser/decoder/staging/normalized schema as required
         +-- process current bundle
-        +-- find earlier affected UNKNOWN data
-        +-- mark affected bundles NEEDS_REPROCESS
+        +-- find earlier affected UNKNOWN/NEEDS_REPROCESS data
+        +-- reprocess from preserved DB values where sufficient
+        +-- reread source only when preserved data is insufficient
 ```
 
 This is a controlled structural-learning mechanism, not machine learning.
 
 ## Documentation of learned structures
 
-Meaningful discoveries must become durable development knowledge rather than existing only in code or logs.
+Meaningful discoveries must become durable development knowledge rather than existing only in code or transient console output.
 
 Each significant discovery should record, as applicable:
 
@@ -214,15 +251,18 @@ source model/category/item/files examined
 evidence/example
 confidence/status
 parser effect
-schema effect
+staging-schema effect
+normalized-schema effect
+parser/software version needed or created
 previous unknowns affected
+reprocessing requirement
 ```
 
 Distinguish verified facts, strongly supported observations, hypotheses, and unresolved meanings.
 
 ## Transaction and safe-stop behavior
 
-One source bundle shall be the natural atomic transaction boundary where practical.
+One source bundle shall be the natural atomic transaction boundary where practical. A bundle may use more than one internal database transaction if required, but safe-stop must occur only after the bundle's parsing/import transaction set is in a consistent committed or rolled-back state.
 
 ```text
 BEGIN TRANSACTION
@@ -245,15 +285,15 @@ The importer must provide a cooperative stop mechanism that does not depend on a
 At minimum:
 
 ```text
-[Q] Stop safely after current transaction
+[Q] Stop safely after current bundle parsing transactions are done
 ```
 
 A stop request shall:
 
 1. set a persistent/in-memory stop request;
-2. finish or roll back the current atomic bundle transaction;
+2. finish or roll back the current bundle parsing/import transaction set;
 3. save processing state;
-4. flush detailed logs;
+4. flush detailed logs and the run report;
 5. mark the importer run as stopped by user;
 6. close the database normally;
 7. exit.
@@ -262,7 +302,7 @@ A stop request shall:
 
 ## Startup database health checks
 
-Every restart shall perform lightweight database health verification before resuming imports.
+Every restart shall perform lightweight database health verification **before any bundle is processed**.
 
 For SQLite staging/import databases this should include, as appropriate:
 
@@ -295,7 +335,7 @@ CRASH_RECOVERED
 
 The terminal/operator view must favor stable, understandable aggregate information rather than rapidly changing internal bundle details.
 
-Do not continuously display current filenames, current bundle identifiers, or deep current breadcrumb paths in the primary live view. Those details change too quickly for a human to follow and belong in the persistent detailed log.
+Do not continuously display current filenames, current bundle identifiers, or deep current breadcrumb paths in the primary live view. Those details change too quickly for a human to follow and belong in the persistent detailed log/run report.
 
 The screen should be redrawn in place rather than producing an endlessly scrolling console log.
 
@@ -312,7 +352,7 @@ Jaguar XK8 Coupe/Convertible up to (V) 042775
 Region: Rest of world excluding Americas
 ```
 
-The model line must identify both the technical JEPC `Model_ID` and its source/Jaguar model description.
+The model line must identify both the technical JEPC `Model_ID` and its source/Jaguar model description. JEPC `Category_ID` must also be retained and shown with the applicable Part path/category information rather than being lost during aggregation.
 
 ### Imported catalogue content table
 
@@ -323,19 +363,22 @@ Example:
 ```text
 Imported catalogue content
 
-Part path                               Unique parts   Occurrences (English)
-AIR AND FUEL DELIVERY SYSTEMS           15             25
-BATTERY/STARTER MOTOR/ALTERNATOR         1              3
-BODY METAL PANELS AND SEALING            1              1
-ENGINE                                  42             78
-ENGINE COOLING SYSTEM                    1              2
-EXTERIOR FITTINGS AND SUNROOF            1              1
+Part path                               JEPC Category_ID   Unique parts   Occurrences (English)
+AIR AND FUEL DELIVERY SYSTEMS           #11001             15             25
+BATTERY/STARTER MOTOR/ALTERNATOR         #11002              1              3
+BODY METAL PANELS AND SEALING            #11003              1              1
+ENGINE                                   #11004             42             78
+ENGINE COOLING SYSTEM                     #11005              1              2
+EXTERIOR FITTINGS AND SUNROOF             #11006              1              1
 ```
+
+The Category_ID numbers above are illustrative formatting examples only; the live importer must display the actual JEPC Category_ID(s) from source.
 
 Rows with zero imported content stay hidden.
 
 Definitions:
 
+- `JEPC Category_ID` = source category identifier associated with the displayed path/category.
 - `Unique parts` = distinct canonical Jaguar part numbers represented in that displayed scope.
 - `Occurrences` = imported catalogue/source occurrences of those parts; one canonical part may have multiple occurrences.
 - The language qualifier in the occurrence column identifies the currently displayed path-language source, not a multiplication of canonical part identities.
@@ -364,36 +407,32 @@ Rules:
 Show stable cumulative importer-learning metrics:
 
 ```text
-Existing structure used                  152
-Created new DB structures                 11
-Unknown structures to be researched       2
-Errors                                     0
+Existing structure used                    152
+Parser/staging structures created/extended   7
+Created new normalized DB structures         11
+Unknown structures to be researched           2
+Errors                                         0
 ```
 
 Definitions:
 
 - `Existing structure used` = processed source structures handled through already-known parser/schema behavior.
-- `Created new DB structures` = genuinely new normalized schema elements/migrations introduced because the existing approved schema could not represent verified source semantics correctly. Parser-only extensions must not inflate this count.
+- `Parser/staging structures created/extended` = parser-only behavior additions and/or staging/discovery schema extensions introduced to preserve newly observed source structure or accelerate later reprocessing. These must be counted and recorded even when they do not change the normalized production model.
+- `Created new normalized DB structures` = genuinely new normalized schema elements/migrations introduced because the existing approved schema could not represent verified source semantics correctly.
 - `Unknown structures to be researched` = preserved source structures whose semantic/structural interpretation remains unresolved and requires investigation.
 - `Errors` = processing failures, distinct from unresolved-but-preserved structures.
 
-### Optional overall progress
-
-A stable progress line may also show indexed source-set progress without exposing rapidly changing current-bundle details, for example:
-
-```text
-Processed source sets: 1,284   Pending: 6,912
-```
+No `Pending` bundle count is required in the live view because undiscovered bundles are not pre-indexed and a meaningful pending total would require a separate complete source inventory such as `JEPC-files-LIST.txt`.
 
 ### Safe-stop control
 
 The live view shall always keep the cooperative stop instruction visible:
 
 ```text
-[Q] Stop safely after current transaction
+[Q] Stop safely after current bundle parsing transactions are done
 ```
 
-## Detailed background log
+## Detailed background log and run report
 
 The concise processing view does not replace detailed logging.
 
@@ -401,15 +440,35 @@ The importer shall retain a persistent detailed log sufficient to audit and diag
 
 - run ID;
 - source bundle and files;
-- source identifiers;
+- source checksums;
+- source identifiers including Model_ID, Category_ID, Item_ID and Language_ID where present;
 - part/occurrence inserts or updates;
 - parser/schema versions;
 - detected unknowns;
-- parser/schema discoveries;
+- parser/staging/normalized-schema discoveries;
+- raw/staging fields preserved for later parser work;
 - reprocessing decisions;
 - warnings;
 - errors;
 - transaction outcome.
+
+In addition, each importer run shall maintain a **run report** continuously until clean stop/exit. The run report is intended to support the next importer/parser development iteration, including AI-assisted analysis. It shall summarize enough evidence to determine required parser extensions without requiring a human to reconstruct the issue from the console output.
+
+For each parser/schema discovery the run report should include, where available:
+
+```text
+source model/category/item and filenames
+checksum(s)
+representative raw record/value
+observed record shape / field count / field types
+what existing parser expected
+what differed
+how data was preserved in staging
+suggested parser-extension requirement
+parser version that encountered it
+bundles marked NEEDS_REPROCESS
+whether normalized schema change appears necessary
+```
 
 The operator should not be expected to follow this high-volume log visually during normal processing.
 
@@ -417,19 +476,25 @@ The operator should not be expected to follow this high-volume log visually duri
 
 The importer v0.1/MVP should demonstrate that:
 
-- the source index can be created and later reconciled when source contents expand;
+- no complete pre-existing million-file index is required before useful import begins;
+- the processing ledger is built incrementally bundle by bundle;
+- source checksums are calculated and used instead of trusting modification time;
 - selected model/sub-range/Region profiles can be processed independently;
 - processing resumes from persistent bundle state rather than restarting from the beginning;
-- known structures import without schema churn;
-- unknown structures are preserved and surfaced rather than discarded;
+- each normal loop reads/processes one bundle and only then determines the next;
+- known structures import without unnecessary normalized-schema churn;
+- unknown but preservable structures are logged, retained, marked for reprocessing, and do not unnecessarily stop later bundle processing;
+- parser/staging extensions can preserve new fields/columns so later parser versions can reprocess from the database when sufficient;
 - genuinely new normalized concepts can be documented and added through controlled migration;
 - later discoveries can trigger targeted reprocessing of earlier unresolved data;
+- parser/software versions identify which logic processed each bundle;
 - bundle transactions protect the staging database from partial source-set imports;
-- the importer can be stopped cooperatively and restarted safely;
-- database health is checked before restart/resume;
-- the operator sees stable aggregate model/path/language/structure metrics without a scrolling per-record console flood;
-- detailed processing remains available in background logs;
-- canonical part identity remains independent from language-specific source occurrences.
+- the importer can be stopped cooperatively after current bundle parsing transactions and restarted safely;
+- database health is checked before any bundle processing on restart/resume;
+- the operator sees stable aggregate Model_ID/Category_ID/path/language/structure metrics without a scrolling per-record console flood;
+- detailed processing and a development-oriented run report remain available in background logs;
+- canonical part identity remains independent from language-specific source occurrences;
+- Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
 
 ## Related work
 
@@ -438,4 +503,4 @@ The importer v0.1/MVP should demonstrate that:
 - Issue #620 — multilingual JEPC catalogue-data specification; relevant to language-specific source/translation handling without duplicating canonical entities.
 - PR #621 — JEPC source Region/breadcrumb semantics used by configurable importer source selection.
 
-This specification does not authorize a parallel Parts Data Model. Importer-discovered schema changes must be reconciled with the approved model and project workflow before becoming production schema.
+This specification does not authorize a parallel Parts Data Model. Importer-discovered normalized-schema changes must be reconciled with the approved model and project workflow before becoming production schema. Staging/discovery extensions may be used to preserve and accelerate analysis of source structures without silently redefining normalized VIEPS domain semantics.
