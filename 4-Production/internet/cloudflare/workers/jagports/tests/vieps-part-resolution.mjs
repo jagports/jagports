@@ -134,7 +134,10 @@ test("resolved PART stock query avoids post-deployment-only stock columns", asyn
   assert.equal(response.status, 200);
   const stockSql = preparedSql.find((sql) => /FROM stock_item/i.test(sql));
   assert.ok(stockSql);
-  assert.equal(/\bcondition_code\b/i.test(stockSql), false);
+  assert.equal(/\bcondition\b/i.test(stockSql), true);
+  for (const column of ["condition_code", "price", "currency", "notes"]) {
+    assert.equal(new RegExp(`\\b${column}\\b`, "i").test(stockSql), false, column);
+  }
 });
 
 test("non-GET requests are rejected", async () => {
