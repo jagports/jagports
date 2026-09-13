@@ -6,6 +6,18 @@ This file contains durable, reusable VIEPS domain decisions that must survive in
 
 Repository-wide workflow and governance remain defined by the repository root `KNOWLEDGE.md`, `00-Management/WORKFLOWS.md`, `00-Management/RULES.md` and `SKILL.md`.
 
+## Current pre-production endpoint
+
+The verified current VIEPS pre-production endpoint is:
+
+```text
+https://vieps.parts-5ec.workers.dev/
+```
+
+This endpoint is an observed deployment fact. Future agents must use the verified deployed endpoint and must not re-derive or replace it from older account-subdomain assumptions such as `vieps.jagports.workers.dev` without new deployment evidence.
+
+Historical endpoint references may remain in historical deployment records when they intentionally describe earlier state. The production hostname decision is separate and is not changed by this pre-production endpoint knowledge.
+
 ## Source-of-truth hierarchy
 
 VIEPS work must use existing accepted research before starting new discovery.
