@@ -10,14 +10,25 @@ Run from the Worker directory:
 `4-Production/internet/cloudflare/workers/jagports/`
 
 ```text
-VIEPS_BASE_URL=https://<verified-vieps-endpoint> npm run test:deployment1
+VIEPS_BASE_URL=https://<verified-vieps-endpoint> npm run test:runtime
 ```
 
-Optional part override:
+Optional single-part override:
 
 ```text
 VIEPS_PART_NUMBER=MJB7703AA
 ```
+
+## MVP searchable fixture part numbers
+
+Use these fixture part numbers for human or automated validation of the reduced MVP fixture-backed flow:
+
+- `MJB7703AA` — representative MVP fixture part.
+- `MNA7691AA` — #354 supersession fixture source part.
+- `XR847031` — #354 supersession fixture replacement part.
+- `FIX538C` — synthetic chain endpoint fixture.
+
+Fixture stock values associated with these part numbers are randomized demo/test values. They are not real Jagports inventory evidence.
 
 The smoke suite verifies:
 
