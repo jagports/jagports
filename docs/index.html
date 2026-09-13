@@ -4,17 +4,89 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Jagports VIEPS Info</title>
+  <style>
+    :root {
+      --toolbar-height: 2.5rem;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: auto;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      box-sizing: border-box;
+      height: var(--toolbar-height);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 0.5rem;
+      background: Canvas;
+      color: CanvasText;
+    }
+
+    .viewer {
+      min-width: 100vw;
+      min-height: calc(100vh - var(--toolbar-height));
+      min-height: calc(100dvh - var(--toolbar-height));
+      display: grid;
+      place-items: center;
+    }
+
+    #page-image {
+      display: block;
+      width: auto;
+      height: auto;
+      cursor: pointer;
+    }
+
+    #page-image.fit {
+      max-width: 100vw;
+      max-height: calc(100vh - var(--toolbar-height));
+      max-height: calc(100dvh - var(--toolbar-height));
+      object-fit: contain;
+    }
+
+    #page-image.actual-size {
+      max-width: none;
+      max-height: none;
+    }
+  </style>
 </head>
 <body>
-  <img
-    id="page-image"
-    src="f6f67440-1fe6-41f1-a9f6-51332b306ffb (1).png"
-    alt="Jagports XK information page 1 of 3"
-    role="button"
-    tabindex="0"
-    aria-label="Jagports XK information page 1 of 3. Activate to show the next page."
-    style="cursor: pointer; max-width: 100%; height: auto;"
-  >
+  <div class="toolbar" aria-label="Image view controls">
+    <button
+      id="zoom-toggle"
+      type="button"
+      aria-pressed="false"
+      aria-label="Show image at actual size"
+    >
+      Actual size
+    </button>
+  </div>
+
+  <main class="viewer">
+    <img
+      id="page-image"
+      class="fit"
+      src="f6f67440-1fe6-41f1-a9f6-51332b306ffb (1).png"
+      alt="Jagports XK information page 1 of 3"
+      role="button"
+      tabindex="0"
+      aria-label="Jagports XK information page 1 of 3. Activate to show the next page."
+    >
+  </main>
 
   <script>
     const pages = [
@@ -23,7 +95,9 @@
       "75eb8b2c-f9dc-445a-8f81-37b0f2650ee6 (3).png"
     ];
     const pageImage = document.getElementById("page-image");
+    const zoomToggle = document.getElementById("zoom-toggle");
     let currentPage = 0;
+    let actualSize = false;
 
     function showNextPage() {
       currentPage = (currentPage + 1) % pages.length;
@@ -37,12 +111,32 @@
       );
     }
 
+    function setZoomMode() {
+      pageImage.classList.toggle("fit", !actualSize);
+      pageImage.classList.toggle("actual-size", actualSize);
+      zoomToggle.textContent = actualSize ? "Fit" : "Actual size";
+      zoomToggle.setAttribute("aria-pressed", String(actualSize));
+      zoomToggle.setAttribute(
+        "aria-label",
+        actualSize ? "Fit image within browser viewport" : "Show image at actual size"
+      );
+
+      if (!actualSize) {
+        window.scrollTo({ top: 0, left: 0 });
+      }
+    }
+
     pageImage.addEventListener("click", showNextPage);
     pageImage.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         showNextPage();
       }
+    });
+
+    zoomToggle.addEventListener("click", () => {
+      actualSize = !actualSize;
+      setZoomMode();
     });
   </script>
 </body>
