@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Jagports VIEPS Info</title>
   <style>
+    :root {
+      --toolbar-height: 2.5rem;
+    }
+
     html,
     body {
       margin: 0;
@@ -18,10 +22,24 @@
       overflow: auto;
     }
 
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      box-sizing: border-box;
+      height: var(--toolbar-height);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 0.5rem;
+      background: Canvas;
+      color: CanvasText;
+    }
+
     .viewer {
       min-width: 100vw;
-      min-height: 100vh;
-      min-height: 100dvh;
+      min-height: calc(100vh - var(--toolbar-height));
+      min-height: calc(100dvh - var(--toolbar-height));
       display: grid;
       place-items: center;
     }
@@ -35,8 +53,8 @@
 
     #page-image.fit {
       max-width: 100vw;
-      max-height: 100vh;
-      max-height: 100dvh;
+      max-height: calc(100vh - var(--toolbar-height));
+      max-height: calc(100dvh - var(--toolbar-height));
       object-fit: contain;
     }
 
@@ -44,16 +62,20 @@
       max-width: none;
       max-height: none;
     }
-
-    #zoom-toggle {
-      position: fixed;
-      top: 0.5rem;
-      right: 0.5rem;
-      z-index: 1;
-    }
   </style>
 </head>
 <body>
+  <div class="toolbar" aria-label="Image view controls">
+    <button
+      id="zoom-toggle"
+      type="button"
+      aria-pressed="false"
+      aria-label="Show image at actual size"
+    >
+      Actual size
+    </button>
+  </div>
+
   <main class="viewer">
     <img
       id="page-image"
@@ -65,15 +87,6 @@
       aria-label="Jagports XK information page 1 of 3. Activate to show the next page."
     >
   </main>
-
-  <button
-    id="zoom-toggle"
-    type="button"
-    aria-pressed="false"
-    aria-label="Show image at actual size"
-  >
-    Actual size
-  </button>
 
   <script>
     const pages = [
