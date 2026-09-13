@@ -24,7 +24,7 @@ test('complete migration chain and representative graph have no integrity failur
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
-  assert.equal(db.prepare('SELECT count(*) AS n FROM part_occurrence WHERE part_id = 53801').get().n, 2);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM part_occurrence WHERE part_id = 53801 AND source = 'fixture'").get().n, 2);
   assert.equal(db.prepare(`SELECT count(*) AS n FROM part p
     JOIN part_model_range m ON m.part_id=p.id JOIN part_vin_range v ON v.part_id=p.id
     WHERE p.id=53801`).get().n, 1);
@@ -36,7 +36,7 @@ test('complete migration chain and representative graph have no integrity failur
     JOIN part_supersession b ON b.superseded_part_id=a.superseding_part_id
     JOIN part p ON p.id=b.superseding_part_id WHERE a.superseded_part_id=53801`).get().number, 'FIX538C');
   assert.equal(db.prepare('SELECT count(*) AS n FROM part_supersession WHERE superseding_part_id=53802').get().n, 2);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM stock_item WHERE part_id=53801').get().n, 2);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM stock_item WHERE part_id=53801 AND source = 'fixture'").get().n, 2);
   assert.equal(db.prepare(`SELECT v.vin_raw FROM stock_item s JOIN vehicle v ON v.id=s.donor_vehicle_id WHERE s.id=53901`).get().vin_raw, 'SAJJNADW3TJ123456');
   assert.equal(db.prepare('SELECT part_id FROM stock_item WHERE id=53903').get().part_id, null);
   assert.equal(db.prepare('SELECT count(*) AS n FROM part_image WHERE part_id=53804').get().n, 2);

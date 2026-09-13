@@ -1,13 +1,28 @@
-const $ = (id) => document.getElementById(id);
+const $ = (id) => {
+  if (typeof document !== "undefined" && typeof document.getElementById === "function") {
+    return document.getElementById(id);
+  }
+  if (typeof globalThis !== "undefined" && typeof globalThis.$ === "function") {
+    return globalThis.$(id);
+  }
+  return null;
+};
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
 let fitmentRows = [];
 let visualItems = [];
 let requestVersion = 0;
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>\"]/g, (ch) => ({
+  return String(value ?? "").replace(/[&<>"]/g, (ch) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;",
   }[ch]));
+}
+
+function formatMoney(value, currency) {
+  if (value === null || value === undefined || value === "") return "Not supplied";
+  const number = Number(value);
+  if (!Number.isFinite(number)) return escapeHtml(value);
+  return `${number.toFixed(2)} ${escapeHtml(currency || "EUR")}`;
 }
 
 async function resolvePart(partNumber) {
@@ -17,10 +32,31 @@ async function resolvePart(partNumber) {
   return data;
 }
 
-function renderPart(part, occurrences = []) {
+function renderStockRows(stock) {
+  if (!stock.length) return "";
+  return `<div class="stock-section">
+    <p class="compact-note stock-note">Synthetic fixture stock values only; not real Jagports inventory evidence.</p>
+    <div class="table-scroll"><table class="stock-table">
+      <thead><tr><th>Qty</th><th>Status</th><th>Condition</th><th>Location</th><th>Price</th><th>Evidence</th></tr></thead>
+      <tbody>${stock.map((item) => `<tr>
+        <td>${escapeHtml(item.quantity ?? "0")}</td>
+        <td>${escapeHtml(item.status || (item.available ? "available" : "unavailable"))}</td>
+        <td>${escapeHtml(item.condition || item.condition_code || "Not supplied")}</td>
+        <td>${escapeHtml(item.location || "Not supplied")}</td>
+        <td>${formatMoney(item.price, item.currency)}</td>
+        <td>${escapeHtml(item.source_ref || item.source || "fixture")}</td>
+      </tr>`).join("")}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function renderPart(part, occurrences = [], stock = []) {
   const occurrenceText = occurrences.length
     ? `${occurrences.length} EPC occurrence${occurrences.length === 1 ? "" : "s"}`
     : "No EPC occurrence context available";
+  const stockText = stock.length
+    ? `${stock.length} synthetic fixture stock record${stock.length === 1 ? "" : "s"}`
+    : "No fixture stock shown";
   $("partCard").innerHTML = `
     <strong>${escapeHtml(part.part_number_normalized || "No Jaguar part number")}</strong>
     <p>${escapeHtml(part.description || "No description")}</p>
@@ -29,7 +65,9 @@ function renderPart(part, occurrences = []) {
       <dt>Verification</dt><dd>${escapeHtml(part.verification_status || "Not recorded")}</dd>
       <dt>Source</dt><dd>${escapeHtml(part.source || "Not recorded")}</dd>
       <dt>EPC context</dt><dd>${escapeHtml(occurrenceText)}</dd>
-    </dl>`;
+      <dt>Fixture stock</dt><dd>${escapeHtml(stockText)}</dd>
+    </dl>
+    ${renderStockRows(stock)}`;
 }
 
 function renderTree(paths) {
@@ -37,7 +75,7 @@ function renderTree(paths) {
   $("tree").innerHTML = branches.map((entry) => {
     // The API supplies ordered paths, not interactive catalogue nodes.
     return entry.path.reduceRight((child, label, index) =>
-      `<ul class="tree-branch"><li><span${index === entry.path.length - 1 ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>${child}</li></ul>`, "");
+      `<ul${index === 0 ? ' class="tree-branch"' : ''}><li><span${index === entry.path.length - 1 ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>${child}</li></ul>`, "");
   }).join("") || empty("No Parts Tree context is available.");
 }
 
@@ -111,42 +149,54 @@ function resetContext(message = "No part selected.") {
   $("locationStatus").textContent = "Select a part and model range. Verified vehicle-location mapping is unavailable.";
 }
 
-$("rangeSelect").addEventListener("change", renderSelectedRange);
-$("visualSelect").addEventListener("change", renderSelectedVisual);
-$("partNumber").addEventListener("input", () => {
-  requestVersion++;
-  resetContext();
-  $("result").setAttribute("aria-busy", "false");
-  $("searchStatus").className = "muted status-line";
-  $("searchStatus").textContent = "Enter a Jaguar part number and press Search.";
-});
-$("partSearch").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const version = ++requestVersion;
-  const partNumber = $("partNumber").value.trim();
-  resetContext();
-  $("searchStatus").className = "muted status-line";
-  $("result").setAttribute("aria-busy", "false");
-  if (!partNumber) {
-    $("searchStatus").textContent = "Enter a Jaguar part number to begin.";
-    return;
+function setupViepsUi() {
+  if (!$('partSearch')) return;
+
+  $("rangeSelect").addEventListener("change", renderSelectedRange);
+  $("visualSelect").addEventListener("change", renderSelectedVisual);
+  $("partNumber").addEventListener("input", () => {
+    requestVersion++;
+    resetContext();
+    $("result").setAttribute("aria-busy", "false");
+    $("searchStatus").className = "muted status-line";
+    $("searchStatus").textContent = "Enter a Jaguar part number and press Search.";
+  });
+  $("partSearch").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const version = ++requestVersion;
+    const partNumber = $("partNumber").value.trim();
+    resetContext();
+    $("searchStatus").className = "muted status-line";
+    $("result").setAttribute("aria-busy", "false");
+    if (!partNumber) {
+      $("searchStatus").textContent = "Enter a Jaguar part number to begin.";
+      return;
+    }
+    $("searchStatus").textContent = "Resolving PART…";
+    $("result").setAttribute("aria-busy", "true");
+    try {
+      const data = await resolvePart(partNumber);
+      if (version !== requestVersion) return;
+      renderPart(data.part, data.occurrences || [], data.stock || []);
+      renderTree(data.parts_tree || []);
+      renderVisuals(data.images || [], data.diagrams || []);
+      renderFitment(data.fitment || []);
+      $("searchStatus").textContent = "PART resolved.";
+    } catch (error) {
+      if (version !== requestVersion) return;
+      resetContext("No part resolved.");
+      $("searchStatus").textContent = error.message;
+      $("searchStatus").className = "error status-line";
+    } finally {
+      if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
+    }
+  });
+}
+
+if (typeof document !== "undefined" && typeof document.getElementById === "function") {
+  if (document.readyState === "loading" && typeof document.addEventListener === "function") {
+    document.addEventListener("DOMContentLoaded", setupViepsUi);
+  } else {
+    setupViepsUi();
   }
-  $("searchStatus").textContent = "Resolving PART…";
-  $("result").setAttribute("aria-busy", "true");
-  try {
-    const data = await resolvePart(partNumber);
-    if (version !== requestVersion) return;
-    renderPart(data.part, data.occurrences || []);
-    renderTree(data.parts_tree || []);
-    renderVisuals(data.images || [], data.diagrams || []);
-    renderFitment(data.fitment || []);
-    $("searchStatus").textContent = "PART resolved.";
-  } catch (error) {
-    if (version !== requestVersion) return;
-    resetContext("No part resolved.");
-    $("searchStatus").textContent = error.message;
-    $("searchStatus").className = "error status-line";
-  } finally {
-    if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
-  }
-});
+}

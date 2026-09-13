@@ -37,6 +37,7 @@ export function database({ fixtures = true } = {}) {
       // Load normalized post-0011 stock fixtures as well so new foreign keys and
       // indexes are exercised alongside preserved legacy rows.
       db.exec(sql('tests/fixtures/mvp_stock_storage.sql'));
+      db.exec(sql('tests/fixtures/vieps_searchable_fixture_dataset.sql'));
       return db;
     }
   }
