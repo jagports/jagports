@@ -32,8 +32,9 @@ test('extended MVP fixture part numbers resolve with catalogue, tree and synthet
       assert.ok(Number.isInteger(item.quantity), `${partNumber} quantity should be an integer`);
       assert.ok(item.quantity >= 0, `${partNumber} quantity should be non-negative`);
       assert.match(item.source_ref, /^issue:#607:synthetic-stock:/);
-      assert.match(item.notes, /synthetic|demo/i);
-      assert.match(item.notes, /not real.*inventory evidence/i);
+      assert.equal(item.notes, undefined);
+      assert.equal(item.price, undefined);
+      assert.equal(item.currency, undefined);
       assert.equal(item.verification_status, 'fixture');
     }
   }
