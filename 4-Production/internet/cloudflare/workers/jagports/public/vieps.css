@@ -42,6 +42,14 @@ input, select, button { font: inherit; padding: 0.6rem; }
 .card dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 0.75rem; margin: 0; }
 .card dt { color: var(--vieps-muted); }
 .card dd { margin: 0; overflow-wrap: anywhere; }
+.fixture-guide { margin: 0 0 1rem; padding: 0.85rem; border: 1px solid var(--vieps-border); border-radius: 0.4rem; background: #f8fafb; }
+.fixture-guide h3 { margin: 0 0 0.5rem; }
+.fixture-guide ul { margin: 0.75rem 0 0; padding-left: 1.2rem; }
+.fixture-guide li { margin: 0.45rem 0; overflow-wrap: anywhere; }
+.fixture-guide code { white-space: nowrap; }
+.stock-section { margin-top: 1rem; }
+.stock-note { margin: 0 0 0.65rem; }
+.stock-table { min-width: 42rem; }
 .vehicle-views { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .vehicle-view { min-width: 0; }
 .vehicle-view .empty { min-height: 7rem; display: grid; place-items: center; }
