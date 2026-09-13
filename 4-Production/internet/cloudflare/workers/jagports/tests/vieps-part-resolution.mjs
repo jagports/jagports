@@ -2,9 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { handleViepsPart } from "../src/vieps.js";
 
-function makeDb({ part = null, occurrences = [], tree = [], images = [], diagrams = [], fitment = [], stock = [] } = {}) {
+function makeDb({ part = null, occurrences = [], tree = [], images = [], diagrams = [], fitment = [], stock = [], onPrepare = () => {} } = {}) {
   return {
     prepare(sql) {
+      onPrepare(sql);
       return {
         bind() {
           return {
@@ -111,6 +112,29 @@ test("resolved PART returns canonical identity and occurrence context without du
   assert.ok(Array.isArray(data.diagrams));
   assert.ok(Array.isArray(data.fitment));
   assert.ok(Array.isArray(data.stock));
+});
+
+test("resolved PART stock query avoids post-deployment-only stock columns", async () => {
+  const preparedSql = [];
+  const part = {
+    id: 7,
+    part_number_raw: "MJB-7703-AA",
+    part_number_normalized: "MJB7703AA",
+    description: "Representative part",
+    source: "fixture",
+    source_ref: "fixture:part-7",
+    verification_status: "verified",
+  };
+
+  const response = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=MJB7703AA"),
+    { DB: makeDb({ part, onPrepare: (sql) => preparedSql.push(sql) }) },
+  );
+
+  assert.equal(response.status, 200);
+  const stockSql = preparedSql.find((sql) => /FROM stock_item/i.test(sql));
+  assert.ok(stockSql);
+  assert.equal(/\bcondition_code\b/i.test(stockSql), false);
 });
 
 test("non-GET requests are rejected", async () => {
