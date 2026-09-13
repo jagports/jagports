@@ -8,7 +8,7 @@ Follow elements from specs and .emf. Parts location on car area must exist. Show
 
 **The actual part/exploded-view image MUST be attached to the AI prompt when this prompt is used. Do not generate the visualization without the attached part image and do not substitute an invented part image.**
 
-For this sample, attach and use `5-Implementation-Projects/internet/jagports/solution/vieps/UI/UI_Visualization_MNC1628AA.png` as the actual part/exploded-view image for `MNC1628AA`. The attached image is the primary visual source for the part-details/explosion area; the external JLR Classic page below is supporting reference only.
+For this sample, attach and use `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/UI_Visualization_MNC1628AA.png` as the actual part/exploded-view image for `MNC1628AA`. The attached image is the primary visual source for the part-details/explosion area; the external JLR Classic page below is supporting reference only.
 
 Use real part number MNC1628AA and as part details view the attached image. Append parts details above Explosion image, do not generate two parts elements.
 
@@ -20,7 +20,7 @@ Generate Suitability list based on suitability here: https://www.ebay.com/itm/37
 
 ## Reference visualization
 
-Use `5-Implementation-Projects/internet/jagports/solution/vieps/UI/UI_Visualization_AI_Prompt.png` as the current sample/reference visualization for this prompt. Future generated reference visualizations should use PNG format.
+Use `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/UI_Visualization_AI_Prompt.png` as the current sample/reference visualization for this prompt. Future generated reference visualizations should use PNG format.
 
 ## Required visualization constraints
 
