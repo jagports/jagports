@@ -4,6 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Jagports VIEPS Info</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    #page-image {
+      display: block;
+      max-width: 100vw;
+      max-height: 100vh;
+      max-height: 100dvh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <img
@@ -13,7 +40,6 @@
     role="button"
     tabindex="0"
     aria-label="Jagports XK information page 1 of 3. Activate to show the next page."
-    style="cursor: pointer; max-width: 100%; height: auto;"
   >
 
   <script>
