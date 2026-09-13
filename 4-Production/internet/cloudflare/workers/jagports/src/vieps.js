@@ -33,7 +33,7 @@ export async function handleViepsPart(request, env) {
 
   if (!part) return json({ error: "part not found", query }, 404);
 
-  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult] = await Promise.all([
+  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult] = await Promise.all([
     env.DB.prepare(
       `SELECT id, source, source_ref, context_type, context_ref, category_ref,
               item_number, diagram_ref, diagram_item_number, verification_status
@@ -71,6 +71,13 @@ export async function handleViepsPart(request, env) {
        WHERE f.part_id = ? AND f.vehicle_range_id IS NOT NULL
        ORDER BY r.range_code, f.variation, f.qualifier`
     ).bind(part.id).all(),
+    env.DB.prepare(
+      `SELECT id, part_number, quantity, condition, status, location, source, source_ref,
+              verification_status, available, confidence, condition_code, price, currency, notes
+       FROM stock_item
+       WHERE part_id = ?
+       ORDER BY available DESC, status, location, id`
+    ).bind(part.id).all(),
   ]);
 
   const nodes = treeResult.results || [];
@@ -95,5 +102,6 @@ export async function handleViepsPart(request, env) {
     images: imageResult.results || [],
     diagrams: diagramResult.results || [],
     fitment: fitmentResult.results || [],
+    stock: stockResult.results || [],
   });
 }
