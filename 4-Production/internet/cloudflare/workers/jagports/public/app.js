@@ -75,7 +75,7 @@ function renderTree(paths) {
   $("tree").innerHTML = branches.map((entry) => {
     // The API supplies ordered paths, not interactive catalogue nodes.
     return entry.path.reduceRight((child, label, index) =>
-      `<ul class="tree-branch"><li><span${index === entry.path.length - 1 ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>${child}</li></ul>`, "");
+      `<ul${index === 0 ? ' class="tree-branch"' : ''}><li><span${index === entry.path.length - 1 ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>${child}</li></ul>`, "");
   }).join("") || empty("No Parts Tree context is available.");
 }
 
