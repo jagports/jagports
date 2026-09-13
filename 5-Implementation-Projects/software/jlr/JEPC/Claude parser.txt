@@ -1,0 +1,262 @@
+Here's the three-stage pipeline: resolve IDs → copy files → import to SQLite.
+
+Stage 1 — resolve XK Range's own_ids (leaves only)
+python
+#!/usr/bin/env python3
+# resolve_range_ids.py — usage: python resolve_range_ids.py models_l_id_0.xml "XK"
+import re, sys
+
+def parse_records(text):
+    # bracket-delimited, quote-aware split — handles commas inside 'quoted names'
+    records = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not (line.startswith('[') and line.endswith(']')):
+            continue
+        body = line[1:-1]
+        fields, buf, in_str = [], '', False
+        for ch in body:
+            if ch == "'":
+                in_str = not in_str
+                continue
+            if ch == ',' and not in_str:
+                fields.append(buf); buf = ''
+                continue
+            buf += ch
+        fields.append(buf)
+        if len(fields) == 3:
+            own_id, parent_id, name = fields
+            records.append((int(own_id), int(parent_id), name))
+    return records
+
+def main():
+    path, pattern = sys.argv[1], sys.argv[2]
+    text = open(path, encoding='latin-1').read()
+    records = parse_records(text)
+
+    parent_ids = {p for (_, p, _) in records}
+    matched_groups = [(i, n) for (i, p, n) in records
+                       if p == 10001 and pattern.lower() in n.lower()]
+
+    print(f"# matched top-level groups for '{pattern}':", file=sys.stderr)
+    for gid, gname in matched_groups:
+        print(f"#   {gid}  {gname}", file=sys.stderr)
+
+    group_ids = {gid for gid, _ in matched_groups}
+    leaves = [(i, n) for (i, p, n) in records
+              if p in group_ids and i not in parent_ids]
+
+    for leaf_id, name in leaves:
+        print(f"{leaf_id}\t{name}")
+
+if __name__ == '__main__':
+    main()
+
+Run it:
+
+bash
+python resolve_range_ids.py models_l_id_0.xml "XK" > xk_range_ids.tsv
+cut -f1 xk_range_ids.tsv > xk_range_ids.txt
+
+Against the file you uploaded this returns 3187, 3183, 3178, 3173, 7420 — the leaf IDs under both 3175 ("Jaguar XK8 Coupe/Convertible") and 7422 ("XK Range (From (V) B00379)"). Note this deliberately excludes 7422 itself even though SPEC_JEPC_IMPORTER.md's Phase 2 list includes it — per last message's leaf rule, 7422 has no catalog data of its own, it's the group wrapper. If the importer doc's model list still lists group IDs alongside leaves, that's a discrepancy worth fixing there, not something to work around here.
+
+Stage 2 — copy all categories for each resolved ID
+
+This fixes the original script's two real bugs (hard-coded menus/L0, and head -n1 only grabbing one category per model) — loop over every cat_*_L0.xml, not the first:
+
+bash
+#!/bin/bash
+set -uo pipefail
+
+SOURCE_ROOT="/c/Program Files/JEPC/applications/JEPC"
+DEST_ROOT="/c/Users/tomil/OneDrive - Tomi Lind/_jagports/7.Ideat/Jagports parts sales website/jagports/5-Implementation-Projects/software/jlr/JEPC/JEPCFiles"
+ID_LIST="xk_range_ids.txt"
+
+while IFS= read -r plid_num; do
+    plid="pl_id_${plid_num}"
+    echo "== $plid =="
+
+    src_base="$SOURCE_ROOT/drilldown/$plid"
+    [ -d "$src_base/L0" ] || { echo "  no drilldown dir, skipping"; continue; }
+    src_l0="$src_base/L0"
+
+    dest_base="$DEST_ROOT/$plid"
+    dest_l0="$dest_base/L0"
+    mkdir -p "$dest_l0"
+
+    while IFS= read -r cat_file; do
+        [ -n "$cat_file" ] || continue
+        id=$(basename "$cat_file" _L0.xml); id=${id#cat_}
+        cp "$cat_file" "$dest_l0/"
+
+        tl_file="$src_l0/tl_${id}_L0.xml"
+        [ -e "$tl_file" ] && cp "$tl_file" "$dest_l0/"
+
+        tl_attr="$src_base/tl_${id}_attributes.xml"
+        [ -e "$tl_attr" ] && cp "$tl_attr" "$dest_base/"
+
+        while IFS= read -r itm_file; do
+            [ -n "$itm_file" ] || continue
+            cp "$itm_file" "$dest_l0/"
+            itm_name=$(basename "$itm_file" _L0.xml)
+            attr_file="$src_base/${itm_name}_attributes.xml"
+            [ -e "$attr_file" ] && cp "$attr_file" "$dest_base/"
+        done < <(find "$src_l0" -maxdepth 1 -iname "Itm_${id}_I*_L0.xml" | sort)
+
+    done < <(find "$src_l0" -maxdepth 1 -iname "cat_*_L0.xml" | sort)
+
+done < "$ID_LIST"
+Stage 3 — parse and import into SQLite
+
+Reuses the same bracket parser, walks the copied JEPCFiles/pl_id_* tree, and loads a schema that mirrors SPEC_JEPC_DATA.md's hierarchy — raw/opaque attributes, no semantic interpretation, per the principle already agreed:
+
+python
+#!/usr/bin/env python3
+# import_to_sqlite.py — usage: python import_to_sqlite.py JEPCFiles vieps.sqlite
+import sqlite3, sys, re
+from pathlib import Path
+
+def parse_records(text):
+    records = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not (line.startswith('[') and line.endswith(']')):
+            continue
+        body = line[1:-1]
+        fields, buf, in_str = [], '', False
+        for ch in body:
+            if ch == "'":
+                in_str = not in_str; continue
+            if ch == ',' and not in_str:
+                fields.append(buf); buf = ''; continue
+            buf += ch
+        fields.append(buf)
+        records.append(fields)
+    return records
+
+def init_schema(con):
+    con.executescript("""
+    CREATE TABLE IF NOT EXISTS jepc_category (
+        model_id INTEGER, category_id INTEGER, breadcrumb TEXT, image_file TEXT,
+        PRIMARY KEY (model_id, category_id)
+    );
+    CREATE TABLE IF NOT EXISTS jepc_top_item (
+        model_id INTEGER, category_id INTEGER, item_no INTEGER, description TEXT,
+        PRIMARY KEY (model_id, category_id, item_no)
+    );
+    CREATE TABLE IF NOT EXISTS jepc_item_row (
+        model_id INTEGER, category_id INTEGER, item_no INTEGER,
+        parent_id INTEGER, row_id INTEGER, description TEXT,
+        catentry_id INTEGER, part_number TEXT, is_dfs INTEGER, is_superseded INTEGER,
+        is_classic INTEGER, internal_part_no TEXT, qty_or_state TEXT, application_id INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS jepc_attribute_raw (
+        key_id INTEGER, raw_group TEXT, raw_value TEXT, except_flag INTEGER, extra TEXT,
+        source_file TEXT
+    );
+    """)
+
+def import_pl_id_folder(con, folder: Path):
+    plid = folder.name  # e.g. pl_id_3187
+    model_id = int(plid.split('_')[-1])
+
+    for cat_file in folder.glob("L0/cat_*_L0.xml"):
+        m = re.match(r"cat_M(\d+)_C(\d+)_L0\.xml", cat_file.name)
+        if not m: continue
+        cat_id = int(m.group(2))
+        lines = parse_records(cat_file.read_text(encoding='latin-1'))
+        breadcrumb = lines[0][0] if lines else None
+        image_file = lines[1][0] if len(lines) > 1 else None
+        con.execute("INSERT OR REPLACE INTO jepc_category VALUES (?,?,?,?)",
+                    (model_id, cat_id, breadcrumb, image_file))
+
+        tl_file = folder / "L0" / f"tl_M{model_id}_C{cat_id}_L0.xml"
+        if tl_file.exists():
+            for row in parse_records(tl_file.read_text(encoding='latin-1')):
+                if len(row) == 2:
+                    con.execute("INSERT OR REPLACE INTO jepc_top_item VALUES (?,?,?,?)",
+                                (model_id, cat_id, int(row[0]), row[1]))
+
+        for itm_file in folder.glob(f"L0/Itm_M{model_id}_C{cat_id}_I*_L0.xml"):
+            im = re.match(rf"Itm_M{model_id}_C{cat_id}_I(\d+)_L0\.xml", itm_file.name)
+            item_no = int(im.group(1)) if im else None
+            for r in parse_records(itm_file.read_text(encoding='latin-1')):
+                if len(r) == 12:
+                    con.execute("""INSERT INTO jepc_item_row VALUES
+                        (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        (model_id, cat_id, item_no, int(r[0]), int(r[1]), r[2],
+                         int(r[3] or 0), r[4], int(r[5] or 0), int(r[6] or 0),
+                         int(r[7] or 0), r[8], r[10], int(r[11] or 0)))
+
+        for attr_file in folder.glob(f"Itm_M{model_id}_C{cat_id}_I*_attributes.xml"):
+            for line in attr_file.read_text(encoding='latin-1').splitlines():
+                line = line.strip()
+                if ',[' not in line: continue
+                key_part, rest = line.split(',', 1)
+                for m2 in re.finditer(r"\[([^\]]+)\]", rest):
+                    parts = m2.group(1).split(',')
+                    con.execute("INSERT INTO jepc_attribute_raw VALUES (?,?,?,?,?,?)",
+                        (int(key_part), parts[0], parts[1] if len(parts)>1 else None,
+                         int(parts[2]) if len(parts)>2 and parts[2].strip().lstrip('-').isdigit() else None,
+                         ','.join(parts[3:]) if len(parts)>3 else None,
+                         attr_file.name))
+
+def main():
+    root, db_path = Path(sys.argv[1]), sys.argv[2]
+    con = sqlite3.connect(db_path)
+    init_schema(con)
+    for folder in sorted(root.glob("pl_id_*")):
+        print(f"importing {folder.name}")
+        import_pl_id_folder(con, folder)
+    con.commit()
+    con.close()
+
+if __name__ == '__main__':
+    main()
+bash
+python import_to_sqlite.py JEPCFiles vieps.sqlite
+
+Caveats worth knowing before you rely on this at volume:
+
+jepc_attribute_raw deliberately stores everything as opaque text/columns, per the "don't decode meaning yet" rule from SPEC_JEPC_DATA.md — but its shape (raw_group, raw_value, except_flag, extra) is exactly the flat table you'd want to GROUP BY for the attribute-decode clustering work from earlier.
+The 12-field assumption in jepc_item_row will throw away malformed rows silently (the if len(r) == 12 guard) — fine for now, but log the skipped ones once you're importing at real volume so you notice if the format ever varies.
+This is throwaway/local-testing tooling, not the production importer — it belongs in whichever IMPL doc ends up covering JEPC import, not committed as-is to the production Worker path.
+
+Reminder: once you've run this against a real range and it works, the resolved-IDs logic and the leaf-vs-group distinction from the last message should get written into the JEPC data doc (whichever it ends up being named) — right now it only exists in this chat.
+
+Could we then have a knowledge that 7422 = X150 and something similar to other models too?
+
+Yes — and it turns out this is a genuinely useful axis to add, because chassis codes generally map to the group ID, not the leaf variants underneath it (the leaves are VIN-range/market splits within one chassis generation). I searched to confirm the codes rather than rely on memory, since these are exactly the kind of specific factual claims that are cheap to verify and expensive to get wrong once baked into a lookup table.
+
+Confirmed mapping (group_id → chassis code)
+Group ID	Group name	Chassis code	Leaves under it
+3175	Jaguar XK8 Coupe/Convertible	X100	3187, 3183, 3178, 3173
+7422	XK Range (From (V) B00379)	X150	7420
+1004	S-TYPE	X200	1002
+6819	X-TYPE	X400	6817
+2233	XJ Series (From (V)720125...)	X300	2231
+3215	XJ Series (From (V)812317...(X308))	X308	3218, 3213
+4443	XJ Range (From (V) G00442 to H32732)	X350 (also seen as X358)	4441
+12830	XJ Range (From (V) V00001)	X351	12831
+1689	XF Range	X250	1687
+16231	ALL NEW XF	X260	16261
+15472	XE Range	X760	15483
+14260	F-TYPE	X152	14261
+17281	F-Pace	X761	17282
+19451	E-Pace	X540	19452
+
+Each of these is Jaguar's/JLR's actual internal project code (independently verifiable — e.g. Wikipedia's chassis-code articles, Jaguar-specific OBD/VIN-decoder references, and IMCDb's own code index all agree on these).
+
+Cases with no X### code — don't force one
+Group ID	Group name	Why no code
+2204	XJ6 & XJ12 (XJ40)	The project's own name is the code — "XJ40" predates the X### numbering scheme (it started around X300). Use XJ40 as the literal chassis code string, not a number.
+2245	Series III Saloon	Predates the numbered scheme entirely; conventionally just "Series III"
+2213	XJS Sports Coupe/Convertible	No confirmed dedicated project number found — sometimes informally written "XJ-S," but I couldn't verify a real internal code. Leave unresolved rather than guess.
+17001	E-Type	Predates numbering; identified by Series 1/2/3, not an X-code
+2265	Daimler Limousine	This is a model designation (Daimler DS420) rather than a Jaguar chassis-family code — different naming system entirely
+3484	Jaguar Accessories	Not a vehicle platform at all — the cross-cutting bucket, per RES-4.13's own explicit exception
+Where this belongs
+
+This is really just RES-4.13's Range table extended with an explicit chassis_code column, keyed on the group modelId — since the chassis code is a generation-level fact, and per the "known learnings" already established for this project, chassis codes are treated as generational identifiers, not eras, with no chassis-specific special-casing in schema/importer logic. So this becomes a lookup fact table (model_group_id → chassis_code), used for human-readable labeling and cross-referencing against third-party sources (SNG catalogue filenames already use these codes directly — CATXJ8 = X308, CATX350 = X350, CATXK8 = X100 — so this mapping is also the missing link between your SNG catalogue table and JEPC's own model IDs), not a new tier of identity in the schema itself.
+
+Reminder: this table and the "no confirmed code" list should get written into whichever JEPC document ends up owning the Range/model taxonomy — right now it only exists in this chat, and the XJS gap in particular is worth flagging as an explicit open question rather than silently dropping it.

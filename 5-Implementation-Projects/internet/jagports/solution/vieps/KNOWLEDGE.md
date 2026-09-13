@@ -63,6 +63,14 @@ Fitment is a relationship, not merely descriptive text on a part. Where source d
 
 The authoritative fitment implementation and JEPC attribute mapping belong to #354/#355 and the approved VIEPS UI contract in #360.
 
+## Catalogue role and fitment context
+
+VIN and configuration describe vehicle context. Fitment relates that context and a catalogue role to a part.
+
+“Catalogue role” describes the contextual item/function being fulfilled. It is not a part identity or, by itself, a requirement for a new table. Its mapping to the approved occurrence/category/item model must be established before implementation.
+
+A shared part retains its identity across multiple applicable contexts. Vehicle-to-part selection and part-to-applicable-context lookup may query the same relationships. This does not require copying a vehicle list into each part record or prescribing a new user-interface workflow.
+
 ## Reference location versus stock location
 
 Two meanings of location remain separate:
@@ -123,3 +131,31 @@ Durable knowledge should capture the decision and its source-of-truth owner once
 - **#352 / #361 / #362** — specialized hotspot, zone/taxonomy and third-party research.
 
 This file is intentionally the durable cross-cutting knowledge layer between those work records; it is not a replacement for them.
+
+## JEPC source interpretation and VIEPS migration
+
+JEPC's local catalogue source is a collection of interrelated files. Many files with an XML extension contain an XML wrapper around bracketed, comma-separated records; diagram hotspot files use element-based XML. A SQL database produced from those files is an import result or intermediate representation, not the original source.
+
+JEPC's decision-tree nodes describe source navigation and conditional context. Interpret that logic during import/migration; do not reproduce decision-node traversal as the VIEPS operational model or require users to traverse it to reach applicable parts. VIEPS must expose the resulting part, occurrence, applicability, category and diagram relationships through the approved Parts Data Model. This does not prohibit useful category browsing or authorize a parallel production schema.
+
+Source nodes may be retained as research or transformation evidence. Their retention does not make them destination-domain entities. The number of tools and the choice of an intermediate storage format are separate implementation decisions.
+
+Do not flatten conditions into independent part-to-vehicle matches if doing so loses exclusions, alternatives, source context or unknown information. Validate the transformation against source behavior before claiming equivalent applicability. A missing vehicle attribute is not proof of positive fitment.
+
+## JEPC file relationships and evidence discipline
+
+Language-specific top-level item files carry item numbers and descriptions that link to item drilldown files and diagram hotspots. They are structural records with localized text, not merely a translation lookup. Category menu files and category navigation popup files also have distinct roles; a breadcrumb alone does not replace explicit parent relationships.
+
+Applicability sidecars have different key scopes at category, top-level item and individual application levels. Preserve those scopes, repeated records and condition boundaries during interpretation. A flag's meaning depends on its record family: serial-boundary direction and attribute exclusion are not interchangeable concepts. Unknown fields and attribute-code meanings must remain explicitly unresolved until verified.
+
+Treat research notes and prototype importer output as evidence with limits, not automatically as specification authority. Newer commits can supersede older hypotheses, but recency alone does not establish correctness. Reconcile claims with the actual source files, consuming application code and explicit accepted product decisions. Discover installed paths rather than assuming that study-sample placement is the installation layout.
+
+## JEPC illustration and hotspot relationships
+
+A logical illustration reference can identify both an image asset and a separate hotspot XML file. One diagram item number can have multiple hotspot regions within the same image. Do not constrain image plus item number to a single rectangle.
+
+Image existence, hotspot-file existence, XML parseability and correct coordinate conversion are separate verification results. Preserve original geometry and dimensions until the conversion is established by the owning hotspot research. Do not label coordinates as pixels merely because an image is present, or assume every illustration has a corresponding hotspot file.
+
+For large file-based installations, prefer the existing file inventory and a bounded vehicle/model subset for investigation. Expand to shared files only where the selected subset needs them. A measured language subset is not an implicit product decision to exclude other languages.
+
+Supporting source evidence and outstanding validation limits are recorded in [JEPC XK source audit](../../../../../7-Research/JEPC_XK_SOURCE_AUDIT.md).

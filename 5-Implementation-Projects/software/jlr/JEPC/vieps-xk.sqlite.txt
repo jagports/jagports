@@ -1,0 +1,64 @@
+sqlite> select * from jepc_attribute_raw limit 10;
+╭────────┬───────────┬────────────┬─────────────┬───────┬─────────────────────────────────────╮
+│ key_id │ raw_group │ raw_value  │ except_flag │ extra │             source_file             │
+╞════════╪═══════════╪════════════╪═════════════╪═══════╪═════════════════════════════════════╡
+│  93491 │ C         │ '  023699' │           1 │ '0'   │ Itm_M3187_C11096_I1_attributes.xml  │
+│ 151439 │ C         │ '  023700' │           0 │ '0'   │ Itm_M3187_C11096_I1_attributes.xml  │
+│ 117264 │ C         │ '  036328' │           1 │ '0'   │ Itm_M3187_C11098_I1_attributes.xml  │
+│ 162404 │ C         │ '  036329' │           0 │ '0'   │ Itm_M3187_C11098_I1_attributes.xml  │
+│ 142902 │ A130      │ '3244'     │           1 │ '0'   │ Itm_M3187_C11099_I1_attributes.xml  │
+│ 142902 │ C         │ '  010206' │           1 │ '0'   │ Itm_M3187_C11099_I1_attributes.xml  │
+│ 155380 │ C         │ '  010207' │           0 │ '0'   │ Itm_M3187_C11099_I1_attributes.xml  │
+│ 120701 │ C         │ '  010119' │           1 │ '0'   │ Itm_M3187_C11099_I2_attributes.xml  │
+│ 142903 │ C         │ '  010120' │           0 │ '0'   │ Itm_M3187_C11099_I2_attributes.xml  │
+│  98517 │ C         │ '  031302' │           1 │ '0'   │ Itm_M3187_C11100_I13_attributes.xml │
+╰────────┴───────────┴────────────┴─────────────┴───────┴─────────────────────────────────────╯
+
+sqlite> select * from jepc_category limit 10;
+╭──────────┬─────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────╮
+│ model_id │ category_id │                                                breadcrumb                                                │ image_file │
+╞══════════╪═════════════╪══════════════════════════════════════════════════════════════════════════════════════════════════════════╪════════════╡
+│     3187 │       11096 │ XK8 Coupe/Convertible up to (V) 042775/OCCUPANT RESTRAINTS/SUPPLEMENTARY AIRBAG RESTRAINT SYSTEM         │ tu6333     │
+│     3187 │       11098 │ XK8 Coupe/Convertible up to (V) 042775/SEATING/MISCELLANEOUS ELECTRICAL COMPONENTS                       │ tt6645     │
+│     3187 │       11099 │ XK8 Coupe/Convertible up to (V) 042775/SEATING/SEAT SWITCHES                                             │ tn6478     │
+│     3187 │       11100 │ XK8 Coupe/Convertible up to (V) 042775/AIR AND FUEL DELIVERY SYSTEMS/THROTTLE PEDAL AND LINKAGE          │ td6224a    │
+│     3187 │       11101 │ XK8 Coupe/Convertible up to (V) 042775/AIR CONDITIONING/HEATING/VENTILATION/AIR DISTRIBUTION/DUCTING     │ tk6123     │
+│     3187 │       11102 │ XK8 Coupe/Convertible up to (V) 042775/AIR CONDITIONING/HEATING/VENTILATION/CONTROL PANEL AND SENSORS    │ tk6119     │
+│     3187 │       11104 │ XK8 Coupe/Convertible up to (V) 042775/AIR CONDITIONING/HEATING/VENTILATION/ENGINE BAY COMPONENTS        │ tk6115     │
+│     3187 │       11106 │ XK8 Coupe/Convertible up to (V) 042775/AIR CONDITIONING/HEATING/VENTILATION/EVAPORATOR AND HEATER MATRIX │ tk6120     │
+│     3187 │       11107 │ XK8 Coupe/Convertible up to (V) 042775/BATTERY/STARTER MOTOR/ALTERNATOR/ALTERNATOR AND CONTROL UNIT      │ tp6257     │
+│     3187 │       11108 │ XK8 Coupe/Convertible up to (V) 042775/BATTERY/STARTER MOTOR/ALTERNATOR/ALTERNATOR AND CONTROL UNIT      │ tp6147     │
+╰──────────┴─────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────╯
+
+
+sqlite> select * from jepc_item_row limit 10;
+╭──────────┬─────────────┬─────────┬───────────┬───────────┬───────────────────┬─────────────┬─────────────┬────────┬───────────────┬────────────┬──────────────────┬──────────────┬────────────────╮
+│ model_id │ category_id │ item_no │ parent_id │  row_id   │    description    │ catentry_id │ part_number │ is_dfs │ is_superseded │ is_classic │ internal_part_no │ qty_or_state │ application_id │
+╞══════════╪═════════════╪═════════╪═══════════╪═══════════╪═══════════════════╪═════════════╪═════════════╪════════╪═══════════════╪════════════╪══════════════════╪══════════════╪════════════════╡
+│     3187 │       11096 │       1 │         1 │     11001 │ To VIN (023699)   │           0 │ '0'         │      0 │             0 │          0 │ '0'              │ '0'          │              0 │
+│     3187 │       11096 │       1 │     11001 │ 110020001 │                   │       59496 │ HNA9670BA   │      0 │             0 │          1 │ pb_02HNA9670BA   │ '1'          │          93491 │
+│     3187 │       11096 │       1 │         1 │     11002 │ From VIN (023700) │           0 │ '0'         │      0 │             0 │          0 │ '0'              │ '0'          │              0 │
+│     3187 │       11096 │       1 │     11002 │ 110030001 │                   │       90452 │ HJB9670AA   │      0 │             0 │          1 │ pb_02HJB9670AA   │ '1'          │         151439 │
+│     3187 │       11096 │       2 │         2 │ 120010001 │                   │       88510 │ HJA9007EA   │      0 │             1 │          0 │ pb_02HJA9007EA   │ NLA          │         146884 │
+│     3187 │       11096 │       3 │         3 │ 130010001 │                   │       62565 │ KZL100002   │      0 │             0 │          1 │ pb_02KZL100002   │ '4'          │         100600 │
+│     3187 │       11096 │       4 │         4 │ 140010001 │                   │       59500 │ JSH10614CPJ │      0 │             0 │          1 │ pb_02JSH10614CPJ │ '6'          │          93497 │
+│     3187 │       11096 │       5 │         5 │     15001 │ passenger airbag  │           0 │ '0'         │      0 │             0 │          0 │ '0'              │ '0'          │              0 │
+│     3187 │       11096 │       5 │     15001 │ 150020001 │                   │       73796 │ HJA8997DA   │      0 │             0 │          1 │ pb_02HJA8997DA   │ '1'          │         121856 │
+│     3187 │       11096 │       6 │         6 │     16001 │ M5                │           0 │ '0'         │      0 │             0 │          0 │ '0'              │ '0'          │              0 │
+╰──────────┴─────────────┴─────────┴───────────┴───────────┴───────────────────┴─────────────┴─────────────┴────────┴───────────────┴────────────┴──────────────────┴──────────────┴────────────────╯
+
+sqlite> select * from jepc_top_item limit 10;
+╭──────────┬─────────────┬─────────┬─────────────────────────╮
+│ model_id │ category_id │ item_no │       description       │
+╞══════════╪═════════════╪═════════╪═════════════════════════╡
+│     3187 │       11096 │       1 │ Passenger airbag module │
+│     3187 │       11096 │       2 │ Airbag deployment door  │
+│     3187 │       11096 │       3 │ Pocket latch            │
+│     3187 │       11096 │       4 │ Bolt and washer         │
+│     3187 │       11096 │       5 │ Mounting frame          │
+│     3187 │       11096 │       6 │ Setscrew                │
+│     3187 │       11096 │       7 │ Captive nut             │
+│     3187 │       11096 │       8 │ Nut and washer          │
+│     3187 │       11098 │       1 │ Cushion heater element  │
+│     3187 │       11098 │       2 │ Squab heater element    │
+╰──────────┴─────────────┴─────────┴─────────────────────────╯
