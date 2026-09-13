@@ -1,11 +1,19 @@
-const $ = (id) => document.getElementById(id);
+const $ = (id) => {
+  if (typeof document !== "undefined" && typeof document.getElementById === "function") {
+    return document.getElementById(id);
+  }
+  if (typeof globalThis !== "undefined" && typeof globalThis.$ === "function") {
+    return globalThis.$(id);
+  }
+  return null;
+};
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
 let fitmentRows = [];
 let visualItems = [];
 let requestVersion = 0;
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>\"]/g, (ch) => ({
+  return String(value ?? "").replace(/[&<>"]/g, (ch) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;",
   }[ch]));
 }
@@ -141,42 +149,54 @@ function resetContext(message = "No part selected.") {
   $("locationStatus").textContent = "Select a part and model range. Verified vehicle-location mapping is unavailable.";
 }
 
-$("rangeSelect").addEventListener("change", renderSelectedRange);
-$("visualSelect").addEventListener("change", renderSelectedVisual);
-$("partNumber").addEventListener("input", () => {
-  requestVersion++;
-  resetContext();
-  $("result").setAttribute("aria-busy", "false");
-  $("searchStatus").className = "muted status-line";
-  $("searchStatus").textContent = "Enter a Jaguar part number and press Search.";
-});
-$("partSearch").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const version = ++requestVersion;
-  const partNumber = $("partNumber").value.trim();
-  resetContext();
-  $("searchStatus").className = "muted status-line";
-  $("result").setAttribute("aria-busy", "false");
-  if (!partNumber) {
-    $("searchStatus").textContent = "Enter a Jaguar part number to begin.";
-    return;
+function setupViepsUi() {
+  if (!$('partSearch')) return;
+
+  $("rangeSelect").addEventListener("change", renderSelectedRange);
+  $("visualSelect").addEventListener("change", renderSelectedVisual);
+  $("partNumber").addEventListener("input", () => {
+    requestVersion++;
+    resetContext();
+    $("result").setAttribute("aria-busy", "false");
+    $("searchStatus").className = "muted status-line";
+    $("searchStatus").textContent = "Enter a Jaguar part number and press Search.";
+  });
+  $("partSearch").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const version = ++requestVersion;
+    const partNumber = $("partNumber").value.trim();
+    resetContext();
+    $("searchStatus").className = "muted status-line";
+    $("result").setAttribute("aria-busy", "false");
+    if (!partNumber) {
+      $("searchStatus").textContent = "Enter a Jaguar part number to begin.";
+      return;
+    }
+    $("searchStatus").textContent = "Resolving PART…";
+    $("result").setAttribute("aria-busy", "true");
+    try {
+      const data = await resolvePart(partNumber);
+      if (version !== requestVersion) return;
+      renderPart(data.part, data.occurrences || [], data.stock || []);
+      renderTree(data.parts_tree || []);
+      renderVisuals(data.images || [], data.diagrams || []);
+      renderFitment(data.fitment || []);
+      $("searchStatus").textContent = "PART resolved.";
+    } catch (error) {
+      if (version !== requestVersion) return;
+      resetContext("No part resolved.");
+      $("searchStatus").textContent = error.message;
+      $("searchStatus").className = "error status-line";
+    } finally {
+      if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
+    }
+  });
+}
+
+if (typeof document !== "undefined" && typeof document.getElementById === "function") {
+  if (document.readyState === "loading" && typeof document.addEventListener === "function") {
+    document.addEventListener("DOMContentLoaded", setupViepsUi);
+  } else {
+    setupViepsUi();
   }
-  $("searchStatus").textContent = "Resolving PART…";
-  $("result").setAttribute("aria-busy", "true");
-  try {
-    const data = await resolvePart(partNumber);
-    if (version !== requestVersion) return;
-    renderPart(data.part, data.occurrences || [], data.stock || []);
-    renderTree(data.parts_tree || []);
-    renderVisuals(data.images || [], data.diagrams || []);
-    renderFitment(data.fitment || []);
-    $("searchStatus").textContent = "PART resolved.";
-  } catch (error) {
-    if (version !== requestVersion) return;
-    resetContext("No part resolved.");
-    $("searchStatus").textContent = error.message;
-    $("searchStatus").className = "error status-line";
-  } finally {
-    if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
-  }
-});
+}
