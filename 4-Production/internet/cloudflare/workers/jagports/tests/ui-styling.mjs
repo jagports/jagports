@@ -31,6 +31,10 @@ const fixture = {
     { range_code: 'B', range_name: 'Range B', variation: 'Beta' },
   ],
 };
+test('root document declares English without conflicting page-level language metadata', () => {
+  assert.match(html, /<html\b[^>]*\blang="en"(?:\s|>)/i);
+  assert.doesNotMatch(html, /<meta\b[^>]*http-equiv=["']Content-Language["'][^>]*>/i);
+});
 test('complete EMF shell exists before search, with no automatic part lookup', () => {
   let requests = 0;
   harness(() => { requests++; });
