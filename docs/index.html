@@ -1,1 +1,45 @@
-<img src="README.png" alt="Jagports README">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jagports VIEPS Info</title>
+</head>
+<body>
+  <img
+    id="page-image"
+    src="README.png"
+    alt="Jagports VIEPS information page 1 of 3"
+    role="button"
+    tabindex="0"
+    aria-label="Jagports VIEPS information page 1 of 3. Activate to show the next page."
+    style="cursor: pointer; max-width: 100%; height: auto;"
+  >
+
+  <script>
+    const pages = ["README.png", "README-2.png", "README-3.png"];
+    const pageImage = document.getElementById("page-image");
+    let currentPage = 0;
+
+    function showNextPage() {
+      currentPage = (currentPage + 1) % pages.length;
+      const pageNumber = currentPage + 1;
+
+      pageImage.src = pages[currentPage];
+      pageImage.alt = `Jagports VIEPS information page ${pageNumber} of ${pages.length}`;
+      pageImage.setAttribute(
+        "aria-label",
+        `Jagports VIEPS information page ${pageNumber} of ${pages.length}. Activate to show the next page.`
+      );
+    }
+
+    pageImage.addEventListener("click", showNextPage);
+    pageImage.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        showNextPage();
+      }
+    });
+  </script>
+</body>
+</html>
