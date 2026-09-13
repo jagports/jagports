@@ -63,6 +63,14 @@ Fitment is a relationship, not merely descriptive text on a part. Where source d
 
 The authoritative fitment implementation and JEPC attribute mapping belong to #354/#355 and the approved VIEPS UI contract in #360.
 
+## Catalogue role and fitment context
+
+VIN and configuration describe vehicle context. Fitment relates that context and a catalogue role to a part.
+
+“Catalogue role” describes the contextual item/function being fulfilled. It is not a part identity or, by itself, a requirement for a new table. Its mapping to the approved occurrence/category/item model must be established before implementation.
+
+A shared part retains its identity across multiple applicable contexts. Vehicle-to-part selection and part-to-applicable-context lookup may query the same relationships. This does not require copying a vehicle list into each part record or prescribing a new user-interface workflow.
+
 ## Reference location versus stock location
 
 Two meanings of location remain separate:
