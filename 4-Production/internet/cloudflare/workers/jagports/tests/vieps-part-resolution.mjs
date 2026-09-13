@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { handleViepsPart } from "../src/vieps.js";
 
-function makeDb({ part = null, occurrences = [], tree = [], images = [], diagrams = [], fitment = [] } = {}) {
+function makeDb({ part = null, occurrences = [], tree = [], images = [], diagrams = [], fitment = [], stock = [] } = {}) {
   return {
     prepare(sql) {
       return {
@@ -18,6 +18,7 @@ function makeDb({ part = null, occurrences = [], tree = [], images = [], diagram
               if (/FROM part_image/i.test(sql)) return { results: images };
               if (/FROM part_diagram/i.test(sql)) return { results: diagrams };
               if (/FROM part_fitment/i.test(sql)) return { results: fitment };
+              if (/FROM stock_item/i.test(sql)) return { results: stock };
               return { results: [] };
             },
           };
@@ -77,20 +78,39 @@ test("resolved PART returns canonical identity and occurrence context without du
     diagram_item_number: "12",
     verification_status: "verified",
   }];
+  const stock = [{
+    id: 31,
+    part_number: "MJB7703AA",
+    quantity: 2,
+    condition: "used / inspected",
+    status: "available",
+    location: "Fixture Shelf XK / Box Label",
+    source: "fixture-607",
+    source_ref: "issue:#607:synthetic-stock:mjb7703aa",
+    verification_status: "fixture",
+    available: 1,
+    confidence: 0.61,
+    condition_code: "B",
+    price: 14.5,
+    currency: "EUR",
+    notes: "Synthetic demo stock value; not real Jagports inventory evidence.",
+  }];
   const response = await handleViepsPart(
     new Request("https://example.test/api/vieps/part?q=mjb 7703-aa"),
-    { DB: makeDb({ part, occurrences }) },
+    { DB: makeDb({ part, occurrences, stock }) },
   );
   assert.equal(response.status, 200);
   const data = await response.json();
   assert.equal(data.part.id, 7);
   assert.equal(data.part.part_number_normalized, "MJB7703AA");
   assert.deepEqual(data.occurrences, occurrences);
+  assert.deepEqual(data.stock, stock);
   assert.equal(data.occurrences[0].part_number_normalized, undefined);
   assert.ok(Array.isArray(data.parts_tree));
   assert.ok(Array.isArray(data.images));
   assert.ok(Array.isArray(data.diagrams));
   assert.ok(Array.isArray(data.fitment));
+  assert.ok(Array.isArray(data.stock));
 });
 
 test("non-GET requests are rejected", async () => {
