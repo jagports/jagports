@@ -13,10 +13,7 @@ function expectRule(selector, declarations) {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const rule = new RegExp(`${escapedSelector}\\s*\\{(?<body>[^}]*)\\}`, "s").exec(css);
   assert.ok(rule, `${selector} rule should exist`);
-
-  for (const declaration of declarations) {
-    assert.match(rule.groups.body, declaration);
-  }
+  for (const declaration of declarations) assert.match(rule.groups.body, declaration);
 }
 
 test("desktop Tailwind VIEPS shell fits the viewport without page-level scrolling", () => {
@@ -33,44 +30,50 @@ test("long default content scrolls inside permanent Concept-11 regions", () => {
   expectRule(".fixture-guide", [/overflow:\s*auto;/]);
 });
 
-test("Concept-11 desktop ordering keeps ranges upper-right and PART/image below suitability", () => {
+test("merged Concept-11 desktop geometry is preserved", () => {
   expectRule(".concept-grid", [
-    /"tree search ranges"/,
-    /"tree location ranges"/,
-    /"tree suitability ranges"/,
-    /"tree details \."/
+    /"tree search search"/,
+    /"tree ranges ranges"/,
+    /"tree location suitability"/,
+    /"tree details details"/
   ]);
-  assert.ok(css.indexOf('"tree suitability ranges"') < css.indexOf('"tree details ."'));
+  assert.ok(css.indexOf('"tree ranges ranges"') < css.indexOf('"tree location suitability"'));
+  assert.ok(css.indexOf('"tree location suitability"') < css.indexOf('"tree details details"'));
 });
 
 test("Concept-11 search and availability share the top strip", () => {
   assert.match(html, /class="search-availability-strip"/);
   assert.match(html, /id="partSearch"/);
-  assert.match(html, /id="availabilitySelect"/);
   assert.match(html, /id="availabilitySelect" disabled/);
   assert.match(css, /\.search-availability-strip\s*\{/);
 });
 
-test("Concept-11 uses one vehicle-location canvas rather than permanent Top and Side panels", () => {
+test("Concept-11 uses one vehicle-location canvas and a separate suitability panel", () => {
   assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
   assert.doesNotMatch(html, />Top view</);
   assert.doesNotMatch(html, />Side view</);
   assert.doesNotMatch(html, /class="vehicle-views"|class="vehicle-view"/);
-  expectRule(".vehicle-location-canvas", [/flex:\s*1 1 auto;/, /display:\s*grid;/, /overflow:\s*hidden;/]);
+  expectRule(".vehicle-location-canvas", [/flex:\s*1 1 auto;/, /min-height:\s*0;/]);
+  assert.match(html, /<h2 id="fitment-heading">Suitability \/ Filter<\/h2>/);
 });
 
-test("Concept-11 lower region is explicitly PART / Image / Status", () => {
+test("Concept-11 ranges and lower PART region span the centre/right workspace", () => {
+  assert.match(html, /<h2 id="ranges-heading">Suitability Model Ranges<\/h2>/);
   assert.match(html, /<h2 id="visual-heading">PART \/ Image \/ Status<\/h2>/);
-  assert.match(html, /<h2 id="fitment-heading">Suitability \/ Filter<\/h2>/);
+  assert.match(css, /"tree ranges ranges"/);
+  assert.match(css, /"tree details details"/);
 });
 
 test("narrow responsive layouts remain scrollable instead of clipped", () => {
   const responsiveRules = css.slice(css.indexOf("@media (max-width: 1100px)"));
-
   assert.match(responsiveRules, /html,\s*body\s*\{[^}]*height:\s*auto;[^}]*overflow:\s*auto;/s);
   assert.match(responsiveRules, /\.app-shell\s*\{[^}]*height:\s*auto;[^}]*min-height:\s*100dvh;[^}]*overflow:\s*visible;/s);
   assert.match(responsiveRules, /\.concept-grid\s*\{[^}]*overflow:\s*visible;/s);
-  assert.match(responsiveRules, /\.panel\s*\{[^}]*overflow:\s*visible;/s);
+  assert.match(responsiveRules, /"search search"/);
+  assert.match(responsiveRules, /"ranges ranges"/);
+  assert.match(responsiveRules, /"tree location"/);
+  assert.match(responsiveRules, /"tree suitability"/);
+  assert.match(responsiveRules, /"details details"/);
 });
 
 test("Concept-11 permanent regions remain present in the static shell", () => {
