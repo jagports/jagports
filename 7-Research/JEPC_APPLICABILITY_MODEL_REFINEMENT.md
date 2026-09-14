@@ -29,6 +29,26 @@ The item file again contains HNA9670BA/application 93491 beneath `To VIN (023699
 
 The top-level file repeats item key `1` for those two boundaries. This does not justify collapsing them into one interval. The source record identity, application identity and canonical PART identity are different.
 
+### Model bounds and Product Owner correction
+
+The Product Owner clarified that one-sided item conditions must be combined with model breadcrumbs and JLHT production/VIN documentation. Inspection of `JEPCFiles/menus/models_l_id_0.xml` confirms:
+
+| Model | Source label boundary |
+|---|---|
+| 3187 | XK8 Coupe/Convertible up to (V) 042775 |
+| 3178 | XK8 Coupe/Convertible From (V) A00083 To (V) A30644 |
+| 3173 | XK8 Coupe/Convertible From (V) A30645 |
+
+The Product Owner identifies JLHT documents as supplying model 3187's start and model 3173's end. Their exact values/pages have not been captured in this bounded study. Treat those as evidence to attach, not as unknowable boundaries or permission to invent values.
+
+For the airbag example, application 151439 can have a derived effective interval 023700 through 042775 under verified model ownership and comparator rules. Application 93491 can be bounded from the documented model start through 023699. Preserve the original item conditions and inherited model evidence alongside these derived intervals.
+
+This corrects the initial assessment: a one-sided item record alone does **not** prove a required `vin_range` schema redesign. Existing complete-range records may be reused when their required fields are established. The remaining model gap is explicit occurrence/context pairing, derivation provenance and combination semantics, including unresolved cases.
+
+### Item versus application terminology
+
+Item `1` is the numbered Passenger airbag module position/function in category `11096` and its diagram. Application `93491` supplies HNA9670BA for that item under one condition; application `151439` supplies HJB9670AA under another. JEPC's top-level filtering determines whether the numbered item remains visible; application filtering distinguishes candidate part rows. Neither terminology requires a destination decision-node entity.
+
 The repository sample `JEPCFiles/menus/pl_id_3187_attributes.xml` includes `11149,[A6,913,1,0,1]` and positive A6/A23 tuples. This establishes raw group/value/flag examples, not human names for those groups.
 
 No whole-installation traversal, full importer run or stock mutation was performed.
@@ -61,12 +81,12 @@ The attribute combinations are synthetic function inputs using observed token vo
 Inspected migrations `0004_part_occurrence_context.sql`, `0006_part_vehicle_vin_applicability.sql` and `0008_part_fitment.sql`, and the current PART field dictionary.
 
 1. Independent PART-level model and VIN links cannot encode which model/VIN/attribute combination belongs to which occurrence.
-2. `vin_range` requires prefix, start and end. The observed source one-sided serial conditions cannot be represented there without invention or a schema change.
+2. `vin_range` requires prefix, start and end. It can hold complete effective intervals when all fields are established, including inherited model bounds. It cannot by itself preserve a one-sided source predicate and the evidence chain used to derive the complete interval. This is a source/derivation requirement, not proof that every effective interval needs a schema change.
 3. `part_fitment` has no condition-set identity, Boolean grouping, interpretation version or completeness state. Rows can preserve source tuples but do not define a verified evaluation algorithm.
 4. Fitment uniqueness includes occurrence/state/group/key/value/flag but excludes evidence identity. Identical tuples from distinct source rows cannot retain evidence multiplicity in that row structure alone.
 5. Existing `applicable` default and `verification_status` text do not establish complete source coverage or positive vehicle fitment.
 
-These are representation gaps, not claims that current basic stock/part search is broken.
+These are representation gaps, not claims that current basic stock/part search is broken or that breadcrumbs cannot establish model boundaries. The proposed amendment now prioritizes reuse of established range entities, with explicit occurrence binding and derivation evidence.
 
 ## Recommended decision
 

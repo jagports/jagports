@@ -37,13 +37,17 @@ The logical form is a finite collection of relational condition sets, not a pers
 
 - Preserve exact raw serial/boundary text, including leading spaces and zeros. Store normalized comparison values separately, with the parser/mapping version and evidence for the normalization.
 - Support lower-only, upper-only and two-sided serial constraints. Do not fabricate a VIN prefix, a zero start, a maximum end or a model-year interval to satisfy a SQL `NOT NULL` constraint.
+- Derive effective applicability by intersecting the verified model/subrange interval with the occurrence's verified conditions. A one-sided item condition does not imply a one-sided effective interval: model breadcrumbs and authoritative production/VIN documents may supply the other endpoint. Preserve the source condition, inherited model bounds and derived intersection separately, with evidence for each.
+- Model boundary inheritance requires an explicit occurrence-to-model-context relationship. Use only compatible serial domains and market scopes. The next model's start can corroborate an endpoint, but deriving a predecessor requires verified ordering, adjacency and no-gap assumptions; do not universally subtract one or bridge different serial formats.
 - Distinguish a known unbounded endpoint from an endpoint whose meaning or value is unknown. For a required-but-unknown endpoint, the constraint remains unresolved.
 - Store boundary direction and inclusivity explicitly. For the audited C comparison, type `0` rejects smaller serials and type `1` rejects larger serials; equality survives. This is not an attribute-exclusion flag.
 - Scope a serial comparison to its source model/domain and an approved comparator. A serial is not a full VIN. Do not compare across unrelated model domains or assume a universal numeric, lexical or alphanumeric ordering.
 - A prefix may be unknown when a source model and serial condition are known. The evaluator must have an established context match; absence of a prefix is not a wildcard across all models.
 - Validate bound compatibility and ordering under the selected comparator. Reject/quarantine impossible intervals, invalid values and unsupported comparators; preserve their raw evidence.
 
-The initial decimal XK boundary fixture demonstrates the required representation. Production normalization, alphanumeric ordering and the actual parser-to-comparator path still require source validation. The isolated comparator probe is not evidence that trimming raw source tokens is universally safe.
+For model `3187`, the model label supplies the upper boundary `042775`. Application 151439's `from 023700` condition therefore has an effective interval `023700` through `042775` once model ownership, comparator and inclusivity are verified. Application 93491's `through 023699` interval uses the model start from the authoritative JLHT document once that exact value and citation are captured. The missing citation in this evidence set is not a claim that the model start is unknowable.
+
+The source model list separately identifies `3178` as `A00083` through `A30644` and `3173` as from `A30645`. These are separate model contexts; capture the latter's end from the cited authoritative document rather than inventing it. Production normalization, alphanumeric ordering and the actual parser-to-comparator path still require source validation. The isolated comparator probe is not evidence that trimming raw source tokens is universally safe.
 
 ## Attribute and exclusion requirements
 
@@ -80,7 +84,7 @@ These are logical entities for schema design, not executable DDL. Reuse existing
 | Source model context | Stable source-qualified identity; source model/parent IDs and profile evidence; optional verified canonical `model_range` relationship. One context has many assertions. |
 | Applicability assertion | Stable identity; exactly one occurrence and model context; positive/explicit-negative effect; verification and coverage state. One assertion has zero or more condition sets; zero means unresolved. |
 | Condition set | Belongs to exactly one assertion; alternative-set identity; completeness/unconditional state. Contains zero or more typed predicates; zero predicates require verified unconditional status. |
-| Serial constraint | Belongs to one set; serial domain/comparator; optional established VIN prefix; separate endpoint states, values and inclusivity; raw-evidence links. |
+| Serial constraint | Belongs to one set; serial domain/comparator; optional established VIN prefix; separate endpoint states, values and inclusivity; raw-evidence links. Effective intervals retain links to both model bounds and occurrence constraints used in their derivation. |
 | Attribute constraint | Belongs to one set; verified dimension/value-domain reference; membership/nonmembership operator and values; cardinality semantics; raw-evidence links. |
 | Evidence and interpretation | Many evidence records may support one assertion/predicate and one source record may support several derived relationships. Preserve source dataset, relative path, checksum, row/tuple locator, source scope, parser and mapping versions, verification and unresolved reasons. |
 
@@ -98,9 +102,9 @@ Reprocessing replaces/supersedes the complete derived assertion set for the affe
 
 | Current representation | Required refinement |
 |---|---|
-| `part_model_range` and `part_vin_range` are independent PART-level links. | Occurrence-bound joint model/serial/attribute assertions. Keep existing links as evidence/navigation summaries until their scope is reconciled. |
+| `part_model_range` and `part_vin_range` are independent PART-level links. | Existing VIN records can store complete derived intervals/discriminators, but the links do not identify which occurrence supplied each pairing. Bind the resulting model/serial/attribute assertions to occurrences. Keep existing links as evidence/navigation summaries until their scope is reconciled. |
 | No dedicated source model context relation. | Preserve source model/subrange/market identity and explicit canonical mapping without forcing a full global vehicle ontology. |
-| `vin_range` requires nonblank prefix/start/end. | Represent scoped one-sided constraints and distinguish unbounded from unknown; review whether to evolve that entity or add an assertion-scoped serial relation. |
+| `vin_range` requires nonblank prefix/start/end. | Reuse it for effective intervals when all required fields are established from source plus inherited model evidence. Preserve one-sided source predicates and derivation separately; incomplete cases remain unresolved. A mandatory redesign solely because an item record has one endpoint is not justified. Review how to represent established serial intervals lacking a VIN prefix without inventing one. |
 | Flat occurrence `part_fitment` rows have no combination/group identity. | Represent complete alternatives and typed predicates; do not infer their grouping from row order. |
 | Fitment uniqueness excludes evidence reference and collapses equal tuples. | Preserve evidence multiplicity and set membership separately from semantic predicate deduplication. |
 | `applicable` is a stored default; missing scope/completeness is not modeled. | Explicit verification/coverage and evaluation results; never backfill positive truth from a default. |
@@ -114,7 +118,7 @@ The airbag source example is observed; other combinations below are deliberately
 
 | Case | Required outcome |
 |---|---|
-| XK 3187/category 11096/item 1, application 93491 HNA9670BA through 023699; 151439 HJB9670AA from 023700 | Preserve separate occurrences and one-sided constraints. With a verified comparator and otherwise complete context, 023699 selects the former and 023700 the latter. Do not make a single impossible interval. |
+| XK 3187/category 11096/item 1, application 93491 HNA9670BA through 023699; 151439 HJB9670AA from 023700 | Preserve separate occurrences and source constraints. Intersect with model bounds: the latter ends at 042775, not infinity; the former begins at the cited model start. With a verified comparator and otherwise complete context, 023699 selects the former and 023700 the latter; neither applies outside the model interval. Do not make a single impossible interval. |
 | Same PART: context M1 through S100, context M2 from S200 | Return only those two context/bound combinations; never M1/from S200 or M2/through S100. |
 | Same occurrence: (body B1 AND engine E1) OR (body B2 AND engine E2) | Match B1/E1 and B2/E2; reject B1/E2 and B2/E1 when scope is complete. |
 | Include one configuration but exclude option X within that set | X defeats that set only; another verified alternative may still match. |
