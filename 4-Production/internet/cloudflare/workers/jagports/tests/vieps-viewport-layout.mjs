@@ -27,10 +27,20 @@ test("desktop Tailwind VIEPS shell fits the viewport without page-level scrollin
   expectRule(".panel", [/min-height:\s*0;/, /display:\s*flex;/, /overflow:\s*hidden;/]);
 });
 
-test("long default content scrolls inside permanent Concept View-1 regions", () => {
+test("long default content scrolls inside permanent Concept-11 regions", () => {
   assert.match(css, /\.tree-panel #tree,\s*\.ranges-panel #ranges,\s*\.fitment-panel #fitment,\s*\.visual-panel #visuals\s*\{[^}]*overflow:\s*auto;/s);
   expectRule(".stock-section", [/overflow:\s*auto;/]);
   expectRule(".fixture-guide", [/overflow:\s*auto;/]);
+});
+
+test("Concept-11 desktop ordering keeps suitability above PART/image and ranges in the upper-right workspace", () => {
+  expectRule(".concept-grid", [
+    /"tree search ranges"/,
+    /"tree location ranges"/,
+    /"tree suitability ranges"/,
+    /"tree details \.")?/, 
+  ]);
+  assert.ok(css.indexOf('"tree suitability ranges"') < css.indexOf('"tree details ."'));
 });
 
 test("narrow responsive layouts remain scrollable instead of clipped", () => {
@@ -42,7 +52,7 @@ test("narrow responsive layouts remain scrollable instead of clipped", () => {
   assert.match(responsiveRules, /\.panel\s*\{[^}]*overflow:\s*visible;/s);
 });
 
-test("Concept View-1 permanent regions remain present in the static shell", () => {
+test("Concept-11 permanent regions remain present in the static shell", () => {
   for (const id of ["partSearch", "tree", "locationStatus", "partCard", "visuals", "ranges", "fitment"]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
