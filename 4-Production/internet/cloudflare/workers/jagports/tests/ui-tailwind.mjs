@@ -17,8 +17,11 @@ test('VIEPS UI uses only a local built Tailwind stylesheet and no Pico/Tailwind 
 test('Tailwind build uses pinned local project dependencies for development and deployment', async () => {
   const pkg = JSON.parse(await readFile(packageUrl, 'utf8'));
   assert.match(pkg.scripts['build:css'], /^tailwindcss\b/);
-  assert.match(pkg.scripts.dev, /npm run build:css/);
-  assert.match(pkg.scripts.deploy, /npm run build:css/);
+  assert.match(pkg.scripts.build, /npm run build:css/);
+  assert.match(pkg.scripts.build, /npm run verify:generated-assets/);
+  assert.match(pkg.scripts.dev, /npm run build/);
+  assert.match(pkg.scripts.deploy, /npm run build/);
+  assert.match(pkg.scripts['verify:deployed-assets'], /verify-deployed-assets\.mjs/);
   assert.equal(pkg.devDependencies.tailwindcss, '4.1.13');
   assert.equal(pkg.devDependencies['@tailwindcss/cli'], '4.1.13');
 });

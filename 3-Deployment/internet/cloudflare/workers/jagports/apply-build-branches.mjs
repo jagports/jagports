@@ -44,12 +44,21 @@ triggers = await listTriggers();
 production = findProductionTrigger(triggers);
 preview = findPreviewTrigger(triggers, production);
 verifyRemotePolicy(production, preview);
-console.log(`Cloudflare Workers Builds branch policy is compliant for ${policy.worker}.`);
+console.log(`Cloudflare Workers Builds policy is compliant for ${policy.worker}.`);
 
 function validatePolicy(value) {
-  if (value?.schema_version !== 1) fail("Unsupported cloudflare-build-branches.json schema_version.");
-  if (typeof value.worker !== "string" || !value.worker.trim()) fail("policy.worker must be a non-empty string.");
-  if (value.production_branch !== "main") fail("production_branch must remain exactly 'main' for Issue #559.");
+  if (value?.schema_version !== 2) fail("Unsupported cloudflare-build-branches.json schema_version.");
+  for (const key of [
+    "worker",
+    "root_directory",
+    "production_build_command",
+    "production_deploy_command",
+    "preview_build_command",
+    "preview_deploy_command",
+  ]) {
+    if (typeof value[key] !== "string" || !value[key].trim()) fail(`policy.${key} must be a non-empty string.`);
+  }
+  if (value.production_branch !== "main") fail("production_branch must remain exactly 'main'.");
   if (!Array.isArray(value.preview_branches)) fail("preview_branches must be an array.");
 
   const branches = value.preview_branches;
@@ -73,10 +82,8 @@ async function listTriggers() {
 }
 
 function findProductionTrigger(items) {
-  return items.find((item) =>
-    item.deploy_command?.includes("wrangler deploy") &&
-    !item.deploy_command?.includes("versions upload")
-  ) || items.find((item) => item.branch_includes?.includes(policy.production_branch));
+  return items.find((item) => item.branch_includes?.includes(policy.production_branch)) ||
+    items.find((item) => item.deploy_command?.includes("wrangler deploy") && !item.deploy_command?.includes("versions upload"));
 }
 
 function findPreviewTrigger(items, productionTrigger) {
@@ -87,37 +94,47 @@ function findPreviewTrigger(items, productionTrigger) {
 }
 
 async function applyProductionPolicy(trigger) {
-  if (sameList(trigger.branch_includes, [policy.production_branch]) && sameList(trigger.branch_excludes, [])) return;
+  const wanted = {
+    branch_includes: [policy.production_branch],
+    branch_excludes: [],
+    build_command: policy.production_build_command,
+    deploy_command: policy.production_deploy_command,
+    root_directory: policy.root_directory,
+  };
+
+  if (triggerMatches(trigger, wanted)) return;
   await cf(`/builds/triggers/${encodeURIComponent(trigger.trigger_uuid)}`, {
     method: "PATCH",
-    body: JSON.stringify({
-      branch_includes: [policy.production_branch],
-      branch_excludes: [],
-    }),
+    body: JSON.stringify(wanted),
   });
-  console.log(`Updated production trigger ${trigger.trigger_uuid} to main only.`);
+  console.log(`Updated production trigger ${trigger.trigger_uuid} to the repository build/deploy policy.`);
 }
 
 async function applyPreviewPolicy(trigger, productionTrigger) {
-  const wanted = policy.preview_branches;
+  const wantedBranches = policy.preview_branches;
 
-  if (wanted.length === 0) {
+  if (wantedBranches.length === 0) {
     if (!trigger) return;
     await cf(`/builds/triggers/${encodeURIComponent(trigger.trigger_uuid)}`, { method: "DELETE" });
     console.log(`Deleted preview trigger ${trigger.trigger_uuid}; non-production branch builds are disabled.`);
     return;
   }
 
+  const wanted = {
+    branch_includes: wantedBranches,
+    branch_excludes: [policy.production_branch],
+    build_command: policy.preview_build_command,
+    deploy_command: policy.preview_deploy_command,
+    root_directory: policy.root_directory,
+  };
+
   if (trigger) {
-    if (sameList(trigger.branch_includes, wanted) && sameList(trigger.branch_excludes, [policy.production_branch])) return;
+    if (triggerMatches(trigger, wanted)) return;
     await cf(`/builds/triggers/${encodeURIComponent(trigger.trigger_uuid)}`, {
       method: "PATCH",
-      body: JSON.stringify({
-        branch_includes: wanted,
-        branch_excludes: [policy.production_branch],
-      }),
+      body: JSON.stringify(wanted),
     });
-    console.log(`Updated preview trigger ${trigger.trigger_uuid} to the explicit branch allow-list.`);
+    console.log(`Updated preview trigger ${trigger.trigger_uuid} to the repository build/deploy policy.`);
     return;
   }
 
@@ -132,23 +149,26 @@ async function applyPreviewPolicy(trigger, productionTrigger) {
       repo_connection_uuid: repoConnectionUuid,
       build_token_uuid: buildTokenUuid,
       trigger_name: "Deploy explicit preview branches",
-      build_command: productionTrigger.build_command ?? "",
-      deploy_command: "npx wrangler versions upload",
-      root_directory: productionTrigger.root_directory ?? "4-Production/internet/cloudflare/workers/jagports/",
-      branch_includes: wanted,
-      branch_excludes: [policy.production_branch],
+      ...wanted,
       path_includes: productionTrigger.path_includes ?? ["*"],
       path_excludes: productionTrigger.path_excludes ?? [],
       build_caching_enabled: productionTrigger.build_caching_enabled ?? true,
     }),
   });
-  console.log(`Created preview trigger for: ${wanted.join(", ")}.`);
+  console.log(`Created preview trigger for: ${wantedBranches.join(", ")}.`);
 }
 
 function verifyRemotePolicy(productionTrigger, previewTrigger) {
   if (!productionTrigger) fail("Verification failed: production trigger is missing.");
-  if (!sameList(productionTrigger.branch_includes, [policy.production_branch]) || !sameList(productionTrigger.branch_excludes, [])) {
-    fail(`Verification failed: production trigger is not restricted to '${policy.production_branch}'.`);
+  const productionWanted = {
+    branch_includes: [policy.production_branch],
+    branch_excludes: [],
+    build_command: policy.production_build_command,
+    deploy_command: policy.production_deploy_command,
+    root_directory: policy.root_directory,
+  };
+  if (!triggerMatches(productionTrigger, productionWanted)) {
+    fail("Verification failed: production trigger does not match the repository build/deploy policy.");
   }
 
   if (policy.preview_branches.length === 0) {
@@ -157,9 +177,24 @@ function verifyRemotePolicy(productionTrigger, previewTrigger) {
   }
 
   if (!previewTrigger) fail("Verification failed: explicit preview branches are configured but no preview trigger exists.");
-  if (!sameList(previewTrigger.branch_includes, policy.preview_branches) || !sameList(previewTrigger.branch_excludes, [policy.production_branch])) {
-    fail("Verification failed: preview trigger does not match the explicit branch allow-list.");
+  const previewWanted = {
+    branch_includes: policy.preview_branches,
+    branch_excludes: [policy.production_branch],
+    build_command: policy.preview_build_command,
+    deploy_command: policy.preview_deploy_command,
+    root_directory: policy.root_directory,
+  };
+  if (!triggerMatches(previewTrigger, previewWanted)) {
+    fail("Verification failed: preview trigger does not match the repository build/deploy policy.");
   }
+}
+
+function triggerMatches(trigger, wanted) {
+  return sameList(trigger.branch_includes, wanted.branch_includes) &&
+    sameList(trigger.branch_excludes, wanted.branch_excludes) &&
+    trigger.build_command === wanted.build_command &&
+    trigger.deploy_command === wanted.deploy_command &&
+    trigger.root_directory === wanted.root_directory;
 }
 
 async function cf(path, options = {}) {
