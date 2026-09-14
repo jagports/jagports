@@ -4,7 +4,11 @@
 
 Second-round CSS/UI-kit comparison specification and visual evidence record for Issue #632.
 
+The Product Owner has reviewed the four contestant concepts and selected **Tailwind CSS** as the preferred / best-looking post-MVP visual direction.
+
 This round supersedes the assumption that the current Pico-styled live VIEPS page is a target to refine. The current live page is retained only as a **negative visual baseline** showing the present Pico result that the Product Owner is not satisfied with.
+
+Post-MVP implementation is tracked separately in Issue #642 so this specification does not expand the current reduced MVP gate.
 
 ## Design authorities
 
@@ -18,7 +22,7 @@ The second-round comparison uses separate authorities for layout, style, colour 
 
 ## Concept View-1 layout contract
 
-All contestant concepts must preserve the same VIEPS high-level information architecture:
+All contestant concepts preserve the same VIEPS high-level information architecture:
 
 - Parts Tree on the left.
 - Part-number search at the top of the centre area.
@@ -56,18 +60,16 @@ VIEPS should **not** copy JEPC's full dense catalogue browser by default. The VI
 
 ## Contestants and generated concept evidence
 
-Four comparable concept screenshots were generated for this round and saved as repository reference copies:
+Four comparable concept screenshots were generated and saved for this round:
 
 - `CSS-Kit-2ndRound-Pico-CSS.jpg`
 - `CSS-Kit-2ndRound-Bulma.jpg`
 - `CSS-Kit-2ndRound-Bootstrap.jpg`
 - `CSS-Kit-2ndRound-Tailwind-CSS.jpg`
 
-The repository copies are optimized JPEG references of the generated concepts. They are design exploration evidence, not literal claims that every decorative detail, vehicle image, label or value is already implemented or verified production data.
+The initial generated repository copies were partial / too low-resolution for durable comparison use. The Product Owner replaced them in PR #640 with improved repository reference images. The images remain design exploration evidence; they are not literal claims that every decorative detail, vehicle image, label or value is already implemented or verified production data.
 
 ### Pico CSS concept
-
-Purpose: show how far Pico can be pushed while staying close to its semantic, minimal component philosophy.
 
 Natural strengths:
 
@@ -81,8 +83,6 @@ Limitation for this target: the desired AI-concept polish requires a larger VIEP
 
 ### Bulma concept
 
-Purpose: show a more component-oriented, polished application workspace while remaining a CSS-only framework.
-
 Natural strengths:
 
 - panels, cards, menus and helpers fit a multi-region application layout well;
@@ -93,8 +93,6 @@ Natural strengths:
 Trade-off: migration requires more framework-specific class structure than Pico, and a custom Jagports theme is still required to avoid a generic framework appearance.
 
 ### Bootstrap concept
-
-Purpose: show a dense, structured enterprise/dashboard interpretation of the same Concept View-1 information architecture.
 
 Natural strengths:
 
@@ -107,8 +105,6 @@ Trade-off: Bootstrap's default visual conventions are recognizable and can domin
 
 ### Tailwind CSS concept
 
-Purpose: show the maximum custom-design fidelity available when the framework supplies low-level utilities and design tokens rather than a strong default component skin.
-
 Natural strengths:
 
 - highest freedom to reproduce the Concept View-1 geometry and AI-reference visual style;
@@ -120,7 +116,7 @@ Trade-off: larger utility-class footprint and a stronger design-system responsib
 
 ## Evaluation criteria
 
-The four concepts and implementation implications must be evaluated against:
+The four concepts and implementation implications were evaluated against:
 
 1. visual similarity to the desired AI-reference style;
 2. natural support for the Concept View-1 three-column workspace;
@@ -131,20 +127,33 @@ The four concepts and implementation implications must be evaluated against:
 7. migration effort from the existing VIEPS frontend;
 8. maintainability and unnecessary framework complexity.
 
-## Current second-round direction
+## Second-round result
 
-The research direction established in this round is:
+The Product Owner's selection after reviewing the contestant concepts is:
 
-- **Tailwind CSS** provides the strongest route to exact visual fidelity and a uniquely Jagports-styled application because it does not impose a strong default component appearance.
-- **Bulma** is the strongest classic CSS-framework compromise when the goal is a polished application/dashboard style with less custom design-system work than Tailwind.
-- **Bootstrap** is highly capable and especially strong for dense tables/forms/utilities, but it brings more framework conventions and requires deliberate re-theming to avoid a generic Bootstrap appearance.
-- **Pico CSS** remains the lowest-migration and simplest option, but is the least naturally aligned with the richer visual target; substantial VIEPS-specific styling is needed to escape the restrained look that motivated this re-selection.
+1. **Tailwind CSS — selected/preferred.** Best-looking result and strongest fit to the custom Jagports / AI-reference visual direction.
+2. **Bulma — strongest classic CSS-framework alternative.**
+3. **Bootstrap — highly capable for structured/dense UI but requires deliberate re-theming.**
+4. **Pico CSS — lowest migration cost but least naturally aligned with the richer target visual direction.**
 
-This direction is **not yet a final selection decision**. The four saved mockups are intended to provide visual evidence for review in Issue #632 and the associated PR.
+Tailwind is therefore the approved **post-MVP implementation direction** for the VIEPS visual system. This selection does not automatically approve every decorative element shown in the concept image; the approved VIEPS information architecture, data contracts and verified source information remain authoritative.
+
+## Post-MVP implementation boundary
+
+Implementation is tracked in Issue #642 and should:
+
+- replace the current Pico-based styling after MVP rather than expanding the current MVP gate;
+- preserve semantic IDs/data hooks and functional behavior;
+- use Tailwind as a VIEPS design-system/utility layer rather than copying a generic Tailwind demo;
+- establish reusable Jagports design tokens/components for colours, typography, spacing, elevation, cards, controls, Parts Tree states, status badges, vehicle-location views, part details and suitability tables;
+- preserve or improve responsive and viewport-fit behavior;
+- retain the Concept View-1 layout authority and JEPC-informed Parts Tree interaction lessons.
 
 ## References
 
 - Issue #632 — second-round CSS kit re-selection work record
+- PR #640 — second-round reference images and this specification
+- Issue #642 — post-MVP Tailwind implementation follow-up
 - PR #631 — JEPC screenshots for reference use
 - PR #586 — JEPC data-structure findings
 - Issue #468 — controlling Concept View-1 specification
