@@ -5,10 +5,13 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "build:css": "tailwindcss -i ./styles/vieps-tailwind.css -o ./public/vieps-tailwind.css --minify",
+    "verify:generated-assets": "node ./scripts/verify-generated-assets.mjs",
+    "verify:deployed-assets": "node ./scripts/verify-deployed-assets.mjs",
+    "build": "npm run build:css && npm run verify:generated-assets",
     "test": "node --test tests/*.mjs",
     "test:runtime": "node --test tests/vieps-runtime-e2e.mjs",
-    "dev": "npm run build:css && wrangler dev",
-    "deploy": "npm run build:css && wrangler deploy"
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.1.13",
