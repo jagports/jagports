@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
+      - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
       - '3-Deployment/internet/github/actions/tests/integrity_parts_model.md'
   push:
     branches: [main]
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
+      - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
       - '3-Deployment/internet/github/actions/tests/integrity_parts_model.md'
 
@@ -24,6 +26,7 @@ jobs:
         with:
           sparse-checkout: |
             4-Production/internet/cloudflare/workers/jagports
+            6-Development/libraries/css/tailwind/4.1.13
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
