@@ -30,6 +30,6 @@ Fixture #607 Site
 
 - Fixture stock values are synthetic demo/test values.
 - Fixture locations are random-looking but deterministic.
-- The file does not define real Jagports inventory.
-- The file does not define deployment, migration, runtime-validation, or search implementation procedure.
-- The file does not certify fitment or supersession facts beyond the repository fixture/test boundary.
+- This file does not define real Jagports inventory.
+- This file does not define deployment, migration, runtime-validation, or search implementation procedure.
+- This file does not certify fitment or supersession facts beyond the repository fixture/test boundary.
