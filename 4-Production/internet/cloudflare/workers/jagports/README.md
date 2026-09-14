@@ -41,7 +41,9 @@ The later production Worker identity is `jagports`. It is reserved for the produ
 
 ## VIEPS UI styling
 
-The VIEPS frontend uses Tailwind CSS as a build-time dependency. Pico CSS is not part of the runtime styling path.
+The VIEPS frontend uses **local Tailwind CSS** as a build-time dependency. Pico CSS is not part of the runtime styling path.
+
+Tailwind and `@tailwindcss/cli` are installed as pinned project dependencies. They are invoked from this project's local Node dependency set during the build; the browser does not load Tailwind from a CDN, remote stylesheet, remote script, or other runtime third-party Tailwind source.
 
 Source styling is maintained in:
 
@@ -49,15 +51,17 @@ Source styling is maintained in:
 styles/vieps-tailwind.css
 ```
 
-The Tailwind CLI compiles that source to the static Worker asset:
+The local Tailwind CLI compiles that source to the VIEPS-owned static Worker asset:
 
 ```text
 public/vieps-tailwind.css
 ```
 
+`public/index.html` references that local generated stylesheet directly.
+
 `npm run build:css` performs the CSS build. Both `npm run dev` and `npm run deploy` execute the CSS build before starting Wrangler, so local development and Cloudflare deployment use the same generated asset.
 
-The Tailwind package versions are pinned through `package.json`. The Concept-11 visual/layout reference is maintained under the VIEPS UI concept documentation; implementation must preserve VIEPS data and interaction contracts rather than infer unsupported behavior from the visual alone.
+The Tailwind package versions are pinned exactly through `package.json`. The Concept-11 visual/layout reference is maintained under the VIEPS UI concept documentation; implementation must preserve VIEPS data and interaction contracts rather than infer unsupported behavior from the visual alone.
 
 ## Cloudflare endpoint
 
