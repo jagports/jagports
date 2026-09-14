@@ -16,8 +16,14 @@
 
 @layer base {
   * { box-sizing: border-box; }
-  html, body { min-height: 100%; }
-  body { @apply m-0 bg-jagports-canvas text-jagports-ink antialiased; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+  html { height: 100%; overflow: hidden; }
+  body {
+    height: 100%;
+    min-height: 100dvh;
+    overflow: hidden;
+    @apply m-0 bg-jagports-canvas text-jagports-ink antialiased;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
   h1, h2, h3, p { @apply mt-0; }
   h1 { @apply text-2xl font-semibold tracking-tight; }
   h2 { @apply text-base font-semibold tracking-tight; }
@@ -28,14 +34,29 @@
 }
 
 @layer components {
-  .app-shell { @apply mx-auto flex min-h-screen max-w-[1720px] flex-col px-4 py-3 lg:px-5; }
-  .app-header { @apply mb-3 flex items-end justify-between border-b border-jagports-line pb-2; }
+  .app-shell {
+    width: 100%;
+    max-width: 1720px;
+    height: 100dvh;
+    margin: 0 auto;
+    padding: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow: hidden;
+  }
+  .app-header { @apply flex flex-none items-end justify-between border-b border-jagports-line pb-2; margin: 0; }
   .app-header h1 { @apply text-[1.65rem] leading-none; }
   .eyebrow { @apply mb-1 text-[0.65rem] font-bold uppercase tracking-[0.11em] text-jagports-muted; }
   .muted, .compact-note { @apply text-jagports-muted; }
 
   .concept-grid {
-    @apply grid min-h-0 flex-1 gap-3;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    gap: 0.55rem;
+    overflow: hidden;
+    align-items: stretch;
     grid-template-columns: minmax(14rem, 0.92fr) minmax(30rem, 2.15fr) minmax(15rem, 0.95fr);
     grid-template-rows: auto minmax(0, 0.78fr) minmax(0, 1.3fr) minmax(0, 0.82fr);
     grid-template-areas:
@@ -52,36 +73,63 @@
   .ranges-panel { grid-area: ranges; }
   .fitment-panel { grid-area: suitability; }
 
-  .panel { @apply min-w-0 overflow-hidden rounded-xl border border-jagports-line bg-jagports-panel p-3 shadow-sm; }
-  .tree-panel, .ranges-panel { @apply min-h-0 overflow-y-auto; }
-  .section-heading { @apply mb-2 border-b border-jagports-line pb-1.5; }
+  .panel {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    @apply rounded-xl border border-jagports-line bg-jagports-panel p-3 shadow-sm;
+  }
+  .section-heading { @apply mb-2 flex-none border-b border-jagports-line pb-1.5; }
 
-  .search-form { @apply grid grid-cols-[minmax(0,1fr)_auto] gap-2; }
+  .search-form { @apply grid flex-none grid-cols-[minmax(0,1fr)_auto] gap-2; }
   .search-form input, #rangeSelect, #visualSelect {
     @apply min-w-0 rounded-lg border border-jagports-line bg-white px-3 py-2 text-sm outline-none transition focus:border-jagports-teal focus:ring-2 focus:ring-jagports-teal/15;
   }
   .search-form button {
     @apply rounded-lg bg-jagports-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-jagports-teal-dark focus:outline-none focus:ring-2 focus:ring-jagports-teal/25;
   }
-  .status-line { @apply mb-0 mt-2 min-h-5 text-xs; }
+  .status-line { @apply mb-0 mt-2 min-h-5 flex-none text-xs; }
 
-  .fixture-guide { @apply mb-3 rounded-lg border border-jagports-line bg-jagports-warm/45 p-2.5; }
+  .fixture-guide {
+    overflow: auto;
+    @apply mb-2 max-h-[11rem] flex-none rounded-lg border border-jagports-line bg-jagports-warm/45 p-2.5;
+  }
   .fixture-guide h3 { @apply mb-1.5; }
   .fixture-guide ul { @apply mb-0 mt-2 pl-5 text-xs leading-5; }
   .fixture-guide li { @apply my-1 break-words; }
   .fixture-guide code { @apply whitespace-nowrap rounded bg-white/80 px-1 py-0.5 text-[0.72rem] font-semibold; }
 
   .empty { @apply m-0 rounded-lg border border-dashed border-jagports-line bg-slate-50 px-3 py-2 text-sm text-jagports-muted; }
-  .card { @apply mb-2 rounded-lg border border-jagports-line bg-white p-3; }
+  .card {
+    flex: 0 0 auto;
+    max-height: 8rem;
+    overflow: auto;
+    @apply mb-2 rounded-lg border border-jagports-line bg-white p-3;
+  }
   .card dl { @apply m-0 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-sm; }
   .card dt { @apply text-jagports-muted; }
   .card dd { @apply m-0 break-words font-medium; }
 
-  .vehicle-views { @apply grid grid-cols-2 gap-2; }
-  .vehicle-view { @apply min-w-0 rounded-lg bg-slate-50 p-2; }
-  .vehicle-view h3 { @apply mb-1.5 text-xs uppercase tracking-wide text-jagports-muted; }
-  .vehicle-view .empty { @apply grid min-h-20 place-items-center bg-white text-center; }
-  .compact-note { @apply mb-0 mt-2 text-xs; }
+  .vehicle-views {
+    flex: 1 1 auto;
+    min-height: 0;
+    @apply grid grid-cols-2 gap-2;
+  }
+  .vehicle-view { @apply flex min-h-0 min-w-0 flex-col rounded-lg bg-slate-50 p-2; }
+  .vehicle-view h3 { @apply mb-1.5 flex-none text-xs uppercase tracking-wide text-jagports-muted; }
+  .vehicle-view .empty { @apply grid min-h-0 flex-1 place-items-center bg-white text-center; }
+  .compact-note { @apply mb-0 mt-2 flex-none text-xs; }
+
+  .tree-panel #tree,
+  .ranges-panel #ranges,
+  .fitment-panel #fitment,
+  .visual-panel #visuals {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
 
   .tree-branch { @apply my-1 list-none pl-3 text-sm; }
   #tree > .tree-branch { @apply pl-0; }
@@ -91,17 +139,20 @@
 
   .range-list { @apply pl-5 text-sm; }
   .range-list li { @apply my-1.5 break-words; }
-  #rangeSelect, #visualSelect { @apply w-full; }
-  #visualChooser { @apply mb-2; }
-  #visualChooser label, .ranges-panel > label { @apply mb-1 block text-xs font-semibold text-jagports-muted; }
-  #visuals { @apply min-h-0; }
-  #visuals figure { @apply m-0; }
+  #rangeSelect, #visualSelect { @apply w-full flex-none; }
+  #visualChooser { @apply mb-2 flex-none; }
+  #visualChooser label, .ranges-panel > label { @apply mb-1 block flex-none text-xs font-semibold text-jagports-muted; }
+  #visuals figure { @apply m-0 min-h-0; }
   #visuals figcaption { @apply mb-2 text-sm font-semibold; }
-  #visuals img { @apply mx-auto block max-h-[30vh] max-w-full object-contain; }
+  #visuals img { @apply mx-auto block max-h-full max-w-full object-contain; }
 
-  .stock-section { @apply mt-3; }
+  .stock-section {
+    min-height: 0;
+    overflow: auto;
+    @apply mt-2;
+  }
   .stock-note { @apply mb-2; }
-  .table-scroll { @apply overflow-auto rounded-lg border border-jagports-line; }
+  .table-scroll { @apply max-h-full overflow-auto rounded-lg border border-jagports-line; }
   table { @apply m-0 w-full border-collapse text-xs; }
   th { @apply bg-slate-100 font-semibold text-jagports-ink; }
   th, td { @apply border-b border-jagports-line px-2.5 py-2 text-left align-top; }
@@ -112,22 +163,35 @@
 }
 
 @media (max-width: 1100px) {
+  html, body { height: auto; overflow: auto; }
+  .app-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    padding: 0.75rem;
+  }
   .concept-grid {
+    overflow: visible;
     grid-template-columns: minmax(13rem, 0.9fr) minmax(0, 2fr);
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: none;
     grid-template-areas:
       "search search"
       "tree location"
       "tree details"
       "ranges suitability";
   }
+  .panel { overflow: visible; }
+  .tree-panel #tree,
+  .ranges-panel #ranges,
+  .fitment-panel #fitment,
+  .visual-panel #visuals,
+  .fixture-guide,
+  .stock-section { overflow: visible; max-height: none; }
 }
 
 @media (max-width: 760px) {
   .app-shell { @apply px-2.5 py-2; }
-  .concept-grid {
-    @apply block;
-  }
+  .concept-grid { @apply block; }
   .panel { @apply mb-2.5; }
   .search-form, .vehicle-views { @apply grid-cols-1; }
   .card dl { @apply grid-cols-1; }
