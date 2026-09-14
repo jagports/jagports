@@ -56,20 +56,20 @@ VIEPS should **not** copy JEPC's full dense catalogue browser by default. The VI
 
 ## Contestants and generated concept evidence
 
-Four comparable concept screenshots were generated for this round:
+Four comparable concept screenshots were generated for this round and saved as repository reference copies:
 
-- `CSS-Kit-2ndRound-Pico-CSS.png`
-- `CSS-Kit-2ndRound-Bulma.png`
-- `CSS-Kit-2ndRound-Bootstrap.png`
-- `CSS-Kit-2ndRound-Tailwind-CSS.png`
+- `CSS-Kit-2ndRound-Pico-CSS.jpg`
+- `CSS-Kit-2ndRound-Bulma.jpg`
+- `CSS-Kit-2ndRound-Bootstrap.jpg`
+- `CSS-Kit-2ndRound-Tailwind-CSS.jpg`
 
-The images are design exploration evidence. They are not literal claims that every shown decorative detail or vehicle image is already implemented or verified production data.
+The repository copies are optimized JPEG references of the generated concepts. They are design exploration evidence, not literal claims that every decorative detail, vehicle image, label or value is already implemented or verified production data.
 
 ### Pico CSS concept
 
 Purpose: show how far Pico can be pushed while staying close to its semantic, minimal component philosophy.
 
-Expected natural strengths:
+Natural strengths:
 
 - low markup/class overhead;
 - semantic forms and controls;
@@ -77,46 +77,46 @@ Expected natural strengths:
 - straightforward CSS-variable theming;
 - low migration cost from the current VIEPS frontend.
 
-Expected limitation for this target: the desired AI-concept polish requires a larger VIEPS-specific styling layer because Pico intentionally supplies a restrained visual system rather than a rich dashboard component vocabulary.
+Limitation for this target: the desired AI-concept polish requires a larger VIEPS-specific styling layer because Pico intentionally supplies a restrained visual system rather than a rich dashboard component vocabulary.
 
 ### Bulma concept
 
 Purpose: show a more component-oriented, polished application workspace while remaining a CSS-only framework.
 
-Expected natural strengths:
+Natural strengths:
 
 - panels, cards, menus and helpers fit a multi-region application layout well;
 - stronger visual grouping than Pico with less custom CSS;
 - CSS variables / themes / colour palettes support Jagports branding;
 - Parts Tree and dense hierarchical navigation can be expressed cleanly with menu/panel patterns.
 
-Expected trade-off: migration requires more framework-specific class structure than Pico, and a custom Jagports theme is still required to avoid a generic framework appearance.
+Trade-off: migration requires more framework-specific class structure than Pico, and a custom Jagports theme is still required to avoid a generic framework appearance.
 
 ### Bootstrap concept
 
 Purpose: show a dense, structured enterprise/dashboard interpretation of the same Concept View-1 information architecture.
 
-Expected natural strengths:
+Natural strengths:
 
 - mature responsive grid;
 - extensive utilities and component library;
 - strong form, table, badge, list-group, card and navigation primitives;
 - easy implementation of dense fitment tables and contextual controls.
 
-Expected trade-off: Bootstrap's default visual conventions are recognizable and can dominate the target unless deliberately themed; component breadth may also be more framework than VIEPS needs.
+Trade-off: Bootstrap's default visual conventions are recognizable and can dominate the target unless deliberately themed; component breadth may also be more framework than VIEPS needs.
 
 ### Tailwind CSS concept
 
 Purpose: show the maximum custom-design fidelity available when the framework supplies low-level utilities and design tokens rather than a strong default component skin.
 
-Expected natural strengths:
+Natural strengths:
 
 - highest freedom to reproduce the Concept View-1 geometry and AI-reference visual style;
 - design-token driven Jagports colours, spacing, typography, shadows and radii;
 - easy bespoke Parts Tree selection, badges, contextual panels and image-led composition;
 - least pressure to look like the framework's default demos.
 
-Expected trade-off: larger utility-class footprint and a stronger design-system responsibility for the VIEPS implementation; it is less of a pre-styled component kit than Pico/Bulma/Bootstrap.
+Trade-off: larger utility-class footprint and a stronger design-system responsibility for the VIEPS implementation; it is less of a pre-styled component kit than Pico/Bulma/Bootstrap.
 
 ## Evaluation criteria
 
