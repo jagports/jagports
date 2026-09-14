@@ -4,12 +4,15 @@
   "type": "module",
   "engines": { "node": ">=24" },
   "scripts": {
+    "build:css": "tailwindcss -i ./styles/vieps-tailwind.css -o ./public/vieps-tailwind.css --minify",
     "test": "node --test tests/*.mjs",
     "test:runtime": "node --test tests/vieps-runtime-e2e.mjs",
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "dev": "npm run build:css && wrangler dev",
+    "deploy": "npm run build:css && wrangler deploy"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "tailwindcss": "^4.1.13",
     "wrangler": "^4.35.0"
   }
 }
