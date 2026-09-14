@@ -11,8 +11,8 @@
     "deploy": "npm run build:css && wrangler deploy"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.13",
-    "tailwindcss": "^4.1.13",
+    "@tailwindcss/cli": "4.1.13",
+    "tailwindcss": "4.1.13",
     "wrangler": "^4.35.0"
   }
 }
