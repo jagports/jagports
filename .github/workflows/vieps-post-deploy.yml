@@ -1,0 +1,49 @@
+name: VIEPS post-deployment verification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: vieps-post-deploy
+  cancel-in-progress: true
+
+jobs:
+  runtime:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Verify matching Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/vieps-deployment-check.mjs
+      - name: Test deployed runtime
+        id: runtime
+        timeout-minutes: 3
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+        env:
+          VIEPS_BASE_URL: https://vieps.parts-5ec.workers.dev
+        run: npm run test:runtime
+      - name: Check deployment did not become superseded
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/vieps-deployment-check.mjs --verify
+      - name: Explain failed verification
+        if: failure()
+        run: |
+          echo '::error::VIEPS deployment/runtime verification failed. See the failing step: deployment failure, missing build, superseded commit, or runtime response failure.'
+          echo 'For missing columns, missing fixtures or empty stock, inspect the remote jagports D1 migration ledger before changing API fields. Runtime symptoms alone do not prove migration drift.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Runbook: 3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md. This workflow does not apply migrations. After an authorized operator repairs remote state, rerun this workflow for current main.' >> "$GITHUB_STEP_SUMMARY"

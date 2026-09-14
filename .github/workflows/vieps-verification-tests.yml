@@ -1,0 +1,19 @@
+name: VIEPS deployment verification tests
+on:
+  pull_request:
+    paths:
+      - '.github/scripts/vieps-deployment-check*'
+      - '.github/workflows/vieps-post-deploy.yml'
+      - '.github/workflows/vieps-verification-tests.yml'
+permissions:
+  contents: read
+jobs:
+  deployment-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: node --test .github/scripts/vieps-deployment-check.test.mjs

@@ -358,6 +358,14 @@ A post-merge test cannot substitute for required pre-merge validation.
 
 ---
 
+### Validation readiness and deployment completion
+
+Before giving a human ordinary test/validation instructions, the executor must reach a deliberate test phase: run available deterministic checks against the exact proposed revision, address known implementation failures, and state the phase, revision, prerequisites and remaining human observation. Do not use a readiness claim to transfer unresolved debugging to the human.
+
+Tests used by the executor during CODING are diagnostic checks and may run at any time. If a human command is necessary before the test phase, label it **diagnostic/debug probe**, explain what uncertainty it resolves and how failure will guide the investigation. A diagnostic result is not an acceptance claim. Review handoffs must distinguish passed checks, intentional skips, unexecuted checks and remaining deployment validation.
+
+For changes with an external deployment or data-migration dependency, completion evidence must separately identify the deployed revision/environment, required migration application and resulting schema/data, and affected runtime behavior. Local tests and successful deployment do not establish remote data state. Keep the work item open until its required post-merge outcomes are independently verified. Do not automatically apply remote migrations unless the operation is authorized under the applicable deployment procedure.
+
 ## 6. Record Integrity and Active Record Changes
 
 Closed Issues and merged PRs are GitHub records. Their descriptions and comments must not be modified, and their historical content must not be copied into current repository documents merely for archival purposes.

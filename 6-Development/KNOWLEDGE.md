@@ -6,6 +6,14 @@ This file contains durable knowledge specific to development work. Repository-wi
 
 ## Human testing
 
+### Production seed and fixture verification
+
+Supplemental test fixtures can supply catalogue parents that production migrations never create. An `INSERT ... SELECT` seed can succeed while inserting no rows when its parent lookup is empty. A passing fixture-backed test therefore does not prove that the production migration chain provides the required data.
+
+For seed changes, validate both a fresh production migration chain without supplemental fixtures and an upgrade with representative existing records. Assert required identities, relationships and observable lookup results, not only successful SQL execution. When migrations allocate IDs, inspect standalone fixture prerequisites for collisions; use generated identities or idempotent prerequisites consistent with the fixture's actual foreign-key references. Rerun the relevant complete suite after corrections.
+
+Local schema/data state and remote schema/data state are separate evidence. The deployment procedure owns remote ledger, table/data and runtime verification. A missing-column response after deployment is a reason to inspect migration state before altering an unchanged API/schema contract.
+
 ### General principles
 
 Human testing verifies observable behavior and functional results that cannot be established reliably from implementation inspection alone. Test instructions must be short, explicit, repeatable, and independent of a particular work item or subject.

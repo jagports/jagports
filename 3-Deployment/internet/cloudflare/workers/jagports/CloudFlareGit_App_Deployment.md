@@ -245,6 +245,8 @@ D1 migration procedure:
 
 A successful Worker deployment does not prove that the required D1 migrations have been applied.
 
+After each merged deployment, continue through the [merged Worker + D1 upgrade procedure](../../d1/jagports/CloudFlareGit_DB_Migrations.md#merged-worker--d1-upgrade-troubleshooting). The [post-deployment CI check](../../../github/actions/tests/vieps_post_deploy.md) verifies the matching Cloudflare build before running live smoke tests; a build-success badge alone is not the upgrade completion result.
+
 ## Production endpoint dependency
 
 The discarded Deployment-1 MVP endpoint was:

@@ -140,6 +140,8 @@ When substantive work starts, move the Project Item from `BACKLOG` to `RESEARCH`
 
 ## Review and Testing Boundary
 
+Execute the **Validation readiness and deployment completion** rules in `00-Management/WORKFLOWS.md`. Before a user test handoff, record the exact revision, executed checks and current phase; label necessary pre-test human commands as diagnostic/debug probes. Before completion, collect separate evidence for each required deployment, migration and runtime outcome. Do not infer a later outcome from an earlier successful step.
+
 When review is required, execute the canonical native GitHub hand-off defined in `00-Management/WORKFLOWS.md`:
 
 - if the requester is human, request that human as the GitHub PR reviewer;

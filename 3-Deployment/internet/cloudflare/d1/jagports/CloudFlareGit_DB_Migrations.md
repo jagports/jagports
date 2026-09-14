@@ -111,6 +111,19 @@ After schema verification, execute the affected application request and confirm 
 
 ## Merged Worker + D1 upgrade troubleshooting
 
+After every merged `main` Worker deployment, follow this sequence from the active Worker root, including when the Worker build is green:
+
+1. Match the successful Cloudflare build to the intended commit and confirm its Worker version is active in the intended environment.
+2. Verify account/database identity and read the remote migration ledger.
+3. Compare pending files with reviewed migrations. Apply only authorized, reviewed changes; do not recreate or rename `jagports`.
+4. Re-read the remote ledger and verify the affected table columns and seed rows/relationships. A seed command that inserted zero required rows is not a successful fixture outcome.
+5. Run `VIEPS_BASE_URL="https://vieps.parts-5ec.workers.dev" npm run test:runtime` in Git Bash, or set that environment variable separately in PowerShell before `npm run test:runtime`.
+6. Record revision, active version, migration and runtime evidence in the Issue using the deployment execution-result template. Keep the Issue open if any required outcome fails or is unverified.
+
+The runtime checks cover the four documented numbered fixtures and both non-numbered descriptive identifiers. Verify their expected stock locations, not merely HTTP 200 or a nonempty catalogue response. Their absence can indicate an unapplied seed migration even when health checks succeed.
+
+The [post-deployment CI procedure](../../../github/actions/tests/vieps_post_deploy.md) describes the automatic read-only smoke check and recovery rerun. It does not replace the operator's migration-ledger verification. PR-branch build failures are separate from the matching `main` build and must not be used to infer its outcome.
+
 When a reviewed `main` Worker deployment is active but a live request fails with:
 
 ```text
