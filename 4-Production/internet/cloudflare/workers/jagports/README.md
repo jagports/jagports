@@ -39,6 +39,26 @@ Cloudflare D1: jagports
 
 The later production Worker identity is `jagports`. It is reserved for the production phase and is not established by this pre-production configuration.
 
+## VIEPS UI styling
+
+The VIEPS frontend uses Tailwind CSS as a build-time dependency. Pico CSS is not part of the runtime styling path.
+
+Source styling is maintained in:
+
+```text
+styles/vieps-tailwind.css
+```
+
+The Tailwind CLI compiles that source to the static Worker asset:
+
+```text
+public/vieps-tailwind.css
+```
+
+`npm run build:css` performs the CSS build. Both `npm run dev` and `npm run deploy` execute the CSS build before starting Wrangler, so local development and Cloudflare deployment use the same generated asset.
+
+The Tailwind package versions are pinned through `package.json`. The Concept-11 visual/layout reference is maintained under the VIEPS UI concept documentation; implementation must preserve VIEPS data and interaction contracts rather than infer unsupported behavior from the visual alone.
+
 ## Cloudflare endpoint
 
 The current pre-production Worker is intended to use the Worker-provided `workers.dev` endpoint. The exact account subdomain and resulting hostname must be established from actual Cloudflare deployment evidence; documentation must not infer it from the Worker name alone.
