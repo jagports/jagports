@@ -38,7 +38,7 @@ test("Concept-11 desktop ordering keeps suitability above PART/image and ranges 
     /"tree search ranges"/,
     /"tree location ranges"/,
     /"tree suitability ranges"/,
-    /"tree details \.")?/
+    /"tree details \."/
   ]);
   assert.ok(css.indexOf('"tree suitability ranges"') < css.indexOf('"tree details ."'));
 });
