@@ -49,6 +49,24 @@ For model `3187`, the model label supplies the upper boundary `042775`. Applicat
 
 The source model list separately identifies `3178` as `A00083` through `A30644` and `3173` as from `A30645`. These are separate model contexts; capture the latter's end from the cited authoritative document rather than inventing it. Production normalization, alphanumeric ordering and the actual parser-to-comparator path still require source validation. The isolated comparator probe is not evidence that trimming raw source tokens is universally safe.
 
+### Parts spanning sub-model boundaries
+
+A catalogue sub-model boundary is not a PART identity boundary or necessarily a change of part. One PART may have applicability evidence on both sides through distinct occurrences. Return the union of those scoped assertions under the same canonical PART; retain their separate provenance and conditions.
+
+The observed passenger-airbag records illustrate this. Effective intervals below intersect the displayed item conditions with the source model bounds; final verified fitment also requires validation of remaining parent/category/attribute constraints.
+
+| Canonical PART | Model / category / item / application | Source item condition | Model-bounded serial interval |
+|---|---|---|---|
+| HJB9670AA | 3187 / 11096 / 1 / 151439 | From 023700 | 023700 through 042775 |
+| HJB9670AA | 3178 / 9504 / 1 / 151441 | Through A00115 | A00083 through A00115 |
+| HJB9670AB | 3178 / 9504 / 1 / 150742 | From A00116 through A11050 | A00116 through A11050 |
+| HJE9042AB | 3178 / 9504 / 1 / 171081 | From A11051 | A11051 through A30644 |
+| HJE9042AB | 3173 / 9502 / 1 / 171082 | No additional serial condition displayed on the item row | A30645 through the documented model end, subject to inherited conditions |
+
+HJB9670AA therefore remains one PART across the numeric and A-prefixed source model contexts. Do not replace its two intervals with a universal `023700 through A00115` string comparison. HJE9042AB also remains one PART across A30644/A30645. A display may coalesce proven adjacent intervals only when serial domain, ordering, scope and all other conditions are equivalent; the underlying occurrences and evidence remain separately recoverable. Catalogue succession of part numbers is not, by itself, a supersession or interchangeability statement.
+
+Item number `1` is local to its category/model context. These records do not authorize globally merging every item `1`, category label or application ID. Conversely, requiring separate source occurrences must not duplicate the canonical PART or prevent a query from returning its full supported coverage across sub-models.
+
 ## Attribute and exclusion requirements
 
 Retain record family, key scope, group/code, tuple position, raw value and flag. A verified mapping identifies the target dimension, allowed value domain, operator, cardinality and missing-value behavior. Mapping versions must be independently identifiable from parser versions.
@@ -114,11 +132,13 @@ Use a new controlled migration; do not rewrite already applied migrations. Prese
 
 ## Acceptance examples
 
-The airbag source example is observed; other combinations below are deliberately synthetic requirement fixtures, not additional Jaguar facts.
+The three airbag cases below are observed source examples; the other combinations are deliberately synthetic requirement fixtures, not additional Jaguar facts.
 
 | Case | Required outcome |
 |---|---|
 | XK 3187/category 11096/item 1, application 93491 HNA9670BA through 023699; 151439 HJB9670AA from 023700 | Preserve separate occurrences and source constraints. Intersect with model bounds: the latter ends at 042775, not infinity; the former begins at the cited model start. With a verified comparator and otherwise complete context, 023699 selects the former and 023700 the latter; neither applies outside the model interval. Do not make a single impossible interval. |
+| HJB9670AA in applications 151439 and 151441 | One canonical PART; two model-scoped occurrences and intervals (023700–042775 and A00083–A00115). Reverse lookup returns both without asserting cross-format continuity. |
+| HJE9042AB in applications 171081 and 171082 | One canonical PART across sub-models 3178 and 3173. With complete verified context, coverage includes both A30644 and A30645; retain model ownership/evidence and do not infer the final model endpoint or unconditional fitment from an unqualified item row. |
 | Same PART: context M1 through S100, context M2 from S200 | Return only those two context/bound combinations; never M1/from S200 or M2/through S100. |
 | Same occurrence: (body B1 AND engine E1) OR (body B2 AND engine E2) | Match B1/E1 and B2/E2; reject B1/E2 and B2/E1 when scope is complete. |
 | Include one configuration but exclude option X within that set | X defeats that set only; another verified alternative may still match. |

@@ -50,4 +50,17 @@ probe('category matching group can rescue the same identifier', { category },
 probe('source skips a missing vehicle attribute group',
   { missing: [['A23', '154']], onlyA6: [['x', [['A6', '913', '0']]]] },
   'filterDrillDownItem(candidate, onlyA6, null, missing).map(x => x.applicationId)', ['x']);
+
+// Observed 3178/9504 application tuples; model bounds are outside this function.
+const alphaApplications = ['151441', '150742', '171081'].map(applicationId => ({ applicationId }));
+const alphaBounds = [
+  ['151441', [['C', '  A00115', '1', '0']]],
+  ['150742', [['C', '  A00116', '0', '0'], ['C', '  A11050', '1', '0']]],
+  ['171081', [['C', '  A11051', '0', '0']]],
+];
+for (const [serial, expected] of [['  A00115', ['151441']], ['  A00116', ['150742']],
+  ['  A11050', ['150742']], ['  A11051', ['171081']], ['  A30644', ['171081']], ['  A30645', ['171081']]]) {
+  probe(`3178 application-only comparison ${serial.trim()}`, { alphaApplications, alphaBounds, serial },
+    'filterDrillDownItem(alphaApplications, alphaBounds, serial, []).map(x => x.applicationId)', expected);
+}
 console.log(`${count} source probes passed; no production fitment equivalence claimed.`);

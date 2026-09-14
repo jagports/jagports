@@ -63,7 +63,7 @@ node 7-Research/probe_jepc_applicability.mjs
 
 The script runs the repository's `JEPCFiltering.js` functions in a bounded VM context. It does not implement a replacement evaluator. Its SHA-256 on the inspected source is `552c548a01e31cecfc416dc5452d659a5a5f645041ee1abb5ef05463c0fc96dd`, matching the prior installed-source audit fingerprint.
 
-Result: **10 source probes passed**.
+Result: **16 source probes passed** after adding the cross-sub-model source examples.
 
 | Probe | Observed result | Requirement implication |
 |---|---|---|
@@ -73,6 +73,7 @@ Result: **10 source probes passed**.
 | Unpadded serial against padded raw boundary | The isolated function returns application 151439 for string `023699`. | Raw formatting/coercion matters; validate the complete parser/input path before choosing normalization. |
 | Synthetic matching A6 exclusion plus matching A23 group | Application is removed, but category candidate survives. | Category visibility is not an occurrence fitment assertion. |
 | Required A6 source group absent from supplied vehicle attributes | Source leaves application candidate visible. | Unknown vehicle input must remain distinct from verified applicability. |
+| Six padded A-series inputs at application boundaries and the 3178 model end | 151441 through A00115, 150742 from A00116 through A11050, 171081 from A11051; the isolated function still returns 171081 for A30645. | Application filtering alone does not apply the parent model's A30644 endpoint. Effective scope requires the model intersection. |
 
 The attribute combinations are synthetic function inputs using observed token vocabulary. They are not asserted to occur as a combined record in JEPC. Padded serial probes deliberately isolate comparison behavior; the unpadded result is not evidence of a live JEPC UI defect. Source parsing, user-input normalization and complete end-to-end execution are outside these probes.
 
@@ -102,9 +103,33 @@ The physical SQL design, source identity key, initial comparator and verified at
 
 ## Acceptance review
 
-The proposal defines ten acceptance examples covering observed one-sided bounds, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent identity.
+The proposal defines twelve acceptance examples covering observed one-sided bounds, PART coverage across sub-models, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent identity.
 
-These examples are requirements for the subsequent implementation tests. They are not represented as ten passed destination-model tests. Only the source probes above were executed.
+These examples are requirements for the subsequent implementation tests. They are not represented as passed destination-model tests. Only the source probes above were executed.
+
+## Cross-sub-model evidence supplied by the Product Owner
+
+The Product Owner supplied three catalogue extracts showing HJB9670AA and HJE9042AB each continuing into another sub-model. Targeted installed-file reads confirmed the later contexts without enumerating the installation:
+
+| Model/category/item | Application | PART | Displayed serial condition |
+|---|---|---|---|
+| 3178/9504/1 | 151441 | HJB9670AA | Through A00115 |
+| 3178/9504/1 | 150742 | HJB9670AB | From A00116 through A11050 |
+| 3178/9504/1 | 171081 | HJE9042AB | From A11051 |
+| 3173/9502/1 | 171082 | HJE9042AB | No additional serial condition on the item row |
+
+Model 3187's HJB9670AA/application 151439 is established above. The new evidence demonstrates why PART identity must span sub-models while source occurrences and model-bounded assertions remain distinct. It does not establish a continuous numeric-to-A-series interval, supersession or interchangeability.
+
+The exact same-name application-attribute sidecar for 3173/category 9502/item 1 was not present at the checked path. Its item row has no serial header. Neither observation proves absence of parent/category/other conditions; complete context validation remains necessary before marking its derived applicability verified.
+
+Paths below are relative to the installation root; SHA-256 identifies the inspected bytes.
+
+| Path | SHA-256 |
+|---|---|
+| `drilldown/pl_id_3178/L0/Itm_M3178_C9504_I1_L0.xml` | `defba12cc7214dcc6f178b28f758d6735c1e4c0fdaf953d5fba781e50fa50e3d` |
+| `drilldown/pl_id_3178/Itm_M3178_C9504_I1_attributes.xml` | `4fa3b6dc28c7357086c2ce2b9aaa8464c5e97c459d8e2b9f69a1f0a0f029ba61` |
+| `drilldown/pl_id_3173/L0/Itm_M3173_C9502_I1_L0.xml` | `66b092bf3a508c8c4a0d1ab1612cbe3cbba62922b2e77b7be167c12027b0654b` |
+| `drilldown/pl_id_3178/L0/tl_M3178_C9504_L0.xml` and `drilldown/pl_id_3173/L0/tl_M3173_C9502_L0.xml` | `0cff6d8f457f28206752d9408ca4c3561a9093c179eefa687c5b5a84199c49c0` |
 
 ## Integration and knowledge placement
 
