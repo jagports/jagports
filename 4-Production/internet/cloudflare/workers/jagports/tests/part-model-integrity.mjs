@@ -20,7 +20,7 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 12);
+  assert.equal(migrations.length, 13);
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
@@ -253,8 +253,8 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
       continue;
     }
     const db = withDatabase(t, { fixtures: false });
-    if (fixture === 'part_occurrence') db.exec("INSERT INTO part(id,description) VALUES(1,'fixture prerequisite')");
-    if (fixture === 'part_vehicle_vin_applicability') db.exec("INSERT INTO part(part_number_raw,part_number_normalized) VALUES('MNA7691AA','MNA7691AA')");
+    if (fixture === 'part_occurrence') db.exec("INSERT OR IGNORE INTO part(id,description) VALUES(1,'fixture prerequisite')");
+    if (fixture === 'part_vehicle_vin_applicability') db.exec("INSERT OR IGNORE INTO part(part_number_raw,part_number_normalized) VALUES('MNA7691AA','MNA7691AA')");
     db.exec(sql(`tests/fixtures/${fixture}.sql`));
     assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
     assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);

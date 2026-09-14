@@ -25,6 +25,11 @@ function formatMoney(value, currency) {
   return `${number.toFixed(2)} ${escapeHtml(currency || "EUR")}`;
 }
 
+function formatStockLocationSummary(stock) {
+  const locations = [...new Set(stock.map((item) => item.location).filter(Boolean))];
+  return locations.length ? locations.join(", ") : "No fixture stock location shown";
+}
+
 async function resolvePart(partNumber) {
   const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
   const data = await response.json().catch(() => ({}));
@@ -37,7 +42,7 @@ function renderStockRows(stock) {
   return `<div class="stock-section">
     <p class="compact-note stock-note">Synthetic fixture stock values only; not real Jagports inventory evidence.</p>
     <div class="table-scroll"><table class="stock-table">
-      <thead><tr><th>Qty</th><th>Status</th><th>Condition</th><th>Location</th><th>Price</th><th>Evidence</th></tr></thead>
+      <thead><tr><th>Qty</th><th>Status</th><th>Condition</th><th>Stock location</th><th>Price</th><th>Evidence</th></tr></thead>
       <tbody>${stock.map((item) => `<tr>
         <td>${escapeHtml(item.quantity ?? "0")}</td>
         <td>${escapeHtml(item.status || (item.available ? "available" : "unavailable"))}</td>
@@ -66,6 +71,7 @@ function renderPart(part, occurrences = [], stock = []) {
       <dt>Source</dt><dd>${escapeHtml(part.source || "Not recorded")}</dd>
       <dt>EPC context</dt><dd>${escapeHtml(occurrenceText)}</dd>
       <dt>Fixture stock</dt><dd>${escapeHtml(stockText)}</dd>
+      <dt>Stock location</dt><dd>${escapeHtml(formatStockLocationSummary(stock))}</dd>
     </dl>
     ${renderStockRows(stock)}`;
 }
@@ -159,7 +165,7 @@ function setupViepsUi() {
     resetContext();
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = "Enter a Jaguar part number and press Search.";
+    $("searchStatus").textContent = "Enter a Jaguar part number or fixture identifier and press Search.";
   });
   $("partSearch").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -169,7 +175,7 @@ function setupViepsUi() {
     $("searchStatus").className = "muted status-line";
     $("result").setAttribute("aria-busy", "false");
     if (!partNumber) {
-      $("searchStatus").textContent = "Enter a Jaguar part number to begin.";
+      $("searchStatus").textContent = "Enter a Jaguar part number or fixture identifier to begin.";
       return;
     }
     $("searchStatus").textContent = "Resolving PART…";

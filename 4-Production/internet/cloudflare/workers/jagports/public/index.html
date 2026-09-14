@@ -14,10 +14,10 @@
     </header>
     <div id="result" class="concept-grid">
       <section class="panel search-panel" aria-labelledby="search-heading">
-        <h2 id="search-heading">Search part number</h2>
+        <h2 id="search-heading">Search part or fixture identifier</h2>
         <form id="partSearch" class="search-form">
-          <label for="partNumber" class="visually-hidden">Jaguar part number</label>
-          <input id="partNumber" name="partNumber" autocomplete="off" placeholder="e.g. MJB7703AA, MNA7691AA" aria-label="Jaguar part number">
+          <label for="partNumber" class="visually-hidden">Jaguar part number or fixture identifier</label>
+          <input id="partNumber" name="partNumber" autocomplete="off" placeholder="e.g. MJB7703AA, MNA7691AA, firtree1" aria-label="Jaguar part number or fixture identifier">
           <button type="submit">Search</button>
         </form>
         <p id="searchStatus" class="muted status-line" role="status">Enter a Jaguar part number to begin.</p>
@@ -33,6 +33,12 @@
             <li><code>MNA7691AA</code> — #354 supersession fixture source part</li>
             <li><code>XR847031</code> — #354 supersession fixture replacement part</li>
             <li><code>FIX538C</code> — synthetic chain endpoint fixture</li>
+          </ul>
+          <h3>Non-numbered fixture identifiers</h3>
+          <p class="muted compact-note"><code>firtree1</code> and <code>firtree2</code> are descriptive identifiers, not Jaguar part numbers.</p>
+          <ul>
+            <li><code>firtree1</code> — non-numbered identification fixture</li>
+            <li><code>firtree2</code> — non-numbered identification fixture</li>
           </ul>
         </aside>
         <div id="tree"><p class="empty">No part selected. Search to show the relevant Parts Tree path. Stock-based browsing is unavailable.</p></div>
