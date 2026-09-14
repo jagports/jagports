@@ -73,36 +73,36 @@ pwd
 cat wrangler.toml
 ```
 
-Confirm that the configuration identifies the intended D1 database and `migrations_dir = "migrations"`.
+Confirm that the configuration identifies the intended D1 database `jagports` and `migrations_dir = "migrations"`.
 
 ## Production migration state
 
 Inspect the intended remote database before applying:
 
 ```text
-npx wrangler d1 migrations list DB --remote
+npx wrangler d1 migrations list jagports --remote
 ```
 
 Compare the result with the reviewed migration sequence. Apply only the required reviewed migrations:
 
 ```text
-npx wrangler d1 migrations apply DB --remote
+npx wrangler d1 migrations apply jagports --remote
 ```
 
 Verify the migration ledger again:
 
 ```text
-npx wrangler d1 migrations list DB --remote
+npx wrangler d1 migrations list jagports --remote
 ```
 
 The database name/ID and Cloudflare account must be checked before apply. Do not infer migration state from Worker deployment status.
 
-For operator notes and older records, `jagports` may appear as the D1 database name. Current commands should prefer the configured binding/name accepted by the active Worker `wrangler.toml` and verified by `wrangler d1 migrations list`. Do not mix environments or accounts merely because a command succeeds.
+Use the existing D1 database name `jagports` consistently. Do not rename the D1 database or change operational examples to another logical database name while documenting migration troubleshooting.
 
 For a migration that changes columns used by the deployed Worker, also verify the remote table shape explicitly. Example for the canonical PART image relationship:
 
 ```text
-npx wrangler d1 execute DB --remote --command "PRAGMA table_info(part_image);"
+npx wrangler d1 execute jagports --remote --command "PRAGMA table_info(part_image);"
 ```
 
 The PART image migration is not verified merely because the migration ledger reports success. The resulting `part_image` table must contain the columns required by the deployed Worker, including `image_ref` when the Worker query selects that column.
@@ -123,9 +123,9 @@ Minimum sequence from the Worker root:
 
 ```text
 npx wrangler whoami
-npx wrangler d1 migrations list DB --remote
-npx wrangler d1 migrations apply DB --remote
-npx wrangler d1 migrations list DB --remote
+npx wrangler d1 migrations list jagports --remote
+npx wrangler d1 migrations apply jagports --remote
+npx wrangler d1 migrations list jagports --remote
 ```
 
 Then verify the affected runtime request. For the VIEPS searchable fixture dataset, use the reviewed fixture part numbers rather than inventing new probes:
@@ -150,8 +150,8 @@ Preview D1 state is separate from production state. Where a preview D1 database 
 For local testing, run from the same Worker root:
 
 ```text
-npx wrangler d1 migrations list DB --local
-npx wrangler d1 migrations apply DB --local
+npx wrangler d1 migrations list jagports --local
+npx wrangler d1 migrations apply jagports --local
 ```
 
 Never use local or preview migration state as evidence of production migration state.
