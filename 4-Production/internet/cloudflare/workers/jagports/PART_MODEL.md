@@ -275,6 +275,8 @@ Tests execute every declared FK against a nonexistent parent, concrete unique co
 
 These remain open boundaries, not silently selected product rules. They do not prevent testing the existing MVP representation.
 
+The [PART applicability requirements proposal](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART_APPLICABILITY.md) specifies occurrence-bound condition alternatives, one-sided serial constraints, evidence completeness and required schema refinements. It is a review proposal, not an implemented extension of the field dictionary above. The [source validation record](../../../../../7-Research/JEPC_APPLICABILITY_MODEL_REFINEMENT.md) identifies the concrete gaps and verification limits.
+
 | Decision / gap | Current representation and owner for later resolution |
 |---|---|
 | Dedicated model/variant and occurrence-scoped range links | PART-level links plus retained PART/vehicle-range qualifiers; source context text on occurrences. #354/#355 must approve richer source-to-model mapping. Range-partitioned D1 routing/cross-database identity remain separate follow-up #555; current local FKs are not a permanent single-D1 architecture. |
