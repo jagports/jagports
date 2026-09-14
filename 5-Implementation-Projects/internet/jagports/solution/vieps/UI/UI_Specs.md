@@ -29,63 +29,75 @@ search / browse constraints
         ↓
 resolve canonical PART or constrained catalogue/stock context
         ↓
-show relevant Parts Tree path(s)
+show Parts Tree main-level context with relevant descendant path(s) expanded
         ↓
 show applicable model/range context
         ↓
-show suitability facts / selectable qualifiers supported by data
+show suitability filters or verified facts supported by data
         ↓
-show location, part status/details and one selected part image/diagram
+show vehicle location, part status/details and one selected part image/diagram
 ```
 
 ## Concept-11 ASCII map
 
-The following map is the normative text representation of Concept-11. It defines placement and relationships, not exact pixel dimensions.
+The following map is the normative text representation of the approved Concept-11 SVG. It follows the actual region geometry and labels; it defines placement and relationships, not exact pixel dimensions.
 
 ```text
 ┌──────────────────────────┬──────────────────────────────────────────────────────────┬──────────────────────────────┐
-│ PARTS TREE               │ SEARCH / AVAILABILITY                                   │ SUITABILITY MODEL RANGES     │
-│ show relevant path(s)    │ Search: [ part number / supported identifier ] [Search] │ filter/check applicable fit  │
-│                          │ Availability: [ supported stock qualities/status ▼ ]     │                              │
-│ Catalogue hierarchy      │ Search status / active constraints                       │ [ ] Jaguar Accessories       │
-│  ├─ main level           ├──────────────────────────────────────────────────────────┤ [ ] Daimler Limousine        │
-│  │  └─ child             │ LOCATION AT CAR                                          │ [ ] E-Pace                   │
-│  └─ selected context     │ [ top view / location context ] [ side view / context ] │ [ ] E-Type                   │
-│      strongly highlighted│ verified zone/pin or explicit unavailable state          │ [ ] F-Pace                   │
-│                          ├──────────────────────────────────────────────────────────┤ [ ] F-Type                   │
-│                          │ SUITABILITY / FILTER                                     │ [ ] S-Type                   │
-│                          │ when several results: selection/filter lists             │ [ ] X-Type                   │
-│                          │ [Models] [Model year] [VIN ranges] [features] [...]      │ [ ] XE Range                 │
-│                          │                                                          │ [ ] XF Range                 │
-│                          │ when one PART is selected: verified applicability facts  │ [ ] XJ Range                 │
-│                          │ • model/range / VIN applicability                        │ [ ] XJS Coupe/Convertible    │
-│                          │ • body / engine / supercharger / market / other          │ [x] XK Range (Modern)        │
-│                          │ • optional info link to verified model/year material     │                              │
-│                          ├──────────────────────────────────────────────────────────┤                              │
-│                          │ PART / IMAGE / STATUS                                    │                              │
-│                          │ [warning/status] [PART number] [item/callout]            │                              │
-│                          │ [Classic status] [supersession relationship]             │                              │
-│                          │ [part name/details]                                      │                              │
-│                          │ [one selected part image / exploded diagram]             │                              │
-│                          │ or explicit unavailable state                            │                              │
-└──────────────────────────┴──────────────────────────────────────────────────────────┴──────────────────────────────┘
+│ PARTS TREE               │ SEARCH + AVAILABILITY                                    │ SUITABILITY MODEL RANGES     │
+│ main-level category index│ Search: [ part number / supported identifier ] [Search]  │ filter/check applicable fit  │
+│                          │ Availability: [ stock quality A…E / descriptions ▼ ]      │                              │
+│ Only relevant descendant │ Search / constraint status                                │ [ ] Jaguar Accessories       │
+│ path(s) are expanded /   ├──────────────────────────────────────────────────────────┤ [ ] Daimler Limousine        │
+│ emphasized.              │ LOCATION AT CAR                                          │ [ ] E-Pace                   │
+│                          │ [ one vehicle-location canvas ]                           │ [ ] E-Type                   │
+│ Catalogue main level     │ verified zone/pin/image or explicit unavailable state    │ [ ] F-Pace                   │
+│  ├─ category             ├──────────────────────────────────────────────────────────┤ [ ] F-Type                   │
+│  ├─ category             │ SUITABILITY / FILTER                                     │ [ ] S-Type                   │
+│  ├─ relevant parent      │ browse/multiple-result mode: selection/filter list(s)    │ [ ] X-Type                   │
+│  │   └─ selected context │ [Models] [Model year] [VIN ranges] [features] [...]      │ [ ] XE Range                 │
+│  └─ category             │                                                          │ [ ] XF Range                 │
+│                          │ one selected PART/context: verified applicability facts  │ [ ] XJ Range                 │
+│ selected occurrence/path │ • model/range / VIN applicability                        │ [ ] XJS Coupe/Convertible    │
+│ strongly highlighted     │ • body / engine / supercharger / market / other          │ [x] XK Range (Modern)        │
+│                          │ • (i) verified Model Family & Year Introduction document │                              │
+│                          ├──────────────────────────────────────────────────────────┴──────────────────────────────┤
+│                          │ PART / IMAGE / STATUS                                                                    │
+│                          │ [warning/status] [PART number] [item/callout]                                     │
+│                          │ [Classic status] [supersession relationship]                                     │
+│                          │ [part name/details]                                                                    │
+│                          │ [one selected part image / exploded diagram] or explicit unavailable state       │
+└──────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Geometry rules from the approved SVG
+
+- Parts Tree is a persistent full-height left column.
+- Search and Availability share the top-centre strip.
+- `Location at car` is **one vehicle-location canvas**. The older Concept View-1 split into separate Top/Side boxes is not the Concept-11 layout.
+- The centre Suitability / Filter region sits below Location.
+- Suitability Model Ranges occupies the upper-right workspace through the Suitability boundary only.
+- The right range region **does not continue beside** the lower PART / Image / Status region.
+- PART / Image / Status occupies the lower-centre/right-width workspace shown in Concept-11, while the Parts Tree remains at left.
 
 ### Empty-search / browsing relationship
 
-Concept-11 also defines an empty-search relationship between stock availability, Parts Tree and model ranges:
+Concept-11 defines an empty-search relationship between stock availability, Parts Tree and model ranges:
 
 ```text
 empty part search
       │
-      ├── supported stock/availability constraint
+      ├── supported stock/availability/quality constraint
       │
-      ├── Parts Tree → show only main/relevant levels represented by matching stock
+      ├── Parts Tree → retain/show main levels represented by matching stock
+      │                 and expand only relevant descendant paths as context is narrowed
       │
       └── Model Ranges → show/filter ranges represented by matching stock/applicability
 ```
 
-This relationship is **conditional on an approved stock/catalogue query contract**. Until that contract exists, the permanent regions remain visible with explicit unavailable guidance. Do not invent stock-derived hierarchy or fitment.
+The SVG illustrates stock-available part qualities as `A…E` with descriptions. Those labels/meanings are concept placeholders unless and until an approved stock contract defines them.
+
+This relationship is **conditional on an approved stock/catalogue query contract**. Until that contract exists, the permanent regions remain visible with explicit unavailable guidance. Do not invent stock-derived hierarchy, quality meanings or fitment.
 
 ### Search-result relationship
 
@@ -94,10 +106,12 @@ part search
    ↓
 canonical PART
    ├── selected/relevant EPC occurrence(s) → Parts Tree
+   │                                         keep main-level context;
+   │                                         expand/emphasize relevant descendants
    ├── applicable model/ranges            → right-side range fit/check controls
    ├── qualifiers/VIN applicability       → centre suitability facts/filter region
-   ├── vehicle location mapping           → Location at car
-   └── details/status/image/diagram        → lower centre PART / IMAGE / STATUS
+   ├── verified vehicle location          → one Location-at-car canvas
+   └── details/status/image/diagram        → lower PART / IMAGE / STATUS region
 ```
 
 ## Permanent shell and viewport behaviour
@@ -113,14 +127,18 @@ Variable-length localized text must not break the layout. Final post-MVP UI appr
 - Canonical Jaguar part-number search remains a primary entry point.
 - Supported alternative identifier/search modes may be added only through their approved specifications.
 - Search status must distinguish empty, invalid, not-found, resolved, unavailable-context and error states.
-- Concept-11 places availability beside Search as a constraint/filter concern.
+- Concept-11 places Availability beside Search in the same top strip.
+- The concept illustrates an availability selection list of stock-available part qualities `A…E` with descriptions.
+- Actual quality codes/descriptions must come from the approved stock contract; concept labels are not source data.
 - Availability/quality options are operational stock data; they do not mutate PART identity or fitment semantics.
 - If availability filtering is not supported by the current read contract, present it as unavailable/disabled rather than simulate results.
 
 ## 2. Parts Tree
 
 - The Parts Tree occupies the persistent left column.
-- Show the relevant category path(s), ancestors and enough surrounding hierarchy to understand the selected occurrence.
+- Concept-11 retains a main-level category index rather than replacing the entire tree with one isolated path.
+- For a resolved PART/context, only relevant descendant path(s) need to be expanded/emphasized; unrelated descendant branches are not required.
+- Preserve ancestors and enough hierarchy to understand the selected occurrence.
 - Strongly highlight the selected/relevant occurrence/path.
 - Expand/collapse and relevant-path filtering are presentation state over the same catalogue model.
 - A canonical PART may occur in multiple EPC contexts without duplicating canonical identity.
@@ -129,8 +147,9 @@ Variable-length localized text must not break the layout. Final post-MVP UI appr
 ## 3. Suitability Model Ranges
 
 - The right-side region shows applicable model/range context.
-- Concept-11 depicts fit/check controls so one or more supported ranges can constrain the view.
+- Concept-11 depicts fit/check controls so supported ranges can communicate or constrain fit according to the current mode.
 - A single resolved PART may make range membership a factual applicability display rather than an arbitrary user filter.
+- The desktop right-side region ends at the Suitability boundary and does not occupy the space beside the lower PART/Image/Status region.
 - Show only verified applicable ranges unless a separate approved browsing mode explicitly asks for all ranges.
 - Do not represent unsupported or unknown fitment as a positive match.
 
@@ -138,27 +157,42 @@ Variable-length localized text must not break the layout. Final post-MVP UI appr
 
 The centre suitability region has two modes over the same applicability contract:
 
-1. **Selection/filter mode** when several candidate contexts/results remain.
+1. **Selection/filter mode** while browsing or when several candidate contexts/results remain.
 2. **Fact mode** when one canonical PART/context is selected.
 
-Supported dimensions may include model, model year, VIN range and verified features/qualifiers such as body, engine, supercharger, market or transmission.
+Concept-11 illustrates dimensions including Models, ModelYear, VINRanges, features and other qualifiers.
 
+- Supported dimensions may include model, model year, VIN range and verified features/qualifiers such as body, engine, supercharger, market or transmission.
 - VIN applicability must come from approved VIN-range evidence, not generic year inference.
 - Unknown qualifier data remains explicit.
 - Exclusions are preserved.
-- Optional information links may point to verified model-family/year documentation when such a repository/source relationship exists.
+- The `(i)` information control may link to verified **Model Family & Year Introduction** documentation when such a source relationship exists.
+- The information document is contextual reference; it does not itself prove applicability.
 
 ## 5. Location at car
 
 - Vehicle/location presentation is model-specific.
-- It may provide top/side/location views and a highlighted zone for the selected part.
+- Concept-11 defines **one vehicle-location canvas** for this region.
+- A verified top, side, schematic, silhouette or other location representation may be rendered inside that canvas when supplied by the approved mapping/source contract; the shell does not divide the region into permanent Top/Side sub-panels.
 - After part selection, show a location only when a verified Jagports-owned mapping exists.
 - Missing mapping is an explicit unavailable state.
 - Catalogue vehicle location is distinct from physical Jagports stock/storage location.
 
 ## 6. PART / image / status region
 
-The lower-centre region combines the selected identity/context with its primary visual presentation.
+The lower-centre region combines the selected identity/context with its primary visual/status presentation.
+
+Concept-11 groups in this region:
+
+- warning/status where supported;
+- canonical PART number/identity;
+- selected item/callout identity;
+- Jaguar Classic indication where supported by its defined semantics;
+- supersession relationship where supported;
+- part name/details;
+- one selected part image or exploded diagram.
+
+Rules:
 
 - Show canonical PART number/identity and verified name/description.
 - Show selected item/callout identity where supplied by EPC context.
@@ -191,7 +225,7 @@ SEARCH / BROWSE CONSTRAINTS
 CATALOGUE PART / RESULT SET
         │
         ├── EPC OCCURRENCE / CONTEXT
-        │      ├── Parts Tree path
+        │      ├── Parts Tree main-level context + relevant path
         │      ├── Diagram / item
         │      └── selected occurrence
         │
@@ -238,11 +272,11 @@ The UI does not redefine the domain model. Styling/layout must not infer or manu
 A conforming implementation preserves:
 
 - canonical PART identity and occurrence/context separation;
-- relevant Parts Tree hierarchy and selected-path highlighting;
-- verified applicable model/range presentation;
+- persistent Parts Tree main-level context with relevant descendants expanded/emphasized;
+- verified applicable model/range presentation with the approved upper-right geometry;
 - supported suitability filters/facts and explicit unavailable states;
-- vehicle-location presentation only from verified mapping;
-- combined part identity/status/image/diagram context;
+- one vehicle-location canvas with content only from verified mapping;
+- combined part identity/status/image/diagram context in the lower region;
 - distinct catalogue, fitment, supersession, Classic and stock semantics;
 - Concept-11 layout relationships and Tailwind reference style/theme;
 - viewport-fit behaviour from PR #616;
