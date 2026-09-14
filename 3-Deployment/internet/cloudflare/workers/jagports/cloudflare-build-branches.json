@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "worker": "vieps",
+  "production_branch": "main",
+  "preview_branches": []
+}
