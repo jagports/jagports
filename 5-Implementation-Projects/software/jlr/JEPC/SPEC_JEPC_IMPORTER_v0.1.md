@@ -117,9 +117,12 @@ The importer must allow selection below the broad VIEPS Range level when JEPC ex
 The import scope therefore needs configurable profiles based on source facts such as:
 
 - JEPC Model_ID;
+- JEPC `parent_id` from the model hierarchy in `models_l_id_0.xml`;
 - JEPC model/sub-range description;
 - normalized Region/market context;
 - optional language selection where appropriate.
+
+JEPC model hierarchy records are of the form `[model_id,parent_id,model_name]`. Both `model_id` and `parent_id` must be preserved because the hierarchy relationship can distinguish a model/sub-range from its parent family even when display names are not unique. Source menu paths such as `pl_id_<model_id>` remain source linkage for the selected JEPC model and must not be confused with a separate VIEPS vehicle identity.
 
 Initial v0.1/MVP validation profiles:
 
@@ -352,7 +355,7 @@ Jaguar XK8 Coupe/Convertible up to (V) 042775
 Region: Rest of world excluding Americas
 ```
 
-The model line must identify both the technical JEPC `Model_ID` and its source/Jaguar model description. JEPC `Category_ID` must also be retained and shown with the applicable Part path/category information rather than being lost during aggregation.
+The model line must identify both the technical JEPC `Model_ID` and its source/Jaguar model description. JEPC `Category_ID` must still be preserved in source/staging/log metadata, but it is not required in the compact live operator table.
 
 ### Imported catalogue content table
 
@@ -363,22 +366,19 @@ Example:
 ```text
 Imported catalogue content
 
-Part path                               JEPC Category_ID   Unique parts   Occurrences (English)
-AIR AND FUEL DELIVERY SYSTEMS           #11001             15             25
-BATTERY/STARTER MOTOR/ALTERNATOR         #11002              1              3
-BODY METAL PANELS AND SEALING            #11003              1              1
-ENGINE                                   #11004             42             78
-ENGINE COOLING SYSTEM                     #11005              1              2
-EXTERIOR FITTINGS AND SUNROOF             #11006              1              1
+Part path                               Unique parts   Occurrences (English)
+AIR AND FUEL DELIVERY SYSTEMS           15             25
+BATTERY/STARTER MOTOR/ALTERNATOR         1              3
+BODY METAL PANELS AND SEALING            1              1
+ENGINE                                  42             78
+ENGINE COOLING SYSTEM                    1              2
+EXTERIOR FITTINGS AND SUNROOF            1              1
 ```
-
-The Category_ID numbers above are illustrative formatting examples only; the live importer must display the actual JEPC Category_ID(s) from source.
 
 Rows with zero imported content stay hidden.
 
 Definitions:
 
-- `JEPC Category_ID` = source category identifier associated with the displayed path/category.
 - `Unique parts` = distinct canonical Jaguar part numbers represented in that displayed scope.
 - `Occurrences` = imported catalogue/source occurrences of those parts; one canonical part may have multiple occurrences.
 - The language qualifier in the occurrence column identifies the currently displayed path-language source, not a multiplication of canonical part identities.
@@ -441,7 +441,7 @@ The importer shall retain a persistent detailed log sufficient to audit and diag
 - run ID;
 - source bundle and files;
 - source checksums;
-- source identifiers including Model_ID, Category_ID, Item_ID and Language_ID where present;
+- source identifiers including Model_ID, parent_id, Category_ID, Item_ID and Language_ID where present;
 - part/occurrence inserts or updates;
 - parser/schema versions;
 - detected unknowns;
@@ -479,7 +479,7 @@ The importer v0.1/MVP should demonstrate that:
 - no complete pre-existing million-file index is required before useful import begins;
 - the processing ledger is built incrementally bundle by bundle;
 - source checksums are calculated and used instead of trusting modification time;
-- selected model/sub-range/Region profiles can be processed independently;
+- selected model/sub-range/Region profiles can be processed independently while preserving both JEPC `model_id` and `parent_id` hierarchy identity;
 - processing resumes from persistent bundle state rather than restarting from the beginning;
 - each normal loop reads/processes one bundle and only then determines the next;
 - known structures import without unnecessary normalized-schema churn;
@@ -491,7 +491,7 @@ The importer v0.1/MVP should demonstrate that:
 - bundle transactions protect the staging database from partial source-set imports;
 - the importer can be stopped cooperatively after current bundle parsing transactions and restarted safely;
 - database health is checked before any bundle processing on restart/resume;
-- the operator sees stable aggregate Model_ID/Category_ID/path/language/structure metrics without a scrolling per-record console flood;
+- the operator sees stable aggregate Model_ID/path/language/structure metrics without a scrolling per-record console flood;
 - detailed processing and a development-oriented run report remain available in background logs;
 - canonical part identity remains independent from language-specific source occurrences;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
