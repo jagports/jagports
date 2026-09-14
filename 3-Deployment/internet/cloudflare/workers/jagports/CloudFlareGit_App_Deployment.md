@@ -27,12 +27,6 @@ The default Wrangler configuration in this directory represents the pre-producti
 Worker name: vieps
 ```
 
-Default deployment:
-
-```text
-npx wrangler deploy
-```
-
 No production Wrangler environment is defined by this pre-production configuration.
 
 ## Production representation
@@ -61,10 +55,10 @@ Root directory:
 4-Production/internet/cloudflare/workers/jagports/
 ```
 
-Build command:
+Workers Builds build command:
 
 ```text
-leave empty unless a build step is introduced
+npm ci && npm run build
 ```
 
 Pre-production deploy command:
@@ -73,17 +67,61 @@ Pre-production deploy command:
 npx wrangler deploy
 ```
 
+Preview build command:
+
+```text
+npm ci && npm run build
+```
+
 Preview deploy command:
 
 ```text
 npx wrangler versions upload
 ```
 
-Workers Builds configuration must identify `vieps` as the pre-production Worker. Do not configure or deploy a production `jagports` Worker as part of this pre-production task.
+The repository source of truth for these Workers Builds values is:
 
-The Worker configuration, application source, public assets, migrations and tests are contained in the Worker directory. The obsolete `/base` hierarchy is not a deployment dependency.
+```text
+3-Deployment/internet/cloudflare/workers/jagports/cloudflare-build-branches.json
+```
 
-## Git-integrated build branch control
+The Worker configuration, application source, generated-asset sources, public assets, migrations and tests are contained in the Worker directory. The obsolete `/base` hierarchy is not a deployment dependency.
+
+## Generated-asset build contract
+
+A generated asset must be built and verified before a deployment command publishes the Worker asset tree.
+
+Reusable sequence:
+
+```text
+reviewed source revision
+  -> restore/install pinned dependencies
+  -> run the project's authoritative build command
+  -> verify required generated assets exist and are non-empty
+  -> deploy
+  -> verify generated asset URLs from the deployed environment
+  -> verify rendered/runtime application
+```
+
+The generic deployment rule is **project-defined build before deploy**. Do not hard-code a framework-specific build command into reusable deployment policy when the project package/build configuration already defines the authoritative build.
+
+For the current VIEPS Worker the concrete mapping is:
+
+```text
+source:          styles/vieps-tailwind.css
+project build:   npm run build
+CSS sub-build:   npm run build:css
+generated asset: public/vieps-tailwind.css
+asset root:      public/
+pre-deploy check npm run verify:generated-assets
+post-deploy test npm run verify:deployed-assets
+```
+
+`npm run build` compiles the Tailwind source and then verifies that the generated CSS exists and is non-empty. The generated `public/vieps-tailwind.css` is a deployment artifact and is not source-controlled.
+
+This rule was introduced after the PR #647 deployment incident, where the Worker deployed successfully while the generated stylesheet was absent and the live page rendered essentially unstyled. A successful Worker deployment therefore does not by itself prove that generated frontend assets were built or served.
+
+## Git-integrated build branch and command control
 
 Cloudflare Workers Builds is connected to the repository, but build/deployment eligibility is intentionally narrower than normal Pull Request activity.
 
@@ -93,18 +131,23 @@ The repository source of truth is:
 3-Deployment/internet/cloudflare/workers/jagports/cloudflare-build-branches.json
 ```
 
-The default policy is:
+The policy controls:
+
+- Worker name;
+- Worker root directory;
+- production branch;
+- production build command;
+- production deploy command;
+- preview build command;
+- preview deploy command;
+- exact preview branch allow-list.
+
+The default branch policy is:
 
 ```text
 main -> production Workers Build enabled
 all other branches -> Workers Builds disabled
 ```
-
-The policy file contains:
-
-- `worker` — Worker name governed by the policy; currently `vieps`;
-- `production_branch` — must be `main`;
-- `preview_branches` — exact non-production branch names intentionally allowed to run preview Workers Builds.
 
 Wildcard preview branches are prohibited. An unlisted PR branch must not trigger a Cloudflare Workers Build merely because a commit was pushed.
 
@@ -114,7 +157,7 @@ The policy is applied to Cloudflare by:
 3-Deployment/internet/cloudflare/workers/jagports/apply-build-branches.mjs
 ```
 
-The script uses the Cloudflare Workers Builds API branch include/exclude controls. It does not change application source under `4-Production/`.
+The script manages both branch eligibility and the build/deploy command contract. It does not change application source under `4-Production/`.
 
 ### Required credentials
 
@@ -129,7 +172,7 @@ CLOUDFLARE_API_TOKEN
 
 `CLOUDFLARE_BUILD_TOKEN_UUID` is required only when an explicit preview branch is configured and no preview trigger currently exists, because Cloudflare requires a build-token UUID when creating that trigger.
 
-### Check current Cloudflare branch state
+### Check current Cloudflare Workers Builds state
 
 From the repository root:
 
@@ -137,11 +180,11 @@ From the repository root:
 node 3-Deployment/internet/cloudflare/workers/jagports/apply-build-branches.mjs --check
 ```
 
-`--check` is read-only. It fails if the remote Workers Builds triggers do not exactly match the repository policy.
+`--check` is read-only. It fails unless the remote production and preview triggers exactly match the repository policy, including build command, deploy command, root directory, and branch rules.
 
 ### Apply policy to an already-launched Cloudflare Worker
 
-The repository configuration does not modify Cloudflare merely by existing in Git. After this configuration is first merged, or whenever the branch list changes, an authorized operator must apply it to the existing `vieps` Workers Builds connection:
+The repository configuration does not modify Cloudflare merely by existing in Git. After this configuration is first merged, or whenever any controlled Workers Builds value changes, an authorized operator must apply it to the existing `vieps` Workers Builds connection:
 
 ```text
 node 3-Deployment/internet/cloudflare/workers/jagports/apply-build-branches.mjs --apply
@@ -149,23 +192,23 @@ node 3-Deployment/internet/cloudflare/workers/jagports/apply-build-branches.mjs 
 
 The apply operation:
 
-1. discovers the `vieps` Worker tag unless it was supplied explicitly;
-2. reads the existing Workers Builds triggers;
-3. restricts the production trigger to `main`;
-4. deletes the preview trigger when `preview_branches` is empty, disabling non-production branch builds;
-5. updates an existing preview trigger to exactly the explicit preview list when branches are configured;
+1. discovers the `vieps` Worker tag unless supplied explicitly;
+2. reads existing Workers Builds triggers;
+3. updates the production trigger to the repository-defined root, build command, deploy command, and `main`-only branch rule;
+4. deletes the preview trigger when `preview_branches` is empty;
+5. updates an existing preview trigger to the repository-defined build/deploy contract and exact preview allow-list;
 6. creates the preview trigger when required and sufficient Cloudflare identifiers are available;
-7. re-reads the remote trigger state and fails unless it exactly matches the repository policy.
+7. re-reads remote trigger state and fails unless it exactly matches repository policy.
 
-This is the required step that updates an existing Cloudflare deployment. A documentation/configuration commit alone is not evidence that the live Cloudflare trigger configuration changed.
+A documentation/configuration commit alone is not evidence that the live Cloudflare trigger configuration changed.
 
-Cloudflare Dashboard provides the corresponding broad branch control under:
+Cloudflare Dashboard provides corresponding settings under:
 
 ```text
-Worker -> Settings -> Build -> Branch control
+Worker -> Settings -> Build
 ```
 
-For the default `main`-only state, the production branch must be `main` and **Builds for non-production branches** must be disabled. The API-managed repository policy remains authoritative when explicitly named preview branches are used because the repository policy is more precise than an all-non-production-branches toggle.
+The repository policy remains authoritative for the values it controls.
 
 ### Temporarily allow an explicit preview/test branch
 
@@ -173,16 +216,21 @@ Edit only `preview_branches` in `cloudflare-build-branches.json`, for example:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "worker": "vieps",
+  "root_directory": "4-Production/internet/cloudflare/workers/jagports/",
   "production_branch": "main",
+  "production_build_command": "npm ci && npm run build",
+  "production_deploy_command": "npx wrangler deploy",
+  "preview_build_command": "npm ci && npm run build",
+  "preview_deploy_command": "npx wrangler versions upload",
   "preview_branches": ["explicit-cloudflare-test"]
 }
 ```
 
 Then run `--apply` and `--check`. Only that named non-production branch is eligible for a preview Workers Build.
 
-After the test, remove the branch from `preview_branches`, run `--apply`, and run `--check` again. When the list becomes empty, the preview trigger is removed and future non-production branch builds are disabled.
+After the test, remove the branch from `preview_branches`, run `--apply`, and run `--check` again.
 
 Do not modify `4-Production/` merely to add or remove an eligible deployment branch.
 
@@ -201,16 +249,26 @@ npx wrangler login
 npx wrangler whoami
 ```
 
-Validate the pre-production Worker configuration without deploying:
+Restore the exact locked dependency set and execute the authoritative build:
+
+```text
+npm ci
+npm run build
+```
+
+The build must fail if a required generated asset is absent or empty.
+
+Validate the resulting Worker configuration/assets without deploying:
 
 ```text
 npx wrangler deploy --dry-run
 ```
 
-A controlled direct deployment fallback is:
+A controlled direct deployment fallback uses the same build-before-deploy contract:
 
 ```text
-npx wrangler deploy
+npm ci
+npm run deploy
 ```
 
 Use direct deployment only when the Git-integrated deployment path is unavailable or for an explicitly recorded bootstrap/troubleshooting case.
@@ -219,9 +277,11 @@ Use direct deployment only when the Git-integrated deployment path is unavailabl
 
 Preview Workers Builds are disabled by default. Use a non-production branch for Cloudflare preview deployment only when its exact branch name has been explicitly added to `cloudflare-build-branches.json` and the policy has been applied to Cloudflare.
 
-Preview version upload:
+Manual preview follows the same build contract:
 
 ```text
+npm ci
+npm run build
 npx wrangler versions upload
 ```
 
@@ -273,37 +333,50 @@ Do not mark the custom production endpoint verified until that task has establis
 
 ## Verification
 
-From the Worker root:
+From the Worker root, verify the local deployment artifact contract:
 
 ```text
-npx wrangler whoami
+npm ci
+npm run build
 npx wrangler deploy --dry-run
 ```
 
-Verify the repository branch policy against Cloudflare:
+Verify the repository Workers Builds policy against Cloudflare:
 
 ```text
 node ../../../../../3-Deployment/internet/cloudflare/workers/jagports/apply-build-branches.mjs --check
 ```
 
-After deployment verify, using the supported CLI/API first and UI only where required:
+After deployment, verify at least one generated asset directly:
+
+```text
+npm run verify:deployed-assets
+```
+
+To target another supported endpoint:
+
+```text
+VIEPS_BASE_URL="https://example.invalid" npm run verify:deployed-assets
+```
+
+Then verify the rendered/runtime application and affected application probes.
+
+Deployment verification must establish:
 
 - the build corresponds to the intended GitHub commit;
 - the intended Worker version is active;
 - the Worker uses the intended deployment root/configuration;
 - the Worker name is `vieps`;
+- generated assets were built before deployment;
+- required generated assets are non-empty;
+- `/vieps-tailwind.css` returns success and `text/css` from the deployed environment;
+- the rendered application uses the expected styling;
 - the D1 binding is present;
-- the Workers Builds production trigger includes only `main`;
+- the Workers Builds production trigger matches the repository-defined root/build/deploy commands and includes only `main`;
 - when `preview_branches` is empty, no preview trigger exists;
 - an unlisted PR branch produces no Cloudflare Workers Build or deployment-status/comment noise;
 - if an explicit preview branch is temporarily configured, that branch can trigger the preview path and removing it disables future preview builds;
 - the discarded `jagports.parts-5ec.workers.dev` Deployment-1 MVP is not being treated as the pre-production environment.
-
-For #559-style verification, record evidence for all three cases in the Issue/PR execution record:
-
-1. `main` — expected production Workers Build;
-2. one explicitly listed optional branch — expected preview Workers Build while listed;
-3. one unlisted PR branch — expected no Cloudflare Workers Build.
 
 Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
 
@@ -311,4 +384,4 @@ Record actual test evidence in the relevant Issue/PR or execution record, not as
 
 Worker rollback and D1 schema rollback are separate operations. Do not assume that restoring a Worker version reverses a D1 migration.
 
-Branch-control rollback is also separate from Worker-version rollback. Restore the intended branch list in `cloudflare-build-branches.json`, apply it, and verify the remote trigger state. Do not re-enable all non-production branch builds as a rollback shortcut.
+Branch/build-control rollback is also separate from Worker-version rollback. Restore the intended repository policy, apply it, and verify remote trigger state. Do not bypass the generated-asset build contract as a rollback shortcut.
