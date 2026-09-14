@@ -72,7 +72,7 @@ export async function handleViepsPart(request, env) {
        ORDER BY r.range_code, f.variation, f.qualifier`
     ).bind(part.id).all(),
     env.DB.prepare(
-      `SELECT id, part_number, quantity, condition, status, location, source, source_ref,
+      `SELECT id, part_number, quantity, condition, condition_code, status, location, source, source_ref,
               verification_status, available, confidence, price, currency, notes
        FROM stock_item
        WHERE part_id = ?

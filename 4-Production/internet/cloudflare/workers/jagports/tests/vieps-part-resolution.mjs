@@ -114,7 +114,7 @@ test("resolved PART returns canonical identity and occurrence context without du
   assert.ok(Array.isArray(data.stock));
 });
 
-test("resolved PART stock query avoids post-deployment-only stock columns", async () => {
+test("resolved PART stock query preserves DB-specified stock columns", async () => {
   const preparedSql = [];
   const part = {
     id: 7,
@@ -134,7 +134,9 @@ test("resolved PART stock query avoids post-deployment-only stock columns", asyn
   assert.equal(response.status, 200);
   const stockSql = preparedSql.find((sql) => /FROM stock_item/i.test(sql));
   assert.ok(stockSql);
-  assert.equal(/\bcondition_code\b/i.test(stockSql), false);
+  for (const column of ["condition", "condition_code", "price", "currency", "notes"]) {
+    assert.equal(new RegExp(`\\b${column}\\b`, "i").test(stockSql), true, column);
+  }
 });
 
 test("non-GET requests are rejected", async () => {

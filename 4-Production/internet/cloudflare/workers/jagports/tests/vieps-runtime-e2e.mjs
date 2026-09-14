@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const baseUrl = process.env.VIEPS_BASE_URL?.replace(/\/$/, "");
 const partNumber = process.env.VIEPS_PART_NUMBER || "MJB7703AA";
+const fixturePartNumbers = ["MJB7703AA", "MNA7691AA", "XR847031", "FIX538C"];
 
 if (!baseUrl) {
   test("VIEPS deployed runtime validation requires VIEPS_BASE_URL", { skip: "No deployed VIEPS URL supplied" }, () => {});
@@ -32,6 +33,18 @@ if (!baseUrl) {
     assert.ok(Array.isArray(data.diagrams));
     assert.ok(Array.isArray(data.fitment));
     assert.ok(data.fitment.length > 0);
+  });
+
+  test("deployed VIEPS fixture parts return stock locations", async () => {
+    for (const fixturePartNumber of fixturePartNumbers) {
+      const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(fixturePartNumber)}`);
+      assert.equal(response.status, 200, fixturePartNumber);
+      const data = await response.json();
+      assert.equal(data.part.part_number_normalized, fixturePartNumber);
+      assert.ok(Array.isArray(data.stock), fixturePartNumber);
+      assert.ok(data.stock.length > 0, `${fixturePartNumber} should expose stock rows`);
+      assert.ok(data.stock.some((item) => /^Fixture Shelf XK \/ Box [A-Z0-9]{3}$/.test(item.location)), `${fixturePartNumber} should expose a fixture stock location`);
+    }
   });
 
   test("unknown part returns explicit not-found response", async () => {
