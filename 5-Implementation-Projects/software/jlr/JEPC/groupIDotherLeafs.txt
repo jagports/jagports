@@ -1,0 +1,8 @@
+Cases with no X### code — don't force one
+Group ID	Group name	Why no code
+2204	XJ6 & XJ12 (XJ40)	The project's own name is the code — "XJ40" predates the X### numbering scheme (it started around X300). Use XJ40 as the literal chassis code string, not a number.
+2245	Series III Saloon	Predates the numbered scheme entirely; conventionally just "Series III"
+2213	XJS Sports Coupe/Convertible	No confirmed dedicated project number found — sometimes informally written "XJ-S," but I couldn't verify a real internal code. Leave unresolved rather than guess.
+17001	E-Type	Predates numbering; identified by Series 1/2/3, not an X-code
+2265	Daimler Limousine	This is a model designation (Daimler DS420) rather than a Jaguar chassis-family code — different naming system entirely
+3484	Jaguar Accessories	Not a vehicle platform at all — the cross-cutting bucket, per RES-4.13's own explicit exception

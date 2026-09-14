@@ -19,6 +19,8 @@ export async function handleViepsPart(request, env) {
   if (!query) return json({ error: "part-number query is required" }, 400);
 
   const normalized = normalizePartNumber(query);
+  if (!normalized) return json({ error: "invalid part-number query", query }, 400);
+
   const part = await env.DB.prepare(
     `SELECT id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status
      FROM part
@@ -31,7 +33,14 @@ export async function handleViepsPart(request, env) {
 
   if (!part) return json({ error: "part not found", query }, 404);
 
-  const [treeResult, imageResult, diagramResult, fitmentResult] = await Promise.all([
+  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult] = await Promise.all([
+    env.DB.prepare(
+      `SELECT id, source, source_ref, context_type, context_ref, category_ref,
+              item_number, diagram_ref, diagram_item_number, verification_status
+       FROM part_occurrence
+       WHERE part_id = ?
+       ORDER BY id`
+    ).bind(part.id).all(),
     env.DB.prepare(
       `WITH RECURSIVE tree(id, parent_id, label, sort_order) AS (
          SELECT n.id, n.parent_id, n.label, n.sort_order
@@ -48,7 +57,7 @@ export async function handleViepsPart(request, env) {
        ORDER BY sort_order, id`
     ).bind(part.id).all(),
     env.DB.prepare(
-      `SELECT id, image_url, image_kind, description, verification_status
+      `SELECT id, image_ref AS image_url, image_kind, description, verification_status, availability_status
        FROM part_image WHERE part_id = ? ORDER BY id`
     ).bind(part.id).all(),
     env.DB.prepare(
@@ -59,8 +68,15 @@ export async function handleViepsPart(request, env) {
       `SELECT f.id, r.range_code, r.name AS range_name, f.variation, f.qualifier, f.verification_status
        FROM part_fitment f
        INNER JOIN vehicle_range r ON r.id = f.vehicle_range_id
-       WHERE f.part_id = ?
+       WHERE f.part_id = ? AND f.vehicle_range_id IS NOT NULL
        ORDER BY r.range_code, f.variation, f.qualifier`
+    ).bind(part.id).all(),
+    env.DB.prepare(
+      `SELECT id, part_number, quantity, condition, condition_code, status, location, source, source_ref,
+              verification_status, available, confidence, price, currency, notes
+       FROM stock_item
+       WHERE part_id = ?
+       ORDER BY available DESC, status, location, id`
     ).bind(part.id).all(),
   ]);
 
@@ -81,9 +97,11 @@ export async function handleViepsPart(request, env) {
 
   return json({
     part,
+    occurrences: occurrenceResult.results || [],
     parts_tree: paths,
     images: imageResult.results || [],
     diagrams: diagramResult.results || [],
     fitment: fitmentResult.results || [],
+    stock: stockResult.results || [],
   });
 }

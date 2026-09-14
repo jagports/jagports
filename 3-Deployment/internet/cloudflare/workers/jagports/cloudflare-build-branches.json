@@ -1,0 +1,11 @@
+{
+  "schema_version": 2,
+  "worker": "vieps",
+  "root_directory": "4-Production/internet/cloudflare/workers/jagports/",
+  "production_branch": "main",
+  "production_build_command": "npm ci && npm run build",
+  "production_deploy_command": "npx wrangler deploy",
+  "preview_build_command": "npm ci && npm run build",
+  "preview_deploy_command": "npx wrangler versions upload",
+  "preview_branches": []
+}

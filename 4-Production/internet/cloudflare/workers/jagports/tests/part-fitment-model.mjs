@@ -17,7 +17,9 @@ const partModel = await readFile(
 
 test("fitment is an explicit occurrence-level relationship", () => {
   assert.match(migration, /CREATE TABLE part_fitment/i);
-  assert.match(migration, /part_occurrence_id INTEGER NOT NULL REFERENCES part_occurrence\(id\)/i);
+  assert.match(migration, /part_occurrence_id INTEGER REFERENCES part_occurrence\(id\)/i);
+  assert.match(migration, /part_occurrence_id IS NOT NULL AND part_id IS NULL AND vehicle_range_id IS NULL/i);
+  assert.match(migration, /part_occurrence_id IS NULL AND part_id IS NOT NULL AND vehicle_range_id IS NOT NULL/i);
   assert.match(migration, /applicability_state TEXT NOT NULL/i);
   assert.match(migration, /applicability_state IN \('applicable', 'excluded', 'unavailable'\)/i);
   assert.match(partModel, /PART fitment and attribute applicability/i);

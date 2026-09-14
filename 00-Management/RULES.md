@@ -38,7 +38,9 @@ When review is required, GitHub's native PR reviewer request/notification is use
 
 ### Review authority
 
-Review comments belong to the reviewer who submitted the review. That reviewer is the only actor authorized to resolve comments belonging to that review. Executors, PR authors, and other non-reviewers must not resolve those comments on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined in `WORKFLOWS.md`.
+Reviewer-owned review concerns remain under that reviewer's resolution authority whether they are raised through visible PR discussion before formal review submission or through comments associated with a submitted review. Executors, PR authors, and other non-reviewers must not resolve those concerns on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined in `WORKFLOWS.md`.
+
+A GitHub `PENDING` review is a reviewer-private draft until submission. Line-level and file-level comments created through the normal pending-review flow remain private until submission; their line/file anchoring alone does not make them immediately visible. When reviewer↔maker interaction is required before the formal review outcome, use an immediately visible channel defined by `WORKFLOWS.md`: a standalone submitted PR review comment when direct anchored submission is supported, otherwise a top-level PR Conversation comment with explicit file/line links. A discussion becoming `outdated` because the referenced diff changed is not by itself acceptance or semantic resolution of the underlying concern.
 
 ### Record integrity
 
@@ -54,7 +56,7 @@ Maintain clear traceability from:
 
 `Work request → Issue → PR → Review → Test → Merge → Issue closure → Project verification`
 
-A PR may legitimately resolve multiple Issues when it genuinely addresses each one and explicit traceability is maintained.
+A PR may legitimately resolve multiple Issues when it genuinely addresses each Issue and explicit traceability is maintained.
 
 Historical Issues and merged PRs may be referenced when needed to establish traceability or verify prior work, but they are not active work items.
 

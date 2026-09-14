@@ -1,0 +1,12 @@
+walks the copied JEPCFiles/pl_id_* tree, and loads a schema that mirrors SPEC_JEPC_DATA.md's hierarchy — raw/opaque attributes, no semantic interpretation
+
+python import_to_sqlite.py JEPCFiles vieps.sqlite
+
+
+Caveats worth knowing before you rely on this at volume:
+
+jepc_attribute_raw deliberately stores everything as opaque text/columns, per the "don't decode meaning yet" rule from SPEC_JEPC_DATA.md — but its shape (raw_group, raw_value, except_flag, extra) is exactly the flat table you'd want to GROUP BY for the attribute-decode clustering work from earlier.
+The 12-field assumption in jepc_item_row will throw away malformed rows silently (the if len(r) == 12 guard) — fine for now, but log the skipped ones once you're importing at real volume so you notice if the format ever varies.
+This is throwaway/local-testing tooling, not the production importer — it belongs in whichever IMPL doc ends up covering JEPC import, not committed as-is to the production Worker path.
+
+Reminder: once you've run this against a real range and it works, the resolved-IDs logic and the leaf-vs-group distinction from the last message should get written into the JEPC data doc (whichever it ends up being named)
