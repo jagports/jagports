@@ -6,11 +6,32 @@ PRAGMA foreign_keys = ON;
 -- These rows remain deterministic fixture/demo data, not real Jagports inventory evidence.
 
 INSERT OR IGNORE INTO part (
+  part_number_raw, part_number_normalized, description, source, source_ref, verification_status
+) VALUES
+  ('MJB7703AA', 'MJB7703AA', 'Representative Deployment-1 part', 'fixture-607', 'issue:#607:mjb7703aa', 'fixture');
+
+INSERT OR IGNORE INTO part (
   id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status
 ) VALUES
   (60731, 'MNA7691AA', 'MNA7691AA', 'Fan Warning Label', 'fixture-607', 'issue:#607:mna7691aa', 'fixture'),
   (60732, 'XR847031', 'XR847031', 'Fan Warning Label Replacement', 'fixture-607', 'issue:#607:xr847031', 'fixture'),
   (60733, 'FIX538C', 'FIX538C', 'Synthetic supersession chain endpoint fixture', 'fixture-607', 'issue:#607:fix538c', 'fixture');
+
+INSERT INTO part (
+  part_number_raw, part_number_normalized, description, source, source_ref, verification_status
+)
+SELECT NULL, NULL, 'firtree1', 'fixture-607', 'issue:#607:firtree1', 'fixture'
+WHERE NOT EXISTS (
+  SELECT 1 FROM part WHERE part_number_normalized IS NULL AND description = 'firtree1'
+);
+
+INSERT INTO part (
+  part_number_raw, part_number_normalized, description, source, source_ref, verification_status
+)
+SELECT NULL, NULL, 'firtree2', 'fixture-607', 'issue:#607:firtree2', 'fixture'
+WHERE NOT EXISTS (
+  SELECT 1 FROM part WHERE part_number_normalized IS NULL AND description = 'firtree2'
+);
 
 INSERT OR IGNORE INTO part_tree_node (id, parent_id, label, sort_order)
 VALUES
@@ -50,6 +71,17 @@ WHERE p_old.part_number_normalized = 'XR847031'
 INSERT OR IGNORE INTO stock_location (id, site_id, parent_id, location_type, name) VALUES
   (60797, 60790, 60791, 'box', 'Box F12'),
   (60798, 60790, 60791, 'box', 'Box F29');
+
+INSERT OR IGNORE INTO stock_item (
+  id, part_number, part_id, quantity, condition, status, location, source,
+  source_ref, available, verification_status, confidence, condition_code,
+  storage_location_id, source_party_id, price, currency, notes
+)
+SELECT 60740, 'MJB7703AA', id, 2, 'used / inspected', 'available',
+       'Fixture Shelf XK / Box A14', 'fixture-607', 'issue:#607:synthetic-stock:mjb7703aa',
+       1, 'fixture', 0.61, 'B', 60792, 60796, 14.50, 'EUR',
+       'Synthetic demo stock value; not real Jagports inventory evidence.'
+FROM part WHERE part_number_normalized = 'MJB7703AA';
 
 INSERT OR IGNORE INTO stock_item (
   id, part_number, part_id, quantity, condition, status, location, source,
