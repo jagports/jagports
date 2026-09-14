@@ -15,6 +15,8 @@ const flags = args({
 })
 const command = flags._[0]
 
+// Right now we don't support any sub-commands. Let's show the help message
+// instead.
 if (command) {
   help({
     invalid: command,
@@ -24,6 +26,16 @@ if (command) {
   process.exit(1)
 }
 
+// Display main help message if no command is being used.
+//
+// E.g.:
+//
+//   - `tailwindcss`                // should show the help message
+//
+// E.g.: implicit `build` command
+//
+//   - `tailwindcss -o output.css`  // should run the build command, not show the help message
+//   - `tailwindcss > output.css`   // should run the build command, not show the help message
 if ((process.stdout.isTTY && process.argv[2] === undefined) || flags['--help']) {
   help({
     usage: ['tailwindcss [--input input.css] [--output output.css] [--watch] [options…]'],
@@ -32,4 +44,5 @@ if ((process.stdout.isTTY && process.argv[2] === undefined) || flags['--help']) 
   process.exit(0)
 }
 
+// Handle the build command
 build.handle(flags)
