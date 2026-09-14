@@ -4,89 +4,73 @@
 **Controlling issue:** #468  
 **Priority issue:** #474  
 **Implementation parent:** #368  
-**Domain owner:** #354  
+**Domain owner:** #354
 
 ## Objective
-Define the implementation-ready contract for the Concept-11 Parts Tree: preserve the catalogue main-level context while expanding/emphasizing only the relevant descendant path(s) and selected occurrence.
+Define the implementation-ready Parts Tree contract from the Concept-11 SVG merged by PR #645: retain the catalogue main-level index while expanding/emphasizing only relevant descendant path(s) and the selected occurrence.
 
 ## Data semantics
-Tree nodes represent EPC/category/group context. They do not create duplicate canonical PART identities. A canonical PART may occur in multiple EPC contexts, and each occurrence can have a distinct tree path.
+Tree nodes represent EPC/category/group context. They do not create duplicate canonical PART identities. A canonical PART may occur in multiple EPC contexts, each with a distinct tree path. Selected occurrence/item identity remains separate from canonical PART identity.
 
-Each node has a stable UI identity and retains its parent/child relationship. The selected occurrence/item is separate from the canonical PART identity.
+## Merged Concept-11 presentation
+The SVG visibly shows a scrolling left-side catalogue index with many main categories and an expanded branch. Examples drawn in the concept include main levels such as `ENGINE`, `ENGINE COOLING SYSTEM`, `BRAKING SYSTEM` and others, while a relevant descendant such as `COOLING FAN AND COWL - 4.0 LITRE - V8` is emphasized.
 
-## Concept-11 presentation
-The approved Concept-11 SVG shows a persistent left-column main-level category index with one relevant branch expanded to the selected context.
+These example labels are visual evidence of hierarchy, not a hard-coded production catalogue.
 
-Therefore:
+Required presentation:
 
-- keep the main-level category index visible where the read contract supplies it;
-- when a PART/context is resolved, expand/emphasize only the descendant path(s) relevant to that result;
-- preserve ancestors and enough surrounding hierarchy to understand the selected occurrence;
-- unrelated descendant branches are not required merely to reproduce a full legacy EPC tree;
-- strongly distinguish the selected occurrence/path from other visible main-level categories.
+- keep the main-level category index visible where supplied by the read contract;
+- expand/emphasize only descendant path(s) relevant to the resolved PART/context;
+- preserve ancestors and enough surrounding hierarchy to understand the occurrence;
+- unrelated descendant branches need not be expanded merely to reproduce a complete legacy EPC;
+- strongly distinguish selected/relevant occurrence/path from other visible categories;
+- keep the tree as a scrolling permanent left region below the Concept-11 branding/instructions header block.
 
-`show only relevant path(s)` means the relevant descendant path(s) are the ones expanded/emphasized. It does **not** require replacing the persistent main-level index with one isolated path.
+`show only relevant path(s)` in the SVG means relevant descendant paths are the ones expanded/emphasized. It does **not** mean replacing the main-level index with one isolated path.
 
 ## Empty-search / browse state
-Concept-11 notes that an empty search may update Parts Tree main levels according to matching stock.
-
-This is permitted only when an approved stock/catalogue browse contract exists. Until then, keep the permanent tree region visible and represent unsupported stock-driven browsing explicitly as unavailable rather than manufacturing categories from fixture assumptions.
+Concept-11 says an empty search plus supported stock constraint may update which Parts Tree main levels are shown. This is permitted only when an approved stock/catalogue browse contract resolves stock through canonical PART/catalogue relationships. Until then, keep the tree visible and show unsupported stock browsing as unavailable.
 
 ## Selection and expansion
-- The resolved occurrence/item is visibly selected.
-- Selection exposes stable occurrence/item identity to the Main View.
-- Tree selection does not mutate canonical PART identity.
+- Resolved occurrence/item is visibly selected.
+- Selection exposes stable occurrence/item identity to Main View.
+- Tree selection never mutates canonical PART identity.
 - Expand/collapse is UI state only.
-- Multiple valid occurrences remain distinguishable; no arbitrary silent replacement of context is permitted.
+- Multiple valid occurrences remain distinguishable.
+- Tree context coordinates with Model Ranges, Location, Suitability and PART/Image/Status without creating another tree model.
 
 ## Missing data
-A resolved PART without tree context is not `not_found`. The tree result uses an explicit `unavailable` state. No hierarchy, category, or context may be invented.
+A resolved PART without tree context is not `not_found`. Use explicit `unavailable` state. Do not invent hierarchy, categories or context.
 
 ## UI/API contract
 ```text
 PartsTreeRequest
   canonical_part_id
   occurrence_context_id
-  browse_constraints?   # only when an approved browse/stock contract exists
+  browse_constraints?   # only with approved browse/stock contract
 
 PartsTreeResult
   state
-  main_levels[]         # when supplied by the catalogue/browse contract
+  main_levels[]         # when supplied by catalogue/browse contract
   context
   nodes[]
   relevant_path[]
   selected_node_id / selected_occurrence_id
-  unavailable/error information when applicable
+  unavailable/error information
 ```
 
 ## Deterministic fixtures
-Fixtures must cover:
-- a visible main-level category index;
-- a multi-level relevant descendant path;
-- ancestors and optional siblings;
-- a selected leaf/occurrence;
-- the same canonical PART in multiple EPC contexts;
-- unavailable tree context;
-- selection and expand/collapse state.
+Cover a visible main-level index, multi-level relevant descendant path, ancestors/siblings, selected leaf/occurrence, same canonical PART in multiple EPC contexts, unavailable tree context, and expand/collapse state. Preserve current `main` fixture identifiers such as `firtree1` / `firtree2` as non-numbered fixture identifiers, not Jaguar part numbers.
 
-Fixture values are deterministic test data and are not production provenance.
-
-## Concept-11 integration
-The Parts Tree occupies the permanent full-height left column. Search, Model Ranges, Suitability and Main View consume or constrain the same occurrence context; they do not create a second tree model.
-
-## Dependencies and boundaries
-This specification consumes #354 semantics and follows #472 Part Search resolution. It does not redefine the Parts Data Model. Full JEPC import (#355), hotspot conversion (#352), vehicle location (#361/#362), full suitability/fitment, supersession/Classic, and stock are outside this priority unless explicitly linked through their approved contracts.
+## Viewport and language
+Long tree content scrolls internally in the fitted #616 desktop shell. Catalogue labels may come from independently selected Parts/catalogue-data language under #620; surrounding UI controls follow #554. Both must tolerate variable-length text.
 
 ## Acceptance criteria
-- [ ] Main-level index versus relevant descendant-path behavior is defined.
-- [ ] Tree identity and PART vs occurrence/context semantics are defined.
+- [ ] Persistent main-level index vs relevant descendant expansion is defined from merged Concept-11.
+- [ ] Tree identity and PART vs occurrence/context semantics remain separate.
 - [ ] Selected-item and expand/collapse behavior are defined.
-- [ ] Multiple EPC occurrences are represented without duplicate canonical identity.
-- [ ] Missing/unavailable tree context is explicit and distinct from not-found.
-- [ ] Empty-search stock-driven tree filtering is conditional on an approved contract.
-- [ ] Deterministic fixture coverage is defined.
-- [ ] Stable Parts Tree UI/API contract is defined for #368.
-- [ ] Scope remains within #468 and does not redefine #354.
-
-## Definition of done
-A #368 implementation can build the Concept-11 Parts Tree and selection behavior without introducing a new domain-model decision or reverting to the old isolated-path interpretation.
+- [ ] Multiple EPC occurrences do not duplicate canonical identity.
+- [ ] Missing tree context is explicit and distinct from not-found.
+- [ ] Empty-search stock browsing is conditional on an approved contract.
+- [ ] Main-branch deterministic fixtures remain semantically intact.
+- [ ] Viewport and UI-vs-Parts language boundaries are preserved.
