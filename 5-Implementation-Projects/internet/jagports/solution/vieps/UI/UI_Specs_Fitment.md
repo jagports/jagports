@@ -4,51 +4,58 @@
 **Controlling issue:** #468  
 **Priority issue:** #478  
 **Implementation parent:** #368  
-**Domain owner:** #354  
+**Domain owner:** #354
 
 ## Objective
-Define how Concept-11 exposes model-range fit, suitability filters/facts, qualifiers and VIN applicability where supported by approved data.
+Define how the Concept-11 SVG merged by PR #645 exposes model-range fit, suitability filters/facts, qualifiers and VIN applicability using approved data.
 
-## Concept-11 presentation
-Concept-11 separates applicability presentation into two coordinated regions:
+## Merged Concept-11 presentation
 
-1. **Suitability Model Ranges** at the upper right — range fit/check context.
-2. **Suitability / Filter** in the centre — filter selections while browsing/multiple contexts remain, or factual applicability when one PART/context is selected.
+```text
+centre/right workspace
+┌──────────────────────────────────────────────────────────────────┐
+│ SUITABILITY MODEL RANGES                                         │
+│ fit/check presentation across the full row                       │
+├──────────────────────────────┬───────────────────────────────────┤
+│ LOCATION AT CAR              │ SUITABILITY / FILTER              │
+│                              │ filters or facts + optional (i)   │
+└──────────────────────────────┴───────────────────────────────────┘
+```
 
-The right Model Ranges region ends at the Suitability boundary on desktop. It does not continue beside the lower PART / Image / Status region.
+The correction from the earlier interpretation is structural: **Model Ranges is a full centre/right row above the middle workspace, while Suitability occupies the right side of the row beside Location at car.**
 
 ## Contract
-Applicability is evaluated from approved PART occurrence/application/attribute relationships. Support model/range and VIN-range applicability when available. Preserve source constraints and exclusions.
+Applicability is evaluated from approved PART occurrence/application/attribute relationships. Support model/range and VIN-range applicability when evidence exists. Preserve constraints, exclusions and provenance.
 
-### Model Ranges
-- Show verified applicable ranges for a selected PART/context.
-- Concept-11 depicts check/filter controls. Their exact interaction depends on mode and the approved read contract.
-- In browse/filter mode, supported range controls may constrain results.
-- With one resolved PART/context, checked/matching range presentation is primarily an applicability fact, not permission to invent a new fitment rule.
-- Empty-search stock-driven range filtering is only allowed through an approved stock/catalogue browsing contract.
+### Suitability Model Ranges
+- Occupies its own centre/right row below Search/Availability.
+- Concept-11 depicts filter/check-box semantics for model/range fit.
+- The artwork includes example ranges and a checked XK Range; those are presentation examples, not a hard-coded range catalogue.
+- In browse/filter mode, supported range controls may constrain candidate results.
+- With one resolved PART/context, matching range presentation primarily communicates verified applicability facts.
+- Runtime interaction must not exceed the capabilities of the approved read contract; a single-selection implementation must not pretend to support arbitrary multi-selection simply because the SVG depicts check boxes.
+- Empty-search stock-driven range filtering is permitted only through an approved stock/catalogue browse contract.
 
 ### Suitability / Filter dual mode
-**Browse or multiple-context mode:** expose approved selection/filter dimensions.
+The right-middle region has two modes over the same applicability contract:
 
-**Single selected PART/context:** expose verified applicability facts.
+1. **Browse / multiple-context mode:** expose supported selection/filter dimensions.
+2. **Single selected PART/context:** expose verified applicability facts.
 
-Concept-11 illustrates dimensions such as:
+Concept-11 illustrates `Models`, `ModelYear`, `VINRanges`, `features` and other qualifiers. Its sample facts include XK, a VIN boundary, Coupe, Convertible, 4.0 Litre, supercharged, options, wheel size, market and steering. These are illustrative unless returned by approved data.
 
-- Models;
-- ModelYear;
-- VINRanges;
-- body/features/options and other verified qualifiers.
-
-Show verified qualifiers such as engine, supercharger, body, market, transmission or other attributes when they affect the result. Unknown qualifier data remains explicit and is not treated as a positive match.
-
-VIN applicability is a result of approved VIN ranges/evidence; generic model-year assumptions are not a substitute. Distinguish `applicable`, `not_applicable`, and `unavailable`.
+- Show verified qualifiers such as engine, supercharger, body, market, transmission/steering or other attributes when relevant.
+- Unknown qualifier data remains explicit and is not treated as a positive match.
+- VIN applicability comes from approved VIN ranges/evidence; generic model-year assumptions are not a substitute.
+- Distinguish `applicable`, `not_applicable`, and `unavailable`.
+- Preserve exclusions when filters are applied.
 
 ### Information document link
-The `(i)` control shown in Concept-11 may link to verified **Model Family & Year Introduction** documentation when a valid source/document relationship exists.
+The `(i)` control may link to verified **Model Family & Year Introduction** documentation when a valid source/document relationship exists.
 
 - The link is optional and evidence-driven.
-- Do not invent a document or URL merely to reproduce the concept icon.
-- The document provides contextual reference; it is not by itself proof of PART applicability.
+- Do not invent a document or URL to reproduce the icon.
+- The document is contextual reference and does not by itself prove PART applicability.
 
 ## UI/API contract
 ```text
@@ -56,7 +63,7 @@ FitmentRequest
   canonical_part_id?
   occurrence_context_id?
   vehicle_context?
-  browse_filters?
+  approved_browse_filters?
 
 FitmentResult
   state
@@ -65,25 +72,27 @@ FitmentResult
   vin_range[] when supported
   qualifiers[]
   exclusions[] when supported
+  available_filter_dimensions[] when supported
   contextual_document? when verified
   provenance/unavailable information
 ```
 
 ## Deterministic fixtures
-Cover range match, range browsing/filter mode, VIN range match, VIN range exclusion, engine/body qualifier, multiple qualifiers, contextual document present/absent, and unavailable fitment data.
+Cover range match, browse/filter mode, VIN range match/exclusion, engine/body qualifiers, multiple qualifiers, contextual-document present/absent and unavailable fitment data. Existing main-branch fixtures remain valid; presentation changes must not change their domain meaning.
+
+## Viewport and language
+Model Ranges and Suitability participate in the fitted #616 shell and scroll internally when needed. Labels/values must tolerate variable-length UI localization under #554 and independently selected catalogue-data language under #620.
 
 ## Boundaries
-VIN decoding and VIN-range reconstruction are separate enabling work. This specification must not invent VIN ranges or use KOVuosi as a substitute for VIN/evidence-based applicability. It consumes #354 semantics and does not redefine them.
+VIN decoding and VIN-range reconstruction are separate enabling work. Do not invent VIN ranges or use KOVuosi as a substitute for VIN/evidence-based applicability. This specification consumes #354 semantics and does not redefine them.
 
 ## Acceptance criteria
-- [ ] Upper-right Model Ranges geometry and role are defined.
-- [ ] Centre Suitability dual filter/fact modes are defined.
+- [ ] Model Ranges is represented as the full centre/right row from merged Concept-11.
+- [ ] Suitability / Filter is the right-middle region beside Location at car.
+- [ ] Filter-vs-fact dual mode shares one applicability contract.
 - [ ] Model/range and VIN-range applicability semantics are defined.
-- [ ] Qualifier presentation is defined.
-- [ ] Exclusion semantics are preserved.
-- [ ] Applicable/not-applicable/unavailable states are distinct.
-- [ ] Optional Model Family & Year Introduction document link is evidence-driven.
-- [ ] Deterministic fixture coverage is defined.
-- [ ] Stable Fitment UI/API contract is defined for #368.
+- [ ] Qualifiers/exclusions and unavailable states are preserved.
+- [ ] Optional Model Family & Year Introduction link is evidence-driven.
+- [ ] Concept sample values are not silently promoted into production facts.
+- [ ] Viewport-fit and UI-vs-Parts language boundaries are preserved.
 - [ ] VIN applicability does not depend on KOVuosi or unsupported inference.
-- [ ] Scope remains within #468/#354 semantics.
