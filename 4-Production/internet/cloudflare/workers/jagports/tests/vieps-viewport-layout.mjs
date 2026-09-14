@@ -33,7 +33,7 @@ test("long default content scrolls inside permanent Concept-11 regions", () => {
   expectRule(".fixture-guide", [/overflow:\s*auto;/]);
 });
 
-test("Concept-11 desktop ordering keeps suitability above PART/image and ranges in the upper-right workspace", () => {
+test("Concept-11 desktop ordering keeps ranges upper-right and PART/image below suitability", () => {
   expectRule(".concept-grid", [
     /"tree search ranges"/,
     /"tree location ranges"/,
@@ -41,6 +41,27 @@ test("Concept-11 desktop ordering keeps suitability above PART/image and ranges 
     /"tree details \."/
   ]);
   assert.ok(css.indexOf('"tree suitability ranges"') < css.indexOf('"tree details ."'));
+});
+
+test("Concept-11 search and availability share the top strip", () => {
+  assert.match(html, /class="search-availability-strip"/);
+  assert.match(html, /id="partSearch"/);
+  assert.match(html, /id="availabilitySelect"/);
+  assert.match(html, /id="availabilitySelect" disabled/);
+  assert.match(css, /\.search-availability-strip\s*\{/);
+});
+
+test("Concept-11 uses one vehicle-location canvas rather than permanent Top and Side panels", () => {
+  assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
+  assert.doesNotMatch(html, />Top view</);
+  assert.doesNotMatch(html, />Side view</);
+  assert.doesNotMatch(html, /class="vehicle-views"|class="vehicle-view"/);
+  expectRule(".vehicle-location-canvas", [/flex:\s*1 1 auto;/, /display:\s*grid;/, /overflow:\s*hidden;/]);
+});
+
+test("Concept-11 lower region is explicitly PART / Image / Status", () => {
+  assert.match(html, /<h2 id="visual-heading">PART \/ Image \/ Status<\/h2>/);
+  assert.match(html, /<h2 id="fitment-heading">Suitability \/ Filter<\/h2>/);
 });
 
 test("narrow responsive layouts remain scrollable instead of clipped", () => {
@@ -53,7 +74,7 @@ test("narrow responsive layouts remain scrollable instead of clipped", () => {
 });
 
 test("Concept-11 permanent regions remain present in the static shell", () => {
-  for (const id of ["partSearch", "tree", "locationStatus", "partCard", "visuals", "ranges", "fitment"]) {
+  for (const id of ["partSearch", "availabilitySelect", "tree", "vehicleLocation", "locationStatus", "partCard", "visuals", "ranges", "fitment"]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /class="panel tree-panel"/);
