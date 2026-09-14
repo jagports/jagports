@@ -117,12 +117,25 @@ The importer must allow selection below the broad VIEPS Range level when JEPC ex
 The import scope therefore needs configurable profiles based on source facts such as:
 
 - JEPC Model_ID;
-- JEPC `parent_id` from the model hierarchy in `models_l_id_0.xml`;
-- JEPC model/sub-range description;
+- JEPC `parent_id` from the model hierarchy in `models_l_id_0.xml` / `menus/models_I_id_0.xml` source hierarchy data;
+- parent model/family source description;
+- selected JEPC model/sub-range description;
 - normalized Region/market context;
 - optional language selection where appropriate.
 
-JEPC model hierarchy records are of the form `[model_id,parent_id,model_name]`. Both `model_id` and `parent_id` must be preserved because the hierarchy relationship can distinguish a model/sub-range from its parent family even when display names are not unique. Source menu paths such as `pl_id_<model_id>` remain source linkage for the selected JEPC model and must not be confused with a separate VIEPS vehicle identity.
+JEPC model hierarchy records are of the form `[model_id,parent_id,model_name]`. Both `model_id` and `parent_id` must be preserved because the hierarchy relationship can distinguish a selected model/sub-range from its parent model/family even when display names are not unique. Source menu paths such as `pl_id_<model_id>` remain source linkage for the selected JEPC model and must not be confused with a separate VIEPS vehicle identity.
+
+Verified examples from `menus/models_I_id_0.xml` include:
+
+```text
+[3175,10001,'Jaguar XK8 Coupe/Convertible']
+[3187,3175,'XK8 Coupe/Convertible up to (V) 042775']
+
+[3215,10001,'XJ Series (From (V)812317 to (V)F59525 (X308)']
+[3218,3215,'XJ Series From (V)812317 to (V)F59525 (X308)']
+```
+
+For importer/operator presentation, the selected model shall therefore retain and expose both its own `Model_ID` and its immediate `Parent_ID`, together with the source descriptions for both levels. The parent level may act as a model/family grouping in JEPC, but the importer must preserve the source hierarchy rather than assuming a stronger domain label than the source establishes.
 
 Initial v0.1/MVP validation profiles:
 
@@ -350,12 +363,12 @@ Example:
 Jagports JEPC Data Importer v0.1
 (C)2026 by tlindi and ChatGPT
 
-JEPC Model_ID #3187
-Jaguar XK8 Coupe/Convertible up to (V) 042775
+JEPC Parent_ID #3175 — Jaguar XK8 Coupe/Convertible
+JEPC Model_ID #3187 — XK8 Coupe/Convertible up to (V) 042775
 Region: Rest of world excluding Americas
 ```
 
-The model line must identify both the technical JEPC `Model_ID` and its source/Jaguar model description. JEPC `Category_ID` must still be preserved in source/staging/log metadata, but it is not required in the compact live operator table.
+The header must identify the selected technical JEPC `Model_ID`, its immediate `Parent_ID`, and the corresponding source descriptions for both levels. For example, source hierarchy `[3175,10001,'Jaguar XK8 Coupe/Convertible']` followed by `[3187,3175,'XK8 Coupe/Convertible up to (V) 042775']` is presented as Parent_ID `3175` plus selected Model_ID `3187`. The parent is described neutrally as the JEPC parent model/family level unless stronger semantics are separately verified. JEPC `Category_ID` must still be preserved in source/staging/log metadata, but it is not required in the compact live operator table.
 
 ### Imported catalogue content table
 
@@ -479,7 +492,7 @@ The importer v0.1/MVP should demonstrate that:
 - no complete pre-existing million-file index is required before useful import begins;
 - the processing ledger is built incrementally bundle by bundle;
 - source checksums are calculated and used instead of trusting modification time;
-- selected model/sub-range/Region profiles can be processed independently while preserving both JEPC `model_id` and `parent_id` hierarchy identity;
+- selected model/sub-range/Region profiles can be processed independently while preserving and displaying both JEPC `model_id` and immediate `parent_id` hierarchy identity;
 - processing resumes from persistent bundle state rather than restarting from the beginning;
 - each normal loop reads/processes one bundle and only then determines the next;
 - known structures import without unnecessary normalized-schema churn;
@@ -491,7 +504,7 @@ The importer v0.1/MVP should demonstrate that:
 - bundle transactions protect the staging database from partial source-set imports;
 - the importer can be stopped cooperatively after current bundle parsing transactions and restarted safely;
 - database health is checked before any bundle processing on restart/resume;
-- the operator sees stable aggregate Model_ID/path/language/structure metrics without a scrolling per-record console flood;
+- the operator sees stable aggregate parent/model/path/language/structure metrics without a scrolling per-record console flood;
 - detailed processing and a development-oriented run report remain available in background logs;
 - canonical part identity remains independent from language-specific source occurrences;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
