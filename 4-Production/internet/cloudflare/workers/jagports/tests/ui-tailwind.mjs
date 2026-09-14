@@ -40,10 +40,15 @@ test('versioned Tailwind source and documentation mirror is present locally', as
   assert.equal(JSON.parse(cliPackage).version, '4.1.13');
 });
 
-test('Tailwind source defines VIEPS design tokens and Concept layout regions', async () => {
+test('Tailwind source defines VIEPS design tokens and Concept-11 layout regions', async () => {
   const css = await readFile(sourceCssUrl, 'utf8');
   assert.match(css, /--color-jagports-teal:/);
   assert.match(css, /grid-template-areas:/);
   assert.match(css, /"tree search ranges"/);
+  assert.match(css, /"tree location ranges"/);
+  assert.match(css, /"tree suitability ranges"/);
+  assert.match(css, /"tree details \."]/);
+  assert.ok(css.indexOf('"tree suitability ranges"') < css.indexOf('"tree details ."'), 'Suitability should precede PART/image in Concept-11');
   assert.match(css, /\.selected-path/);
+  assert.match(css, /CSS-Kit-2ndRound-Tailwind-CSS\.jpg/);
 });
