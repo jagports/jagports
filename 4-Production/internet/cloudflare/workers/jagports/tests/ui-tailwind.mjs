@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const indexUrl = new URL('../public/index.html', import.meta.url);
 const packageUrl = new URL('../package.json', import.meta.url);
 const sourceCssUrl = new URL('../styles/vieps-tailwind.css', import.meta.url);
+const libraryRoot = new URL('../../../../../../6-Development/libraries/css/tailwind/4.1.13/', import.meta.url);
 
 test('VIEPS UI uses only a local built Tailwind stylesheet and no Pico/Tailwind CDN', async () => {
   const html = await readFile(indexUrl, 'utf8');
@@ -20,6 +21,23 @@ test('Tailwind build uses pinned local project dependencies for development and 
   assert.match(pkg.scripts.deploy, /npm run build:css/);
   assert.equal(pkg.devDependencies.tailwindcss, '4.1.13');
   assert.equal(pkg.devDependencies['@tailwindcss/cli'], '4.1.13');
+});
+
+test('versioned Tailwind source and documentation mirror is present locally', async () => {
+  const [sourceRecord, userGuide, license, tailwindPackage, cliPackage] = await Promise.all([
+    readFile(new URL('SOURCE_PACKAGE.md', libraryRoot), 'utf8'),
+    readFile(new URL('USER_GUIDE.md', libraryRoot), 'utf8'),
+    readFile(new URL('LICENSE', libraryRoot), 'utf8'),
+    readFile(new URL('tailwindcss/package.json', libraryRoot), 'utf8'),
+    readFile(new URL('@tailwindcss-cli/package.json', libraryRoot), 'utf8'),
+  ]);
+
+  assert.match(sourceRecord, /v4\.1\.13/);
+  assert.match(sourceRecord, /1334c99/);
+  assert.match(userGuide, /npm run build:css/);
+  assert.match(license, /MIT License/);
+  assert.equal(JSON.parse(tailwindPackage).version, '4.1.13');
+  assert.equal(JSON.parse(cliPackage).version, '4.1.13');
 });
 
 test('Tailwind source defines VIEPS design tokens and Concept layout regions', async () => {
