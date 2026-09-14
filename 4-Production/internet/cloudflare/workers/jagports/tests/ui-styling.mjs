@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const code = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
-const css = readFileSync(new URL('../public/vieps.css', import.meta.url), 'utf8');
+const css = readFileSync(new URL('../styles/vieps-tailwind.css', import.meta.url), 'utf8');
+
 function harness(fetch) {
   const nodes = new Map();
   for (const [, id] of html.matchAll(/id="([^"]+)"/g)) {
@@ -21,6 +23,7 @@ function harness(fetch) {
   const get = id => nodes.get(id);
   return { get, async search(query) { get('partNumber').value = query; await get('partSearch').listeners.submit({ preventDefault() {} }); } };
 }
+
 const response = (data, ok = true) => ({ ok, json: async () => data });
 const fixture = {
   part: { part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
@@ -31,20 +34,25 @@ const fixture = {
     { range_code: 'B', range_name: 'Range B', variation: 'Beta' },
   ],
 };
-test('complete EMF shell exists before search, with no automatic part lookup', () => {
+
+test('complete Concept-11 shell exists before search, with no automatic part lookup', () => {
   let requests = 0;
   harness(() => { requests++; });
   assert.equal(requests, 0);
   assert.doesNotMatch(html, /id="result"[^>]*hidden/);
-  for (const region of ['tree', 'location', 'visual', 'ranges', 'fitment']) assert.match(html, new RegExp(`class="panel ${region}-panel"`));
+  for (const region of ['tree', 'location', 'visual', 'ranges', 'fitment']) {
+    assert.match(html, new RegExp(`class="panel ${region}-panel"`));
+  }
   assert.match(html, /No part selected/);
-  assert.match(html, /Top view/);
-  assert.match(html, /Side view/);
-  assert.match(css, /"tree search ranges" "tree location ranges" "tree details ranges" "tree suitability ranges"/);
-  assert.match(css, /max-width: 980px/);
-  assert.match(css, /max-width: 700px/);
-  assert.match(html, /@picocss\/pico@2/);
+  assert.match(html, /id="vehicleLocation"/);
+  assert.doesNotMatch(html, /Top view|Side view/);
+  assert.match(css, /"tree search search"\s*"tree ranges ranges"\s*"tree location suitability"\s*"tree details details"/);
+  assert.match(css, /max-width:\s*1100px/);
+  assert.match(css, /max-width:\s*760px/);
+  assert.match(html, /href="vieps-tailwind\.css"/);
+  assert.doesNotMatch(html, /picocss|cdn\.tailwindcss\.com/i);
 });
+
 test('search renders escaped identity, nested paths and range-specific variations', async () => {
   const ui = harness(async () => response(fixture));
   await ui.search('TEST1');
@@ -58,6 +66,7 @@ test('search renders escaped identity, nested paths and range-specific variation
   assert.doesNotMatch(ui.get('fitment').innerHTML, /Alpha/);
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
 });
+
 test('empty and failed searches clear old results without hiding the page', async () => {
   let fail = false;
   const ui = harness(async () => response(fail ? { error: 'part not found' } : fixture, !fail));
@@ -71,6 +80,7 @@ test('empty and failed searches clear old results without hiding the page', asyn
   assert.equal(ui.get('result').hidden, false);
   assert.equal(ui.get('result').attrs['aria-busy'], 'false');
 });
+
 test('late responses cannot restore a cleared part', async () => {
   let finish;
   const ui = harness(() => new Promise(resolve => { finish = resolve; }));
@@ -82,6 +92,7 @@ test('late responses cannot restore a cleared part', async () => {
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
   assert.equal(ui.get('rangeSelect').disabled, true);
 });
+
 test('only one selected visual is rendered; unavailable media is not presented as available', async () => {
   const ui = harness(async () => response({ ...fixture, images: [
     { image_url: '/a.png', description: 'First', availability_status: 'available' },

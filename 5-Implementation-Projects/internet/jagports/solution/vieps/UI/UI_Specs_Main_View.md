@@ -4,30 +4,65 @@
 **Controlling issue:** #468  
 **Priority issue:** #475  
 **Implementation parent:** #368  
-**Domain owner:** #354  
+**Domain owner:** #354
 
 ## Objective
-Define the Concept View-1 Main View contract for the selected part, EPC occurrence/context, exploded diagram and synchronized item selection.
+Define the Main View contract from the Concept-11 SVG merged by PR #645 while preserving canonical PART, EPC occurrence/context and item synchronization.
+
+## Merged Concept-11 geometry
+
+```text
+centre/right workspace
+┌──────────────────────────────────────────────────────────────────┐
+│ SUITABILITY MODEL RANGES                                         │
+├──────────────────────────────┬───────────────────────────────────┤
+│ LOCATION AT CAR              │ SUITABILITY / FILTER              │
+│ one location canvas          │ filters or verified facts         │
+├──────────────────────────────┴───────────────────────────────────┤
+│ PART / IMAGE / STATUS                                            │
+│ identity/status + one selected image/diagram                     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+The important correction from the earlier interpretation is that **Location and Suitability are side-by-side**, not vertically stacked. PART / Image / Status spans the full lower centre/right workspace. Model Ranges is a separate row above them.
 
 ## Contract
-The Main View receives the canonical PART, selected EPC occurrence/context and selected item identity. It does not create a new part identity.
+The Main View receives canonical PART, selected EPC occurrence/context and selected item identity. It does not create a new part identity.
 
-When available, it shows the associated exploded diagram and verified drawing/diagram identification. Numbered item callouts/hotspots are shown only when geometry is available.
+### Location at car
+- Use one stable vehicle-location canvas in the left-middle workspace.
+- A verified top, side, schematic, silhouette or other representation may render inside the canvas when supplied by the approved mapping/source contract.
+- A highlighted zone/pin/location requires verified mapping evidence.
+- Missing mapping remains visibly unavailable.
+- Do not recreate the old permanent `Top view` / `Side view` split.
+- Catalogue vehicle location is distinct from physical stock/storage location.
 
-Tree selection and diagram-item selection update the same shared occurrence/item selection state. Selection never mutates canonical PART identity.
+### Coordination with Suitability
+- The adjacent right-middle Suitability region uses the same selected PART/context and vehicle/range applicability state.
+- Location and Suitability remain semantically separate: absence of vehicle-location mapping does not mean absence of fitment, and vice versa.
 
-Missing diagram or hotspot data is an explicit `unavailable` state. No geometry or diagram relationship may be fabricated.
+### PART / Image / Status
+The full lower centre/right region groups, where supported by approved data:
 
-Deterministic fixture geometry is permitted initially and must use the same contract as future verified #352 hotspot conversion output.
+- warning/status;
+- canonical PART number/identity;
+- selected EPC item/callout identity;
+- Jaguar Classic indication;
+- supersession relationship;
+- verified part name/details;
+- one selected part image or exploded diagram.
+
+The SVG examples such as `Fan warning label`, `MJB7703AA`, an item number, Classic and superseded text are illustrative only. They become runtime facts only when current result data supplies them.
+
+Tree selection and diagram-item selection refer to the same occurrence/item context. Selection never mutates canonical PART identity.
+
+Missing image, diagram, hotspot or vehicle-location data is an explicit `unavailable` state. No geometry or relationship may be fabricated.
 
 ## MVP Part Image behaviour
-For the minimum demonstrable Concept View-1 flow, the Main View must be capable of showing the image associated with the resolved PART when verified image data exists.
-
-- Show the resolved PART image or an explicit unavailable state.
-- Keep the image associated with the selected canonical PART and occurrence/context.
-- Do not substitute an unrelated image merely because one is available.
-- Preserve the Main View as the stable visual container so verified diagram, hotspot and vehicle-location views can be integrated later without changing the information architecture.
-- Verified diagram/hotspot rendering and vehicle-location mapping are not prerequisites for demonstrating the Part Image step when suitable image data exists.
+- Show the resolved PART image when verified image data exists, otherwise an explicit unavailable state.
+- Keep the visual associated with the selected canonical PART and occurrence/context.
+- Do not substitute unrelated media.
+- Preserve the full lower PART / Image / Status region so diagram/hotspot support can be integrated later without changing information architecture.
 
 ## UI/API contract
 ```text
@@ -35,10 +70,14 @@ MainViewRequest
   canonical_part_id
   occurrence_context_id
   selected_item_id
+  selected_vehicle_context?
 
 MainViewResult
   state
   part_context
+  status/warnings when supported
+  classic/supersession when supported
+  vehicle_location when supported
   part_image when available
   diagram
   items[] / hotspots[]
@@ -47,29 +86,31 @@ MainViewResult
 ```
 
 ## State and synchronization
-- `resolved` means the selected part/context is available for presentation.
-- `unavailable` means the requested secondary visual/context data is absent.
-- `error` means processing/API failure.
+- `resolved`: selected part/context is available for presentation.
+- `unavailable`: requested secondary visual/context data is absent.
+- `error`: processing/API failure.
 - Tree and diagram selection refer to the same item/occurrence identity.
-- If geometry is absent, item identity may still be presented without a hotspot.
-- Missing Part Image data is an unavailable visual state; it does not change PART identity or applicability.
+- Missing geometry may still allow item identity to be shown without a hotspot.
+- Missing Part Image or vehicle-location data does not change PART identity or applicability.
 
 ## Deterministic fixtures
-Cover Part Image available, Part Image unavailable, diagram available, diagram unavailable, diagram with numbered items, hotspot unavailable, and synchronized tree/diagram selection.
+Cover vehicle-location available/unavailable, Part Image available/unavailable, diagram available/unavailable, numbered items, hotspot unavailable, supported status/Classic/supersession examples and synchronized tree/diagram selection. Preserve current main-branch non-numbered fixture identifiers without presenting them as Jaguar part numbers.
 
-## Concept-1 integration
-The Main View component exists in its permanent Concept-1 position from the first implementation. Fixture-backed content can later be replaced by imported/verified data without changing the UI contract.
+## Viewport and language
+On desktop, Model Ranges is above the middle row, Location/Suitability are side-by-side, and PART/Image/Status spans the lower centre/right workspace. Long content scrolls inside permanent regions under #616.
+
+UI text must be compatible with #554 localization. Parts/catalogue-data language remains independently selectable under #620. This specification does not implement either language selector by itself.
 
 ## Dependencies and boundaries
-Follows #472 Part Search and #474 Parts Tree. #352 owns hotspot coordinate conversion. Full vehicle location, suitability/fitment, supersession/Classic, stock and import are outside this priority. The specification consumes #354 semantics and does not redefine the domain model.
+Follows Part Search and Parts Tree contracts. #352 owns hotspot coordinate conversion. Vehicle mapping, fitment, supersession/Classic, stock and import remain governed by their own specifications. This document consumes #354 semantics and does not redefine the domain model.
 
 ## Acceptance criteria
-- [ ] Main View context contract is defined.
-- [ ] Part Image available/unavailable behaviour is defined for the minimum MVP.
-- [ ] Diagram identity and availability semantics are defined.
-- [ ] Item/hotspot availability and selection semantics are defined.
-- [ ] Tree and diagram selection synchronization is defined.
-- [ ] Missing diagram/hotspot states are explicit.
-- [ ] Deterministic fixture coverage is defined.
-- [ ] Stable Main View UI/API contract is defined for #368.
-- [ ] Scope remains within #468 and #354 semantics.
+- [ ] Model Ranges / Location / Suitability / PART-region geometry matches merged Concept-11.
+- [ ] Location and Suitability are side-by-side on the desktop information architecture.
+- [ ] Single vehicle-location canvas is defined; permanent Top/Side boxes are superseded.
+- [ ] PART / Image / Status spans the lower centre/right workspace.
+- [ ] Part Image and diagram available/unavailable behaviour is defined.
+- [ ] Tree/diagram selection synchronization is defined.
+- [ ] Warning/status, Classic and supersession remain evidence-backed concerns.
+- [ ] Missing media/location states remain explicit.
+- [ ] Viewport-fit and UI-vs-Parts language boundaries are preserved.

@@ -1,212 +1,126 @@
 # VIEPS UI — Part Search Specification
 
 ## Status
+This document defines VIEPS search resolution and its UI/data contract.
 
-This document is the durable implementation-level specification for the first active VIEPS UI priority from Issue #468:
+**Controlling UI specification:** #468  
+**Implementation parent:** #368  
+**Domain/data dependency:** #354  
+**Specification work record:** #472
 
-> Part search resolves a canonical part and relevant occurrence/context.
+The placement authority is the Concept-11 SVG merged by PR #645 and the normative map in `UI_Specs.md`.
 
-**Controlling UI specification:** #468 — VIEPS UI / Concept View-1 — Updated MVP UI specification  
-**Implementation parent:** #368 — VIEPS UI / Implement MVP Web UI  
-**Domain/data dependency:** #354 — Define and implement Parts Data Model  
-**Specification work record:** #472 — VIEPS UI / Specification — Part search resolution and UI data contract
-
-## Target flow
+## Search / Availability placement
+Concept-11 places Search + Availability in the top workspace to the right of the branding/instructions/language block.
 
 ```text
-USER ENTERS JAGUAR PART NUMBER
-        │
-        ▼
-NORMALIZE / VALIDATE SEARCH INPUT
-        │
-        ├── invalid → explicit validation/error state
-        │
-        ▼
-RESOLVE CANONICAL PART
-        │
-        ├── no match → explicit not-found state
-        │
-        ▼
-RESOLVE RELEVANT EPC OCCURRENCE / CONTEXT
-        │
-        ├── one context → select it
-        ├── multiple contexts → preserve/display the applicable context
-        └── no context → explicit unavailable-context state
-        │
-        ▼
-STABLE UI/API RESULT
-        │
-        ├── canonical PART identity
-        ├── selected OCCURRENCE / CONTEXT where available
-        ├── Parts Tree path/context
-        ├── diagram/item context where available
-        └── suitability/fitment context where available
-        │
-        ▼
-CONCEPT VIEW-1 PAGE
+BRANDING / LANGUAGE | SEARCH + AVAILABILITY
+                    | Search: [ identifier ] [Search]
+                    | Availability: [ stock quality A…E ▼ ]
 ```
 
-## 1. Search input
+Availability remains operational stock state, separate from catalogue identity. When unsupported by the approved stock browse contract it must remain disabled/unavailable rather than simulated.
 
-- The MVP search entry point is a Jaguar part-number search.
-- Search input is treated as an identifier, not arbitrary natural-language search.
+## Search input
+- Primary entry point is Jaguar part-number search.
+- Approved deterministic non-numbered identifiers may also be accepted where the current read contract supports them.
+- Current main-branch fixtures `firtree1` and `firtree2` are descriptive fixture identifiers, **not Jaguar part numbers**.
 - Leading/trailing whitespace is ignored.
-- Part-number matching is case-insensitive for lookup; the resolved canonical value is returned from the catalogue data.
-- The user's original entered value is retained separately from the normalized lookup value for UI/error reporting.
-- Internal punctuation or characters are not silently removed or rewritten unless an approved source-specific normalization rule establishes that behaviour.
-- Validation rejects clearly invalid/empty input without inventing a part identity.
+- Part-number matching is case-insensitive; canonical value comes from catalogue data.
+- Original entered value remains available for UI/error reporting.
+- Do not silently invent or normalize unsupported punctuation/characters.
+- Empty/clearly invalid input produces an explicit state, not a guessed identity.
 
-## 2. Canonical PART resolution
+## Canonical PART and occurrence resolution
+A successful Jaguar part-number lookup resolves one canonical `PART` identity. A non-numbered supported identifier resolves the approved non-numbered item/context without fabricating a Jaguar number.
 
-- A successful search resolves to one canonical catalogue `PART` identity from the approved Parts Data Model.
-- The UI must not create or duplicate a catalogue part merely because it appears in multiple EPC contexts.
-- Part description/name and other catalogue attributes come from the resolved PART/data contract rather than being independently reconstructed by the UI.
-- A search result retains enough stable identity to be passed to subsequent Parts Tree, Main View, Suitability and fitment operations.
-- Unresolved input remains unresolved; no guessed Jaguar part number is permitted.
-- The canonical identity is the data-model identity, not merely the search string.
-
-## 3. EPC occurrence/context resolution
-
-A canonical PART may occur in multiple EPC contexts. The search result therefore separates:
+A canonical PART may occur in multiple EPC contexts:
 
 ```text
 PART
-  │
   └── OCCURRENCE / CONTEXT
         ├── vehicle/model context
-        ├── category / Parts Tree path
-        ├── diagram context
-        ├── item/hotspot context
-        └── applicable attributes/fitment context
+        ├── Parts Tree path
+        ├── diagram/item context
+        └── applicability/qualifiers
 ```
 
-- The canonical PART identity remains singular.
-- Occurrence/context identifies where and how that part is represented in EPC data.
-- Multiple valid occurrences must not be collapsed into a false single context.
-- If the available MVP data cannot deterministically choose one occurrence, the contract preserves the alternatives or explicitly reports that context selection is unavailable.
-- Context selection must be stable and deterministic for fixtures/tests.
-- Context identity must not be used as a replacement for canonical PART identity.
+Multiple occurrences remain distinguishable and do not duplicate canonical PART identity.
 
-## 4. Result states
+## Result states
+| State | Meaning |
+|---|---|
+| `empty` | No search submitted; permanent Concept-11 shell remains visible |
+| `invalid` | Identifier fails validation |
+| `not_found` | Valid search has no supported match |
+| `resolved` | Identity/context resolved |
+| `context_unavailable` | Identity resolved but secondary EPC context unavailable |
+| `error` | Processing/API failure |
 
-The UI/API contract distinguishes at least:
+## Result distribution into merged Concept-11
+```text
+resolved identity/context
+   ├── Parts Tree main-level index + relevant path(s)
+   ├── Suitability Model Ranges row
+   ├── Location at car (left-middle)
+   ├── Suitability / Filter or facts (right-middle)
+   └── PART / Image / Status (full lower centre/right)
+```
 
-| State | Meaning | UI behaviour |
-|---|---|---|
-| `empty` | No search submitted | Show initial Concept-1 state |
-| `invalid` | Input fails identifier validation | Show explicit validation state |
-| `not_found` | Valid search but no canonical PART match | Show explicit not-found state |
-| `resolved` | PART and relevant context resolved | Populate Concept-1 |
-| `context_unavailable` | PART resolved but EPC context is unavailable | Show PART and explicit unavailable context |
-| `error` | Resolution could not be completed | Show explicit error; do not fabricate data |
+Missing secondary data stays as an explicit unavailable state in its permanent region.
 
-Exact API enum naming remains an implementation detail; the semantic states above are required.
+## Empty-search stock browsing
+The merged SVG states that when Search is empty, a supported Availability/quality constraint may update both the Parts Tree and Model Ranges to contexts represented by matching stock.
 
-## 5. Deterministic fixture requirements
+That behavior is valid only when an approved stock/catalogue browse contract resolves stock through canonical catalogue/fitment relationships. The illustrated A–E stock qualities are not defined by the artwork itself.
 
-The first implementation must be runnable without production/imported JEPC data.
-
-Fixtures must include at minimum:
-
-1. A valid Jaguar part number resolving to one canonical PART.
-2. A canonical PART occurring in multiple EPC contexts.
-3. A valid part number with no match.
-4. Invalid/empty search input.
-5. A PART with unavailable EPC context.
-6. A resolved PART with enough context to populate the Parts Tree path.
-7. A resolved PART with diagram/item context where available.
-
-Fixture identities and values must be clearly marked as deterministic test data and must not be presented as verified Jaguar catalogue facts.
-
-## 6. API/data boundary
-
-The UI consumes a stable result contract. Conceptually:
-
+## API/data boundary
 ```text
 PartSearchRequest
-    query
-
-        ↓
+  query
 
 PartSearchResult
-    state
-    canonical_part
-    occurrences[]
-    selected_occurrence/context
-    tree_path/context
-    diagram/item context when available
-    fitment/suitability context when available
-    explicit unavailable/error information
+  state
+  canonical_part? / approved non-numbered identity?
+  occurrences[]
+  selected_occurrence/context
+  tree context
+  diagram/item context when available
+  fitment/suitability context when available
+  unavailable/error information
 ```
 
-The exact serialization and technology are implementation decisions, but the domain/UI boundary remains stable.
+Presentation code must not encode JEPC database structure or reconstruct domain resolution logic.
 
-The UI must not directly encode JEPC database structure or reproduce domain resolution logic in presentation components.
+## Deterministic fixtures
+Cover at least:
+- valid Jaguar part number;
+- multiple EPC occurrences;
+- valid no-match;
+- invalid/empty input;
+- unavailable EPC context;
+- tree context;
+- diagram/item context where available;
+- non-numbered fixture identifiers including `firtree1` and `firtree2`.
 
-## 7. Concept View-1 integration
+Fixture values are test data, not verified Jaguar catalogue facts.
 
-The first real implementation establishes the complete Concept View-1 page under #368 even where later capabilities remain placeholders.
+## Viewport and language
+The default desktop shell retains #616 viewport-fit behavior. Search/Availability/status UI text follows #554 before final post-MVP approval. Parts/catalogue-data language remains independently selectable under #620, matching the separate `[UI]` and `[Parts]` language concerns drawn in Concept-11. This search spec does not implement a parallel localization mechanism.
 
-For this priority:
-
-- Search control is real.
-- Search result state is real.
-- Canonical PART resolution is real against deterministic fixture data initially.
-- The Parts Tree area receives the resolved context and may initially render the relevant path from fixture data.
-- Main View, Suitability Model Ranges, vehicle location, diagram/hotspot and other later-priority areas have permanent component positions and explicit placeholder/unavailable states rather than temporary throwaway mockup locations.
-
-This ensures the first implementation PR establishes the final information architecture while later priorities progressively replace placeholders with real behaviour.
-
-## 8. Error and unavailable semantics
-
-- Missing data is not equivalent to a negative fitment result.
-- No EPC occurrence is not equivalent to no catalogue PART.
-- No diagram is not equivalent to no part.
-- No vehicle-location mapping is not equivalent to no fitment.
-- Search failures must not silently fall back to guessed or partial identities.
-
-## 9. Dependency boundary
-
-This specification does not require completion of the entire Parts Data Model or JEPC importer before the first UI implementation can start.
-
-The first implementation consumes the minimum approved read contract and deterministic fixtures. The authoritative domain model remains owned by #354 and source/import behaviour remains owned by #355.
-
-Existing #368 guidance that the first UI PR should establish a small explicit read contract is incorporated here. The current #468 MVP entry point is the canonical part-number search; older alternative-entry sequencing does not replace that current MVP boundary.
+## Error/unavailable semantics
+- Missing context is not no PART.
+- Missing image/diagram/location is not no PART.
+- Missing fitment evidence is not a negative match unless the applicability contract says so.
+- Missing Availability support is not zero stock.
+- Search failures do not fall back to guessed identities.
 
 ## Acceptance criteria
-
-- [x] A deterministic part-number search contract is documented.
-- [x] Search input normalization and validation behaviour are defined.
-- [x] Canonical PART identity is separated from EPC occurrence/context identity.
-- [x] Multiple EPC occurrences can be represented without duplicating the canonical PART.
-- [x] Empty, invalid, not-found, resolved, context-unavailable and error states are explicitly defined.
-- [x] Deterministic fixtures cover successful, ambiguous/multiple-context, not-found and unavailable-context cases.
-- [x] The UI/API boundary prevents presentation code from redefining the Parts Data Model.
-- [x] The specification provides the contract required for the next Parts Tree priority without redefining the domain model.
-- [x] Implementation is linked to #368 and remains within the MVP boundary defined by #468.
-
-## Implementation boundary
-
-The implementation PR resulting from this specification should be titled with the required prefix:
-
-`VIEPS UI / ...`
-
-It must include automated tests, deterministic fixtures, and links to #472, #468, #368 and #354 as applicable.
-
-The first implementation PR should establish the complete Concept View-1 page/shell with real search resolution and explicit placeholders/unavailable states for functionality belonging to later priorities.
-
-## Out of scope
-
-- Full Parts Tree implementation beyond the search result/context contract.
-- Final diagram hotspot conversion (#352).
-- Full vehicle-location mapping (#361/#362).
-- Full fitment implementation beyond carrying the relevant context.
-- Supersession/Classic integration.
-- Operational stock integration.
-- Production JEPC import implementation (#355).
-
-Those remain subsequent priorities/dependencies under #368 and #468.
-
-## Definition of done
-
-The Part Search specification is implementation-ready when the search/result states, canonical PART versus occurrence/context boundary, deterministic fixtures and UI/API contract are sufficiently explicit that the first #368 implementation PR can implement the search without making a new domain-model decision.
+- [x] Search/result states and canonical identity boundaries are documented.
+- [x] Multiple EPC occurrences remain distinct from canonical PART identity.
+- [x] Non-numbered fixture identifiers are not presented as Jaguar part numbers.
+- [x] Search/Availability placement follows merged Concept-11.
+- [x] Result distribution follows the corrected Model Ranges / Location / Suitability / PART geometry.
+- [x] Unsupported stock-driven empty-search behavior is not fabricated.
+- [x] UI-vs-Parts language separation is preserved.
+- [x] Presentation does not redefine the Parts Data Model.
