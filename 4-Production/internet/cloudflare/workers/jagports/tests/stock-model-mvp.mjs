@@ -120,8 +120,8 @@ for (const name of [
 // boxes and recursively nested sub-boxes, plus sample stock placed in them.
 const fixtureDb = database({ fixtures: false });
 fixtureDb.exec(sql('tests/fixtures/mvp_stock_storage.sql'));
-assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_site').get().count, 2);
-assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_location').get().count, 8);
+assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_site WHERE id IN (57101, 57102)').get().count, 2);
+assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_location WHERE id BETWEEN 57110 AND 57121').get().count, 8);
 assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_item WHERE id BETWEEN 57140 AND 57143').get().count, 4);
 assert.equal(fixtureDb.prepare('SELECT name FROM stock_location WHERE id = 57113').get().name, 'BoxSub2');
 
