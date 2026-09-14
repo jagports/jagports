@@ -8,14 +8,10 @@ PRAGMA foreign_keys = ON;
 INSERT OR IGNORE INTO part (
   part_number_raw, part_number_normalized, description, source, source_ref, verification_status
 ) VALUES
-  ('MJB7703AA', 'MJB7703AA', 'Representative Deployment-1 part', 'fixture-607', 'issue:#607:mjb7703aa', 'fixture');
-
-INSERT OR IGNORE INTO part (
-  id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status
-) VALUES
-  (60731, 'MNA7691AA', 'MNA7691AA', 'Fan Warning Label', 'fixture-607', 'issue:#607:mna7691aa', 'fixture'),
-  (60732, 'XR847031', 'XR847031', 'Fan Warning Label Replacement', 'fixture-607', 'issue:#607:xr847031', 'fixture'),
-  (60733, 'FIX538C', 'FIX538C', 'Synthetic supersession chain endpoint fixture', 'fixture-607', 'issue:#607:fix538c', 'fixture');
+  ('MJB7703AA', 'MJB7703AA', 'Representative Deployment-1 part', 'fixture-607', 'issue:#607:mjb7703aa', 'fixture'),
+  ('MNA7691AA', 'MNA7691AA', 'Fan Warning Label', 'fixture-607', 'issue:#607:mna7691aa', 'fixture'),
+  ('XR847031', 'XR847031', 'Fan Warning Label Replacement', 'fixture-607', 'issue:#607:xr847031', 'fixture'),
+  ('FIX538C', 'FIX538C', 'Synthetic supersession chain endpoint fixture', 'fixture-607', 'issue:#607:fix538c', 'fixture');
 
 INSERT INTO part (
   part_number_raw, part_number_normalized, description, source, source_ref, verification_status
