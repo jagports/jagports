@@ -1,52 +1,76 @@
-# VIEPS MVP CSS / UI-kit selection
+# VIEPS CSS / UI-kit selection
 
-## Scope
+## Status
 
-This record implements the CSS/UI-kit selection requirement of Issue #565. The styling layer must improve visual hierarchy and responsive presentation without changing VIEPS domain semantics, API contracts or the Concept View-1 information architecture.
+This record documents the current VIEPS styling direction after the second-round CSS-kit evaluation and the Concept-11 decision.
 
-## Candidates
-
-| Candidate | MVP integration | Markup impact | JavaScript requirement | Responsive/layout support | Assessment |
-| --- | --- | --- | --- | --- | --- |
-| Pico CSS | Low | Low; class-light semantic HTML remains usable | None | Built-in responsive forms/typography plus small VIEPS-specific grid CSS | Best fit for the current small static Worker frontend. |
-| Bulma | Moderate | Moderate; more component/layout classes would be added throughout the page | None | Strong layout/component utilities | Good option, but more markup churn than needed for the present MVP shell. |
-| Bootstrap | Moderate to high | Moderate; component classes would become part of most UI markup | Optional JS for interactive components | Mature responsive grid/components | More capability than the current styling-only requirement needs and a larger integration surface. |
+The earlier MVP choice of Pico CSS is historical. The selected post-MVP/current visual implementation path is **local Tailwind CSS**, implemented under Issue #642 / PR #647.
 
 ## Selected option
 
-**Pico CSS, major version 2**, loaded as a stylesheet from jsDelivr.
+**Tailwind CSS 4.1.13**, used as a local build-time dependency.
 
-### Rationale
+The browser must load only the VIEPS-owned generated stylesheet. No Tailwind CDN, remote stylesheet, remote script or other runtime third-party Tailwind dependency is part of the VIEPS UI contract.
 
-- The current VIEPS frontend is plain semantic HTML plus a small JavaScript renderer, so a class-light CSS layer avoids replacing the application structure or introducing a frontend framework.
-- Pico requires no JavaScript runtime and therefore does not interfere with the existing Worker/API behavior.
-- Its form, typography and basic component defaults provide a consistent baseline while keeping VIEPS-specific layout in a small local stylesheet.
-- The integration works with Cloudflare Workers Static Assets because it is ordinary browser CSS; no build step is introduced.
-- Responsive behavior can be handled with the kit defaults plus explicit VIEPS breakpoints for the three-column Concept View-1 layout.
+## Design authorities
 
-## Integration boundary
+The Tailwind implementation has two separate visual authorities:
 
-The frontend loads:
+1. **Layout/content relationship authority**
+   - `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/VIEPS UI-Concept-11.svg`
+   - reviewed through PR #645.
 
-1. Pico CSS v2 from jsDelivr for the general visual system.
-2. `public/vieps.css` for VIEPS-specific panel, Concept View-1 grid, card, badge, image and narrow-screen rules.
+2. **Tailwind style/theme authority**
+   - `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/CSS-Kit-2ndRound-Tailwind-CSS.jpg`
+   - selected from the second-round comparison under #632 / PR #640.
 
-The local stylesheet is deliberately limited to VIEPS-specific presentation. It does not encode fitment, PART, Parts Tree, image/diagram or availability decisions.
+Supporting direction remains:
 
-If the external stylesheet cannot be loaded, semantic HTML and the local stylesheet still leave the page usable; VIEPS functional behavior remains in `app.js` and the Worker/API.
+- `UI_Visualization_AI_Prompt.png` for visual treatment;
+- repository `docs/*.png` images for Jagports colour/theme direction;
+- JEPC screenshots/specifications for Parts Tree interaction and hierarchy lessons, without copying the full legacy JEPC application;
+- the old live Pico rendering only as historical/negative comparison evidence.
 
-## Visual target
+## Concept-11 relationship
 
-The implementation uses the EMF placement authority and the aligned ASCII map in UI_Specs.md, with the #564 visualization guiding typography and panel treatment:
+Concept-11 supersedes the old Concept View-1 placement map for the Tailwind visual implementation while preserving the same domain and data contracts.
 
-- tree on the left and model ranges on the right;
-- search, vehicle top/side regions, combined part details/image and detailed suitability stacked in the centre;
-- a complete visible shell before Search, with explicit empty/unavailable states;
-- one image/diagram displayed at a time and variations filtered by selected range;
-- consistent panel/card treatment, spacing and typography;
-- explicit unavailable states remain visually distinct without inventing data;
-- the layout collapses to two columns and then one column at narrower widths.
+The authoritative text equivalent is maintained in `UI_Specs.md` as the **Concept-11 ASCII map**.
 
-## Non-semantic rule
+Key placement relationships are:
 
-Styling must never infer, fabricate or transform VIEPS business data. Existing element IDs and rendering contracts remain the functional boundary; the CSS/UI kit changes presentation only.
+- Parts Tree occupies the persistent left column;
+- Search and stock-availability filtering share the upper centre workspace;
+- vehicle/location context appears below the search strip;
+- Suitability Model Ranges occupy the upper/right column as fit/check controls;
+- detailed suitability/variation filtering appears in the centre workspace;
+- part identity, warning/status, Classic/supersession presentation and the selected part image/diagram occupy the lower centre workspace.
+
+Concept artwork may illustrate controls before their data contracts are implemented. Such controls must remain disabled/unavailable or omitted until supported by approved data/API contracts; the UI must not fabricate behaviour.
+
+## Tailwind implementation principles
+
+- Use reusable VIEPS tokens/components for colours, typography, spacing, panels, controls, tree selection, suitability, status and visual regions.
+- Preserve semantic IDs/data hooks and domain/API boundaries.
+- Preserve PR #616 viewport-fit behaviour: normal desktop use has a fitted shell with scrolling inside permanent regions; narrower layouts may use normal page scrolling.
+- Keep the Parts Tree selected/relevant path strongly visible.
+- Allow variable-length localized UI text and consume the approved #554 i18n contract before final approval/merge.
+- Keep UI locale independent from JEPC catalogue-data language as specified by #620.
+- Do not encode fitment, PART identity, stock, availability or other business decisions in CSS.
+
+## Local build and versioned source record
+
+The VIEPS Worker build pins:
+
+- `tailwindcss` `4.1.13`;
+- `@tailwindcss/cli` `4.1.13`.
+
+A versioned source/documentation record is retained under:
+
+`6-Development/libraries/css/tailwind/4.1.13/`
+
+Future Tailwind upgrades must create a new version directory rather than overwrite the retained release record.
+
+## Historical decision
+
+Pico CSS v2 was selected for the earlier small MVP shell because it minimized markup/build changes. That choice is superseded for the Concept-11 visual implementation. Pico must not remain as a parallel runtime styling path.
