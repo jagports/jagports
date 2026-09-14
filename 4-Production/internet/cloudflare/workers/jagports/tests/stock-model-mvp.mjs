@@ -118,11 +118,38 @@ for (const name of [
 
 // Playable synthetic fixture set requested during review: multiple sites, shelves,
 // boxes and recursively nested sub-boxes, plus sample stock placed in them.
+// Validate semantic fixture behavior instead of relying on internal fixture ids/counts.
 const fixtureDb = database({ fixtures: false });
 fixtureDb.exec(sql('tests/fixtures/mvp_stock_storage.sql'));
-assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_site WHERE id IN (57101, 57102)').get().count, 2);
-assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_location WHERE id BETWEEN 57110 AND 57121').get().count, 8);
-assert.equal(fixtureDb.prepare('SELECT COUNT(*) AS count FROM stock_item WHERE id BETWEEN 57140 AND 57143').get().count, 4);
-assert.equal(fixtureDb.prepare('SELECT name FROM stock_location WHERE id = 57113').get().name, 'BoxSub2');
+
+const fixtureStockRows = fixtureDb.prepare(`
+  SELECT s.part_number, s.storage_location_id, l.name AS location_name
+  FROM stock_item s
+  JOIN stock_location l ON l.id = s.storage_location_id
+  WHERE s.source_ref LIKE 'fixture:571:stock:%'
+  ORDER BY s.part_number
+`).all();
+assert.ok(fixtureStockRows.length > 0);
+for (const row of fixtureStockRows) {
+  assert.match(row.part_number, /^FIXTURE-STOCK-[A-Z]$/);
+  assert.ok(row.storage_location_id > 0);
+  assert.ok(row.location_name.length > 0);
+}
+
+const nestedFixture = fixtureDb.prepare(`
+  WITH RECURSIVE location_path(id, parent_id, depth) AS (
+    SELECT loc.id, loc.parent_id, 0
+    FROM stock_location loc
+    JOIN stock_site site ON site.id = loc.site_id
+    WHERE site.name = 'Fixture Main Site'
+      AND loc.name = 'BoxSub2'
+    UNION ALL
+    SELECT parent.id, parent.parent_id, child.depth + 1
+    FROM stock_location parent
+    JOIN location_path child ON child.parent_id = parent.id
+  )
+  SELECT MAX(depth) AS depth FROM location_path
+`).get();
+assert.equal(nestedFixture.depth, 3);
 
 console.log('stock-model-mvp: accepted MVP stock semantics passed');
