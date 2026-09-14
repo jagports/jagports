@@ -7,60 +7,44 @@
 **Domain owner:** #354  
 
 ## Objective
-
-Keep operational stock separate from immutable catalogue/reference information while supporting the Concept-11 Availability and empty-search browsing relationships.
-
-The current placement authority is the **Concept-11 ASCII map in `UI_Specs.md`**.
+Keep operational stock separate from immutable catalogue/reference information while supporting the approved Concept-11 Search + Availability and conditional empty-search browsing relationships.
 
 ## Contract
-
 Catalogue PART/PART OCCURRENCE data and operational STOCK RECORD data are separate.
 
-Stock quantity, condition/status, storage location, donor vehicle/reference, availability and operational notes do not mutate catalogue identity or fitment.
+Stock quantity, condition/status, storage location, donor vehicle/reference, availability and operational notes do not mutate catalogue identity.
 
 If stock is held under an older/superseded catalogue part number, the UI may show the supersession relationship while retaining the stocked identity. A stock record may reference resolved catalogue identity, but unresolved stock remains explicitly unresolved.
 
 Catalogue vehicle location and physical stock/storage location are never conflated.
 
-## Concept-11 Availability control
+## Concept-11 availability relationship
+Concept-11 places **Availability** beside Search in the top-centre strip.
 
-Concept-11 places an **Availability** constraint beside Search and illustrates selectable stock quality/status values.
+The SVG illustrates a selection list of stock-available part qualities `A…E` with descriptions. This is a presentation concept, not a definition of quality-code meanings.
 
-This is an operational stock filter, not a catalogue attribute.
+Rules:
 
-```text
-Availability / stock constraint
-          │
-          ├── may constrain stock-backed result set
-          ├── may constrain empty-search Parts Tree browsing
-          └── may constrain empty-search applicable Model Ranges
-```
+- actual quality codes and descriptions must come from the approved operational stock contract;
+- if no quality/availability contract is available, the control remains unavailable/disabled;
+- availability filtering must not change canonical PART identity or fitment semantics;
+- a selected availability/quality constraint may narrow result sets only through approved query logic.
 
-This behaviour requires an approved stock/catalogue query contract. Until that contract exists:
+## Empty-search stock browsing
+The Concept-11 note states that when part search is empty, stock may constrain the Parts Tree and Model Ranges.
 
-- do not invent stock qualities or availability categories;
-- do not fabricate stock-derived Parts Tree levels;
-- do not infer model applicability merely from stock presence;
-- present the control/state as unavailable or disabled where necessary.
-
-## Empty-search browsing
-
-Concept-11 illustrates a mode in which no specific PART has been entered and stock availability can be used to expose only catalogue/tree and model/range contexts represented by matching stock.
-
-That mode must preserve the following separation:
+Approved interpretation:
 
 ```text
-STOCK RECORDS
-   ↓ constrain/query
-CANONICAL PART references
-   ↓ resolve through catalogue/fitment contracts
-PARTS TREE / MODEL RANGES
+empty search + supported stock constraint
+        │
+        ├── Parts Tree main levels represented by matching stock
+        └── Model Ranges represented by matching stock/applicability
 ```
 
-Stock records must never directly manufacture catalogue hierarchy or fitment relationships.
+This mode is conditional on an approved query contract joining operational stock to catalogue identity and applicability. It must not be simulated from unrelated fixture values or inferred solely from the visual concept.
 
 ## UI/API shape
-
 ```text
 CataloguePart
   canonical identity/context
@@ -69,40 +53,36 @@ StockRecord
   stock_id
   part_reference?
   quantity
-  quality/condition/status
+  quality_code?
+  quality_description?
+  condition/status
   storage_location
   donor_reference?
   availability
   operational_notes
 
 StockBrowseConstraint
-  supported availability/quality values
-  matching stock records / canonical part references
+  availability?
+  quality_codes[]?
 ```
 
 ## Deterministic fixtures
-
-Cover multiple stock records for one part, stock under a historical part number with supersession, unresolved stock, zero/unavailable stock and at least one supported availability/quality constraint when the browse contract is implemented.
-
-## Viewport and i18n
-
-Availability labels/descriptions must tolerate variable-length localized UI text under #554. Catalogue-data language remains separate under #620.
-
-Stock result details may scroll inside their permanent Concept-11 region on the fitted PR #616 desktop shell.
+Cover multiple stock records for one part, stock under a historical part number with supersession, unresolved stock, zero/unavailable stock, stock quality/description data when supported, and an explicit unsupported empty-search browse state.
 
 ## Boundaries
-
 Stock is operational data. It does not redefine #354 catalogue identity or fitment semantics. Stock APIs may be implemented separately from catalogue lookup.
 
-## Acceptance criteria
+The Concept-11 `A…E` illustration must not be treated as authoritative business meanings until those meanings are defined by the stock domain contract.
 
+## Acceptance criteria
 - [ ] Catalogue and stock boundaries are defined.
 - [ ] Stock fields are defined as operational data.
-- [ ] Concept-11 Availability is explicitly an operational constraint, not catalogue identity.
-- [ ] Empty-search stock browsing resolves through canonical catalogue/fitment relationships.
-- [ ] No stock-derived hierarchy or fitment is fabricated without an approved query contract.
+- [ ] Concept-11 Availability placement and conditional behavior are defined.
+- [ ] `A…E` is recorded as illustrative until defined by the approved stock contract.
 - [ ] Historical/superseded stock identity is retained.
 - [ ] Unresolved stock remains unresolved.
 - [ ] Vehicle catalogue location and stock storage location are separated.
-- [ ] Viewport-fit and i18n-safe presentation are preserved.
+- [ ] Empty-search stock browsing requires an approved query contract.
+- [ ] Deterministic fixture coverage is defined.
 - [ ] Stable stock UI/API boundary is defined for #368.
+- [ ] Scope does not redefine #354.
