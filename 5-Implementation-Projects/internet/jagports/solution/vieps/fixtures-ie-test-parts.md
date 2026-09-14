@@ -75,7 +75,7 @@ Then validate the live endpoint:
 for PN in MJB7703AA MNA7691AA XR847031 FIX538C; do
   curl -L "https://vieps.parts-5ec.workers.dev/api/vieps/part?q=${PN}"
   echo
- done
+done
 ```
 
 ## Scope boundary
