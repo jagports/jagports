@@ -4,7 +4,7 @@
 
 /*
  * Visual authorities:
- * - layout/content relationships: VIEPS UI-Concept-11.svg (PR #645)
+ * - layout/content relationships: merged VIEPS UI-Concept-11.svg (PR #645)
  * - Tailwind style/theme: CSS-Kit-2ndRound-Tailwind-CSS.jpg (#632 / PR #640)
  * Business/data semantics remain controlled by the VIEPS UI/data specifications.
  */
@@ -56,6 +56,13 @@
   .eyebrow { @apply mb-1 text-[0.65rem] font-bold uppercase tracking-[0.11em] text-jagports-muted; }
   .muted, .compact-note { @apply text-jagports-muted; }
 
+  /*
+   * Merged Concept-11 geometry:
+   *   Parts Tree | Search + Availability (spans centre + right)
+   *   Parts Tree | Suitability Model Ranges (spans centre + right)
+   *   Parts Tree | Location at car | Suitability / Filter
+   *   Parts Tree | PART / Image / Status (spans centre + right)
+   */
   .concept-grid {
     flex: 1 1 auto;
     min-height: 0;
@@ -63,13 +70,13 @@
     gap: 0.55rem;
     overflow: hidden;
     align-items: stretch;
-    grid-template-columns: minmax(14rem, 0.92fr) minmax(30rem, 2.15fr) minmax(15rem, 0.95fr);
-    grid-template-rows: auto minmax(0, 0.78fr) minmax(0, 1.05fr) minmax(0, 1.25fr);
+    grid-template-columns: minmax(14rem, 0.9fr) minmax(19rem, 1.15fr) minmax(24rem, 1.65fr);
+    grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1.05fr);
     grid-template-areas:
-      "tree search ranges"
-      "tree location ranges"
-      "tree suitability ranges"
-      "tree details .";
+      "tree search search"
+      "tree ranges ranges"
+      "tree location suitability"
+      "tree details details";
   }
 
   .search-panel { grid-area: search; }
@@ -90,16 +97,21 @@
   .section-heading { @apply mb-2 flex-none border-b border-jagports-line pb-1.5; }
 
   .search-availability-strip {
-    @apply grid flex-none grid-cols-[minmax(0,1.5fr)_minmax(13rem,0.9fr)] gap-3;
+    @apply grid flex-none grid-cols-[minmax(0,1.55fr)_minmax(13rem,0.9fr)] gap-3;
   }
   .search-block, .availability-block { @apply min-w-0; }
-  .search-block h2 { @apply mb-1.5 text-sm; }
-  .availability-block label { @apply mb-1.5 block text-sm font-semibold; }
+  .search-block h2 { @apply mb-2; }
+  .availability-block > label { @apply mb-1 block text-xs font-semibold text-jagports-muted; }
+  .availability-block select {
+    @apply w-full min-w-0 rounded-lg border border-jagports-line bg-slate-50 px-3 py-2 text-sm text-jagports-muted;
+  }
+  .availability-block select:disabled { @apply cursor-not-allowed opacity-80; }
+  .availability-block .compact-note { @apply mt-1.5; }
+
   .search-form { @apply grid flex-none grid-cols-[minmax(0,1fr)_auto] gap-2; }
-  .search-form input, #rangeSelect, #visualSelect, #availabilitySelect {
+  .search-form input, #rangeSelect, #visualSelect {
     @apply min-w-0 rounded-lg border border-jagports-line bg-white px-3 py-2 text-sm outline-none transition focus:border-jagports-teal focus:ring-2 focus:ring-jagports-teal/15;
   }
-  #availabilitySelect:disabled { @apply cursor-not-allowed bg-slate-100 text-jagports-muted; }
   .search-form button {
     @apply rounded-lg bg-jagports-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-jagports-teal-dark focus:outline-none focus:ring-2 focus:ring-jagports-teal/25;
   }
@@ -107,9 +119,10 @@
 
   .fixture-guide {
     overflow: auto;
-    @apply mb-2 max-h-[11rem] flex-none rounded-lg border border-jagports-line bg-jagports-warm/45 p-2.5;
+    @apply mb-2 max-h-[12rem] flex-none rounded-lg border border-jagports-line bg-jagports-warm/45 p-2.5;
   }
   .fixture-guide h3 { @apply mb-1.5; }
+  .fixture-guide h3:not(:first-of-type) { @apply mt-3; }
   .fixture-guide ul { @apply mb-0 mt-2 pl-5 text-xs leading-5; }
   .fixture-guide li { @apply my-1 break-words; }
   .fixture-guide code { @apply whitespace-nowrap rounded bg-white/80 px-1 py-0.5 text-[0.72rem] font-semibold; }
@@ -128,13 +141,9 @@
   .vehicle-location-canvas {
     flex: 1 1 auto;
     min-height: 0;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    @apply rounded-lg bg-slate-50 p-2;
+    @apply grid place-items-center rounded-lg bg-slate-50 p-2;
   }
-  .vehicle-location-canvas .empty { @apply grid h-full min-h-0 w-full place-items-center bg-white text-center; }
-  .vehicle-location-canvas img { @apply max-h-full max-w-full object-contain; }
+  .vehicle-location-canvas .empty { @apply w-full bg-white text-center; }
   .compact-note { @apply mb-0 mt-2 flex-none text-xs; }
 
   .tree-panel #tree,
@@ -154,7 +163,7 @@
 
   .range-list { @apply pl-5 text-sm; }
   .range-list li { @apply my-1.5 break-words; }
-  #rangeSelect, #visualSelect, #availabilitySelect { @apply w-full flex-none; }
+  #rangeSelect, #visualSelect { @apply w-full flex-none; }
   #visualChooser { @apply mb-2 flex-none; }
   #visualChooser label, .ranges-panel > label { @apply mb-1 block flex-none text-xs font-semibold text-jagports-muted; }
   #visuals figure { @apply m-0 min-h-0; }
@@ -191,9 +200,10 @@
     grid-template-rows: none;
     grid-template-areas:
       "search search"
+      "ranges ranges"
       "tree location"
       "tree suitability"
-      "ranges details";
+      "details details";
   }
   .panel { overflow: visible; }
   .tree-panel #tree,
@@ -208,6 +218,6 @@
   .app-shell { @apply px-2.5 py-2; }
   .concept-grid { @apply block; }
   .panel { @apply mb-2.5; }
-  .search-availability-strip, .search-form { @apply grid-cols-1; }
+  .search-form, .search-availability-strip { @apply grid-cols-1; }
   .card dl { @apply grid-cols-1; }
 }
