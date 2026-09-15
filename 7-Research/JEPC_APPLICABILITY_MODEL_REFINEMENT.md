@@ -99,13 +99,13 @@ Alternatives considered:
 - Source tree entities reproduce JEPC navigation semantics and contradict the accepted VIEPS destination boundary.
 - A general arbitrary Boolean expression engine adds scope and can hide source structure in opaque payloads. The proposal starts with finite, inspectable relational sets and quarantines mappings that cannot be safely represented within bounded processing.
 
-The physical SQL design, source identity key, initial comparator and verified attribute mappings need review before migration implementation. No new schema, API evaluator, deployment or universal JEPC translation is claimed here.
+The additive physical SQL implementation is now described in the companion specification's persistence contract. Source identity mapping, the initial comparator and verified attribute mappings still need review before production transformation. No API evaluator, deployment or universal JEPC translation is claimed.
 
 ## Acceptance review
 
-The proposal defines thirteen acceptance examples covering observed one-sided bounds, PART coverage across sub-models, repeated headlamp application paths, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent identity.
+The proposal defines fourteen acceptance examples covering observed one-sided bounds, PART coverage across sub-models, repeated headlamp application paths, market scope below a shared model, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent identity.
 
-These examples are requirements for the subsequent implementation tests. They are not represented as passed destination-model tests. Only the source probes above were executed.
+These examples include requirements for subsequent evaluation/importer tests. Persistence tests described below now cover their storage boundaries; they do not claim all destination evaluation acceptance criteria passed.
 
 ## Cross-sub-model evidence supplied by the Product Owner
 
@@ -168,7 +168,23 @@ Selected source-file SHA-256 fingerprints:
 | `drilldown/pl_id_3187/L0/Itm_M3187_C8069_I1_L0.xml` | `1c9a04792c6bdd53b8525380dbb36866d323c83b9a6e18cb0e5a0a96c3ba5887` |
 | `drilldown/pl_id_3187/Itm_M3187_C8069_I1_attributes.xml` | `5c9794038c3e821e69b7efe4849da5d2d62a8d6efcc3d28a6fced994ee0265df` |
 
-### Model-document relocation
+### Later-model market scope and additive implementation, 2026-09-15
+
+The Product Owner supplied a later-model headlamp example with `($)` in the category title. Targeted reads confirmed model `3178`, category `8059`, `HEADLAMP ASSEMBLY-NON POWERWASH ($)`, image `tm6269b`, in `drilldown/pl_id_3178/L0/cat_M3178_C8059_L0.xml`.
+
+`drilldown/pl_id_3178/L0/Itm_M3178_C8059_I1_L0.xml` contains Canada and USA branches. Application 145267/LJA4511AG occurs under LH-side paths for both markets and the alternative `Except headlamp levelling` / `Except headlamp powerwash` headings. RH-side rows use application 145265/LJA4510AG. This corrects the supplied `RG side` transcription without changing the Product Owner's market-scope finding.
+
+The top-level sidecar `drilldown/pl_id_3178/tl_M3178_C8059_attributes.xml` contains item 1 with A21/120 and A21/121. The sample supports Canada/USA association at category/application level; it does not establish a universal expansion of `($)` or the treatment of Mexico/other markets. Original text is retained while geographic vocabulary mapping remains open.
+
+The Product Owner authorized filling the model gaps after the terminology and source amendments. Migration `0014_occurrence_applicability.sql` now adds source bundles/snapshots, evidence, versioned source model context, serial range representations, occurrence assertions, alternative condition sets and scalar dimension/value constraints. Existing model/fitment/stock records are not backfilled or changed.
+
+The internal `readPartApplicability` function returns the grouped active evidence in one SQL statement. It explicitly reports unavailable evaluation; no evaluator, importer or HTTP endpoint is introduced.
+
+Validation: `npm test` on Node 24.19.0: **93 passed, 0 failed, 1 skipped**. The skipped test requires a deployed VIEPS URL. Ten new test cases validate the persistence/read boundary, and the expanded existing integrity suite checks all 47 FK columns. This is local SQLite/D1-interface evidence, not remote D1 deployment evidence. The original 16 source-function probes are unchanged.
+
+The storage fixture uses observed PART/application identifiers alongside clearly marked synthetic context versions, mappings, incomplete coverage and evidence records. It does not constitute an actual JEPC import or approval of the headlamp Boolean translation. Version-switch tests cover rollback, stale assertion retirement, stable PART/occurrence identity and retained historical rows. The current production schema still needs independent review before merge or deployment.
+
+### Model-document relocation status
 
 [PR #655 — SPEC / Move VIEPS part and stock models to SPEC](https://github.com/jagports/jagports/pull/655)
 

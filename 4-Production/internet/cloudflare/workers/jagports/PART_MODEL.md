@@ -38,9 +38,11 @@ Examples: `MNA 7691-AA` → `MNA7691AA`; `mna-7691-aa` → `MNA7691AA`; `XR84703
 
 ## PART vehicle and VIN applicability
 
+Migration `0014_occurrence_applicability.sql` adds occurrence-bound model context, alternative condition sets and versioned evidence. The existing PART-level links below remain intact. The [applicability persistence contract](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART_APPLICABILITY.md#implemented-persistence-contract) defines the new relations and their verification limits; no legacy fitment row is automatically promoted into them.
+
 Vehicle applicability is represented outside the canonical `part` row. Model-range and VIN-range applicability are distinct relationships and are not collapsed into one entity. `model_range` represents named vehicle/model-range classifications; `vin_range` represents explicit VIN serial applicability ranges with source/derived discriminators. A PART can link to multiple ranges through `part_model_range` and `part_vin_range`.
 
-`model_range` and `vin_range` are distinct concepts. These links apply at PART level; there is no persistent occurrence-to-range or dedicated model/variant entity yet. Discriminator columns retain source text, not decoder output with independently tracked derivation.
+`model_range` and `vin_range` are distinct concepts. These legacy links apply at PART level. The 0014 extension binds an occurrence to a versioned source model context and its canonical model range; it does not introduce a complete global model/variant ontology. Legacy VIN discriminator columns retain source text, not decoder output with independently tracked derivation.
 
 VIN-derived interpretation must remain distinguishable from source facts. This model does not use KOVuosi as a source for VIN decoding, VIN-range selection or model-year inference and does not implement a complete VIN decoder.
 
@@ -275,7 +277,11 @@ Tests execute every declared FK against a nonexistent parent, concrete unique co
 
 These remain open boundaries, not silently selected product rules. They do not prevent testing the existing MVP representation.
 
-The [PART applicability requirements proposal](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART_APPLICABILITY.md) specifies occurrence-bound condition alternatives, one-sided serial constraints, evidence completeness and required schema refinements. It is a review proposal, not an implemented extension of the field dictionary above. The [source validation record](../../../../../7-Research/JEPC_APPLICABILITY_MODEL_REFINEMENT.md) identifies the concrete gaps and verification limits.
+The [PART applicability contract](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART_APPLICABILITY.md) includes the added persistence dictionary, review requirements and remaining evaluator/importer boundaries. The [source validation record](../../../../../7-Research/JEPC_APPLICABILITY_MODEL_REFINEMENT.md) identifies the concrete evidence and verification limits. The original field dictionary above describes the pre-0014 entities; the companion contract describes the additive schema.
+
+The added index inventory is: `idx_applicability_snapshot_active` (unique active snapshot per bundle); `idx_applicability_serial_domain` (serial domain/comparator); `idx_applicability_context_range` (canonical model range); `idx_occurrence_applicability_occurrence` and `idx_occurrence_applicability_context` (both relationship directions); `idx_applicability_attribute_lookup` (typed dimension/value). Primary/unique keys additionally index source bundle identity, snapshot revision, evidence locator, source model version, assertion source key, condition-set identity, dimension vocabulary and evidence memberships.
+
+The 0014 persistence extension resolves storage of occurrence/context pairing, grouped conditions, evidence multiplicity and incomplete endpoint states. Approved source mappings, serial comparison/normalization, effective-range computation, fitment evaluation, importer execution and API/UI integration remain separate work. The new internal evidence reader returns `evaluation = unavailable` and is not exposed as a fitment endpoint.
 
 | Decision / gap | Current representation and owner for later resolution |
 |---|---|

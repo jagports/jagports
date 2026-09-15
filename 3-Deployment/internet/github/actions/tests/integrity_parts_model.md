@@ -33,6 +33,7 @@ The model helper creates in-memory SQLite databases with foreign-key enforcement
 - Declared foreign-key failures, uniqueness and CHECK boundaries, deletion behavior and transactional rollback.
 - Documented index inventory and representative SQLite query plans.
 - Worker SQL through the test D1 adapter, plus existing normalization and model structure tests.
+- Additive occurrence applicability: grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, active snapshot replacement/rollback and retained history. The internal grouped reader is tested without claiming a fitment evaluator or actual JEPC import.
 
 SQLite coverage does not certify Cloudflare D1 deployment behavior, its actual migration ledger, live data integrity, or query performance at production scale. Those require separately authorized validation.
 

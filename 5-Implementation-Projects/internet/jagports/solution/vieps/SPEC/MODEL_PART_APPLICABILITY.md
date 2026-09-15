@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-Proposed refinement for review. This document specifies the required domain behavior and a recommended relational shape; it does not describe an implemented migration or approved source translator.
+Refinement and additive persistence implementation for review. This document specifies the required domain behavior, the logical relationships and the implemented persistence subset. The schema does not constitute an approved source translator or fitment evaluator.
 
 Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first implementation scope is the selected XK source model `3187`. Additional models require their own mapping validation. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
 
@@ -23,6 +23,7 @@ In this specification, **applicability** describes the supported vehicle/configu
 | LHD / RHD | Left-hand-drive / right-hand-drive steering configuration of the vehicle. | Requires RHD. |
 | LH side / RH side | Left/right installation position of the component on the vehicle, normally referenced in the forward direction of travel. | The left headlamp role can require a different part on an RHD vehicle than on an LHD vehicle. Position does not imply steering configuration. |
 | Region | A source market grouping used to scope a catalogue model/profile. | A Canada/USA model grouping scopes the catalogue; a USA branch adds a more specific market condition. Region, country/market and steering remain separate dimensions. |
+| `($)` in a category title | An observed source marker, retained verbatim. | In the examined later-XK headlamp category it accompanies Canada and USA branches. Market scope can occur below a shared model. Do not globally equate this marker with an approved geographic vocabulary without further mapping evidence. |
 | Except Japan | An exclusion of the stated market within the surrounding scope. | `market != Japan`; unknown market does not prove this condition true. It does not mean every non-Japanese vehicle worldwide is covered. |
 | Assembly | The supplied component/assembly description or catalogue role. | Not every heading is a vehicle-selection condition. |
 | Bundle | A logical set of related source files and references needed to interpret one selected catalogue context together. | Identified by source namespace plus model/category/item/language as appropriate; not a ZIP file, a PART, or necessarily all files in one folder. |
@@ -41,6 +42,8 @@ The following are observed **source paths** supplied by the Product Owner and co
 The installed file also lists LJA4513AF/application 145240 beneath Canada and USA alternatives, and LJA4501AG/application 145251 beneath another path headed `Except headlamp powerwash`. Preserve every source path and its row identity. The same application ID can repeat under different paths inside one bundle; it is not a unique leaf-row identifier. Verify how the paths combine before emitting normalized condition sets. Never combine all alternative path headings into one mandatory conjunction.
 
 `145251,[A23,157,0,0]` is the corresponding application sidecar tuple for LJA4501AG. That tuple alone does not contain the complete displayed path. The hierarchy, scope and sidecars must be interpreted together. Repeated source paths are import evidence; VIEPS consumes their verified derived relationships without traversing JEPC nodes.
+
+The later model `3178` has category `8059`, `HEADLAMP ASSEMBLY-NON POWERWASH ($)`, with Canada and USA branches. It does not require a separate market-specific model identity. Installed application `145267` supplies LJA4511AG on LH-side paths; RH-side paths instead supply LJA4510AG/application `145265`. Region/market conditions may therefore belong to the occurrence's condition sets even when `model_context.region_ref` is absent. Preserve original source wording; deciding whether a normalized group is called North America or Americas is a vocabulary mapping, not inferred from the dollar marker alone.
 
 | Concept | Meaning and boundary |
 |---|---|
@@ -174,6 +177,7 @@ The three airbag cases and headlamp case below are observed source examples; the
 | HJB9670AA in applications 151439 and 151441 | One canonical PART; two model-scoped occurrences and intervals (023700–042775 and A00083–A00115). Reverse lookup returns both without asserting cross-format continuity. |
 | HJE9042AB in applications 171081 and 171082 | One canonical PART across sub-models 3178 and 3173. With complete verified context, coverage includes both A30644 and A30645; retain model ownership/evidence and do not infer the final model endpoint or unconditional fitment from an unqualified item row. |
 | LJA4513AF/application 145240 and LJA4501AG/application 145251 each repeat under several source paths | Preserve all path evidence, reconcile each common application to its occurrence, and retain alternative condition sets. Keep steering (LHD/RHD), installation side (LH/RH), market and equipment separate. Do not infer the entire applicability chain from the application sidecar alone. |
+| LJA4511AG/application 145267 under model 3178/category 8059 `($)` | Retain the shared model identity and raw category marker; represent Canada/USA market conditions in occurrence alternatives. Do not require a separate North America model or derive a global meaning of `($)` from this sample. Preserve LH position separately from steering. |
 | Same PART: context M1 through S100, context M2 from S200 | Return only those two context/bound combinations; never M1/from S200 or M2/through S100. |
 | Same occurrence: (body B1 AND engine E1) OR (body B2 AND engine E2) | Match B1/E1 and B2/E2; reject B1/E2 and B2/E1 when scope is complete. |
 | Include one configuration but exclude option X within that set | X defeats that set only; another verified alternative may still match. |
@@ -184,6 +188,45 @@ The three airbag cases and headlamp case below are observed source examples; the
 | Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; history retained; stale active claims removed only under verified reconciliation. |
 | Two languages describe the same source application | One canonical PART and logically reconciled occurrence, with separate language evidence. |
 
-Before implementing production transformation, the schema review must settle the physical relation design, source identity key, endpoint representation, approved initial comparator and attribute mappings. Importer validation must exercise the complete selected bundle (menu, top-level and application evidence), not only these isolated examples. Unknown patterns can remain quarantined while verified subsets progress.
+Before implementing production transformation, review the persistence subset below and establish the source identity mapping, approved initial comparator and attribute mappings. Importer validation must exercise the complete selected bundle (menu, top-level and application evidence), not only these isolated examples. Unknown patterns can remain quarantined while verified subsets progress.
 
-This specification is sufficient to draft the controlled schema amendment. It does not certify production JEPC equivalence, authorize deployment or resolve hotspot conversion.
+This specification and schema do not certify production JEPC equivalence, authorize deployment or resolve hotspot conversion.
+
+## Implemented persistence contract
+
+Migration `0014_occurrence_applicability.sql` adds the following relations without changing or backfilling existing PART, occurrence, VIN, fitment or stock data. Standalone IDs are integer primary keys; all ownership/evidence IDs below are real foreign keys. Every FK uses restrictive deletion so referenced source history cannot silently disappear. Versioned imports must insert new snapshots/contexts and switch snapshots transactionally; in-place mutation of published evidence or meaning is not a supported import operation.
+
+| Relation | Fields and meaning |
+|---|---|
+| `applicability_bundle` | `id`; nonblank `source_namespace`, `bundle_key`, unique together. Logical selected source scope, not checksum identity. The verified importer owns the exact filename/application-to-key mapping. |
+| `applicability_snapshot` | `id`; `bundle_id`; positive integer `revision`, unique per bundle; nonblank `parser_version`, `mapping_version`; `coverage` complete/incomplete, default incomplete; `state` staged/active/superseded, default staged. At most one active snapshot per bundle. |
+| `applicability_evidence` | `id`; `snapshot_id`; nonblank `relative_path`, lowercase 64-hex `file_sha256`, `record_locator`; required `raw_record` text. Unique snapshot/path/hash/locator. Different paths or row locators preserve repeated application evidence. A fingerprint format check is not verification of the source bytes. |
+| `applicability_serial_range` | `id`; nonblank `serial_domain`, `comparator`; independent lower/upper state known/unbounded/unknown, default unknown; each known endpoint requires nonblank value and explicit inclusive 0/1, each other state requires both NULL; verification verified/unverified/conflict, default unverified; optional `vin_range_id` links an established complete legacy VIN range. Raw/source or normalized meaning is established by evidence plus mapping version, not string shape. |
+| `applicability_model_context` | `id`; nonblank source namespace/model ID/context version, unique together; optional source parent ID and region reference; optional canonical `model_range_id`; optional `serial_range_id` for model bounds; verification with unverified default. Shared models can leave region absent and constrain market in condition sets. |
+| `applicability_context_evidence` | Composite key `context_id`, `evidence_id`. Many source records can establish a context and its inherited bounds. |
+| `occurrence_applicability` | `id`; `snapshot_id`; nonblank `source_key`, unique per snapshot; exactly one `part_occurrence_id` and `model_context_id`; include/exclude `effect`, default include; verification default unverified; coverage default incomplete. PART ownership is derived solely through occurrence, avoiding inconsistent duplicated PART IDs. Include is an assertion kind, not a positive evaluation. |
+| `applicability_condition_set` | `id`; `assertion_id`; nonblank `set_key`, unique per assertion; coverage default incomplete; unconditional 0/1 default 0; optional `serial_range_id` for the item/source constraint; optional `effective_serial_range_id` for a separately verified model-intersection result. Set evidence and context evidence retain both derivation inputs. |
+| `applicability_dimension` | `id`; unique nonblank `code`; verification default unverified. A controlled scalar dimension definition; does not automatically map JEPC attribute groups. |
+| `applicability_dimension_value` | Composite key `dimension_id`, nonblank `value_code`. The permitted values for that specific dimension. |
+| `applicability_attribute_condition` | `id`; `set_id`; dimension/value composite FK; equals/not_equals `operator`; unique set/dimension/operator/value. Only scalar equality/inequality is implemented. Multiple allowed values use verified alternative sets, not implicit array semantics. |
+| `applicability_set_evidence` | Composite key `set_id`, `evidence_id`. Many source paths may support one set; one source record may support multiple sets. Predicate-level attribution can be made through the evidence locator/raw record, but a dedicated per-predicate evidence relation is not implemented. |
+
+Sets within an assertion are alternatives; attribute predicates and the item serial predicate within a set are conjunctive, subject to the asserted model context. SQL stores this grouping, not a Boolean evaluator. A set marked unconditional must have complete coverage and cannot contain item serial or attribute predicates. A missing/empty conditional set remains incomplete evidence, not universal truth. A derived effective range may still bound an unconditional-in-model set.
+
+Triggers reject incompatible established model/predicate serial domains or comparators on set insertion/update, context reassignment and range-domain mutation. An absent model bound remains unknown, and values/order/intersection correctness are not inferred by SQL. The importer must validate those semantics before marking records verified. The database allows incomplete drafts intentionally; verification fields are recorded claims and not automatic certification.
+
+### Incremental replacement and stable identity
+
+Use the existing PART/occurrence IDs across reruns. Assertion logical identity is `(bundle identity, source_key)`; an assertion row ID identifies one snapshot's revision of that assertion. Do not expose that revision row ID as permanent catalogue identity. Use unique keys/upsert lookups for an unchanged snapshot rather than appending evidence or alternatives.
+
+For a changed bundle, stage a new snapshot and its complete derived graph in a transaction. Retain stable PART/occurrence identities and previous source records. Only after required validation, supersede the previous active snapshot and activate the new snapshot in the same transaction. Failure must roll back both graph changes and the active-snapshot switch. The active snapshot determines the complete current assertion set, so old assertions omitted by verified reconciliation no longer leak into reads. A missing-file observation alone is not sufficient authorization to omit assertions or declare complete coverage.
+
+Contexts, ranges and vocabulary entries referenced by historical snapshots must be versioned/reused according to evidence; do not edit their meaning in place during reprocessing. SQL prevents deleting referenced rows but does not enforce an append-only audit policy against arbitrary direct SQL updates. A production importer/writer must implement this policy and source dependency reconciliation; this schema does not claim that tool exists.
+
+### Internal read contract and compatibility
+
+`src/applicability.js` exports `readPartApplicability(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
+
+The response always declares `evaluation: unavailable`, `reason: evidence_only_no_evaluator`, and `catalogue_coverage: not_established`. Stored verification and coverage claims are returned separately. This internal reader is not routed to an HTTP endpoint and does not change the existing VIEPS API/UI contract. It cannot certify complete catalogue coverage, interpret serials, resolve conflicts or determine fitment. Reverse context lookup is supported by the context index and occurrence relationship; a public vehicle-to-PART evaluator is not implemented here.
+
+The test fixture distinguishes observed source-inspired IDs from synthetic mapping/coverage claims. Tests exercise additive upgrade preservation, every FK column, uniqueness, separate alternatives and paths, scalar dimension membership, endpoint states, domain consistency, failed transaction rollback, active snapshot replacement, retained history and indexed queries. These storage tests do not replace the source-to-vehicle evaluation acceptance examples above.
