@@ -279,7 +279,7 @@ test('MVP API executes real queries after all migrations', async (t) => {
 
 test('documented indexes exist and principal relationship lookups use indexed searches', (t) => {
   const db = withDatabase(t);
-  const docs = `${sql('PART_MODEL.md')}\n${sql('MVP_STOCK_MODEL.md')}`;
+  const docs = `${sql('MODEL_PART.md')}\n${sql('MODEL_STOCK.md')}`;
   const indexes = db.prepare("SELECT name FROM sqlite_schema WHERE type='index' AND name NOT LIKE 'sqlite_%'").all();
   const documentedNames = [...new Set([...docs.matchAll(/`(idx_[a-z0-9_]+)`/g)].map((match) => match[1]))];
   assert.deepEqual(documentedNames.sort(), indexes.map((index) => index.name).sort());
