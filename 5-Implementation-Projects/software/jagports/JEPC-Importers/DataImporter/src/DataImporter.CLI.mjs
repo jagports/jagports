@@ -69,11 +69,12 @@ async function main() {
   process.on('SIGTERM', onSignal);
   if (raw) { process.stdin.setRawMode(true); process.stdin.setEncoding('utf8'); process.stdin.on('data', onKey); process.stdin.resume(); }
   try {
+    if (interactive) process.stdout.write('\x1b[s');
     const result = await inspect({ source: values.source, stateDir: values['state-dir'], model: values.model,
       category: values.category, item: values.item, language: values.language ?? '0' }, {
       shouldStop: () => stopped,
       onProgress: snapshot => {
-        if (interactive) process.stdout.write(`\x1b[2J\x1b[H${screen(snapshot)}\n`);
+        if (interactive) process.stdout.write(`\x1b[u\x1b[J${screen(snapshot)}\n`);
       },
     });
     if (!interactive) console.log(values.json ? JSON.stringify(result, null, 2) : screen(result));
