@@ -1,19 +1,19 @@
 # JEPC Data Importer runtime skeleton
 
-Implements the first runtime slice of issue #355 and [importer specification v0.1](../SPEC_JEPC_IMPORTER_v0.1.md). Run this application **locally on Windows**, beside the installed JEPC files, using **Node.js 24 or later**. It uses Node's built-in SQLite module; no package installation, server, cloud deployment or browser is required. Node may print an experimental SQLite warning on stderr.
+Implements the first runtime slice of issue #355 and [importer specification v0.1](SPEC_DataImporter_v0.1.md). Run this application **locally on Windows**, beside the installed JEPC files, using **Node.js 24 or later**. It uses Node's built-in SQLite module; no package installation, server, cloud deployment or browser is required. Node may print an experimental SQLite warning on stderr.
 
 This version performs real, bounded **source inspection**, not catalogue import. It reads eight expected paths for one explicitly selected model/category/item/language bundle, records SHA-256 evidence in its own SQLite ledger, and reports missing files. It does not enumerate the million-file installation. This path template is the initial XK inspection recipe, not a claim that every JEPC bundle has exactly these eight files. Missing sidecars are evidence to investigate, not an inferred absence of conditions.
 
 ## Start on this computer
 
-Open PowerShell in this `DataImporter` directory:
+Open PowerShell in `5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/`. This application and its specification are Jagports software; the future `MediaImporter/` will live alongside it under `JEPC-Importers/`.
 
 ```powershell
-node src/cli.mjs --help
-node src/cli.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
-node src/cli.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
-node src/cli.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
-node src/cli.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --full
+node src/DataImporter.CLI.mjs --help
+node src/DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
+node src/DataImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
+node src/DataImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
+node src/DataImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --full
 npm test
 ```
 

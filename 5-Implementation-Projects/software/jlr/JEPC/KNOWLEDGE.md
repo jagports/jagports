@@ -2,7 +2,7 @@
 
 ## Importer runtime navigation
 
-The local Windows/Node.js importer starting skeleton and its CLI/progress contract live in [DataImporter/README.md](DataImporter/README.md), under issue #355. It currently inspects an explicitly selected source bundle and persists checksum evidence in a separate local SQLite ledger. Inspection completion is not catalogue import completion. The destination must ultimately receive explicit application relationships derived from source decision paths; this skeleton does not transform those paths or publish destination data.
+Jagports-developed importer applications and their operating specifications belong in the [Jagports JEPC-Importers domain](../../jagports/JEPC-Importers/KNOWLEDGE.md), under issue #355. This JLR domain retains source-software research and evidence. See the [DataImporter operating specification](../../jagports/JEPC-Importers/DataImporter/SPEC_DataImporter_v0.1.md) and [runtime instructions](../../jagports/JEPC-Importers/DataImporter/README.md).
 
 ## Purpose
 

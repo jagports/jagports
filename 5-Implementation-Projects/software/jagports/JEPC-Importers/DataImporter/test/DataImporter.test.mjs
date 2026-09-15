@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
-import { bundlePaths, inspect, readState } from '../src/runtime.mjs';
+import { bundlePaths, inspect, readState } from '../src/DataImporter.Runtime.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(path.join(tmpdir(), 'jepc-runtime-'));
@@ -88,7 +88,7 @@ test('file errors persist a failed run and future schema is rejected', async t =
 
 test('CLI help, machine result, missing-file exit and invalid arguments', async t => {
   const options = await fixture(t);
-  const cli = path.resolve('src/cli.mjs');
+  const cli = path.resolve('src/DataImporter.CLI.mjs');
   const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
   assert.match(call(['--help']).stdout, /source inspection skeleton/);
   assert.equal(call(['run']).status, 1);
