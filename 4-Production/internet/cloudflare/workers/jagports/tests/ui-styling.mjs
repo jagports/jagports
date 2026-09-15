@@ -29,9 +29,9 @@ const fixture = {
   part: { part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
   parts_tree: [{ path: ['Parent', 'Child'] }], images: [], diagrams: [],
   fitment: [
-    { range_code: 'A', range_name: 'Range A', variation: 'Alpha' },
-    { range_code: 'A', range_name: 'Range A', variation: 'Alpha 2' },
-    { range_code: 'B', range_name: 'Range B', variation: 'Beta' },
+    { range_code: 'A', range_name: 'Range A', variation: 'Alpha', applicability_state: 'applicable' },
+    { range_code: 'A', range_name: 'Range A', variation: 'Alpha 2', applicability_state: 'applicable' },
+    { range_code: 'B', range_name: 'Range B', variation: 'Beta', applicability_state: 'applicable' },
   ],
 };
 
@@ -65,6 +65,36 @@ test('search renders escaped identity, nested paths and range-specific variation
   assert.match(ui.get('fitment').innerHTML, /Beta/);
   assert.doesNotMatch(ui.get('fitment').innerHTML, /Alpha/);
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
+});
+
+test('only applicable ranges are presented as suitable', async () => {
+  const ui = harness(async () => response({ ...fixture, fitment: [
+    { range_code: 'A', range_name: 'Range A', variation: 'Alpha', applicability_state: 'applicable' },
+    { range_code: 'B', range_name: 'Range B', variation: 'Beta', applicability_state: 'excluded' },
+    { range_code: 'C', range_name: 'Range C', variation: 'Gamma', applicability_state: 'unavailable' },
+  ] }));
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /Range A/);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /Range B|Range C/);
+  assert.match(ui.get('fitment').innerHTML, /Alpha/);
+  assert.doesNotMatch(ui.get('fitment').innerHTML, /Beta|Gamma/);
+});
+
+test('confirmed no-match and unavailable applicability are distinct UI states', async () => {
+  let current = { ...fixture, fitment: [
+    { range_code: 'B', range_name: 'Range B', applicability_state: 'excluded' },
+  ] };
+  const ui = harness(async () => response(current));
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /No suitable vehicle range matches this PART\/context/);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /data is unavailable/);
+
+  current = { ...fixture, fitment: [
+    { range_code: 'C', range_name: 'Range C', applicability_state: 'unavailable' },
+  ] };
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /Vehicle applicability data is unavailable/);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /matches this PART\/context/);
 });
 
 test('empty and failed searches clear old results without hiding the page', async () => {
