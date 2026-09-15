@@ -1,7 +1,9 @@
 import { parseArgs } from 'node:util';
 import { inspect, readState } from './DataImporter.Runtime.mjs';
 
-const help = `Jagports JEPC Data Importer v0.1 — source inspection skeleton
+const help = `
+
+Jagports JEPC Data Importer v0.1 — source inspection skeleton
 (C)2026 by tlindi and ChatGPT
 
 Node.js 24+; run locally on the computer that can read the source files.
