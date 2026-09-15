@@ -65,7 +65,8 @@ export async function handleViepsPart(request, env) {
        FROM part_diagram WHERE part_id = ? ORDER BY id`
     ).bind(part.id).all(),
     env.DB.prepare(
-      `SELECT f.id, r.range_code, r.name AS range_name, f.variation, f.qualifier, f.verification_status
+      `SELECT f.id, r.range_code, r.name AS range_name, f.variation, f.qualifier,
+              f.verification_status, f.applicability_state
        FROM part_fitment f
        INNER JOIN vehicle_range r ON r.id = f.vehicle_range_id
        WHERE f.part_id = ? AND f.vehicle_range_id IS NOT NULL

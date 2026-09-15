@@ -79,7 +79,6 @@ function renderPart(part, occurrences = [], stock = []) {
 function renderTree(paths) {
   const branches = paths.filter((entry) => entry.path?.length);
   $("tree").innerHTML = branches.map((entry) => {
-    // The API supplies ordered paths, not interactive catalogue nodes.
     return entry.path.reduceRight((child, label, index) =>
       `<ul${index === 0 ? ' class="tree-branch"' : ''}><li><span${index === entry.path.length - 1 ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>${child}</li></ul>`, "");
   }).join("") || empty("No Parts Tree context is available.");
@@ -114,7 +113,7 @@ function renderVisuals(images, diagrams) {
 
 function renderSelectedRange() {
   const code = $("rangeSelect").value;
-  const selected = fitmentRows.filter((item) => item.range_code === code);
+  const selected = fitmentRows.filter((item) => item.range_code === code && item.applicability_state === "applicable");
   const range = selected[0];
   $("selectedRange").textContent = range ? `${range.range_code} — ${range.range_name}` : "No range selected.";
   $("locationStatus").textContent = range
@@ -123,22 +122,29 @@ function renderSelectedRange() {
   $("fitment").innerHTML = selected.length ? `<div class="table-scroll"><table>
     <thead><tr><th>Variation</th><th>Qualifier</th><th>Verification</th></tr></thead>
     <tbody>${selected.map((item) => `<tr><td>${escapeHtml(item.variation || "Not specified")}</td><td>${escapeHtml(item.qualifier || "Not supplied")}</td><td>${escapeHtml(item.verification_status || "Not recorded")}</td></tr>`).join("")}</tbody>
-    </table></div>` : empty("No vehicle applicability is available.");
+    </table></div>` : empty("No suitable vehicle applicability is confirmed.");
 }
 
 function renderFitment(fitment) {
   fitmentRows = fitment;
-  const ranges = [...new Map(fitment.map((item) => [item.range_code, item])).values()];
+  const applicable = fitment.filter((item) => item.applicability_state === "applicable");
+  const ranges = [...new Map(applicable.map((item) => [item.range_code, item])).values()];
+  const unavailable = fitment.some((item) => item.applicability_state === "unavailable");
+  const confirmedNoMatch = fitment.length > 0 && fitment.every((item) => item.applicability_state === "excluded");
+
+  let emptyLabel = "No suitable vehicle range is confirmed.";
+  if (unavailable && !ranges.length) emptyLabel = "Vehicle applicability data is unavailable.";
+  else if (confirmedNoMatch) emptyLabel = "No suitable vehicle range matches this PART/context.";
+
   $("rangeSelect").innerHTML = ranges.length ? ranges.map((item) =>
     `<option value="${escapeHtml(item.range_code)}">${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</option>`).join("")
-    : '<option value="">No applicability available</option>';
+    : `<option value="">${escapeHtml(emptyLabel)}</option>`;
   $("rangeSelect").disabled = !ranges.length;
   $("ranges").innerHTML = ranges.length ? `<ul class="range-list">${ranges.map((item) =>
-    `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>` : empty("No vehicle applicability is available.");
+    `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>` : empty(emptyLabel);
   renderSelectedRange();
 }
 
-// Keep the complete shell in its permanent positions in every state.
 function resetContext(message = "No part selected.") {
   fitmentRows = [];
   visualItems = [];

@@ -43,11 +43,11 @@ FROM part
 WHERE part_number_normalized = 'MJB7703AA';
 
 INSERT OR IGNORE INTO part_fitment (part_id, vehicle_range_id, variation, qualifier, verification_status, applicability_state)
-SELECT p.id, r.id, '4.0 Coupe', 'Representative fixture applicability', 'fixture', 'unavailable'
+SELECT p.id, r.id, '4.0 Coupe', 'Representative fixture applicability', 'fixture', 'applicable'
 FROM part p CROSS JOIN vehicle_range r
 WHERE p.part_number_normalized = 'MJB7703AA' AND r.range_code IN ('X100', 'X150');
 
 INSERT OR IGNORE INTO part_fitment (part_id, vehicle_range_id, variation, qualifier, verification_status, applicability_state)
-SELECT p.id, r.id, '4.0 Convertible', 'Representative fixture applicability', 'fixture', 'unavailable'
+SELECT p.id, r.id, '4.0 Convertible', 'Representative fixture applicability', 'fixture', 'applicable'
 FROM part p CROSS JOIN vehicle_range r
 WHERE p.part_number_normalized = 'MJB7703AA' AND r.range_code IN ('X100', 'X150');
