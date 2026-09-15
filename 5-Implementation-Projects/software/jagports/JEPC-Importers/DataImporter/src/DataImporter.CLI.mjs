@@ -1,5 +1,4 @@
 import { parseArgs } from 'node:util';
-import { clearScreenDown, cursorTo, moveCursor } from 'node:readline';
 import { inspect, readState } from './DataImporter.Runtime.mjs';
 
 const help = `
@@ -66,25 +65,16 @@ async function main() {
   const interactive = Boolean(process.stdout.isTTY && !values.json);
   const raw = Boolean(interactive && process.stdin.isTTY);
   const previousRaw = process.stdin.isRaw;
-  let progressLines = 0;
   process.on('SIGINT', onSignal);
   process.on('SIGTERM', onSignal);
   if (raw) { process.stdin.setRawMode(true); process.stdin.setEncoding('utf8'); process.stdin.on('data', onKey); process.stdin.resume(); }
   try {
+    if (interactive) process.stdout.write('\x1b[s');
     const result = await inspect({ source: values.source, stateDir: values['state-dir'], model: values.model,
       category: values.category, item: values.item, language: values.language ?? '0' }, {
       shouldStop: () => stopped,
       onProgress: snapshot => {
-        if (interactive) {
-          const output = `${screen(snapshot)}\n`;
-          if (progressLines) {
-            moveCursor(process.stdout, 0, -progressLines);
-            cursorTo(process.stdout, 0);
-            clearScreenDown(process.stdout);
-          }
-          process.stdout.write(output);
-          progressLines = output.split('\n').length - 1;
-        }
+        if (interactive) process.stdout.write(`\x1b[u\x1b[J${screen(snapshot)}\n`);
       },
     });
     if (!interactive) console.log(values.json ? JSON.stringify(result, null, 2) : screen(result));
