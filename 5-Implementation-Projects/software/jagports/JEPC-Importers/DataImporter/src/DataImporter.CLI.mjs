@@ -1,7 +1,9 @@
 import { parseArgs } from 'node:util';
+import { moveCursor, cursorTo, clearScreenDown } from 'node:readline';
 import { inspect, readState } from './DataImporter.Runtime.mjs';
 
 const help = `
+
 Jagports JEPC Data Importer v0.1 — source inspection skeleton
 (C)2026 by tlindi and ChatGPT
 
@@ -65,6 +67,8 @@ async function main() {
   const interactive = Boolean(process.stdout.isTTY && !values.json);
   const raw = Boolean(interactive && process.stdin.isTTY);
   const previousRaw = process.stdin.isRaw;
+  let renderedLines = 0;
+  
   process.on('SIGINT', onSignal);
   process.on('SIGTERM', onSignal);
   if (raw) { process.stdin.setRawMode(true); process.stdin.setEncoding('utf8'); process.stdin.on('data', onKey); process.stdin.resume(); }
@@ -74,8 +78,19 @@ async function main() {
       category: values.category, item: values.item, language: values.language ?? '0' }, {
       shouldStop: () => stopped,
       onProgress: snapshot => {
-        if (interactive) process.stdout.write(`\x1b[u\x1b[J${screen(snapshot)}\n`);
-      },
+        if (interactive) {
+          const output = `${screen(snapshot)}\n`;
+
+          if (renderedLines > 0) {
+            moveCursor(process.stdout, 0, -renderedLines);
+            cursorTo(process.stdout, 0);
+            clearScreenDown(process.stdout);
+          }
+
+          process.stdout.write(output);
+          renderedLines = output.split('\n').length - 1;
+        }
+      }
     });
     if (!interactive) console.log(values.json ? JSON.stringify(result, null, 2) : screen(result));
     process.exitCode = result.run.state === 'STOPPED_BY_USER' ? 130 : result.run.missing ? 2 : 0;
