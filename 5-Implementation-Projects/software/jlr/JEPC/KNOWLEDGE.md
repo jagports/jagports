@@ -1,5 +1,9 @@
 # Parts Supersession Knowledge
 
+## Importer runtime navigation
+
+The local Windows/Node.js importer starting skeleton and its CLI/progress contract live in [DataImporter/README.md](DataImporter/README.md), under issue #355. It currently inspects an explicitly selected source bundle and persists checksum evidence in a separate local SQLite ledger. Inspection completion is not catalogue import completion. The destination must ultimately receive explicit application relationships derived from source decision paths; this skeleton does not transform those paths or publish destination data.
+
 ## Purpose
 
 Parts supersession is durable catalogue knowledge describing how one catalogue part is replaced by another. It is distinct from current operational stock and from general claims that two parts are interchangeable.
