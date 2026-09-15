@@ -11,6 +11,11 @@ Node.js 24+; run locally on the computer that can read the source files.
   report  --state-dir <directory>
   doctor  --state-dir <directory> [--full]
 
+ example usage:
+  
+  cd <DataImporter_Dir>
+  node .\src\DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir . --model 3187 --category 12088 --item 1 --language 0
+
 inspect checks eight expected source paths. It does not import catalogue data.
 Repeat inspect with the same arguments to recheck/reuse persisted checksums.
 Q or first Ctrl+C stops after the current file checkpoint; second Ctrl+C exits.
