@@ -10,6 +10,38 @@ The production model must answer both vehicle-context-to-PART and PART-to-applic
 
 ## Required distinctions
 
+### Terms explained
+
+In this specification, **applicability** describes the supported vehicle/configuration contexts of a catalogue part. **Fitment** is the evaluation of that applicability for a particular vehicle and catalogue role, returning applicable, not applicable or unavailable. Catalogue usage sometimes treats these words as synonyms; this distinction clarifies the data versus the query result. A fitment result does not by itself certify mechanical installation, modification safety or interchangeability.
+
+**Conditions** are the requirements and exclusions that define an applicability assertion. An **attribute** is a dimension/value describing a vehicle or catalogue context; a condition applies an operator to it, such as `steering = RHD` or `market != Japan`. Preserve verified combinations, not just a bag of labels.
+
+| Source term/example | What it describes | Example condition / boundary |
+|---|---|---|
+| Supercharged | Engine configuration: a supercharger is specified. | Requires the verified supercharged configuration. Do not infer it from an unknown group code or assume this attribute occurs in the headlamp examples. |
+| Other option / headlamp levelling / headlamp powerwash | A particular equipment feature or option. | Requires headlamp levelling; or excludes vehicles with it. `Other option` without an identified feature/value is unresolved, not a defined universal flag. |
+| LHD / RHD | Left-hand-drive / right-hand-drive steering configuration of the vehicle. | Requires RHD. |
+| LH side / RH side | Left/right installation position of the component on the vehicle, normally referenced in the forward direction of travel. | The left headlamp role can require a different part on an RHD vehicle than on an LHD vehicle. Position does not imply steering configuration. |
+| Region | A source market grouping used to scope a catalogue model/profile. | A Canada/USA model grouping scopes the catalogue; a USA branch adds a more specific market condition. Region, country/market and steering remain separate dimensions. |
+| Except Japan | An exclusion of the stated market within the surrounding scope. | `market != Japan`; unknown market does not prove this condition true. It does not mean every non-Japanese vehicle worldwide is covered. |
+| Assembly | The supplied component/assembly description or catalogue role. | Not every heading is a vehicle-selection condition. |
+| Bundle | A logical set of related source files and references needed to interpret one selected catalogue context together. | Identified by source namespace plus model/category/item/language as appropriate; not a ZIP file, a PART, or necessarily all files in one folder. |
+
+A bundle includes the relevant model/category menu ancestry, category popup and illustration reference, numbered-item list, item/application rows and available applicability sidecars. Shared parent files and referenced media can serve several bundles. Record their dependencies once and link them; report missing dependencies explicitly. The precise transaction/checkpoint boundary remains an importer contract. Referenced media may be processed separately by MediaImporter without losing the bundle relationship.
+
+### Headlamp examples
+
+The following are observed **source paths** supplied by the Product Owner and confirmed in the installed item files. They are not a claim that each displayed path is the complete final predicate or that all source labels have been mapped to approved typed dimensions.
+
+| Part and source context | Meaning of the selected path |
+|---|---|
+| LJA4513AF, model 3183/category 8067/item 1, application 145240 | In the Canada/USA model and HEADLAMP ASSEMBLY-POWERWASH category: headlamp assembly → USA market → except headlamp levelling → LH installation side. The shown path does not specify LHD or RHD; do not invent one from USA or LH side. |
+| LJA4501AG, model 3187/category 8069/item 1, application 145251 | In the earlier XK model and HEADLAMP ASSEMBLY-NON POWERWASH category: headlamp assembly → headlamp levelling → except Japan → RHD steering → LH installation side. Levelling, market, steering and position are distinct dimensions. |
+
+The installed file also lists LJA4513AF/application 145240 beneath Canada and USA alternatives, and LJA4501AG/application 145251 beneath another path headed `Except headlamp powerwash`. Preserve every source path and its row identity. The same application ID can repeat under different paths inside one bundle; it is not a unique leaf-row identifier. Verify how the paths combine before emitting normalized condition sets. Never combine all alternative path headings into one mandatory conjunction.
+
+`145251,[A23,157,0,0]` is the corresponding application sidecar tuple for LJA4501AG. That tuple alone does not contain the complete displayed path. The hierarchy, scope and sidecars must be interpreted together. Repeated source paths are import evidence; VIEPS consumes their verified derived relationships without traversing JEPC nodes.
+
 | Concept | Meaning and boundary |
 |---|---|
 | PART | Canonical catalogue identity, independent of vehicle, language and stock. |
@@ -112,7 +144,9 @@ Foreign keys and uniqueness must enforce scope ownership: a condition cannot lea
 
 Separate logical source identity from byte-version evidence. A checksum identifies source bytes, not a new PART or a new logical occurrence. The importer must establish a source key qualified by dataset namespace, model, category, item and application scope; qualify further where observed IDs collide. Language is evidence identity, not a new PART identity. Do not assume application IDs are globally unique or stable merely because they are numeric.
 
-If a unique occurrence mapping cannot be established, quarantine the collision rather than merging by part number, description, filename checksum or row position. A changed PART association requires explicit reconciliation and retained history.
+Repeated leaf rows for the same source application, PART and context may represent alternative source paths, as in the headlamp examples. Preserve each row/path as evidence and, after validating common occurrence identity, attach the derived alternatives to that occurrence. Repetition alone is not a collision and does not require duplicate PARTs or unconditional quarantine. Distinguish raw row/path identity from logical occurrence identity.
+
+If a unique logical occurrence mapping cannot be established, quarantine the unresolved identity rather than merging by part number, description, filename checksum or row position. A changed PART association requires explicit reconciliation and retained history.
 
 Reprocessing replaces/supersedes the complete derived assertion set for the affected source scope atomically, retaining prior evidence. It must remove stale active relationships as well as upsert current ones. Preserve stable existing entity IDs; do not append duplicates on rerun. Missing or failed source files cannot imply deleted applicability until the relevant discovery/reconciliation scope is known complete.
 
@@ -132,13 +166,14 @@ Use a new controlled migration; do not rewrite already applied migrations. Prese
 
 ## Acceptance examples
 
-The three airbag cases below are observed source examples; the other combinations are deliberately synthetic requirement fixtures, not additional Jaguar facts.
+The three airbag cases and headlamp case below are observed source examples; the other combinations are deliberately synthetic requirement fixtures, not additional Jaguar facts.
 
 | Case | Required outcome |
 |---|---|
 | XK 3187/category 11096/item 1, application 93491 HNA9670BA through 023699; 151439 HJB9670AA from 023700 | Preserve separate occurrences and source constraints. Intersect with model bounds: the latter ends at 042775, not infinity; the former begins at the cited model start. With a verified comparator and otherwise complete context, 023699 selects the former and 023700 the latter; neither applies outside the model interval. Do not make a single impossible interval. |
 | HJB9670AA in applications 151439 and 151441 | One canonical PART; two model-scoped occurrences and intervals (023700–042775 and A00083–A00115). Reverse lookup returns both without asserting cross-format continuity. |
 | HJE9042AB in applications 171081 and 171082 | One canonical PART across sub-models 3178 and 3173. With complete verified context, coverage includes both A30644 and A30645; retain model ownership/evidence and do not infer the final model endpoint or unconditional fitment from an unqualified item row. |
+| LJA4513AF/application 145240 and LJA4501AG/application 145251 each repeat under several source paths | Preserve all path evidence, reconcile each common application to its occurrence, and retain alternative condition sets. Keep steering (LHD/RHD), installation side (LH/RH), market and equipment separate. Do not infer the entire applicability chain from the application sidecar alone. |
 | Same PART: context M1 through S100, context M2 from S200 | Return only those two context/bound combinations; never M1/from S200 or M2/through S100. |
 | Same occurrence: (body B1 AND engine E1) OR (body B2 AND engine E2) | Match B1/E1 and B2/E2; reject B1/E2 and B2/E1 when scope is complete. |
 | Include one configuration but exclude option X within that set | X defeats that set only; another verified alternative may still match. |

@@ -103,7 +103,7 @@ The physical SQL design, source identity key, initial comparator and verified at
 
 ## Acceptance review
 
-The proposal defines twelve acceptance examples covering observed one-sided bounds, PART coverage across sub-models, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent identity.
+The proposal defines thirteen acceptance examples covering observed one-sided bounds, PART coverage across sub-models, repeated headlamp application paths, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent identity.
 
 These examples are requirements for the subsequent implementation tests. They are not represented as passed destination-model tests. Only the source probes above were executed.
 
@@ -132,6 +132,43 @@ Paths below are relative to the installation root; SHA-256 identifies the inspec
 | `drilldown/pl_id_3178/L0/tl_M3178_C9504_L0.xml` and `drilldown/pl_id_3173/L0/tl_M3173_C9502_L0.xml` | `0cff6d8f457f28206752d9408ca4c3561a9093c179eefa687c5b5a84199c49c0` |
 
 ## Integration and knowledge placement
+
+### Headlamp terminology and bundle trace, 2026-09-15
+
+The Product Owner requested short definitions of applicability, fitment, conditions, Region, steering/equipment attributes and source bundle, supplying two headlamp catalogue paths. A bounded local `rg -l -F` search for `LJA4513AF` and `LJA4501AG` in model folders 3183/L0 and 3187/L0 returned only these two item files in that selected language/profile scope. It was not an installation-wide coverage claim. Only matching files and their explicit dependencies were then read.
+
+| Bundle scope | Canada/USA powerwash example | Other early-XK non-powerwash example |
+|---|---|---|
+| Model/category/item/language | 3183 / 8067 / 1 / L0 | 3187 / 8069 / 1 / L0 |
+| PART / application | LJA4513AF / 145240 | LJA4501AG / 145251 |
+| Category menu | `menus/L0/pl_id_3183_l_id_0.xml`, category parent 8065 | `menus/L0/pl_id_3187_l_id_0.xml`, category parent 8068 |
+| Category popup | `drilldown/pl_id_3183/L0/cat_M3183_C8067_L0.xml` | `drilldown/pl_id_3187/L0/cat_M3187_C8069_L0.xml` |
+| Numbered items | `drilldown/pl_id_3183/L0/tl_M3183_C8067_L0.xml` | `drilldown/pl_id_3187/L0/tl_M3187_C8069_L0.xml` |
+| Item/application rows | `drilldown/pl_id_3183/L0/Itm_M3183_C8067_I1_L0.xml` | `drilldown/pl_id_3187/L0/Itm_M3187_C8069_I1_L0.xml` |
+| Top-level sidecar | `drilldown/pl_id_3183/tl_M3183_C8067_attributes.xml` | `drilldown/pl_id_3187/tl_M3187_C8069_attributes.xml` |
+| Application sidecar | Same-name `Itm_M3183_C8067_I1_attributes.xml` absent at checked model-root path | `drilldown/pl_id_3187/Itm_M3187_C8069_I1_attributes.xml` present |
+| Illustration reference | `tm6269c` | `tm6173d` |
+
+Both `menus/pl_id_<model>_attributes.xml` files exist. The bundle also depends on model-list bounds and ancestor evidence. The exact `flash/images/<illustration>.jpg` and `flash/xml/<illustration>.xml` paths are present for both references. Presence does not establish decoding or hotspot coordinate correctness; no #352 work was performed.
+
+LJA4513AF/application 145240 occurs four times: Canada or USA, each with `Except headlamp levelling` or `headlamp powerwash`, followed by LH side. The selected USA/except-levelling row ID is 1100110001. The top-level sidecar contains item 1 with A21 values 120 and 121; no dictionary mapping of these codes is claimed here.
+
+LJA4501AG/application 145251 occurs twice: `headlamp levelling → Except Japan → RHD → LH side` (row 110080001), and `Except headlamp powerwash → Except Japan → RHD → LH side` (row 1100310001). Its application sidecar contains `145251,[A23,157,0,0]`, while the corresponding LHD rows use A23/154. This is corroborating context, not a universal code dictionary. The sidecar does not encode all the visible ancestor headings.
+
+The raw source headings, selected row IDs and sidecar tuples are observed. Their complete Boolean translation, equipment semantics across category/title and option branches, and applicability beyond the selected scope still require mapping validation. Do not flatten the displayed alternatives indiscriminately or label missing application sidecars as missing all conditions.
+
+The proposal now distinguishes application identity from path/row identity, includes a terminology chapter with both headlamp examples and adds a thirteenth destination acceptance case. The generalized repeated-path/evidence lesson is also added to VIEPS KNOWLEDGE; proposed schema choices remain proposals.
+
+Selected source-file SHA-256 fingerprints:
+
+| File, relative to installation | SHA-256 |
+|---|---|
+| `drilldown/pl_id_3183/L0/Itm_M3183_C8067_I1_L0.xml` | `82de7620c3896e0c54381e01e14e18c287f3a6543e4bb4556cd82986b95a9460` |
+| `drilldown/pl_id_3183/tl_M3183_C8067_attributes.xml` | `a12287fd9a79448dcc64200266512ad188f15d4d31dba77b6ecd907fd8ee4bbf` |
+| `drilldown/pl_id_3187/L0/Itm_M3187_C8069_I1_L0.xml` | `1c9a04792c6bdd53b8525380dbb36866d323c83b9a6e18cb0e5a0a96c3ba5887` |
+| `drilldown/pl_id_3187/Itm_M3187_C8069_I1_attributes.xml` | `5c9794038c3e821e69b7efe4849da5d2d62a8d6efcc3d28a6fced994ee0265df` |
+
+### Model-document relocation
 
 [PR #655 — SPEC / Move VIEPS part and stock models to SPEC](https://github.com/jagports/jagports/pull/655)
 
