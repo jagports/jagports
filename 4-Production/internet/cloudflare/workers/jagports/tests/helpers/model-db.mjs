@@ -38,6 +38,7 @@ export function database({ fixtures = true } = {}) {
       // indexes are exercised alongside preserved legacy rows.
       db.exec(sql('tests/fixtures/mvp_stock_storage.sql'));
       db.exec(sql('tests/fixtures/vieps_searchable_fixture_dataset.sql'));
+      db.exec(sql('tests/fixtures/occurrence_applicability.sql'));
       return db;
     }
   }
