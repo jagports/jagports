@@ -341,19 +341,21 @@ The Project is not a replacement for the Issue work record.
 
 ### 4.1 Project Mutation Restriction
 
-Agents must **not mutate GitHub Project configuration or Project Item state** unless a later authoritative project capability rule explicitly grants that capability.
+Agents must **not directly mutate GitHub Project configuration or Project Item state** unless an authoritative capability rule explicitly grants that direct capability.
 
 This includes, at minimum:
 
-- adding or removing Project Items
-- changing Project Item Status
-- changing Project Item fields
-- changing Project views
-- changing Project configuration
+- adding or removing Project Items directly;
+- changing Project Item Status directly;
+- changing Project Item fields directly;
+- changing Project views directly;
+- changing Project configuration directly.
 
-The current operating model treats Project state as **read-only to agents**. Do not claim that a Project mutation has succeeded.
+Repository-owned GitHub Actions may perform Project mutations when an authoritative workflow explicitly assigns that responsibility and the automation has been validated end to end. Triggering such an authorized repository automation is not equivalent to claiming a direct agent Project mutation.
 
-When Project state is relevant to work, inspect/read it when the required read capability is available and report the observed state. Do not create a workaround that silently changes Project state through another mechanism.
+A Project mutation is successful only after the automation or authorized operator independently reads back and verifies the resulting Project Item/field state. An intended value, mutation response, Issue comment, or workflow trigger alone is not proof of success.
+
+When no authorized mutation mechanism exists for the required operation, agents must treat Project state as read-only and record/request the required transition rather than inventing an unverified workaround.
 
 ### 4.2 Workflow State Authority
 
@@ -375,25 +377,28 @@ Use `WORKFLOWS.md` for:
 
 `WORKFLOWS.md` remains authoritative for when a workflow state is required. This section defines only how the corresponding GitHub Project Item Status operation is owned and checked.
 
-Current mechanisms are:
+Current verified mechanisms are:
 
-- Issue `opened` / `reopened` → `BACKLOG`: repository lifecycle automation owns the Project Item operation and independently verifies the resulting item/status;
-- Issue `closed` → `DONE`: repository lifecycle automation owns the Project Item operation and independently verifies the resulting item/status;
-- active-work states such as `CODING`, `REVIEW`, and `TESTING`: no repository event automation currently owns these transitions. When `WORKFLOWS.md` requires one, the work owner must ensure that an authorized human or separately authorized automation with Project write capability performs it. An agent operating under the current read-only restriction must record/request the required transition rather than claim it performed the mutation.
+- Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
+- open Pull Request with a same-repository GitHub closing relationship → `IMPLEMENTATION`: `.github/workflows/sync-closing-pr-to-project.yml` owns that deterministic implementation-start synchronization, preserves protected later/blocking/decision states, and independently verifies the resulting Project Item/status;
+- explicit authorized work-control changes: `.github/workflows/sync-issue-work-control-to-project.yml` may synchronize a requested canonical `Status`, `Operational Priority`, and numeric `Rank` from its authorized marker-comment/manual-dispatch inputs and independently verifies every changed value;
+- Issue `closed` → `DONE`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
 
-This makes the automated versus manual boundary explicit: `BACKLOG`/`DONE` lifecycle synchronization is automated; intermediate active-work state mutation is manual/externally authorized unless a later verified automation explicitly assumes ownership.
+The closing-linked-PR automation is the authoritative automatic owner of the `IMPLEMENTATION` transition. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
 
-At review hand-off, testing hand-off, merge/closure, and any audit that evaluates work-state consistency, compare the persistent Issue/PR evidence with the Project Item Status when read capability is available. If they diverge:
+The legacy `CODING` option has been migrated to canonical `IMPLEMENTATION`; current operating rules must not reintroduce `CODING` as an active state.
+
+At review hand-off, testing hand-off, merge/closure, and any audit that evaluates work-state consistency, compare persistent Issue/PR evidence with the Project Item Status. If they diverge:
 
 1. record the mismatch in the active Issue/PR;
 2. do not claim the intended Project state as actual;
 3. identify the expected `WORKFLOWS.md` state and observed Project Item Status;
-4. route correction to an authorized human/automation operator;
-5. independently verify the corrected Project Item Status when the required read capability is available.
+4. route correction through the applicable authorized human or verified repository automation;
+5. independently verify the corrected Project Item Status.
 
 If Project Item state cannot be read, record the capability limitation; absence of read capability does not make the intended state verified and does not by itself create a new workflow state.
 
-Any future automation that assumes ownership of `CODING`, `REVIEW`, `TESTING`, or another intermediate transition must have persistent end-to-end test evidence covering the real trigger, resulting Project Item identity/status, and independent read-back verification before it is treated as the authoritative mechanism.
+Any future automation that assumes a new automatic intermediate-state transition must have persistent end-to-end test evidence covering the real trigger, resulting Project Item identity/status, and independent read-back verification before it is treated as authoritative.
 
 ---
 
@@ -474,7 +479,8 @@ A contradiction in a secondary document is a process defect and should be raised
 - After supported mutations, perform an independent read/verification.
 - Distinguish capability, authentication, permission, mutation, and verification failures where observable.
 - Never expose credentials, tokens, or secret values.
-- Do not attempt Project mutations under the current read-only Project operating model.
+- Do not perform direct Project mutations under the current connector model unless an authoritative capability rule explicitly grants that operation.
+- Use repository-owned Project automation only where an authoritative workflow assigns it, and claim success only after the automation's independent verification/read-back succeeds.
 
 If a required GitHub operation is unavailable, follow the current capability-alert wording defined by `WORKFLOWS.md` and applicable agent instructions.
 
@@ -484,7 +490,7 @@ If a required GitHub operation is unavailable, follow the current capability-ale
 
 GitHub Issues and Pull Requests are durable work records, not disposable chat containers.
 
-The Project provides the Kanban representation and structured information available for reading.
+The Project provides the Kanban representation and structured information available for reading and verified repository automation.
 
 `WORKFLOWS.md` defines how work moves.
 
