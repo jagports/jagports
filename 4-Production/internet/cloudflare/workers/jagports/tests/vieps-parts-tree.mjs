@@ -4,21 +4,31 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
 const source = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
+const i18nSource = readFileSync(new URL("../public/i18n-runtime.js", import.meta.url), "utf8");
+const en = JSON.parse(readFileSync(new URL("../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json", import.meta.url), "utf8"));
+const fi = JSON.parse(readFileSync(new URL("../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json", import.meta.url), "utf8"));
 
 function loadTreeRenderer() {
   const elements = {
     tree: { innerHTML: "" },
   };
   const context = {
-    document: {},
+    document: {
+      documentElement: { lang: "en" },
+      querySelectorAll() { return []; },
+    },
+    Intl,
+    VIEPS_I18N_RESOURCES: { en, fi },
     window: {},
     console,
     escapeHtml: undefined,
   };
-  const wrapped = `${source}\n;globalThis.testRenderTree = renderTree;`;
   context.$ = (id) => elements[id];
   context.globalThis = context;
   vm.createContext(context);
+  vm.runInContext(i18nSource, context);
+  context.viepsI18n.init({ language: "en" });
+  const wrapped = `${source}\n;globalThis.testRenderTree = renderTree;`;
   vm.runInContext(wrapped, context);
   return { renderTree: context.testRenderTree, elements };
 }
