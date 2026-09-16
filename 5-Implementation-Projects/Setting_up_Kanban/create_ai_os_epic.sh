@@ -41,16 +41,16 @@ for f in d['fields']:
     if f['name']=='Priority': print(f['id']); break
 ")
 
-STATUS_CODING=$(echo "$FIELDS_JSON" | python -c "
+STATUS_IMPLEMENTATION=$(echo "$FIELDS_JSON" | python -c "
 import json,sys
 d=json.load(sys.stdin)
 for f in d['fields']:
     if f['name']=='Status':
         for o in f.get('options', []):
-            if o['name']=='CODING': print(o['id']); break
+            if o['name']=='IMPLEMENTATION': print(o['id']); break
 ")
 
-if [ -z "$STATUS_FIELD_ID" ] || [ -z "$STATUS_CODING" ] || [ -z "$PRIORITY_FIELD_ID" ]; then
+if [ -z "$STATUS_FIELD_ID" ] || [ -z "$STATUS_IMPLEMENTATION" ] || [ -z "$PRIORITY_FIELD_ID" ]; then
   echo "ERROR: could not resolve one or more fields. Found:"
   echo "$FIELDS_JSON" | python -c "
 import json,sys
@@ -63,7 +63,7 @@ for f in d['fields']:
   exit 1
 fi
 
-echo "Status field=$STATUS_FIELD_ID CODING=$STATUS_CODING"
+echo "Status field=$STATUS_FIELD_ID IMPLEMENTATION=$STATUS_IMPLEMENTATION"
 echo "Priority field=$PRIORITY_FIELD_ID"
 
 echo ""
@@ -107,9 +107,9 @@ fi
 echo "item_id=$ITEM_ID"
 
 echo ""
-echo "=== Setting Status=CODING ==="
+echo "=== Setting Status=IMPLEMENTATION ==="
 gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" \
-  --field-id "$STATUS_FIELD_ID" --single-select-option-id "$STATUS_CODING"
+  --field-id "$STATUS_FIELD_ID" --single-select-option-id "$STATUS_IMPLEMENTATION"
 sleep "$API_DELAY"
 
 echo ""
