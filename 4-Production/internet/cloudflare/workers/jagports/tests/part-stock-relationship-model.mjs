@@ -25,7 +25,8 @@ assert.match(fixture, /9303/);
 assert.match(fixture, /NULL, NULL,\s+'fixture', 'unverified'/);
 assert.match(docs, /PART to operational stock/);
 assert.match(docs, /multiple stock records/);
-assert.match(docs, /unresolved\/non-catalogue stock/);
+assert.match(docs, /Unresolved stock is representable without fabricating a canonical PART/);
+assert.match(docs, /known reusable non-Jaguar product.*Jagports-owned canonical PART/i);
 assert.match(docs, /donor vehicle/);
 
-console.log('part-stock-relationship-model: 16 assertions passed');
+console.log('part-stock-relationship-model: 17 assertions passed');
