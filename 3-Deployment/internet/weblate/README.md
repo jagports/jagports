@@ -2,112 +2,83 @@
 
 ## Purpose
 
-Define the deployment and operating procedure for the Weblate Translation Management System used by VIEPS UI localization.
+Deployment and operating record for the Hosted Weblate service used by VIEPS UI translations.
 
-This document implements the deployment and operating record for Issue #679. It distinguishes verified live configuration from remaining acceptance work and does not claim completion of the end-to-end translation release path until that path is actually exercised and verified.
+This document implements Issue #679. Day-to-day translation handling is intentionally kept separate and compact in [`Update-Translations.md`](Update-Translations.md).
 
 ## Authorities
 
-- `00-Management/RULES_i18n.md` — canonical VIEPS UI i18n governance.
+- `00-Management/RULES_i18n.md` — VIEPS i18n governance.
 - `0-DocumentationEducationCompetense/SKILL_i18n.md` — agent execution procedure.
-- `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/I18N_FOUNDATION.md` — repository/application i18n foundation.
-- Issue #554 — selected VIEPS i18n/Weblate architecture.
-- Issue #676 — resource format, ordering, governance, and validation contract.
+- `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/I18N_FOUNDATION.md` — repository/application foundation.
+- Issue #554 — VIEPS i18n/Weblate architecture.
+- Issue #676 — resource format, ordering and validation contract.
 - Issue #679 — live Weblate deployment and Git integration.
 
-## Current live deployment status
+## Live service
 
-Verified on 2026-09-16:
+Verified live configuration:
 
-- Hosted Weblate trial service is provisioned and reachable.
+- Hosted Weblate service is active and publicly reachable under its trial period.
 - Workspace: `Jagports VIEPS`.
-- Workspace URL: `https://hosted.weblate.org/workspaces/ba803474-241d-4840-bc8c-bdb9dae615c5/`.
+- Workspace URL: https://hosted.weblate.org/workspaces/ba803474-241d-4840-bc8c-bdb9dae615c5/
 - Project: `Jagports VIEPS`.
-- Project slug: `jagports-vieps`.
-- Project URL: `https://hosted.weblate.org/projects/jagports-vieps/`.
-- Translation component: `VIEPS UI`.
-- Component slug: `vieps-ui`.
-- Component URL: `https://hosted.weblate.org/projects/jagports-vieps/vieps-ui/`.
-- The Hosted Weblate GitHub App is connected to the `jagports` organization.
-- GitHub App repository access is restricted to `jagports/jagports`.
-- The `VIEPS UI` component has been migrated to `GitHub (via Weblate GitHub app)`.
-- English and Finnish resources are visible in the component.
-- Project-level `Enable hooks` is enabled.
-- Project-level `Enable reviews` is enabled.
-- Libre-hosting approval has not yet been requested.
-- The complete translation edit → human review → Weblate GitHub PR → CI → merge → Weblate resynchronization round trip has not yet been demonstrated.
+- Project URL: https://hosted.weblate.org/projects/jagports-vieps/
+- Component: `VIEPS UI`.
+- Component URL: https://hosted.weblate.org/projects/jagports-vieps/vieps-ui/
+- Finnish translation URL: https://hosted.weblate.org/projects/jagports-vieps/vieps-ui/fi/
+- Repository status URL: https://hosted.weblate.org/projects/jagports-vieps/vieps-ui/#repository
 
-A Weblate diagnostic still reports that repository updates are pulled manually even after GitHub App migration and with project hooks enabled. Treat that warning as unresolved operational evidence until an actual GitHub-side repository update is shown to reach Weblate automatically. Do not dismiss or work around it by adding a second webhook unless evidence shows the GitHub App path is insufficient.
+Hosted Weblate Libre-plan approval/licensing administration is separate from the already functioning translation automation. The live trial service may continue to be used for translation workflow verification while that hosting-plan matter is completed.
+
+Repository-side MIT scope and third-party exclusions are documented in the repository `LICENSE.md`, and the root `README.md` discloses Hosted Weblate usage.
 
 ## Selected deployment mode
 
-**Selected primary deployment mode: Hosted Weblate, targeting Libre hosting for the public VIEPS translation project.**
+Primary mode: **Hosted Weblate using the Hosted Weblate GitHub App**.
 
-The project is currently running under the Hosted Weblate trial while configuration and eligibility requirements are completed.
+Fallback, only after an explicit deployment decision: self-hosted Weblate using the official Docker deployment.
 
-Reasons for the selected mode:
+Reasons for Hosted Weblate:
 
-- Hosted Weblate provides the required GitHub App, translation review, branch/PR, and synchronization workflow without introducing another Jagports-operated always-on application stack.
-- GitHub remains the released-resource authority.
+- no Jagports-operated always-on Weblate stack is required;
+- GitHub App integration provides repository synchronization and PR creation;
+- GitHub remains release authority;
 - VIEPS runtime remains independent of Weblate availability.
-- The deployment minimizes Jagports-specific infrastructure and maintenance.
 
-### Libre-hosting eligibility boundary
-
-Repository visibility alone is not sufficient for Hosted Weblate Libre approval.
-
-Before requesting Libre approval, verify and document the required licensing boundary and project disclosure:
-
-- Jagports-authored source code intended to be libre and the VIEPS translation resources use the MIT License.
-- Third-party software, copied upstream material, catalogue/source data, images, and other externally owned content are **not** relicensed by the Jagports MIT grant; they retain their original licenses or rights.
-- Proprietary Jaguar/Unipart or other third-party catalogue/source material must not be described as MIT-licensed merely because it exists in the public repository.
-- The repository README should explicitly mention that VIEPS translations are managed with Hosted Weblate before Libre approval is requested.
-- Repository-level licensing documentation must make the Jagports-authored/third-party boundary clear enough that the Libre-hosting application does not imply that all repository content is covered by a single Jagports MIT grant.
-
-Do not request Libre-hosting approval until these repository-side licensing/disclosure prerequisites have been addressed.
-
-### Fallback
-
-If Hosted Weblate Libre hosting is not accepted or becomes unsuitable, the approved fallback candidate is self-hosted Weblate using the official Docker deployment.
-
-Changing from Hosted Weblate to self-hosted Weblate is an operational/deployment decision and must be recorded before provisioning. Do not silently switch deployment modes.
-
-## Canonical VIEPS component configuration
-
-### Repository and branches
+## GitHub integration
 
 Repository:
 
 `https://github.com/jagports/jagports`
 
-Repository branch:
+Source branch:
 
 `main`
-
-Configured Weblate push branch name:
-
-`weblate-translations`
-
-Repository push URL:
-
-- left empty for the pull-request integration;
-- GitHub App integration manages authenticated repository access.
 
 Version-control mode:
 
 `GitHub (via Weblate GitHub app)`
 
-Version-control parameters:
+Verified integration state:
 
-- Create merge requests / pull requests: enabled.
-- Automatic pull-request merge: disabled.
-- Merge method setting: `Create a merge commit`.
+- GitHub App connected to the `jagports` organization;
+- repository access restricted to `jagports/jagports`;
+- Pull Request creation enabled;
+- automatic PR merge disabled;
+- project hooks enabled;
+- project reviews enabled;
+- no GitHub token, private key, webhook secret or equivalent credential is stored in repository content.
 
-The exact fork/branch mechanics used by Hosted Weblate must be verified by the first generated pull request. The configured branch name must not be treated as evidence that a successful outbound PR flow already exists.
+Observed Weblate-generated translation branch:
 
-### Translation resources
+`weblate-jagports-vieps-vieps-ui`
 
-Translation resource directory:
+Do not rely on an earlier configured/displayed generic branch name when the live GitHub App integration generates a different concrete branch name.
+
+## Translation resources
+
+Canonical directory:
 
 `5-Implementation-Projects/internet/jagports/solution/vieps/i18n/`
 
@@ -115,264 +86,188 @@ File mask:
 
 `5-Implementation-Projects/internet/jagports/solution/vieps/i18n/*.json`
 
-Monolingual base/source file:
+Source/base file:
 
 `5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json`
 
-Initial translated locale:
+Initial translation file:
 
 `5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json`
 
-Source language:
+Configuration:
 
-`English`
-
-### File format
-
-- File format: i18next JSON file v4.
-- Weblate format identifier: `i18nextv4`.
-- JSON key ordering: case-sensitive sort (`json_sort_keys = case_sensitive`).
-- JSON indentation: 2 spaces.
-- Indentation style: spaces.
-- Avoid spaces after separators: disabled.
-- DOS line endings: disabled; repository resources remain on UNIX line endings.
-- Edit monolingual base file: disabled.
-- Intermediate language file: empty.
-- Template for new translations: empty.
-- Adding new translations: inherited project/workspace setting, `Create new language file`.
-- Language code style: inherited/default based on file format.
-- Language filter: `^[^.]+$`.
-- Key filter: empty.
-- `Use as a glossary`: disabled for the `VIEPS UI` component.
-
-The component must preserve:
-
-- the same logical semantic-key hierarchy across required locales;
+- source language: English;
+- format: i18next JSON v4;
+- Weblate format identifier: `i18nextv4`;
 - recursive case-sensitive alphabetical sibling-key ordering;
-- i18next v4 / CLDR-compatible plural families;
-- English as the canonical monolingual UI source language;
-- Finnish as the initial translated UI locale;
-- domain/source identifiers as data rather than translation identities.
+- 2-space indentation;
+- UNIX line endings;
+- monolingual base editing in Weblate disabled;
+- Finnish is the initial translated locale;
+- glossary mode disabled;
+- language filter: `^[^.]+$`;
+- key filter: empty.
 
-## Translation instructions and license
+Domain/source identifiers such as part numbers, VINs, canonical model/range identifiers, JEPC source data and normalized machine codes remain data rather than translation identities.
 
-Project translation instructions are:
+## Translation review and release authority
+
+Project translation instructions:
 
 > Translate VIEPS user-interface text only. Preserve part numbers, VINs, model/range identifiers, JEPC source data, and normalized domain codes unchanged. English is the source language. Finnish is the initial translation language. Human review is required before release.
 
-Translation license:
+Review configuration:
 
-`MIT License`
+- `Enable reviews`: on;
+- Administration has `Review strings` capability;
+- AI/machine translation, if used, is suggestion/draft assistance only.
 
-The component inherits the configured project/workspace translation license.
+Weblate translation review and GitHub PR review are separate gates.
 
-The MIT selection applies to Jagports-authored VIEPS translation resources. It does not override or replace the rights/license status of third-party or proprietary repository content.
-
-## GitHub integration
-
-Use the Hosted Weblate GitHub App rather than embedding a personal GitHub token in repository or Weblate component configuration.
-
-Verified integration state:
-
-- connected GitHub account: `jagports` organization;
-- GitHub App status: active;
-- repository access: `jagports/jagports` only;
-- component VCS mode: `GitHub (via Weblate GitHub app)`;
-- project `Enable hooks`: on;
-- no repository credential, token, private key, or webhook secret is stored in repository content.
-
-The Weblate workflow must not push release-ready translation changes directly to protected `main` or otherwise bypass Jagports review and CI.
-
-Required release path:
+Release path:
 
 ```text
-GitHub canonical i18n resources
+GitHub source resources
         ↓
 Hosted Weblate synchronization
         ↓
 translator / optional AI-machine draft
         ↓
-human Weblate review / approval
+human Weblate review
         ↓
-Weblate translation branch / GitHub App change
-        ↓
-GitHub Pull Request
+Weblate GitHub branch / Pull Request
         ↓
 VIEPS i18n integrity CI
         ↓
-normal Jagports independent review
+independent Jagports GitHub review
         ↓
 merge to main
+        ↓
+automatic Weblate resynchronization
 ```
 
-GitHub remains the authoritative source of released translation resources.
+GitHub `main` remains the authoritative released-resource state.
 
-## Human review and access control
+## Verified automation behavior
 
-Project access is currently public under the Hosted Weblate trial/Libre model.
+The live integration has now demonstrated both directions.
 
-Current review configuration:
+### Weblate → GitHub
 
-- project `Enable reviews`: on;
-- the `Administration` team includes the `Review strings` role;
-- the Administration team scope covers all languages and all project components;
-- current Jagports administrative access is therefore capable of performing the required Weblate human review.
+Verified behavior:
 
-Weblate translation review does not replace normal Jagports GitHub PR review. Both gates remain distinct:
+- Finnish translation changed in Weblate;
+- Weblate committed/pushed the change;
+- Hosted Weblate GitHub App created a GitHub Pull Request;
+- the PR changed only the intended translation resource;
+- `VIEPS i18n integrity` passed without manual reformatting;
+- independent GitHub review approved the PR;
+- the PR merged to `main`;
+- Weblate automatically rebased/resynchronized to the merge commit;
+- repository status returned to a clean `0 pending / 0 outgoing / 0 missing` state.
 
-1. human translation review in Weblate;
-2. normal independent GitHub PR review and CI before merge.
+### GitHub → Weblate
 
-Because the project is public, contribution visibility must not be confused with release authority. Public contributors may propose translations, but unreviewed content must not become release-ready merely because it exists in Weblate.
+A later normal GitHub PR changed the English source string in `en.json` and merged to `main`.
 
-## Human and AI translation boundary
+The Hosted Weblate GitHub integration received the new revision automatically and the Weblate repository view reflected the merged revision within approximately five seconds in the observed test.
 
-AI or machine translation may generate suggestions or drafts.
-
-AI/machine output must not independently become released translation content.
-
-Human/Weblate review remains required before translation content is treated as approved for release. Existing approved terminology should be reused where applicable.
-
-No AI/machine translation integration has to be enabled merely to complete the Weblate deployment; if enabled later, it must remain suggestion/draft-only.
+This live evidence supersedes the earlier concern that repository updates might require manual pulling. No second webhook is required while the GitHub App/webhook path continues to synchronize correctly.
 
 ## Synchronization and conflict handling
 
-Repository changes on `main` remain authoritative.
+`main` remains authoritative when repository and Weblate state differ.
 
-When Weblate and GitHub changes conflict:
+If synchronization or conflict problems occur:
 
-1. synchronize/rebase/update the Weblate component from the current repository state;
-2. preserve the canonical semantic keys rather than creating language-specific parallel identities;
-3. resolve resource conflicts in the translation branch/PR;
-4. run the repository i18n integrity CI;
-5. do not bypass review merely to resolve synchronization drift.
+1. open the repository status page: https://hosted.weblate.org/projects/jagports-vieps/vieps-ui/#repository
+2. verify pending, outgoing and missing commits;
+3. synchronize/rebase Weblate from current `main` before resolving translation conflicts;
+4. preserve canonical semantic keys and resource hierarchy;
+5. resolve changes through the Weblate translation branch / GitHub PR path;
+6. require `VIEPS i18n integrity` to pass;
+7. never bypass normal review to clear synchronization drift.
 
-If Weblate produces formatting, hierarchy, ordering, or plural-family changes that fail repository validation, the Weblate component configuration must be corrected. Manual post-processing must not become the normal release mechanism.
+If Weblate-generated formatting, hierarchy, ordering or plural-family changes fail repository validation, fix the Weblate component configuration rather than adopting manual post-processing as the normal workflow.
 
-### Current synchronization warning
+A dedicated stale-approval edge-case test is not required for the current deployment completion. If source-string revision/review invalidation behavior becomes operationally important later, test and document it separately without blocking ordinary translation use.
 
-The live component currently reports:
+## Day-to-day translation procedure
 
-`Repository updates are pulled manually. Configure repository hooks to automate pulling changes into Weblate.`
+Use [`Update-Translations.md`](Update-Translations.md).
 
-This warning remains visible even though:
+Key URLs:
 
-- the component has been migrated to the Weblate GitHub App integration; and
-- project `Enable hooks` is enabled.
-
-Do not mark automatic inbound synchronization healthy solely from configuration state. Verify behavior using a representative GitHub repository change and observe whether Weblate receives it automatically. If it does, re-check whether the diagnostic clears or is stale. If it does not, investigate the GitHub App/repository event delivery path before adding any alternate webhook.
-
-## Validation / acceptance round trip
-
-A #679 acceptance round trip is complete only when all of the following are evidenced:
-
-1. Weblate successfully reads `en.json` and `fi.json` from `jagports/jagports`.
-2. A representative translation unit is edited in Weblate.
-3. The translation is human-reviewed/approved in Weblate.
-4. Weblate creates or updates a translation branch and GitHub Pull Request rather than modifying `main` directly.
-5. The PR contains only the expected translation-resource change plus any explicitly required Weblate metadata/configuration change.
-6. `VIEPS i18n integrity` passes on the exact PR head.
-7. Normal Jagports independent review is completed.
-8. The approved PR is merged through the normal repository workflow.
-9. Weblate synchronizes the merged repository state without creating a duplicate/reversion loop.
-10. A subsequent repository-side translation/source change reaches Weblate automatically through the configured GitHub App/hook path.
-
-Use a harmless representative translation wording change for this test. Do not modify domain identifiers or JEPC source-language catalogue data as the test payload.
+- Translate Finnish: https://hosted.weblate.org/translate/jagports-vieps/vieps-ui/fi/?q=
+- Review queue: https://hosted.weblate.org/translate/jagports-vieps/vieps-ui/fi/?q=state%3Atranslated
+- Repository operations/status: https://hosted.weblate.org/projects/jagports-vieps/vieps-ui/#repository
+- GitHub Pull Requests: https://github.com/jagports/jagports/pulls
 
 ## Operational administration
 
 ### Routine synchronization
 
-- Keep project `Enable hooks` enabled.
-- Keep the component on the Hosted Weblate GitHub App integration.
-- Verify Weblate reflects newly merged semantic keys before assigning translation work.
-- Do not treat Weblate state as release authority when it differs from `main`.
-- Investigate persistent synchronization diagnostics with live event evidence rather than dismissing them without verification.
+- keep project hooks enabled;
+- keep the component on the Hosted Weblate GitHub App integration;
+- verify new GitHub source changes appear in Weblate automatically;
+- use the repository status view when synchronization is uncertain;
+- do not treat Weblate state as release authority when it differs from `main`.
 
 ### Access and roles
 
-- Keep administrative access limited to authorized Jagports maintainers.
-- Translators may propose/edit translation content.
-- `Enable reviews` must remain on while human review is required by Jagports i18n governance.
-- At least one authorized team must retain `Review strings` permission.
-- Repository merge approval remains governed by Jagports GitHub workflow even after Weblate translation approval.
+- administrative access remains limited to authorized Jagports maintainers;
+- translators may propose/edit translation content;
+- human review remains enabled;
+- at least one authorized team retains `Review strings` permission;
+- GitHub merge approval remains governed by normal Jagports workflow.
 
 ### Credentials
 
-- Prefer GitHub App installation credentials managed by the provider integration.
-- Keep the GitHub App installation restricted to the required repository where possible.
-- Do not place credentials in translation resources or deployment documentation.
-- Rotate/revoke external integration credentials through the provider/GitHub administration path if compromise is suspected.
+- use provider-managed GitHub App credentials;
+- keep App installation access restricted to required repositories;
+- do not put credentials in repository content or translation files;
+- rotate/revoke integration credentials through Weblate/GitHub administration if compromise is suspected.
 
 ### Backup and recovery
 
-For Hosted Weblate, GitHub remains the durable release source for translation resources.
+GitHub is the durable release source for translation resources.
 
-A Weblate service outage must not prevent VIEPS from building or serving translations already merged to the repository.
+A Weblate outage must not prevent VIEPS from building or serving already-merged translations.
 
-After service recovery or reconnection, resynchronize from current `main` before allowing new translation changes to flow back.
+After Weblate recovery/reconnection, synchronize from current `main` before allowing new outbound translation changes.
 
-### Upgrade responsibility
+### Upgrades
 
-Hosted Weblate application upgrades are operated by the hosting provider. Jagports remains responsible for periodically verifying that the configured component format, GitHub integration behavior, review roles, and generated PRs still conform to #554/#676 and the repository CI contract.
+Hosted Weblate application upgrades are operated by the hosting provider. Jagports remains responsible for periodically checking that component format, review settings, GitHub integration and generated PRs still conform to repository policy and CI.
 
-### Health verification
+### Health check
 
-Minimum operational health checks are:
+Healthy state requires:
 
-- Hosted Weblate workspace/project/component URLs are reachable by an authorized Jagports administrator;
-- GitHub App connection reports the `jagports` organization and `jagports/jagports` repository available;
+- Hosted Weblate workspace/project/component reachable;
+- GitHub App connected to `jagports/jagports`;
 - component VCS mode remains `GitHub (via Weblate GitHub app)`;
-- project `Enable hooks` remains on;
-- project `Enable reviews` remains on;
-- current `en.json` and `fi.json` are visible/synchronized;
-- a GitHub repository change reaches Weblate automatically;
-- Weblate can create/update a translation PR;
-- repository i18n CI accepts Weblate-generated resource changes;
-- Weblate can resynchronize cleanly after the translation PR is merged.
+- hooks enabled;
+- reviews enabled;
+- `en.json` and `fi.json` visible and synchronized;
+- GitHub → Weblate updates arrive automatically;
+- Weblate → GitHub PR creation works;
+- `VIEPS i18n integrity` accepts generated resource changes;
+- post-merge Weblate status returns to `0 pending / 0 outgoing / 0 missing` and a clean working tree.
 
 ## Runtime independence
 
-Weblate is not a VIEPS production runtime dependency.
+Weblate is an authoring/review integration, not a VIEPS production runtime dependency.
 
-VIEPS production builds consume translation resources committed to the repository. A Weblate outage must not alter existing deployed VIEPS UI behavior or prevent a build that already has the required repository resources.
+Production builds consume repository translation resources. A Weblate outage does not alter existing deployed VIEPS UI behavior.
 
-## Current execution status
+## Hosting-plan follow-up
 
-### Verified complete configuration
+The service currently identifies the project as being in a Hosted Weblate trial period.
 
-- base `en.json` / `fi.json` resource foundation exists;
-- #676 governance/resource validation is implemented;
-- deterministic VIEPS i18n integrity CI exists;
-- Hosted Weblate trial service is provisioned and reachable;
-- VIEPS workspace/project/component exist;
-- VIEPS component points at the canonical repository/resource paths;
-- component format is `i18nextv4`;
-- JSON key sorting is case-sensitive;
-- GitHub App is installed and restricted to `jagports/jagports`;
-- component has been migrated to `GitHub (via Weblate GitHub app)`;
-- translation PR creation is enabled and automatic PR merge is disabled;
-- source/base editing in Weblate is disabled;
-- project hooks are enabled;
-- project translation reviews are enabled;
-- Administration role includes string-review capability;
-- Weblate translation license is set to MIT for the Jagports-authored translation resources.
-
-### Remaining before #679 completion
-
-- document the repository-level licensing boundary and README Weblate disclosure needed before Libre-hosting approval;
-- request and obtain Hosted Weblate Libre-hosting approval;
-- verify the persistent inbound-synchronization diagnostic with an actual GitHub-side update;
-- perform a harmless translation edit and human review in Weblate;
-- verify Weblate generates the expected GitHub pull request through the configured integration;
-- verify the generated changes pass #676/VIEPS i18n CI without manual reformatting;
-- complete normal Jagports independent PR review and merge;
-- verify Weblate resynchronizes the merged state without duplicate/reversion behavior;
-- record basic operational health evidence from the completed round trip.
+Libre-hosting approval/status can be completed as a separate hosting-administration follow-up. It does not invalidate the verified GitHub/Weblate automation path described above.
 
 ## External references
-
-Current Weblate documentation used for this deployment procedure:
 
 - Hosted/self-hosted options: https://weblate.org/en/hosting/
 - Code-hosting/GitHub integration: https://docs.weblate.org/en/latest/admin/code-hosting.html
