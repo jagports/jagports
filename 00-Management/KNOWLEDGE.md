@@ -31,6 +31,16 @@ A recurring Team Lead audit is supported by ChatGPT automation. Its current sche
 
 The audit is intended to be read-only by default and to identify actionable exceptions while respecting the authoritative Management, workflow, communication, and knowledge sources.
 
+## Current Agent Automation Capability Constraint
+
+For the current Jagports operating environment, a purchasable Codex API subscription suitable for the planned unattended agent runtime is not available. The self-hosted Lead Agent prototype must therefore not be treated as an available production Codex-backed autonomous service.
+
+Automated and scheduled Agent Infrastructure work that depends on Codex API execution is suspended until further notice. This suspension is a capability constraint, not abandonment of the AI OS architecture or its future agent-runtime direction.
+
+The currently available agent-like scheduled capability is ChatGPT scheduled task/prompt automation. Those scheduled ChatGPT prompts may continue where appropriate under the existing Management workflow, governance, verification, and system-of-record rules.
+
+If Codex API or another suitable unattended agent-execution capability becomes available later, the suspended infrastructure work must be explicitly re-evaluated before it is resumed; availability must not be assumed from the existence of the prototype, a ChatGPT subscription, or interactive Codex access.
+
 ## Capability Separation
 
 The capability of an automation or agent connection is distinct from the authorization of the underlying GitHub account or credential.
