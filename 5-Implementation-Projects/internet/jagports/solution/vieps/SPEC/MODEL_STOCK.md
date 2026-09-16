@@ -10,7 +10,8 @@ The catalogue/reference boundary remains unchanged: mutable Jagports inventory b
 
 | File | Role |
 |---|---|
-| [`MODEL_PART.md`](MODEL_PART.md) | Canonical catalogue `PART` identity and catalogue-side relationships. |
+| [`MODEL_PART.md`](MODEL_PART.md) | Canonical `PART` identity and catalogue-side relationships. |
+| [`MODEL_THIRD_PARTY_PART.md`](MODEL_THIRD_PARTY_PART.md) | Jagports-owned products, third-party/vendor references, NSS/service subparts and their applicability. |
 | `UI search specification` | User-facing search controls and available-part presentation. |
 | `Stock Admin specification` | Operational stock create/edit workflow and validation UI. |
 
@@ -22,23 +23,42 @@ Stock quantity, condition/status, stock quality classification, storage location
 
 If stock is held under an older or superseded catalogue part number, the UI may show the supersession relationship while retaining the stocked identity.
 
-A stock record may reference resolved catalogue identity, but unresolved stock remains explicitly unresolved.
+A stock record may reference resolved canonical product identity, but unresolved stock remains explicitly unresolved.
 
 Catalogue vehicle location and physical stock/storage location are never conflated.
 
-Stock quality classification is operational stock data. It may be shown with an available stock result, but it must not overwrite or redefine the canonical catalogue `PART`.
+Stock quality classification is operational stock data. It may be shown with an available stock result, but it must not overwrite or redefine the canonical `PART`.
 
 ## Operational stock identity
 
 `stock_item` is the operational stock record.
 
-It may reference canonical `part(id)` when a catalogue match is established.
+It may reference canonical `part(id)` when a product match is established. The referenced PART may be Jaguar/JEPC-owned or Jagports-owned; namespace/source ownership remains a property of the canonical product identity, not of the stock quantity record.
 
-`part_id` remains nullable for unresolved or non-catalogue stock.
+`part_id` remains nullable for explicitly unresolved stock.
+
+A known reusable product that is absent from JEPC should normally become a Jagports-owned canonical PART rather than remain permanently unresolved merely because it is non-Jaguar or third-party supplied.
+
+`part_id = NULL` is therefore the correct state when the physical item is not yet identified sufficiently to establish a reusable canonical product identity. It is not the normal final state for every non-Jaguar product.
 
 One `PART` may have multiple independent stock records.
 
 Stock does not assign a distinct persistent identity to every physical unit. `quantity` is the integer count of physical items represented by the stock record.
+
+## MVP stock-data boundary
+
+The reduced MVP proceeds with deterministic fixture PARTs for catalogue-linked stock functions. Full JEPC import coverage is not a prerequisite for implementing or accepting the Stock Admin workflow.
+
+MVP testing may therefore use:
+
+- fixture Jaguar PARTs linked to real operational stock information;
+- durable Jagports-owned PARTs created through Stock Admin;
+- explicit unresolved stock where product identity is genuinely not yet known;
+- fixture/manual-evidence applicability for Jagports/third-party service products where real JEPC occurrence data is not yet imported.
+
+When real JEPC data becomes available, imported catalogue occurrence/applicability evidence replaces or validates fixture/manual catalogue-side evidence without redesigning operational stock records or the Stock Admin entry paths.
+
+Fixture catalogue evidence must remain identifiable as fixture/test evidence and must not be presented as independently verified Jaguar source data.
 
 ## Normalized stock quality / condition code
 
@@ -128,6 +148,8 @@ When stock quality exists but cannot be shown because of authorization, the UI m
 
 When stock quality is unknown or unavailable, the UI must show an explicit unknown/unavailable state rather than defaulting to any quality class.
 
+Product-number presentation must distinguish Jaguar/JEPC numbers, Jagports-owned numbers and vendor references so a Jagports or third-party identifier is not represented as Jaguar-issued.
+
 ## Stock Admin requirements
 
 Stock Admin must capture quality by selecting the normalized `A` through `E` code.
@@ -138,6 +160,18 @@ Free-text condition notes may supplement the code, but must not replace the norm
 
 Validation must reject values outside the approved `A` through `E` set.
 
+### Stock/product entry paths
+
+Stock Admin must support three explicit paths:
+
+1. **Existing canonical PART** — find an existing Jaguar/JEPC, fixture, or Jagports-owned PART and create operational stock linked to it.
+2. **Create reusable Jagports-owned PART** — when a known reusable product has no suitable canonical PART, create a Jagports-owned PART first, then create stock against it. Vendor reference, optional parent Jaguar PART relation(s), relation type and applicability evidence/status must be capturable where applicable.
+3. **Explicit unresolved stock** — create `stock_item.part_id = NULL` only when identity is not yet sufficient to establish a reusable canonical PART; retain the required source evidence.
+
+A failed Jaguar PART lookup must not silently fabricate a Jaguar PART, silently create a Jagports PART, or silently force an unresolved state. Product creation or unresolved entry is an explicit operator action.
+
+Jagports-owned NSS/service subparts and third-party product semantics are defined in `MODEL_THIRD_PARTY_PART.md`.
+
 ## Search/filter requirements
 
 Stock-quality search and filtering must use normalized codes `A` through `E`.
@@ -145,6 +179,8 @@ Stock-quality search and filtering must use normalized codes `A` through `E`.
 Search result presentation may group or filter by localized labels, but the underlying filter identity remains the code set.
 
 Search/index authorization must not make restricted stock details discoverable to unauthorized users.
+
+Where product search supports Jaguar, Jagports and vendor identifiers, the resolved canonical PART identity and displayed namespace/source must remain distinguishable.
 
 ## Storage model
 
@@ -184,15 +220,15 @@ Donor vehicle, acquisition/source party and stock-owning vendor/tenant are disti
 
 `stock_item.source_party_id` references that party when known.
 
-A future multi-vendor or multi-tenant stock system may use this party relationship to distinguish live vendors or stock owners without changing canonical catalogue identity.
+A future multi-vendor or multi-tenant stock system may use this party relationship to distinguish live vendors or stock owners without changing canonical product identity.
 
 Legacy `stock_item.source` remains usable source evidence for unresolved stock where normalized party identity is not yet available.
 
-An unresolved/non-catalogue stock record (`part_id IS NULL`) must retain source evidence through either `source_party_id` or a nonblank legacy `source` value.
+An unresolved stock record (`part_id IS NULL`) must retain source evidence through either `source_party_id` or a nonblank legacy `source` value.
 
-A canonical `PART` must not be fabricated merely to satisfy a relationship.
+A canonical Jaguar PART must not be fabricated merely to satisfy a relationship. Conversely, a known reusable non-Jaguar product may intentionally receive a Jagports-owned canonical PART as defined by `MODEL_PART.md` and `MODEL_THIRD_PARTY_PART.md`.
 
-Detailed provenance is a separate stock evidence concern and must not be collapsed into catalogue identity.
+Detailed provenance is a separate stock evidence concern and must not be collapsed into catalogue/product identity.
 
 ## Quantity
 
@@ -209,6 +245,8 @@ Application and database validation must reject fractional quantities.
 Currency presentation must be reserved for i18n/localization formatting. Currency code remains the stored identity; localized symbols and display order are presentation.
 
 This document does not define sales, reservations, payment, or price-history workflows.
+
+Vendor price snapshots belong to the third-party/vendor evidence model in `MODEL_THIRD_PARTY_PART.md` and are distinct from the Jagports operational stock sale price.
 
 ## Availability
 
@@ -254,6 +292,16 @@ Executable stock model tests verify:
 
 Deterministic fixtures must cover multiple stock records for one part, stock under a historical part number with supersession, unresolved stock, zero/unavailable stock, and representative stock quality classifications from the normalized `A` through `E` set.
 
+The MVP fixture set should additionally cover:
+
+- real operational stock linked to a fixture Jaguar PART;
+- a known reusable non-Jaguar/Jagports-owned PART with stock;
+- a Jagports-owned NSS/service subpart with vendor reference;
+- a multi-parent service product where one neutral Jagports product identity is linked to multiple Jaguar parent PARTs;
+- fixture/manual occurrence applicability such as an exclusion/engine qualifier, side or VIN boundary;
+- unavailable applicability distinguished from confirmed exclusion;
+- an explicit unresolved stock record that can later be resolved to a canonical PART without destroying historical stock/source evidence.
+
 ## Boundary
 
 Defined here:
@@ -265,10 +313,13 @@ Defined here:
 - optional sale price with currency code;
 - availability integrity;
 - unresolved stock source requirement;
+- durable Stock Admin paths for existing PART, Jagports-owned product creation and explicit unresolved stock;
+- fixture-backed MVP stock operation without requiring complete JEPC import;
 - stock search/filter indexes and integrity tests.
 
 Outside this model document:
 
+- detailed Jagports-owned/NSS/vendor product relationship semantics, defined in `MODEL_THIRD_PARTY_PART.md`;
 - individual physical-unit identity;
 - inventory transaction/history ledger;
 - reservations and sales workflow;
@@ -286,5 +337,8 @@ Outside this model document:
 - [ ] Search/filter uses the normalized quality code.
 - [ ] Availability and validation semantics remain explicit.
 - [ ] Storage hierarchy supports site/rack/shelf/box nesting without assuming shelf as the first child below site.
-- [ ] Stock source-party semantics can represent vendor/tenant-oriented stock ownership or sourcing without mutating catalogue identity.
+- [ ] Stock source-party semantics can represent vendor/tenant-oriented stock ownership or sourcing without mutating canonical identity.
+- [ ] Stock Admin explicitly supports existing canonical PART, Jagports-owned reusable product creation, and unresolved-stock entry paths.
+- [ ] Known reusable non-Jaguar products are not forced to remain unresolved solely because JEPC lacks them.
+- [ ] Fixture-backed MVP stock implementation is explicitly compatible with later JEPC-imported applicability without redesigning stock records.
 - [ ] Complete current stock index inventory is documented.
