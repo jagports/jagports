@@ -10,11 +10,11 @@ Detailed resource-format, ordering, governance, and validation rules are owned b
 
 Deployment/operations:
 
-[`../../../../../../../3-Deployment/internet/weblate/README.md`](../../../../../../../3-Deployment/internet/weblate/README.md)
+[`../../../../../../3-Deployment/internet/weblate/README.md`](../../../../../../3-Deployment/internet/weblate/README.md)
 
 Compact translation update procedure:
 
-[`../../../../../../../3-Deployment/internet/weblate/Update-Translations.md`](../../../../../../../3-Deployment/internet/weblate/Update-Translations.md)
+[`../../../../../../3-Deployment/internet/weblate/Update-Translations.md`](../../../../../../3-Deployment/internet/weblate/Update-Translations.md)
 
 Canonical live component:
 
