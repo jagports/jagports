@@ -51,8 +51,13 @@
     gap: 0.5rem;
     overflow: hidden;
   }
-  .app-header { @apply flex flex-none items-end justify-between border-b border-jagports-line pb-2; margin: 0; }
+  .app-header { @apply flex flex-none items-end justify-start gap-3 border-b border-jagports-line pb-2; margin: 0; }
   .app-header h1 { @apply text-[1.65rem] leading-none; }
+  .locale-control { @apply flex flex-none items-center gap-1 self-start; }
+  .locale-button {
+    @apply rounded-md border border-jagports-line bg-white px-2 py-1 text-[0.7rem] font-semibold leading-none text-jagports-muted transition hover:border-jagports-teal hover:text-jagports-teal-dark focus:outline-none focus:ring-2 focus:ring-jagports-teal/20;
+  }
+  .locale-button span { @apply ml-0.5; }
   .eyebrow { @apply mb-1 text-[0.65rem] font-bold uppercase tracking-[0.11em] text-jagports-muted; }
   .muted, .compact-note { @apply text-jagports-muted; }
 
@@ -220,4 +225,5 @@
   .panel { @apply mb-2.5; }
   .search-form, .search-availability-strip { @apply grid-cols-1; }
   .card dl { @apply grid-cols-1; }
+  .locale-button span { @apply hidden; }
 }
