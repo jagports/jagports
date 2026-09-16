@@ -1,4 +1,4 @@
-name: Parts model integrity tests
+name: VIEPS model integrity tests
 
 on:
   pull_request:

@@ -1,9 +1,9 @@
-# VIEPS UI — MVP implementation tracking and baseline boundary
+# VIEPS UI — implementation tracking and baseline boundary
 
 **Status:** Specification ready for implementation review  
 **Controlling issue:** #468  
 **Priority issue:** #484  
-**Implementation parent:** #368  
+**Implementation parent:** #368
 
 ## Objective
 Define the ownership and traceability boundary for completing the Concept View-1 priority sequence without reviving obsolete requirements.
@@ -11,7 +11,8 @@ Define the ownership and traceability boundary for completing the Concept View-1
 ## Ownership
 - #468 is the controlling Concept View-1 specification while its acceptance criteria are completed.
 - #368 is the implementation parent for the actual VIEPS UI.
-- Each priority can have a dedicated specification issue and durable `UI_Specs_<Topic>.md` file in the existing `vieps/UI/` directory.
+- Search/result-state behavior is maintained in the canonical `../SPEC/UI_Part_Search.md` file.
+- Other dedicated UI topic specifications remain in the existing `vieps/UI/` directory unless moved to the canonical `SPEC` area by an explicit specification decision.
 - #360 remains obsolete and is not a requirements source.
 - #366 remains superseded by #468.
 
@@ -22,14 +23,15 @@ Implementation PRs should link the controlling specification, relevant priority 
 The complete Concept-1 page should be established early. Components whose contracts are ready may be real; components awaiting later priorities use permanent-position placeholders or explicit unavailable states. Later implementation replaces the backing behavior without redesigning the information architecture.
 
 ## Repository structure
-Detailed UI specifications use the existing directory only:
 
 ```text
-5-Implementation-Projects/internet/jagports/solution/vieps/UI/
-  UI_Specs.md
-  UI_Specs_Part_Search.md
-  UI_Specs_Parts_Tree.md
-  UI_Specs_<Topic>.md
+5-Implementation-Projects/internet/jagports/solution/vieps/
+  SPEC/
+    UI_Part_Search.md
+  UI/
+    UI_Specs.md
+    UI_Specs_Parts_Tree.md
+    UI_Specs_<Topic>.md
 ```
 
 No additional `specifications/` folder is introduced under `vieps`.

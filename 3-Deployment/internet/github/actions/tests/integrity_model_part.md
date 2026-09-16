@@ -15,7 +15,7 @@ This workflow neither creates the production database nor inspects production da
 | Item | Value |
 |---|---|
 | Workflow | `.github/workflows/integrity_parts-model.yml` |
-| Display name | Parts model integrity tests |
+| Display name | VIEPS model integrity tests |
 | Test working directory | `4-Production/internet/cloudflare/workers/jagports` |
 | Part model documentation | `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md` |
 | Sparse checkout | Worker directory plus VIEPS `SPEC` model documentation directory and pinned local Tailwind source |

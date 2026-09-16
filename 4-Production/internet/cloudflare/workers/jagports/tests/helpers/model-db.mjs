@@ -33,19 +33,19 @@ export function database({ fixtures = true } = {}) {
   db.exec('PRAGMA foreign_keys = ON');
 
   if (fixtures) {
-    // The shared integrity fixtures represent persisted data that already exists
-    // before the MVP stock migration. Load them through 0010, then apply 0011+
-    // so upgrade-preservation behavior is tested instead of reinserting legacy
-    // available stock after the new availability trigger already exists.
-    const mvpStockMigration = migrations.indexOf('0011_mvp_stock_model.sql');
-    if (mvpStockMigration >= 0) {
-      migrate(db, migrations.slice(0, mvpStockMigration));
+    // Shared integrity fixtures represent persisted data that already exists
+    // before the stock-model migration. Load them through 0010, then apply
+    // 0011+ so upgrade-preservation behavior is tested instead of reinserting
+    // legacy available stock after the availability trigger already exists.
+    const stockModelMigration = migrations.indexOf('0011_mvp_stock_model.sql');
+    if (stockModelMigration >= 0) {
+      migrate(db, migrations.slice(0, stockModelMigration));
       db.exec(sql('tests/fixtures/part_presentation.sql'));
       db.exec(sql('tests/fixtures/part_model_integrity.sql'));
-      migrate(db, migrations.slice(mvpStockMigration));
-      // Load normalized post-0011 stock fixtures as well so new foreign keys and
+      migrate(db, migrations.slice(stockModelMigration));
+      // Load normalized stock fixtures so current foreign keys, vocabularies and
       // indexes are exercised alongside preserved legacy rows.
-      db.exec(sql('tests/fixtures/mvp_stock_storage.sql'));
+      db.exec(sql('tests/fixtures/stock_storage.sql'));
       db.exec(sql('tests/fixtures/vieps_searchable_fixture_dataset.sql'));
       return db;
     }

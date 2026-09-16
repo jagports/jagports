@@ -15,7 +15,7 @@ This workflow neither creates the production database nor inspects production da
 | Item | Value |
 |---|---|
 | Workflow | `.github/workflows/integrity_parts-model.yml` |
-| Display name | Parts model integrity tests |
+| Display name | VIEPS model integrity tests |
 | Test working directory | `4-Production/internet/cloudflare/workers/jagports` |
 | Stock model documentation | `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_STOCK.md` |
 | Sparse checkout | Worker directory plus VIEPS `SPEC` model documentation directory and pinned local Tailwind source |
@@ -48,7 +48,7 @@ Install Node 24 through the standard GitHub Actions setup action.
 
 Restore the locked Worker build dependencies with `npm ci`, build and verify generated deploy assets with `npm run build`, then execute the full Worker test suite with `npm test`.
 
-The model helper creates in-memory SQLite databases with foreign-key enforcement, executes migrations in order using individual transactions, and loads synthetic fixtures.
+The model helper creates in-memory SQLite databases with foreign-key enforcement, executes migrations in order using individual transactions, and loads deterministic fixtures.
 
 These databases are discarded when the process exits.
 
@@ -58,9 +58,10 @@ No Cloudflare credentials, Wrangler deployment, remote D1 migration, inventory d
 
 - Operational stock identity.
 - Part/catalogue separation.
-- Normalized stock quality codes.
-- Recursive site, rack, shelf and box storage.
-- Donor vehicle, acquisition/source party and vendor/tenant-oriented source-party semantics.
+- Normalized A-E stock quality codes and deterministic meaning fixtures.
+- Multi-site storage with optional rack/shelf/box hierarchy and recursive boxes.
+- Donor vehicle and source party as separate relationships.
+- Vendor/person/organization/tenant/other source-party vocabulary.
 - Quantity, price, currency and availability constraints.
 - Unresolved stock source evidence requirement.
 - Stock search/filter indexes.

@@ -4,15 +4,15 @@
 
 This document defines the VIEPS operational stock model and the normalized stock quality classification used by stock records, stock search/filtering, Stock Admin data entry, and available-part presentation.
 
-The catalogue/reference boundary remains unchanged: mutable Jagports inventory belongs in operational stock records, not canonical `PART` or JEPC reference entities.
+Mutable operational stock remains separate from canonical `PART` / JEPC catalogue identity.
 
 ## Related specification files
 
 | File | Role |
 |---|---|
 | [`MODEL_PART.md`](MODEL_PART.md) | Canonical catalogue `PART` identity and catalogue-side relationships. |
-| `UI search specification` | User-facing search controls and available-part presentation. |
-| `Stock Admin specification` | Operational stock create/edit workflow and validation UI. |
+| [`UI_Part_Search.md`](UI_Part_Search.md) | User-facing search controls and available-part presentation. |
+| [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md) | Operational stock create/edit workflow and validation UI. |
 
 ## Stock/catalogue separation
 
@@ -44,10 +44,14 @@ Stock does not assign a distinct persistent identity to every physical unit. `qu
 
 `stock_item.condition_code` stores the controlled stock quality / condition code.
 
-Allowed values are exactly:
+Allowed values and their authoritative plain-text meanings are:
 
 ```text
-A, B, C, D, E
+A New / Unused / Original Package
+B Used / Good Working / Known History
+C Used / Usable / No warranty
+D Repairs / Needs Conditioning / Spares only
+E Broken / Reference / Knowledge Gains
 ```
 
 The code is the stable storage, search, filter and API identity.
@@ -82,23 +86,21 @@ Locale suffixes or storage columns may be chosen by the i18n implementation, but
 
 | Code | English label | English short description | English long description |
 |---|---|---|---|
-| `A` | New / Unused / Original Package | Excellent or nearly new stock. | The part is fully working, very clean, unused or only lightly used. It has no significant signs of use. Surface marks are limited to minimal storage or removal marks. It is suitable where high visual and technical quality is required. |
-| `B` | Used / Good Working Condition / Known History | Good normal used stock. | The part is fully working and technically safe, with normal signs of use. Minor scratches, small stone chips, light surface rust on underbody parts, or small wear may be present. There must be no defect that prevents function or causes major cosmetic harm. |
-| `C` | Used / Usable / No warranty | Usable budget or project stock. | The part is working or repairable with limited effort, but has clear visual or mechanical wear. Visible scratches, deeper rust, small dents, dull lenses, interior wear or similar defects may be present. It is suitable for budget repairs, older cars, projects, or parts planned for refurbishment before installation. |
-| `D` | Repairs / Needs Conditioning / Spares only | Repair, conditioning or spares stock. | The part is not a normal ready-to-fit good used part. It needs repair, conditioning, cleaning, rebuilding, combination with other parts, or other preparation before use. It may be useful as a repair base, as a donor for subparts, or where the user knowingly accepts the conditioning requirement. |
-| `E` | Broken / For Reference / Knowledge Gains | Broken, reference or learning stock. | The part is broken, incomplete, unsuitable for testing, or not saleable as a ready-to-use spare part. It may still be useful for reference, comparison, measurement, documentation, learning, diagnosis, research, or other knowledge-gain purposes. |
+| `A` | New / Unused / Original Package | New or unused stock. | The part is new or unused. It may have normal storage or packaging marks, but it must not be classified as used stock. Original packaging may be present but is not required unless separately recorded. |
+| `B` | Used / Good Working / Known History | Good normal used stock. | The part is used, fully working and technically safe, with normal signs of use and known history where available. Minor scratches, small stone chips, light surface rust on underbody parts, or small wear may be present. There must be no defect that prevents function or causes major cosmetic harm. |
+| `C` | Used / Usable / No warranty | Usable budget or project stock. | The part is used and usable, or repairable with limited effort, but has clear visual or mechanical wear and carries no warranty classification. Visible scratches, deeper rust, small dents, dull lenses, interior wear or similar defects may be present. |
+| `D` | Repairs / Needs Conditioning / Spares only | Repair, conditioning or spares stock. | The part is not a normal ready-to-fit good used part. It needs repair, conditioning, cleaning, rebuilding, combination with other parts, or other preparation before use. It may be useful as a repair base or donor for subparts. |
+| `E` | Broken / Reference / Knowledge Gains | Broken, reference or learning stock. | The part is broken, incomplete, unsuitable for normal use, or not saleable as a ready-to-use spare part. It may still be useful for reference, comparison, measurement, documentation, learning, diagnosis, research, or other knowledge-gain purposes. |
 
 ### Finnish presentation values
 
 | Code | Finnish label | Finnish short description | Finnish long description |
 |---|---|---|---|
-| `A` | Uusi / käyttämätön / alkuperäispakkaus | Erinomainen tai lähes uutta vastaava osa. | Osa on täysin toimiva, erittäin siisti, käyttämätön tai vain vähän käytetty. Siinä ei ole merkittäviä käytön jälkiä. Pinnassa voi olla vain vähäisiä varastointi- tai purkujälkiä. Soveltuu kohteisiin, joissa halutaan korkea visuaalinen ja tekninen taso. |
-| `B` | Käytetty / hyvä käyttökunto / tunnettu historia | Hyvä normaalikuntoinen käytetty osa. | Osa on täysin toimiva ja teknisesti turvallinen, mutta siinä on normaalia käytön jälkeä. Pinnassa voi olla lieviä naarmuja, kiveniskemiä, pientä kulumaa tai kevyttä pintaruostetta esimerkiksi alustan osissa. Osassa ei saa olla toimintaa haittaavaa vikaa tai suurta kosmeettista haittaa. |
-| `C` | Käytetty / käyttökelpoinen / ei takuuta | Käyttökelpoinen budjetti- tai projektiosa. | Osa on toimiva tai pienellä vaivalla kunnostettavissa, mutta siinä on selkeitä visuaalisia tai mekaanisia kulumia. Siinä voi olla näkyviä naarmuja, syvempää ruostetta, pieniä painaumia, samentumaa, sisustan kulumaa tai vastaavaa. Soveltuu budjetti-, projekti- tai vanhempien autojen käyttöön tai kunnostettavaksi ennen asennusta. |
-| `D` | Korjattava / kunnostettava / varaosiksi | Korjausta, kunnostusta tai purkuosakäyttöä varten. | Osa ei ole sellaisenaan normaali hyvä käytetty osa. Se tarvitsee korjausta, kunnostusta, puhdistusta, yhdistelyä tai muuta valmistelua ennen käyttöä. Soveltuu korjausaihioksi, varaosiksi purettavaksi tai tapaukseen, jossa käyttäjä ymmärtää kunnostustarpeen. |
-| `E` | Rikkinäinen / referenssiksi / tiedonhankintaan | Rikkinäinen, referenssi- tai oppimiskäyttöön. | Osa on rikki, vajaa, testattavaksi sopimaton tai normaalikäyttöön myyntikelvoton. Se voi silti olla hyödyllinen referenssinä, vertailuun, mittaukseen, dokumentointiin, oppimiseen, vian selvitykseen, tutkimukseen tai muuhun tiedonhankintaan. |
-
-Finnish used-part practice normally centers on A/B/C. VIEPS keeps A/B/C as normal sellable quality classes and adds D/E for repair, spares, reference and knowledge-gain stock.
+| `A` | Uusi / käyttämätön / alkuperäispakkaus | Uusi tai käyttämätön osa. | Osa on uusi tai käyttämätön. Siinä voi olla tavanomaisia varastointi- tai pakkausjälkiä, mutta sitä ei luokitella käytetyksi osaksi. Alkuperäispakkaus voi olla tallella, mutta se kirjataan tarvittaessa erikseen. |
+| `B` | Käytetty / hyvä käyttökunto / tunnettu historia | Hyvä normaalikuntoinen käytetty osa. | Osa on käytetty, täysin toimiva ja teknisesti turvallinen, ja sen historia tunnetaan silloin kun tieto on saatavilla. Pinnassa voi olla normaalia käytön jälkeä, kuten lieviä naarmuja, kiveniskemiä, pientä kulumaa tai kevyttä pintaruostetta. |
+| `C` | Käytetty / käyttökelpoinen / ei takuuta | Käyttökelpoinen budjetti- tai projektiosa. | Osa on käytetty ja käyttökelpoinen tai pienellä vaivalla kunnostettavissa, mutta siinä on selkeitä visuaalisia tai mekaanisia kulumia eikä luokitus sisällä takuuta. |
+| `D` | Korjattava / kunnostettava / varaosiksi | Korjausta, kunnostusta tai purkuosakäyttöä varten. | Osa ei ole sellaisenaan normaali hyvä käytetty osa. Se tarvitsee korjausta, kunnostusta, puhdistusta, yhdistelyä tai muuta valmistelua ennen käyttöä. |
+| `E` | Rikkinäinen / referenssiksi / tiedonhankintaan | Rikkinäinen, referenssi- tai oppimiskäyttöön. | Osa on rikki, vajaa tai normaalikäyttöön myyntikelvoton. Se voi silti olla hyödyllinen referenssinä, vertailuun, mittaukseen, dokumentointiin, oppimiseen, vian selvitykseen, tutkimukseen tai muuhun tiedonhankintaan. |
 
 The legacy free-text `condition` column is retained as source or supplementary text. New operational logic must use the controlled `condition_code` where the accepted condition is known.
 
@@ -150,23 +152,33 @@ Search/index authorization must not make restricted stock details discoverable t
 
 Named physical sites are represented by `stock_site`.
 
-Physical storage locations are represented by `stock_location`.
+Physical locations within a site are represented by `stock_location`.
 
-A location belongs to one named site.
+Every `stock_location` belongs to one `stock_site`.
 
-A root location may be a rack, shelf, room, pallet place, bin area or other site-level location type accepted by implementation.
+Supported `stock_location.location_type` values are:
 
-A shelf may be a level on a rack.
+```text
+rack
+shelf
+box
+```
+
+A root location may be a rack or a shelf.
+
+A shelf may be a level on a rack or may be a root location when no rack level is used.
 
 A box may be a child of a shelf or another box.
 
-Recursive nesting supports structures such as:
+Recursive nesting therefore supports structures such as:
 
 ```text
 Site → Rack → Shelf → Box → BoxSub1 → BoxSub2
 ```
 
-The model must not assume that shelf is always the first child below a site.
+`Site` is the parent entity represented by `stock_site`; it is not a `stock_location.location_type` value.
+
+The word `may` defines permitted representation, not a requirement that every site contain every level.
 
 Location identity is constrained within its parent/site context.
 
@@ -176,15 +188,25 @@ The legacy free-text `location` field remains source text and is not the normali
 
 ## Donor vehicle and acquisition/source party
 
-Donor vehicle, acquisition/source party and stock-owning vendor/tenant are distinct concepts.
+Donor vehicle and acquisition/source party are distinct concepts.
 
 `stock_item.donor_vehicle_id` references a donor `vehicle` when known.
 
-`stock_source_party` represents a vendor, person, organization, tenant or other acquisition/source party.
+`stock_source_party.source_type` supports:
+
+```text
+vendor
+person
+organization
+tenant
+other
+```
+
+`stock_source_party` records the source/acquisition party associated with a stock record. A vendor or tenant may therefore be the recorded source party when that is the evidenced role for that record.
 
 `stock_item.source_party_id` references that party when known.
 
-A future multi-vendor or multi-tenant stock system may use this party relationship to distinguish live vendors or stock owners without changing canonical catalogue identity.
+Provider identity, authentication/authorization identity and multi-tenant ownership rules are separate concerns and must not be inferred solely from `source_party_id`.
 
 Legacy `stock_item.source` remains usable source evidence for unresolved stock where normalized party identity is not yet available.
 
@@ -242,8 +264,9 @@ Combined predicates, ordering, language-aware search and production-scale select
 Executable stock model tests verify:
 
 - named multi-site storage;
-- recursive rack/shelf/box nesting;
-- controlled condition values;
+- optional rack/shelf/box hierarchy and recursive box nesting;
+- controlled A–E condition values and their deterministic fixture meanings;
+- vendor/person/organization/tenant/other source-party vocabulary;
 - integer quantity enforcement;
 - donor vehicle and source party as separate relationships;
 - currency and non-negative price;
@@ -260,8 +283,8 @@ Defined here:
 
 - persistent operational stock quantity;
 - controlled A–E condition / stock quality;
-- named multi-site recursive storage;
-- separate donor, source-party and potential vendor/tenant relationships;
+- named multi-site rack/shelf/box storage;
+- separate donor and source-party relationships;
 - optional sale price with currency code;
 - availability integrity;
 - unresolved stock source requirement;
@@ -272,19 +295,8 @@ Outside this model document:
 - individual physical-unit identity;
 - inventory transaction/history ledger;
 - reservations and sales workflow;
+- provider-specific synchronization behavior;
+- authentication/authorization ownership model;
 - automated acquisition history;
 - detailed provenance redesign;
 - production deployment or remote D1 migration execution.
-
-## Acceptance criteria
-
-- [ ] Operational stock identity is documented.
-- [ ] Stock/catalogue separation is documented.
-- [ ] Normalized `A` through `E` stock quality codes are documented.
-- [ ] Stock quality presentation is i18n-compatible.
-- [ ] Stock Admin uses the normalized quality code.
-- [ ] Search/filter uses the normalized quality code.
-- [ ] Availability and validation semantics remain explicit.
-- [ ] Storage hierarchy supports site/rack/shelf/box nesting without assuming shelf as the first child below site.
-- [ ] Stock source-party semantics can represent vendor/tenant-oriented stock ownership or sourcing without mutating catalogue identity.
-- [ ] Complete current stock index inventory is documented.

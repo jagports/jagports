@@ -1,7 +1,7 @@
 PRAGMA foreign_keys = ON;
 
--- Complete the accepted MVP operational-stock semantics from #353/#570
--- without adding transaction history or individual physical-unit identity.
+-- Complete the operational-stock semantics without adding transaction history
+-- or individual physical-unit identity.
 
 CREATE TABLE stock_site (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -12,7 +12,7 @@ CREATE TABLE stock_location (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   site_id INTEGER NOT NULL REFERENCES stock_site(id) ON DELETE CASCADE,
   parent_id INTEGER REFERENCES stock_location(id) ON DELETE CASCADE,
-  location_type TEXT NOT NULL CHECK (location_type IN ('shelf', 'box')),
+  location_type TEXT NOT NULL CHECK (location_type IN ('rack', 'shelf', 'box')),
   name TEXT NOT NULL CHECK (TRIM(name) <> ''),
   CHECK (parent_id IS NULL OR parent_id <> id)
 );
@@ -28,7 +28,7 @@ CREATE INDEX idx_stock_location_parent ON stock_location(parent_id);
 
 CREATE TABLE stock_source_party (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  source_type TEXT NOT NULL CHECK (source_type IN ('vendor', 'person', 'organization', 'other')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('vendor', 'person', 'organization', 'tenant', 'other')),
   name TEXT NOT NULL CHECK (TRIM(name) <> ''),
   source_ref TEXT
 );
@@ -68,8 +68,8 @@ BEGIN
 END;
 
 -- Available means inventoried stock whose accepted condition and physical
--- storage location are known. Existing pre-0011 rows are not guessed/backfilled;
--- the rule applies when rows are inserted or these fields are changed.
+-- storage location are known. Existing rows are not guessed/backfilled; the
+-- rule applies when rows are inserted or these fields are changed.
 CREATE TRIGGER stock_item_available_integrity_insert
 BEFORE INSERT ON stock_item
 WHEN NEW.available = 1
