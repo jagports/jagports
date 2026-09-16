@@ -64,11 +64,13 @@ BACKLOG
 → PROPOSED
 → DECISION NEEDED
 → APPROVED
-→ CODING
+→ IMPLEMENTATION
 → REVIEW
 → TESTING
 → DONE
 ```
+
+`IMPLEMENTATION` is intentionally broader than coding. It covers any repository implementation artifact, including source code, configuration, documentation, data, migrations, tests, workflows, and other committed deliverables.
 
 Exceptional state:
 
@@ -195,7 +197,9 @@ The required verification pattern is:
 
 An API mutation response alone is not sufficient evidence.
 
-Automatic Issue-to-Project-to-BACKLOG triggering is not currently implemented. Opening an Issue must not be documented as automatically creating a Project item or assigning its Status.
+Current repository automation handles Issue opened/reopened → `BACKLOG` and closed → `DONE` where the configured Project token is available. A separate PR-linked workflow may move an Issue to `IMPLEMENTATION` when an **open Pull Request explicitly has a closing relationship to that Issue**. The closing relationship, not branch existence or a plain Issue mention, is the deterministic implementation-start signal.
+
+A closing-linked PR proves that implementation work exists; it does **not** by itself prove that required approval, decision, review, or testing gates have passed. Automation must not overwrite `DECISION NEEDED`, `BLOCKED`, `REVIEW`, `TESTING`, or `DONE` merely because a closing PR exists.
 
 ## 10. Idempotency and safe reruns
 
