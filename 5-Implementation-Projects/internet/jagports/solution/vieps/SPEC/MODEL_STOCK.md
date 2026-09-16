@@ -42,7 +42,7 @@ Stock does not assign a distinct persistent identity to every physical unit. `qu
 
 ## Normalized stock quality / condition code
 
-`stock_item.condition_code` stores the controlled stock quality / condition code.
+`stock_item.condition_code` stores the controlled stock quality / condition code when the stock quality has been classified.
 
 Allowed values and their authoritative plain-text meanings are:
 
@@ -54,7 +54,9 @@ D Repairs / Needs Conditioning / Spares only
 E Broken / Reference / Knowledge Gains
 ```
 
-The code is the stable storage, search, filter and API identity.
+The code is the stable storage, search, filter and API identity for classified stock quality.
+
+`condition_code = NULL` means the stock quality has not yet been classified. Unclassified is a state, not a sixth quality class. No placeholder code or localized text is stored as the classification identity.
 
 Human-facing labels, short descriptions and long descriptions are i18n-compatible presentation values and must not become the database identity.
 
@@ -78,9 +80,12 @@ stock.quality.D.long_description
 stock.quality.E.label
 stock.quality.E.short_description
 stock.quality.E.long_description
+stock.quality.unclassified.label
+stock.quality.unclassified.short_description
+stock.quality.unclassified.long_description
 ```
 
-Locale suffixes or storage columns may be chosen by the i18n implementation, but the stable code identity remains `A` through `E`.
+Locale suffixes or storage columns may be chosen by the i18n implementation, but the stable classified identity remains `A` through `E` and the unclassified database state remains `NULL`.
 
 ### English presentation values
 
@@ -91,6 +96,7 @@ Locale suffixes or storage columns may be chosen by the i18n implementation, but
 | `C` | Used / Usable / No warranty | Usable budget or project stock. | The part is used and usable, or repairable with limited effort, but has clear visual or mechanical wear and carries no warranty classification. Visible scratches, deeper rust, small dents, dull lenses, interior wear or similar defects may be present. |
 | `D` | Repairs / Needs Conditioning / Spares only | Repair, conditioning or spares stock. | The part is not a normal ready-to-fit good used part. It needs repair, conditioning, cleaning, rebuilding, combination with other parts, or other preparation before use. It may be useful as a repair base or donor for subparts. |
 | `E` | Broken / Reference / Knowledge Gains | Broken, reference or learning stock. | The part is broken, incomplete, unsuitable for normal use, or not saleable as a ready-to-use spare part. It may still be useful for reference, comparison, measurement, documentation, learning, diagnosis, research, or other knowledge-gain purposes. |
+| `NULL` | Condition not classified | Stock quality has not yet been classified. | The stock item exists and may be available, but no A-E stock-quality classification has yet been assigned. |
 
 ### Finnish presentation values
 
@@ -101,12 +107,13 @@ Locale suffixes or storage columns may be chosen by the i18n implementation, but
 | `C` | Käytetty / käyttökelpoinen / ei takuuta | Käyttökelpoinen budjetti- tai projektiosa. | Osa on käytetty ja käyttökelpoinen tai pienellä vaivalla kunnostettavissa, mutta siinä on selkeitä visuaalisia tai mekaanisia kulumia eikä luokitus sisällä takuuta. |
 | `D` | Korjattava / kunnostettava / varaosiksi | Korjausta, kunnostusta tai purkuosakäyttöä varten. | Osa ei ole sellaisenaan normaali hyvä käytetty osa. Se tarvitsee korjausta, kunnostusta, puhdistusta, yhdistelyä tai muuta valmistelua ennen käyttöä. |
 | `E` | Rikkinäinen / referenssiksi / tiedonhankintaan | Rikkinäinen, referenssi- tai oppimiskäyttöön. | Osa on rikki, vajaa tai normaalikäyttöön myyntikelvoton. Se voi silti olla hyödyllinen referenssinä, vertailuun, mittaukseen, dokumentointiin, oppimiseen, vian selvitykseen, tutkimukseen tai muuhun tiedonhankintaan. |
+| `NULL` | Kunto luokittelematta | Varasto-osan kuntoa ei ole vielä luokiteltu. | Varasto-osa on olemassa ja voi olla saatavilla, mutta sille ei ole vielä annettu A-E-kuntoluokitusta. |
 
-The legacy free-text `condition` column is retained as source or supplementary text. New operational logic must use the controlled `condition_code` where the accepted condition is known.
+The legacy free-text `condition` column is not the normalized stock-quality identity. New operational logic must use `condition_code` for A-E classification and must use `NULL` when quality is not yet classified rather than inventing free-text or localized identity values.
 
 ## Storage and API identity
 
-`stock_item.condition_code` stores the normalized code value.
+`stock_item.condition_code` stores the normalized code value when classified and `NULL` when unclassified.
 
 UI and API view-models may expose localized presentation fields such as:
 
@@ -124,27 +131,29 @@ Localized fields are derived presentation fields and must not redefine the store
 
 Static stock-quality information must be visible somewhere in the VIEPS UI where users can understand `A` through `E` before relying on stock availability results.
 
-When an available or stocked part is presented, the UI must show the stock quality code and an i18n-compatible label/description where the current authorization level allows stock details to be shown.
+When an available or stocked part is presented, the UI must show the stock quality code and an i18n-compatible label/description where a classification exists and the current authorization level allows stock details to be shown.
 
 When stock quality exists but cannot be shown because of authorization, the UI must use an authorization-safe limited state rather than presenting restricted details.
 
-When stock quality is unknown or unavailable, the UI must show an explicit unknown/unavailable state rather than defaulting to any quality class.
+When stock quality is unclassified (`condition_code IS NULL`), the UI must show an explicit localized unclassified state rather than defaulting to any quality class or treating the stock as unavailable.
 
 ## Stock Admin requirements
 
-Stock Admin must capture quality by selecting the normalized `A` through `E` code.
+When quality is classified, Stock Admin must capture it by selecting the normalized `A` through `E` code.
+
+Stock Admin must also support the explicit unclassified state represented by `condition_code = NULL`.
 
 The data-entry UI must show localized labels, short descriptions and long descriptions to reduce incorrect classification.
 
-Free-text condition notes may supplement the code, but must not replace the normalized classification when the code is known.
+Free-text condition notes may supplement operational notes where separately supported, but must not replace the normalized classification identity.
 
-Validation must reject values outside the approved `A` through `E` set.
+Validation must reject values outside the approved `A` through `E` set while allowing `NULL` for unclassified stock quality.
 
 ## Search/filter requirements
 
-Stock-quality search and filtering must use normalized codes `A` through `E`.
+Stock-quality search and filtering must use normalized codes `A` through `E` and may explicitly filter for the unclassified `NULL` state.
 
-Search result presentation may group or filter by localized labels, but the underlying filter identity remains the code set.
+Search result presentation may group or filter by localized labels, but the underlying filter identity remains the code set plus explicit unclassified state.
 
 Search/index authorization must not make restricted stock details discoverable to unauthorized users.
 
@@ -234,16 +243,22 @@ This document does not define sales, reservations, payment, or price-history wor
 
 ## Availability
 
-Availability means operational readiness of an inventoried stock record: its accepted condition and physical storage location are known.
+Availability is the operational state indicating whether the stock record is available. It is independent from A-E stock-quality classification.
 
-For new or changed records, `available = 1` therefore requires both:
+A stock record may therefore have:
 
-- non-NULL `condition_code`;
-- non-NULL `storage_location_id`.
+```text
+available = 1
+condition_code = NULL
+```
 
-Existing rows are not silently reclassified or backfilled. Their state must be reconciled from evidence before availability is changed under the rule.
+when the stock item is available but its quality has not yet been classified.
 
-Availability does not imply a sale transaction, reservation state, or positive quantity unless a separate workflow defines that relationship.
+For new or changed records, `available = 1` requires a non-NULL `storage_location_id` so an available stock item has a normalized physical location.
+
+Missing quality classification must not automatically make stock unavailable. `condition_code = NULL` is the explicit unclassified state and must be presented as such.
+
+Availability does not imply a sale transaction, reservation state, positive quantity, or any particular A-E quality class unless a separate workflow defines that relationship.
 
 ## Search/filter indexes
 
@@ -265,28 +280,30 @@ Executable stock model tests verify:
 
 - named multi-site storage;
 - optional rack/shelf/box hierarchy and recursive box nesting;
-- controlled A–E condition values and their deterministic fixture meanings;
+- controlled A-E condition values and their deterministic fixture meanings;
+- explicit unclassified stock-quality state;
+- independence of stock availability from stock-quality classification;
 - vendor/person/organization/tenant/other source-party vocabulary;
 - integer quantity enforcement;
 - donor vehicle and source party as separate relationships;
 - currency and non-negative price;
-- availability integrity;
+- availability/location integrity;
 - unresolved stock source requirement;
 - multiple stock records for one canonical `PART`;
 - relevant stock indexes and invalid cases.
 
-Deterministic fixtures must cover multiple stock records for one part, stock under a historical part number with supersession, unresolved stock, zero/unavailable stock, and representative stock quality classifications from the normalized `A` through `E` set.
+Deterministic fixtures must cover multiple stock records for one part, stock under a historical part number with supersession, unresolved stock, zero/unavailable stock, representative stock quality classifications from the normalized `A` through `E` set, and an available record whose quality is explicitly unclassified where that state is needed for behavior coverage.
 
 ## Boundary
 
 Defined here:
 
 - persistent operational stock quantity;
-- controlled A–E condition / stock quality;
+- controlled A-E stock quality plus explicit unclassified state;
 - named multi-site rack/shelf/box storage;
 - separate donor and source-party relationships;
 - optional sale price with currency code;
-- availability integrity;
+- availability/location integrity independent from quality classification;
 - unresolved stock source requirement;
 - stock search/filter indexes and integrity tests.
 
