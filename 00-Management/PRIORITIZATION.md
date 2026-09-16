@@ -166,7 +166,7 @@ Use the automation marker only when the same record should also synchronize Proj
 <!-- jagports-project-sync -->
 Priority review — YYYY-MM-DD
 Scope: <declared queue scope>
-Status: BACKLOG | RESEARCH | PROPOSED | DECISION NEEDED | APPROVED | CODING | REVIEW | TESTING | BLOCKED | DONE
+Status: BACKLOG | RESEARCH | PROPOSED | DECISION NEEDED | APPROVED | IMPLEMENTATION | REVIEW | TESTING | BLOCKED | DONE
 Band: P0 | P1 | P2 | P3 | P4 | P5
 Rank: <unique positive integer within scope> | none
 Score: <-10...+10 integer>
@@ -197,7 +197,7 @@ Project visualization is synchronized through GitHub Actions, not through an age
 
 Two workflows have separate responsibilities:
 
-- `.github/workflows/issues-lifecycle-in-project.yml` keeps the existing deterministic Issue lifecycle mapping: opened/reopened → `BACKLOG`; closed → `DONE`.
+- `.github/workflows/issues-lifecycle-in-project.yml` keeps the existing deterministic Issue lifecycle mapping: opened/reopened → `BACKLOG`; closed → `DONE`, plus any separately reviewed lifecycle refinements defined there.
 - `.github/workflows/sync-issue-work-control-to-project.yml` processes an authorized `<!-- jagports-project-sync -->` Issue comment or a manual workflow dispatch and updates requested `Status`, `Operational Priority`, and `Rank` Project fields.
 
 The work-control workflow:
@@ -213,6 +213,8 @@ The work-control workflow:
 A Project view can then be configured to sort ascending by numeric `Rank`, while `Operational Priority` displays the P0...P5 handling band. The workflow intentionally does not rewrite Project view layout/sort configuration; it supplies the verified fields needed for the view to order items.
 
 Only repository/organization actors trusted by the workflow may trigger comment-based synchronization. The Issue comment remains the durable record of the requested state/priority/rank change.
+
+The work-control workflow is intentionally opt-in: it changes Project state only for an authorized marker comment or explicit manual dispatch. Because a newly added `workflow_dispatch` / `issue_comment` workflow cannot provide authoritative default-branch runtime evidence before it exists on `main`, source review may precede the first end-to-end Project execution. After merge, run a controlled Project #9 test immediately. Until that execution passes and the resulting Project values are independently verified, treat the work-control automation as **not yet runtime-verified** and do not rely on it as evidence of a successful Project operation. A failed post-merge test requires corrective work; no intended Project state may be claimed as actual.
 
 Project automation transports authorized work-control state; it does not redefine workflow semantics or priority authority.
 
