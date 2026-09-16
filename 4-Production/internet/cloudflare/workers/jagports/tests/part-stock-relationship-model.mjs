@@ -25,6 +25,8 @@ assert.match(fixture, /9303/);
 assert.match(fixture, /NULL, NULL,\s+'fixture', 'unverified'/);
 assert.match(docs, /PART to operational stock/);
 assert.match(docs, /multiple stock records/);
+// Durable boundary: unidentified stock may remain unresolved; known reusable
+// non-Jaguar products use a Jagports-owned canonical PART identity.
 assert.match(docs, /Unresolved stock is representable without fabricating a canonical PART/);
 assert.match(docs, /known reusable non-Jaguar product.*Jagports-owned canonical PART/i);
 assert.match(docs, /donor vehicle/);
