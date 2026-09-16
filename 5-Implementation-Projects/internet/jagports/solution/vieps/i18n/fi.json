@@ -11,8 +11,10 @@
     "browse_help": "Selaustila voi näyttää hyväksyttyjä suodattimia; valittu osa näyttää vahvistetut sopivuustiedot ja rajaukset.",
     "heading": "Sopivuus / suodatus",
     "no_confirmed": "Ajoneuvosopivuutta ei ole vahvistettu.",
+    "no_match": "Valitulle OSA-/kontekstiyhdistelmälle ei löydy sopivaa muunnelmaa.",
     "qualifier": "Rajaus",
     "selected_none": "Mallisarjaa ei ole valittu.",
+    "unavailable": "Muunnelman sopivuustietoa ei ole saatavilla.",
     "variation": "Muunnelma",
     "verification": "Vahvistus"
   },
