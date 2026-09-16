@@ -4,7 +4,7 @@
     "not_recorded": "Ei kirjattu",
     "not_specified": "Ei määritelty",
     "not_supplied": "Ei ilmoitettu",
-    "search": "Haku"
+    "search": "Etsi"
   },
   "fitment": {
     "applicability": "Sopivuus",
@@ -82,7 +82,7 @@
     "input_placeholder": "esim. MJB7703AA, MNA7691AA, firtree1",
     "not_found": "Osaa ei löytynyt.",
     "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
-    "prompt_with_action": "Syötä Jaguar-osanumero tai testitunniste ja paina Haku.",
+    "prompt_with_action": "Syötä Jaguar-osanumero tai testitunniste ja paina Etsi.",
     "resolved": "OSA ratkaistu.",
     "resolving": "Ratkaistaan OSAA…"
   },
