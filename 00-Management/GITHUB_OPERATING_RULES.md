@@ -225,7 +225,68 @@ The PR executor, PR author, or another non-reviewer must not resolve those revie
 
 When changes are requested, the executor may implement the requested changes and reply to the review comments, but should leave the reviewer's comments unresolved for the reviewer to resolve after verification.
 
-### 3.7 Testing Evidence
+### 3.7 Specialist Technical and Security Review Gate
+
+Normal independent review remains the default review path. An additional specialist review is required only when the proposed change crosses a defined technical or security-sensitive boundary below. This specialist review is an additional requirement inside the existing `WORKFLOWS.md` review gate; it does not create a parallel workflow or separate lifecycle state.
+
+#### Architecture-review triggers
+
+Require a specialist architecture review when a change materially alters one or more of:
+
+- system/component boundaries or responsibility allocation;
+- public or cross-component APIs, data contracts, schemas, or persistent data models;
+- deployment/runtime topology, infrastructure architecture, or platform/provider boundaries;
+- authentication, authorization, trust boundaries, or identity/permission models;
+- shared architectural conventions used by multiple components;
+- a previously approved architectural decision or constraint.
+
+Routine implementation within an already approved design does not require a separate architecture review merely because it changes code.
+
+#### Security-review triggers
+
+Require specialist security review when a change materially affects one or more of:
+
+- authentication, authorization, credentials, tokens, sessions, permissions, or access-control behavior;
+- secret storage, handling, rotation, logging, or exposure boundaries;
+- externally reachable deployment/network configuration, security headers, origin/trust configuration, or privileged runtime settings;
+- dependency or supply-chain trust where a new dependency, execution source, package source, or privileged third-party integration introduces material risk;
+- handling of sensitive data or a boundary that could expose, broaden access to, or persist such data;
+- remediation or explicit acceptance of a known security finding.
+
+A dependency/version change does not require specialist security review when existing automated checks and ordinary review establish that it does not introduce a material trust/security change.
+
+#### Specialist reviewer qualification and independence
+
+The specialist reviewer must:
+
+- be independent of the PR author and executing actor under the same identity rules as normal formal review;
+- have demonstrated knowledge sufficient for the affected architecture/security area, or be explicitly designated by the Product Owner for that specialist review;
+- review only within delegated authority; material business-risk acceptance, cost decisions, or changes to approved scope remain Product Owner decisions.
+
+One qualified reviewer may satisfy both ordinary independent review and the specialist gate when that reviewer meets all applicable independence and specialist-qualification requirements. Multiple formal reviews are not required merely to represent multiple labels for the same competent independent review.
+
+#### Required specialist-review evidence
+
+When this gate applies, the PR or linked Issue must identify:
+
+- the triggering boundary/category;
+- the material architecture/security impact and affected components or trust boundaries;
+- alternatives or trade-offs when the change establishes or changes an architectural/security decision;
+- applicable automated checks, threat/security checks, tests, or validation performed;
+- known residual risks or limitations;
+- the specialist reviewer and the resulting formal GitHub review outcome.
+
+Security review must additionally verify, as applicable, that:
+
+- no credential or secret is added to source, history, Issue/PR content, logs, or generated artifacts;
+- authentication/authorization behavior follows least-privilege expectations and does not silently broaden access;
+- deployment/configuration changes do not create an unintended external exposure or weaken an established control;
+- new or materially changed dependencies/integrations have an explicit trust/source rationale and applicable validation;
+- a known security failure is not converted into PASS by skipping, disabling, or weakening the required check.
+
+A required specialist review or required security check that is missing, failed, `BLOCKED`, or cannot be verified blocks merge. Remediation occurs in the existing PR/review cycle. Any exception or risk acceptance that materially changes scope or accepts unresolved risk requires an explicit Product Owner decision recorded in the Issue/PR before merge; the exception does not silently convert failed evidence into PASS.
+
+### 3.8 Testing Evidence
 
 Required testing must be performed according to `WORKFLOWS.md`.
 
@@ -241,7 +302,7 @@ A required pre-merge test must use the PR branch/current implementation being pr
 
 Post-merge testing cannot substitute for required pre-merge validation.
 
-### 3.8 Merge
+### 3.9 Merge
 
 No actor may merge merely because a PR is technically mergeable.
 
