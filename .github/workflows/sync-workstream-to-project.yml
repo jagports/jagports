@@ -1,0 +1,167 @@
+name: Sync Workstream to Project
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+  PROJECT_TITLE: Jagports AI OS
+  WORKSTREAM_FIELD_NAME: Workstream
+  SYNC_MARKER: "<!-- jagports-workstream-sync -->"
+
+jobs:
+  sync-workstream:
+    if: ${{ !github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Synchronize Project Workstream
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          case "$COMMENT_AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR) ;;
+            *)
+              echo "Ignoring workstream command from untrusted association '$COMMENT_AUTHOR_ASSOCIATION'."
+              exit 0
+              ;;
+          esac
+
+          if ! printf '%s\n' "$COMMENT_BODY" | tr -d '\r' | grep -Fxq "$SYNC_MARKER"; then
+            echo "No standalone workstream marker; nothing to do."
+            exit 0
+          fi
+
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+
+          workstream="$(printf '%s\n' "$COMMENT_BODY" | tr -d '\r' | sed -n 's/^Workstream:[[:space:]]*//p' | head -n1)"
+          case "$workstream" in
+            "AI OS"|"VIEPS") ;;
+            *) echo "Workstream must be exactly 'AI OS' or 'VIEPS'."; false ;;
+          esac
+
+          PROJECT_QUERY='
+          query($org:String!, $number:Int!) {
+            organization(login:$org) {
+              projectV2(number:$number) {
+                id
+                title
+                fields(first:100) {
+                  nodes {
+                    __typename
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options { id name }
+                    }
+                  }
+                }
+              }
+            }
+          }'
+
+          project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+          project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
+          [ -n "$project_id" ] || { echo "Project was not found."; false; }
+          [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
+
+          field_count="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)] | length' <<<"$project_json")"
+          if [ "$field_count" -eq 0 ]; then
+            CREATE_FIELD='
+            mutation($project:ID!, $name:String!, $options:[ProjectV2SingleSelectFieldOptionInput!]) {
+              createProjectV2Field(input:{projectId:$project,name:$name,dataType:SINGLE_SELECT,singleSelectOptions:$options}) {
+                projectV2Field {
+                  ... on ProjectV2SingleSelectField {
+                    id
+                    name
+                    options { id name }
+                  }
+                }
+              }
+            }'
+            options='[{"name":"AI OS","color":"BLUE","description":"Jagports AI OS management, architecture and infrastructure"},{"name":"VIEPS","color":"GREEN","description":"VIEPS application and product work"}]'
+            gh api graphql -f query="$CREATE_FIELD" -F project="$project_id" -f name="$WORKSTREAM_FIELD_NAME" -f options="$options" >/dev/null
+            project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+            field_count="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)] | length' <<<"$project_json")"
+          fi
+
+          [ "$field_count" -eq 1 ] || { echo "Expected exactly one '$WORKSTREAM_FIELD_NAME' field; found $field_count."; false; }
+          field_id="$(jq -r --arg name "$WORKSTREAM_FIELD_NAME" '.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField") | .id' <<<"$project_json")"
+          [ -n "$field_id" ] || { echo "Workstream field is not a single-select field."; false; }
+
+          for required in "AI OS" "VIEPS"; do
+            count="$(jq --arg field "$WORKSTREAM_FIELD_NAME" --arg required "$required" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $field) | .options[]? | select(.name == $required)] | length' <<<"$project_json")"
+            [ "$count" -eq 1 ] || { echo "Workstream option '$required' is missing or duplicated."; false; }
+          done
+
+          option_id="$(jq -r --arg field "$WORKSTREAM_FIELD_NAME" --arg value "$workstream" '.data.organization.projectV2.fields.nodes[]? | select(.name == $field) | .options[]? | select(.name == $value) | .id' <<<"$project_json")"
+          [ -n "$option_id" ] || { echo "Workstream option ID was not resolved."; false; }
+
+          ISSUE_QUERY='
+          query($issue:ID!) {
+            node(id:$issue) {
+              ... on Issue {
+                id
+                projectItems(first:20) {
+                  nodes {
+                    id
+                    isArchived
+                    project { id }
+                    content { ... on Issue { id } }
+                  }
+                }
+              }
+            }
+          }'
+
+          issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -F issue="$ISSUE_NODE_ID")"
+          item_id="$(jq -r --arg project "$project_id" --arg issue "$ISSUE_NODE_ID" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue) | .id' <<<"$issue_json" | head -n1)"
+
+          if [ -z "$item_id" ]; then
+            ADD_ITEM='
+            mutation($project:ID!, $issue:ID!) {
+              addProjectV2ItemById(input:{projectId:$project, contentId:$issue}) {
+                item { id }
+              }
+            }'
+            item_id="$(gh api graphql -f query="$ADD_ITEM" -F project="$project_id" -F issue="$ISSUE_NODE_ID" --jq '.data.addProjectV2ItemById.item.id')"
+          fi
+          [ -n "$item_id" ] || { echo "Project item was not resolved."; false; }
+
+          UPDATE_FIELD='
+          mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) {
+            updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{singleSelectOptionId:$option}}) {
+              projectV2Item { id }
+            }
+          }'
+          gh api graphql -f query="$UPDATE_FIELD" -F project="$project_id" -F item="$item_id" -F field="$field_id" -f option="$option_id" >/dev/null
+
+          VERIFY='
+          query($item:ID!) {
+            node(id:$item) {
+              ... on ProjectV2Item {
+                id
+                value: fieldValueByName(name:"Workstream") {
+                  ... on ProjectV2ItemFieldSingleSelectValue { name }
+                }
+              }
+            }
+          }'
+          verify_json="$(gh api graphql -f query="$VERIFY" -F item="$item_id")"
+          actual="$(jq -r '.data.node.value.name // empty' <<<"$verify_json")"
+          [ "$actual" = "$workstream" ] || { echo "Workstream is '$actual', expected '$workstream'."; false; }
+
+          echo "Verified Issue #$ISSUE_NUMBER Workstream: $actual"
