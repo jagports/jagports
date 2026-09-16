@@ -236,8 +236,11 @@ Before creating a PR, verify:
 
 ## GitHub API Rules
 
-- Maintain a minimum 0.33-second delay between GitHub API calls in Jagports operational sequences.
-- Avoid unnecessary repeated calls.
+- Avoid unnecessary repeated GitHub/API calls.
+- Do not impose an artificial inter-call delay while normal subscription/tool capacity is available.
+- Reduce request frequency or follow provider-directed retry/backoff only when an observable constraint exists, such as remaining LLM subscription/tool usage being reported low, required subscription/tool access being unavailable, or the provider reporting a rate limit/retry requirement.
+- When such a constraint affects the work, alert/escalate it rather than silently slowing execution or claiming unavailable work succeeded.
+- Do not invent quota/subscription state when it is not observable.
 - Verify mutations with an independent read.
 - Never expose credentials, tokens, or secret values.
 
