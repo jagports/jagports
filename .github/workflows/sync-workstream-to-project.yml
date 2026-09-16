@@ -5,7 +5,8 @@ on:
     types: [created]
 
 permissions:
-  contents: write
+  actions: write
+  contents: read
   issues: write
 
 env:
@@ -175,10 +176,10 @@ jobs:
 
           echo "Verified Issue #$ISSUE_NUMBER Workstream: $actual"
 
-          [ -n "${DISPATCH_TOKEN:-}" ] || { echo "GitHub dispatch token is unavailable."; false; }
+          [ -n "${DISPATCH_TOKEN:-}" ] || { echo "GitHub workflow-dispatch token is unavailable."; false; }
           GH_TOKEN="$DISPATCH_TOKEN" gh api \
             --method POST \
-            "repos/$REPOSITORY/dispatches" \
-            -f event_type='work-control-snapshot-refresh' \
+            "repos/$REPOSITORY/actions/workflows/publish-work-control-snapshots.yml/dispatches" \
+            -f ref='main' \
             >/dev/null
-          echo "Dispatched work-control snapshot refresh."
+          echo "Dispatched Publish Work Control Snapshots workflow."

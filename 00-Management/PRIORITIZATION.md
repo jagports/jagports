@@ -226,7 +226,8 @@ The work-control workflow:
 5. dynamically resolves the existing Project `Status` options;
 6. creates numeric Project `Rank` only if missing;
 7. independently reads back and verifies every value it changes;
-8. reports failure when the requested state cannot be verified.
+8. after successful verification, directly dispatches `publish-work-control-snapshots.yml` through GitHub Actions `workflow_dispatch`;
+9. reports failure when the requested state or snapshot-dispatch request cannot be verified as accepted by GitHub.
 
 ### Workstream synchronization
 
@@ -252,7 +253,7 @@ The Workstream workflow:
 4. resolves or adds the Project Item where required;
 5. writes the selected Workstream;
 6. independently reads it back before claiming success;
-7. after successful verification, requests an immediate snapshot refresh through the approved repository event.
+7. after successful verification, directly dispatches `publish-work-control-snapshots.yml` through GitHub Actions `workflow_dispatch`.
 
 `Workstream` is a structured Project field, not a repository label.
 
@@ -279,9 +280,9 @@ The publisher updates one managed snapshot comment per Project Issue rather than
 
 Snapshot refresh paths are:
 
-1. **Immediate event-driven refresh** — after a verified authoritative work-control/Workstream change, automation requests `work-control-snapshot-refresh` through `repository_dispatch`.
+1. **Immediate event-driven refresh** — after a verified authoritative Priority/Status/Rank or Workstream change, the responsible synchronization workflow directly starts `publish-work-control-snapshots.yml` using GitHub Actions `workflow_dispatch` on `main`.
 2. **Daily reconciliation fallback** — `.github/workflows/publish-work-control-snapshots.yml` runs on cron `17 0 * * *`, i.e. once per day at **00:17 UTC**.
-3. **Manual maintenance** — the workflow supports `workflow_dispatch` for an authorized manual reconciliation.
+3. **Manual maintenance** — the snapshot publisher itself supports `workflow_dispatch` for an authorized manual reconciliation.
 
 The daily run exists to catch drift or direct/manual changes that bypass the immediate event path. It is not the primary synchronization mechanism.
 
