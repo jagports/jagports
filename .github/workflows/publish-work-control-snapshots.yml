@@ -5,7 +5,7 @@ on:
   schedule:
     - cron: "17 * * * *"
   workflow_run:
-    workflows: ["Sync Issue Work Control to Project"]
+    workflows: ["Sync Issue Work Control to Project", "Sync Workstream to Project"]
     types: [completed]
 
 permissions:
