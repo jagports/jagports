@@ -30,6 +30,8 @@ env:
   PROJECT_ORG: jagports
   PROJECT_NUMBER: "9"
   PROJECT_TITLE: Jagports AI OS
+  PRIORITY_FIELD_NAME: Operational Priority
+  RANK_FIELD_NAME: Rank
 
 jobs:
   sync-work-control:
@@ -57,14 +59,7 @@ jobs:
           report_failure() {
             status=$?
             if [ -n "${COMMENT_TOKEN:-}" ] && [ -n "${ISSUE_NUMBER:-}" ]; then
-              body="$(cat <<EOF
-          Project work-control automation **FAILED** for Issue #$ISSUE_NUMBER.
-
-          The requested Project Status/Priority/Rank change was not verified.
-
-          Inspect the workflow run for the exact failure. No successful Project operation is claimed.
-          EOF
-          )"
+              body="$(printf 'Project work-control automation **FAILED** for Issue #%s.\n\nThe requested Project Status/Priority/Rank change was not verified.\n\nInspect the workflow run for the exact failure. No successful Project operation is claimed.' "$ISSUE_NUMBER")"
               GH_TOKEN="$COMMENT_TOKEN" gh api \
                 "repos/$REPOSITORY/issues/$ISSUE_NUMBER/comments" \
                 -f body="$body" \
@@ -150,16 +145,10 @@ jobs:
               ;;
           esac
 
-          case "$RANK" in
-            ""|none)
-              ;;
-            *[!0-9]*|0)
-              echo "Invalid Rank '$RANK'. Use a positive integer or 'none'."
-              false
-              ;;
-            *)
-              ;;
-          esac
+          if [ -n "$RANK" ] && [ "$RANK" != "none" ] && ! [[ "$RANK" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid Rank '$RANK'. Use a positive integer or 'none'."
+            false
+          fi
 
           if [ "$PRIORITY" = "P5" ]; then
             if [ -n "$RANK" ] && [ "$RANK" != "none" ]; then
@@ -304,66 +293,61 @@ jobs:
           fi
 
           if [ -n "$PRIORITY" ]; then
-            priority_count="$(jq '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Priority")] | length' <<<"$project_json")"
+            priority_count="$(jq --arg name "$PRIORITY_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)] | length' <<<"$project_json")"
             if [ "$priority_count" -eq 0 ]; then
               CREATE_PRIORITY_FIELD='
-              mutation($project:ID!) {
-                createProjectV2Field(input:{projectId:$project, name:"Priority", dataType:TEXT}) {
+              mutation($project:ID!, $name:String!) {
+                createProjectV2Field(input:{projectId:$project, name:$name, dataType:TEXT}) {
                   projectV2Field { ... on ProjectV2Field { id name dataType } }
                 }
               }'
-              gh api graphql -f query="$CREATE_PRIORITY_FIELD" -F project="$project_id" >/dev/null
+              gh api graphql \
+                -f query="$CREATE_PRIORITY_FIELD" \
+                -F project="$project_id" \
+                -f name="$PRIORITY_FIELD_NAME" \
+                >/dev/null
               refresh_project
             elif [ "$priority_count" -gt 1 ]; then
-              echo "Multiple Project fields named Priority exist; refusing an ambiguous update."
+              echo "Multiple Project fields named '$PRIORITY_FIELD_NAME' exist; refusing an ambiguous update."
               false
             fi
 
-            priority_type="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Priority") | .__typename' <<<"$project_json" | head -n1)"
-            priority_field_id="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Priority") | .id' <<<"$project_json" | head -n1)"
-            [ -n "$priority_field_id" ] || { echo "Priority field was not resolved."; false; }
+            priority_field_id="$(jq -r --arg name "$PRIORITY_FIELD_NAME" '.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field") | .id' <<<"$project_json" | head -n1)"
+            priority_data_type="$(jq -r --arg name "$PRIORITY_FIELD_NAME" '.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field") | .dataType // empty' <<<"$project_json" | head -n1)"
+            [ -n "$priority_field_id" ] || { echo "Operational Priority field was not resolved."; false; }
+            [ "$priority_data_type" = "TEXT" ] || { echo "Operational Priority field exists with unsupported type '$priority_data_type'."; false; }
 
-            if [ "$priority_type" = "ProjectV2SingleSelectField" ]; then
-              priority_option_id="$(jq -r --arg value "$PRIORITY" '.data.organization.projectV2.fields.nodes[]? | select(.name == "Priority" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $value) | .id' <<<"$project_json" | head -n1)"
-              [ -n "$priority_option_id" ] || { echo "Priority option '$PRIORITY' was not found."; false; }
-              gh api graphql \
-                -f query="$SET_SINGLE_SELECT" \
-                -F project="$project_id" \
-                -F item="$item_id" \
-                -F field="$priority_field_id" \
-                -F option="$priority_option_id" \
-                >/dev/null
-            else
-              priority_data_type="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Priority" and .__typename == "ProjectV2Field") | .dataType // empty' <<<"$project_json" | head -n1)"
-              [ "$priority_data_type" = "TEXT" ] || { echo "Priority field exists with unsupported type '$priority_data_type'."; false; }
-              gh api graphql \
-                -f query="$SET_TEXT" \
-                -F project="$project_id" \
-                -F item="$item_id" \
-                -F field="$priority_field_id" \
-                -f text="$PRIORITY" \
-                >/dev/null
-            fi
+            gh api graphql \
+              -f query="$SET_TEXT" \
+              -F project="$project_id" \
+              -F item="$item_id" \
+              -F field="$priority_field_id" \
+              -f text="$PRIORITY" \
+              >/dev/null
           fi
 
           if [ -n "$RANK" ]; then
-            rank_count="$(jq '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Rank")] | length' <<<"$project_json")"
+            rank_count="$(jq --arg name "$RANK_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)] | length' <<<"$project_json")"
             if [ "$rank_count" -eq 0 ]; then
               CREATE_RANK_FIELD='
-              mutation($project:ID!) {
-                createProjectV2Field(input:{projectId:$project, name:"Rank", dataType:NUMBER}) {
+              mutation($project:ID!, $name:String!) {
+                createProjectV2Field(input:{projectId:$project, name:$name, dataType:NUMBER}) {
                   projectV2Field { ... on ProjectV2Field { id name dataType } }
                 }
               }'
-              gh api graphql -f query="$CREATE_RANK_FIELD" -F project="$project_id" >/dev/null
+              gh api graphql \
+                -f query="$CREATE_RANK_FIELD" \
+                -F project="$project_id" \
+                -f name="$RANK_FIELD_NAME" \
+                >/dev/null
               refresh_project
             elif [ "$rank_count" -gt 1 ]; then
-              echo "Multiple Project fields named Rank exist; refusing an ambiguous update."
+              echo "Multiple Project fields named '$RANK_FIELD_NAME' exist; refusing an ambiguous update."
               false
             fi
 
-            rank_field_id="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Rank" and .__typename == "ProjectV2Field") | .id' <<<"$project_json" | head -n1)"
-            rank_data_type="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Rank" and .__typename == "ProjectV2Field") | .dataType // empty' <<<"$project_json" | head -n1)"
+            rank_field_id="$(jq -r --arg name "$RANK_FIELD_NAME" '.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field") | .id' <<<"$project_json" | head -n1)"
+            rank_data_type="$(jq -r --arg name "$RANK_FIELD_NAME" '.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field") | .dataType // empty' <<<"$project_json" | head -n1)"
             [ -n "$rank_field_id" ] || { echo "Rank field was not resolved."; false; }
             [ "$rank_data_type" = "NUMBER" ] || { echo "Rank field exists with unsupported type '$rank_data_type'."; false; }
 
@@ -386,7 +370,7 @@ jobs:
           fi
 
           VERIFY_QUERY='
-          query($item:ID!) {
+          query($item:ID!, $priorityField:String!, $rankField:String!) {
             node(id:$item) {
               ... on ProjectV2Item {
                 id
@@ -396,18 +380,21 @@ jobs:
                 statusValue: fieldValueByName(name:"Status") {
                   ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
                 }
-                priorityValue: fieldValueByName(name:"Priority") {
-                  ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
+                priorityValue: fieldValueByName(name:$priorityField) {
                   ... on ProjectV2ItemFieldTextValue { text }
                 }
-                rankValue: fieldValueByName(name:"Rank") {
+                rankValue: fieldValueByName(name:$rankField) {
                   ... on ProjectV2ItemFieldNumberValue { number }
                 }
               }
             }
           }'
 
-          verify_json="$(gh api graphql -f query="$VERIFY_QUERY" -F item="$item_id")"
+          verify_json="$(gh api graphql \
+            -f query="$VERIFY_QUERY" \
+            -F item="$item_id" \
+            -f priorityField="$PRIORITY_FIELD_NAME" \
+            -f rankField="$RANK_FIELD_NAME")"
 
           verified_item_id="$(jq -r '.data.node.id // empty' <<<"$verify_json")"
           verified_project_id="$(jq -r '.data.node.project.id // empty' <<<"$verify_json")"
@@ -429,8 +416,8 @@ jobs:
           fi
 
           if [ -n "$PRIORITY" ]; then
-            verified_priority="$(jq -r '.data.node.priorityValue.name // .data.node.priorityValue.text // empty' <<<"$verify_json")"
-            [ "$verified_priority" = "$PRIORITY" ] || { echo "Verification failed: Priority is '$verified_priority', expected '$PRIORITY'."; false; }
+            verified_priority="$(jq -r '.data.node.priorityValue.text // empty' <<<"$verify_json")"
+            [ "$verified_priority" = "$PRIORITY" ] || { echo "Verification failed: Operational Priority is '$verified_priority', expected '$PRIORITY'."; false; }
           fi
 
           if [ -n "$RANK" ]; then
