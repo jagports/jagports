@@ -128,7 +128,7 @@ jobs:
           [ -n "$ISSUE_NODE_ID" ] || { echo "Issue node ID was not resolved."; false; }
 
           case "$STATUS" in
-            ""|BACKLOG|RESEARCH|PROPOSED|"DECISION NEEDED"|APPROVED|CODING|REVIEW|TESTING|BLOCKED|DONE)
+            ""|BACKLOG|RESEARCH|PROPOSED|"DECISION NEEDED"|APPROVED|IMPLEMENTATION|REVIEW|TESTING|BLOCKED|DONE)
               ;;
             *)
               echo "Invalid Status '$STATUS'."
@@ -169,6 +169,7 @@ jobs:
               projectV2(number:$number) {
                 id
                 title
+                # This connection contains Project field definitions, not backlog Issues.
                 fields(first:100) {
                   nodes {
                     __typename
@@ -207,6 +208,8 @@ jobs:
               ... on Issue {
                 id
                 number
+                # This connection contains Project memberships of this one Issue,
+                # not Issues from the target Project backlog.
                 projectItems(first:20) {
                   nodes {
                     id
