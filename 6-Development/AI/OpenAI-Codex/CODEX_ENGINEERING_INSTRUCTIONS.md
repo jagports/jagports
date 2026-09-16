@@ -35,7 +35,7 @@ Before editing:
 
 ## Change execution
 
-Branching, repository-change gates, review boundaries, merge rules, and record-integrity rules are not repeated here. Execute the current rules in `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, and `SKILL.md`.
+Branching, repository-change gates, review boundaries, merge rules, record-integrity rules, and general agent/API execution behavior are not repeated here. Execute the current rules in `WORKFLOWS.md`, `GITHUB_OPERATING_RULES.md`, and `SKILL.md`.
 
 Codex-specific implementation expectations are:
 
@@ -48,20 +48,6 @@ Codex-specific implementation expectations are:
 - keep code, tests, fixtures, and documentation consistent;
 - never add credentials, tokens, generated secrets, or secret-bearing output to repository history;
 - record material technical risks or limitations in the active GitHub record.
-
-## Request pacing and usage limits
-
-Do not add a Codex-specific fixed delay between routine requests.
-
-Use reduced request frequency or provider-directed backoff only when an actual constraint exists, such as:
-
-- remaining LLM subscription/tool usage is reported low;
-- the required subscription/tool access is unavailable;
-- the provider reports a rate limit or retry/backoff requirement.
-
-When such a constraint affects the work, alert/escalate it instead of silently slowing execution or claiming unavailable work succeeded. Do not invent quota state when it is not observable.
-
-General GitHub/API pacing policy belongs in the canonical Management/agent rules, not in this Codex-specific document. A contradiction in those authorities must be raised rather than duplicated here.
 
 ## Automated validation
 
