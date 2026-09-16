@@ -1,6 +1,110 @@
 {
   "common": {
     "availability": "Availability",
+    "not_recorded": "Not recorded",
+    "not_specified": "Not specified",
+    "not_supplied": "Not supplied",
     "search": "Search"
+  },
+  "fitment": {
+    "applicability": "Applicability",
+    "browse_help": "Browse mode may expose approved filters; a selected part shows verified applicability facts and qualifiers.",
+    "heading": "Suitability / Filter",
+    "no_confirmed": "No suitable vehicle applicability is confirmed.",
+    "qualifier": "Qualifier",
+    "selected_none": "No range selected.",
+    "variation": "Variation",
+    "verification": "Verification"
+  },
+  "fixture": {
+    "descriptive_heading": "Non-numbered fixture identifiers",
+    "descriptive_note": "firtree1 and firtree2 are descriptive identifiers, not Jaguar part numbers.",
+    "firtree1_description": "non-numbered identification fixture",
+    "firtree2_description": "non-numbered identification fixture",
+    "heading": "Try these part numbers",
+    "numbered_heading": "Tester fixture data",
+    "randomized_note": "Fixture stock values are randomized demo/test values, not real inventory evidence.",
+    "test_guidance_aria": "MVP fixture search guidance",
+    "tester_data": "Tester fixture data"
+  },
+  "header": {
+    "product_name": "Jagports Vehicle Information and EPC System"
+  },
+  "locale": {
+    "english": "English",
+    "finnish": "Finnish",
+    "label": "Language"
+  },
+  "location": {
+    "heading": "Location at car",
+    "main_view": "Main View",
+    "range_unavailable": "{{range}}: verified vehicle views and part-location mapping are unavailable.",
+    "select_help": "Select a part and model range. Verified vehicle-location mapping is unavailable.",
+    "unavailable": "Vehicle-location view unavailable.",
+    "verified_unavailable": "Verified vehicle views and part-location mapping are unavailable."
+  },
+  "part": {
+    "diagram": "Diagram",
+    "epc_context": "EPC context",
+    "epc_occurrence_one": "{{count}} EPC occurrence",
+    "epc_occurrence_other": "{{count}} EPC occurrences",
+    "fixture_stock": "Fixture stock",
+    "fixture_stock_record_one": "{{count}} synthetic fixture stock record",
+    "fixture_stock_record_other": "{{count}} synthetic fixture stock records",
+    "image": "Part image",
+    "image_or_diagram_unavailable": "Image / diagram unavailable.",
+    "no_description": "No description",
+    "no_epc_context": "No EPC occurrence context available",
+    "no_fixture_stock": "No fixture stock shown",
+    "no_jaguar_part_number": "No Jaguar part number",
+    "no_part_selected": "No part selected.",
+    "raw_part_number": "Raw part number",
+    "source": "Source",
+    "verification": "Verification"
+  },
+  "ranges": {
+    "applicable_help": "Search to show applicable model ranges. Stock-based browsing is unavailable.",
+    "heading": "Suitability Model Ranges",
+    "label": "Model range / fit",
+    "no_match": "No suitable vehicle range matches this PART/context.",
+    "no_part_selected": "No part selected",
+    "no_suitable": "No suitable vehicle range is confirmed.",
+    "unavailable": "Vehicle applicability data is unavailable."
+  },
+  "search": {
+    "error": "The PART could not be resolved.",
+    "input_aria": "Jaguar part number or fixture identifier",
+    "input_placeholder": "e.g. MJB7703AA, MNA7691AA, firtree1",
+    "not_found": "Part not found.",
+    "prompt": "Enter a Jaguar part number or fixture identifier to begin.",
+    "prompt_with_action": "Enter a Jaguar part number or fixture identifier and press Search.",
+    "resolving": "Resolving PART…",
+    "resolved": "PART resolved."
+  },
+  "stock": {
+    "condition": "Condition",
+    "evidence": "Evidence",
+    "fixture_evidence": "fixture",
+    "location": "Stock location",
+    "no_fixture_location": "No fixture stock location shown",
+    "note": "Synthetic fixture stock values only; not real Jagports inventory evidence.",
+    "price": "Price",
+    "qty": "Qty",
+    "status": "Status"
+  },
+  "tree": {
+    "catalogue_context": "Catalogue context",
+    "empty": "No Parts Tree context is available.",
+    "heading": "Parts Tree",
+    "no_selection": "{{message}} Search to show the relevant Parts Tree path. Stock-based browsing is unavailable."
+  },
+  "visual": {
+    "chooser_label": "Part image / Diagram",
+    "empty": "Search to show verified part identity/status and the selected part image or exploded diagram.",
+    "heading": "PART / Image / Status",
+    "main_view": "Main View",
+    "no_image_selected": "No part image selected.",
+    "part_image": "Part image",
+    "search_help": "Search to show verified part identity/status and the selected part image or exploded diagram."
   }
 }
