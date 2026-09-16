@@ -21,7 +21,7 @@ Other documents may explain, implement, or reference these workflows, but must n
 
 The normal Management lifecycle is:
 
-`BACKLOG → RESEARCH → PROPOSED → DECISION NEEDED → APPROVED → CODING → REVIEW → TESTING → DONE`
+`BACKLOG → RESEARCH → PROPOSED → DECISION NEEDED → APPROVED → IMPLEMENTATION → REVIEW → TESTING → DONE`
 
 `BLOCKED` may be entered from any state when a required prerequisite prevents progress. The previous state must remain identifiable in the task record.
 
@@ -34,7 +34,7 @@ The normal Management lifecycle is:
 | `PROPOSED` | A concrete solution or implementation approach has been prepared. |
 | `DECISION NEEDED` | Human/authorized decision-maker judgment is required before proceeding. |
 | `APPROVED` | Required decision/approval has been obtained and implementation may proceed. |
-| `CODING` | Repository implementation is actively being produced. |
+| `IMPLEMENTATION` | The approved work is actively being produced as repository artifacts, including code, configuration, documentation, data, migrations, tests, workflows, or other committed deliverables. |
 | `REVIEW` | Implementation is complete enough for required review; implementation stops at this boundary. |
 | `TESTING` | Required validation is being executed. |
 | `DONE` | Required implementation, review, testing, merge, and closure/verification obligations are complete. |
@@ -212,6 +212,14 @@ For a new Issue belonging to the Project:
 If Project setup cannot be performed or verified, record the limitation and do not claim successful Project setup.
 
 When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless another state is explicitly appropriate, and verify the Project Item Status.
+
+### IMPLEMENTATION transition from a closing-linked Pull Request
+
+An **open Pull Request that explicitly has a GitHub closing relationship to an Issue** is the normal deterministic repository signal that implementation for that Issue has begun. Closing relationships created by GitHub closing keywords such as `Closes`, `Fixes`, or `Resolves` qualify; a branch, commit, ordinary Issue mention, or related PR without a closing relationship does not qualify by itself.
+
+When this signal is observed, the Issue's Project Item Status may be synchronized to `IMPLEMENTATION` and then independently verified. This signal describes actual implementation activity and is broader than source-code work; the PR may contain code, documentation, configuration, data, tests, workflows, migrations, or other repository deliverables.
+
+The automatic transition must not overwrite `DECISION NEEDED`, `BLOCKED`, `REVIEW`, `TESTING`, or `DONE`. A closing-linked PR does not itself prove that a required decision, approval, review, testing, or acceptance gate has passed. If implementation exists before a required approval or decision, preserve the applicable gate/blocking evidence rather than using automation to legitimize or hide the process defect.
 
 ---
 

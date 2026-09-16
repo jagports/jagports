@@ -1,0 +1,235 @@
+name: Sync Closing PR to Project Implementation
+
+on:
+  pull_request:
+    types: [opened, reopened, edited]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+  PROJECT_TITLE: Jagports AI OS
+  TARGET_STATUS: IMPLEMENTATION
+
+jobs:
+  sync-closing-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move closing-linked Issues to IMPLEMENTATION
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          COMMENT_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          report_failure() {
+            status=$?
+            if [ -n "${COMMENT_TOKEN:-}" ]; then
+              GH_TOKEN="$COMMENT_TOKEN" gh api \
+                "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+                -f body="Project IMPLEMENTATION synchronization **FAILED** for closing-linked Issues of PR #$PR_NUMBER. Inspect this workflow run for the exact failure. No successful Project Status mutation is claimed." \
+                >/dev/null || true
+            fi
+            exit "$status"
+          }
+          trap report_failure ERR
+
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "PROJECTS_TOKEN is not configured."
+            false
+          fi
+
+          OWNER="${REPOSITORY%%/*}"
+          NAME="${REPOSITORY##*/}"
+
+          PR_QUERY='
+          query($owner:String!, $name:String!, $number:Int!) {
+            repository(owner:$owner, name:$name) {
+              pullRequest(number:$number) {
+                id
+                state
+                closingIssuesReferences(first:50) {
+                  nodes {
+                    id
+                    number
+                    repository { nameWithOwner }
+                  }
+                }
+              }
+            }
+          }'
+
+          pr_json="$(gh api graphql \
+            -f query="$PR_QUERY" \
+            -f owner="$OWNER" \
+            -f name="$NAME" \
+            -F number="$PR_NUMBER")"
+
+          pr_state="$(jq -r '.data.repository.pullRequest.state // empty' <<<"$pr_json")"
+          [ "$pr_state" = "OPEN" ] || {
+            echo "PR #$PR_NUMBER is not open; no IMPLEMENTATION transition is applied."
+            trap - ERR
+            exit 0
+          }
+
+          mapfile -t issue_rows < <(jq -r --arg repo "$REPOSITORY" '.data.repository.pullRequest.closingIssuesReferences.nodes[]? | select(.repository.nameWithOwner == $repo) | [.id, (.number|tostring)] | @tsv' <<<"$pr_json")
+
+          if [ "${#issue_rows[@]}" -eq 0 ]; then
+            echo "PR #$PR_NUMBER has no same-repository closing Issue references."
+            trap - ERR
+            exit 0
+          fi
+
+          PROJECT_QUERY='
+          query($org:String!, $number:Int!) {
+            organization(login:$org) {
+              projectV2(number:$number) {
+                id
+                title
+                fields(first:100) {
+                  nodes {
+                    __typename
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options { id name }
+                    }
+                  }
+                }
+              }
+            }
+          }'
+
+          project_json="$(gh api graphql \
+            -f query="$PROJECT_QUERY" \
+            -f org="$PROJECT_ORG" \
+            -F number="$PROJECT_NUMBER")"
+
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+          project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
+          status_field_id="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .id' <<<"$project_json" | head -n1)"
+          target_option_id="$(jq -r --arg target "$TARGET_STATUS" '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $target) | .id' <<<"$project_json" | head -n1)"
+
+          [ -n "$project_id" ] || { echo "Project was not found."; false; }
+          [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
+          [ -n "$status_field_id" ] || { echo "Status field was not found."; false; }
+          [ -n "$target_option_id" ] || {
+            echo "IMPLEMENTATION Status option was not found. Migrate the Project Status option from CODING to IMPLEMENTATION before enabling this automation."
+            false
+          }
+
+          ISSUE_QUERY='
+          query($issue:ID!) {
+            node(id:$issue) {
+              ... on Issue {
+                id
+                number
+                projectItems(first:20) {
+                  nodes {
+                    id
+                    isArchived
+                    project { id title number }
+                    content { ... on Issue { id number } }
+                    fieldValueByName(name:"Status") {
+                      ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
+                    }
+                  }
+                }
+              }
+            }
+          }'
+
+          ADD_MUTATION='
+          mutation($project:ID!, $issue:ID!) {
+            addProjectV2ItemById(input:{projectId:$project, contentId:$issue}) {
+              item { id }
+            }
+          }'
+
+          SET_STATUS_MUTATION='
+          mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) {
+            updateProjectV2ItemFieldValue(input:{
+              projectId:$project
+              itemId:$item
+              fieldId:$field
+              value:{singleSelectOptionId:$option}
+            }) {
+              projectV2Item { id }
+            }
+          }'
+
+          VERIFY_QUERY='
+          query($item:ID!) {
+            node(id:$item) {
+              ... on ProjectV2Item {
+                id
+                isArchived
+                project { id title number }
+                content { ... on Issue { id number } }
+                fieldValueByName(name:"Status") {
+                  ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
+                }
+              }
+            }
+          }'
+
+          for row in "${issue_rows[@]}"; do
+            IFS=$'\t' read -r issue_node_id issue_number <<<"$row"
+            echo "Processing closing-linked Issue #$issue_number..."
+
+            issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -F issue="$issue_node_id")"
+            item_id="$(jq -r --arg project "$project_id" --arg issue "$issue_node_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue) | .id' <<<"$issue_json" | head -n1)"
+            current_status="$(jq -r --arg project "$project_id" --arg issue "$issue_node_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue) | .fieldValueByName.name // empty' <<<"$issue_json" | head -n1)"
+
+            if [ -z "$item_id" ]; then
+              gh api graphql \
+                -f query="$ADD_MUTATION" \
+                -F project="$project_id" \
+                -F issue="$issue_node_id" \
+                >/dev/null
+              issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -F issue="$issue_node_id")"
+              item_id="$(jq -r --arg project "$project_id" --arg issue "$issue_node_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue) | .id' <<<"$issue_json" | head -n1)"
+              current_status="$(jq -r --arg project "$project_id" --arg issue "$issue_node_id" '.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue) | .fieldValueByName.name // empty' <<<"$issue_json" | head -n1)"
+            fi
+
+            [ -n "$item_id" ] || { echo "Project Item for Issue #$issue_number could not be resolved."; false; }
+
+            case "$current_status" in
+              REVIEW|TESTING|DONE|BLOCKED|"DECISION NEEDED")
+                echo "Issue #$issue_number remains in $current_status; closing-PR detection must not overwrite a later/blocking/decision state."
+                continue
+                ;;
+            esac
+
+            gh api graphql \
+              -f query="$SET_STATUS_MUTATION" \
+              -F project="$project_id" \
+              -F item="$item_id" \
+              -F field="$status_field_id" \
+              -F option="$target_option_id" \
+              >/dev/null
+
+            verify_json="$(gh api graphql -f query="$VERIFY_QUERY" -F item="$item_id")"
+            verified_status="$(jq -r '.data.node.fieldValueByName.name // empty' <<<"$verify_json")"
+            verified_option="$(jq -r '.data.node.fieldValueByName.optionId // empty' <<<"$verify_json")"
+            verified_issue="$(jq -r '.data.node.content.number // empty' <<<"$verify_json")"
+            verified_project="$(jq -r '.data.node.project.id // empty' <<<"$verify_json")"
+            archived="$(jq -r '.data.node.isArchived' <<<"$verify_json")"
+
+            [ "$verified_issue" = "$issue_number" ] || { echo "Issue identity verification failed for #$issue_number."; false; }
+            [ "$verified_project" = "$project_id" ] || { echo "Project identity verification failed for Issue #$issue_number."; false; }
+            [ "$archived" = "false" ] || { echo "Project Item for Issue #$issue_number is archived."; false; }
+            [ "$verified_status" = "$TARGET_STATUS" ] || { echo "Status verification failed for Issue #$issue_number: '$verified_status'."; false; }
+            [ "$verified_option" = "$target_option_id" ] || { echo "Status option verification failed for Issue #$issue_number."; false; }
+
+            echo "PASS: Issue #$issue_number is verified at Project Item Status $TARGET_STATUS because open PR #$PR_NUMBER explicitly closes it."
+          done
+
+          trap - ERR
