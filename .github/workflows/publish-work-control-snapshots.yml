@@ -1,0 +1,161 @@
+name: Publish Work Control Snapshots
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_run:
+    workflows: ["Sync Issue Work Control to Project"]
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+  PROJECT_TITLE: Jagports AI OS
+  ISSUE_PRIORITY_FIELD_NAME: Priority
+  RANK_FIELD_NAME: Rank
+  WORKSTREAM_FIELD_NAME: Workstream
+  SNAPSHOT_MARKER: "<!-- jagports-work-control-snapshot -->"
+
+jobs:
+  publish:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish verified Issue work-control snapshots
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+
+          issue_fields="$(gh api \
+            -H 'X-GitHub-Api-Version: 2026-03-10' \
+            "orgs/$PROJECT_ORG/issue-fields")"
+          priority_field_count="$(jq --arg name "$ISSUE_PRIORITY_FIELD_NAME" '[.[]? | select(.name == $name)] | length' <<<"$issue_fields")"
+          [ "$priority_field_count" -eq 1 ] || { echo "Expected exactly one organization Issue field named '$ISSUE_PRIORITY_FIELD_NAME'; found $priority_field_count."; false; }
+          priority_field_id="$(jq -r --arg name "$ISSUE_PRIORITY_FIELD_NAME" '.[]? | select(.name == $name) | .id' <<<"$issue_fields")"
+
+          PROJECT_QUERY='
+          query($org:String!, $number:Int!, $after:String) {
+            organization(login:$org) {
+              projectV2(number:$number) {
+                id
+                title
+                items(first:100, after:$after) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes {
+                    id
+                    isArchived
+                    content {
+                      ... on Issue {
+                        id
+                        number
+                        repository { nameWithOwner }
+                      }
+                    }
+                    statusValue: fieldValueByName(name:"Status") {
+                      ... on ProjectV2ItemFieldSingleSelectValue { name }
+                    }
+                    rankValue: fieldValueByName(name:"Rank") {
+                      ... on ProjectV2ItemFieldNumberValue { number }
+                    }
+                    workstreamValue: fieldValueByName(name:"Workstream") {
+                      ... on ProjectV2ItemFieldSingleSelectValue { name }
+                    }
+                  }
+                }
+              }
+            }
+          }'
+
+          after=""
+          verified_count=0
+
+          while :; do
+            if [ -n "$after" ]; then
+              page="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER" -f after="$after")"
+            else
+              page="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+            fi
+
+            project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$page")"
+            project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$page")"
+            [ -n "$project_id" ] || { echo "Project was not found."; false; }
+            [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
+
+            while IFS= read -r item; do
+              archived="$(jq -r '.isArchived' <<<"$item")"
+              repo="$(jq -r '.content.repository.nameWithOwner // empty' <<<"$item")"
+              issue_number="$(jq -r '.content.number // empty' <<<"$item")"
+              [ "$archived" = "false" ] || continue
+              [ -n "$repo" ] || continue
+              [ -n "$issue_number" ] || continue
+
+              status="$(jq -r '.statusValue.name // "unset"' <<<"$item")"
+              rank="$(jq -r 'if .rankValue.number == null then "none" else (.rankValue.number|tostring) end' <<<"$item")"
+              workstream="$(jq -r '.workstreamValue.name // "Unassigned"' <<<"$item")"
+
+              current_issue_fields="$(gh api \
+                -H 'X-GitHub-Api-Version: 2026-03-10' \
+                "repos/$repo/issues/$issue_number/issue-field-values")"
+              priority="$(jq -r --argjson id "$priority_field_id" '.[]? | select(.issue_field_id == $id) | .single_select_option.name // empty' <<<"$current_issue_fields" | head -n1)"
+              [ -n "$priority" ] || priority="unset"
+
+              verified_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+              body="$(cat <<EOF
+$SNAPSHOT_MARKER
+
+## Work-control snapshot
+
+Verified: $verified_at
+
+- Priority: $priority
+- Project: $PROJECT_TITLE (#$PROJECT_NUMBER)
+- Workstream: $workstream
+- Status: $status
+- Rank: $rank
+
+This is a read-only agent bridge. Native Issue Priority and Project fields remain authoritative.
+EOF
+)"
+
+              comments="$(gh api --paginate "repos/$repo/issues/$issue_number/comments?per_page=100")"
+              comment_id="$(jq -r --arg marker "$SNAPSHOT_MARKER" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | if length == 0 then empty elif length == 1 then .[0] else "AMBIGUOUS" end' <<<"$comments")"
+
+              if [ "$comment_id" = "AMBIGUOUS" ]; then
+                echo "Issue $repo#$issue_number has multiple snapshot comments; refusing ambiguous update."
+                false
+              elif [ -n "$comment_id" ]; then
+                gh api --method PATCH "repos/$repo/issues/comments/$comment_id" -f body="$body" >/dev/null
+              else
+                gh api --method POST "repos/$repo/issues/$issue_number/comments" -f body="$body" >/dev/null
+                comments="$(gh api --paginate "repos/$repo/issues/$issue_number/comments?per_page=100")"
+                comment_id="$(jq -r --arg marker "$SNAPSHOT_MARKER" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | if length == 1 then .[0] else empty end' <<<"$comments")"
+                [ -n "$comment_id" ] || { echo "Snapshot comment creation could not be verified for $repo#$issue_number."; false; }
+              fi
+
+              verify_comment="$(gh api "repos/$repo/issues/comments/$comment_id")"
+              verify_body="$(jq -r '.body // empty' <<<"$verify_comment")"
+              grep -Fxq "$SNAPSHOT_MARKER" <<<"$verify_body" || { echo "Snapshot marker verification failed for $repo#$issue_number."; false; }
+              grep -Fxq -- "- Priority: $priority" <<<"$verify_body" || { echo "Priority snapshot verification failed for $repo#$issue_number."; false; }
+              grep -Fxq -- "- Workstream: $workstream" <<<"$verify_body" || { echo "Workstream snapshot verification failed for $repo#$issue_number."; false; }
+              grep -Fxq -- "- Status: $status" <<<"$verify_body" || { echo "Status snapshot verification failed for $repo#$issue_number."; false; }
+              grep -Fxq -- "- Rank: $rank" <<<"$verify_body" || { echo "Rank snapshot verification failed for $repo#$issue_number."; false; }
+
+              verified_count=$((verified_count + 1))
+            done < <(jq -c '.data.organization.projectV2.items.nodes[]?' <<<"$page")
+
+            has_next="$(jq -r '.data.organization.projectV2.items.pageInfo.hasNextPage' <<<"$page")"
+            [ "$has_next" = "true" ] || break
+            after="$(jq -r '.data.organization.projectV2.items.pageInfo.endCursor // empty' <<<"$page")"
+            [ -n "$after" ] || { echo "Pagination cursor missing while hasNextPage=true."; false; }
+          done
+
+          echo "PASS: published and independently verified $verified_count work-control snapshot(s)."
