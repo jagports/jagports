@@ -33,6 +33,15 @@ function formatStockLocationSummary(stock) {
   return locations.length ? locations.join(", ") : t("stock.no_fixture_location");
 }
 
+function formatStockQuality(item) {
+  const code = typeof item.condition_code === "string" ? item.condition_code : null;
+  if (code && /^[A-E]$/.test(code)) {
+    return `${code} — ${t(`stock.quality.${code}.label`)}`;
+  }
+  if (code) return code;
+  return t("stock.quality.unclassified.label");
+}
+
 async function resolvePart(partNumber) {
   const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
   const data = await response.json().catch(() => ({}));
@@ -49,7 +58,7 @@ function renderStockRows(stock) {
       <tbody>${stock.map((item) => `<tr>
         <td>${escapeHtml(item.quantity ?? "0")}</td>
         <td>${escapeHtml(item.status || (item.available ? "available" : "unavailable"))}</td>
-        <td>${escapeHtml(item.condition || item.condition_code || t("common.not_supplied"))}</td>
+        <td>${escapeHtml(formatStockQuality(item))}</td>
         <td>${escapeHtml(item.location || t("common.not_supplied"))}</td>
         <td>${formatMoney(item.price, item.currency)}</td>
         <td>${escapeHtml(item.source_ref || item.source || t("stock.fixture_evidence"))}</td>
