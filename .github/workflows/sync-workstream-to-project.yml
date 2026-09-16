@@ -81,8 +81,16 @@ jobs:
           field_count="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)] | length' <<<"$project_json")"
           if [ "$field_count" -eq 0 ]; then
             CREATE_FIELD='
-            mutation($project:ID!, $name:String!, $options:[ProjectV2SingleSelectFieldOptionInput!]) {
-              createProjectV2Field(input:{projectId:$project,name:$name,dataType:SINGLE_SELECT,singleSelectOptions:$options}) {
+            mutation($project:ID!, $name:String!) {
+              createProjectV2Field(input:{
+                projectId:$project,
+                name:$name,
+                dataType:SINGLE_SELECT,
+                singleSelectOptions:[
+                  {name:"AI OS",color:BLUE,description:"Jagports AI OS management, architecture and infrastructure"},
+                  {name:"VIEPS",color:GREEN,description:"VIEPS application and product work"}
+                ]
+              }) {
                 projectV2Field {
                   ... on ProjectV2SingleSelectField {
                     id
@@ -92,8 +100,7 @@ jobs:
                 }
               }
             }'
-            options='[{"name":"AI OS","color":"BLUE","description":"Jagports AI OS management, architecture and infrastructure"},{"name":"VIEPS","color":"GREEN","description":"VIEPS application and product work"}]'
-            gh api graphql -f query="$CREATE_FIELD" -F project="$project_id" -f name="$WORKSTREAM_FIELD_NAME" -f options="$options" >/dev/null
+            gh api graphql -f query="$CREATE_FIELD" -F project="$project_id" -f name="$WORKSTREAM_FIELD_NAME" >/dev/null
             project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
             field_count="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)] | length' <<<"$project_json")"
           fi
