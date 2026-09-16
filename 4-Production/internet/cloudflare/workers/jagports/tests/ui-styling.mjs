@@ -22,10 +22,14 @@ function harness(fetch) {
       querySelector() { return null; },
     });
   }
+  const languageControls = [...html.matchAll(/data-language="([^"]+)"/g)].map(([, language]) => ({
+    dataset: { language }, listeners: {},
+    addEventListener(event, fn) { this.listeners[event] = fn; },
+  }));
   const document = {
     documentElement: { lang: 'en' },
     getElementById: id => nodes.get(id),
-    querySelectorAll: () => [],
+    querySelectorAll: selector => selector === '[data-language]' ? languageControls : [],
   };
   const context = { document, fetch, Intl, VIEPS_I18N_RESOURCES: { en, fi } };
   vm.runInNewContext(i18nCode, context);
@@ -35,7 +39,7 @@ function harness(fetch) {
     document,
     get,
     async search(query) { get('partNumber').value = query; await get('partSearch').listeners.submit({ preventDefault() {} }); },
-    setLanguage(language) { get('languageSelect').listeners.change({ target: { value: language } }); },
+    setLanguage(language) { languageControls.find(control => control.dataset.language === language).listeners.click(); },
   };
 }
 
@@ -59,13 +63,18 @@ test('complete Concept-11 shell exists before search, with no automatic part loo
   for (const region of ['tree', 'location', 'visual', 'ranges', 'fitment']) {
     assert.match(html, new RegExp(`class="panel ${region}-panel"`));
   }
-  assert.match(html, /id="languageSelect"/);
+  assert.match(html, /data-language="fi"/);
+  assert.match(html, /🇫🇮\s*<span>\[fi-FI\]<\/span>/);
+  assert.match(html, /data-language="en"/);
+  assert.match(html, /🇬🇧\s*<span>\[en-GB\]<\/span>/);
+  assert.doesNotMatch(html, /id="languageSelect"/);
   assert.match(html, /data-i18n="common\.search"/);
   assert.match(html, /id="vehicleLocation"/);
   assert.doesNotMatch(html, /Top view|Side view/);
   assert.match(css, /"tree search search"\s*"tree ranges ranges"\s*"tree location suitability"\s*"tree details details"/);
   assert.match(css, /max-width:\s*1100px/);
   assert.match(css, /max-width:\s*760px/);
+  assert.match(css, /\.locale-control/);
   assert.match(html, /href="vieps-tailwind\.css"/);
   assert.doesNotMatch(html, /picocss|cdn\.tailwindcss\.com/i);
 });
@@ -154,7 +163,7 @@ test('only one selected visual is rendered; unavailable media is not presented a
   assert.match(ui.get('visuals').innerHTML, /unavailable/);
 });
 
-test('locale switching rerenders presentation without changing canonical data', async () => {
+test('locale flag switching rerenders presentation without changing canonical data', async () => {
   const ui = harness(async () => response(fixture));
   await ui.search('TEST1');
   ui.setLanguage('fi');
@@ -163,4 +172,7 @@ test('locale switching rerenders presentation without changing canonical data', 
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
   assert.match(ui.get('fitment').innerHTML, /Muunnelma/);
   assert.match(ui.get('ranges').innerHTML, /Range A/);
+  ui.setLanguage('en');
+  assert.equal(ui.document.documentElement.lang, 'en');
+  assert.equal(ui.get('searchStatus').textContent, 'PART resolved.');
 });
