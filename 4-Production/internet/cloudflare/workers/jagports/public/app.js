@@ -103,10 +103,17 @@ function renderSelectedVisual() {
 }
 
 function renderVisuals(images, diagrams) {
+  const visualPriority = (item) => {
+    const available = item.image_url && (!item.availability_status || item.availability_status === "available");
+    const approved = item.verification_status === "verified" || item.verification_status === "fixture";
+    if (available && approved) return 0;
+    if (available) return 1;
+    return 2;
+  };
   visualItems = [
     ...images.map((item) => ({ ...item, label: item.description || t("visual.part_image") })),
     ...diagrams.map((item) => ({ ...item, label: item.title || t("part.diagram") })),
-  ];
+  ].sort((left, right) => visualPriority(left) - visualPriority(right));
   $("visualSelect").innerHTML = visualItems.map((item, index) =>
     `<option value="${index}">${escapeHtml(item.label)}</option>`).join("");
   $("visualSelect").value = "0";
