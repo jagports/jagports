@@ -2,11 +2,10 @@ name: Publish Work Control Snapshots
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [work-control-snapshot-refresh]
   schedule:
-    - cron: "17 * * * *"
-  workflow_run:
-    workflows: ["Sync Issue Work Control to Project", "Sync Workstream to Project"]
-    types: [completed]
+    - cron: "17 0 * * *"
 
 permissions:
   contents: read
@@ -23,7 +22,6 @@ env:
 
 jobs:
   publish:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Publish verified Issue work-control snapshots

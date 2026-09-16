@@ -21,6 +21,7 @@ For current work:
 - **Issue `Priority`** is the authoritative organization-wide current priority metadata. The supported GitHub values are `Urgent`, `High`, `Medium`, and `Low`.
 - **Project `Rank`** is a unique positive integer that gives exact order inside one declared Project/backlog scope. Lower numbers execute earlier; `1` is the highest-ranked active item.
 - **Project `Status`** is the workflow stage of that Issue inside that Project and uses the canonical states defined by `WORKFLOWS.md`.
+- **Project `Workstream`** is the queue boundary when more than one operational queue shares the same Project. Current values are `AI OS` and `VIEPS`.
 - **Priority score** is a comparison aid used to explain priority and rank. It is not itself authoritative metadata.
 - **P0...P5 review band** is retained as decision evidence and as the compact input accepted by the synchronization automation. It maps to native Issue Priority and does not create a second authoritative priority field.
 
@@ -33,6 +34,8 @@ Issue Priority is organization-wide. Rank is Project/backlog-specific.
 Every ranked queue must state its scope, for example a product release, implementation roadmap, management backlog, or other clearly bounded body of work.
 
 Within one declared scope there is one ordered queue. Do not maintain competing ranks for the same scope. An Issue may legitimately have different ranks in different Projects because the queues have different scopes.
+
+When AI OS and VIEPS share one GitHub Project, `Workstream` separates those queues. Rank is interpreted inside one Workstream only; `AI OS Rank 1` and `VIEPS Rank 1` are both valid and do not compete in one universal queue.
 
 Do not combine unrelated scopes into one universal queue unless the Product Owner explicitly requests that comparison.
 
@@ -204,13 +207,15 @@ When priority changes materially, add a new dated record rather than rewriting h
 Issue and Project metadata have separate ownership:
 
 - native Issue `Priority` is organization-wide and belongs to the Issue itself;
-- Project `Status` and Project `Rank` belong to a particular Project scope;
+- Project `Status`, Project `Rank`, and Project `Workstream` belong to a particular Project scope;
 - historical P0...P5 review records remain evidence, not a duplicate live priority field.
 
-Two workflows have separate responsibilities:
+The current workflows have separate responsibilities:
 
 - `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
 - `.github/workflows/sync-issue-work-control-to-project.yml` processes an authorized `<!-- jagports-project-sync -->` comment or manual dispatch. It maps P0...P5 to native Issue Priority and updates requested Project `Status` and `Rank` values.
+- `.github/workflows/sync-workstream-to-project.yml` processes an authorized standalone Workstream command and sets the Project `Workstream` field to `AI OS` or `VIEPS` with independent read-back verification.
+- `.github/workflows/publish-work-control-snapshots.yml` publishes the read-only agent-facing snapshot of authoritative Issue/Project work-control values.
 
 The work-control workflow:
 
@@ -223,9 +228,66 @@ The work-control workflow:
 7. independently reads back and verifies every value it changes;
 8. reports failure when the requested state cannot be verified.
 
-The previous Project text field `Operational Priority` is deprecated duplicate metadata. Existing values must be reconciled to native Issue Priority and verified before that Project field is retired. Historical Issue comments are retained.
+### Workstream synchronization
 
-The workflow intentionally does not rewrite Project view layout or sort configuration. Ranked views should be configured to sort `Rank` ascending.
+When the combined Project is used, set its queue boundary with an authorized standalone marker comment:
+
+```text
+<!-- jagports-workstream-sync -->
+Workstream: AI OS
+```
+
+or:
+
+```text
+<!-- jagports-workstream-sync -->
+Workstream: VIEPS
+```
+
+The Workstream workflow:
+
+1. accepts only trusted repository/organization actors;
+2. accepts only the canonical values `AI OS` or `VIEPS`;
+3. creates the `Workstream` single-select field only if it is absent and verifies that both canonical options exist;
+4. resolves or adds the Project Item where required;
+5. writes the selected Workstream;
+6. independently reads it back before claiming success;
+7. after successful verification, requests an immediate snapshot refresh through the approved repository event.
+
+`Workstream` is a structured Project field, not a repository label.
+
+### Agent-readable work-control snapshot
+
+The managed snapshot is a read-only bridge for ChatGPT/agents or other tools that cannot directly read all native Issue/Project fields. It must never become a competing source of truth.
+
+Each managed snapshot comment is identified by the standalone marker:
+
+```text
+<!-- jagports-work-control-snapshot -->
+```
+
+The snapshot contains at minimum:
+
+- verification timestamp;
+- native Issue `Priority`;
+- Project identity;
+- Project `Workstream`;
+- Project `Status`;
+- Project `Rank`.
+
+The publisher updates one managed snapshot comment per Project Issue rather than adding a new comment on every refresh. It independently rereads the written comment and verifies the expected Priority, Workstream, Status and Rank lines. If multiple managed snapshot comments exist for one Issue, it fails closed rather than choosing one arbitrarily.
+
+Snapshot refresh paths are:
+
+1. **Immediate event-driven refresh** — after a verified authoritative work-control/Workstream change, automation requests `work-control-snapshot-refresh` through `repository_dispatch`.
+2. **Daily reconciliation fallback** — `.github/workflows/publish-work-control-snapshots.yml` runs on cron `17 0 * * *`, i.e. once per day at **00:17 UTC**.
+3. **Manual maintenance** — the workflow supports `workflow_dispatch` for an authorized manual reconciliation.
+
+The daily run exists to catch drift or direct/manual changes that bypass the immediate event path. It is not the primary synchronization mechanism.
+
+The previous Project text field `Operational Priority` is deprecated duplicate metadata. Existing values were migrated/reconciled to native Issue Priority and the duplicate field was retired only after verification. Historical Issue comments remain evidence.
+
+The workflows intentionally do not rewrite Project view layout or sort configuration. Ranked views should be configured to filter by Workstream where applicable and sort `Rank` ascending.
 
 Only trusted repository/organization actors may trigger comment-based synchronization. The Issue comment remains the durable decision record.
 
@@ -249,5 +311,9 @@ A queue record should be compact and show at minimum the Issue/PR link, native I
 Daily audit categories such as `SHOW-STOPPERS`, `DO FIRST`, `LOW-HANGING FRUITS` and `QUEUE CLEANUP` are audit-report categories, not substitutes for Issue Priority or Project Rank.
 
 When a maintained ranked queue exists, the audit should use it as evidence while still applying dependency, impact, urgency, readiness, unblock-value and cleanup checks.
+
+The AI OS audit operates on the `AI OS` Workstream and the VIEPS audit operates on the `VIEPS` Workstream while those queues share the same GitHub Project. Their Rank values are evaluated only inside the applicable Workstream.
+
+The scheduled audits perform prioritization reconciliation and queue maintenance. The separate daily snapshot reconciliation provides a machine-readable fallback; immediate field changes remain event-driven.
 
 An audit may surface a lower-ranked low-hanging-fruit or cleanup action without silently changing the maintained queue. A material reprioritization should be recorded through a new priority review.
