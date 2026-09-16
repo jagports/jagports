@@ -97,6 +97,38 @@
     "note": "Vain synteettisiä testivaraston arvoja; ei todellista Jagports-varastotietoa.",
     "price": "Hinta",
     "qty": "Määrä",
+    "quality": {
+      "A": {
+        "label": "Uusi / käyttämätön / alkuperäispakkaus",
+        "long_description": "Osa on uusi tai käyttämätön. Siinä voi olla tavanomaisia varastointi- tai pakkausjälkiä, mutta sitä ei luokitella käytetyksi osaksi. Alkuperäispakkaus voi olla tallella, mutta se kirjataan tarvittaessa erikseen.",
+        "short_description": "Uusi tai käyttämätön osa."
+      },
+      "B": {
+        "label": "Käytetty / hyvä käyttökunto / tunnettu historia",
+        "long_description": "Osa on käytetty, täysin toimiva ja teknisesti turvallinen, ja sen historia tunnetaan silloin kun tieto on saatavilla. Pinnassa voi olla normaalia käytön jälkeä, kuten lieviä naarmuja, kiveniskemiä, pientä kulumaa tai kevyttä pintaruostetta.",
+        "short_description": "Hyvä normaalikuntoinen käytetty osa."
+      },
+      "C": {
+        "label": "Käytetty / käyttökelpoinen / ei takuuta",
+        "long_description": "Osa on käytetty ja käyttökelpoinen tai pienellä vaivalla kunnostettavissa, mutta siinä on selkeitä visuaalisia tai mekaanisia kulumia eikä luokitus sisällä takuuta.",
+        "short_description": "Käyttökelpoinen budjetti- tai projektiosa."
+      },
+      "D": {
+        "label": "Korjattava / kunnostettava / varaosiksi",
+        "long_description": "Osa ei ole sellaisenaan normaali hyvä käytetty osa. Se tarvitsee korjausta, kunnostusta, puhdistusta, yhdistelyä tai muuta valmistelua ennen käyttöä.",
+        "short_description": "Korjausta, kunnostusta tai purkuosakäyttöä varten."
+      },
+      "E": {
+        "label": "Rikkinäinen / referenssiksi / tiedonhankintaan",
+        "long_description": "Osa on rikki, vajaa tai normaalikäyttöön myyntikelvoton. Se voi silti olla hyödyllinen referenssinä, vertailuun, mittaukseen, dokumentointiin, oppimiseen, vian selvitykseen, tutkimukseen tai muuhun tiedonhankintaan.",
+        "short_description": "Rikkinäinen, referenssi- tai oppimiskäyttöön."
+      },
+      "unclassified": {
+        "label": "Kunto luokittelematta",
+        "long_description": "Varasto-osa on olemassa ja voi olla saatavilla, mutta sille ei ole vielä annettu A-E-kuntoluokitusta.",
+        "short_description": "Varasto-osan kuntoa ei ole vielä luokiteltu."
+      }
+    },
     "status": "Tila"
   },
   "tree": {
