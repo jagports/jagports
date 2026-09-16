@@ -21,11 +21,15 @@
     "descriptive_note": "firtree1 and firtree2 are descriptive identifiers, not Jaguar part numbers.",
     "firtree1_description": "non-numbered identification fixture",
     "firtree2_description": "non-numbered identification fixture",
+    "fix538c_description": "synthetic chain endpoint fixture",
     "heading": "Try these part numbers",
+    "mjb7703aa_description": "representative MVP fixture part",
+    "mna7691aa_description": "#354 supersession fixture source part",
     "numbered_heading": "Tester fixture data",
     "randomized_note": "Fixture stock values are randomized demo/test values, not real inventory evidence.",
     "test_guidance_aria": "MVP fixture search guidance",
-    "tester_data": "Tester fixture data"
+    "tester_data": "Tester fixture data",
+    "xr847031_description": "#354 supersession fixture replacement part"
   },
   "header": {
     "product_name": "Jagports Vehicle Information and EPC System"
@@ -57,6 +61,7 @@
     "no_epc_context": "No EPC occurrence context available",
     "no_fixture_stock": "No fixture stock shown",
     "no_jaguar_part_number": "No Jaguar part number",
+    "no_part_resolved": "No part resolved.",
     "no_part_selected": "No part selected.",
     "raw_part_number": "Raw part number",
     "source": "Source",
@@ -84,6 +89,8 @@
   "stock": {
     "condition": "Condition",
     "evidence": "Evidence",
+    "filter_unavailable": "Stock quality filter unavailable",
+    "filter_unavailable_note": "Stock quality A–E filtering requires the approved stock browsing contract.",
     "fixture_evidence": "fixture",
     "location": "Stock location",
     "no_fixture_location": "No fixture stock location shown",

@@ -21,11 +21,15 @@
     "descriptive_note": "firtree1 ja firtree2 ovat kuvailevia tunnisteita, eivät Jaguar-osanumeroita.",
     "firtree1_description": "numeroton tunnistustestitieto",
     "firtree2_description": "numeroton tunnistustestitieto",
+    "fix538c_description": "synteettisen ketjun päätepisteen testitieto",
     "heading": "Kokeile näitä osanumeroita",
+    "mjb7703aa_description": "edustava MVP-testiosa",
+    "mna7691aa_description": "#354 korvaavuuden lähdeosan testitieto",
     "numbered_heading": "Testiaineisto",
     "randomized_note": "Testivaraston arvot ovat satunnaistettuja demo-/testiarvoja, eivät todellista varastotietoa.",
     "test_guidance_aria": "MVP-testiaineiston hakuohje",
-    "tester_data": "Testiaineisto"
+    "tester_data": "Testiaineisto",
+    "xr847031_description": "#354 korvaavuuden korvaavan osan testitieto"
   },
   "header": {
     "product_name": "Jagports Vehicle Information and EPC System"
@@ -57,6 +61,7 @@
     "no_epc_context": "EPC-esiintymäkontekstia ei ole saatavilla",
     "no_fixture_stock": "Testivarastoa ei näytetä",
     "no_jaguar_part_number": "Ei Jaguar-osanumeroa",
+    "no_part_resolved": "Osaa ei ratkaistu.",
     "no_part_selected": "Osaa ei ole valittu.",
     "raw_part_number": "Alkuperäinen osanumero",
     "source": "Lähde",
@@ -84,6 +89,8 @@
   "stock": {
     "condition": "Kunto",
     "evidence": "Näyttö",
+    "filter_unavailable": "Varaston kuntosuodatin ei ole käytettävissä",
+    "filter_unavailable_note": "Varaston A–E-kuntosuodatus edellyttää hyväksyttyä varaston selaussopimusta.",
     "fixture_evidence": "testi",
     "location": "Varastopaikka",
     "no_fixture_location": "Testivaraston sijaintia ei näytetä",
