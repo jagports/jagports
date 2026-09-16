@@ -100,12 +100,12 @@ test('extended MVP fixture dataset has deterministic real-life-looking stock val
 test('visible UI guidance lists numbered and non-numbered fixture probes separately', () => {
   const html = readFileSync(new URL('public/index.html', root), 'utf8');
 
-  assert.match(html, /Tester fixture data/);
-  assert.match(html, /randomized demo\/test values, not real inventory evidence/);
-  assert.match(html, /Try these part numbers/);
+  assert.match(html, /data-i18n="fixture\.tester_data"/);
+  assert.match(html, /data-i18n="fixture\.randomized_note"/);
+  assert.match(html, /data-i18n="fixture\.heading"/);
   for (const partNumber of fixturePartNumbers) assert.match(html, new RegExp(partNumber));
 
-  assert.match(html, /Non-numbered fixture identifiers/);
-  assert.match(html, /not Jaguar part numbers/);
+  assert.match(html, /data-i18n="fixture\.descriptive_heading"/);
+  assert.match(html, /data-i18n="fixture\.descriptive_note"/);
   for (const identifier of fixtureDescriptiveIdentifiers) assert.match(html, new RegExp(identifier));
 });

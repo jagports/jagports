@@ -2,6 +2,8 @@
 
 const baseUrl = (process.env.VIEPS_BASE_URL || "https://vieps.parts-5ec.workers.dev").replace(/\/$/, "");
 const checks = [
+  { path: "/i18n-resources.js", contentType: "javascript" },
+  { path: "/i18n-runtime.js", contentType: "javascript" },
   { path: "/vieps-tailwind.css", contentType: "text/css" },
 ];
 

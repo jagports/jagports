@@ -1,6 +1,117 @@
 {
   "common": {
     "availability": "Saatavuus",
+    "not_recorded": "Ei kirjattu",
+    "not_specified": "Ei määritelty",
+    "not_supplied": "Ei ilmoitettu",
     "search": "Etsi"
+  },
+  "fitment": {
+    "applicability": "Sopivuus",
+    "browse_help": "Selaustila voi näyttää hyväksyttyjä suodattimia; valittu osa näyttää vahvistetut sopivuustiedot ja rajaukset.",
+    "heading": "Sopivuus / suodatus",
+    "no_confirmed": "Ajoneuvosopivuutta ei ole vahvistettu.",
+    "qualifier": "Rajaus",
+    "selected_none": "Mallisarjaa ei ole valittu.",
+    "variation": "Muunnelma",
+    "verification": "Vahvistus"
+  },
+  "fixture": {
+    "descriptive_heading": "Numerottomat testitunnisteet",
+    "descriptive_note": "firtree1 ja firtree2 ovat kuvailevia tunnisteita, eivät Jaguar-osanumeroita.",
+    "firtree1_description": "numeroton tunnistustestitieto",
+    "firtree2_description": "numeroton tunnistustestitieto",
+    "fix538c_description": "synteettisen ketjun päätepisteen testitieto",
+    "heading": "Kokeile näitä osanumeroita",
+    "mjb7703aa_description": "edustava MVP-testiosa",
+    "mna7691aa_description": "#354 korvaavuuden lähdeosan testitieto",
+    "numbered_heading": "Testiaineisto",
+    "randomized_note": "Testivaraston arvot ovat satunnaistettuja demo-/testiarvoja, eivät todellista varastotietoa.",
+    "test_guidance_aria": "MVP-testiaineiston hakuohje",
+    "tester_data": "Testiaineisto",
+    "xr847031_description": "#354 korvaavuuden korvaavan osan testitieto"
+  },
+  "header": {
+    "product_name": "Jagports Vehicle Information and EPC System"
+  },
+  "locale": {
+    "english": "Englanti",
+    "finnish": "Suomi",
+    "label": "Kieli"
+  },
+  "location": {
+    "heading": "Sijainti autossa",
+    "main_view": "Päänäkymä",
+    "range_unavailable": "{{range}}: vahvistettuja ajoneuvonäkymiä ja osan sijaintikartoitusta ei ole saatavilla.",
+    "select_help": "Valitse osa ja mallisarja. Vahvistettua osan sijaintikartoitusta ei ole saatavilla.",
+    "unavailable": "Ajoneuvon sijaintinäkymää ei ole saatavilla.",
+    "verified_unavailable": "Vahvistettuja ajoneuvonäkymiä ja osan sijaintikartoitusta ei ole saatavilla."
+  },
+  "part": {
+    "diagram": "Kaavio",
+    "epc_context": "EPC-konteksti",
+    "epc_occurrence_one": "{{count}} EPC-esiintymä",
+    "epc_occurrence_other": "{{count}} EPC-esiintymää",
+    "fixture_stock": "Testivarasto",
+    "fixture_stock_record_one": "{{count}} synteettinen testivarastorivi",
+    "fixture_stock_record_other": "{{count}} synteettistä testivarastoriviä",
+    "image": "Osakuva",
+    "image_or_diagram_unavailable": "Kuvaa / kaaviota ei ole saatavilla.",
+    "no_description": "Ei kuvausta",
+    "no_epc_context": "EPC-esiintymäkontekstia ei ole saatavilla",
+    "no_fixture_stock": "Testivarastoa ei näytetä",
+    "no_jaguar_part_number": "Ei Jaguar-osanumeroa",
+    "no_part_resolved": "Osaa ei ratkaistu.",
+    "no_part_selected": "Osaa ei ole valittu.",
+    "raw_part_number": "Alkuperäinen osanumero",
+    "source": "Lähde",
+    "verification": "Vahvistus"
+  },
+  "ranges": {
+    "applicable_help": "Hae osa nähdäksesi sopivat mallisarjat. Varastopohjainen selaus ei ole käytettävissä.",
+    "heading": "Sopivat mallisarjat",
+    "label": "Mallisarja / sopivuus",
+    "no_match": "Mikään sopiva mallisarja ei vastaa tätä OSA-/kontekstiyhdistelmää.",
+    "no_part_selected": "Osaa ei ole valittu",
+    "no_suitable": "Sopivaa mallisarjaa ei ole vahvistettu.",
+    "unavailable": "Ajoneuvosopivuustietoja ei ole saatavilla."
+  },
+  "search": {
+    "error": "OSAA ei voitu ratkaista.",
+    "input_aria": "Jaguar-osanumero tai testitunniste",
+    "input_placeholder": "esim. MJB7703AA, MNA7691AA, firtree1",
+    "not_found": "Osaa ei löytynyt.",
+    "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
+    "prompt_with_action": "Syötä Jaguar-osanumero tai testitunniste ja paina Etsi.",
+    "resolved": "OSA ratkaistu.",
+    "resolving": "Ratkaistaan OSAA…"
+  },
+  "stock": {
+    "condition": "Kunto",
+    "evidence": "Näyttö",
+    "filter_unavailable": "Varaston kuntosuodatin ei ole käytettävissä",
+    "filter_unavailable_note": "Varaston A–E-kuntosuodatus edellyttää hyväksyttyä varaston selaussopimusta.",
+    "fixture_evidence": "testi",
+    "location": "Varastopaikka",
+    "no_fixture_location": "Testivaraston sijaintia ei näytetä",
+    "note": "Vain synteettisiä testivaraston arvoja; ei todellista Jagports-varastotietoa.",
+    "price": "Hinta",
+    "qty": "Määrä",
+    "status": "Tila"
+  },
+  "tree": {
+    "catalogue_context": "Luettelokonteksti",
+    "empty": "Parts Tree -kontekstia ei ole saatavilla.",
+    "heading": "Parts Tree",
+    "no_selection": "{{message}} Hae osa nähdäksesi olennaisen Parts Tree -polun. Varastopohjainen selaus ei ole käytettävissä."
+  },
+  "visual": {
+    "chooser_label": "Osakuva / kaavio",
+    "empty": "Hae osa nähdäksesi vahvistetun osatunnisteen/-tilan ja valitun osakuvan tai räjäytyskuvan.",
+    "heading": "OSA / kuva / tila",
+    "main_view": "Päänäkymä",
+    "no_image_selected": "Osakuvaa ei ole valittu.",
+    "part_image": "Osakuva",
+    "search_help": "Hae osa nähdäksesi vahvistetun osatunnisteen/-tilan ja valitun osakuvan tai räjäytyskuvan."
   }
 }

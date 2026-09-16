@@ -7,6 +7,9 @@ import { handleViepsPart } from '../src/vieps.js';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const code = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
+const i18nCode = readFileSync(new URL('../public/i18n-runtime.js', import.meta.url), 'utf8');
+const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
+const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
 function uiHarness(fetch) {
   const nodes = new Map();
@@ -23,7 +26,14 @@ function uiHarness(fetch) {
       querySelector() { return null; },
     });
   }
-  vm.runInNewContext(code, { document: { getElementById: id => nodes.get(id) }, fetch });
+  const document = {
+    documentElement: { lang: 'en' },
+    getElementById: id => nodes.get(id),
+    querySelectorAll: () => [],
+  };
+  const context = { document, fetch, Intl, VIEPS_I18N_RESOURCES: { en, fi } };
+  vm.runInNewContext(i18nCode, context);
+  vm.runInNewContext(code, context);
   const get = id => nodes.get(id);
   return {
     get,
