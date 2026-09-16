@@ -120,6 +120,30 @@ assert.deepEqual({ ...stock }, {
   available: 1,
 });
 
+// Availability and A-E stock quality are independent. An available item with a
+// normalized storage location may remain explicitly unclassified (NULL).
+db.prepare(`
+  INSERT INTO stock_item (
+    part_number, quantity, condition, part_id, source, verification_status,
+    available, storage_location_id
+  ) VALUES ('UNCLASSIFIED-AVAILABLE', 1, '', 57001, 'fixture', 'fixture', 1, 57010)
+`).run();
+const unclassifiedAvailable = db.prepare(`
+  SELECT available, condition_code, storage_location_id
+  FROM stock_item WHERE part_number = 'UNCLASSIFIED-AVAILABLE'
+`).get();
+assert.deepEqual({ ...unclassifiedAvailable }, {
+  available: 1,
+  condition_code: null,
+  storage_location_id: 57010,
+});
+
+db.prepare("UPDATE stock_item SET condition_code = NULL WHERE part_number = 'C2P0001'").run();
+assert.deepEqual(
+  { ...db.prepare("SELECT available, condition_code FROM stock_item WHERE part_number = 'C2P0001'").get() },
+  { available: 1, condition_code: null },
+);
+
 assert.throws(
   () => db.prepare(`INSERT INTO stock_item (part_number, quantity, part_id, available, condition_code, storage_location_id) VALUES ('BAD-QTY', 1.5, 57001, 0, 'A', 57010)`).run(),
   /stock quantity must be an integer/,
@@ -130,7 +154,7 @@ assert.throws(
 );
 assert.throws(
   () => db.prepare(`INSERT INTO stock_item (part_number, quantity, part_id, available, condition_code) VALUES ('BAD-AVAILABLE', 1, 57001, 1, 'A')`).run(),
-  /available stock requires condition and storage location/,
+  /available stock requires storage location/,
 );
 assert.throws(
   () => db.prepare(`INSERT INTO stock_item (part_number, quantity, available, condition_code, storage_location_id) VALUES ('BAD-UNRESOLVED', 1, 0, 'A', 57010)`).run(),
@@ -147,7 +171,7 @@ assert.throws(
 
 // One canonical PART may have multiple independent operational stock records.
 db.prepare(`INSERT INTO stock_item (part_number, quantity, condition, part_id, source, available, condition_code, storage_location_id) VALUES ('C2P0001-SECOND', 1, '', 57001, 'fixture', 0, 'D', 57012)`).run();
-assert.equal(db.prepare('SELECT COUNT(*) AS count FROM stock_item WHERE part_id = 57001').get().count, 2);
+assert.equal(db.prepare('SELECT COUNT(*) AS count FROM stock_item WHERE part_id = 57001').get().count, 3);
 
 const indexNames = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='stock_item'").all().map((row) => row.name);
 for (const name of [
