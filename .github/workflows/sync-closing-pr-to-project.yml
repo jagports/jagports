@@ -14,6 +14,7 @@ env:
   PROJECT_NUMBER: "9"
   PROJECT_TITLE: Jagports AI OS
   TARGET_STATUS: IMPLEMENTATION
+  LEGACY_STATUS: CODING
 
 jobs:
   sync-closing-pr:
@@ -99,7 +100,7 @@ jobs:
                     ... on ProjectV2SingleSelectField {
                       id
                       name
-                      options { id name }
+                      options { id name color description }
                     }
                   }
                 }
@@ -107,23 +108,85 @@ jobs:
             }
           }'
 
-          project_json="$(gh api graphql \
-            -f query="$PROJECT_QUERY" \
-            -f org="$PROJECT_ORG" \
-            -F number="$PROJECT_NUMBER")"
-
-          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
-          project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
-          status_field_id="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .id' <<<"$project_json" | head -n1)"
-          target_option_id="$(jq -r --arg target "$TARGET_STATUS" '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $target) | .id' <<<"$project_json" | head -n1)"
-
-          [ -n "$project_id" ] || { echo "Project was not found."; false; }
-          [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
-          [ -n "$status_field_id" ] || { echo "Status field was not found."; false; }
-          [ -n "$target_option_id" ] || {
-            echo "IMPLEMENTATION Status option was not found. Migrate the Project Status option from CODING to IMPLEMENTATION before enabling this automation."
-            false
+          refresh_project() {
+            project_json="$(gh api graphql \
+              -f query="$PROJECT_QUERY" \
+              -f org="$PROJECT_ORG" \
+              -F number="$PROJECT_NUMBER")"
+            project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+            project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
+            status_field_id="$(jq -r '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .id' <<<"$project_json" | head -n1)"
+            [ -n "$project_id" ] || { echo "Project was not found."; false; }
+            [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
+            [ -n "$status_field_id" ] || { echo "Status field was not found."; false; }
           }
+
+          refresh_project
+
+          target_count="$(jq --arg target "$TARGET_STATUS" '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $target)] | length' <<<"$project_json")"
+          legacy_count="$(jq --arg legacy "$LEGACY_STATUS" '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $legacy)] | length' <<<"$project_json")"
+
+          if [ "$target_count" -eq 0 ]; then
+            [ "$legacy_count" -eq 1 ] || {
+              echo "Cannot safely migrate Status: expected exactly one '$LEGACY_STATUS' option while '$TARGET_STATUS' is absent; found $legacy_count."
+              false
+            }
+
+            legacy_option_id="$(jq -r --arg legacy "$LEGACY_STATUS" '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $legacy) | .id' <<<"$project_json")"
+            before_ids="$(jq -c '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]?.id] | sort' <<<"$project_json")"
+
+            options_json="$(jq -c --arg legacy "$LEGACY_STATUS" --arg target "$TARGET_STATUS" '
+              [.data.organization.projectV2.fields.nodes[]?
+               | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField")
+               | .options[]?
+               | {
+                   id: .id,
+                   name: (if .name == $legacy then $target else .name end),
+                   color: .color,
+                   description: (if .name == $legacy then "Implementation in progress" else (.description // "") end)
+                 }]
+            ' <<<"$project_json")"
+
+            UPDATE_STATUS_FIELD_MUTATION='
+            mutation($fieldId:ID!, $options:[ProjectV2SingleSelectFieldOptionInput!]) {
+              updateProjectV2Field(input:{fieldId:$fieldId, singleSelectOptions:$options}) {
+                projectV2Field {
+                  ... on ProjectV2SingleSelectField {
+                    id
+                    name
+                    options { id name color description }
+                  }
+                }
+              }
+            }'
+
+            request_json="$(jq -n \
+              --arg query "$UPDATE_STATUS_FIELD_MUTATION" \
+              --arg fieldId "$status_field_id" \
+              --argjson options "$options_json" \
+              '{query:$query, variables:{fieldId:$fieldId, options:$options}}')"
+
+            printf '%s' "$request_json" | gh api graphql --input - >/dev/null
+            refresh_project
+
+            target_count="$(jq --arg target "$TARGET_STATUS" '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $target)] | length' <<<"$project_json")"
+            legacy_count="$(jq --arg legacy "$LEGACY_STATUS" '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $legacy)] | length' <<<"$project_json")"
+            migrated_option_id="$(jq -r --arg target "$TARGET_STATUS" '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $target) | .id' <<<"$project_json")"
+            after_ids="$(jq -c '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]?.id] | sort' <<<"$project_json")"
+
+            [ "$target_count" -eq 1 ] || { echo "Status migration verification failed: IMPLEMENTATION count is $target_count."; false; }
+            [ "$legacy_count" -eq 0 ] || { echo "Status migration verification failed: legacy CODING still exists."; false; }
+            [ "$migrated_option_id" = "$legacy_option_id" ] || { echo "Status migration verification failed: option identity changed."; false; }
+            [ "$after_ids" = "$before_ids" ] || { echo "Status migration verification failed: Status option ID set changed."; false; }
+
+            echo "PASS: Project Status option '$LEGACY_STATUS' was renamed to '$TARGET_STATUS' with option identity preserved."
+          else
+            [ "$target_count" -eq 1 ] || { echo "Project has multiple '$TARGET_STATUS' Status options."; false; }
+            [ "$legacy_count" -eq 0 ] || { echo "Project has both '$LEGACY_STATUS' and '$TARGET_STATUS'; refusing ambiguous migration state."; false; }
+          fi
+
+          target_option_id="$(jq -r --arg target "$TARGET_STATUS" '.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField") | .options[]? | select(.name == $target) | .id' <<<"$project_json" | head -n1)"
+          [ -n "$target_option_id" ] || { echo "IMPLEMENTATION Status option was not resolved after migration/verification."; false; }
 
           ISSUE_QUERY='
           query($issue:ID!) {
@@ -131,6 +194,7 @@ jobs:
               ... on Issue {
                 id
                 number
+                # This reads Project memberships for this one Issue, not Project backlog items.
                 projectItems(first:20) {
                   nodes {
                     id
