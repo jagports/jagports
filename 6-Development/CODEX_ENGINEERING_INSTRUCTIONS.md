@@ -81,6 +81,8 @@ Where applicable, preserve and require the existing GitHub workflows, including:
 
 `issues-lifecycle-in-project.yml` is process automation, not a substitute for implementation tests.
 
+The repository-wide automated-validation baseline and general PR CI/test-path implementation are owned by Issue #41 (`[P9.3] Define automated validation`). Do not create a separate competing CI-policy owner from this Codex execution document.
+
 ### Component checks
 
 For changed software/components:
