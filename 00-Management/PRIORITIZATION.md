@@ -198,19 +198,19 @@ Project visualization is synchronized through GitHub Actions, not through an age
 Two workflows have separate responsibilities:
 
 - `.github/workflows/issues-lifecycle-in-project.yml` keeps the existing deterministic Issue lifecycle mapping: opened/reopened → `BACKLOG`; closed → `DONE`.
-- `.github/workflows/sync-issue-work-control-to-project.yml` processes an authorized `<!-- jagports-project-sync -->` Issue comment or a manual workflow dispatch and updates requested `Status`, `Priority`, and `Rank` Project fields.
+- `.github/workflows/sync-issue-work-control-to-project.yml` processes an authorized `<!-- jagports-project-sync -->` Issue comment or a manual workflow dispatch and updates requested `Status`, `Operational Priority`, and `Rank` Project fields.
 
 The work-control workflow:
 
 1. reuses `secrets.PROJECTS_TOKEN` and Project #9 (`Jagports AI OS`);
 2. resolves the Issue's active Project Item and adds it if necessary;
 3. updates only values explicitly supplied by the command;
-4. creates a text `Priority` field and numeric `Rank` field on first use if either is absent;
+4. creates a text `Operational Priority` field and numeric `Rank` field on first use if either is absent;
 5. dynamically resolves the existing canonical `Status` single-select field/options;
 6. independently re-reads and verifies every Project value it changed;
 7. reports failure on the Issue if the requested Project result cannot be verified.
 
-A Project view can then be configured to sort ascending by numeric `Rank`, while `Priority` provides the P0...P5 handling band. The workflow intentionally does not rewrite Project view layout/sort configuration; it supplies the verified fields needed for the view to order items.
+A Project view can then be configured to sort ascending by numeric `Rank`, while `Operational Priority` displays the P0...P5 handling band. The workflow intentionally does not rewrite Project view layout/sort configuration; it supplies the verified fields needed for the view to order items.
 
 Only repository/organization actors trusted by the workflow may trigger comment-based synchronization. The Issue comment remains the durable record of the requested state/priority/rank change.
 
