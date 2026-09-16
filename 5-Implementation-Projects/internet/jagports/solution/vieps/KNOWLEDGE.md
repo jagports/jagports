@@ -148,6 +148,10 @@ Language-specific top-level item files carry item numbers and descriptions that 
 
 Applicability sidecars have different key scopes at category, top-level item and individual application levels. Preserve those scopes, repeated records and condition boundaries during interpretation. A flag's meaning depends on its record family: serial-boundary direction and attribute exclusion are not interchangeable concepts. Unknown fields and attribute-code meanings must remain explicitly unresolved until verified.
 
+An application ID can recur on several leaf rows under different decision paths within the same item file. Preserve path/row evidence separately from logical occurrence identity; repeated paths do not require duplicate canonical parts. Application sidecars may cover only some displayed conditions, so their contents alone are not proof of complete applicability. Supporting examples are recorded in the [applicability refinement evidence](../../../../../7-Research/JEPC_APPLICABILITY_MODEL_REFINEMENT.md).
+
+Source market distinctions can occur below a shared model, in category/application context. A market-specific model row is not a prerequisite for retaining those conditions. Preserve raw category markers and explicit country/market branches separately until their normalized vocabulary is established; do not infer steering configuration or component side from a market label.
+
 Treat research notes and prototype importer output as evidence with limits, not automatically as specification authority. Newer commits can supersede older hypotheses, but recency alone does not establish correctness. Reconcile claims with the actual source files, consuming application code and explicit accepted product decisions. Discover installed paths rather than assuming that study-sample placement is the installation layout.
 
 ## JEPC illustration and hotspot relationships
