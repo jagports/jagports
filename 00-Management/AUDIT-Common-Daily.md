@@ -6,6 +6,8 @@ Canonical processing method for daily audits.
 
 Individual audit procedures define their own scope. This file defines the common audit logic, prioritisation, category discipline and output rules so the audit method is maintained in one place.
 
+`00-Management/PRIORITIZATION.md` remains authoritative for Issue Priority, Project Rank, scoring and queue-maintenance semantics. The audit consumes and maintains that model; it must not create a competing prioritization system.
+
 ## Processing order
 
 Process applicable work in this exact order:
@@ -20,7 +22,7 @@ Ordinary backlog or unavailable tooling capability is not a show-stopper by itse
 
 ### DO FIRST
 
-Find the few highest-priority actionable items after show-stoppers. Use dependency, impact, urgency, readiness and unblock value.
+Find the few highest-priority actionable items after show-stoppers. Use the authoritative Issue Priority and Project Rank where available, then apply dependency, impact, urgency, readiness and unblock value.
 
 ### LOW-HANGING FRUITS
 
@@ -38,11 +40,25 @@ Find only decisions that require human authority.
 
 Find only direct capability/access blockers that actually prevent work from progressing.
 
+## Prioritization maintenance
+
+Within the audit's declared workstream/scope:
+
+1. Read the authoritative native Issue `Priority` and, where available through the approved read bridge or Project access, Project `Rank` and `Status`.
+2. Check that Rank is interpreted only inside the declared workstream/queue and that lower numbers execute earlier.
+3. Check dependencies, blockers, readiness and material new evidence against the maintained order.
+4. Correct routine stale/inconsistent values only when current authority and capability explicitly permit it and the result can be independently verified.
+5. Surface material reordering, P0/Urgent changes, scope changes, or other Product Owner decisions under `DECISIONS NEEDED` rather than silently changing strategic order.
+6. Refresh the approved machine-readable work-control snapshot when that bridge is available.
+
+The scheduled audit is a reconciliation and queue-maintenance mechanism. Event-driven GitHub automation remains responsible for immediate synchronization after authoritative field changes.
+
 ## Audit checks
 
 Within the applicable scope, inspect Issues and PRs for actionable exceptions including:
 
-- priority and work-plan consistency;
+- Issue Priority, Project Rank, Project Status and work-plan consistency;
+- incorrect, missing or stale workstream/scope assignment where the combined Project uses a `Workstream` field;
 - incorrect, missing or stale information;
 - parent/sub-issue relationships and other required relationships;
 - labels and documented workflow state;

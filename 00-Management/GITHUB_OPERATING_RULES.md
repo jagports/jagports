@@ -4,7 +4,7 @@
 
 This document defines how Jagports uses GitHub records for work control and traceability.
 
-It covers GitHub Issues, Pull Requests, reviews, testing evidence, comments, Project information, and record integrity.
+It covers GitHub Issues, Pull Requests, reviews, testing evidence, comments, Issue fields, Project information, and record integrity.
 
 It does **not** define the Management workflow state machine. The single canonical normative source for workflow states, transitions, gates, and workflow invariants is:
 
@@ -100,17 +100,23 @@ An Issue should contain enough information to understand:
 
 Do not create duplicate Issues when an existing open or historically completed record already satisfies the request. Apply the discovery rules in `WORKFLOWS.md`.
 
-### 2.3 Priority
+### 2.3 Priority, Rank and Status ownership
 
-Priority is **optional**.
+Priority is **optional** and is used only when explicitly requested by the requester, a human, or the Product Owner.
 
-Priority must be used only when explicitly requested by the requester, a human, or the Product Owner. It must not be added merely because an agent considers it useful.
+When priority is in use:
 
-When priority is explicitly requested, record it in the appropriate structured Issue/Project field or Issue content. **Never put priority in an Issue title or filename.**
+- the organization-level native Issue field **`Priority`** is the authoritative current priority for the Issue;
+- the supported current values are `Urgent`, `High`, `Medium`, and `Low`;
+- exact execution order inside a particular Project/backlog is stored in that Project's numeric **`Rank`** field;
+- workflow phase inside a Project is stored in that Project's **`Status`** field and follows `WORKFLOWS.md`;
+- scoring comments and P0...P5 review bands are decision evidence and automation inputs, not competing live priority fields.
 
-Where exact ordering is explicitly required, sub-priorities such as `P1.1`, `P1.2`, or `P2.1` may be used.
+Rank is scoped to a Project/backlog. The same Issue may legitimately have different ranks in different Project scopes. Lower Rank numbers execute earlier; `1` is the highest-ranked active item.
 
-The Product Owner has final authority over priority.
+Never put current priority or rank in an Issue title or filename. Historical planning identifiers such as `P6` or `P6.1` are work-plan identifiers and must not be interpreted as current Issue Priority.
+
+The Product Owner has final authority over priority and queue order.
 
 ### 2.4 Assignment and Execution Target
 
@@ -133,7 +139,7 @@ Record, as applicable:
 5. Product Owner decision
 6. date and record of decision
 
-Use configured Project values where they exist. Do not create competing workflow or enum definitions in this document.
+Use configured fields where they exist. Do not create competing workflow or enum definitions in this document.
 
 A rejected proposal must not silently continue as approved work.
 
@@ -319,7 +325,7 @@ A required pre-merge test must use the PR branch/current implementation being pr
 
 `FAIL`, `BLOCKED`, or `NOT TESTED` is not successful validation for a required pre-merge test.
 
-Post-merge testing cannot substitute for required pre-merge validation.
+Post-merge testing cannot substitute for required pre-merge validation unless the specific capability cannot exist before the workflow is present on the default branch and the reviewed change explicitly defines a controlled post-merge activation test.
 
 ### 3.10 Merge
 
@@ -335,27 +341,32 @@ After merge, verify the resulting repository state and update the relevant work 
 
 ## 4. GitHub Project Rules
 
-The GitHub Project provides the Kanban representation of work and exposes structured project information.
+The GitHub Project provides the Kanban representation of work and Project-scoped structured information.
 
-The Project is not a replacement for the Issue work record.
+The Project is not a replacement for the Issue work record or organization-level Issue fields.
 
-### 4.1 Project Mutation Restriction
+### 4.1 Project and Issue-field mutation capability
 
-Agents must **not directly mutate GitHub Project configuration or Project Item state** unless an authoritative capability rule explicitly grants that direct capability.
+Direct agent/tool mutation and reviewed repository automation are different capabilities.
 
-This includes, at minimum:
+Agents must not claim a direct Project mutation when the current connector does not expose and verify that operation. However, reviewed repository automation may mutate Issue fields or Project Item fields when all of the following hold:
 
-- adding or removing Project Items directly;
-- changing Project Item Status directly;
-- changing Project Item fields directly;
-- changing Project views directly;
-- changing Project configuration directly.
+- the automation is an approved repository workflow;
+- the target field and ownership are defined by canonical documentation;
+- authentication and permissions are explicitly configured;
+- the workflow fails closed on discovery or mutation errors;
+- every requested mutation is independently read back and verified;
+- the Issue comment or other authorized trigger remains a durable record of the requested change.
 
-Repository-owned GitHub Actions may perform Project mutations when an authoritative workflow explicitly assigns that responsibility and the automation has been validated end to end. Triggering such an authorized repository automation is not equivalent to claiming a direct agent Project mutation.
+Current approved work-control automation may update:
 
-A Project mutation is successful only after the automation or authorized operator independently reads back and verifies the resulting Project Item/field state. An intended value, mutation response, Issue comment, or workflow trigger alone is not proof of success.
+- native Issue `Priority`;
+- Project `Status`;
+- Project `Rank`.
 
-When no authorized mutation mechanism exists for the required operation, agents must treat Project state as read-only and record/request the required transition rather than inventing an unverified workaround.
+It must not create a second live priority source such as `Operational Priority`.
+
+Project view/configuration mutations remain prohibited to ordinary agents unless a reviewed procedure/workflow explicitly authorizes and verifies them.
 
 ### 4.2 Workflow State Authority
 
@@ -381,7 +392,7 @@ Current verified mechanisms are:
 
 - Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
 - open Pull Request with a same-repository GitHub closing relationship → `IMPLEMENTATION`: `.github/workflows/sync-closing-pr-to-project.yml` owns that deterministic implementation-start synchronization, preserves protected later/blocking/decision states, and independently verifies the resulting Project Item/status;
-- explicit authorized work-control changes: `.github/workflows/sync-issue-work-control-to-project.yml` may synchronize a requested canonical `Status`, `Operational Priority`, and numeric `Rank` from its authorized marker-comment/manual-dispatch inputs and independently verifies every changed value;
+- explicit authorized work-control changes: `.github/workflows/sync-issue-work-control-to-project.yml` may synchronize native Issue `Priority` plus a requested canonical Project `Status` and numeric `Rank` from its authorized marker-comment/manual-dispatch inputs and independently verifies every changed value;
 - Issue `closed` → `DONE`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
 
 The closing-linked-PR automation is the authoritative automatic owner of the `IMPLEMENTATION` transition. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
@@ -446,13 +457,17 @@ Historical records may be used as evidence when applying the discovery and histo
 
 ## 7. Labels and Structured Fields
 
-Labels provide classification for Issues and PRs.
+Structured metadata ownership is:
 
-Project fields provide structured management information when available for reading.
+- Issue `Priority` — organization-wide current priority;
+- Project `Status` — workflow phase in that Project;
+- Project `Rank` — exact order in that Project/backlog scope;
+- Issue state — GitHub Open/Closed state;
+- comments/decision records — rationale, score, historical bands and evidence.
 
-Labels should supplement, not replace, structured Issue/PR content.
+Labels provide classification for Issues and PRs. Labels supplement, not replace, structured Issue/Project fields.
 
-Do not create a second unofficial enum in this document when the authoritative value is already defined by a Project field or `WORKFLOWS.md`.
+Do not create a second unofficial enum or duplicate live field where an authoritative Issue field, Project field, or `WORKFLOWS.md` value already exists.
 
 ---
 
@@ -479,7 +494,7 @@ A contradiction in a secondary document is a process defect and should be raised
 - After supported mutations, perform an independent read/verification.
 - Distinguish capability, authentication, permission, mutation, and verification failures where observable.
 - Never expose credentials, tokens, or secret values.
-- Do not perform direct Project mutations under the current connector model unless an authoritative capability rule explicitly grants that operation.
+- Direct connector inability to mutate Project Items does not prohibit an independently reviewed and verified GitHub Actions workflow from doing so within its documented authority.
 - Use repository-owned Project automation only where an authoritative workflow assigns it, and claim success only after the automation's independent verification/read-back succeeds.
 
 If a required GitHub operation is unavailable, follow the current capability-alert wording defined by `WORKFLOWS.md` and applicable agent instructions.
@@ -490,10 +505,10 @@ If a required GitHub operation is unavailable, follow the current capability-ale
 
 GitHub Issues and Pull Requests are durable work records, not disposable chat containers.
 
-The Project provides the Kanban representation and structured information available for reading and verified repository automation.
+Native Issue fields hold organization-wide Issue metadata such as Priority. Project fields hold Project-scoped workflow and queue information such as Status and Rank.
 
 `WORKFLOWS.md` defines how work moves.
 
-`GITHUB_OPERATING_RULES.md` defines how the GitHub records used by that work are operated.
+`GITHUB_OPERATING_RULES.md` defines how the GitHub records and fields used by that work are operated.
 
-This separation prevents duplicate workflow authorities while keeping Issue and PR operating rules in one GitHub-specific document.
+This separation prevents duplicate authorities while keeping Issue and PR operating rules in one GitHub-specific document.
