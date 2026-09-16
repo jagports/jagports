@@ -9,6 +9,14 @@ The durable vision documents are:
 
 These vision documents state intended direction and durable boundaries. They do not replace `WORKFLOWS.md`, `RULES.md`, detailed specifications, roadmaps, or implementation acceptance criteria.
 
+## Decision Records
+
+[`DECISIONS.md`](DECISIONS.md) is the cross-project index of consequential accepted decisions and their authoritative Issue/PR/document records.
+
+Use the decision log to discover whether a consequential question has already been decided before reopening it. The linked originating record remains the detailed authority; the log preserves concise traceability and supersession history rather than duplicating full decision narratives.
+
+Decision-record content requirements remain defined by `0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md`.
+
 ## Automation and System-of-Record Boundary
 
 Automation may provide execution, scheduling, polling, or notification for Jagports management processes, but an automation mechanism is not itself the project system of record.
