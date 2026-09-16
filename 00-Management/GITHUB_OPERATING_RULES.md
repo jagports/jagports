@@ -231,7 +231,87 @@ The PR executor, PR author, or another non-reviewer must not resolve those revie
 
 When changes are requested, the executor may implement the requested changes and reply to the review comments, but should leave the reviewer's comments unresolved for the reviewer to resolve after verification.
 
-### 3.7 Testing Evidence
+### 3.7 Specialist Technical and Security Review Gate
+
+Normal independent review remains the default review path. An additional specialist review is required only when the proposed change crosses a defined technical or security-sensitive boundary below. This specialist review is an additional requirement inside the existing `WORKFLOWS.md` review gate; it does not create a parallel workflow or separate lifecycle state.
+
+#### Architecture-review triggers
+
+Require a specialist architecture review when a change materially alters one or more of:
+
+- system/component boundaries or responsibility allocation;
+- public or cross-component APIs, data contracts, schemas, or persistent data models;
+- deployment/runtime topology, infrastructure architecture, or platform/provider boundaries;
+- authentication, authorization, trust boundaries, or identity/permission models;
+- shared architectural conventions used by multiple components;
+- a previously approved architectural decision or constraint.
+
+Routine implementation within an already approved design does not require a separate architecture review merely because it changes code.
+
+#### Security-review triggers
+
+Require specialist security review when a change materially affects one or more of:
+
+- authentication, authorization, credentials, tokens, sessions, permissions, or access-control behavior;
+- secret storage, handling, rotation, logging, or exposure boundaries;
+- externally reachable deployment/network configuration, security headers, origin/trust configuration, or privileged runtime settings;
+- dependency or supply-chain trust where a new dependency, execution source, package source, or privileged third-party integration introduces material risk;
+- handling of sensitive data or a boundary that could expose, broaden access to, or persist such data;
+- remediation or explicit acceptance of a known security finding.
+
+A dependency/version change does not require specialist security review when existing automated checks and ordinary review establish that it does not introduce a material trust/security change.
+
+#### Specialist reviewer qualification and independence
+
+The specialist reviewer must:
+
+- be independent of the PR author and executing actor under the same identity rules as normal formal review;
+- have demonstrated knowledge sufficient for the affected architecture/security area, or be explicitly designated by the Product Owner for that specialist review;
+- review only within delegated authority; material business-risk acceptance, cost decisions, or changes to approved scope remain Product Owner decisions.
+
+One qualified reviewer may satisfy both ordinary independent review and the specialist gate when that reviewer meets all applicable independence and specialist-qualification requirements. Multiple formal reviews are not required merely to represent multiple labels for the same competent independent review.
+
+#### Required specialist-review evidence
+
+When this gate applies, the PR or linked Issue must identify:
+
+- the triggering boundary/category;
+- the material architecture/security impact and affected components or trust boundaries;
+- alternatives or trade-offs when the change establishes or changes an architectural/security decision;
+- applicable automated checks, threat/security checks, tests, or validation performed;
+- known residual risks or limitations;
+- the specialist reviewer and the resulting formal GitHub review outcome.
+
+Security review must additionally verify, as applicable, that:
+
+- no credential or secret is added to source, history, Issue/PR content, logs, or generated artifacts;
+- authentication/authorization behavior follows least-privilege expectations and does not silently broaden access;
+- deployment/configuration changes do not create an unintended external exposure or weaken an established control;
+- new or materially changed dependencies/integrations have an explicit trust/source rationale and applicable validation;
+- a known security failure is not converted into PASS by skipping, disabling, or weakening the required check.
+
+A required specialist review or required security check that is missing, failed, `BLOCKED`, or cannot be verified blocks merge. Remediation occurs in the existing PR/review cycle. Any exception or risk acceptance that materially changes scope or accepts unresolved risk requires an explicit Product Owner decision recorded in the Issue/PR before merge; the exception does not silently convert failed evidence into PASS.
+
+### 3.8 Automated Validation Baseline
+
+Automated validation is selected from the actual changed component and repository capabilities; Jagports does not impose one universal command on every change.
+
+For every implementation PR, the executor must determine and record which existing automated checks apply. The minimum baseline is:
+
+- run every repository check that is explicitly applicable to the changed paths/component or required by its documented test entry point;
+- run applicable unit, integration, smoke, schema/data-integrity, syntax/lint, documentation/convention, deployment/configuration, and security checks when those checks exist for the changed area;
+- treat an unavailable or silently skipped required validation as a failed gate rather than PASS;
+- record the applicable checks and results as persistent PR/Issue evidence.
+
+Checks that apply to all changes are **always-required**. Checks scoped by component, path, runtime, data model, deployment target, or risk category are **domain-specific** and are required only when their documented trigger applies. Existing examples include category-convention, parts-model, VIEPS i18n, JEPC importer, and Issue-lifecycle validation.
+
+A validation becomes a required merge gate when an authoritative repository rule, component test instruction, applicable workflow/check configuration, Issue acceptance criterion, or explicit approved work requirement identifies it as required. A new check is not made globally mandatory merely because it exists.
+
+A failed, `BLOCKED`, unavailable, or unverified required automated check blocks merge. An exception/waiver must be an explicit Product Owner decision recorded in the Issue/PR, with the reason, residual risk, and scope of the exception. The exception does not rewrite failed evidence as PASS.
+
+Prefer existing repository-native or free-tier GitHub validation where it is sufficient. Add new paid/external validation only when the requirement cannot reasonably be met by the existing/free path and the applicable cost/authority decision is approved.
+
+### 3.9 Testing Evidence
 
 Required testing must be performed according to `WORKFLOWS.md`.
 
@@ -247,7 +327,7 @@ A required pre-merge test must use the PR branch/current implementation being pr
 
 Post-merge testing cannot substitute for required pre-merge validation unless the specific capability cannot exist before the workflow is present on the default branch and the reviewed change explicitly defines a controlled post-merge activation test.
 
-### 3.8 Merge
+### 3.10 Merge
 
 No actor may merge merely because a PR is technically mergeable.
 
@@ -303,6 +383,33 @@ Use `WORKFLOWS.md` for:
 - closure conditions
 - historical-work discovery
 - workflow invariants
+
+### 4.3 Project Item Status Execution and Consistency
+
+`WORKFLOWS.md` remains authoritative for when a workflow state is required. This section defines only how the corresponding GitHub Project Item Status operation is owned and checked.
+
+Current verified mechanisms are:
+
+- Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
+- open Pull Request with a same-repository GitHub closing relationship → `IMPLEMENTATION`: `.github/workflows/sync-closing-pr-to-project.yml` owns that deterministic implementation-start synchronization, preserves protected later/blocking/decision states, and independently verifies the resulting Project Item/status;
+- explicit authorized work-control changes: `.github/workflows/sync-issue-work-control-to-project.yml` may synchronize native Issue `Priority` plus a requested canonical Project `Status` and numeric `Rank` from its authorized marker-comment/manual-dispatch inputs and independently verifies every changed value;
+- Issue `closed` → `DONE`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
+
+The closing-linked-PR automation is the authoritative automatic owner of the `IMPLEMENTATION` transition. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
+
+The legacy `CODING` option has been migrated to canonical `IMPLEMENTATION`; current operating rules must not reintroduce `CODING` as an active state.
+
+At review hand-off, testing hand-off, merge/closure, and any audit that evaluates work-state consistency, compare persistent Issue/PR evidence with the Project Item Status. If they diverge:
+
+1. record the mismatch in the active Issue/PR;
+2. do not claim the intended Project state as actual;
+3. identify the expected `WORKFLOWS.md` state and observed Project Item Status;
+4. route correction through the applicable authorized human or verified repository automation;
+5. independently verify the corrected Project Item Status.
+
+If Project Item state cannot be read, record the capability limitation; absence of read capability does not make the intended state verified and does not by itself create a new workflow state.
+
+Any future automation that assumes a new automatic intermediate-state transition must have persistent end-to-end test evidence covering the real trigger, resulting Project Item identity/status, and independent read-back verification before it is treated as authoritative.
 
 ---
 
@@ -388,6 +495,7 @@ A contradiction in a secondary document is a process defect and should be raised
 - Distinguish capability, authentication, permission, mutation, and verification failures where observable.
 - Never expose credentials, tokens, or secret values.
 - Direct connector inability to mutate Project Items does not prohibit an independently reviewed and verified GitHub Actions workflow from doing so within its documented authority.
+- Use repository-owned Project automation only where an authoritative workflow assigns it, and claim success only after the automation's independent verification/read-back succeeds.
 
 If a required GitHub operation is unavailable, follow the current capability-alert wording defined by `WORKFLOWS.md` and applicable agent instructions.
 
