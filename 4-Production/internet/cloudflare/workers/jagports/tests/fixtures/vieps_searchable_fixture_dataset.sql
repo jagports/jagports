@@ -30,6 +30,40 @@ SELECT 60711, id, 'fixture-607', 'issue:#607:mjb7703aa:occurrence', 'epc',
        'VIEPS-MVP-607', '1', 'fixture'
 FROM part WHERE part_number_normalized = 'MJB7703AA';
 
+-- #544 deterministic mixed applicability rows are loaded after the migration
+-- chain so production UI filtering is exercised without changing domain schema.
+INSERT OR IGNORE INTO part_fitment (
+  part_id, vehicle_range_id, applicability_state, variation, qualifier,
+  source, source_ref, verification_status
+)
+SELECT p.id, r.id, 'excluded', 'Excluded fixture variation', 'Deterministic excluded variation fixture',
+       'fixture-544', 'issue:#544:mjb7703aa:x100:excluded', 'fixture'
+FROM part p
+JOIN vehicle_range r ON r.range_code = 'X100'
+WHERE p.part_number_normalized = 'MJB7703AA';
+
+INSERT OR IGNORE INTO part_fitment (
+  part_id, vehicle_range_id, applicability_state, variation, qualifier,
+  source, source_ref, verification_status
+)
+SELECT p.id, r.id, 'unavailable', 'Unavailable fixture variation', 'Deterministic unavailable variation fixture',
+       'fixture-544', 'issue:#544:mjb7703aa:x100:unavailable', 'fixture'
+FROM part p
+JOIN vehicle_range r ON r.range_code = 'X100'
+WHERE p.part_number_normalized = 'MJB7703AA';
+
+-- #545 supplies an explicitly synthetic available Part Image for the same
+-- searchable fixture PART; unavailable image cases remain in the fixture set.
+UPDATE part_image
+SET image_ref = '/fixtures/mjb7703aa.svg',
+    description = 'Representative verified fixture Part Image',
+    source = 'fixture-545',
+    source_ref = 'issue:#545:mjb7703aa:image',
+    verification_status = 'fixture',
+    availability_status = 'available'
+WHERE part_id = (SELECT id FROM part WHERE part_number_normalized = 'MJB7703AA')
+  AND image_kind = 'representative';
+
 INSERT OR IGNORE INTO stock_site (id, name) VALUES
   (60790, 'Fixture #607 Site');
 
