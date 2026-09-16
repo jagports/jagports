@@ -10,12 +10,17 @@ const i18nDir = resolve(
   '../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n',
 );
 
+const PLURAL_KEY = /^(.*)_(zero|one|two|few|many|other)$/;
 const PRESENTATION_FIELDS = ['label', 'long_description', 'short_description'];
 const QUALITY_KEYS = ['A', 'B', 'C', 'D', 'E', 'unclassified'];
 const REQUIRED_LOCALE_FILES = ['en.json', 'fi.json'];
 
 function loadLocale(filename) {
   return JSON.parse(readFileSync(resolve(i18nDir, filename), 'utf8'));
+}
+
+function localeFromFilename(filename) {
+  return filename.replace(/\.json$/, '').replaceAll('_', '-');
 }
 
 function assertAlphabeticalKeys(value, path = '<root>') {
@@ -27,23 +32,82 @@ function assertAlphabeticalKeys(value, path = '<root>') {
 
   const keys = Object.keys(value);
   const sorted = [...keys].sort();
-  assert.deepEqual(keys, sorted, `${path}: sibling keys must be alphabetically ordered`);
+  assert.deepEqual(keys, sorted, `${path}: sibling keys must be case-sensitive alphabetically ordered`);
 
   for (const key of keys) {
     assertAlphabeticalKeys(value[key], path === '<root>' ? key : `${path}.${key}`);
   }
 }
 
-function collectStructure(value, path = '<root>', entries = []) {
+function assertPluralFamilies(value, locale, path = '<root>') {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertPluralFamilies(item, locale, `${path}[${index}]`));
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+
+  const families = new Map();
+  for (const [key, child] of Object.entries(value)) {
+    const match = key.match(PLURAL_KEY);
+    if (match) {
+      const [, base, category] = match;
+      assert.ok(base.length > 0, `${path}.${key}: plural key must have a non-empty base name`);
+      assert.equal(typeof child, 'string', `${path}.${key}: i18next v4 plural value must be a string`);
+      if (!families.has(base)) families.set(base, new Set());
+      families.get(base).add(category);
+    } else {
+      assertPluralFamilies(child, locale, path === '<root>' ? key : `${path}.${key}`);
+    }
+  }
+
+  if (families.size === 0) return;
+
+  let pluralCategories;
+  try {
+    pluralCategories = new Intl.PluralRules(locale).resolvedOptions().pluralCategories;
+  } catch (error) {
+    assert.fail(`${locale}: locale filename must be valid for Intl.PluralRules (${error.message})`);
+  }
+
+  const required = new Set(pluralCategories);
+  const allowed = new Set([...pluralCategories, 'zero']);
+
+  for (const [base, categories] of families) {
+    for (const category of required) {
+      assert.ok(
+        categories.has(category),
+        `${locale}:${path}.${base}: missing required CLDR plural suffix _${category}`,
+      );
+    }
+    for (const category of categories) {
+      assert.ok(
+        allowed.has(category),
+        `${locale}:${path}.${base}: plural suffix _${category} is not valid for this locale`,
+      );
+    }
+  }
+}
+
+function collectLogicalStructure(value, path = '<root>', entries = []) {
   if (Array.isArray(value)) {
     entries.push(`${path}:array:${value.length}`);
-    value.forEach((item, index) => collectStructure(item, `${path}[${index}]`, entries));
+    value.forEach((item, index) => collectLogicalStructure(item, `${path}[${index}]`, entries));
     return entries;
   }
   if (value && typeof value === 'object') {
     entries.push(`${path}:object`);
+    const pluralFamilies = new Set();
     for (const key of Object.keys(value)) {
-      collectStructure(value[key], path === '<root>' ? key : `${path}.${key}`, entries);
+      const match = key.match(PLURAL_KEY);
+      if (match) {
+        const base = match[1];
+        if (!pluralFamilies.has(base)) {
+          pluralFamilies.add(base);
+          entries.push(`${path === '<root>' ? base : `${path}.${base}`}:plural`);
+        }
+      } else {
+        collectLogicalStructure(value[key], path === '<root>' ? key : `${path}.${key}`, entries);
+      }
     }
     return entries;
   }
@@ -52,7 +116,7 @@ function collectStructure(value, path = '<root>', entries = []) {
   return entries;
 }
 
-test('locale resources use valid, alphabetically ordered, structurally consistent nested JSON', () => {
+test('locale resources follow the ordered i18next v4 file contract', () => {
   const localeFiles = readdirSync(i18nDir)
     .filter((filename) => filename.endsWith('.json'))
     .sort();
@@ -63,12 +127,14 @@ test('locale resources use valid, alphabetically ordered, structurally consisten
 
   const resources = new Map(localeFiles.map((filename) => [filename, loadLocale(filename)]));
   const base = resources.get('en.json');
-  const baseStructure = collectStructure(base);
+  const baseStructure = collectLogicalStructure(base);
 
   for (const [filename, resource] of resources) {
+    const locale = localeFromFilename(filename);
     assertAlphabeticalKeys(resource, filename);
+    assertPluralFamilies(resource, locale, filename);
     assert.deepEqual(
-      collectStructure(resource),
+      collectLogicalStructure(resource),
       baseStructure,
       `${filename}: translation-key hierarchy must match en.json`,
     );
