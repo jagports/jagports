@@ -1,17 +1,23 @@
-name: Parts model integrity tests
+name: VIEPS model integrity tests
 
 on:
   pull_request:
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
+      - '5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/**'
+      - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
-      - '3-Deployment/internet/github/actions/tests/integrity_parts_model.md'
+      - '3-Deployment/internet/github/actions/tests/integrity_model_part.md'
+      - '3-Deployment/internet/github/actions/tests/integrity_model_stock.md'
   push:
     branches: [main]
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
+      - '5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/**'
+      - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
-      - '3-Deployment/internet/github/actions/tests/integrity_parts_model.md'
+      - '3-Deployment/internet/github/actions/tests/integrity_model_part.md'
+      - '3-Deployment/internet/github/actions/tests/integrity_model_stock.md'
 
 permissions:
   contents: read
@@ -24,10 +30,18 @@ jobs:
         with:
           sparse-checkout: |
             4-Production/internet/cloudflare/workers/jagports
+            5-Implementation-Projects/internet/jagports/solution/vieps/SPEC
+            6-Development/libraries/css/tailwind/4.1.13
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
           package-manager-cache: false
+      - name: Restore locked Worker build dependencies
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build and verify generated deploy assets
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+        run: npm run build
       - name: Execute model, migration and Worker tests
         working-directory: 4-Production/internet/cloudflare/workers/jagports
         run: npm test

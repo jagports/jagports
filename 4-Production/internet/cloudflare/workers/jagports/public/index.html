@@ -1,26 +1,36 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>VIEPS</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-  <link rel="stylesheet" href="vieps.css">
+  <link rel="stylesheet" href="vieps-tailwind.css">
 </head>
 <body>
-  <main class="app-shell container">
+  <main class="app-shell">
     <header class="app-header">
       <div><p class="eyebrow">Jagports Vehicle Information and EPC System</p><h1>VIEPS</h1></div>
     </header>
     <div id="result" class="concept-grid">
       <section class="panel search-panel" aria-labelledby="search-heading">
-        <h2 id="search-heading">Search part or fixture identifier</h2>
-        <form id="partSearch" class="search-form">
-          <label for="partNumber" class="visually-hidden">Jaguar part number or fixture identifier</label>
-          <input id="partNumber" name="partNumber" autocomplete="off" placeholder="e.g. MJB7703AA, MNA7691AA, firtree1" aria-label="Jaguar part number or fixture identifier">
-          <button type="submit">Search</button>
-        </form>
-        <p id="searchStatus" class="muted status-line" role="status">Enter a Jaguar part number to begin.</p>
+        <div class="search-availability-strip">
+          <div class="search-block">
+            <h2 id="search-heading">Search</h2>
+            <form id="partSearch" class="search-form">
+              <label for="partNumber" class="visually-hidden">Jaguar part number or fixture identifier</label>
+              <input id="partNumber" name="partNumber" autocomplete="off" placeholder="e.g. MJB7703AA, MNA7691AA, firtree1" aria-label="Jaguar part number or fixture identifier">
+              <button type="submit">Search</button>
+            </form>
+          </div>
+          <div class="availability-block">
+            <label for="availabilitySelect">Availability</label>
+            <select id="availabilitySelect" disabled aria-describedby="availabilityStatus">
+              <option value="">Stock quality filter unavailable</option>
+            </select>
+            <p id="availabilityStatus" class="muted compact-note">Stock quality A–E filtering requires the approved stock browsing contract.</p>
+          </div>
+        </div>
+        <p id="searchStatus" class="muted status-line" role="status">Enter a Jaguar part number or fixture identifier to begin.</p>
       </section>
       <section class="panel tree-panel" aria-labelledby="tree-heading">
         <div class="section-heading"><p class="eyebrow">Catalogue context</p><h2 id="tree-heading">Parts Tree</h2></div>
@@ -41,32 +51,31 @@
             <li><code>firtree2</code> — non-numbered identification fixture</li>
           </ul>
         </aside>
-        <div id="tree"><p class="empty">No part selected. Search to show the relevant Parts Tree path. Stock-based browsing is unavailable.</p></div>
-      </section>
-      <section class="panel location-panel" aria-labelledby="location-heading">
-        <div class="section-heading"><p class="eyebrow">Main View</p><h2 id="location-heading">Location at car</h2></div>
-        <div class="vehicle-views">
-          <div class="vehicle-view"><h3>Top view</h3><p class="empty">Vehicle view unavailable.</p></div>
-          <div class="vehicle-view"><h3>Side view</h3><p class="empty">Vehicle view unavailable.</p></div>
-        </div>
-        <p id="locationStatus" class="muted compact-note">Select a part and model range. Verified vehicle-location mapping is unavailable.</p>
-      </section>
-      <section class="panel visual-panel" aria-labelledby="visual-heading">
-        <div class="section-heading"><p class="eyebrow">Main View</p><h2 id="visual-heading">Part details / Image</h2></div>
-        <div id="partCard" class="card"><p class="empty">No part selected.</p></div>
-        <div id="visualChooser" hidden><label for="visualSelect">Part image / Diagram</label><select id="visualSelect"></select></div>
-        <div id="visuals"><p class="empty">Search to show the part image or diagram.</p></div>
+        <div id="tree"><p class="empty">No part selected. Main-level catalogue context remains available where supplied; search expands and highlights only relevant descendant path(s). Stock-based browsing is unavailable.</p></div>
       </section>
       <section class="panel ranges-panel" aria-labelledby="ranges-heading">
         <div class="section-heading"><p class="eyebrow">Applicability</p><h2 id="ranges-heading">Suitability Model Ranges</h2></div>
-        <label for="rangeSelect">Model range</label>
+        <label for="rangeSelect">Model range / fit</label>
         <select id="rangeSelect" disabled><option value="">No part selected</option></select>
-        <div id="ranges"><p class="empty">Search to show applicable model ranges. Stock-based browsing is unavailable.</p></div>
+        <div id="ranges"><p class="empty">Search to show verified applicable model ranges. Stock-based browsing is unavailable.</p></div>
+      </section>
+      <section class="panel location-panel" aria-labelledby="location-heading">
+        <div class="section-heading"><p class="eyebrow">Main View</p><h2 id="location-heading">Location at car</h2></div>
+        <div id="vehicleLocation" class="vehicle-location-canvas">
+          <p class="empty">Vehicle-location view unavailable.</p>
+        </div>
+        <p id="locationStatus" class="muted compact-note">Select a part and model range. Verified vehicle-location mapping is unavailable.</p>
       </section>
       <section class="panel fitment-panel" aria-labelledby="fitment-heading">
-        <div class="section-heading"><p class="eyebrow">Selected model range</p><h2 id="fitment-heading">Suitability / Variations</h2></div>
+        <div class="section-heading"><p class="eyebrow">Applicability</p><h2 id="fitment-heading">Suitability / Filter</h2></div>
         <p id="selectedRange" class="muted">No range selected.</p>
-        <div id="fitment"><p class="empty">Select a part and range to show variations and qualifiers.</p></div>
+        <div id="fitment"><p class="empty">Browse mode may expose approved filters; a selected part shows verified applicability facts and qualifiers.</p></div>
+      </section>
+      <section class="panel visual-panel" aria-labelledby="visual-heading">
+        <div class="section-heading"><p class="eyebrow">Main View</p><h2 id="visual-heading">PART / Image / Status</h2></div>
+        <div id="partCard" class="card"><p class="empty">No part selected.</p></div>
+        <div id="visualChooser" hidden><label for="visualSelect">Part image / Diagram</label><select id="visualSelect"></select></div>
+        <div id="visuals"><p class="empty">Search to show verified part identity/status and the selected part image or exploded diagram.</p></div>
       </section>
     </div>
   </main>

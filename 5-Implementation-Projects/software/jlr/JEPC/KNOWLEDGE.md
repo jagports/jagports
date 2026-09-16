@@ -1,5 +1,9 @@
 # Parts Supersession Knowledge
 
+## Importer runtime navigation
+
+Jagports-developed importer applications and their operating specifications belong in the [Jagports JEPC-Importers domain](../../jagports/JEPC-Importers/KNOWLEDGE.md), under issue #355. This JLR domain retains source-software research and evidence. See the [DataImporter operating specification](../../jagports/JEPC-Importers/DataImporter/SPEC_DataImporter_v0.1.md) and [runtime instructions](../../jagports/JEPC-Importers/DataImporter/README.md).
+
 ## Purpose
 
 Parts supersession is durable catalogue knowledge describing how one catalogue part is replaced by another. It is distinct from current operational stock and from general claims that two parts are interchangeable.

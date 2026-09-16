@@ -1,158 +1,172 @@
 # VIEPS Stock Admin and Operational Workflow Specification
 
-## Status
+## Purpose
 
-This document specifies the retained MVP stock functionality for #280 after the stock-retention decision.
+This document defines the VIEPS Stock Admin workflow around the operational stock model.
 
-Stock functionality remains inside the reduced MVP closure gate. The current priority path is #612/#613.
+The stock model authority is [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). This workflow does not redefine canonical `PART` identity or catalogue relationships.
 
 ## Scope
 
-The MVP must support a fixture-backed, part-number-first VIEPS path with stock functionality retained.
+Stock Admin supports authorized creation and maintenance of operational stock records while keeping mutable inventory separate from catalogue/reference data.
 
-The stock scope includes:
+The workflow covers:
 
-- stock DB creation/setup for the MVP test environment;
-- administrator stock-management UI page;
-- operational stock workflow;
-- stock create/read/update behavior where approved;
-- public-read versus administrator-mutation boundary;
-- stock functions testable with #607 fixture parts;
-- non-fixture real stock information for the fixture parts used in MVP testing.
+- stock database readiness;
+- authorized stock create/read/update behavior;
+- canonical PART-linked and explicitly unresolved stock;
+- normalized A-E stock quality capture;
+- site and recursive rack/shelf/box storage selection;
+- source party and donor vehicle capture as separate relationships;
+- price/currency, availability and operational notes;
+- stock search/filter behavior;
+- validation and deterministic error handling;
+- public-read versus authorized-mutation boundaries;
+- test/acceptance environment identification and persisted-record verification.
 
-## Source model
+## Stock database readiness
 
-The stock workflow consumes the accepted operational stock model from:
+The environment must use the approved schema/migration path and make operational stock records queryable through the application data path.
 
-- #570 — VIEPS / Complete MVP operational stock model requirements;
-- `4-Production/internet/cloudflare/workers/jagports/MVP_STOCK_MODEL.md`.
+The operational setup must identify:
 
-This document does not redefine the stock model. It specifies workflow and UI behavior around it.
+- which schema/migration chain is active;
+- how the target database is initialized;
+- how stock test/seed records are loaded when applicable;
+- how an operator can verify stock records before UI testing;
+- which environment is being exercised, such as local, preview or deployed runtime.
 
-## Stock DB creation and setup
+Repository Markdown is specification, not mutable stock storage.
 
-The MVP test environment must have an operational stock database created from the approved schema/migration path.
+A successful stock database setup makes records queryable through the approved Worker/API/database path. Repository fixtures or seed records are inputs to that path; they are not a substitute for persisted operational records in the environment under test.
 
-The setup instructions or implementation evidence must identify:
+## Test data and inventory evidence
 
-- which migration chain creates the operational stock tables;
-- how the MVP test database is initialized;
-- how stock fixtures or real stock seed records are loaded;
-- how an acceptance tester can confirm stock records exist before UI testing;
-- which environment is being tested: local, preview, or deployed runtime.
+Catalogue/search data and operational stock evidence have different trust boundaries.
 
-A successful stock DB setup must make stock records queryable through the approved Worker/API/D1 path, not by reading mutable stock data from repository Markdown files.
+Fixture-backed catalogue PARTs may be used to exercise Stock Admin when imported catalogue data is not yet available.
 
-## Fixture-part stock requirement
+Stock records used for workflow or acceptance testing must be explicitly identifiable as test/seed records unless they are independently verified inventory evidence.
 
-The #607 fixture parts remain valid as catalogue/search fixtures.
+Synthetic or deterministic stock test data must not be described as real production Jagports inventory.
 
-For MVP stock testing, those fixture parts must also have stock information that is treated as real stock information for the MVP test environment, not merely randomized synthetic demo stock.
+Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values.
 
-Required rule:
+Mutable stock test records must remain separate from immutable catalogue/reference data.
 
-- catalogue/search details may remain fixture-backed where full JEPC import is out of scope;
-- stock records used for MVP stock workflow testing must be identified as operational stock test records;
-- stock records must not be described as real production Jagports inventory unless independently verified;
-- stock records must not be mixed into immutable catalogue/reference/JEPC data.
+## Stock identity paths
 
-## Stock management administrator UI
+Stock Admin supports these stock-record paths:
 
-The stock admin page must support administrator-only stock mutation.
+1. resolved stock linked to an existing canonical `PART`;
+2. reusable product identity created through the applicable canonical PART/product workflow before stock linkage;
+3. explicitly unresolved/non-catalogue stock where no canonical identity is yet established.
 
-Minimum MVP admin UI capabilities:
+A canonical `PART` must not be fabricated merely to satisfy a stock relationship.
+
+## Stock management UI
+
+The authorized Stock Admin UI must support, where the current data contract exposes the field:
 
 - create a stock record;
 - edit approved mutable stock fields;
-- select or enter canonical PART reference / part number where resolved;
-- support unresolved/non-catalogue stock without fabricating a PART;
-- capture quantity;
-- capture controlled condition/status;
-- select physical site and recursive storage location;
-- capture source/vendor/person/organization separately from donor vehicle;
+- select a canonical PART reference where resolved;
+- retain an explicit unresolved path where appropriate;
+- capture integer quantity;
+- select normalized stock quality `A` through `E` using the meanings in `MODEL_STOCK.md`;
+- select physical site and rack/shelf/box storage location;
+- capture source party separately from donor vehicle;
 - capture donor vehicle where known;
-- capture price/currency where supported;
-- capture notes;
-- show availability state and validation result;
+- capture price and currency where supported;
+- capture operational notes;
+- show availability and validation state;
 - surface deterministic validation/error states.
 
-Public unauthenticated users must not be able to mutate stock through this page or its supporting API path.
+Public unauthenticated users must not gain stock mutation capability through the page or its supporting API path.
 
-## Operational stock workflow
-
-The MVP workflow is:
+## Operational workflow
 
 ```text
-admin opens stock-management UI
-  -> verifies stock DB/environment
-  -> searches or selects fixture-backed PART / part number
-  -> creates or updates stock record
-  -> stock record persists through Worker/API/D1
-  -> public/read path can display or search permitted stock information
-  -> admin-only mutation remains protected
+admin opens Stock Admin
+  -> verifies stock database/environment
+  -> resolves or explicitly leaves stock identity unresolved
+  -> captures mutable stock facts
+  -> validates quantity, quality, location, source and availability rules
+  -> persists the stock record through the approved application/database path
+  -> reads the persisted record back
+  -> public/read presentation exposes only permitted stock information
 ```
+
+The workflow is complete only when the persisted record can be read back from the same environment through the approved data path. A UI-only state change or repository fixture change is not persistence evidence.
+
+## Stock quality
+
+The stored identity is the normalized code:
+
+```text
+A New / Unused / Original Package
+B Used / Good Working / Known History
+C Used / Usable / No warranty
+D Repairs / Needs Conditioning / Spares only
+E Broken / Reference / Knowledge Gains
+```
+
+Localized label/description text is presentation and must not replace the stored code.
 
 ## Search/filter behavior
 
-The stock workflow must specify or implement basic stock search/filter operations for MVP acceptance.
-
-Minimum filters/search inputs:
+Operational stock search/filtering may use:
 
 - part number / canonical PART reference;
-- condition/status;
+- normalized stock quality code;
 - availability;
-- physical location;
-- source/vendor/person/organization;
+- physical site/location;
+- source party;
 - donor vehicle where known;
-- free-text notes where supported.
+- supported operational notes/text.
 
-Search/filter behavior must return expected stock records for the fixture parts used in MVP stock testing.
+Search behavior must preserve the catalogue/stock boundary and authorization rules.
 
-## Validation and error behavior
+Search/filter validation should use known records from the target environment and confirm that expected records are returned without exposing restricted stock details to unauthorized users.
 
-The UI/API must visibly reject or report:
+## Validation and errors
 
-- invalid quantity;
-- missing required condition/status when availability requires it;
+The UI/API must explicitly reject or report:
+
+- fractional or otherwise invalid quantity;
+- unknown stock-quality code;
+- missing required quality when availability requires it;
 - missing physical location when availability requires it;
-- unresolved/non-catalogue stock without required source evidence;
-- public mutation attempt;
+- unresolved stock without required source evidence;
+- unauthorized mutation;
 - failed persistence;
-- unavailable stock DB/setup state.
+- unavailable stock database/setup state.
 
-## Acceptance-test relationship
+## Validation environment and acceptance testing
 
-#546 must include retained stock functionality after #612/#613 scope is ready.
+A validation or acceptance record must identify the environment being exercised and distinguish repository fixtures from persisted stock records in that environment.
 
-The reduced MVP acceptance test should verify:
+At minimum, validation should establish that:
 
-- fixture part search still resolves the expected PART;
-- stock information is available for fixture parts used in MVP stock testing;
-- admin can create/update permitted stock records;
-- public users cannot mutate stock;
-- stock records persist and can be read back;
+- a known catalogue or fixture-backed PART can be resolved when that is the chosen stock identity path;
+- permitted stock information can be read for known stock records;
+- an authorized operator can create or update approved mutable stock fields;
+- the persisted result can be read back through the approved application/database path;
+- an unauthenticated or otherwise unauthorized user cannot mutate stock;
 - invalid stock operations fail deterministically;
-- no complete JEPC import, full VIN flow, full EPC navigation, or complete fitment explanation is required.
+- unavailable database/setup state is reported rather than simulated as success.
+
+A local or preview result is evidence only for that environment. It must not be presented as deployed or production-runtime verification.
 
 ## Boundaries
 
-Out of scope unless separately approved:
+This workflow does not define:
 
+- catalogue PART identity or JEPC import;
 - warehouse transaction/history ledger;
-- reservations and sales workflow;
+- reservations, checkout or sales workflow;
 - individual physical-unit identity;
-- detailed provenance redesign beyond the MVP fields;
-- complete JEPC import;
-- complete VIN/vehicle-context flow;
-- complete EPC range/model/category navigation;
-- complete fitment explanation.
-
-## Traceability
-
-- #280 — Define and implement complete Jagports application MVP.
-- #612 — VIEPS Stock / Specify and implement stock management admin UI page.
-- #613 — VIEPS Stock / Specify operational stock workflow.
-- #607 / PR #617 — fixture-backed searchable MVP dataset.
-- #570 / PR #571 — completed operational stock model foundation.
-- #546 — reduced end-to-end MVP acceptance test.
-- #448 — public VIEPS access with administrator stock authorization.
+- payment or shipping;
+- provider-specific synchronization;
+- tenant/provider authentication architecture;
+- detailed provenance beyond the approved stock evidence fields.
