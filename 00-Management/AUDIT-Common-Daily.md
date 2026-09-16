@@ -49,9 +49,32 @@ Within the audit's declared workstream/scope:
 3. Check dependencies, blockers, readiness and material new evidence against the maintained order.
 4. Correct routine stale/inconsistent values only when current authority and capability explicitly permit it and the result can be independently verified.
 5. Surface material reordering, P0/Urgent changes, scope changes, or other Product Owner decisions under `DECISIONS NEEDED` rather than silently changing strategic order.
-6. Refresh the approved machine-readable work-control snapshot when that bridge is available.
+6. Use the approved machine-readable work-control snapshot as the agent-facing read bridge when Project fields are not directly readable, and refresh it through the documented automation when authorized.
 
 The scheduled audit is a reconciliation and queue-maintenance mechanism. Event-driven GitHub automation remains responsible for immediate synchronization after authoritative field changes.
+
+The repository also runs a **daily** fallback reconciliation through `.github/workflows/publish-work-control-snapshots.yml`. Its scheduled trigger is `17 0 * * *` (00:17 UTC each day). This is a safety/reconciliation path, not the primary update path: verified work-control or Workstream changes should request an immediate snapshot refresh through the approved event-driven automation.
+
+## Machine-readable work-control snapshot
+
+The managed snapshot comment is a read-only bridge for agents and tools that cannot directly read all native Issue/Project fields. It must not become a competing source of truth.
+
+The managed comment is identified by the standalone marker:
+
+```text
+<!-- jagports-work-control-snapshot -->
+```
+
+The snapshot exposes at minimum:
+
+- verification timestamp;
+- native Issue `Priority`;
+- Project identity;
+- Project `Workstream`;
+- Project `Status`;
+- Project `Rank`.
+
+`.github/workflows/publish-work-control-snapshots.yml` updates one managed snapshot comment per Project Issue and independently verifies the written values. If multiple matching managed comments exist, the workflow must fail closed rather than guess which comment is authoritative.
 
 ## Audit checks
 
