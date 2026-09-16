@@ -6,6 +6,10 @@ The canonical project knowledge document is maintained here:
 
 All AI agents, contributors, and automation should read the canonical file before modifying the repository.
 
+Product and operating vision:
+- [Jagports AI OS Vision](00-Management/VISION_AI-OS.md)
+- [VIEPS Vision](00-Management/VISION_VIEPS.md)
+
 Related:
 - [SKILL.md](0-DocumentationEducationCompetense/SKILL.md)
 - [Documentation Education Competence](0-DocumentationEducationCompetense/)
