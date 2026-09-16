@@ -60,9 +60,9 @@ test('static shell keeps merged Concept-11 semantic regions without inventing un
   assert.match(html, /class="search-availability-strip"/);
   assert.match(html, /id="availabilitySelect" disabled/);
   assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
-  assert.match(html, /<h2 id="ranges-heading">Suitability Model Ranges<\/h2>/);
-  assert.match(html, /<h2 id="fitment-heading">Suitability \/ Filter<\/h2>/);
-  assert.match(html, /<h2 id="visual-heading">PART \/ Image \/ Status<\/h2>/);
+  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
+  assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
+  assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
   assert.doesNotMatch(html, />Top view</);
   assert.doesNotMatch(html, />Side view</);
 });
