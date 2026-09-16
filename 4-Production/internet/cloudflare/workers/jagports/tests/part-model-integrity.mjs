@@ -145,7 +145,7 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
       checked++;
     }
   }
-  assert.equal(checked, 28, 'all 28 FKs in the consolidated schema are exercised');
+  assert.equal(checked, 47, 'all 47 FK columns in the consolidated schema are exercised');
 });
 
 test('canonical and relationship uniqueness reject duplicate populated identities', (t) => {

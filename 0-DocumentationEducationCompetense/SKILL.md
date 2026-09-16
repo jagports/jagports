@@ -12,6 +12,12 @@ The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`]
 
 The canonical workflow also defines the controlled lifecycle, Project Item Status verification, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling.
 
+### Dedicated i18n execution skill
+
+For VIEPS UI/application changes that create, modify, review, or refactor human-visible text, apply [`SKILL_i18n.md`](SKILL_i18n.md) in addition to this general execution skill.
+
+`SKILL_i18n.md` implements the governance rules in `00-Management/RULES_i18n.md`, including mandatory changed-code scanning for hard-coded localizable strings and EN↔FI resource maintenance.
+
 ## Mandatory Start-of-Work Procedure
 
 Before doing Jagports work:
@@ -302,7 +308,9 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 
 - `00-Management/WORKFLOWS.md` — canonical normative Management workflows.
 - `00-Management/RULES.md` — human governance and rationale; no competing workflow definition.
+- `00-Management/RULES_i18n.md` — canonical VIEPS i18n contributor/governance rules.
 - `SKILL.md` — machine/agent execution of the canonical workflows.
+- `SKILL_i18n.md` — machine/agent execution of the VIEPS i18n rules.
 - `.codex/skills/*` — specialized operational procedures referencing the canonical workflows.
 - `KNOWLEDGE.md` — durable knowledge, decisions, and lessons learned; not workflow authority.
 

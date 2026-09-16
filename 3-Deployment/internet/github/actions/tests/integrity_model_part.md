@@ -66,6 +66,7 @@ No Cloudflare credentials, Wrangler deployment, remote D1 migration, inventory d
 - Part-to-stock relationship boundary.
 - Foreign-key failures, uniqueness and CHECK boundaries.
 - Documented index inventory and representative SQLite query plans.
+- Additive occurrence applicability: grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, active snapshot replacement/rollback and retained history. The internal grouped reader is tested without claiming a fitment evaluator or actual JEPC import.
 - Generated UI asset verification before the Worker tests run.
 
 ## Results and review
