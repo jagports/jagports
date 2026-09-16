@@ -5,7 +5,6 @@ on:
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
       - '5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/**'
-      - '5-Implementation-Projects/internet/jagports/solution/vieps/i18n/**'
       - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
       - '3-Deployment/internet/github/actions/tests/integrity_model_part.md'
@@ -15,7 +14,6 @@ on:
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
       - '5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/**'
-      - '5-Implementation-Projects/internet/jagports/solution/vieps/i18n/**'
       - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
       - '3-Deployment/internet/github/actions/tests/integrity_model_part.md'
@@ -33,7 +31,6 @@ jobs:
           sparse-checkout: |
             4-Production/internet/cloudflare/workers/jagports
             5-Implementation-Projects/internet/jagports/solution/vieps/SPEC
-            5-Implementation-Projects/internet/jagports/solution/vieps/i18n
             6-Development/libraries/css/tailwind/4.1.13
       - uses: actions/setup-node@v5
         with:
