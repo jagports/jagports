@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { database, sql } from './helpers/model-db.mjs';
+import { DatabaseSync } from 'node:sqlite';
+import { database, migrate, migrations, sql } from './helpers/model-db.mjs';
 
 const QUALITY = new Map([
   ['A', 'New / Unused / Original Package'],
@@ -8,6 +9,42 @@ const QUALITY = new Map([
   ['D', 'Repairs / Needs Conditioning / Spares only'],
   ['E', 'Broken / Reference / Knowledge Gains'],
 ]);
+
+// Prove the forward vocabulary migration preserves already-populated 0011 stock
+// while making rack and tenant valid on upgraded databases.
+const vocabMigration = migrations.indexOf('0014_stock_location_source_vocab.sql');
+assert.equal(vocabMigration, 13);
+const upgradeDb = new DatabaseSync(':memory:');
+upgradeDb.exec('PRAGMA foreign_keys = ON');
+migrate(upgradeDb, migrations.slice(0, vocabMigration));
+upgradeDb.exec(`
+  INSERT INTO stock_site (id, name) VALUES (56901, 'Upgrade Site');
+  INSERT INTO stock_location (id, site_id, parent_id, location_type, name)
+    VALUES (56910, 56901, NULL, 'shelf', 'Existing Shelf');
+  INSERT INTO stock_source_party (id, source_type, name, source_ref)
+    VALUES (56920, 'vendor', 'Existing Vendor', 'fixture:upgrade:vendor');
+  INSERT INTO stock_item (
+    id, part_number, quantity, condition, status, source, source_ref,
+    verification_status, available, condition_code, storage_location_id,
+    source_party_id, price, currency
+  ) VALUES (
+    56930, 'UPGRADE-STOCK', 2, 'Used / Good Working / Known History',
+    'available', 'fixture', 'fixture:upgrade:stock', 'fixture', 1, 'B',
+    56910, 56920, 25.00, 'EUR'
+  );
+`);
+const beforeUpgrade = { ...upgradeDb.prepare('SELECT * FROM stock_item WHERE id=56930').get() };
+migrate(upgradeDb, migrations.slice(vocabMigration));
+assert.deepEqual({ ...upgradeDb.prepare('SELECT * FROM stock_item WHERE id=56930').get() }, beforeUpgrade);
+assert.deepEqual(upgradeDb.prepare('PRAGMA foreign_key_check').all(), []);
+assert.equal(upgradeDb.prepare("SELECT count(*) AS n FROM sqlite_schema WHERE type='table' AND name LIKE '%_0014_old'").get().n, 0);
+upgradeDb.prepare("INSERT INTO stock_location (site_id, parent_id, location_type, name) VALUES (56901, NULL, 'rack', 'Upgrade Rack')").run();
+upgradeDb.prepare("INSERT INTO stock_source_party (source_type, name) VALUES ('tenant', 'Upgrade Tenant')").run();
+assert.throws(
+  () => upgradeDb.prepare("INSERT INTO stock_location (site_id, parent_id, location_type, name) VALUES (56901, NULL, 'bin', 'Bad')").run(),
+  /CHECK constraint failed/,
+);
+upgradeDb.close();
 
 const db = database({ fixtures: false });
 
