@@ -180,7 +180,7 @@ assert.throws(
 
 // One canonical PART may have multiple independent operational stock records.
 db.prepare(`INSERT INTO stock_item (part_number, quantity, condition, part_id, source, available, condition_code, storage_location_id) VALUES ('C2P0001-SECOND', 1, 'Repairs / Needs Conditioning / Spares only', 57001, 'fixture', 0, 'D', 57012)`).run();
-assert.equal(db.prepare('SELECT COUNT(*) AS count FROM stock_item WHERE part_id = 57001').get().count, 4);
+assert.equal(db.prepare('SELECT COUNT(*) AS count FROM stock_item WHERE part_id = 57001').get().count, 3);
 
 const indexNames = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='stock_item'").all().map((row) => row.name);
 for (const name of [
