@@ -286,7 +286,26 @@ Security review must additionally verify, as applicable, that:
 
 A required specialist review or required security check that is missing, failed, `BLOCKED`, or cannot be verified blocks merge. Remediation occurs in the existing PR/review cycle. Any exception or risk acceptance that materially changes scope or accepts unresolved risk requires an explicit Product Owner decision recorded in the Issue/PR before merge; the exception does not silently convert failed evidence into PASS.
 
-### 3.8 Testing Evidence
+### 3.8 Automated Validation Baseline
+
+Automated validation is selected from the actual changed component and repository capabilities; Jagports does not impose one universal command on every change.
+
+For every implementation PR, the executor must determine and record which existing automated checks apply. The minimum baseline is:
+
+- run every repository check that is explicitly applicable to the changed paths/component or required by its documented test entry point;
+- run applicable unit, integration, smoke, schema/data-integrity, syntax/lint, documentation/convention, deployment/configuration, and security checks when those checks exist for the changed area;
+- treat an unavailable or silently skipped required validation as a failed gate rather than PASS;
+- record the applicable checks and results as persistent PR/Issue evidence.
+
+Checks that apply to all changes are **always-required**. Checks scoped by component, path, runtime, data model, deployment target, or risk category are **domain-specific** and are required only when their documented trigger applies. Existing examples include category-convention, parts-model, VIEPS i18n, JEPC importer, and Issue-lifecycle validation.
+
+A validation becomes a required merge gate when an authoritative repository rule, component test instruction, applicable workflow/check configuration, Issue acceptance criterion, or explicit approved work requirement identifies it as required. A new check is not made globally mandatory merely because it exists.
+
+A failed, `BLOCKED`, unavailable, or unverified required automated check blocks merge. An exception/waiver must be an explicit Product Owner decision recorded in the Issue/PR, with the reason, residual risk, and scope of the exception. The exception does not rewrite failed evidence as PASS.
+
+Prefer existing repository-native or free-tier GitHub validation where it is sufficient. Add new paid/external validation only when the requirement cannot reasonably be met by the existing/free path and the applicable cost/authority decision is approved.
+
+### 3.9 Testing Evidence
 
 Required testing must be performed according to `WORKFLOWS.md`.
 
@@ -302,7 +321,7 @@ A required pre-merge test must use the PR branch/current implementation being pr
 
 Post-merge testing cannot substitute for required pre-merge validation.
 
-### 3.9 Merge
+### 3.10 Merge
 
 No actor may merge merely because a PR is technically mergeable.
 
@@ -351,6 +370,30 @@ Use `WORKFLOWS.md` for:
 - closure conditions
 - historical-work discovery
 - workflow invariants
+
+### 4.3 Project Item Status Execution and Consistency
+
+`WORKFLOWS.md` remains authoritative for when a workflow state is required. This section defines only how the corresponding GitHub Project Item Status operation is owned and checked.
+
+Current mechanisms are:
+
+- Issue `opened` / `reopened` → `BACKLOG`: repository lifecycle automation owns the Project Item operation and independently verifies the resulting item/status;
+- Issue `closed` → `DONE`: repository lifecycle automation owns the Project Item operation and independently verifies the resulting item/status;
+- active-work states such as `CODING`, `REVIEW`, and `TESTING`: no repository event automation currently owns these transitions. When `WORKFLOWS.md` requires one, the work owner must ensure that an authorized human or separately authorized automation with Project write capability performs it. An agent operating under the current read-only restriction must record/request the required transition rather than claim it performed the mutation.
+
+This makes the automated versus manual boundary explicit: `BACKLOG`/`DONE` lifecycle synchronization is automated; intermediate active-work state mutation is manual/externally authorized unless a later verified automation explicitly assumes ownership.
+
+At review hand-off, testing hand-off, merge/closure, and any audit that evaluates work-state consistency, compare the persistent Issue/PR evidence with the Project Item Status when read capability is available. If they diverge:
+
+1. record the mismatch in the active Issue/PR;
+2. do not claim the intended Project state as actual;
+3. identify the expected `WORKFLOWS.md` state and observed Project Item Status;
+4. route correction to an authorized human/automation operator;
+5. independently verify the corrected Project Item Status when the required read capability is available.
+
+If Project Item state cannot be read, record the capability limitation; absence of read capability does not make the intended state verified and does not by itself create a new workflow state.
+
+Any future automation that assumes ownership of `CODING`, `REVIEW`, `TESTING`, or another intermediate transition must have persistent end-to-end test evidence covering the real trigger, resulting Project Item identity/status, and independent read-back verification before it is treated as the authoritative mechanism.
 
 ---
 
