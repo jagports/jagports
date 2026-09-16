@@ -1,254 +1,288 @@
-# Jagports AI OS — Explicitly Ordered Implementation Plan
+# Jagports AI OS — Prioritized Work Plan
 
-> **WORK IN PROGRESS** — This planning document is being developed and refined. GitHub Issues are the primary communication and work records; the GitHub Project provides a visualization of those work items and their current Status.
+> **WORK IN PROGRESS** — This file is a planning and status view of the existing Jagports AI OS work. GitHub Issues are the primary work and communication records; the GitHub Project visualizes their workflow state. This document does not create new work or redefine the canonical workflow.
 
-## Priority execution list
+## Authority and vision alignment
 
-- **P1 — Open Kanban:** **Executor:** Product Owner (with ChatGPT assistance). **Where:** GitHub Projects — https://github.com/features/issues. Select and create the central Jagports Kanban that will become the communication and work-control system for humans and agents.
-- **P1.1 — Select Kanban tool:** **Executor:** Product Owner, assisted by ChatGPT. **Where:** ChatGPT + GitHub Projects. Confirm GitHub Projects is the $0 Kanban choice and define why it is the system of record.
-- **P1.2 — Create Jagports GitHub repository:** **Executor:** Product Owner. **Where:** GitHub — https://github.com/. Create the private Jagports repository that will hold code, documentation, agent instructions, decisions, and project memory.
-- **P1.3 — Configure Kanban workflow:** **Executor:** Product Owner with ChatGPT guidance. **Where:** GitHub Projects. Create the controlled states `BACKLOG → RESEARCH → PROPOSED → DECISION NEEDED → APPROVED → CODING → REVIEW → TESTING → DONE`, plus `BLOCKED`.
-- **P1.4 — Define Kanban fields and labels:** **Executor:** Product Owner. **Where:** GitHub Projects / Issues. Add priority, work type, owner/agent, decision status, dependencies, risk, and other minimum fields needed for agent communication.
-- **P1.5 — Define Kanban operating rules:** **Executor:** Product Owner + Team Lead Agent specification. **Where:** GitHub repository documentation. Define who may create, move, approve, block, review, and close work items.
+The umbrella work item is [#135 — [P0] Establish Jagports AI OS](https://github.com/jagports/jagports/issues/135). P0 is complete when P1–P12 are all complete or explicitly descoped.
 
-- **P2 — Open agent accounts/access to Kanban:** **Executor:** Product Owner. **Where:** GitHub + Codex Web — https://openai.com/codex/. Establish the minimum permissions and access required for the AI agents to work through the Kanban.
-- **P2.1 — Define agent identities:** **Executor:** Product Owner + ChatGPT. **Where:** GitHub repository. Name the initial Team Lead, Research, Product/Vehicle, Technical/Architecture, Prioritization/Validation, and Codex Engineering roles.
-- **P2.2 — Validate leader R/W rights:** **Executor:** Product Owner. **Where:** GitHub repository / Project permissions. Decide which Team Lead agent, if supported by the selected tooling, receives read/write authority and which agents remain restricted.
-- **P2.3 — Define permission boundaries:** **Executor:** Product Owner + ChatGPT. **Where:** GitHub repository documentation. Specify which agents may create, edit, move, approve, merge, or close each class of work.
-- **P2.4 — Connect Codex to repository:** **Executor:** Product Owner + Codex Web. **Where:** Codex Web + GitHub. Authorize Codex to work against the Jagports repository and verify that it can inspect and modify the intended project.
+This plan is subordinate to the current repository authorities and durable vision:
 
-- **P3 — Define agent communication protocol:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub Issues / Projects. Make Issues, comments, labels, fields, status changes, and decision records the authoritative communication channel between agents and the Product Owner.
-- **P3.1 — Define escalation categories:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub repository documentation. Establish `AUTO`, `REVIEW`, `DECISION`, and `BLOCKED` handling rules.
-- **P3.2 — Define human decision gate:** **Executor:** Product Owner. **Where:** GitHub Project. Require explicit Product Owner approval before consequential product, architecture, cost, security, or data-strategy decisions proceed.
-- **P3.3 — Define agent hand-off format:** **Executor:** Team Lead Agent + ChatGPT. **Where:** GitHub Issue templates. Standardize what one agent must leave for the next agent to continue work without repeating research.
+- [`../00-Management/VISION_AI-OS.md`](../00-Management/VISION_AI-OS.md) — product/operating vision.
+- [`../00-Management/WORKFLOWS.md`](../00-Management/WORKFLOWS.md) — canonical Management workflow authority.
+- [`../00-Management/RULES.md`](../00-Management/RULES.md) — human governance and authority.
+- [`../0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md`](../0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md) — persistent communication, escalation, decision and hand-off rules.
+- [`../0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md`](../0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md) — current durable-knowledge architecture.
 
-- **P4 — Create work-item templates:** **Executor:** Product Owner + ChatGPT, implemented by Codex where useful. **Where:** GitHub Issues. Create templates for Feature, Research, Decision, Architecture, Bug, Risk, Validation, Technical Debt, and Documentation.
-- **P4.1 — Define feature template:** **Executor:** Product Owner + Product/Vehicle Agent. **Where:** GitHub Issues. Include problem, value, proposed solution, evidence, priority, dependencies, risks, acceptance criteria, open questions, and decision requirement.
-- **P4.2 — Define research template:** **Executor:** Research Agent. **Where:** GitHub Issues. Require source/evidence, finding, confidence, implications, opportunity, and recommended next action.
-- **P4.3 — Define decision template:** **Executor:** Team Lead Agent. **Where:** GitHub Issues / Decision Log. Record the decision, alternatives, recommendation, rationale, impact, reversibility, owner, and final resolution.
+The P1–P12 identifiers below are the established AI OS roadmap sequence. They are not a substitute for current workflow state, GitHub Project Status, or any separately approved operational priority/rank method.
 
-- **P5 — Establish Jagports product memory:** **Executor:** Product Owner + ChatGPT; Codex implements repository structure. **Where:** GitHub repository. Create the persistent product vision, requirements, terminology, vehicle/EPC context, architecture notes, constraints, roadmap, decisions, risks, and agent reports.
-- **P5.1 — Create repository knowledge structure:** **Executor:** Codex Engineering Agent. **Where:** GitHub repository. Establish the agreed documentation directories and navigation.
-- **P5.2 — Record product vision and constraints:** **Executor:** Product Owner + ChatGPT. **Where:** GitHub repository. Capture the current Jagports vision, goals, $0 operating constraint, and known boundaries.
-- **P5.3 — Create decision log:** **Executor:** Team Lead Agent. **Where:** GitHub repository. Create the persistent history of product and technical decisions so agents do not repeatedly reopen resolved questions.
+## Current P0 status — 2026-09-16
 
-- **P6 — Establish prioritization system:** **Executor:** Prioritization/Validation Agent with Product Owner approval. **Where:** GitHub Project fields + Issues. Define a repeatable scoring method and use it to rank the backlog.
-- **P6.1 — Define scoring factors:** **Executor:** Prioritization/Validation Agent. **Where:** GitHub repository documentation. Define customer value, business value, strategic differentiation, urgency, effort, risk, dependencies, evidence confidence, and reversibility.
-- **P6.2 — Define priority rules:** **Executor:** Product Owner + Team Lead Agent. **Where:** GitHub Project. Convert scores into explicit priority levels and require a single ordered queue rather than an undifferentiated collection of P0/P1 tasks.
-- **P6.3 — Populate first ranked backlog:** **Executor:** Product/Vehicle Agent + Prioritization/Validation Agent. **Where:** GitHub Project / Issues. Turn known Jagports opportunities into ranked work items.
+P0 remains **OPEN**. Five of the twelve parent tracks are closed as completed; seven remain open.
 
-- **P7 — Establish research-to-decision workflow:** **Executor:** Research Agent + Product/Vehicle Agent + Team Lead Agent. **Where:** ChatGPT/web research + GitHub Issues. Define the process from research finding through feature proposal, prioritization, decision request, and approved work.
-- **P7.1 — Run first research cycle:** **Executor:** Research Agent. **Where:** ChatGPT/web research; results recorded in GitHub. Produce the first evidence-backed Jagports opportunities.
-- **P7.2 — Convert findings to proposals:** **Executor:** Product/Vehicle Agent. **Where:** GitHub Issues. Convert validated findings into actionable feature or product proposals.
-- **P7.3 — Escalate only required decisions:** **Executor:** Team Lead Agent. **Where:** GitHub Project. Present concise decision requests to the Product Owner and leave routine work autonomous.
+| Track | Parent Issue | Current state |
+|---|---|---|
+| P1 | [#1 — Open Kanban](https://github.com/jagports/jagports/issues/1) | **COMPLETED** |
+| P2 | [#8 — Open agent accounts/access to Kanban](https://github.com/jagports/jagports/issues/8) | **COMPLETED** |
+| P3 | [#14 — Define agent communication protocol](https://github.com/jagports/jagports/issues/14) | **COMPLETED** |
+| P4 | [#18 — Create work-item templates](https://github.com/jagports/jagports/issues/18) | **COMPLETED** |
+| P5 | [#22 — Establish Jagports product memory](https://github.com/jagports/jagports/issues/22) | **COMPLETED** |
+| P6 | [#26 — Establish prioritization system](https://github.com/jagports/jagports/issues/26) | **OPEN** — [PR #707](https://github.com/jagports/jagports/pull/707) implements P6.1/P6.2 and is at the independent-review boundary; P6.3 remains after the method is accepted. |
+| P7 | [#30 — Run agent research-to-decision workflow](https://github.com/jagports/jagports/issues/30) | **OPEN** — human-in-the-loop validation is available; unattended runtime-dependent execution is suspended. |
+| P8 | [#34 — Establish Codex engineering workflow](https://github.com/jagports/jagports/issues/34) | **OPEN** — P8.1 is complete; P8.2/P8.3 still require representative current execution and end-to-end evidence. |
+| P9 | [#38 — Establish quality gates](https://github.com/jagports/jagports/issues/38) | **OPEN** — acceptance-criteria foundations are established; [PR #706](https://github.com/jagports/jagports/pull/706) is at the independent-review boundary for the remaining P9.2/P9.3 work. |
+| P10 | [#42 — Prepare Raspberry Pi infrastructure](https://github.com/jagports/jagports/issues/42) | **OPEN** — existing infrastructure track remains unresolved. |
+| P11 | [#46 — Add autonomous automation](https://github.com/jagports/jagports/issues/46) | **OPEN** — existing automation track remains unresolved, although automation foundations already exist elsewhere in the repository. |
+| P12 | [#49 — Expand and govern the agent team](https://github.com/jagports/jagports/issues/49) | **OPEN** — governance, architecture research and the Lead Agent prototype exist; production unattended-runtime work is suspended until a suitable execution capability is available and re-evaluated. |
 
-- **P8 — Establish Codex engineering workflow:** **Executor:** Codex Engineering Agent. **Where:** Codex Web + GitHub repository. Define how approved Issues become implementation work, tests, documentation, review, and completion.
-- **P8.1 — Create Codex engineering instructions:** **Executor:** Product Owner + ChatGPT; implemented by Codex. **Where:** GitHub repository. Define coding standards, repository rules, testing expectations, security constraints, documentation requirements, and escalation conditions.
-- **P8.2 — Implement first approved task:** **Executor:** Codex Engineering Agent. **Where:** Codex Web + GitHub. Select the first `APPROVED` Issue, implement it, test it, and return it for review.
-- **P8.3 — Validate delivery loop:** **Executor:** Product Owner + Codex Engineering Agent. **Where:** GitHub + Codex Web. Confirm the current Issue-to-completion lifecycle works end-to-end.
+## Existing roadmap structure
 
-- **P9 — Establish quality gates:** **Executor:** Technical/Architecture Agent + Codex Engineering Agent + Product Owner. **Where:** GitHub repository and GitHub Actions where available. Define acceptance criteria, automated checks, review requirements, security expectations, and definition of done.
-- **P9.1 — Define acceptance criteria standard:** **Executor:** Product/Vehicle Agent + Product Owner. **Where:** GitHub Issue templates. Ensure every implementation task has testable completion criteria.
-- **P9.2 — Define technical review gate:** **Executor:** Technical/Architecture Agent. **Where:** GitHub Pull Requests / Issues. Require architecture review when changes cross defined technical boundaries.
-- **P9.3 — Define automated validation:** **Executor:** Codex Engineering Agent. **Where:** GitHub Actions / repository. Add free-tier automated tests and checks where practical.
+No new roadmap work is introduced here. The existing P1–P12 structure remains the implementation plan.
 
-- **P10 — Prepare Raspberry Pi infrastructure:** **Executor:** Codex Engineering Agent + Product Owner. **Where:** Raspberry Pi 4B, 8GB RAM, 1TB SSD, Linux. Add the Pi only where persistent services, database, files, testing, scheduled jobs, or backups are actually required.
-- **P10.1 — Prepare Linux environment:** **Executor:** Product Owner + Codex Engineering Agent. **Where:** Raspberry Pi terminal. Install and harden the minimum required open-source runtime environment.
-- **P10.2 — Define persistent services:** **Executor:** Technical/Architecture Agent. **Where:** Raspberry Pi. Select which Jagports backend, database, storage, and testing services should run locally.
-- **P10.3 — Establish backup strategy:** **Executor:** Codex Engineering Agent. **Where:** Raspberry Pi + GitHub. Ensure important local state is recoverable without turning the Pi into the authoritative source of project decisions or code.
+### P1 — Open Kanban — COMPLETED
 
-- **P11 — Add autonomous automation:** **Executor:** Team Lead Agent + Codex Engineering Agent. **Where:** GitHub Actions and/or Raspberry Pi. Add scheduled or event-driven automation only when it demonstrably improves the workflow and remains within the $0 constraint.
-- **P11.1 — Identify automation candidates:** **Executor:** Team Lead Agent. **Where:** GitHub Project / Issues. Find repetitive research, validation, reporting, testing, or maintenance tasks suitable for automation.
-- **P11.2 — Implement first automation:** **Executor:** Codex Engineering Agent. **Where:** GitHub Actions or Raspberry Pi. Implement the highest-value free automation and document its trigger, permissions, outputs, and failure handling.
+Parent: [#1](https://github.com/jagports/jagports/issues/1)
 
-- **P12 — Expand and govern the agent team:** **Executor:** Product Owner + Team Lead Agent. **Where:** ChatGPT/Codex operating instructions + GitHub. Split roles further only when workload justifies it, then continuously improve prompts, permissions, performance, and governance.
+Existing sub-work:
+- P1.1 — Select Kanban tool.
+- P1.2 — Create Jagports GitHub repository.
+- P1.3 — Configure Kanban workflow.
+- P1.4 — Define Kanban fields and labels.
+- P1.5 — Define Kanban operating rules.
+- Existing verification work is retained in the historical P1 records.
 
----
+### P2 — Open agent accounts/access to Kanban — COMPLETED
 
-# 1. Target Architecture
+Parent: [#8](https://github.com/jagports/jagports/issues/8)
 
-The initial Jagports AI OS uses four practical layers:
+Existing sub-work:
+- [#9 — P2.1 Define agent identities](https://github.com/jagports/jagports/issues/9)
+- [#10 — P2.2 Validate leader R/W rights](https://github.com/jagports/jagports/issues/10)
+- [#12 — P2.3 Define permission boundaries](https://github.com/jagports/jagports/issues/12)
+- [#13 — P2.4 Connect Codex to repository](https://github.com/jagports/jagports/issues/13)
 
-- **Product Owner:** You; final authority for consequential product decisions.
-- **ChatGPT Free:** Research, analysis, product thinking, prioritization support, decision preparation, and coordination.
-- **Codex Web:** Engineering agent operating against the GitHub repository.
-- **GitHub:** Source code, Issues, Projects, documentation, decisions, backlog, and agent communication history.
-- **Raspberry Pi 4B / 8GB / 1TB SSD:** Optional free infrastructure for persistent application services, database, files, testing, automation, and backups.
+### P3 — Define agent communication protocol — COMPLETED
 
-# 2. GitHub Project Kanban Visualization
+Parent: [#14](https://github.com/jagports/jagports/issues/14)
 
-The GitHub Project provides a Kanban visualization of GitHub Issues and their current Project Item Status.
+Existing sub-work:
+- [#15 — P3.1 Define escalation categories](https://github.com/jagports/jagports/issues/15)
+- [#16 — P3.2 Define human decision gate](https://github.com/jagports/jagports/issues/16)
+- [#17 — P3.3 Define agent hand-off format](https://github.com/jagports/jagports/issues/17)
+- Existing architecture investigations #57–#60 remain part of the historical/related P3 record; this plan does not reopen or duplicate them.
 
-The current Project Item Status options are the work-state silos used by that visualization. They should be kept consistent with the active Project configuration.
+### P4 — Create work-item templates — COMPLETED
 
-The Kanban should show at minimum:
+Parent: [#18](https://github.com/jagports/jagports/issues/18)
 
-- Priority
-- Work type
-- Current agent
-- Decision status
-- Dependencies
-- Risk
-- Due/target information if later required
-- Links to evidence and implementation
+Existing sub-work:
+- [#19 — P4.1 Define feature template](https://github.com/jagports/jagports/issues/19)
+- [#20 — P4.2 Define research template](https://github.com/jagports/jagports/issues/20)
+- [#21 — P4.3 Define decision template](https://github.com/jagports/jagports/issues/21)
 
-The priority field should support an explicitly ordered queue, with sub-priorities such as `P1`, `P1.1`, `P1.2`, `P2`, `P2.1`, etc., rather than putting many unrelated tasks into one broad priority bucket.
+The current template architecture uses `.github/ISSUE_TEMPLATE/*.md` as the executable single source of truth, with documentation/policy references under `0-DocumentationEducationCompetense`.
 
-# 3. Agent Roles
+### P5 — Establish Jagports product memory — COMPLETED
 
-The initial operating team is:
+Parent: [#22](https://github.com/jagports/jagports/issues/22)
 
-1. **Team Lead / Chief of Staff Agent** — synthesizes agent outputs, maintains the ordered work queue, and escalates decisions.
-2. **Research Agent** — researches markets, competitors, standards, vehicle/EPC developments, and relevant technical information.
-3. **Product / Vehicle Agent** — translates customer and vehicle/EPC needs into product requirements and opportunities.
-4. **Technical / Architecture Agent** — evaluates feasibility, architecture, dependencies, and technical risks.
-5. **Prioritization / Validation Agent** — scores proposed work, challenges assumptions, identifies gaps, and validates priorities.
-6. **Codex Engineering Agent** — implements approved GitHub work, tests it, and documents the result.
+Existing sub-work:
+- [#23 — P5.1 Create repository knowledge structure](https://github.com/jagports/jagports/issues/23)
+- [#24 — P5.2 Record product vision and constraints](https://github.com/jagports/jagports/issues/24)
+- [#25 — P5.3 Create decision log](https://github.com/jagports/jagports/issues/25)
 
-The roles do not need to be separate paid AI accounts or separate always-on servers in the first implementation; they can initially be defined as explicit operating roles and instructions.
+The old proposed `00-product-vision` / `01-business-requirements` style folder tree is retired. The current knowledge structure is defined by `0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md` and the repository's semantic root map.
 
-# 4. Agent Autonomy and Escalation
+### P6 — Establish prioritization system — OPEN
 
-Agents may act autonomously for research, analysis, documentation, routine implementation, testing, and backlog maintenance where explicitly authorized.
+Parent: [#26](https://github.com/jagports/jagports/issues/26)
 
-Use four escalation categories:
+Existing sub-work:
+- [#27 — P6.1 Define scoring factors](https://github.com/jagports/jagports/issues/27)
+- [#28 — P6.2 Define priority rules](https://github.com/jagports/jagports/issues/28)
+- [#29 — P6.3 Populate first ranked backlog](https://github.com/jagports/jagports/issues/29)
 
-- **AUTO:** Agent can proceed.
-- **REVIEW:** Agent can prepare work but should obtain review.
-- **DECISION:** Product Owner approval is required.
-- **BLOCKED:** Work cannot continue until an issue is resolved.
+Current implementation: [PR #707 — Define canonical prioritization scoring and ordering](https://github.com/jagports/jagports/pull/707) implements #27/#28 and is awaiting independent review. #29 remains the existing follow-on after that method is accepted.
 
-Consequential product direction, architecture, security, cost, data strategy, or other high-impact decisions must reach the Product Owner.
+### P7 — Run agent research-to-decision workflow — OPEN
 
-# 5. GitHub Work-Item Standard
+Parent: [#30](https://github.com/jagports/jagports/issues/30)
 
-Every meaningful unit of work should be a GitHub Issue with enough context for another agent to continue it.
+Existing sub-work:
+- [#31 — P7.1 Run first research cycle](https://github.com/jagports/jagports/issues/31)
+- [#32 — P7.2 Convert findings to proposals](https://github.com/jagports/jagports/issues/32)
+- [#33 — P7.3 Escalate only required decisions](https://github.com/jagports/jagports/issues/33)
 
-Typical issue types:
+The practical human-in-the-loop path remains available:
 
-- Feature
-- Research
-- Decision
-- Architecture
-- Bug
-- Risk
-- Technical debt
-- Validation
-- Documentation
+`Research → Finding → Opportunity → Proposal → Prioritization → Decision handling → Approved work`
 
-A feature issue should normally contain:
+A fully unattended chain that depends on a Codex API or equivalent unattended runtime is suspended under the current capability constraint.
 
-- Problem / opportunity
-- Proposed solution
-- Business/customer value
-- Evidence
-- Priority
-- Dependencies
-- Risks
-- Acceptance criteria
-- Open questions
-- Required decision
+### P8 — Establish Codex engineering workflow — OPEN
 
-# 6. Product Memory
+Parent: [#34](https://github.com/jagports/jagports/issues/34)
 
-Recommended repository knowledge structure:
+Existing sub-work:
+- [#35 — P8.1 Create Codex engineering instructions](https://github.com/jagports/jagports/issues/35) — completed through merged PR #702.
+- [#36 — P8.2 Exercise Codex engineering standard on approved work](https://github.com/jagports/jagports/issues/36) — open.
+- [#37 — P8.3 Validate repeatable engineering delivery loop](https://github.com/jagports/jagports/issues/37) — open.
 
-```text
-JAGPORTS
-├── 00-product-vision
-├── 01-business-requirements
-├── 02-vehicle-data-model
-├── 03-epc-requirements
-├── 04-feature-backlog
-├── 05-research
-├── 06-architecture
-├── 07-decisions
-├── 08-risks-and-issues
-├── 09-roadmap
-└── 10-agent-reports
-```
+P8 now validates the current engineering execution layer against real work rather than trying to establish a second lifecycle. `00-Management/WORKFLOWS.md` remains the workflow authority.
 
-GitHub is the authoritative location for project memory, code, documented decisions, and work history.
+### P9 — Establish quality gates — OPEN
 
-# 7. Prioritization Model
+Parent: [#38](https://github.com/jagports/jagports/issues/38)
 
-The prioritization system should combine:
+Existing sub-work:
+- [#39 — P9.1 Define acceptance criteria standard](https://github.com/jagports/jagports/issues/39)
+- [#40 — P9.2 Define technical review gate](https://github.com/jagports/jagports/issues/40)
+- [#41 — P9.3 Define automated validation](https://github.com/jagports/jagports/issues/41)
 
-- Customer value
-- Business value
-- Strategic differentiation
-- Urgency
-- Implementation effort
-- Technical risk
-- Dependencies
-- Evidence confidence
-- Reversibility
+Current implementation: [PR #706 — Complete P9 technical review and validation gates](https://github.com/jagports/jagports/pull/706) covers the remaining P9.2/P9.3 process work and is awaiting independent review.
 
-The output must be an **ordered queue**, not merely a set of priority labels. Sub-priorities are allowed to preserve explicit execution order.
+### P10 — Prepare Raspberry Pi infrastructure — OPEN
 
-Example:
+Parent: [#42](https://github.com/jagports/jagports/issues/42)
+
+Existing sub-work:
+- [#43 — P10.1 Prepare Linux environment](https://github.com/jagports/jagports/issues/43)
+- [#44 — P10.2 Define persistent services](https://github.com/jagports/jagports/issues/44)
+- [#45 — P10.3 Establish backup strategy](https://github.com/jagports/jagports/issues/45)
+
+The Raspberry Pi remains optional infrastructure. It must not become the authoritative location for project decisions, work state, or unrecoverable agent state.
+
+### P11 — Add autonomous automation — OPEN
+
+Parent: [#46](https://github.com/jagports/jagports/issues/46)
+
+Existing sub-work:
+- [#47 — P11.1 Identify automation candidates](https://github.com/jagports/jagports/issues/47)
+- [#48 — P11.2 Implement first automation](https://github.com/jagports/jagports/issues/48)
+
+Automation remains subordinate to the existing workflow and must be justified by reliability, value and operating cost rather than automation for its own sake.
+
+### P12 — Expand and govern the agent team — OPEN
+
+Parent: [#49](https://github.com/jagports/jagports/issues/49)
+
+Completed foundations include the persistent communication/governance model, agent architecture research, and the documented modular Lead Agent prototype. The remaining production unattended-runtime direction is suspended where it depends on unavailable Codex API execution. ChatGPT scheduled task/prompt automation remains available where appropriate.
+
+## Vision-aligned target architecture
+
+The durable architecture is GitHub-centered and human-governed:
 
 ```text
-P1   Open Kanban
-P1.1 Select Kanban tool
-P1.2 Create repository
-P1.3 Configure workflow
-P1.4 Define fields
-P2   Open agent access
-P2.1 Define agent identities
-P2.2 Validate leader R/W rights
-P2.3 Define permission boundaries
+Human / Product Owner
+        │
+        ▼
+GitHub Issues / Project / Repository
+        │
+        ├── durable work and communication record
+        ├── code and documentation
+        ├── decisions and evidence
+        └── reusable knowledge
+        │
+        ▼
+Lead / coordinator capability
+        │
+        ├── deterministic routing and filtering where possible
+        ├── specialist roles where justified
+        ├── engineering execution
+        └── scheduled / event-driven automation and notifications
 ```
 
-# 8. Research-to-Feature Workflow
+The coordinator, specialist implementations, local services and AI providers are replaceable implementation components. None of them replaces GitHub as the durable project record.
 
-The intended workflow is:
+## Operating principles carried from the AI OS vision
 
-`Research → Finding → Opportunity → Feature Proposal → Prioritization → Decision → Implementation`
+1. **GitHub is the durable system of record.** Critical state, decisions, implementation traceability, review evidence and reusable project knowledge must be recoverable from GitHub/repository sources.
+2. **Human authority remains explicit.** Technical capability does not grant decision, merge, deployment or governance authority beyond the repository rules.
+3. **Durable memory is repository knowledge, not private conversation memory.** Reusable findings are generalized into the narrowest appropriate `KNOWLEDGE.md` scope; chronological history remains in work/research records.
+4. **Deterministic work precedes expensive reasoning.** Prefer deterministic discovery, filtering, routing and validation; retrieve deeper context and use model reasoning only when it adds value.
+5. **Specialist roles exist for useful responsibility boundaries.** Do not create additional agents merely to mirror an organization chart.
+6. **Automation is subordinate to governance.** Polling, Actions, webhooks, local services and coordinator runtimes may accelerate work but do not redefine the workflow.
+7. **Capability limitations are explicit.** Distinguish authorization, available tool capability, technical failure and genuine project blockage.
 
-Research should be recorded in GitHub Issues with evidence and confidence rather than remaining only in a ChatGPT conversation.
+## Current agent communication and escalation model
 
-# 9. Codex Development Workflow
+The earlier four-category description in this file is obsolete.
 
-The intended engineering lifecycle is:
+The current communication protocol defines seven escalation categories:
 
-`Approved Issue → Codex inspects repository → Implements → Tests → Documents → Review → Merge → Close Issue → Done`
+- `DECISION`
+- `BLOCKED`
+- `RISK`
+- `SCOPE`
+- `ACCESS`
+- `CONFLICT`
+- `FAILURE`
 
-Codex should stay within the approved scope and escalate major architectural or product changes instead of silently deciding them.
+`AUTO` and `REVIEW` are handling modes rather than escalation categories.
 
-# 10. Raspberry Pi Role
+Consequential product, architecture, cost, security, data and governance decisions remain subject to the established human decision model.
 
-The Raspberry Pi is optional and should not block the initial GitHub/Codex setup.
+## Current knowledge architecture
 
-When required, it can provide:
+The canonical first-level semantic map is:
 
-- Jagports application runtime
-- Database
-- Persistent files
-- Development/integration testing
-- Scheduled jobs
-- Local APIs/services
-- Backups
-- Future orchestration
+```text
+0-DocumentationEducationCompetense
+00-Management
+1-CustomerService
+2-Sales
+3-Deployment
+4-Production
+5-Implementation-Projects
+6-Development
+7-Research
+```
 
-The Pi is an infrastructure device, not the authoritative project-management system.
+Knowledge is hierarchical. The root `KNOWLEDGE.md` contains cross-domain durable knowledge; nested `KNOWLEDGE.md` files contain durable knowledge for their domain/subdomain. Issues, PRs and research records retain chronological/task-specific evidence rather than being copied into general knowledge.
 
-# 11. $0 Operating Constraint
+## Engineering and quality direction
 
-The target architecture remains:
+The implementation path is governed by the current Management workflow and the Codex engineering execution layer, not by a parallel lifecycle in this plan.
 
-- ChatGPT Free
-- Codex Web within available free access/limits
-- GitHub Free features where sufficient
-- Existing Raspberry Pi hardware
-- Linux and open-source software
+Conceptually, existing P8/P9 work validates the chain:
 
-No paid API, cloud server, hosted database, commercial automation platform, or other recurring-cost dependency should be introduced while the $0 requirement remains active.
+`Approved work → implementation → applicable validation → PR hand-off → independent review → required testing → merge → post-merge verification → Issue completion`
 
-Free-tier limits must be treated as real constraints.
+Exact gates, transitions, review rules, testing evidence and merge authority are defined in the canonical repository sources.
 
-# 12. Immediate Next Execution Point
+## Current automation/runtime capability boundary
 
-The very first action is **P1 — Open Kanban**.
+The self-hosted Lead Agent prototype is retained as implementation evidence and a future starting point, but it is not currently an available production Codex-backed autonomous service.
 
-Nothing else should be treated as the primary implementation task until the central Kanban has been selected and established, because all subsequent agent work should have a visible place to enter, progress, escalate, and complete.
+A purchasable Codex API subscription suitable for the planned unattended Jagports agent runtime is not currently available. Codex-API-dependent automated/scheduled Agent Infrastructure work is therefore suspended until further notice.
+
+The currently available agent-like scheduled capability is ChatGPT scheduled task/prompt automation. It may be used under the existing workflow, governance, verification and GitHub system-of-record rules.
+
+If Codex API or another suitable unattended execution capability becomes available later, the suspended runtime work must be explicitly re-evaluated before resumption.
+
+## Infrastructure and cost direction
+
+The architecture remains modular:
+
+- GitHub holds authoritative work/repository records.
+- Existing or self-hosted hardware may provide low-cost persistent services where useful.
+- Cloud services may be used where they fit approved product/deployment decisions.
+- External AI/model providers should remain replaceable where practical.
+- Important recovery state must not exist only inside one local runtime.
+
+The baseline cost direction is to avoid recurring-cost dependencies when existing hardware, GitHub capabilities, free service tiers and open-source software can satisfy the requirement. A recurring-cost dependency requires an explicit project decision when its value justifies departure from that baseline.
+
+## Current execution point
+
+The former statement that P1 is the “very first action” is obsolete because P1–P5 are complete.
+
+The established roadmap continues from the incomplete P6–P12 tracks without creating additional work here:
+
+- P6 is the first incomplete parent track; PR #707 is currently at review before the existing P6.3 follow-on.
+- P7 remains available for human-in-the-loop research-to-decision validation while unattended execution is suspended.
+- P8 remains focused on representative validation of the current engineering standard and repeatable delivery loop.
+- P9 remains open with PR #706 at review for the remaining technical-review/automated-validation work.
+- P10 and P11 remain later incomplete roadmap tracks under their existing Issues.
+- P12 remains open with its established governance/prototype foundations and the unattended-runtime capability constraint.
+
+No additional P0/P1–P12 work is introduced by this revision.
