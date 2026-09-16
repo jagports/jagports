@@ -22,7 +22,7 @@ test("VIEPS i18n defaults and falls back to English", () => {
   const { document, i18n } = runtime();
   assert.equal(i18n.init(), "en");
   assert.equal(document.documentElement.lang, "en");
-  assert.equal(i18n.t("common.search"), "Search");
+  assert.equal(i18n.t("common.search"), "Find");
   assert.equal(i18n.changeLanguage("fr-FR"), "en");
   assert.equal(i18n.t("common.availability"), "Availability");
 });
@@ -31,7 +31,7 @@ test("Finnish locale updates document metadata and shared UI resources", () => {
   const { document, i18n } = runtime();
   i18n.init({ language: "fi" });
   assert.equal(document.documentElement.lang, "fi");
-  assert.equal(i18n.t("common.search"), "Haku");
+  assert.equal(i18n.t("common.search"), "Etsi");
   assert.equal(i18n.t("common.availability"), "Saatavuus");
 });
 
@@ -50,7 +50,7 @@ test("missing selected-locale values fall back predictably to English", () => {
   delete incompleteFi.common.search;
   const { i18n } = runtime({ en, fi: incompleteFi });
   i18n.init({ language: "fi" });
-  assert.equal(i18n.t("common.search"), "Search");
+  assert.equal(i18n.t("common.search"), "Find");
 });
 
 test("currency and number formatting use the active locale", () => {
