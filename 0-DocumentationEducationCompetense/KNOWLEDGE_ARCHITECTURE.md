@@ -35,6 +35,8 @@ Established durable-knowledge files include:
 
 The absence of a `KNOWLEDGE.md` in a semantic root is not itself an error. A knowledge file should exist where durable knowledge actually exists and where its scope can be stated clearly. Empty or not-yet-populated domains do not require artificial knowledge files.
 
+Work-item template discovery and policy are maintained in [`work-item-templates/README.md`](work-item-templates/README.md). That document points to the executable single-source templates in `.github/ISSUE_TEMPLATE/*.md`; template bodies must not be duplicated into knowledge documentation.
+
 ## Semantic separation
 
 Use the following separation:
