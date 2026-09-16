@@ -44,7 +44,7 @@ Discover the current Project number rather than copying it from historical work.
 gh project field-list PROJECT_NUMBER --owner PROJECT_OWNER --format json
 ```
 
-Use the current result to identify the Project `Status` and `Rank` fields and the IDs of Status options. Project IDs, field IDs, option IDs, and view IDs are Project-specific and must not be guessed or copied from another Project.
+Use the current result to identify the Project `Status`, `Rank`, and where used `Workstream` fields and their option IDs. Project IDs, field IDs, option IDs, and view IDs are Project-specific and must not be guessed or copied from another Project.
 
 For organization-level Issue fields, inspect the current organization definition through the supported Issue Fields API before relying on it. The native Issue field named `Priority` is the authoritative Jagports current-priority field.
 
@@ -99,7 +99,16 @@ For a ranked backlog/table view, expose numeric Project field `Rank` and configu
 
 Rank `1` is the highest-ranked active item. The automation supplies Rank values but does not rewrite Project view layout or sorting. View configuration is a separate administrative action and must be independently verified.
 
-Do not sort by Issue Priority when the intent is exact execution order. Issue Priority is organization-wide importance; Project Rank is exact order inside that Project scope.
+When multiple execution queues share one Project, use a Project single-select `Workstream` field to separate them. For the current combined Project the canonical initial values are:
+
+- `AI OS`
+- `VIEPS`
+
+Create a filtered ranked view for each Workstream and sort each view by Rank ascending. Rank is interpreted **inside one Workstream only**; `AI OS Rank 1` and `VIEPS Rank 1` are both valid and do not compete in one universal queue.
+
+Do not sort by Issue Priority when the intent is exact execution order. Issue Priority is organization-wide importance; Project Rank is exact order inside one Project/workstream scope.
+
+Longer term, separate Projects may replace the shared-Project Workstream split if independent lifecycle/view configuration becomes materially cleaner. Until then, Workstream is the queue boundary.
 
 ## 5. GraphQL schema discovery before mutation
 
@@ -188,7 +197,8 @@ The P0...P5 review bands map to native Issue Priority through `00-Management/PRI
 At minimum, a ranked workflow Project uses:
 
 - `Status` — controlled Project Item workflow state;
-- `Rank` — numeric exact order within that Project/backlog scope; lower number means earlier execution.
+- `Rank` — numeric exact order within that Project/workstream queue; lower number means earlier execution;
+- `Workstream` — single-select queue boundary when multiple operational queues share one Project. Current values: `AI OS`, `VIEPS`.
 
 Other Project fields may include:
 
@@ -200,7 +210,7 @@ Other Project fields may include:
 
 A Project `Operational Priority` text field is deprecated duplicate metadata. Do not create it in new Projects. Existing values must be migrated/reconciled to native Issue `Priority` and verified before the duplicate field is retired.
 
-Repository labels supplement structured fields; they do not replace them.
+Repository labels supplement structured fields; they do not replace them. `Workstream` is a Project field, not a repository label.
 
 When configuring fields or labels, first inspect the current state. Create only missing configuration and verify the resulting state.
 
@@ -211,11 +221,12 @@ When an Issue participates in a Project workflow:
 1. Identify or create the Issue through the canonical Management work-discovery process.
 2. Set native Issue `Priority` only when priority was explicitly requested.
 3. Add the Issue to the intended Project only when that Project membership is required.
-4. Set the Project Item Status to `BACKLOG`, unless another canonical state is explicitly justified.
-5. Assign Project Rank when the Issue participates in an explicitly ranked queue.
-6. Independently read the resulting Issue and Project Item values.
-7. Verify the Issue identity, Project identity, exact Status and Rank values, and Issue Priority when changed.
-8. When work changes phase, update the same Project Item Status and independently verify the resulting value.
+4. Set the Project Item `Workstream` when the Project contains more than one queue.
+5. Set the Project Item Status to `BACKLOG`, unless another canonical state is explicitly justified.
+6. Assign Project Rank when the Issue participates in an explicitly ranked queue, ensuring uniqueness inside the same Workstream.
+7. Independently read the resulting Issue and Project Item values.
+8. Verify the Issue identity, Project identity, Workstream, exact Status and Rank values, and Issue Priority when changed.
+9. When work changes phase, update the same Project Item Status and independently verify the resulting value.
 
 The required verification pattern is:
 
@@ -229,7 +240,7 @@ The approved work-control workflow may also move Project Status when an authoriz
 
 A closing-linked PR or explicit `IMPLEMENTATION` command proves that implementation work exists; it does **not** by itself prove that required approval, decision, review, or testing gates have passed. Automation must not overwrite `DECISION NEEDED`, `BLOCKED`, `REVIEW`, `TESTING`, or `DONE` merely because implementation exists.
 
-Priority-only synchronization must **not** add an Issue to the Jagports AI OS Project. Issue Priority is organization-wide; Project membership is scope-specific.
+Priority-only synchronization must **not** add an Issue to the Jagports AI OS Project. Issue Priority is organization-wide; Project membership and Workstream are scope-specific.
 
 ## 10. Prioritization synchronization
 
@@ -244,6 +255,8 @@ For `Band:` values it maps:
 - P5 → Issue Priority unset and no active Rank.
 
 When `Status:` or `Rank:` is supplied, the workflow resolves Project #9 and updates those Project-scoped fields. When only `Band:` is supplied, it updates only the native Issue Priority and does not create Project #9 membership.
+
+Workstream-aware queue maintenance must not compare or renumber Rank across different Workstream values.
 
 Every changed value must be independently read back. Failure to verify is a failed operation, not a partial success claim.
 
@@ -294,10 +307,13 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - required Status workflow exists exactly as intended;
 - native organization Issue `Priority` exists and is usable;
 - Project `Rank` exists when exact ordering is used;
+- Project `Workstream` exists with the expected queue values when multiple queues share one Project;
+- AI OS and VIEPS views filter by their own Workstream and sort Rank ascending;
 - ranked views sort Rank ascending where that view is intended to show execution order;
 - required repository labels exist;
 - operating rules are committed in the repository;
 - Issue → Project attachment has been tested;
+- Project Item Workstream assignment has been tested where applicable;
 - Project Item Status assignment has been tested;
 - Issue Priority assignment has been tested;
 - Rank assignment has been tested where applicable;
