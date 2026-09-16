@@ -20,6 +20,12 @@ Other documents may explain, implement, or reference those workflows but must no
 
 **Core rule:** A workflow is defined exactly once.
 
+### Dedicated i18n governance
+
+VIEPS UI/application internationalization governance is defined in [`RULES_i18n.md`](RULES_i18n.md).
+
+`RULES_i18n.md` is the canonical i18n-specific contributor/governance authority and complements this file without redefining the Management workflow.
+
 ## Governance Principles
 
 ### Work ownership
@@ -79,6 +85,7 @@ These references describe GitHub's technical capabilities and collaboration mode
 |---|---|
 | `00-Management/WORKFLOWS.md` | Canonical normative Management workflows. |
 | `00-Management/RULES.md` | Human governance, rationale, and document authority. |
+| `00-Management/RULES_i18n.md` | Canonical VIEPS i18n contributor/governance rules. |
 | `SKILL.md` | Machine/agent execution instructions that implement/reference the canonical workflows. |
 | `.codex/skills/*` | Specialized operational procedures that reference the canonical workflows. |
 | `KNOWLEDGE.md` | Durable knowledge, decisions, and lessons learned; not workflow authority. |
