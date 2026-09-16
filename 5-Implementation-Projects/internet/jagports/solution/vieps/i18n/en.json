@@ -83,8 +83,8 @@
     "not_found": "Part not found.",
     "prompt": "Enter a Jaguar part number or fixture identifier to begin.",
     "prompt_with_action": "Enter a Jaguar part number or fixture identifier and press Search.",
-    "resolving": "Resolving PART…",
-    "resolved": "PART resolved."
+    "resolved": "PART resolved.",
+    "resolving": "Resolving PART…"
   },
   "stock": {
     "condition": "Condition",
