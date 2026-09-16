@@ -164,49 +164,59 @@ jobs:
               P5) ISSUE_PRIORITY="" ;;
             esac
 
-            issue_fields="$(GH_TOKEN="$GH_TOKEN" gh api \
-              -H 'X-GitHub-Api-Version: 2026-03-10' \
-              "orgs/$PROJECT_ORG/issue-fields")"
-            priority_field_count="$(jq --arg name "$ISSUE_PRIORITY_FIELD_NAME" '[.[]? | select(.name == $name)] | length' <<<"$issue_fields")"
-            [ "$priority_field_count" -eq 1 ] || { echo "Expected exactly one organization Issue field named '$ISSUE_PRIORITY_FIELD_NAME'; found $priority_field_count."; false; }
-            priority_field_id="$(jq -r --arg name "$ISSUE_PRIORITY_FIELD_NAME" '.[]? | select(.name == $name) | .id' <<<"$issue_fields")"
-            priority_field_type="$(jq -r --arg name "$ISSUE_PRIORITY_FIELD_NAME" '.[]? | select(.name == $name) | .data_type' <<<"$issue_fields")"
-            [ "$priority_field_type" = "single_select" ] || { echo "Issue Priority field is '$priority_field_type', expected single_select."; false; }
-
-            current_issue_fields="$(GH_TOKEN="$GH_TOKEN" gh api \
-              -H 'X-GitHub-Api-Version: 2026-03-10' \
-              "repos/$REPOSITORY/issues/$ISSUE_NUMBER/issue-field-values")"
-            priority_is_set="$(jq --argjson id "$priority_field_id" '[.[]? | select(.issue_field_id == $id)] | length' <<<"$current_issue_fields")"
+            SET_ISSUE_PRIORITY='
+            mutation($issue:ID!, $field:String!, $value:String!) {
+              updateIssue(input:{
+                id:$issue
+                issueFieldUpdates:[{fieldName:$field, operation:SET, value:$value}]
+              }) { issue { id } }
+            }'
+            CLEAR_ISSUE_PRIORITY='
+            mutation($issue:ID!, $field:String!) {
+              updateIssue(input:{
+                id:$issue
+                issueFieldUpdates:[{fieldName:$field, operation:CLEAR}]
+              }) { issue { id } }
+            }'
+            VERIFY_ISSUE_PRIORITY='
+            query($issue:ID!) {
+              node(id:$issue) {
+                ... on Issue {
+                  id
+                  issueFieldValues(first:50) {
+                    nodes {
+                      __typename
+                      ... on IssueFieldSingleSelectValue {
+                        name
+                        field { ... on IssueFieldSingleSelect { name } }
+                      }
+                    }
+                  }
+                }
+              }
+            }'
 
             if [ "$PRIORITY" = "P5" ]; then
-              if [ "$priority_is_set" -gt 0 ]; then
-                GH_TOKEN="$GH_TOKEN" gh api \
-                  --method DELETE \
-                  -H 'X-GitHub-Api-Version: 2026-03-10' \
-                  "repos/$REPOSITORY/issues/$ISSUE_NUMBER/issue-field-values/$priority_field_id" \
-                  >/dev/null
-              fi
+              GH_TOKEN="$COMMENT_TOKEN" gh api graphql \
+                -f query="$CLEAR_ISSUE_PRIORITY" \
+                -F issue="$ISSUE_NODE_ID" \
+                -f field="$ISSUE_PRIORITY_FIELD_NAME" \
+                >/dev/null
             else
-              jq -n \
-                --argjson field_id "$priority_field_id" \
-                --arg value "$ISSUE_PRIORITY" \
-                '{issue_field_values:[{field_id:$field_id,value:$value}]}' \
-                | GH_TOKEN="$GH_TOKEN" gh api \
-                    --method POST \
-                    -H 'X-GitHub-Api-Version: 2026-03-10' \
-                    "repos/$REPOSITORY/issues/$ISSUE_NUMBER/issue-field-values" \
-                    --input - \
-                    >/dev/null
+              GH_TOKEN="$COMMENT_TOKEN" gh api graphql \
+                -f query="$SET_ISSUE_PRIORITY" \
+                -F issue="$ISSUE_NODE_ID" \
+                -f field="$ISSUE_PRIORITY_FIELD_NAME" \
+                -f value="$ISSUE_PRIORITY" \
+                >/dev/null
             fi
 
-            verify_issue_fields="$(GH_TOKEN="$GH_TOKEN" gh api \
-              -H 'X-GitHub-Api-Version: 2026-03-10' \
-              "repos/$REPOSITORY/issues/$ISSUE_NUMBER/issue-field-values")"
+            verify_issue_priority="$(GH_TOKEN="$COMMENT_TOKEN" gh api graphql -f query="$VERIFY_ISSUE_PRIORITY" -F issue="$ISSUE_NODE_ID")"
             if [ "$PRIORITY" = "P5" ]; then
-              jq -e --argjson id "$priority_field_id" '[.[]? | select(.issue_field_id == $id)] | length == 0' <<<"$verify_issue_fields" >/dev/null \
+              jq -e --arg field "$ISSUE_PRIORITY_FIELD_NAME" '[.data.node.issueFieldValues.nodes[]? | select(.__typename == "IssueFieldSingleSelectValue" and .field.name == $field)] | length == 0' <<<"$verify_issue_priority" >/dev/null \
                 || { echo "Verification failed: Issue Priority was not cleared for P5."; false; }
             else
-              verified_issue_priority="$(jq -r --argjson id "$priority_field_id" '.[]? | select(.issue_field_id == $id) | .single_select_option.name // empty' <<<"$verify_issue_fields" | head -n1)"
+              verified_issue_priority="$(jq -r --arg field "$ISSUE_PRIORITY_FIELD_NAME" '.data.node.issueFieldValues.nodes[]? | select(.__typename == "IssueFieldSingleSelectValue" and .field.name == $field) | .name' <<<"$verify_issue_priority" | head -n1)"
               [ "$verified_issue_priority" = "$ISSUE_PRIORITY" ] || { echo "Verification failed: Issue Priority is '$verified_issue_priority', expected '$ISSUE_PRIORITY'."; false; }
             fi
           fi
