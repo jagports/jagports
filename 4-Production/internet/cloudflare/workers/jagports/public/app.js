@@ -196,9 +196,11 @@ function setupViepsUi() {
   resetContext();
   $("searchStatus").textContent = t("search.prompt");
 
-  $("languageSelect")?.addEventListener("change", (event) => {
-    i18n?.changeLanguage(event.target.value);
-    refreshForLanguageChange();
+  document.querySelectorAll?.("[data-language]").forEach((control) => {
+    control.addEventListener("click", () => {
+      i18n?.changeLanguage(control.dataset.language);
+      refreshForLanguageChange();
+    });
   });
   $("rangeSelect").addEventListener("change", renderSelectedRange);
   $("visualSelect").addEventListener("change", renderSelectedVisual);
