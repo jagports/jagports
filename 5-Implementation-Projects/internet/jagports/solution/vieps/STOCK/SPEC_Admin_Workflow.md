@@ -19,8 +19,10 @@ The workflow covers:
 - site and recursive rack/shelf/box storage selection;
 - source party and donor vehicle capture as separate relationships;
 - price/currency, availability and operational notes;
+- stock search/filter behavior;
 - validation and deterministic error handling;
-- public-read versus authorized-mutation boundaries.
+- public-read versus authorized-mutation boundaries;
+- test/acceptance environment identification and persisted-record verification.
 
 ## Stock database readiness
 
@@ -32,9 +34,25 @@ The operational setup must identify:
 - how the target database is initialized;
 - how stock test/seed records are loaded when applicable;
 - how an operator can verify stock records before UI testing;
-- which environment is being exercised.
+- which environment is being exercised, such as local, preview or deployed runtime.
 
 Repository Markdown is specification, not mutable stock storage.
+
+A successful stock database setup makes records queryable through the approved Worker/API/database path. Repository fixtures or seed records are inputs to that path; they are not a substitute for persisted operational records in the environment under test.
+
+## Test data and inventory evidence
+
+Catalogue/search data and operational stock evidence have different trust boundaries.
+
+Fixture-backed catalogue PARTs may be used to exercise Stock Admin when imported catalogue data is not yet available.
+
+Stock records used for workflow or acceptance testing must be explicitly identifiable as test/seed records unless they are independently verified inventory evidence.
+
+Synthetic or deterministic stock test data must not be described as real production Jagports inventory.
+
+Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values.
+
+Mutable stock test records must remain separate from immutable catalogue/reference data.
 
 ## Stock identity paths
 
@@ -79,6 +97,8 @@ admin opens Stock Admin
   -> public/read presentation exposes only permitted stock information
 ```
 
+The workflow is complete only when the persisted record can be read back from the same environment through the approved data path. A UI-only state change or repository fixture change is not persistence evidence.
+
 ## Stock quality
 
 The stored identity is the normalized code:
@@ -107,6 +127,8 @@ Operational stock search/filtering may use:
 
 Search behavior must preserve the catalogue/stock boundary and authorization rules.
 
+Search/filter validation should use known records from the target environment and confirm that expected records are returned without exposing restricted stock details to unauthorized users.
+
 ## Validation and errors
 
 The UI/API must explicitly reject or report:
@@ -119,6 +141,22 @@ The UI/API must explicitly reject or report:
 - unauthorized mutation;
 - failed persistence;
 - unavailable stock database/setup state.
+
+## Validation environment and acceptance testing
+
+A validation or acceptance record must identify the environment being exercised and distinguish repository fixtures from persisted stock records in that environment.
+
+At minimum, validation should establish that:
+
+- a known catalogue or fixture-backed PART can be resolved when that is the chosen stock identity path;
+- permitted stock information can be read for known stock records;
+- an authorized operator can create or update approved mutable stock fields;
+- the persisted result can be read back through the approved application/database path;
+- an unauthenticated or otherwise unauthorized user cannot mutate stock;
+- invalid stock operations fail deterministically;
+- unavailable database/setup state is reported rather than simulated as success.
+
+A local or preview result is evidence only for that environment. It must not be presented as deployed or production-runtime verification.
 
 ## Boundaries
 
