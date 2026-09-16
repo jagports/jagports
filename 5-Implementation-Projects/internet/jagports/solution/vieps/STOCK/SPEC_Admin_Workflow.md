@@ -15,7 +15,8 @@ The workflow covers:
 - stock database readiness;
 - authorized stock create/read/update behavior;
 - canonical PART-linked and explicitly unresolved stock;
-- normalized A-E stock quality capture;
+- normalized A-E stock quality capture when quality is classified;
+- explicit unclassified stock quality state;
 - site and recursive rack/shelf/box storage selection;
 - source party and donor vehicle capture as separate relationships;
 - price/currency, availability and operational notes;
@@ -55,13 +56,14 @@ The authorized Stock Admin UI must support, where the current data contract expo
 - select a canonical PART reference where resolved;
 - retain an explicit unresolved path where appropriate;
 - capture integer quantity;
-- select normalized stock quality `A` through `E` using the meanings in `MODEL_STOCK.md`;
+- select normalized stock quality `A` through `E` using the meanings in `MODEL_STOCK.md` when quality is classified;
+- retain an explicit unclassified quality state when no A-E classification has yet been assigned;
 - select physical site and rack/shelf/box storage location;
 - capture source party separately from donor vehicle;
 - capture donor vehicle where known;
 - capture price and currency where supported;
 - capture operational notes;
-- show availability and validation state;
+- show availability and validation state independently from stock-quality classification state;
 - surface deterministic validation/error states.
 
 Public unauthenticated users must not gain stock mutation capability through the page or its supporting API path.
@@ -73,7 +75,8 @@ admin opens Stock Admin
   -> verifies stock database/environment
   -> resolves or explicitly leaves stock identity unresolved
   -> captures mutable stock facts
-  -> validates quantity, quality, location, source and availability rules
+  -> classifies stock quality with A-E when known or leaves it explicitly unclassified
+  -> validates quantity, location, source and availability rules
   -> persists the stock record through the approved application/database path
   -> reads the persisted record back
   -> public/read presentation exposes only permitted stock information
@@ -81,7 +84,7 @@ admin opens Stock Admin
 
 ## Stock quality
 
-The stored identity is the normalized code:
+When stock quality is classified, the stored identity is the normalized code:
 
 ```text
 A New / Unused / Original Package
@@ -91,7 +94,13 @@ D Repairs / Needs Conditioning / Spares only
 E Broken / Reference / Knowledge Gains
 ```
 
-Localized label/description text is presentation and must not replace the stored code.
+`condition_code = NULL` means the stock quality has not yet been classified.
+
+Unclassified is a state, not a sixth quality class. No placeholder such as `U`, `Undefined`, or localized text is stored as the classification identity.
+
+Localized label/description text is presentation and must not replace the stored code. The unclassified state must also be presented through localized UI text, for example `Condition not classified` / `Kunto luokittelematta`.
+
+Stock availability and stock-quality classification are independent. A stock record may be available while `condition_code IS NULL`.
 
 ## Search/filter behavior
 
@@ -99,6 +108,7 @@ Operational stock search/filtering may use:
 
 - part number / canonical PART reference;
 - normalized stock quality code;
+- explicit unclassified quality state;
 - availability;
 - physical site/location;
 - source party;
@@ -112,13 +122,14 @@ Search behavior must preserve the catalogue/stock boundary and authorization rul
 The UI/API must explicitly reject or report:
 
 - fractional or otherwise invalid quantity;
-- unknown stock-quality code;
-- missing required quality when availability requires it;
+- unknown stock-quality code other than the approved A-E set;
 - missing physical location when availability requires it;
 - unresolved stock without required source evidence;
 - unauthorized mutation;
 - failed persistence;
 - unavailable stock database/setup state.
+
+A missing stock-quality classification is represented by `condition_code = NULL` and must not, by itself, make a stock record unavailable.
 
 ## Boundaries
 
