@@ -11,7 +11,7 @@ const fixture = await readFile(
   "utf8"
 );
 const partModel = await readFile(
-  new URL("../PART_MODEL.md", import.meta.url),
+  new URL("../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md", import.meta.url),
   "utf8"
 );
 

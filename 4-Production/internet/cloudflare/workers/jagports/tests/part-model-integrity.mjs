@@ -20,7 +20,7 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 14);
+  assert.equal(migrations.length, 15);
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
@@ -244,10 +244,10 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
       const db = new DatabaseSync(':memory:');
       t.after(() => db.close());
       db.exec('PRAGMA foreign_keys=ON');
-      const mvpStockMigration = migrations.indexOf('0011_mvp_stock_model.sql');
-      migrate(db, migrations.slice(0, mvpStockMigration));
+      const stockModelMigration = migrations.indexOf('0011_mvp_stock_model.sql');
+      migrate(db, migrations.slice(0, stockModelMigration));
       db.exec(sql(`tests/fixtures/${fixture}.sql`));
-      migrate(db, migrations.slice(mvpStockMigration));
+      migrate(db, migrations.slice(stockModelMigration));
       assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
       assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);
       continue;
@@ -261,7 +261,7 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
   }
 });
 
-test('MVP API executes real queries after all migrations', async (t) => {
+test('API executes real queries after all migrations', async (t) => {
   const db = withDatabase(t);
   const env = { DB: d1(db) };
   const response = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=MJB7703AA'), env);
@@ -279,7 +279,7 @@ test('MVP API executes real queries after all migrations', async (t) => {
 
 test('documented indexes exist and principal relationship lookups use indexed searches', (t) => {
   const db = withDatabase(t);
-  const docs = `${sql('PART_MODEL.md')}\n${sql('MVP_STOCK_MODEL.md')}`;
+  const docs = `${sql('MODEL_PART.md')}\n${sql('MODEL_STOCK.md')}`;
   const indexes = db.prepare("SELECT name FROM sqlite_schema WHERE type='index' AND name NOT LIKE 'sqlite_%'").all();
   const documentedNames = [...new Set([...docs.matchAll(/`(idx_[a-z0-9_]+)`/g)].map((match) => match[1]))];
   assert.deepEqual(documentedNames.sort(), indexes.map((index) => index.name).sort());

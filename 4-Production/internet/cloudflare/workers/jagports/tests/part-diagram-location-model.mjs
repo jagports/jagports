@@ -4,9 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
+const specRoot = path.join(root, '../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC');
 const migration = fs.readFileSync(path.join(root, 'migrations/0009_part_diagram_location.sql'), 'utf8');
 const fixture = fs.readFileSync(path.join(root, 'tests/fixtures/part_diagram_location.sql'), 'utf8');
-const docs = fs.readFileSync(path.join(root, 'PART_MODEL.md'), 'utf8');
+const docs = fs.readFileSync(path.join(specRoot, 'MODEL_PART.md'), 'utf8');
 
 assert.match(migration, /CREATE TABLE diagram/);
 assert.match(migration, /CREATE TABLE part_occurrence_diagram/);

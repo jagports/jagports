@@ -201,11 +201,11 @@ On the default desktop layout, preserve PR #616 behaviour: the page itself fits 
 ## Related specifications
 
 - `UI_CSS_Kit.md` — Tailwind/style-theme direction.
-- `UI_Specs_Part_Search.md` — search/result-state contract.
+- [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md) — search/result-state contract.
 - `UI_Specs_Parts_Tree.md` — tree hierarchy/selection contract.
 - `UI_Specs_Main_View.md` — Location and PART/Image/Status synchronization.
 - `UI_Specs_Fitment.md` — Model Ranges and Suitability applicability contract.
-- `UI_Specs_Stock_Separation.md` — stock/catalogue boundary.
+- [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md) — stock/catalogue boundary and stock-quality authority.
 
 ## Acceptance principles
 
