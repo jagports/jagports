@@ -2,14 +2,6 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { database, migrate, migrations, sql } from './helpers/model-db.mjs';
 
-const QUALITY = new Map([
-  ['A', 'New / Unused / Original Package'],
-  ['B', 'Used / Good Working / Known History'],
-  ['C', 'Used / Usable / No warranty'],
-  ['D', 'Repairs / Needs Conditioning / Spares only'],
-  ['E', 'Broken / Reference / Knowledge Gains'],
-]);
-
 // Prove the forward vocabulary migration preserves already-populated 0011 stock
 // while making rack and tenant valid on upgraded databases.
 const vocabMigration = migrations.indexOf('0014_stock_location_source_vocab.sql');
@@ -28,7 +20,7 @@ upgradeDb.exec(`
     verification_status, available, condition_code, storage_location_id,
     source_party_id, price, currency
   ) VALUES (
-    56930, 'UPGRADE-STOCK', 2, 'Used / Good Working / Known History',
+    56930, 'UPGRADE-STOCK', 2, 'legacy source condition text',
     'available', 'fixture', 'fixture:upgrade:stock', 'fixture', 1, 'B',
     56910, 56920, 25.00, 'EUR'
   );
@@ -98,7 +90,7 @@ db.prepare(`
     verification_status, confidence, available,
     condition_code, storage_location_id, source_party_id, price
   ) VALUES (
-    'C2P0001', 2, 'Used / Good Working / Known History', 'available', 'legacy Rack A/Shelf A/Box 1', 'fixture donor',
+    'C2P0001', 2, NULL, 'available', 'legacy Rack A/Shelf A/Box 1', 'fixture donor',
     'fixture:stock:1', 'resolved stock', 57001, 57001, 'fixture',
     'fixture', 1.0, 1,
     'B', 57011, 57001, 125.50
@@ -109,7 +101,7 @@ db.prepare(`
   INSERT INTO stock_item (
     part_number, quantity, condition, status, source, verification_status,
     available, condition_code, storage_location_id, source_party_id, price, currency
-  ) VALUES ('UNRESOLVED-570', 1, 'Used / Usable / No warranty', 'available', NULL, 'fixture', 1, 'C', 57013, 57002, 25, 'EUR')
+  ) VALUES ('UNRESOLVED-570', 1, NULL, 'available', NULL, 'fixture', 1, 'C', 57013, 57002, 25, 'EUR')
 `).run();
 
 const stock = db.prepare(`
@@ -154,7 +146,7 @@ assert.throws(
 );
 
 // One canonical PART may have multiple independent operational stock records.
-db.prepare(`INSERT INTO stock_item (part_number, quantity, condition, part_id, source, available, condition_code, storage_location_id) VALUES ('C2P0001-SECOND', 1, 'Repairs / Needs Conditioning / Spares only', 57001, 'fixture', 0, 'D', 57012)`).run();
+db.prepare(`INSERT INTO stock_item (part_number, quantity, condition, part_id, source, available, condition_code, storage_location_id) VALUES ('C2P0001-SECOND', 1, NULL, 57001, 'fixture', 0, 'D', 57012)`).run();
 assert.equal(db.prepare('SELECT COUNT(*) AS count FROM stock_item WHERE part_id = 57001').get().count, 2);
 
 const indexNames = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='stock_item'").all().map((row) => row.name);
@@ -166,7 +158,7 @@ for (const name of [
 ]) assert.ok(indexNames.includes(name), `missing ${name}`);
 
 // Deterministic stock fixtures exercise site/rack/shelf/box storage, tenant source
-// parties and all normalized A-E quality meanings without relying on internal IDs.
+// parties and all normalized A-E quality codes without persisting localized labels.
 const fixtureDb = database({ fixtures: false });
 fixtureDb.exec(sql('tests/fixtures/stock_storage.sql'));
 
@@ -180,9 +172,9 @@ const fixtureStockRows = fixtureDb.prepare(`
   ORDER BY s.condition_code
 `).all();
 assert.equal(fixtureStockRows.length, 5);
-assert.deepEqual(fixtureStockRows.map((row) => row.condition_code), [...QUALITY.keys()]);
+assert.deepEqual(fixtureStockRows.map((row) => row.condition_code), ['A', 'B', 'C', 'D', 'E']);
 for (const row of fixtureStockRows) {
-  assert.equal(row.condition, QUALITY.get(row.condition_code));
+  assert.equal(row.condition, null);
   assert.match(row.part_number, /^FIXTURE-STOCK-[A-E]$/);
   assert.ok(row.storage_location_id > 0);
   assert.ok(row.location_name.length > 0);
