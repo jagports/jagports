@@ -20,7 +20,7 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 15);
+  assert.equal(migrations.length, 16);
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
@@ -145,7 +145,7 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
       checked++;
     }
   }
-  assert.equal(checked, 28, 'all 28 FKs in the consolidated schema are exercised');
+  assert.equal(checked, 47, 'all 47 FK columns in the consolidated schema are exercised');
 });
 
 test('canonical and relationship uniqueness reject duplicate populated identities', (t) => {

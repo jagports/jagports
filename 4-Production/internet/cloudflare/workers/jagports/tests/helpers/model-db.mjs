@@ -43,10 +43,11 @@ export function database({ fixtures = true } = {}) {
       db.exec(sql('tests/fixtures/part_presentation.sql'));
       db.exec(sql('tests/fixtures/part_model_integrity.sql'));
       migrate(db, migrations.slice(stockModelMigration));
-      // Load normalized stock fixtures so current foreign keys, vocabularies and
-      // indexes are exercised alongside preserved legacy rows.
+      // Load normalized stock and applicability fixtures so current foreign
+      // keys, vocabularies and indexes are exercised alongside preserved rows.
       db.exec(sql('tests/fixtures/stock_storage.sql'));
       db.exec(sql('tests/fixtures/vieps_searchable_fixture_dataset.sql'));
+      db.exec(sql('tests/fixtures/occurrence_applicability.sql'));
       return db;
     }
   }
@@ -55,6 +56,7 @@ export function database({ fixtures = true } = {}) {
   if (fixtures) {
     db.exec(sql('tests/fixtures/part_presentation.sql'));
     db.exec(sql('tests/fixtures/part_model_integrity.sql'));
+    db.exec(sql('tests/fixtures/occurrence_applicability.sql'));
   }
   return db;
 }
