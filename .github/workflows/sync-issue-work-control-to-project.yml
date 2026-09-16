@@ -95,8 +95,8 @@ jobs:
                 ;;
             esac
 
-            if ! grep -Fq '<!-- jagports-project-sync -->' <<<"$COMMENT_BODY"; then
-              echo "No jagports project-sync marker; nothing to do."
+            if ! printf '%s\n' "$COMMENT_BODY" | tr -d '\r' | grep -Fxq '<!-- jagports-project-sync -->'; then
+              echo "No standalone jagports project-sync marker; nothing to do."
               trap - ERR
               exit 0
             fi
