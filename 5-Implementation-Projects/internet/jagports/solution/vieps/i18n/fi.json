@@ -83,8 +83,8 @@
     "not_found": "Osaa ei löytynyt.",
     "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
     "prompt_with_action": "Syötä Jaguar-osanumero tai testitunniste ja paina Haku.",
-    "resolving": "Ratkaistaan OSAA…",
-    "resolved": "OSA ratkaistu."
+    "resolved": "OSA ratkaistu.",
+    "resolving": "Ratkaistaan OSAA…"
   },
   "stock": {
     "condition": "Kunto",
