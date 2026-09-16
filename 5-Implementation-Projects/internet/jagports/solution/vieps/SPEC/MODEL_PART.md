@@ -344,7 +344,7 @@ Provenance is explicitly fixture evidence. Never present synthetic vehicle zones
 
 These remain open boundaries, not silently selected product rules.
 
-The companion [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md) records the detailed persistence dictionary, evaluation requirements and remaining importer/evaluator boundaries. Supporting source validation is recorded in [`7-Research/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`](../../../../../../7-Research/JEPC_APPLICABILITY_MODEL_REFINEMENT.md).
+The companion [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md) records the detailed persistence dictionary, evaluation requirements and remaining importer/evaluator boundaries. Supporting source validation is recorded in [`7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`](../../../../../../7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md).
 
 The `0016` persistence extension resolves storage of occurrence/context pairing, grouped conditions, evidence multiplicity and incomplete endpoint states. Approved source mappings, serial comparison/normalization, effective-range computation, fitment evaluation, importer execution and API/UI integration remain separate work. The internal evidence reader returns `evaluation = unavailable` and is not exposed as a fitment endpoint.
 
