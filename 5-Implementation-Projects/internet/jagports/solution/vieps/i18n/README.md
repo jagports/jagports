@@ -23,7 +23,7 @@ The deployed VIEPS application consumes repository-built resources only. Weblate
 
 ## Weblate repository integration contract
 
-Issue #679 must configure Weblate against the repository contract selected by Issues #554 and #676:
+Issue #679 configures Weblate against the repository contract selected by Issues #554 and #676:
 
 ```text
 Repository:
@@ -48,3 +48,17 @@ json_sort_keys = case_sensitive
 Weblate is an authoring/review integration. Translation changes intended for release must enter the normal Jagports GitHub branch/PR/CI/review workflow; Weblate automation must not bypass `main`, repository validation, or required human review. AI or machine translation may produce proposals/drafts but is not release authority.
 
 GitHub remains authoritative for released translation resources, and the normal VIEPS build consumes those reviewed repository resources.
+
+## Weblate operations
+
+Deployment/operations:
+
+[`../../../../../../3-Deployment/internet/weblate/README.md`](../../../../../../3-Deployment/internet/weblate/README.md)
+
+Compact translation update procedure:
+
+[`../../../../../../3-Deployment/internet/weblate/Update-Translations.md`](../../../../../../3-Deployment/internet/weblate/Update-Translations.md)
+
+Canonical live component:
+
+https://hosted.weblate.org/projects/jagports-vieps/vieps-ui/
