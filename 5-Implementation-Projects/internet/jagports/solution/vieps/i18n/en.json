@@ -97,6 +97,38 @@
     "note": "Synthetic fixture stock values only; not real Jagports inventory evidence.",
     "price": "Price",
     "qty": "Qty",
+    "quality": {
+      "A": {
+        "label": "New / Unused / Original Package",
+        "long_description": "The part is new or unused. It may have normal storage or packaging marks, but it must not be classified as used stock. Original packaging may be present but is not required unless separately recorded.",
+        "short_description": "New or unused stock."
+      },
+      "B": {
+        "label": "Used / Good Working / Known History",
+        "long_description": "The part is used, fully working and technically safe, with normal signs of use and known history where available. Minor scratches, small stone chips, light surface rust on underbody parts, or small wear may be present. There must be no defect that prevents function or causes major cosmetic harm.",
+        "short_description": "Good normal used stock."
+      },
+      "C": {
+        "label": "Used / Usable / No warranty",
+        "long_description": "The part is used and usable, or repairable with limited effort, but has clear visual or mechanical wear and carries no warranty classification. Visible scratches, deeper rust, small dents, dull lenses, interior wear or similar defects may be present.",
+        "short_description": "Usable budget or project stock."
+      },
+      "D": {
+        "label": "Repairs / Needs Conditioning / Spares only",
+        "long_description": "The part is not a normal ready-to-fit good used part. It needs repair, conditioning, cleaning, rebuilding, combination with other parts, or other preparation before use. It may be useful as a repair base or donor for subparts.",
+        "short_description": "Repair, conditioning or spares stock."
+      },
+      "E": {
+        "label": "Broken / Reference / Knowledge Gains",
+        "long_description": "The part is broken, incomplete, unsuitable for normal use, or not saleable as a ready-to-use spare part. It may still be useful for reference, comparison, measurement, documentation, learning, diagnosis, research, or other knowledge-gain purposes.",
+        "short_description": "Broken, reference or learning stock."
+      },
+      "unclassified": {
+        "label": "Condition not classified",
+        "long_description": "The stock item exists and may be available, but no A-E stock-quality classification has yet been assigned.",
+        "short_description": "Stock quality has not yet been classified."
+      }
+    },
     "status": "Status"
   },
   "tree": {
