@@ -12,23 +12,27 @@ It complements, and does not redefine:
 
 Priority remains optional unless explicitly requested. The Product Owner has final authority over business priority and may override a calculated order when the reason is recorded.
 
-## Identifiers, priority and rank are different concepts
+## Identifiers, Issue Priority, Project Rank and score are different concepts
 
-Legacy planning identifiers such as `P6` or `P6.1` identify a work-plan position. They must not be interpreted as the current operational priority of that Issue.
+Legacy planning identifiers such as `P6` or `P6.1` identify a work-plan position. They must not be interpreted as current priority.
 
 For current work:
 
-- **Operational priority band** communicates handling urgency when priority is explicitly in use.
-- **Rank** is a unique positive integer that gives exact order inside one declared prioritization scope.
-- **Score** is a comparison aid used to produce and explain the rank.
+- **Issue `Priority`** is the authoritative organization-wide current priority metadata. The supported GitHub values are `Urgent`, `High`, `Medium`, and `Low`.
+- **Project `Rank`** is a unique positive integer that gives exact order inside one declared Project/backlog scope. Lower numbers execute earlier; `1` is the highest-ranked active item.
+- **Project `Status`** is the workflow stage of that Issue inside that Project and uses the canonical states defined by `WORKFLOWS.md`.
+- **Priority score** is a comparison aid used to explain priority and rank. It is not itself authoritative metadata.
+- **P0...P5 review band** is retained as decision evidence and as the compact input accepted by the synchronization automation. It maps to native Issue Priority and does not create a second authoritative priority field.
 
-Do not add current priority or rank to an Issue title or filename. Record it in an authorized structured field when available and/or in the Issue work record.
+Do not add current priority or rank to an Issue title or filename.
 
 ## Prioritization scope
 
+Issue Priority is organization-wide. Rank is Project/backlog-specific.
+
 Every ranked queue must state its scope, for example a product release, implementation roadmap, management backlog, or other clearly bounded body of work.
 
-Within one declared scope there is one ordered queue. Do not maintain competing queues for the same scope.
+Within one declared scope there is one ordered queue. Do not maintain competing ranks for the same scope. An Issue may legitimately have different ranks in different Projects because the queues have different scopes.
 
 Do not combine unrelated scopes into one universal queue unless the Product Owner explicitly requests that comparison.
 
@@ -37,7 +41,7 @@ Before scoring an item:
 1. Resolve the active Issue/work identity under `WORKFLOWS.md` and exclude duplicate, completed, superseded or invalid work.
 2. Identify material dependencies, blockers, required decisions and current readiness.
 3. Ensure enough evidence exists to score the item without inventing facts.
-4. Keep workflow gates separate from priority. A high score does not authorize work that is blocked, unapproved or outside scope.
+4. Keep workflow gates separate from priority. A high priority does not authorize work that is blocked, unapproved or outside scope.
 
 ## Scoring factors
 
@@ -93,30 +97,36 @@ The resulting integer score range is `-10...+10`.
 
 If a group has no known values, use `0` for that group index and mark the score provisional. Any `0` factor makes the complete score provisional; it must not be presented as equally reliable as a fully assessed score.
 
-This normalization gives every positive factor equal weight and gives effort/risk equal weight within the burden group. It prevents the larger number of positive factors from mechanically overwhelming the two negative factors.
-
 The score supports comparison; it is not an autonomous decision engine. Explicit Product Owner decisions, hard dependencies, workflow gates, fixed commitments and verified blockers take precedence and must remain visible in the work record.
 
-## Operational priority bands
+## Review bands and native Issue Priority mapping
 
-When priority bands are explicitly required, use:
+When a priority review uses the P0...P5 bands, map them to the native Issue `Priority` field as follows:
 
-- **P0 — Immediate:** exceptional genuine show-stopper or critical time-bound work requiring immediate action. P0 is not generated automatically by a score; the reason must be stated explicitly.
-- **P1 — Do next:** highest-ranked actionable work currently intended for execution.
-- **P2 — Queue next:** valid actionable work expected after P1 work.
-- **P3 — Planned later:** accepted active work that remains in the current plan but is intentionally scheduled after P1/P2 work.
-- **P4 — Opportunity / no current allocation:** valid candidate work retained for future consideration but without current resource commitment. Reconsider when capacity, dependencies or strategic direction changes.
-- **P5 — Cancelled / revisit candidate:** work explicitly removed or cancelled from the active plan. It has no active queue rank, but the evidence is retained so it can be reconsidered, reopened and rescored if resources or circumstances later change.
+| Review band | Meaning | Native Issue `Priority` |
+|---|---|---|
+| P0 | Immediate exceptional show-stopper or critical time-bound work | `Urgent` |
+| P1 | Do next | `High` |
+| P2 | Queue next | `Medium` |
+| P3 | Planned later | `Low` |
+| P4 | Opportunity / no current allocation | `Low` |
+| P5 | Cancelled / revisit candidate | unset |
 
-Do not create fixed numeric score thresholds for these bands. The exact queue rank is authoritative within the declared active prioritization scope; the band is a handling summary.
+P0 is not generated automatically from score; its exceptional reason must be stated explicitly.
 
-P5 is outside the active execution queue. A cancelled/closed work item remains historical evidence and must not be silently treated as active merely because resources later become available.
+P3 and P4 intentionally share native `Low` priority. Their different allocation meaning remains in the review record and, where applicable, in Project Rank or lack of current allocation.
 
-A priority band does not replace workflow status. For example, an item can be strategically important while still being `DECISION NEEDED` or `BLOCKED`.
+P5 is outside the active execution queue. It has no active Rank and no native Issue Priority value. Historical scoring and decision evidence remains in comments and linked records.
+
+Do not create fixed numeric score thresholds for Issue Priority values. The score supports the decision; the native Issue `Priority` is the authoritative current priority metadata.
+
+A priority value does not replace Project Status. An Issue can be `Urgent` while still being `DECISION NEEDED` or `BLOCKED`.
 
 ## Exact queue ordering
 
-Every actively ranked item receives one unique `Rank` within its declared scope: `1`, `2`, `3`, and so on.
+Every actively ranked item receives one unique Project `Rank` within its declared scope: `1`, `2`, `3`, and so on.
+
+Lower numbers mean earlier execution. Ranked Project views should sort `Rank` ascending so Rank `1` appears first.
 
 P5 items have no active rank.
 
@@ -124,7 +134,7 @@ Order active items primarily by score after applying workflow gates and explicit
 
 When scores are equal or close enough that the numerical difference is not decision-useful, use these tie-breakers in order:
 
-1. prerequisite/unblock value — required prerequisites before dependent work;
+1. prerequisite/unblock value;
 2. urgency and cost of delay;
 3. readiness for immediate execution;
 4. evidence confidence;
@@ -136,23 +146,21 @@ Do not use artificial decimal scores merely to force separation. Record the tie-
 
 ## Product Owner overrides
 
-The Product Owner may override a calculated rank or band.
+The Product Owner may override calculated priority, band or rank.
 
 An override must record:
 
-- the resulting band/rank;
+- the resulting Issue Priority and, where applicable, Project Rank;
 - the reason;
 - the date;
 - the authority/decision record when applicable.
 
 An override changes the active order; it does not erase the previous calculation or historical record.
 
-Explicit strategic allocation decisions also act as overrides. For example, work deliberately assigned no current resources remains P4 until that decision changes, even if a later mechanical score would otherwise place it higher.
-
 ## Blocked and decision-dependent work
 
-- A `BLOCKED` item does not become executable merely because it has a high score. The work needed to remove the blocker may itself be separately ranked.
-- A `DECISION NEEDED` item does not become implementation-ready merely because it has a high score. The decision request may itself be prioritized.
+- A `BLOCKED` item does not become executable merely because it has high Issue Priority or Rank.
+- A `DECISION NEEDED` item does not become implementation-ready merely because it has high priority.
 - A dependent item must not be ranked ahead of a required prerequisite in the executable sequence unless the recorded queue explicitly explains parallel work that makes this valid.
 - P5/cancelled and other completed/closed work is removed from the active queue and retained only as historical evidence.
 
@@ -160,7 +168,7 @@ Explicit strategic allocation decisions also act as overrides. For example, work
 
 Record a priority review in the relevant active Issue or other authorized work record using enough detail to reproduce the decision.
 
-Use the automation marker only when the same record should also synchronize Project fields:
+Use the automation marker only when the same record should synchronize the native Issue Priority and/or Project fields:
 
 ```text
 <!-- jagports-project-sync -->
@@ -168,7 +176,7 @@ Priority review — YYYY-MM-DD
 Scope: <declared queue scope>
 Status: BACKLOG | RESEARCH | PROPOSED | DECISION NEEDED | APPROVED | IMPLEMENTATION | REVIEW | TESTING | BLOCKED | DONE
 Band: P0 | P1 | P2 | P3 | P4 | P5
-Rank: <unique positive integer within scope> | none
+Rank: <unique positive integer within Project scope> | none
 Score: <-10...+10 integer>
 Score state: complete | provisional
 Customer value: 0..5
@@ -187,36 +195,39 @@ Override: none | <recorded Product Owner override>
 Evidence: <Issue/PR/document references>
 ```
 
-`Rank: none` is required for P5. A score containing any `0` factor is provisional.
+The automation maps `Band` to native Issue `Priority`. `Rank: none` is required for P5. A score containing any `0` factor is provisional.
 
-When the priority changes materially, add a new dated record rather than rewriting historical comments.
+When priority changes materially, add a new dated record rather than rewriting historical comments.
 
-## GitHub Project synchronization
+## GitHub synchronization
 
-Project visualization is synchronized through GitHub Actions, not through an agent pretending that its current GitHub connector can mutate or independently inspect Project Items.
+Issue and Project metadata have separate ownership:
+
+- native Issue `Priority` is organization-wide and belongs to the Issue itself;
+- Project `Status` and Project `Rank` belong to a particular Project scope;
+- historical P0...P5 review records remain evidence, not a duplicate live priority field.
 
 Two workflows have separate responsibilities:
 
-- `.github/workflows/issues-lifecycle-in-project.yml` keeps the existing deterministic Issue lifecycle mapping: opened/reopened → `BACKLOG`; closed → `DONE`, plus any separately reviewed lifecycle refinements defined there.
-- `.github/workflows/sync-issue-work-control-to-project.yml` processes an authorized `<!-- jagports-project-sync -->` Issue comment or a manual workflow dispatch and updates requested `Status`, `Operational Priority`, and `Rank` Project fields.
+- `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
+- `.github/workflows/sync-issue-work-control-to-project.yml` processes an authorized `<!-- jagports-project-sync -->` comment or manual dispatch. It maps P0...P5 to native Issue Priority and updates requested Project `Status` and `Rank` values.
 
 The work-control workflow:
 
-1. reuses `secrets.PROJECTS_TOKEN` and Project #9 (`Jagports AI OS`);
-2. resolves the Issue's active Project Item and adds it if necessary;
-3. updates only values explicitly supplied by the command;
-4. creates a text `Operational Priority` field and numeric `Rank` field on first use if either is absent;
-5. dynamically resolves the existing canonical `Status` single-select field/options;
-6. independently re-reads and verifies every Project value it changed;
-7. reports failure on the Issue if the requested Project result cannot be verified.
+1. uses the organization Issue `Priority` field as the authoritative current priority;
+2. maps P0→Urgent, P1→High, P2→Medium, P3/P4→Low, and P5→unset;
+3. does not add an Issue to Project #9 merely because only Issue Priority was requested;
+4. resolves/adds the Project Item only when Project Status or Rank is being changed;
+5. dynamically resolves the existing Project `Status` options;
+6. creates numeric Project `Rank` only if missing;
+7. independently reads back and verifies every value it changes;
+8. reports failure when the requested state cannot be verified.
 
-A Project view can then be configured to sort ascending by numeric `Rank`, while `Operational Priority` displays the P0...P5 handling band. The workflow intentionally does not rewrite Project view layout/sort configuration; it supplies the verified fields needed for the view to order items.
+The previous Project text field `Operational Priority` is deprecated duplicate metadata. Existing values must be reconciled to native Issue Priority and verified before that Project field is retired. Historical Issue comments are retained.
 
-Only repository/organization actors trusted by the workflow may trigger comment-based synchronization. The Issue comment remains the durable record of the requested state/priority/rank change.
+The workflow intentionally does not rewrite Project view layout or sort configuration. Ranked views should be configured to sort `Rank` ascending.
 
-The work-control workflow is intentionally opt-in: it changes Project state only for an authorized marker comment or explicit manual dispatch. Because a newly added `workflow_dispatch` / `issue_comment` workflow cannot provide authoritative default-branch runtime evidence before it exists on `main`, source review may precede the first end-to-end Project execution. After merge, run a controlled Project #9 test immediately. Until that execution passes and the resulting Project values are independently verified, treat the work-control automation as **not yet runtime-verified** and do not rely on it as evidence of a successful Project operation. A failed post-merge test requires corrective work; no intended Project state may be claimed as actual.
-
-Project automation transports authorized work-control state; it does not redefine workflow semantics or priority authority.
+Only trusted repository/organization actors may trigger comment-based synchronization. The Issue comment remains the durable decision record.
 
 ## Queue maintenance
 
@@ -231,12 +242,12 @@ Re-evaluate an active queue when a material change occurs, including:
 
 Prefer finishing, validating, merging, consolidating and closing existing high-value work over continuously creating new queue entries.
 
-A queue record should be compact and show at minimum the Issue/PR link, rank, band, score, workflow/readiness state and next action.
+A queue record should be compact and show at minimum the Issue/PR link, native Issue Priority, Project Rank where applicable, score, workflow/readiness state and next action.
 
 ## Relationship to daily audits
 
-Daily audit categories such as `SHOW-STOPPERS`, `DO FIRST`, `LOW-HANGING FRUITS` and `QUEUE CLEANUP` are audit-report categories, not substitutes for this backlog ranking model.
+Daily audit categories such as `SHOW-STOPPERS`, `DO FIRST`, `LOW-HANGING FRUITS` and `QUEUE CLEANUP` are audit-report categories, not substitutes for Issue Priority or Project Rank.
 
-When a maintained ranked queue exists, the audit should use it as evidence while still applying the audit's own dependency, impact, urgency, readiness, unblock-value and cleanup checks.
+When a maintained ranked queue exists, the audit should use it as evidence while still applying dependency, impact, urgency, readiness, unblock-value and cleanup checks.
 
 An audit may surface a lower-ranked low-hanging-fruit or cleanup action without silently changing the maintained queue. A material reprioritization should be recorded through a new priority review.
