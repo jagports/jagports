@@ -17,7 +17,7 @@ mutation($fieldId: ID!) {
       {name:"PROPOSED",color:PURPLE,description:"Proposed solution awaiting decision"},
       {name:"DECISION NEEDED",color:YELLOW,description:"Requires human decision"},
       {name:"APPROVED",color:GREEN,description:"Approved and ready for execution"},
-      {name:"CODING",color:BLUE,description:"Implementation in progress"},
+      {name:"IMPLEMENTATION",color:BLUE,description:"Implementation in progress"},
       {name:"REVIEW",color:ORANGE,description:"Review and feedback"},
       {name:"TESTING",color:PURPLE,description:"Testing and validation"},
       {name:"DONE",color:GREEN,description:"Completed"},
