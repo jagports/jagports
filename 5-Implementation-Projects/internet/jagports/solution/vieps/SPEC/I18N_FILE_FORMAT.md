@@ -27,14 +27,16 @@ All locale files must use the same translation-key hierarchy for the same UI con
 
 ## JSON format
 
-Use Weblate-compatible nested JSON.
+Use **i18next JSON v4** resources.
 
 For Weblate, configure the component file format explicitly as:
 
 ```text
-JSON nested structure file
-json-nested
+i18next JSON file v4
+i18nextv4
 ```
+
+i18next JSON v4 supports nested object keys and uses CLDR-compatible plural suffixes for plural-capable strings.
 
 Do not rely on automatic JSON-format detection when configuring the Weblate component.
 
@@ -48,7 +50,7 @@ stock.quality.A.short_description
 
 ## Alphabetical key ordering
 
-All sibling JSON object keys in VIEPS translation-resource files must be stored in ascending alphabetical order.
+All sibling JSON object keys in VIEPS translation-resource files must be stored in ascending **case-sensitive alphabetical order**.
 
 This requirement applies recursively at every JSON object level.
 
@@ -109,6 +111,12 @@ Domain identifiers remain data and are not translated identities. Examples inclu
 - normalized stock-quality codes;
 - JEPC source identifiers and source-language catalogue data where separately modeled.
 
+## Plural-capable strings
+
+Future plural-capable UI strings must follow the i18next JSON v4 / CLDR plural suffix model supported by Weblate's `i18nextv4` format.
+
+Plural handling is presentation behavior and must not change domain identifiers or stored business data.
+
 ## Locale parity and structural consistency
 
 Required locale resources must remain structurally compatible with `en.json`.
@@ -122,7 +130,7 @@ A locale must not invent another key path for the same UI concept.
 Repository validation must reject at least:
 
 - invalid JSON;
-- sibling object keys that are not alphabetically ordered;
+- sibling object keys that are not in case-sensitive alphabetical order;
 - missing or mismatched required locale-resource structure;
 - structural differences from the source resource for the same translation hierarchy.
 
@@ -140,16 +148,19 @@ Monolingual base language file:
 5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json
 
 File format:
-JSON nested structure file
+i18next JSON file v4
 
 Format identifier:
-json-nested
+i18nextv4
+
+JSON key sorting:
+json_sort_keys = case_sensitive
 ```
 
 The Translation Management System is an authoring/review integration. It is not a production runtime dependency.
 
 ## Contributor and agent rule
 
-Any human, agent, formatter, CI process, or TMS-related repository change that creates or modifies VIEPS locale JSON must preserve this file-format contract and recursive alphabetical key ordering.
+Any human, agent, formatter, CI process, or TMS-related repository change that creates or modifies VIEPS locale JSON must preserve this file-format contract and recursive case-sensitive alphabetical key ordering.
 
 The `i18n/` directory guidance references this document rather than restating the rule, so this specification remains the single authority for this scoped repository convention.
