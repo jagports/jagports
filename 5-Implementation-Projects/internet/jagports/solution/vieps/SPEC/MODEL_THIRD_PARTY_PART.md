@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines how VIEPS represents Jagports-owned products, third-party/vendor products, NSS/service subcomponents, their relationship to Jaguar/JEPC catalogue PARTs, their applicability, and their operational stock linkage.
+This document defines how VIEPS represents Jagports-owned products, third-party/vendor products, NSS/service subcomponents, their relationship to Jaguar/JEPC catalogue PARTs and service-item scope, their applicability, and their operational stock linkage.
 
 It complements:
 
@@ -99,11 +99,14 @@ At minimum the model must distinguish:
 |---|---|
 | `component_of` | The child PART is a physical component of the parent PART or assembly. |
 | `service_subpart_of` | The child PART is a separately serviceable Jagports product for a component that the source parent does not necessarily service separately. |
+| `service_scope_extension_of` | The Jagports/third-party product expands the service content represented by a Jaguar/JEPC service PART/item by supplying additional serviceable content that Jaguar does not expose as an independent service PART in that scope. This is a service-catalogue relationship, not merely physical containment. |
 | `equivalent_to` | Two independently identified PARTs are verified as functionally interchangeable for the stated scope. This must not be inferred from similar descriptions or fitment. |
 
-Jaguar supersession remains governed by the dedicated `part_supersession` semantics in `MODEL_PART.md`. A `component_of` or `service_subpart_of` relationship must never be displayed or processed as supersession, aliasing, or equivalence.
+Jaguar supersession remains governed by the dedicated `part_supersession` semantics in `MODEL_PART.md`. A `component_of`, `service_subpart_of`, or `service_scope_extension_of` relationship must never be displayed or processed as supersession, aliasing, or equivalence.
 
-A Jagports-owned PART may have multiple parent relationships. This is required for products such as a common piston/cylinder/seal repair component that services both left- and right-hand caliper assemblies.
+A Jagports-owned PART may have multiple parent/service relationships. This is required for products such as a common piston/cylinder/seal repair component that services multiple Jaguar catalogue contexts.
+
+`service_scope_extension_of` is specifically used when the important relationship is that the aftermarket/Jagports product extends what can be serviced around an existing Jaguar service item. A separate `component_of` or `service_subpart_of` relation may also exist when physically true, but it does not replace the service-scope relationship.
 
 ## NSS / not-serviced-separately products
 
@@ -111,14 +114,18 @@ An NSS item visible in JEPC may be physically identifiable even though Jaguar do
 
 Jagports may create a canonical Jagports-owned PART for such an item when it is reusable as a product, for example because a supplier can provide it independently.
 
-The Jagports PART must preserve the distinction:
+An aftermarket kit can also expand an existing Jaguar service item rather than merely correspond to an NSS component of the complete assembly. For example, Jaguar may service a caliper through a `Brake caliper seal kit`, while a third-party product supplies those seals **plus** an NSS cylinder/piston component. In that case the aftermarket product is a `service_scope_extension_of` the Jaguar seal-kit service item/occurrence.
+
+The Jagports PART must preserve the distinction between physical structure and service scope:
 
 ```text
-Jaguar/JEPC parent assembly
+Jaguar/JEPC service item / occurrence
         |
-        | component_of / service_subpart_of
+        | service_scope_extension_of
         v
-Jagports-owned NSS/service PART
+Jagports-owned expanded service product
+        |
+        +--> optional component_of / service_subpart_of physical relation
         |
         v
 third-party vendor reference(s)
@@ -159,13 +166,13 @@ A vendor product may remain unresolved to a canonical PART while its evidence is
 
 A typed cross-reference when an external/vendor product needs an explicit relationship to another canonical or external reference.
 
-Allowed relationship semantics must be controlled and must not collapse `component_of`, `equivalent_to`, or `supersedes` into one generic "fits" relationship.
+Allowed relationship semantics must be controlled and must not collapse `component_of`, `service_subpart_of`, `service_scope_extension_of`, `equivalent_to`, or `supersedes` into one generic "fits" relationship.
 
 Where the cross-reference concerns two canonical VIEPS PARTs, the canonical PART-to-PART relation should be preferred so stock, search and applicability have one stable product identity graph.
 
 ## Suitability and applicability authority
 
-A relationship to a Jaguar parent PART does **not** by itself prove that a Jagports/third-party subcomponent fits every vehicle context in which that parent number appears.
+A relationship to a Jaguar parent PART or service item does **not** by itself prove that a Jagports/third-party product fits every vehicle context in which that Jaguar identity appears.
 
 Third-party/NSS product suitability must ultimately be based on verified applicability evidence at the relevant JEPC occurrence/context level when the source differentiates fitment there.
 
@@ -181,7 +188,7 @@ Relevant constraints can include, for example:
 The model must preserve the difference between:
 
 ```text
-canonical parent PART relationship
+canonical PART / service-scope relationship
 ```
 
 and:
@@ -190,9 +197,38 @@ and:
 verified occurrence/applicability relationship
 ```
 
-A Jagports-owned PART may therefore relate to multiple Jaguar parent PARTs while being suitable only for selected JEPC occurrences of those parents.
+A Jagports-owned PART may therefore relate to multiple Jaguar PARTs/service items while being suitable only for selected JEPC occurrences.
 
-Applicability must not be guessed by copying a parent PART's entire fitment set.
+Applicability must not be guessed by copying a parent PART's or service PART's entire fitment set.
+
+## JEPC service-item scope extension
+
+`service_scope_extension_of` expresses that a Jagports/third-party product expands the repair/service content available around a Jaguar/JEPC service item.
+
+This relation is intentionally distinct from:
+
+- `component_of`, which describes physical containment;
+- `service_subpart_of`, which describes a separately serviceable subpart of a parent product/assembly;
+- `equivalent_to`, which describes verified replacement interchangeability; and
+- Jaguar supersession.
+
+A service-scope extension should be anchored as precisely as the JEPC evidence permits. A canonical relationship to a Jaguar PART can support search/discovery, but the authoritative applicability mapping is to the relevant JEPC `part_occurrence`/service-item context when JEPC branches that item by qualifiers.
+
+One Jagports product may extend several occurrences of the same Jaguar service item, or occurrences in several catalogue categories, provided each mapping has its own source/provenance and applicability state.
+
+Conceptually:
+
+```text
+Jagports PART
+   |
+   +--> service_scope_extension_of --> Jaguar service PART (search/reference relation)
+   |
+   +--> mapped to JEPC service-item occurrence A
+   +--> mapped to JEPC service-item occurrence B
+   +--> excluded/unavailable at occurrence C where evidence requires
+```
+
+The occurrence mappings prevent a generic Jaguar part number from incorrectly granting suitability across contexts with different VIN, engine, side, market, or exclusion qualifiers.
 
 ## JEPC importer relationship
 
@@ -209,7 +245,7 @@ JEPC source
 JEPC importer
    |
    v
-Jaguar PART + occurrence/context + applicability
+Jaguar PART + category/item + occurrence/context + applicability
    |
    +------------------------------+
                                   |
@@ -249,6 +285,8 @@ unidentified item
         +--> unresolved stock_item (part_id = NULL)
 ```
 
+For MVP, limited explicit/manual mapping to known JEPC model/category/item/occurrence references is sufficient. A complete JEPC-assisted selector is a later whole-VIEPS requirement and is not an MVP blocker.
+
 When real JEPC data becomes available, imported occurrence/applicability evidence replaces or validates the fixture/manual catalogue-side evidence without redesigning the Stock Admin or stock data model.
 
 Fixture data must never be presented as independently verified Jaguar catalogue evidence.
@@ -271,8 +309,9 @@ The product-entry workflow should capture, as applicable:
 - description;
 - Jagports source/namespace;
 - vendor and vendor part reference;
-- optional parent Jaguar PART relationship(s);
-- relationship type;
+- optional related Jaguar PART/service-item relationship(s);
+- relationship type, including `service_scope_extension_of` when the product expands a Jaguar service item;
+- selected JEPC model/category/item/occurrence references where known;
 - applicability evidence/status;
 - verification state.
 
@@ -284,40 +323,100 @@ When identity is not yet sufficient to establish a reusable product, the operato
 
 The UI must make this an explicit operator choice. A failed PART lookup is not by itself permission to fabricate a PART or silently classify the item as unresolved.
 
-## Concrete brake-caliper NSS example
+## Concrete X100 brake-caliper service-scope example
 
-A representative X100/XK8 front-brake case demonstrates why parent identity and applicability must remain separate.
+The representative X100/XK8 front-brake case demonstrates why service scope, physical structure and occurrence applicability must remain separate.
 
-JEPC shows a brake-caliper assembly with an NSS cylinder/piston area and separate seals. A third-party vendor can supply the cylinder together with the seals even though Jaguar does not provide that NSS component as an independent service PART.
+Observed JEPC context supplied as source evidence is:
 
-The surrounding JEPC caliper-housing occurrences contain source applicability distinctions such as:
+```text
+XK8 Coupe/Convertible up to (V) 042775
+  -> BRAKING SYSTEM
+     -> BRAKE DISC AND CALIPERS
+        -> item 7 Brake caliper seal kit
+```
 
-- `4.0 Litre supercharged`;
-- `Except 4.0 Litre supercharged`;
-- LH front / RH front;
-- `To VIN (037347)`;
-- `From VIN (037348)`;
-- parent caliper PARTs including `MJD7843AA` and `MJD7842AA` for the illustrated left/right contexts.
+Within item 7, JEPC visibly branches the service item by applicability conditions including:
 
-A Jagports product for the vendor-supplied cylinder + seals can therefore be represented conceptually as:
+```text
+4.0 Litre supercharged
+  To VIN (031302)
+  From VIN (031303)
+
+Except 4.0 Litre supercharged
+  To VIN (037347)
+  From VIN (037348)
+```
+
+The observed item also contains Jaguar seal-kit PART identities including `JLM12123` and `JLM21495`, with their exact occurrence mapping retained from JEPC rather than inferred globally from the part number.
+
+The illustration for item 7 shows the seal-service context around a cylinder/piston-like NSS element. A third-party supplier can provide a cylinder/piston together with the seals even though Jaguar's JEPC service item is the **Brake caliper seal kit** and the additional cylinder/piston content is not independently serviced by Jaguar there.
+
+The correct primary service relationship is therefore not merely "this cylinder is part of the whole caliper". The Jagports/vendor cylinder + seals product **expands the Jaguar seal-kit service scope**:
 
 ```text
 Jagports PART: JP-CALCYL-001
-Description: front caliper cylinder/piston + seals repair component
+Description: front caliper cylinder/piston + seals repair kit
 Source namespace: JAGPORTS
 
-service_subpart_of -> MJD7843AA
-service_subpart_of -> MJD7842AA
+service_scope_extension_of
+  -> relevant JEPC item 7 Brake caliper seal-kit occurrence(s)
 
-applicability -> only the verified JEPC occurrences/conditions
-                 for which this vendor product is established to fit
+optional, when separately verified:
+  component_of / service_subpart_of
+  -> relevant complete caliper assembly PART(s)
 ```
 
-The existence of `service_subpart_of -> MJD7843AA` must not automatically make the Jagports product suitable for every occurrence of `MJD7843AA`.
+The optional physical caliper relationship is useful structure, but it does not express the main catalogue/service fact and must not be used to infer suitability.
 
-If evidence establishes that the same repair component fits both parent calipers under the same "Except 4.0 Litre supercharged" constraints, one neutral Jagports identity is preferable to a part number derived from only one of the two parent caliper numbers.
+Each applicable seal-kit occurrence must be mapped independently. The same Jaguar seal-kit number appearing in several JEPC branches must not cause the Jagports repair kit to inherit every branch automatically.
 
-This example is a model requirement/example, not a claim that every listed JEPC occurrence has already been independently verified for the vendor product.
+Conceptually:
+
+```text
+Jagports cylinder + seals kit
+  -> service_scope_extension_of occurrence A
+  -> service_scope_extension_of occurrence B
+  -> excluded/unavailable occurrence C as evidence requires
+```
+
+This allows VIEPS to preserve the exact supercharged/except-supercharged and VIN-boundary distinctions shown by JEPC while still maintaining one reusable Jagports product identity when the vendor product itself is common across several verified contexts.
+
+This example is a model requirement/example based on the supplied JEPC evidence. It is not a claim that every visible occurrence has already been independently verified as suitable for a particular third-party vendor product.
+
+## Future JEPC-assisted manual PART context linking
+
+Whole-VIEPS operation should later provide JEPC-assisted context selection when an operator manually creates or edits a Jagports/third-party/NSS PART.
+
+The operator should be able to browse or search through the imported catalogue structure, conceptually:
+
+```text
+JEPC model/sub-range
+  -> category
+     -> item / service item
+        -> occurrence / Jaguar PART / hotspot context
+```
+
+The selection view should expose enough source context to make a deliberate mapping, including where available:
+
+- JEPC breadcrumb/model/category/item identity;
+- illustration/hotspot/item context;
+- Jaguar PART number(s) at the occurrence;
+- engine/aspiration qualifiers;
+- source `Except ...` conditions;
+- VIN boundaries;
+- LH/RH or other positional qualifiers;
+- market/Region and other source applicability attributes.
+
+Manual PART creation must eventually support selecting **one or many** JEPC occurrence contexts, including relevant contexts located in more than one catalogue category. Each selected mapping must preserve its own provenance and verification/applicability state.
+
+The UI should warn when the same Jaguar PART appears in multiple JEPC occurrences with materially different qualifiers, so an operator does not accidentally map a Jagports product to all contexts based only on the canonical Jaguar part number.
+
+The workflow must distinguish the reason for the mapping, especially `service_scope_extension_of` versus physical `component_of`/`service_subpart_of` and versus equivalence/supersession.
+
+Later JEPC importer knowledge may suggest candidate occurrence mappings and may reconcile existing manual/fixture mappings, but imported evidence must not silently broaden suitability or erase provenance.
+
+This richer JEPC-assisted selector is a whole-VIEPS/post-MVP requirement. MVP may use a limited explicit selector or fixture/manual references to known contexts.
 
 ## Pricing snapshots
 
@@ -346,7 +445,7 @@ Search may find a product through:
 
 Presentation must identify the namespace/source of the displayed number so a Jagports or vendor number is not mistaken for a Jaguar part number.
 
-For a Jagports NSS/service subpart, the UI may show parent Jaguar assembly relationships and verified suitability context, but must not label `component_of` or `service_subpart_of` as supersession or direct equivalence.
+For a Jagports NSS/service product, the UI may show Jaguar parent/service-item relationships and verified suitability context, but must not label `component_of`, `service_subpart_of`, or `service_scope_extension_of` as supersession or direct equivalence.
 
 Unavailable applicability evidence must remain distinguishable from confirmed incompatibility.
 
@@ -357,9 +456,10 @@ Implementation must enforce or validate at least the following:
 - one stable canonical PART identity for each resolved reusable product;
 - explicit source/namespace ownership for Jagports-created numbers;
 - no automatic Jaguar identity from a Jagports/vendor identifier;
-- typed PART-to-PART relationship semantics;
+- typed PART-to-PART/service-scope relationship semantics;
 - no self-referential component/service relation;
-- no automatic fitment inheritance solely from a parent PART relation;
+- no automatic fitment inheritance solely from a parent PART or service relation;
+- `service_scope_extension_of` remains distinct from physical containment, equivalence and supersession;
 - vendor part references remain distinguishable from canonical PART numbers;
 - unresolved stock remains valid without a fabricated PART;
 - stock continues to reference canonical PART by stable ID where resolved;
@@ -375,12 +475,14 @@ The deterministic test set should include at minimum:
 4. a Jagports-owned service subpart related to multiple parent PARTs;
 5. a vendor reference resolving to a Jagports-owned PART;
 6. a vendor part number that must not be interpreted as a Jaguar number;
-7. an explicit `component_of`/`service_subpart_of` relation that is not treated as supersession;
-8. an occurrence-level applicability restriction such as "Except supercharged";
-9. side/VIN-boundary applicability examples;
-10. unavailable applicability distinguished from confirmed exclusion;
-11. unresolved stock with `part_id = NULL` and required source evidence;
-12. a later resolution of unresolved stock to an established canonical PART without changing the stock record's historical source evidence.
+7. explicit `component_of`/`service_subpart_of` relations that are not treated as supersession;
+8. a `service_scope_extension_of` example anchored to a Jaguar service item/occurrence;
+9. one Jagports product mapped to multiple service-item occurrences without globally inheriting every occurrence of the Jaguar PART;
+10. an occurrence-level applicability restriction such as "Except supercharged";
+11. side/VIN-boundary applicability examples;
+12. unavailable applicability distinguished from confirmed exclusion;
+13. unresolved stock with `part_id = NULL` and required source evidence;
+14. a later resolution of unresolved stock to an established canonical PART without changing the stock record's historical source evidence.
 
 ## MVP versus later boundary
 
@@ -394,13 +496,16 @@ MVP work should support:
 - creation of reusable Jagports-owned PARTs;
 - explicit unresolved stock;
 - vendor/source reference capture;
-- typed parent/service-subpart relationships where needed for the fixture examples;
+- typed parent/service/service-scope relationships where needed for fixture examples;
+- limited explicit/manual links to known JEPC contexts;
 - applicability represented without inventing unsupported meaning.
 
-Complete JEPC import coverage is not an MVP blocker.
+Complete JEPC import coverage and the full JEPC-assisted manual context selector are not MVP blockers.
 
 ### Later / importer-backed operation
 
 Later operation replaces or validates fixture/manual JEPC-side evidence with imported real JEPC occurrence/applicability data.
+
+Whole-VIEPS operation should add the JEPC-assisted manual context selector described above so manually created Jagports/third-party PARTs can be linked precisely to all relevant model/category/item/occurrence contexts, with multi-context selection, qualifier visibility, provenance, warnings for differing occurrence semantics, and importer-assisted suggestion/reconciliation.
 
 It may further add richer vendor synchronization, automated cross-reference discovery, broader product search, price-refresh automation and more detailed relationship evidence. Those extensions must preserve the identity and stock boundaries defined here.
