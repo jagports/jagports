@@ -390,7 +390,6 @@ Do not ask a human merely to advance routine work when the workflow already dete
 
 - Verify GitHub access and the specific required operation before relying on it.
 - Never claim an external action without verification.
-- Use a minimum 0.33-second delay between GitHub API calls in Jagports operational sequences.
 - After mutations, perform an independent read/verification.
 - Distinguish tool capability, authentication, permission, and operation failure where observable.
 - Never expose credentials, tokens, or secret values.
