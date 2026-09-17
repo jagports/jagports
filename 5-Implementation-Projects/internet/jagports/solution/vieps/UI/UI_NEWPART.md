@@ -8,6 +8,18 @@ The Admin UI should reuse the established EndUser VIEPS visual structure and kee
 
 The operational stock model remains authoritative in [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md), and workflow behavior remains governed by [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md).
 
+## Visual concept authority
+
+The rendered Add Part concept belongs with the other VIEPS visual concepts under `../UI_CONCEPTS/`.
+
+Canonical filename:
+
+`../UI_CONCEPTS/UI_Admin_Part_Add.png`
+
+When present, `UI_Admin_Part_Add.png` is the presentation/reference visualization for this workflow. This document remains authoritative for the workflow semantics and model distinctions described below. Example values or controls visible in concept artwork do not create application facts or override the stock model.
+
+The concept image should be committed as its original PNG file. Do not intentionally resize, recompress, convert to a lossy format, or replace it with a screenshot-derived copy when adding it to the repository. Repository review should preserve the original file bytes; GitHub's rendered preview is not the source asset.
+
 ## Layout principles
 
 - Reuse the EndUser application shell, spacing, typography, panels, search treatment and responsive behavior.
