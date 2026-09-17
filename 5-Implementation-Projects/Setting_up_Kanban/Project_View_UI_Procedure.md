@@ -17,6 +17,22 @@ Current Project:
 
 For another Project, discover and verify the current owner and Project number instead of reusing Project #9 as a generic identifier.
 
+## Scripted implementation
+
+The repository includes a runnable implementation script in the same Kanban setup folder:
+
+`5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh`
+
+Run it from a Git Bash checkout of the repository with GitHub CLI authentication that has organization Project write permission:
+
+```bash
+bash 5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh
+```
+
+The script discovers the current Project and `Rank` field, inherits the existing Project view layout, creates only missing `AI OS` and `VIEPS` views, configures their Workstream filters and Rank-ascending sort, and independently reads the resulting view configuration back before reporting success. It deliberately fails closed instead of replacing or overwriting an existing mismatched or duplicate named view.
+
+Use the UI procedure below when the script cannot run because the required GitHub CLI/API capability or permission is unavailable, or when direct visual confirmation is required.
+
 ## Create and save one Project view
 
 1. Open the target Project. To the right of the existing view tabs, click **New view**. Open **View** next to the filter/search bar, choose **Rename view**, enter the required view name, and press `Return`.
@@ -53,3 +69,4 @@ When the available connector or automation cannot inspect the saved Project View
 
 - [Managing your views](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/managing-your-views)
 - [Filtering projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/filtering-projects)
+- [REST API endpoints for Project views](https://docs.github.com/en/rest/projects/views)
