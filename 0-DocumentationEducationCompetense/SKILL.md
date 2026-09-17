@@ -105,21 +105,7 @@ Execute the Issue/PR checkbox roles defined canonically in `WORKFLOWS.md`:
 - Before final approval, all applicable Issue Acceptance and required PR checklist boxes must be `[x]`.
 - Checked boxes do not constitute approval; independent formal GitHub review remains required.
 
-## Jagports task hierarchy: do not use native GitHub sub-issues
-
-Do **not** use native GitHub sub-issues for Jagports AI OS or VIEPS task hierarchy.
-
-Jagports hierarchy is documented in durable Issue-body traceability instead:
-
-- the parent Issue lists its child task Issues in the Issue body;
-- each child Issue identifies its parent Issue in the Issue body;
-- comments may add traceability evidence, but the Issue body is the durable hierarchy location for active records.
-
-Native GitHub parent/sub-issue metadata is not required Jagports state and must not be created, repaired, synchronized, or treated as the source of truth by agents.
-
-This rule applies regardless of whether native sub-issue operations are exposed through REST, GraphQL, GitHub CLI, UI, connector, or future tooling.
-
-### Environment asymmetry
+## Environment asymmetry
 
 Different agent environments may expose different GitHub capabilities. A capability available in one environment is not automatically available in another.
 
@@ -307,6 +293,7 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 - `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
+- `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record operation and GitHub-specific handling, including the native GitHub sub-issue prohibition.
 - `00-Management/RULES.md` — human governance and rationale; no competing workflow definition.
 - `00-Management/RULES_i18n.md` — canonical VIEPS i18n contributor/governance rules.
 - `SKILL.md` — machine/agent execution of the canonical workflows.
