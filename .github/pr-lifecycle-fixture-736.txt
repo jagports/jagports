@@ -1,1 +1,2 @@
 Temporary fixture for #730 post-merge PR lifecycle verification.
+Synchronize event exercised.
