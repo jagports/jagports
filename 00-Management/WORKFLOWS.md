@@ -172,7 +172,14 @@ A direct-main change is a process violation and requires corrective handling rat
 
 The GitHub Project is the visual/system-of-record representation of workflow state.
 
-An Issue may be represented by a **Project Item**. The workflow state is stored in the Project Item's **Status** field. The Project itself does not have the task's lifecycle Status.
+An Issue or Pull Request may be represented by a **Project Item**. The workflow state is stored in that Project Item's **Status** field. The Project itself does not have the task's lifecycle Status.
+
+Issue and Pull Request Project Items represent related but different objects:
+
+- the **Issue Project Item** remains the primary business/work record and represents the lifecycle of the owned work;
+- the **Pull Request Project Item** represents the execution/review state of a concrete integration artifact for that work.
+
+A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. It must not receive a separate competing business Priority/Rank when that prioritization belongs to the owning Issue, unless this canonical workflow explicitly defines such independent prioritization in the future.
 
 ### Project operation rule
 
@@ -182,12 +189,12 @@ A Project operation has two distinct phases:
 
 A mutation response is not, by itself, proof that the desired Project state exists.
 
-After adding an Issue, changing Status, or performing another relevant Project mutation:
+After adding an Issue or Pull Request, changing Status, or performing another relevant Project mutation:
 
 1. Identify the intended Project.
 2. Identify the resulting Project Item.
 3. Read the resulting Project state independently.
-4. Verify the exact expected field and value.
+4. Verify the exact expected content identity, Project identity, archive state, field, and value.
 5. Only then claim the operation succeeded.
 
 If mutation fails, the Project Item cannot be found, the expected field/value cannot be verified, or the result is ambiguous:
@@ -212,6 +219,23 @@ For a new Issue belonging to the Project:
 If Project setup cannot be performed or verified, record the limitation and do not claim successful Project setup.
 
 When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless another state is explicitly appropriate, and verify the Project Item Status.
+
+### Pull Request Project Item lifecycle
+
+A Pull Request that belongs to active Jagports work is represented by its own Project Item so that the Kanban shows the execution/review artifact as well as the owning Issue.
+
+The Pull Request Project Item follows these deterministic lifecycle rules:
+
+1. **Opened as draft** → add the Pull Request itself to the Project and set its Project Item Status to `RESEARCH`.
+2. **Converted to draft** → set the Pull Request Project Item Status to `RESEARCH`. Draft state means the integration artifact is not at the independent-review boundary.
+3. **Opened ready for review** or **marked ready for review** → set the Pull Request Project Item Status to `REVIEW` when the Pull Request is at the canonical review boundary.
+4. **Reopened** → inspect current Pull Request state: draft maps to `RESEARCH`; a non-draft Pull Request that is ready for independent review maps to `REVIEW`.
+5. **Merged** → set the Pull Request Project Item Status to `DONE`, independently verify `DONE`, and only then may the Pull Request Project Item be archived if the Project's retention practice calls for archiving completed integration artifacts. Archiving must not erase Issue↔PR traceability.
+6. **Closed without merge** → do **not** set the Pull Request Project Item Status to `DONE`. Closing without merge is not successful completion. Preserve the last non-success Status as historical context, record/retain the close-without-merge relationship to the owning Issue, and archive the Pull Request Project Item as the terminal non-success handling when appropriate. The owning Issue determines whether the underlying work remains active, is replaced by another Pull Request, becomes blocked, or is otherwise resolved.
+
+Every Pull Request Project Item add, Status change, or archive operation follows the same **MUTATE → VERIFY** rule. Automation must verify that the resulting Project Item contains the intended Pull Request, belongs to the intended Project, has the expected archive state, and has the exact expected Status before success is claimed.
+
+The Pull Request Project Item lifecycle does not replace the owning Issue lifecycle. In particular, the Issue may be synchronized to `IMPLEMENTATION` when a qualifying closing-linked Pull Request exists, while the Pull Request's own Project Item separately shows `RESEARCH` or `REVIEW` according to the Pull Request state. Where the canonical review gate also requires the owning Issue Project Item to be at `REVIEW`, both Project Items may show `REVIEW` while continuing to represent different objects.
 
 ### IMPLEMENTATION transition from a closing-linked Pull Request
 
