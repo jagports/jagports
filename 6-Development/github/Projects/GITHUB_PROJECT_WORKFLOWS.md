@@ -51,6 +51,27 @@ Issue and Pull Request Project Items represent related but different objects:
 
 A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. It must not receive a separate competing business Priority/Rank when that prioritization belongs to the owning Issue, unless this canonical Project workflow explicitly defines such independent prioritization in the future.
 
+### State meaning
+
+The normal Management lifecycle states defined by `00-Management/WORKFLOWS.md` have the following meaning when represented as GitHub Project Item Status values:
+
+| State | Meaning |
+|---|---|
+| `BACKLOG` | Valid active work exists but substantive work has not started. |
+| `RESEARCH` | Facts, existing work, dependencies, or implementation options are being investigated. |
+| `PROPOSED` | A concrete solution or implementation approach has been prepared. |
+| `DECISION NEEDED` | Human/authorized decision-maker judgment is required before proceeding. |
+| `APPROVED` | Required decision/approval has been obtained and implementation may proceed. |
+| `IMPLEMENTATION` | The approved work is actively being produced as repository artifacts, including code, configuration, documentation, data, migrations, tests, workflows, or other committed deliverables. |
+| `REVIEW` | Implementation is complete enough for required review; implementation stops at this boundary. |
+| `TESTING` | Required validation is being executed. |
+| `DONE` | The represented work item or integration artifact has reached a verified terminal lifecycle state and no further work is expected on that item. For successful implementation, required review/testing/merge/closure obligations still apply; PR-specific terminal closure without merge is governed by this file and does not imply successful integration. |
+| `BLOCKED` | A prerequisite or capability prevents the next required transition. |
+
+A state is not established merely by an Issue comment. When the work is represented in GitHub Project, the Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified according to this file by a capable actor/tool.
+
+For the current ChatGPT/GitHub connection, Project Item Status cannot be read or verified. Use the current capability-boundary reporting sentence instead of claiming Project state.
+
 ### Project operation rule
 
 A Project operation has two distinct phases:
