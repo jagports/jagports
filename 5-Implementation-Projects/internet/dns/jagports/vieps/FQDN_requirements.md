@@ -25,10 +25,18 @@ This is a completed production-hostname decision. It is not a pre-production pre
 
 ## Pre-production boundary
 
-VIEPS development is first being executed in pre-production using the Cloudflare-provided Workers hostname:
+VIEPS development is first executed in pre-production using the Cloudflare-provided Workers hostname model:
 
 ```text
-vieps.jagports.workers.dev
+vieps.<derived-from-account>.workers.dev
+```
+
+The concrete account Workers subdomain is discovered from the actual Cloudflare account at deployment time. It is not hard-coded here.
+
+The resulting hostname therefore has the form:
+
+```text
+vieps.<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
 ```
 
 The pre-production hostname is intentionally separate from the production hostname requirement.
