@@ -18,19 +18,19 @@ This is the single current capability rule for ChatGPT/GitHub Project handling: 
 
 ## Required behaviour
 
-When `WORKFLOWS_GITHUB_PROJECT.md`, `WORKFLOWS.md`, `SKILL.md`, another repository document, an Issue, or a PR mentions Project Item Status, Project views, Project transitions, Project verification, Project mutations, Project archival state, or Project management, the current ChatGPT/GitHub connection must interpret that text only as background workflow context for a capable external actor, human, automation, or future tool. It is not permission or instruction for this connection to attempt Project operations.
+When `GITHUB_PROJECT_WORKFLOWS.md`, `WORKFLOWS.md`, `SKILL.md`, another repository document, an Issue, or a PR mentions Project Item Status, Project views, Project transitions, Project verification, Project mutations, Project archival state, or Project management, the current ChatGPT/GitHub connection must interpret that text only as background workflow context for a capable external actor, human, automation, or future tool. It is not permission or instruction for this connection to attempt Project operations.
 
 The current connection may continue work that can be verified through repository files, Issues, Pull Requests, reviews, commits, comments, and checks. It must not claim any Project state or Project mutation.
 
 ## Placement
 
-`6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` is the scoped canonical workflow location for detailed GitHub Project/Kanban meaning, lifecycle, evidence rules, and Product Owner rulings such as the no-Pull-Request-Project-Item-archive rule.
+`6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` is the scoped canonical workflow location for detailed GitHub Project/Kanban meaning, lifecycle, evidence rules, and Product Owner rulings such as the no-Pull-Request-Project-Item-archive rule.
 
-`00-Management/WORKFLOWS.md` is the top-level workflow authority and incorporates `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` by reference. It must not duplicate detailed Project/Kanban rules.
+`00-Management/WORKFLOWS.md` is the top-level workflow authority and incorporates `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` by reference. It must not duplicate detailed Project/Kanban rules.
 
 `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` is the GitHub-specific durable knowledge location for GitHub connection capability, environment asymmetry, native sub-issue policy, and related GitHub-tooling knowledge. Root `KNOWLEDGE.md` must remain a minimal repository entry point and must not carry Project-specific ruling descriptions.
 
-`0-DocumentationEducationCompetense/SKILL.md` is the execution layer. It states the current-connection prohibition and points back to this file and `WORKFLOWS_GITHUB_PROJECT.md`; it must not duplicate detailed Project/Kanban lifecycle rules.
+`0-DocumentationEducationCompetense/SKILL.md` is the execution layer. It states the current-connection prohibition and points back to this file and `GITHUB_PROJECT_WORKFLOWS.md`; it must not duplicate detailed Project/Kanban lifecycle rules.
 
 ## Reporting rule
 
