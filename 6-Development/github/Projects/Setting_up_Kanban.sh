@@ -5,7 +5,7 @@ set -e
 REPO="jagports/jagports"
 PROJECT_OWNER="jagports"
 PROJECT_NUMBER="9"
-TASK_FILE="5-Implementation-Projects/Setting_up_Kanban/Jagports_GitHub_Import_Task_List.md"
+TASK_FILE="6-Development/github/Projects/Jagports_GitHub_Import_Task_List.md"
 
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
