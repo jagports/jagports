@@ -31,7 +31,9 @@ fi
 gh auth status >/dev/null
 gh project view "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json >/dev/null
 
-gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: $API_VERSION" "/orgs/$PROJECT_OWNER/projectsV2/$PROJECT_NUMBER/fields" > "$TMP_DIR/fields.json"
+# Keep REST endpoints relative. Git Bash/MSYS rewrites a leading /orgs/... argument
+# into a Windows filesystem path before gh receives it.
+gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: $API_VERSION" "orgs/$PROJECT_OWNER/projectsV2/$PROJECT_NUMBER/fields" > "$TMP_DIR/fields.json"
 
 RANK_FIELD_ID="$(python - "$TMP_DIR/fields.json" <<'PY'
 import json
@@ -53,7 +55,7 @@ PY
 )"
 
 read_views() {
-    gh api graphql -f query='query($organization:String!,$number:Int!){organization(login:$organization){projectV2(number:$number){views(first:50){nodes{id number name filter layout sortByFields(first:10){nodes{direction field{... on ProjectV2Field{name} ... on ProjectV2IterationField{name} ... on ProjectV2MultiSelectField{name} ... on ProjectV2SingleSelectField{name}}}}}}}}}}' -f organization="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" > "$TMP_DIR/views.json"
+    gh api graphql -f query='query($organization:String!,$number:Int!){organization(login:$organization){projectV2(number:$number){views(first:50){nodes{id number name filter layout sortByFields(first:10){nodes{direction field{... on ProjectV2Field{name} ... on ProjectV2IterationField{name} ... on ProjectV2MultiSelectField{name} ... on ProjectV2SingleSelectField{name}}}}}}}}}' -f organization="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" > "$TMP_DIR/views.json"
 }
 
 read_views
@@ -141,7 +143,8 @@ with open(path, "w", encoding="utf-8") as handle:
 PY
 
     echo "Creating view: $name"
-    gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: $API_VERSION" "/orgs/$PROJECT_OWNER/projectsV2/$PROJECT_NUMBER/views" --input "$TMP_DIR/payload.json" > "$TMP_DIR/create-response.json"
+    # Same Git Bash/MSYS rule as above: no leading slash in gh api endpoint.
+    gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: $API_VERSION" "orgs/$PROJECT_OWNER/projectsV2/$PROJECT_NUMBER/views" --input "$TMP_DIR/payload.json" > "$TMP_DIR/create-response.json"
 }
 
 ensure_view() {
