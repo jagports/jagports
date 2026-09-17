@@ -1,2 +1,3 @@
 Disposable activation fixture for #730 / #747.
 This branch is used only to exercise PR Project lifecycle events.
+Synchronize event verification update.
