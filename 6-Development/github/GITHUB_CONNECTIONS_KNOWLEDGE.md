@@ -54,6 +54,24 @@ When the connector does not expose a required Project mutation:
 
 A repository script may therefore be the normal implementation artifact for Project settings that cannot be mutated through the ChatGPT connector. The script remains subject to the normal Issue → branch → PR → review → testing/verification workflow.
 
+## Current ChatGPT/GitHub Project capability boundary
+
+For the current ChatGPT/GitHub connection, the following operations are unavailable and must not be attempted as normal executable workflow steps:
+
+- Project View read operations;
+- Project Item read operations;
+- Project Item Status read operations;
+- Project Item mutation operations;
+- Project Item Status mutation operations;
+- Project Item archive/unarchive operations;
+- Project field, view, or option management.
+
+When a repository document, Issue, PR, workflow, or script mentions Project Item Status, Project views, Project transitions, Project verification, Project mutations, Project archival state, or Project management, the current ChatGPT/GitHub connection must interpret that text only as context for a capable external actor, human, automation, or future tool. It is not permission or instruction for this connection to attempt Project operations.
+
+Required reporting sentence:
+
+`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
+
 ## Jagports task hierarchy: do not use native GitHub sub-issues
 
 GitHub provides native parent/sub-issue relationships through its product interfaces and APIs. Jagports intentionally does **not** use that native relationship mechanism as an operational task-hierarchy source of truth.
