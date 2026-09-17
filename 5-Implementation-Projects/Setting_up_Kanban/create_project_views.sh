@@ -55,7 +55,7 @@ PY
 )"
 
 read_views() {
-    gh api graphql -f query='query($organization:String!,$number:Int!){organization(login:$organization){projectV2(number:$number){views(first:50){nodes{id number name filter layout sortByFields(first:10){nodes{direction field{... on ProjectV2Field{name} ... on ProjectV2IterationField{name} ... on ProjectV2MultiSelectField{name} ... on ProjectV2SingleSelectField{name}}}}}}}}}}' -f organization="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" > "$TMP_DIR/views.json"
+    gh api graphql -f query='query($organization:String!,$number:Int!){organization(login:$organization){projectV2(number:$number){views(first:50){nodes{id number name filter layout sortByFields(first:10){nodes{direction field{... on ProjectV2Field{name} ... on ProjectV2IterationField{name} ... on ProjectV2MultiSelectField{name} ... on ProjectV2SingleSelectField{name}}}}}}}}}' -f organization="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" > "$TMP_DIR/views.json"
 }
 
 read_views
