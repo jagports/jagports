@@ -12,6 +12,8 @@ Current Project automation knowledge is maintained in `6-Development/github/Proj
 
 The current ChatGPT/GitHub Project capability boundary is maintained in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 
+Claude GitHub custom connector knowledge is maintained in `6-Development/Anthropic-Claude/CONNECTOR_CLAUDE_GITHUB.md`.
+
 ## OpenAI / ChatGPT GitHub Connection
 
 Official OpenAI reference:
@@ -95,14 +97,33 @@ The prohibition on native GitHub sub-issues above is a Jagports operating rule a
 
 For Jagports Project setup procedures, `6-Development/github/Projects/Setting_up_Kanban.md` remains the task-specific authority for Project semantics and verification.
 
-## Anthropic / Claude GitHub Custom Connector
+## Environment asymmetry
 
-Anthropic documentation currently describes GitHub as a custom connector path for Claude, with organization/admin configuration and repository indexing behavior that differs from ChatGPT's GitHub connection.
+The user's shell environment is not identical to the agent execution environment.
 
-For Jagports, treat Claude/GitHub connector behavior as separate external-agent environment knowledge. Do not infer ChatGPT connector capabilities from Claude connector documentation, and do not infer Claude connector capabilities from ChatGPT connector documentation.
+In Jagports work the user may run Windows Git Bash with a locally installed and authenticated GitHub CLI. That environment may support shell features, GitHub CLI commands, GraphQL operations, authentication scopes, or Project operations that are unavailable from the current agent container or connector.
 
-## Environment asymmetry rule
+Therefore:
 
-Different agent environments may expose different GitHub capabilities. A capability available in one environment is not automatically available in another.
+- absence of a command, shell feature, API surface, or permission in the agent environment is not evidence that it is unavailable in the user's shell;
+- do not remove or weaken a script solely because the agent cannot execute the same command locally;
+- validate syntax and logic against documented or user-verified capabilities and let the user's actual shell execution provide runtime evidence;
+- when execution differs, record the exact observed result and amend the script from evidence rather than assuming both environments behave identically.
 
-Before claiming or performing an operation, verify the specific environment, identity, permission, and tool capability being used.
+## Capability Transparency
+
+For any AI agent expected to perform an external GitHub action:
+
+- verify the GitHub account authorization;
+- verify that the agent connection exposes the required operation;
+- if the connector does not expose it, check whether a reviewed owner-run `gh`/GraphQL path is appropriate before falling back to manual UI work;
+- perform the operation through the available authorized capability;
+- independently verify the resulting GitHub state before claiming success.
+
+The native GitHub sub-issue prohibition above is an explicit exception: do not search for or use another execution path for that operation because Jagports does not use native sub-issues operationally.
+
+If another required operation is unavailable through every authorized execution path, report the verified limitation and identify the required next step.
+
+## Source Maintenance
+
+When OpenAI, Anthropic/Claude, GitHub, GitHub CLI, or relevant connector capabilities change, review this document against current official documentation and verified Jagports execution evidence, then update it through the normal Jagports Issue and Pull Request workflow.
