@@ -90,13 +90,15 @@ Within the applicable scope, inspect Issues and PRs for actionable exceptions in
 - Issue Priority, Project Rank, Project Status and work-plan consistency;
 - incorrect, missing or stale workstream/scope assignment where the combined Project uses a `Workstream` field;
 - incorrect, missing or stale information;
-- parent/sub-issue relationships and other required relationships;
+- explicit parent/child task relationships recorded in Issue bodies and other required relationships;
 - labels and documented workflow state;
 - linked PRs and review state;
 - stale, blocked or otherwise stalled work;
 - communication and documentation gaps;
 - violations of documented management, development, testing or communication processes;
 - missing agent communications, decisions, hand-offs, results or implementation traceability in the GitHub system of record.
+
+For Jagports task hierarchy, the parent Issue's child references and the child Issue's parent reference in Issue bodies are authoritative. Native GitHub sub-issue metadata is not required Jagports state. Do not create, repair, reorder, migrate, synchronize, or audit native GitHub sub-issue relationships. Historical native relationships may remain as legacy metadata and are not audit exceptions by themselves.
 
 Use repository, Issue, PR, review, implementation and testing evidence. Do not claim a check succeeded when the required evidence or access was unavailable.
 

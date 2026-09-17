@@ -5,7 +5,7 @@ set -e
 REPO="jagports/jagports"
 PROJECT_OWNER="jagports"
 PROJECT_NUMBER="9"
-TASK_FILE="5-Implementation-Projects/Setting_up_Kanban/Jagports_GitHub_Import_Task_List.md"
+TASK_FILE="6-Development/github/Projects/Jagports_GitHub_Import_Task_List.md"
 
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
@@ -13,6 +13,9 @@ cd "$ROOT"
 echo "Jagports AI OS Kanban import"
 echo "Repository: $REPO"
 echo "Project: $PROJECT_NUMBER"
+
+echo "Task hierarchy uses explicit parent/child references in Issue bodies."
+echo "Native GitHub sub-issue relationships are intentionally not created or repaired."
 
 if [ ! -f "$TASK_FILE" ]; then
     echo "Missing task file: $TASK_FILE"
@@ -28,9 +31,6 @@ PRIORITY_FIELD_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OW
 EXECUTOR_FIELD_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json | grep -B2 -A15 '"name":"Executor"' | grep '"id"' | head -1 | cut -d'"' -f4)
 
 echo "Project ID: $PROJECT_ID"
-
-declare -A ISSUE_IDS
-declare -A ISSUE_NUMBERS
 
 while read -r LINE
 do
@@ -129,39 +129,9 @@ mutation {
 }" >/dev/null
             fi
         fi
-
-        ISSUE_IDS[$PRIORITY]=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json id --jq '.id')
-        ISSUE_NUMBERS[$PRIORITY]=$ISSUE_NUMBER
-
     fi
-
 done < "$TASK_FILE"
 
 echo
-echo "Creating sub-issue relationships"
-
-for CHILD in "${!ISSUE_IDS[@]}"
-do
-    if [[ "$CHILD" =~ ^(P[0-9]+)\. ]]
-    then
-        PARENT="${BASH_REMATCH[1]}"
-
-        if [ -n "${ISSUE_IDS[$PARENT]}" ]
-        then
-            gh api graphql -f query="
-mutation {
- addSubIssue(input:{
- issueId:\"${ISSUE_IDS[$PARENT]}\",
- subIssueId:\"${ISSUE_IDS[$CHILD]}\"
- }) {
- issue { title }
- }
-}" >/dev/null || true
-
-            echo "$CHILD -> $PARENT"
-        fi
-    fi
-done
-
-echo
+echo "Native GitHub sub-issue creation intentionally skipped by Jagports policy."
 echo "Import complete"

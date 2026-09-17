@@ -20,11 +20,11 @@ implements the Kanban process, including:
 - `SKILL.md`
 - `KNOWLEDGE.md`
 - `0-DocumentationEducationCompetense/KANBAN_OPERATING_RULES.md`
-- `5-Implementation-Projects/Setting_up_Kanban/Setting_up_Kanban.md`
-- `5-Implementation-Projects/Setting_up_Kanban/Setting_up_Kanban.sh`
-- `5-Implementation-Projects/Setting_up_Kanban/fix_p1_and_verify.sh`
-- `5-Implementation-Projects/Setting_up_Kanban/fix_stranded_items.sh`
-- `5-Implementation-Projects/Setting_up_Kanban/import_jagports_tasks.sh`
+- `6-Development/github/Projects/Setting_up_Kanban.md`
+- `6-Development/github/Projects/Setting_up_Kanban.sh`
+- `6-Development/github/Projects/fix_p1_and_verify.sh`
+- `6-Development/github/Projects/fix_stranded_items.sh`
+- `6-Development/github/Projects/import_jagports_tasks.sh`
 - `docs/agents/AGENT_ROLES.md`
 - Issue #67, which prescribes the Issue → Project → workflow sequence
 - PR #65, which contains the related SKILL terminology correction

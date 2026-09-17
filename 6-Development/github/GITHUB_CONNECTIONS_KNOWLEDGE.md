@@ -1,4 +1,4 @@
-# AI Agent GitHub Connections Knowledge
+# GitHub Connections Knowledge
 
 ## Scope
 
@@ -48,6 +48,29 @@ When the connector does not expose a required Project mutation:
 
 A repository script may therefore be the normal implementation artifact for Project settings that cannot be mutated through the ChatGPT connector. The script remains subject to the normal Issue → branch → PR → review → testing/verification workflow.
 
+## Jagports task hierarchy: do not use native GitHub sub-issues
+
+GitHub provides native parent/sub-issue relationships through its product interfaces and APIs. Jagports intentionally does **not** use that native relationship mechanism as an operational task-hierarchy source of truth.
+
+The Jagports task-hierarchy source of truth is explicit Issue-body traceability:
+
+- a parent Issue lists its child task Issues in its body;
+- a child Issue identifies its parent Issue in its body;
+- identifiers such as P-number/title structure may help locate or cross-check work, but they are not sufficient by themselves to establish hierarchy.
+
+For Jagports work:
+
+- never create, add, remove, reorder, repair, migrate, synchronize, or otherwise mutate native GitHub sub-issue relationships;
+- never use REST, GraphQL, GitHub CLI, GitHub UI, connector-specific operations, or another fallback path to create or repair native sub-issue relationships;
+- never open work solely to reconcile native sub-issue metadata;
+- never audit native `parent_issue`, `sub_issues`, `sub_issues_summary`, or equivalent native hierarchy metadata as required Jagports state;
+- verify hierarchy from the explicit parent/child Issue-body references instead;
+- do not infer a parent solely from a title or priority prefix when the Issue-body relationship is absent or contradictory;
+- historical native sub-issue relationships may remain untouched as legacy metadata and must not be rewritten merely to normalize old records;
+- do not modify closed historical Issue bodies merely to retrofit the current hierarchy convention.
+
+This policy is intentional and is not a claim that GitHub lacks native sub-issue support. It prevents Jagports task hierarchy from depending on a relationship mechanism that has been inconsistently available to agents and was historically attempted by repository scripts, including paths that could suppress mutation failures. Explicit Issue-body relationships are portable, visible through ordinary Issue APIs, and already used by current Jagports task groups.
+
 ### Environment asymmetry
 
 The user's shell environment is not identical to the agent execution environment.
@@ -60,6 +83,8 @@ Therefore:
 - do not remove or weaken a script solely because the agent cannot execute the same command locally;
 - validate syntax and logic against documented or user-verified capabilities and let the user's actual shell execution provide runtime evidence;
 - when execution differs, record the exact observed result and amend the script from evidence rather than assuming both environments behave identically.
+
+The prohibition on native GitHub sub-issues above is a Jagports operating rule and therefore applies regardless of which environment happens to expose the native GitHub operation.
 
 For Jagports Project setup procedures, `5-Implementation-Projects/Setting_up_Kanban/Setting_up_Kanban.md` remains the task-specific authority for Project semantics and verification.
 
@@ -99,7 +124,9 @@ For any AI agent expected to perform an external GitHub action:
 - perform the operation through the available authorized capability;
 - independently verify the resulting GitHub state before claiming success.
 
-If the required operation is unavailable through every authorized execution path, report the verified limitation and identify the required next step.
+The native GitHub sub-issue prohibition above is an explicit exception: do not search for or use another execution path for that operation because Jagports does not use native sub-issues operationally.
+
+If another required operation is unavailable through every authorized execution path, report the verified limitation and identify the required next step.
 
 ## Source Maintenance
 
