@@ -119,6 +119,12 @@ Native GitHub parent/sub-issue metadata is not required Jagports state and must 
 
 This rule applies regardless of whether native sub-issue operations are exposed through REST, GraphQL, GitHub CLI, UI, connector, or future tooling.
 
+### Environment asymmetry
+
+Different agent environments may expose different GitHub capabilities. A capability available in one environment is not automatically available in another.
+
+Before claiming or performing an operation, verify the specific environment, identity, permission, and tool capability being used.
+
 ## GitHub Project / Kanban Operations
 
 Do not duplicate GitHub Project/Kanban lifecycle rules in this file.
