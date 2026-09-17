@@ -1,0 +1,56 @@
+name: Configure Project Views
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+
+jobs:
+  configure-ai-os-view:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure AI OS Project view
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+
+          VIEW_QUERY='query($org:String!,$number:Int!){organization(login:$org){projectV2(number:$number){views(first:50){nodes{name filter layout sortByFields(first:10){nodes{direction field{... on ProjectV2Field{name}}}}}}}}}'
+
+          before="$(gh api graphql -f query="$VIEW_QUERY" -f org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          existing_count="$(jq '[.data.organization.projectV2.views.nodes[]? | select(.name=="AI OS")] | length' <<<"$before")"
+          [ "$existing_count" -le 1 ] || { echo "Multiple AI OS views already exist."; false; }
+
+          fields="$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "orgs/$PROJECT_ORG/projectsV2/$PROJECT_NUMBER/fields?per_page=100")"
+          rank_id="$(jq -r '[.[] | select(.name=="Rank" and .data_type=="number") | .id] | if length==1 then .[0] else empty end' <<<"$fields")"
+          [ -n "$rank_id" ] || { echo "Expected exactly one numeric Rank field."; false; }
+
+          if [ "$existing_count" -eq 0 ]; then
+            payload="$(jq -cn --argjson rank_id "$rank_id" '{name:"AI OS",layout:"table",filter:"Workstream:\"AI OS\"",sort_by:[[$rank_id,"asc"]]}')"
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              "orgs/$PROJECT_ORG/projectsV2/$PROJECT_NUMBER/views" \
+              --input - <<<"$payload" >/dev/null
+          fi
+
+          after="$(gh api graphql -f query="$VIEW_QUERY" -f org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          ai_os_view="$(jq -c '[.data.organization.projectV2.views.nodes[]? | select(.name=="AI OS")]' <<<"$after")"
+
+          [ "$(jq 'length' <<<"$ai_os_view")" -eq 1 ] || { echo "Expected exactly one AI OS view after configuration."; false; }
+          [ "$(jq -r '.[0].filter // empty' <<<"$ai_os_view")" = 'Workstream:"AI OS"' ] || { echo "AI OS view filter is not the required Workstream filter."; false; }
+          jq -e '.[0].sortByFields.nodes | length==1 and .[0].direction=="ASC" and .[0].field.name=="Rank"' <<<"$ai_os_view" >/dev/null || { echo "AI OS view is not sorted by Rank ascending."; false; }
+
+          echo "PASS: AI OS view exists with Workstream=AI OS and Rank ascending."
