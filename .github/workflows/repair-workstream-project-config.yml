@@ -1,0 +1,56 @@
+name: Repair Workstream Project Configuration
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+  PROJECT_TITLE: Jagports AI OS
+  WORKSTREAM_FIELD_NAME: Workstream
+
+jobs:
+  repair-workstream:
+    if: github.event.pull_request.number == 732
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore exactly AI OS and VIEPS Workstream options
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+
+          QUERY='query($org:String!, $number:Int!) { organization(login:$org) { projectV2(number:$number) { id title fields(first:100) { nodes { __typename ... on ProjectV2SingleSelectField { id name options { id name color description } } } } } } }'
+          project_json="$(gh api graphql -f query="$QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+          project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
+          [ -n "$project_id" ] || { echo "Project not found."; false; }
+          [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
+
+          fields="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
+          [ "$(jq 'length' <<<"$fields")" -eq 1 ] || { echo "Expected exactly one Workstream field."; false; }
+          field_id="$(jq -r '.[0].id' <<<"$fields")"
+
+          options_json="$(jq -c '
+            (.[0].options | map(select(.name == "AI OS" or .name == "VIEPS") | {id:.id,name:.name,color:.color,description:(.description // "")})) as $kept |
+            ($kept | map(.name)) as $names |
+            $kept
+            + (if ($names | index("AI OS")) == null then [{name:"AI OS",color:"BLUE",description:"Jagports AI OS management, architecture and infrastructure"}] else [] end)
+            + (if ($names | index("VIEPS")) == null then [{name:"VIEPS",color:"GREEN",description:"VIEPS application and product work"}] else [] end)
+          ' <<<"$fields")"
+
+          UPDATE='mutation($fieldId:ID!, $options:[ProjectV2SingleSelectFieldOptionInput!]) { updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}) { projectV2Field { ... on ProjectV2SingleSelectField { id name options { id name } } } } }'
+          request_json="$(jq -n --arg query "$UPDATE" --arg fieldId "$field_id" --argjson options "$options_json" '{query:$query,variables:{fieldId:$fieldId,options:$options}}')"
+          printf '%s' "$request_json" | gh api graphql --input - >/dev/null
+
+          verify="$(gh api graphql -f query="$QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          verify_fields="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$verify")"
+          [ "$(jq 'length' <<<"$verify_fields")" -eq 1 ] || { echo "Verification failed: Workstream field count."; false; }
+          [ "$(jq -c '[.[0].options[]?.name] | sort' <<<"$verify_fields")" = '["AI OS","VIEPS"]' ] || { echo "Verification failed: Workstream options are not exactly AI OS and VIEPS."; false; }
+          echo "PASS: Project Workstream options are exactly AI OS and VIEPS."
