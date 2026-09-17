@@ -6,11 +6,11 @@ This file is the **top-level canonical normative source** for Jagports Managemen
 
 It defines workflow states, transitions, decision precedence, gates, invariants, Issue/PR discovery and historical-work handling, review boundaries, record-integrity rules, and the boundaries between general Management workflow and scoped workflow documents.
 
-Project/Kanban-specific workflow behavior is defined in `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` and is incorporated here by reference.
+Project/Kanban-specific workflow behavior is defined in `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and is incorporated here by reference.
 
 Other documents may explain, implement, or reference these workflows, but must not independently redefine them:
 
-- `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` — incorporated by reference for GitHub Project/Kanban workflow behavior.
+- `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` — incorporated by reference for GitHub Project/Kanban workflow behavior.
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
 - `00-Management/RULES.md` — human-readable governance and rationale.
@@ -30,7 +30,7 @@ The normal Management lifecycle is:
 
 `BLOCKED` may be entered from any state when a required prerequisite prevents progress. The previous state must remain identifiable in the task record.
 
-Project/Kanban state representation, Project Item Status behavior, Pull Request Project Item behavior, and Product Owner Project rulings are delegated to `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md`.
+Project/Kanban state representation, Project Item Status behavior, Pull Request Project Item behavior, and Product Owner Project rulings are delegated to `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 
 ---
 
@@ -75,7 +75,7 @@ Requirements:
 2. Work occurs on a dedicated branch; never modify `main` directly.
 3. A PR is the integration path.
 4. The PR must explicitly trace to every Issue it implements/resolves.
-5. Required Project/Kanban behavior is governed by `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md`.
+5. Required Project/Kanban behavior is governed by `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 6. Current ChatGPT/GitHub Project capability limits are governed by `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 7. Required review and testing gates must pass before merge.
 8. The executor must stop at the review boundary when review is required.
@@ -88,7 +88,7 @@ A direct-main change is a process violation and requires corrective handling rat
 
 ## 4. GitHub Project / Kanban workflow reference
 
-Project/Kanban-specific workflow rules are defined in **`6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md`**, incorporated by reference.
+Project/Kanban-specific workflow rules are defined in **`6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`**, incorporated by reference.
 
 Current ChatGPT/GitHub Project capability limits are defined in **`6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`**.
 
@@ -179,7 +179,7 @@ When an active Issue or PR materially changes scope, align its title with the cu
 If documents disagree about a Management workflow:
 
 1. `00-Management/WORKFLOWS.md` is the top-level normative workflow authority.
-2. `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` is the scoped Project/Kanban workflow source incorporated by reference from this file.
+2. `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` is the scoped Project/Kanban workflow source incorporated by reference from this file.
 3. `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` defines the current ChatGPT/GitHub Project capability boundary.
 4. `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` contains GitHub connection and environment knowledge.
 5. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
@@ -189,4 +189,4 @@ If documents disagree about a Management workflow:
 
 A conflict in a secondary document is a process defect: raise an Issue to correct it rather than silently accepting or bypassing the contradiction.
 
-If `WORKFLOWS.md` and `WORKFLOWS_GITHUB_PROJECT.md` disagree on a general workflow boundary, `WORKFLOWS.md` controls. Within the delegated Project/Kanban scope, `WORKFLOWS_GITHUB_PROJECT.md` controls the detailed Project behavior.
+If `WORKFLOWS.md` and `GITHUB_PROJECT_WORKFLOWS.md` disagree on a general workflow boundary, `WORKFLOWS.md` controls. Within the delegated Project/Kanban scope, `GITHUB_PROJECT_WORKFLOWS.md` controls the detailed Project behavior.
