@@ -222,22 +222,32 @@ When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless ano
 
 ### Pull Request Project Item lifecycle
 
-A Pull Request that belongs to active Jagports work is represented by its own Project Item so that the Kanban shows the concrete integration artifact as well as the owning Issue. The Pull Request Project Item must use the same controlled workflow meanings defined above; Pull Request events do not create a parallel lifecycle.
+A Pull Request that belongs to Jagports work may be represented by its own Project Item so that the Kanban shows the concrete integration artifact as well as the owning Issue. The Pull Request Project Item must use the same controlled workflow meanings defined above; Pull Request events do not create a parallel lifecycle.
+
+**Product Owner ruling — no Pull Request Project Item archiving:** No Pull Request Project Item shall ever be archived until further notice. This rule applies to open, merged, and closed-unmerged Pull Requests and supersedes every earlier workflow, implementation, test expectation, or audit rule that required or permitted archiving a Pull Request Project Item. A later change requires a new explicit Product Owner ruling.
+
+Consequences of this ruling:
+
+- every existing or newly created Pull Request Project Item must remain `isArchived = false`;
+- a historical archived Pull Request Project Item is lifecycle drift and must be unarchived when an authorized correction is performed;
+- automation must never use `archiveProjectV2Item` for Pull Request Project Items;
+- unresolved Workstream must fail closed without guessing and without hiding the Pull Request Project Item through archiving;
+- audit/verification logic must treat any archived Pull Request Project Item as incorrect state.
 
 The Pull Request Project Item follows these deterministic rules:
 
-1. **Opened** → add the Pull Request itself to the Project. While implementation is still being produced or the independent review hand-off has not occurred, set the Pull Request Project Item Status to `IMPLEMENTATION`, whether the Pull Request is draft or non-draft.
+1. **Opened** → add the Pull Request itself to the Project only when the required ownership/Workstream evidence is deterministic. While implementation is still being produced or the independent review hand-off has not occurred, set the Pull Request Project Item Status to `IMPLEMENTATION`, whether the Pull Request is draft or non-draft.
 2. **Converted to draft** → set the Pull Request Project Item Status to `IMPLEMENTATION`. Draft state is evidence that the integration artifact is not currently at the independent-review boundary; it does not move repository work backwards to `RESEARCH`.
 3. **Marked ready for review / opened non-draft** → being non-draft is a prerequisite for review but does not by itself establish `REVIEW`. Keep `IMPLEMENTATION` until the canonical review hand-off in Section 5 has been completed and verified.
 4. **Independent review requested** → after the PR is open, non-draft, the authorized independent reviewer has been selected, and the native GitHub review request has been made, set the Pull Request Project Item Status to `REVIEW`, verify it, and stop implementation at the canonical review boundary.
 5. **Review request removed or Pull Request returned to active implementation** → return the Pull Request Project Item Status to `IMPLEMENTATION` when the canonical review hand-off no longer applies and implementation work resumes.
-6. **Reopened** → inspect the current PR and review-handoff state. Use `IMPLEMENTATION` unless the canonical independent review hand-off has been re-established and verified; only then use `REVIEW`.
-7. **Merged** → after the required review/testing/merge gates have passed, set the Pull Request Project Item Status to `DONE`, independently verify `DONE`, and then archive the Pull Request Project Item. Archiving must not erase Issue↔PR traceability.
-8. **Closed without merge** → closing the Pull Request is a terminal lifecycle event for that Pull Request Project Item. Set the Pull Request Project Item Status to `DONE`, independently verify `DONE`, and then archive the item. `DONE` here means no further work is expected on this Pull Request; it does **not** mean the proposed implementation was merged or successfully integrated. GitHub's native Pull Request state and the durable closure/supersession record preserve whether the terminal outcome was obsolete, superseded, abandoned, rejected, or otherwise closed without merge. The owning Issue determines whether the underlying work remains active, is replaced by another Pull Request, becomes blocked, or is otherwise resolved.
+6. **Reopened** → inspect the current PR and review-handoff state. Use `IMPLEMENTATION` unless the canonical independent review hand-off has been re-established and verified; only then use `REVIEW`. If a historical PR Project Item is archived, unarchive and independently verify it before applying the active lifecycle state.
+7. **Merged** → after the required review/testing/merge gates have passed, set the Pull Request Project Item Status to `DONE`, independently verify `DONE`, and independently verify `isArchived = false`. The item remains visible/unarchived.
+8. **Closed without merge** → closing the Pull Request is a terminal lifecycle event for that Pull Request Project Item. Set the Pull Request Project Item Status to `DONE`, independently verify `DONE`, and independently verify `isArchived = false`. `DONE` here means no further work is expected on this Pull Request; it does **not** mean the proposed implementation was merged or successfully integrated. GitHub's native Pull Request state and the durable closure/supersession record preserve whether the terminal outcome was obsolete, superseded, abandoned, rejected, or otherwise closed without merge. The owning Issue determines whether the underlying work remains active, is replaced by another Pull Request, becomes blocked, or is otherwise resolved.
 
 For Pull Request Project Items, `DONE` is therefore a terminal-lifecycle state, not a synonym for successful merge. Successful integration is established by the Pull Request's native merged state together with the required review/testing/merge gates; terminal closure without merge remains distinguishable in GitHub history.
 
-Every Pull Request Project Item add, Status change, or archive operation follows the same **MUTATE → VERIFY** rule. Automation must verify that the resulting Project Item contains the intended Pull Request, belongs to the intended Project, has the expected archive state, and has the exact expected Status before success is claimed.
+Every Pull Request Project Item add, unarchive, or Status change follows the same **MUTATE → VERIFY** rule. Automation must verify that the resulting Project Item contains the intended Pull Request, belongs to the intended Project, remains unarchived, and has the exact expected Status before success is claimed. An archive mutation is prohibited for Pull Request Project Items under the current ruling.
 
 The Pull Request Project Item lifecycle does not replace the owning Issue lifecycle. In particular, a qualifying closing-linked Pull Request may synchronize the owning Issue to `IMPLEMENTATION`, while the Pull Request's own Project Item also remains `IMPLEMENTATION` until the Section 5 review hand-off. At the verified review boundary, the applicable Project Item or Items transition to `REVIEW` according to the canonical review rules; the two items continue to represent different objects.
 
