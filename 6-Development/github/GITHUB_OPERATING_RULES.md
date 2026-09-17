@@ -8,7 +8,7 @@ It covers GitHub Issues, Pull Requests, reviews, testing evidence, comments, Iss
 
 It does **not** define the Management workflow state machine. The single canonical normative source for workflow states, transitions, gates, and workflow invariants is:
 
-`00-Management/WORKFLOWS.md`
+`../../00-Management/WORKFLOWS.md`
 
 **Core rule: GitHub operating rules are defined once; workflow semantics are defined once in WORKFLOWS.md.**
 
@@ -84,7 +84,7 @@ Important decisions must not exist only in private chat. If a decision is made o
 
 ### 2.2 Issue Creation
 
-Create or reuse an Issue according to the discovery and historical-work rules in `WORKFLOWS.md`.
+Create or reuse an Issue according to the discovery and historical-work rules in `../../00-Management/WORKFLOWS.md`.
 
 An Issue should contain enough information to understand:
 
@@ -98,7 +98,7 @@ An Issue should contain enough information to understand:
 - required decision or approval
 - acceptance criteria where applicable
 
-Do not create duplicate Issues when an existing open or historically completed record already satisfies the request. Apply the discovery rules in `WORKFLOWS.md`.
+Do not create duplicate Issues when an existing open or historically completed record already satisfies the request. Apply the discovery rules in `../../00-Management/WORKFLOWS.md`.
 
 ### 2.3 Priority, Rank and Status ownership
 
@@ -109,7 +109,7 @@ When priority is in use:
 - the organization-level native Issue field **`Priority`** is the authoritative current priority for the Issue;
 - the supported current values are `Urgent`, `High`, `Medium`, and `Low`;
 - exact execution order inside a particular Project/backlog is stored in that Project's numeric **`Rank`** field;
-- workflow phase inside a Project is stored in that Project's **`Status`** field and follows `WORKFLOWS.md`;
+- workflow phase inside a Project is stored in that Project's **`Status`** field and follows `../../00-Management/WORKFLOWS.md`;
 - scoring comments and P0...P5 review bands are decision evidence and automation inputs, not competing live priority fields.
 
 Rank is scoped to a Project/backlog. The same Issue may legitimately have different ranks in different Project scopes. Lower Rank numbers execute earlier; `1` is the highest-ranked active item.
@@ -147,7 +147,7 @@ A rejected proposal must not silently continue as approved work.
 
 Record material dependencies and risks in the relevant Issue and/or configured Project information when such Project editing is explicitly authorized and available.
 
-If a dependency prevents progress, use the workflow state required by `WORKFLOWS.md` and document the blocker, impact, required resolution, and responsible party where known.
+If a dependency prevents progress, use the workflow state required by `../../00-Management/WORKFLOWS.md` and document the blocker, impact, required resolution, and responsible party where known.
 
 Do not invent alternative workflow states in an Issue.
 
@@ -155,9 +155,23 @@ Do not invent alternative workflow states in an Issue.
 
 Closing an Issue is not merely an administrative action.
 
-Before closure, verify the completion obligations defined by `WORKFLOWS.md` and the Issue itself, including implementation, review, testing, merge, and acceptance where applicable.
+Before closure, verify the completion obligations defined by `../../00-Management/WORKFLOWS.md` and the Issue itself, including implementation, review, testing, merge, and acceptance where applicable.
 
 A merged PR does not by itself prove that the Issue is complete.
+
+### 2.8 Jagports task hierarchy: do not use native GitHub sub-issues
+
+Do **not** use native GitHub sub-issues for Jagports AI OS or VIEPS task hierarchy.
+
+Jagports hierarchy is documented in durable Issue-body traceability instead:
+
+- the parent Issue lists its child task Issues in the Issue body;
+- each child Issue identifies its parent Issue in the Issue body;
+- comments may add traceability evidence, but the Issue body is the durable hierarchy location for active records.
+
+Native GitHub parent/sub-issue metadata is not required Jagports state and must not be created, repaired, synchronized, or treated as the source of truth by agents.
+
+This rule applies regardless of whether native sub-issue operations are exposed through REST, GraphQL, GitHub CLI, UI, connector, or future tooling.
 
 ---
 
@@ -165,7 +179,7 @@ A merged PR does not by itself prove that the Issue is complete.
 
 ### 3.1 PR as the Integration Record
 
-Repository changes must use a Pull Request as the normal integration path, as required by `WORKFLOWS.md`.
+Repository changes must use a Pull Request as the normal integration path, as required by `../../00-Management/WORKFLOWS.md`.
 
 A PR must maintain explicit traceability to every Issue it implements or resolves.
 
@@ -190,7 +204,7 @@ A PR should identify, where applicable:
 
 When review is required, the PR is the formal review hand-off mechanism.
 
-The executing actor must stop at the review boundary defined by `WORKFLOWS.md` and must not merge its own implementation merely because GitHub reports the PR as mergeable.
+The executing actor must stop at the review boundary defined by `../../00-Management/WORKFLOWS.md` and must not merge its own implementation merely because GitHub reports the PR as mergeable.
 
 Do not invent a separate PR workflow status. Use the canonical workflow state and GitHub's native PR review mechanism.
 
@@ -221,15 +235,53 @@ GitHub review outcomes are authoritative evidence of the reviewer's action:
 
 Do not infer approval from a notification, comment, or review request alone.
 
-The workflow consequences of these outcomes are defined in `WORKFLOWS.md`.
+The workflow consequences of these outcomes are defined in `../../00-Management/WORKFLOWS.md`.
 
-### 3.6 Review Comments
+### 3.6 Review Comments and Conversations
 
 The reviewer who submitted a review is the normal authority for resolving comments belonging to that review.
 
 The PR executor, PR author, or another non-reviewer must not resolve those review comments on the reviewer's behalf.
 
 When changes are requested, the executor may implement the requested changes and reply to the review comments, but should leave the reviewer's comments unresolved for the reviewer to resolve after verification.
+
+For human-facing Jagports documentation and communication, use GitHub UI vocabulary:
+
+- **Review conversation** is the preferred term for an inline Pull Request review discussion.
+- Use **Unresolved Review conversation** and **Resolved Review conversation** when describing its state.
+- Reserve **review thread** or **review thread object** for GitHub API, GraphQL, or tool implementation details.
+- When a tool/API returns a review-thread object, translate that implementation vocabulary to **Review conversation** before reporting the state to a human.
+- The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
+
+Review discussion and formal review submission are distinct. A finding that needs maker/executor interaction before the formal review outcome must be communicated through an immediately visible channel.
+
+A GitHub `PENDING` review is only a draft review. Line-level and file-level comments created inside the normal pending-review flow remain part of that pending review and are visible only to the reviewer until submission. Therefore `line comment` or `file comment` alone does not mean the comment is immediately visible.
+
+When anchored diff discussion is needed before formal review submission, prefer a standalone submitted PR review comment created directly through the review-comment mechanism/API/tool when that mechanism supports immediate submission without holding a `PENDING` review.
+
+If standalone anchored submission is unavailable in the current UI/tool, use an immediately visible top-level PR Conversation comment and include direct file/line links where needed for precise implementation context.
+
+The maker/executor may reply to visible review discussion and implement requested changes before a formal `APPROVE`, `REQUEST_CHANGES`, or `COMMENT` review outcome has been submitted. Such replies and changes are not approval.
+
+The reviewer must verify the maker/executor response and resulting implementation before treating the underlying concern as completed.
+
+An anchored submitted diff/line Review conversation may become GitHub `outdated` when a later commit changes the referenced code. `outdated` is a diff-state signal only; it does not prove that the underlying review concern was satisfied.
+
+If a Review conversation becomes `outdated`, the reviewer must determine whether the concern was actually addressed, remains applicable elsewhere, or no longer applies before considering it complete.
+
+A formal review should not normally be submitted while an actionable Review conversation from that review round remains unresolved. When discussion establishes an unresolved blocking concern, continue the Review conversation or submit `REQUEST_CHANGES`; do not submit `APPROVE`.
+
+GitHub formal review outcomes (`APPROVE`, `REQUEST_CHANGES`, or `COMMENT`) determine the submitted review result; approval must not be inferred from a notification, discussion comment, reply, implementation change, Resolved Review conversation state, outdated state, checkbox state, or inactivity.
+
+The reviewer who owns a review concern is the only actor authorized to resolve that concern on the reviewer's behalf. The PR executor, PR author, or any other non-reviewer must not resolve it. The repository/project owner or another explicitly designated human authority is an exception and may resolve it when exercising that authority.
+
+When review changes are requested, the executor may implement the requested changes, update executor-controlled checkbox state to reflect the actual implementation state, and reply to the relevant Review conversation, but must leave reviewer-owned concerns unresolved for the reviewer to verify and resolve.
+
+Every reply to a review comment that reports implementation of a requested change must state what was changed to comply and include a direct, line-specific GitHub link to the actual implementation lines. Prefer a stable commit-pinned `blob/<commit>/<path>#Lx-Ly` link to the resulting lines; where GitHub provides an equivalent direct PR diff/review location that visibly identifies the changed lines, that may be used instead. A PR-level or file-level link alone is insufficient when a specific line link can be provided.
+
+The executor must establish the exact changed file and resulting line range before posting the reply. If the implementation spans multiple distinct line ranges, include a direct line-specific link for each relevant range. Do not claim line-specific implementation evidence until the link has been checked to lead to the intended changed lines.
+
+The line-specific implementation reply is evidence for reviewer verification; it does not resolve the Review conversation and does not satisfy the formal review approval gate by itself. The reviewer remains responsible for verification and resolution under the existing authority rule.
 
 ### 3.7 Specialist Technical and Security Review Gate
 
@@ -313,7 +365,7 @@ Prefer existing repository-native or free-tier GitHub validation where it is suf
 
 ### 3.9 Testing Evidence
 
-Required testing must be performed according to `WORKFLOWS.md`.
+Required testing must be performed according to `../../00-Management/WORKFLOWS.md`.
 
 A required pre-merge test must use the PR branch/current implementation being proposed for merge and must record sufficient evidence to establish:
 
@@ -335,7 +387,29 @@ Required review, testing, approval, and other gates must be satisfied before mer
 
 All review comments must be resolved in addition to `Review Approved` before merge is allowed.
 
-After merge, verify the resulting repository state and update the relevant work record as required by `WORKFLOWS.md`.
+Before any merge operation, the executing actor must perform a fresh, independent review-state check for the target PR. This check is a hard precondition for invoking the merge operation; GitHub's technical `mergeable` result is not a substitute.
+
+The check must:
+
+1. Read the PR's current review submissions immediately before merge.
+2. Determine the effective review state from the review history, including whether a later review supersedes an earlier review.
+3. Treat `CHANGES_REQUESTED` / `REQUEST_CHANGES` as a blocking state. **STOP — DO NOT MERGE.**
+4. Never allow an earlier `APPROVED` review to satisfy the gate when a later blocking review exists.
+5. Verify all applicable Issue Acceptance checkboxes are `[x]`.
+6. Verify all required PR checklist checkboxes are `[x]`.
+7. Verify required tests are `PASS`.
+8. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
+9. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
+10. Permit merge only when the current review gate is independently verified as passed and all checkbox/testing gates have passed.
+11. If any required state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE**.
+
+Required decision rule:
+
+`Issue Acceptance all [x] + PR required checklist all [x] + required tests PASS + independent review APPROVED → merge permitted`
+
+This rule applies regardless of whether the requested change is large, small, documentary, mechanical, or apparently implied by the review comment.
+
+After merge, verify the resulting repository state and update the relevant work record as required by `../../00-Management/WORKFLOWS.md`.
 
 ---
 
@@ -344,6 +418,10 @@ After merge, verify the resulting repository state and update the relevant work 
 The GitHub Project provides the Kanban representation of work and Project-scoped structured information.
 
 The Project is not a replacement for the Issue work record or organization-level Issue fields.
+
+Detailed Project/Kanban workflow behavior is defined in `Projects/GITHUB_PROJECT_WORKFLOWS.md`.
+
+The current ChatGPT/GitHub Project capability boundary is defined in `Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 
 ### 4.1 Project and Issue-field mutation capability
 
@@ -372,7 +450,7 @@ Project view/configuration mutations remain prohibited to ordinary agents unless
 
 This document does not define workflow states or transitions.
 
-Use `WORKFLOWS.md` for:
+Use `../../00-Management/WORKFLOWS.md` for:
 
 - valid states
 - transition rules
@@ -386,7 +464,7 @@ Use `WORKFLOWS.md` for:
 
 ### 4.3 Project Item Status Execution and Consistency
 
-`WORKFLOWS.md` remains authoritative for when a workflow state is required. This section defines only how the corresponding GitHub Project Item Status operation is owned and checked.
+`../../00-Management/WORKFLOWS.md` remains authoritative for when a workflow state is required. This section defines only how the corresponding GitHub Project Item Status operation is owned and checked.
 
 Current verified mechanisms are:
 
@@ -437,6 +515,8 @@ Maintain the traceability chain:
 
 Historical references used to justify active work should be explicitly linked in the active record.
 
+When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
+
 ---
 
 ## 6. Record Integrity and Historical Records
@@ -451,7 +531,7 @@ Open Issue or PR titles may be changed when scope materially changes; GitHub's e
 
 Do not copy historical descriptions or comments into current documents merely to create an archive. Link to the historical record instead.
 
-Historical records may be used as evidence when applying the discovery and historical-work rules in `WORKFLOWS.md`.
+Historical records may be used as evidence when applying the discovery and historical-work rules in `../../00-Management/WORKFLOWS.md`.
 
 ---
 
@@ -475,12 +555,12 @@ Do not create a second unofficial enum or duplicate live field where an authorit
 
 If GitHub operating guidance conflicts with workflow semantics:
 
-1. `00-Management/WORKFLOWS.md` is authoritative for Management workflows.
+1. `../../00-Management/WORKFLOWS.md` is authoritative for Management workflows.
 2. This `GITHUB_OPERATING_RULES.md` is authoritative for GitHub record operation and GitHub-specific handling.
-3. `00-Management/RULES.md` provides governance and rationale and must not redefine workflow semantics.
-4. `SKILL.md` provides agent execution instructions and must implement/reference, not redefine, workflow semantics.
+3. `../../00-Management/RULES.md` provides governance and rationale and must not redefine workflow semantics.
+4. `../../0-DocumentationEducationCompetense/SKILL.md` provides agent execution instructions and must implement/reference, not redefine, workflow semantics.
 5. `.codex/skills/*` provides specialized procedures and must implement/reference the canonical workflow.
-6. `KNOWLEDGE.md` contains durable knowledge and is not workflow authority.
+6. `../../KNOWLEDGE.md` contains durable knowledge and is not workflow authority.
 
 A contradiction in a secondary document is a process defect and should be raised as an Issue rather than silently bypassed.
 
@@ -497,7 +577,7 @@ A contradiction in a secondary document is a process defect and should be raised
 - Direct connector inability to mutate Project Items does not prohibit an independently reviewed and verified GitHub Actions workflow from doing so within its documented authority.
 - Use repository-owned Project automation only where an authoritative workflow assigns it, and claim success only after the automation's independent verification/read-back succeeds.
 
-If a required GitHub operation is unavailable, follow the current capability-alert wording defined by `WORKFLOWS.md` and applicable agent instructions.
+If a required GitHub operation is unavailable, follow the current capability-alert wording defined by `../../00-Management/WORKFLOWS.md` and applicable agent instructions.
 
 ---
 
@@ -507,7 +587,7 @@ GitHub Issues and Pull Requests are durable work records, not disposable chat co
 
 Native Issue fields hold organization-wide Issue metadata such as Priority. Project fields hold Project-scoped workflow and queue information such as Status and Rank.
 
-`WORKFLOWS.md` defines how work moves.
+`../../00-Management/WORKFLOWS.md` defines how work moves.
 
 `GITHUB_OPERATING_RULES.md` defines how the GitHub records and fields used by that work are operated.
 

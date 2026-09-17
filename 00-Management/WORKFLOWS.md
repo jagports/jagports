@@ -6,11 +6,13 @@ This file is the **top-level canonical normative source** for Jagports Managemen
 
 It defines workflow states, transitions, decision precedence, gates, invariants, Issue/PR discovery and historical-work handling, review boundaries, record-integrity rules, and the boundaries between general Management workflow and scoped workflow documents.
 
-Project/Kanban-specific workflow behavior is defined in `00-Management/WORKFLOW_GITHUB_PROJECT.md` and is incorporated here by reference.
+Project/Kanban-specific workflow behavior is defined in `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and is incorporated here by reference.
 
 Other documents may explain, implement, or reference these workflows, but must not independently redefine them:
 
-- `00-Management/WORKFLOW_GITHUB_PROJECT.md` — incorporated by reference.
+- `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` — incorporated by reference for GitHub Project/Kanban workflow behavior.
+- `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
+- `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
 - `00-Management/RULES.md` — human-readable governance and rationale.
 - `SKILL.md` — machine/agent execution instructions.
 - `.codex/skills/*` — specialized operational instructions.
@@ -28,22 +30,7 @@ The normal Management lifecycle is:
 
 `BLOCKED` may be entered from any state when a required prerequisite prevents progress. The previous state must remain identifiable in the task record.
 
-### State meaning
-
-| State | Meaning |
-|---|---|
-| `BACKLOG` | Valid active work exists but substantive work has not started. |
-| `RESEARCH` | Facts, existing work, dependencies, or implementation options are being investigated. |
-| `PROPOSED` | A concrete solution or implementation approach has been prepared. |
-| `DECISION NEEDED` | Human/authorized decision-maker judgment is required before proceeding. |
-| `APPROVED` | Required decision/approval has been obtained and implementation may proceed. |
-| `IMPLEMENTATION` | The approved work is actively being produced as repository artifacts, including code, configuration, documentation, data, migrations, tests, workflows, or other committed deliverables. |
-| `REVIEW` | Implementation is complete enough for required review; implementation stops at this boundary. |
-| `TESTING` | Required validation is being executed. |
-| `DONE` | The represented work item or integration artifact has reached a verified terminal lifecycle state and no further work is expected on that item. For successful implementation, required review/testing/merge/closure obligations still apply; PR-specific terminal closure without merge is governed by `00-Management/WORKFLOW_GITHUB_PROJECT.md` and does not imply successful integration. |
-| `BLOCKED` | A prerequisite or capability prevents the next required transition. |
-
-A state is not established merely by an Issue comment. When the work is represented in GitHub Project, the Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified according to `00-Management/WORKFLOW_GITHUB_PROJECT.md`.
+Project/Kanban state representation, Project Item Status behavior, Pull Request Project Item behavior, Product Owner Project rulings, and Project/Kanban state meanings are delegated to `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 
 ---
 
@@ -126,7 +113,7 @@ INPUT: work_request
           +--> NO --> continue only where explicitly permitted by workflow
 ```
 
-### Rules
+Rules:
 
 1. If an Issue/PR is explicitly supplied, validate it and use it as the starting work identity unless it is invalid or the requested scope is incompatible.
 2. Without an explicit reference, initially treat the request as potentially novel; do not immediately create work.
@@ -153,7 +140,7 @@ INPUT: work_request
 
 Every repository modification follows:
 
-**Issue → dedicated branch → implementation → PR → Project state verification → review → testing → approval/merge → post-merge verification → Issue closure → DONE**
+**Issue → dedicated branch → implementation → PR → review → testing → approval/merge → post-merge verification → Issue closure → DONE**
 
 Requirements:
 
@@ -161,11 +148,12 @@ Requirements:
 2. Work occurs on a dedicated branch; never modify `main` directly.
 3. A PR is the integration path.
 4. The PR must explicitly trace to every Issue it implements/resolves.
-5. Required Project Item Status transitions must be performed and independently verified according to `00-Management/WORKFLOW_GITHUB_PROJECT.md`.
-6. Required review and testing gates must pass before merge.
-7. The executor must stop at the review boundary when review is required.
-8. No actor may merge merely because GitHub reports a PR as mergeable.
-9. After merge, verify repository, PR, Issue, and Project state.
+5. Required Project/Kanban behavior is governed by `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
+6. Current ChatGPT/GitHub Project capability limits are governed by `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
+7. Required review and testing gates must pass before merge.
+8. The executor must stop at the review boundary when review is required.
+9. No actor may merge merely because GitHub reports a PR as mergeable.
+10. After merge, verify repository, PR, Issue, review, testing, and other available evidence. Do not claim unavailable Project evidence.
 
 A direct-main change is a process violation and requires corrective handling rather than acceptance as normal work.
 
@@ -173,7 +161,9 @@ A direct-main change is a process violation and requires corrective handling rat
 
 ## 4. GitHub Project / Kanban workflow reference
 
-Project/Kanban-specific workflow rules are defined in **`00-Management/WORKFLOW_GITHUB_PROJECT.md`**, incorporated by reference.
+Project/Kanban-specific workflow rules are defined in **`6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`**, incorporated by reference.
+
+Current ChatGPT/GitHub Project capability limits are defined in **`6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`**.
 
 Do not duplicate those rules in this file.
 
@@ -181,9 +171,9 @@ Do not duplicate those rules in this file.
 
 ## 5. Review, Testing, Acceptance, and Merge Boundary
 
-When review is required, use GitHub's native pull-request review mechanism as the hand-off mechanism. Do **not** invent a separate GitHub PR status such as "Waiting for Review".
+When review is required, use GitHub's native pull-request review mechanism as the hand-off mechanism. Do **not** invent a separate GitHub PR status such as `Waiting for Review`.
 
-### Issue Acceptance and PR checklist roles
+### Checkbox handling
 
 Issue and PR checkboxes serve different purposes and must not duplicate the same state:
 
@@ -223,12 +213,6 @@ continue       Identify PR author/executor
              no review         from independent reviewer
              may be submitted          |
                                        v
-                            Project Item Status = REVIEW
-                                       |
-                                       v
-                                Verify Project Status
-                                       |
-                                       v
                               EXECUTOR STOPS / DO NOT MERGE
                                        |
                                        v
@@ -260,8 +244,7 @@ continue       Identify PR author/executor
                      All actionable concerns completed?
                             |                    |
                            NO                   YES
-                            |                    |
-                            v                    v
+                            |                    v
                      Continue discussion   Verify acceptance/
                      or REQUEST_CHANGES    checklist gates
                                                    |
@@ -273,6 +256,8 @@ continue       Identify PR author/executor
                                             Continue workflow
 ```
 
+Project Item Status transitions at review hand-off, where applicable, are governed by `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and are executable only by a capable actor/tool. They are not executable steps for the current ChatGPT/GitHub connection.
+
 ### Review conversation terminology
 
 For human-facing Jagports documentation and communication, use GitHub UI vocabulary:
@@ -280,6 +265,7 @@ For human-facing Jagports documentation and communication, use GitHub UI vocabul
 - **Review conversation** is the preferred term for an inline Pull Request review discussion.
 - Use **Unresolved Review conversation** and **Resolved Review conversation** when describing its state.
 - Reserve **review thread** or **review thread object** for GitHub API, GraphQL, or tool implementation details.
+- When a tool/API returns a review-thread object, translate that implementation vocabulary to **Review conversation** before reporting the state to a human.
 - The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
 
 ### Review discussion and formal review rules
@@ -292,7 +278,7 @@ For human-facing Jagports documentation and communication, use GitHub UI vocabul
 6. The GitHub review request and notification are the native review hand-off mechanism; no additional PR status is invented.
 7. Before final approval, every applicable Issue Acceptance checkbox and every required PR checklist checkbox must be `[x]`. Any required `[ ]` means the completion/readiness gate has not passed.
 8. The independent reviewer verifies the checked implementation claims. If evidence is insufficient, the reviewer requests changes and the affected checkbox must remain or return to `[ ]`.
-9. Set the Project Item Status to `REVIEW` and independently verify it according to `00-Management/WORKFLOW_GITHUB_PROJECT.md`.
+9. When Project Item Status is used, Project-specific transition and verification requirements are governed by `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`; current ChatGPT/GitHub Project capability limits are governed by `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 10. After the hand-off, the executing actor stops implementation and does not merge except when responding to reviewer discussion or requested changes under these rules.
 11. **Review discussion and formal review submission are distinct.** A finding that needs maker/executor interaction before the formal review outcome must be communicated through an immediately visible channel.
 12. A GitHub `PENDING` review is only a draft review. Line-level and file-level comments created inside the normal pending-review flow remain part of that pending review and are visible only to the reviewer until submission. Therefore `line comment` or `file comment` alone does not mean the comment is immediately visible.
@@ -311,6 +297,30 @@ For human-facing Jagports documentation and communication, use GitHub UI vocabul
 25. **The line-specific implementation reply is evidence for reviewer verification; it does not resolve the Review conversation and does not satisfy the formal review approval gate by itself. The reviewer remains responsible for verification and resolution under the existing authority rule.**
 26. **Immediately before merge, the executing actor must freshly verify all applicable Issue Acceptance checkboxes, all required PR checklist checkboxes, current/effective review state, and required testing state.**
 27. **Merge is permitted only when all applicable Issue Acceptance boxes are `[x]`, all required PR checklist boxes are `[x]`, required tests are `PASS`, and the current independent review state is `APPROVED`. Any failed component blocks merge.**
+
+### Mandatory Pre-Merge Review Gate
+
+Before **any** merge operation, the executing actor must perform a fresh, independent review-state check for the target PR. This check is a hard precondition for invoking the merge operation; GitHub's technical `mergeable` result is not a substitute.
+
+The check must:
+
+1. Read the PR's current review submissions immediately before merge.
+2. Determine the effective review state from the review history, including whether a later review supersedes an earlier review.
+3. Treat `CHANGES_REQUESTED` / `REQUEST_CHANGES` as a blocking state. **STOP — DO NOT MERGE.**
+4. Never allow an earlier `APPROVED` review to satisfy the gate when a later blocking review exists.
+5. Verify all applicable Issue Acceptance checkboxes are `[x]`.
+6. Verify all required PR checklist checkboxes are `[x]`.
+7. Verify required tests are `PASS`.
+8. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
+9. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
+10. Permit merge only when the current review gate is independently verified as passed and all checkbox/testing gates have passed.
+11. If any required state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
+
+Required decision rule:
+
+`Issue Acceptance all [x] + PR required checklist all [x] + required tests PASS + independent review APPROVED → merge permitted`
+
+This rule applies regardless of whether the requested change is large, small, documentary, mechanical, or apparently implied by the review comment.
 
 Required human validation follows the approved testing gate:
 
@@ -331,6 +341,16 @@ The title of an **open Issue or open PR** may be changed when scope materially c
 Title changes are recommended when scope materially changes, including when a PR legitimately expands to resolve multiple Issues. Cosmetic title changes should be avoided.
 
 **Checkbox-state exception:** an executor/agent may edit the description of an **open Issue or open PR solely to check or uncheck existing executor-controlled checkboxes** so that the persistent record reflects objective implementation/readiness state. A formal reviewer may check/uncheck reviewer-controlled boxes and may return an unsupported executor-controlled claim to `[ ]`. The repository/project owner or another explicitly designated human authority may make the same checkbox-only edits when exercising that authority. This exception does not authorize rewriting criterion/checklist text or any other description content.
+
+Execution rules:
+
+- Never modify descriptions or comments of closed Issues or merged PRs.
+- An open Issue or open PR may have its title changed when scope materially changes.
+- Such title changes are auditable through GitHub's `renamed` history event.
+- Cosmetic title changes should be avoided.
+- An executor/agent may edit an open Issue or PR description solely to check/uncheck existing executor-controlled checkboxes as permitted by the canonical checkbox-state exception.
+- A reviewer may change reviewer-controlled boxes and return unsupported executor claims to `[ ]`.
+- Do not use the checkbox exception to rewrite criteria, checklist wording, or unrelated description content.
 
 Closed Issues and merged PRs remain immutable, including titles and checkbox state.
 
@@ -362,17 +382,23 @@ If the required GitHub operation is unavailable, report:
 
 `*** !!! ALERT - GitHub functions unavailable !!! ***`
 
+For the current ChatGPT/GitHub Project capability boundary, use:
+
+`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
+
 ---
 
 ## 9. Traceability
 
 Maintain the chain:
 
-`Work request → Issue → PR → Review → Test → Merge → Issue closure → Project verification`
+`Work request → Issue → PR → Review → Test → Merge → Issue closure → available post-merge verification`
 
 Historical references used to justify active work should be explicitly linked in the active record.
 
 When an active Issue or PR materially changes scope, align its title with the current scope. The title-change and checkbox-state exceptions do not permit unrelated modification of historical descriptions/comments.
+
+When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
 
 ---
 
@@ -381,14 +407,16 @@ When an active Issue or PR materially changes scope, align its title with the cu
 If documents disagree about a Management workflow:
 
 1. `00-Management/WORKFLOWS.md` is the top-level normative workflow authority.
-2. `00-Management/WORKFLOW_GITHUB_PROJECT.md` is the scoped normative workflow source incorporated by reference from this file.
-3. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
-4. `SKILL.md` provides machine execution guidance and must implement/reference, not redefine, workflows.
-5. `.codex/skills/*` provides specialized procedures and must reference, not redefine, workflows.
-6. `KNOWLEDGE.md` contains durable knowledge, decisions, and lessons learned; not workflow authority.
+2. `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` is the scoped Project/Kanban workflow source incorporated by reference from this file.
+3. `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` defines the current ChatGPT/GitHub Project capability boundary.
+4. `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` contains GitHub connection and environment knowledge.
+5. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
+6. `SKILL.md` provides machine execution guidance and must implement/reference, not redefine, workflows.
+7. `.codex/skills/*` provides specialized procedures and must reference, not redefine, workflows.
+8. `KNOWLEDGE.md` contains durable knowledge, decisions, and lessons learned; not workflow authority.
 
 A conflict in a secondary document is a process defect: raise an Issue to correct it rather than silently accepting or bypassing the contradiction.
 
-If `WORKFLOWS.md` and `WORKFLOW_GITHUB_PROJECT.md` disagree on a general workflow boundary, `WORKFLOWS.md` controls. Within the delegated Project/Kanban scope, `WORKFLOW_GITHUB_PROJECT.md` controls the detailed Project behavior.
+If `WORKFLOWS.md` and `GITHUB_PROJECT_WORKFLOWS.md` disagree on a general workflow boundary, `WORKFLOWS.md` controls. Within the delegated Project/Kanban scope, `GITHUB_PROJECT_WORKFLOWS.md` controls the detailed Project behavior.
 
 An unresolved contradiction in a canonical workflow source must be treated as a process defect and clarified before relying on the conflicting rule.

@@ -2,13 +2,21 @@
 
 ## Authority and scope
 
-This file is the **scoped canonical normative source for GitHub Project / Kanban workflows** and is incorporated by reference from `00-Management/WORKFLOWS.md`.
+This file is the scoped canonical source for GitHub Project / Kanban workflow behavior.
 
-It defines Project Item representation, Project mutations and verification, Issue Project Item initialization, Pull Request Project Item lifecycle, Workstream inheritance behavior, and Project-specific lifecycle invariants.
+It is incorporated by reference from `00-Management/WORKFLOWS.md`.
+
+It defines Project Item representation, Project mutation and verification meaning, Issue Project Item initialization, Pull Request Project Item lifecycle, Workstream inheritance behavior, and Project-specific lifecycle invariants.
 
 It does not redefine the general Management lifecycle, repository change gate, review/testing/merge gate, record-integrity rules, or human authority. Those remain defined in `00-Management/WORKFLOWS.md`.
 
-**Core rule:** Project-specific workflow behavior is defined here exactly once. `00-Management/WORKFLOWS.md` remains the top-level workflow authority and incorporates this file by reference.
+Current ChatGPT/GitHub Project capability limits are defined in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
+
+GitHub connection capability knowledge is maintained in `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md`.
+
+**Core rule:** Project-specific workflow behavior is defined here exactly once. Secondary files must reference this file rather than duplicate Project/Kanban workflow rules.
+
+Current ChatGPT/GitHub execution limitation: the Project workflow meanings below describe required behavior for capable external actors/tools. The current ChatGPT/GitHub connection must follow `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` and must not duplicate or restate that capability-boundary rule here.
 
 ---
 
@@ -24,6 +32,27 @@ Issue and Pull Request Project Items represent related but different objects:
 - the **Pull Request Project Item** represents the execution/review state of a concrete integration artifact for that work.
 
 A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. It must not receive a separate competing business Priority/Rank when that prioritization belongs to the owning Issue, unless this canonical Project workflow explicitly defines such independent prioritization in the future.
+
+### State meaning
+
+The normal Management lifecycle states defined by `00-Management/WORKFLOWS.md` have the following meaning when represented as GitHub Project Item Status values:
+
+| State | Meaning |
+|---|---|
+| `BACKLOG` | Valid active work exists but substantive work has not started. |
+| `RESEARCH` | Facts, existing work, dependencies, or implementation options are being investigated. |
+| `PROPOSED` | A concrete solution or implementation approach has been prepared. |
+| `DECISION NEEDED` | Human/authorized decision-maker judgment is required before proceeding. |
+| `APPROVED` | Required decision/approval has been obtained and implementation may proceed. |
+| `IMPLEMENTATION` | The approved work is actively being produced as repository artifacts, including code, configuration, documentation, data, migrations, tests, workflows, or other committed deliverables. |
+| `REVIEW` | Implementation is complete enough for required review; implementation stops at this boundary. |
+| `TESTING` | Required validation is being executed. |
+| `DONE` | The represented work item or integration artifact has reached a verified terminal lifecycle state and no further work is expected on that item. For successful implementation, required review/testing/merge/closure obligations still apply; PR-specific terminal closure without merge is governed by this file and does not imply successful integration. |
+| `BLOCKED` | A prerequisite or capability prevents the next required transition. |
+
+A state is not established merely by an Issue comment. When the work is represented in GitHub Project, the Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified according to this file by a capable actor/tool.
+
+For the current ChatGPT/GitHub connection, Project Item Status cannot be read or verified. Use the current capability-boundary reporting sentence instead of claiming Project state.
 
 ### Project operation rule
 
@@ -49,7 +78,7 @@ If mutation fails, the Project Item cannot be found, the expected field/value ca
 - state that **no successful Project operation is claimed**;
 - never convert an intended state into a claimed actual state.
 
-This rule applies to automated and manual Project operations.
+This rule applies to automated and manual Project operations by capable actors/tools. It is not executable through the current ChatGPT/GitHub connection.
 
 ### Issue creation
 
