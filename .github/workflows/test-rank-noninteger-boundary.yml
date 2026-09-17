@@ -1,0 +1,77 @@
+name: Test Rank Non-Integer Boundary
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+  RANK_FIELD_NAME: Rank
+  TEST_ISSUE_NUMBER: "726"
+
+jobs:
+  verify-rank-boundary:
+    if: github.head_ref == 'test/726-noninteger-rank'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write 1.5, prove integer verifier rejects it, and restore
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+          OWNER="${REPOSITORY%%/*}"
+          NAME="${REPOSITORY##*/}"
+
+          PROJECT_QUERY='query($org:String!, $number:Int!) { organization(login:$org) { projectV2(number:$number) { id fields(first:100) { nodes { __typename ... on ProjectV2Field { id name dataType } } } } } }'
+          project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+          rank_field_id="$(jq -r --arg name "$RANK_FIELD_NAME" '.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field" and .dataType == "NUMBER") | .id' <<<"$project_json")"
+          [ -n "$project_id" ] || { echo "Project not found."; false; }
+          [ -n "$rank_field_id" ] || { echo "Numeric Rank field not found."; false; }
+
+          ISSUE_QUERY='query($owner:String!, $name:String!, $number:Int!, $rank:String!) { repository(owner:$owner,name:$name) { issue(number:$number) { id projectItems(first:20) { nodes { id isArchived project { id } rankValue: fieldValueByName(name:$rank) { ... on ProjectV2ItemFieldNumberValue { number } } } } } } }'
+          issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$TEST_ISSUE_NUMBER" -f rank="$RANK_FIELD_NAME")"
+          item_id="$(jq -r --arg project "$project_id" '.data.repository.issue.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false) | .id' <<<"$issue_json" | head -n1)"
+          [ -n "$item_id" ] || { echo "Active Project item for Issue #$TEST_ISSUE_NUMBER not found."; false; }
+          original_rank="$(jq -r --arg project "$project_id" '.data.repository.issue.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false) | if .rankValue.number == null then "none" else (.rankValue.number|tostring) end' <<<"$issue_json" | head -n1)"
+
+          SET_NUMBER='mutation($project:ID!, $item:ID!, $field:ID!, $number:Float!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{number:$number}}) { projectV2Item { id } } }'
+          CLEAR_FIELD='mutation($project:ID!, $item:ID!, $field:ID!) { clearProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field}) { projectV2Item { id } } }'
+          VERIFY='query($item:ID!, $rank:String!) { node(id:$item) { ... on ProjectV2Item { id rankValue: fieldValueByName(name:$rank) { ... on ProjectV2ItemFieldNumberValue { number } } } } }'
+
+          restore() {
+            if [ "$original_rank" = "none" ]; then
+              gh api graphql -f query="$CLEAR_FIELD" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" >/dev/null || true
+            else
+              gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" -F number="$original_rank" >/dev/null || true
+            fi
+          }
+          trap restore EXIT
+
+          gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" -F number="1.5" >/dev/null
+          verify_json="$(gh api graphql -f query="$VERIFY" -F item="$item_id" -f rank="$RANK_FIELD_NAME")"
+          jq -e '.data.node.rankValue.number == 1.5' <<<"$verify_json" >/dev/null || { echo "Failed to establish non-integer Rank 1.5."; false; }
+
+          if jq -e --argjson expected 1 '.data.node.rankValue.number != null and .data.node.rankValue.number == $expected and (.data.node.rankValue.number | floor) == .data.node.rankValue.number' <<<"$verify_json" >/dev/null; then
+            echo "FAIL: non-integer Rank 1.5 incorrectly satisfied expected integer Rank 1."
+            false
+          fi
+          echo "PASS: authoritative Rank 1.5 does not satisfy expected integer Rank 1."
+
+          restore
+          trap - EXIT
+          restored_json="$(gh api graphql -f query="$VERIFY" -F item="$item_id" -f rank="$RANK_FIELD_NAME")"
+          if [ "$original_rank" = "none" ]; then
+            jq -e '.data.node.rankValue == null' <<<"$restored_json" >/dev/null || { echo "Original cleared Rank was not restored."; false; }
+          else
+            jq -e --argjson expected "$original_rank" '.data.node.rankValue.number == $expected' <<<"$restored_json" >/dev/null || { echo "Original Rank was not restored."; false; }
+          fi
+          echo "PASS: original Rank state restored and independently verified."
