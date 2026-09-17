@@ -13,46 +13,71 @@ FAIL_ON_DRIFT="${FAIL_ON_DRIFT:-false}"
 items_file="$(mktemp)"
 trap 'rm -f "$items_file"' EXIT
 
-read -r -d '' PROJECT_ITEMS_QUERY <<'GRAPHQL' || true
-query($org:String!, $number:Int!, $after:String) {
+OWNER="${REPOSITORY%%/*}"
+NAME="${REPOSITORY##*/}"
+
+read -r -d '' PROJECT_QUERY <<'GRAPHQL' || true
+query($org:String!, $number:Int!) {
   organization(login:$org) {
     projectV2(number:$number) {
       id
       title
-      items(first:100, after:$after) {
-        pageInfo { hasNextPage endCursor }
-        nodes {
-          id
-          isArchived
-          statusValue: fieldValueByName(name:"Status") {
-            ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
+    }
+  }
+}
+GRAPHQL
+
+project_json="$(gh api graphql -f query="$PROJECT_QUERY" -f org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
+
+[ -n "$project_id" ] || { echo "Project #$PROJECT_NUMBER was not found for $PROJECT_ORG." >&2; exit 2; }
+[ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: '$project_title'." >&2; exit 2; }
+
+# Enumerate repository Pull Requests and read each PR's projectItems connection.
+# This path includes historical archived PR Project Items that ProjectV2.items
+# does not expose reliably enough for this audit.
+read -r -d '' PR_ITEMS_QUERY <<'GRAPHQL' || true
+query($owner:String!, $name:String!, $after:String) {
+  repository(owner:$owner, name:$name) {
+    pullRequests(
+      first:100
+      after:$after
+      states:[OPEN,CLOSED,MERGED]
+      orderBy:{field:CREATED_AT,direction:ASC}
+    ) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        id
+        number
+        state
+        isDraft
+        merged
+        repository { nameWithOwner }
+        reviewRequests(first:50) { totalCount }
+        projectItems(first:50) {
+          nodes {
+            id
+            isArchived
+            project { id title number }
+            statusValue: fieldValueByName(name:"Status") {
+              ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
+            }
+            workstreamValue: fieldValueByName(name:"Workstream") {
+              ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
+            }
           }
-          workstreamValue: fieldValueByName(name:"Workstream") {
-            ... on ProjectV2ItemFieldSingleSelectValue { name optionId }
-          }
-          content {
-            __typename
-            ... on PullRequest {
-              id
-              number
-              state
-              isDraft
-              merged
-              repository { nameWithOwner }
-              reviewRequests(first:50) { totalCount }
-              closingIssuesReferences(first:50) {
-                nodes {
-                  repository { nameWithOwner }
-                  projectItems(first:20) {
-                    nodes {
-                      id
-                      isArchived
-                      project { id }
-                      workstreamValue: fieldValueByName(name:"Workstream") {
-                        ... on ProjectV2ItemFieldSingleSelectValue { name }
-                      }
-                    }
-                  }
+        }
+        closingIssuesReferences(first:50) {
+          nodes {
+            repository { nameWithOwner }
+            projectItems(first:20) {
+              nodes {
+                id
+                isArchived
+                project { id }
+                workstreamValue: fieldValueByName(name:"Workstream") {
+                  ... on ProjectV2ItemFieldSingleSelectValue { name }
                 }
               }
             }
@@ -65,32 +90,37 @@ query($org:String!, $number:Int!, $after:String) {
 GRAPHQL
 
 cursor=""
-project_id=""
 while :; do
-  args=(-f query="$PROJECT_ITEMS_QUERY" -f org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")
+  args=(-f query="$PR_ITEMS_QUERY" -f owner="$OWNER" -f name="$NAME")
   if [ -n "$cursor" ]; then
     args+=(-f after="$cursor")
   fi
 
   page_json="$(gh api graphql "${args[@]}")"
-  current_project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$page_json")"
-  current_project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$page_json")"
 
-  [ -n "$current_project_id" ] || { echo "Project #$PROJECT_NUMBER was not found for $PROJECT_ORG." >&2; exit 2; }
-  [ "$current_project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: '$current_project_title'." >&2; exit 2; }
+  jq -c --arg project "$project_id" '
+    .data.repository.pullRequests.nodes[]? as $pr
+    | $pr.projectItems.nodes[]?
+    | select(.project.id == $project)
+    | . + {
+        content: {
+          __typename: "PullRequest",
+          id: $pr.id,
+          number: $pr.number,
+          state: $pr.state,
+          isDraft: $pr.isDraft,
+          merged: $pr.merged,
+          repository: $pr.repository,
+          reviewRequests: $pr.reviewRequests,
+          closingIssuesReferences: $pr.closingIssuesReferences
+        }
+      }
+  ' <<<"$page_json" >>"$items_file"
 
-  if [ -z "$project_id" ]; then
-    project_id="$current_project_id"
-  else
-    [ "$project_id" = "$current_project_id" ] || { echo "Project identity changed during pagination." >&2; exit 2; }
-  fi
-
-  jq -c '.data.organization.projectV2.items.nodes[]?' <<<"$page_json" >>"$items_file"
-
-  has_next="$(jq -r '.data.organization.projectV2.items.pageInfo.hasNextPage' <<<"$page_json")"
+  has_next="$(jq -r '.data.repository.pullRequests.pageInfo.hasNextPage' <<<"$page_json")"
   [ "$has_next" = "true" ] || break
-  cursor="$(jq -r '.data.organization.projectV2.items.pageInfo.endCursor // empty' <<<"$page_json")"
-  [ -n "$cursor" ] || { echo "Project pagination indicated another page without a cursor." >&2; exit 2; }
+  cursor="$(jq -r '.data.repository.pullRequests.pageInfo.endCursor // empty' <<<"$page_json")"
+  [ -n "$cursor" ] || { echo "Pull Request pagination indicated another page without a cursor." >&2; exit 2; }
 done
 
 mapfile -t duplicate_prs < <(
