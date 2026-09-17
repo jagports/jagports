@@ -10,15 +10,16 @@ This plan is subordinate to the current repository authorities and durable visio
 
 - [`../00-Management/VISION_AI-OS.md`](../00-Management/VISION_AI-OS.md) — product/operating vision.
 - [`../00-Management/WORKFLOWS.md`](../00-Management/WORKFLOWS.md) — canonical Management workflow authority.
+- [`../00-Management/PRIORITIZATION.md`](../00-Management/PRIORITIZATION.md) — authoritative prioritization, Issue Priority, Project Rank and queue-order method.
 - [`../00-Management/RULES.md`](../00-Management/RULES.md) — human governance and authority.
 - [`../0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md`](../0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md) — persistent communication, escalation, decision and hand-off rules.
 - [`../0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md`](../0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md) — current durable-knowledge architecture.
 
-The P1–P12 identifiers below are the established AI OS roadmap sequence. They are not a substitute for current workflow state, GitHub Project Status, or any separately approved operational priority/rank method.
+The P1–P12 identifiers below are **legacy roadmap positions**, not current priority. Current operational priority is represented by native Issue `Priority`; exact execution order inside the applicable Project/Workstream is represented by Project `Rank`. Workflow readiness remains represented by Project `Status`. The plan must not infer current execution order from the P-number sequence.
 
-## Current P0 status — 2026-09-16
+## Current P0 status — 2026-09-17
 
-P0 remains **OPEN**. Five of the twelve parent tracks are closed as completed; seven remain open.
+P0 remains **OPEN**. Eight of the twelve parent tracks are closed as completed; four remain open.
 
 | Track | Parent Issue | Current state |
 |---|---|---|
@@ -27,13 +28,25 @@ P0 remains **OPEN**. Five of the twelve parent tracks are closed as completed; s
 | P3 | [#14 — Define agent communication protocol](https://github.com/jagports/jagports/issues/14) | **COMPLETED** |
 | P4 | [#18 — Create work-item templates](https://github.com/jagports/jagports/issues/18) | **COMPLETED** |
 | P5 | [#22 — Establish Jagports product memory](https://github.com/jagports/jagports/issues/22) | **COMPLETED** |
-| P6 | [#26 — Establish prioritization system](https://github.com/jagports/jagports/issues/26) | **OPEN** — [PR #707](https://github.com/jagports/jagports/pull/707) implements P6.1/P6.2 and is at the independent-review boundary; P6.3 remains after the method is accepted. |
-| P7 | [#30 — Run agent research-to-decision workflow](https://github.com/jagports/jagports/issues/30) | **OPEN** — human-in-the-loop validation is available; unattended runtime-dependent execution is suspended. |
-| P8 | [#34 — Establish Codex engineering workflow](https://github.com/jagports/jagports/issues/34) | **OPEN** — P8.1 is complete; P8.2/P8.3 still require representative current execution and end-to-end evidence. |
-| P9 | [#38 — Establish quality gates](https://github.com/jagports/jagports/issues/38) | **OPEN** — acceptance-criteria foundations are established; [PR #706](https://github.com/jagports/jagports/pull/706) is at the independent-review boundary for the remaining P9.2/P9.3 work. |
-| P10 | [#42 — Prepare Raspberry Pi infrastructure](https://github.com/jagports/jagports/issues/42) | **OPEN** — existing infrastructure track remains unresolved. |
-| P11 | [#46 — Add autonomous automation](https://github.com/jagports/jagports/issues/46) | **OPEN** — existing automation track remains unresolved, although automation foundations already exist elsewhere in the repository. |
-| P12 | [#49 — Expand and govern the agent team](https://github.com/jagports/jagports/issues/49) | **OPEN** — governance, architecture research and the Lead Agent prototype exist; production unattended-runtime work is suspended until a suitable execution capability is available and re-evaluated. |
+| P6 | [#26 — Establish prioritization system](https://github.com/jagports/jagports/issues/26) | **COMPLETED** — the canonical prioritization method is on `main`, the first ranked backlog was populated, and the parent is closed. |
+| P7 | [#30 — Run agent research-to-decision workflow](https://github.com/jagports/jagports/issues/30) | **OPEN / BLOCKED** — the human-in-the-loop workflow is validated; only unattended multi-agent execution remains and is capability-blocked. |
+| P8 | [#34 — Establish Codex engineering workflow](https://github.com/jagports/jagports/issues/34) | **COMPLETED** — the engineering standard was exercised on representative approved work and the delivery loop was verified end-to-end. |
+| P9 | [#38 — Establish quality gates](https://github.com/jagports/jagports/issues/38) | **COMPLETED** — acceptance, technical-review and automated-validation gate work is complete and the parent is closed. |
+| P10 | [#42 — Prepare Raspberry Pi infrastructure](https://github.com/jagports/jagports/issues/42) | **OPEN / DECISION NEEDED** — P10.1 is complete; P10.2/P10.3 wait for the Product Owner decision on the Raspberry Pi/MyNodeBTC platform role after prototype. |
+| P11 | [#46 — Add autonomous automation](https://github.com/jagports/jagports/issues/46) | **OPEN / RESEARCH** — the original automation children are complete and useful free automation exists on `main`; the reopened parent is being reconciled against that existing capability before any duplicate implementation is created. |
+| P12 | [#49 — Expand and govern the agent team](https://github.com/jagports/jagports/issues/49) | **OPEN / BLOCKED** — governance, architecture research and the Lead Agent prototype exist; unattended-runtime development remains capability-blocked while permitted governance and capability tracking continue. |
+
+## Current operational queue snapshot — 2026-09-17
+
+The Project remains authoritative for live Status and Rank. This dated snapshot records the currently verified AI OS ordering relevant to the remaining roadmap work and this plan reconciliation:
+
+1. [#439 — Capture and integrate novel AI OS knowledge into the prioritized work plan](https://github.com/jagports/jagports/issues/439) — Rank 1; plan reconciliation work represented by this revision.
+2. [#46 — P11 Add autonomous automation](https://github.com/jagports/jagports/issues/46) — Rank 2; `RESEARCH` reconciliation before any additional autonomous-automation implementation.
+3. [#49 — P12 Expand and govern the agent team](https://github.com/jagports/jagports/issues/49) — Rank 3; `BLOCKED` for unattended-runtime development while allowed governance/capability work remains possible.
+4. [#42 — P10 Prepare Raspberry Pi infrastructure](https://github.com/jagports/jagports/issues/42) — Rank 4; `DECISION NEEDED` on the future Raspberry Pi/MyNodeBTC platform role.
+5. [#30 — P7 Run agent research-to-decision workflow](https://github.com/jagports/jagports/issues/30) — Rank 5; `BLOCKED` because only the unattended runtime-dependent portion remains.
+
+This snapshot is evidence, not a competing source of truth. Reprioritization is recorded through the method in `00-Management/PRIORITIZATION.md`; the P1–P12 headings do not change when operational Rank changes.
 
 ## Existing roadmap structure
 
@@ -93,7 +106,7 @@ Existing sub-work:
 
 The old proposed `00-product-vision` / `01-business-requirements` style folder tree is retired. The current knowledge structure is defined by `0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md` and the repository's semantic root map.
 
-### P6 — Establish prioritization system — OPEN
+### P6 — Establish prioritization system — COMPLETED
 
 Parent: [#26](https://github.com/jagports/jagports/issues/26)
 
@@ -102,9 +115,9 @@ Existing sub-work:
 - [#28 — P6.2 Define priority rules](https://github.com/jagports/jagports/issues/28)
 - [#29 — P6.3 Populate first ranked backlog](https://github.com/jagports/jagports/issues/29)
 
-Current implementation: [PR #707 — Define canonical prioritization scoring and ordering](https://github.com/jagports/jagports/pull/707) implements #27/#28 and is awaiting independent review. #29 remains the existing follow-on after that method is accepted.
+P6 is complete. [PR #707 — Define canonical prioritization scoring and ordering](https://github.com/jagports/jagports/pull/707) was merged, `00-Management/PRIORITIZATION.md` is the canonical method, and the first ranked AI OS backlog was populated and approved. The method explicitly separates legacy P-identifiers, native Issue Priority, Project Status and Project Rank.
 
-### P7 — Run agent research-to-decision workflow — OPEN
+### P7 — Run agent research-to-decision workflow — OPEN / BLOCKED
 
 Parent: [#30](https://github.com/jagports/jagports/issues/30)
 
@@ -113,24 +126,24 @@ Existing sub-work:
 - [#32 — P7.2 Convert findings to proposals](https://github.com/jagports/jagports/issues/32)
 - [#33 — P7.3 Escalate only required decisions](https://github.com/jagports/jagports/issues/33)
 
-The practical human-in-the-loop path remains available:
+The practical human-in-the-loop path has been validated with real work through merged PR #708:
 
 `Research → Finding → Opportunity → Proposal → Prioritization → Decision handling → Approved work`
 
-A fully unattended chain that depends on a Codex API or equivalent unattended runtime is suspended under the current capability constraint.
+P7.1–P7.3 are complete. Parent P7 remains open only for the unattended multi-agent execution capability, which is currently blocked by the unavailable suitable unattended runtime/subscription. No runtime development should be started merely to close P7 while that capability is unavailable.
 
-### P8 — Establish Codex engineering workflow — OPEN
+### P8 — Establish Codex engineering workflow — COMPLETED
 
 Parent: [#34](https://github.com/jagports/jagports/issues/34)
 
 Existing sub-work:
 - [#35 — P8.1 Create Codex engineering instructions](https://github.com/jagports/jagports/issues/35) — completed through merged PR #702.
-- [#36 — P8.2 Exercise Codex engineering standard on approved work](https://github.com/jagports/jagports/issues/36) — open.
-- [#37 — P8.3 Validate repeatable engineering delivery loop](https://github.com/jagports/jagports/issues/37) — open.
+- [#36 — P8.2 Exercise Codex engineering standard on approved work](https://github.com/jagports/jagports/issues/36) — completed using representative approved Issue #674 / PR #711.
+- [#37 — P8.3 Validate repeatable engineering delivery loop](https://github.com/jagports/jagports/issues/37) — completed with durable validation, independent review, merge and post-merge evidence.
 
-P8 now validates the current engineering execution layer against real work rather than trying to establish a second lifecycle. `00-Management/WORKFLOWS.md` remains the workflow authority.
+P8 is complete. The Codex-specific execution standard remains subordinate to `00-Management/WORKFLOWS.md`; the validated loop does not create a parallel lifecycle or test framework.
 
-### P9 — Establish quality gates — OPEN
+### P9 — Establish quality gates — COMPLETED
 
 Parent: [#38](https://github.com/jagports/jagports/issues/38)
 
@@ -139,34 +152,36 @@ Existing sub-work:
 - [#40 — P9.2 Define technical review gate](https://github.com/jagports/jagports/issues/40)
 - [#41 — P9.3 Define automated validation](https://github.com/jagports/jagports/issues/41)
 
-Current implementation: [PR #706 — Complete P9 technical review and validation gates](https://github.com/jagports/jagports/pull/706) covers the remaining P9.2/P9.3 process work and is awaiting independent review.
+P9 is complete. The acceptance-criteria standard, technical-review gate and deterministic automated-validation ownership are now established under the existing workflow authority. Historical implementation/review records remain in the linked Issues and PRs rather than being duplicated here.
 
-### P10 — Prepare Raspberry Pi infrastructure — OPEN
+### P10 — Prepare Raspberry Pi infrastructure — OPEN / DECISION NEEDED
 
 Parent: [#42](https://github.com/jagports/jagports/issues/42)
 
 Existing sub-work:
-- [#43 — P10.1 Prepare Linux environment](https://github.com/jagports/jagports/issues/43)
-- [#44 — P10.2 Define persistent services](https://github.com/jagports/jagports/issues/44)
-- [#45 — P10.3 Establish backup strategy](https://github.com/jagports/jagports/issues/45)
+- [#43 — P10.1 Prepare Linux environment](https://github.com/jagports/jagports/issues/43) — completed.
+- [#44 — P10.2 Define persistent services](https://github.com/jagports/jagports/issues/44) — waiting for platform-role decision.
+- [#45 — P10.3 Establish backup strategy](https://github.com/jagports/jagports/issues/45) — waiting for platform-role decision.
 
-The Raspberry Pi remains optional infrastructure. It must not become the authoritative location for project decisions, work state, or unrecoverable agent state.
+The Raspberry Pi remains optional infrastructure. P10.2/P10.3 must not advance until the Product Owner decides whether the Raspberry Pi/MyNodeBTC platform will remain the intended post-prototype host. The Pi must not become the authoritative location for project decisions, work state, or unrecoverable agent state.
 
-### P11 — Add autonomous automation — OPEN
+### P11 — Add autonomous automation — OPEN / RESEARCH
 
 Parent: [#46](https://github.com/jagports/jagports/issues/46)
 
 Existing sub-work:
-- [#47 — P11.1 Identify automation candidates](https://github.com/jagports/jagports/issues/47)
-- [#48 — P11.2 Implement first automation](https://github.com/jagports/jagports/issues/48)
+- [#47 — P11.1 Identify automation candidates](https://github.com/jagports/jagports/issues/47) — completed.
+- [#48 — P11.2 Implement first automation](https://github.com/jagports/jagports/issues/48) — completed.
+
+The original P11 scope already has working evidence: event-driven free automation exists on `main` through #86 / PR #249, with later lifecycle/project refinements also validated. The parent is currently reopened in `RESEARCH` specifically to reconcile this existing capability and any remaining scope. Do not create duplicate autonomous-automation implementation merely because P11 is open.
 
 Automation remains subordinate to the existing workflow and must be justified by reliability, value and operating cost rather than automation for its own sake.
 
-### P12 — Expand and govern the agent team — OPEN
+### P12 — Expand and govern the agent team — OPEN / BLOCKED
 
 Parent: [#49](https://github.com/jagports/jagports/issues/49)
 
-Completed foundations include the persistent communication/governance model, agent architecture research, and the documented modular Lead Agent prototype. The remaining production unattended-runtime direction is suspended where it depends on unavailable Codex API execution. ChatGPT scheduled task/prompt automation remains available where appropriate.
+Completed foundations include the persistent communication/governance model, agent architecture research, and the documented modular Lead Agent prototype. The remaining production unattended-runtime direction is blocked where it depends on unavailable Codex API execution. Permitted governance, scheduled-prompt maintenance, role-boundary review and capability tracking may continue without treating the blocked runtime as executable work.
 
 ## Vision-aligned target architecture
 
@@ -244,7 +259,7 @@ Knowledge is hierarchical. The root `KNOWLEDGE.md` contains cross-domain durable
 
 The implementation path is governed by the current Management workflow and the Codex engineering execution layer, not by a parallel lifecycle in this plan.
 
-Conceptually, existing P8/P9 work validates the chain:
+P8 and P9 have now validated/established the current chain:
 
 `Approved work → implementation → applicable validation → PR hand-off → independent review → required testing → merge → post-merge verification → Issue completion`
 
@@ -274,15 +289,14 @@ The baseline cost direction is to avoid recurring-cost dependencies when existin
 
 ## Current execution point
 
-The former statement that P1 is the “very first action” is obsolete because P1–P5 are complete.
+The former statement that P1 was the “very first action” is obsolete, and the later assumption that the first incomplete P-number automatically becomes the next execution target is also obsolete.
 
-The established roadmap continues from the incomplete P6–P12 tracks without creating additional work here:
+Current work selection follows `00-Management/PRIORITIZATION.md` and the live Project queue:
 
-- P6 is the first incomplete parent track; PR #707 is currently at review before the existing P6.3 follow-on.
-- P7 remains available for human-in-the-loop research-to-decision validation while unattended execution is suspended.
-- P8 remains focused on representative validation of the current engineering standard and repeatable delivery loop.
-- P9 remains open with PR #706 at review for the remaining technical-review/automated-validation work.
-- P10 and P11 remain later incomplete roadmap tracks under their existing Issues.
-- P12 remains open with its established governance/prototype foundations and the unattended-runtime capability constraint.
+- completed P1–P6, P8 and P9 remain historical/implemented roadmap tracks rather than active queue entries;
+- P11 is the highest-ranked remaining P-track at the current snapshot and is in `RESEARCH` reconciliation, not implementation;
+- P12 and P7 retain valid future scope but their unattended-runtime work is blocked by the current capability constraint;
+- P10 remains `DECISION NEEDED` and must not advance its dependent infrastructure tasks until the platform-role decision is made;
+- #439 is the current plan-reconciliation work and this revision records its durable result without creating new roadmap scope.
 
-No additional P0/P1–P12 work is introduced by this revision.
+No additional P0/P1–P12 work is introduced by this revision. Future priority or rank changes belong in the authoritative Issue/Project records and should be reflected here only when a planning/status refresh is useful.
