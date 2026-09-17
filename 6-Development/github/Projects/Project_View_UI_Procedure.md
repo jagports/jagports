@@ -21,7 +21,7 @@ For another Project, discover and verify the current owner and Project number in
 
 The repository implementation script is:
 
-`5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh`
+`6-Development/github/Projects/create_project_views.sh`
 
 Its target state is exactly:
 
@@ -65,7 +65,7 @@ gh pr checkout 761
 Confirm the checked-out branch contains the script:
 
 ```bash
-ls -l 5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh
+ls -l 6-Development/github/Projects/create_project_views.sh
 ```
 
 Optionally inspect the exact script revision that will execute:
@@ -78,7 +78,7 @@ git log -1 --oneline
 Then run:
 
 ```bash
-bash 5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh
+bash 6-Development/github/Projects/create_project_views.sh
 ```
 
 Do not copy the script from chat or reconstruct it manually. Run the version committed to the PR branch so the executed implementation is traceable to the reviewed repository change.
