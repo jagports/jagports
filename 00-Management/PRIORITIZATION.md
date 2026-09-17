@@ -7,7 +7,7 @@ This document defines the repeatable Jagports method for scoring and ordering ac
 It complements, and does not redefine:
 
 - `00-Management/WORKFLOWS.md` — canonical workflow states, transitions, gates and invariants.
-- `00-Management/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
+- `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
 Priority remains optional unless explicitly requested. The Product Owner has final authority over business priority and may override a calculated order when the reason is recorded.
@@ -304,10 +304,22 @@ A queue record should be compact and show at minimum the Issue/PR link, native I
 
 Daily audit categories such as `SHOW-STOPPERS`, `DO FIRST`, `LOW-HANGING FRUITS` and `QUEUE CLEANUP` are audit-report categories, not substitutes for Issue Priority or Project Rank.
 
+Within each audit Workstream, the maintenance path is:
+
+`audit discovers relevant candidates → inspect current Priority/Rank/Status → if a materially relevant active Issue has missing or stale priority evidence, perform or refresh a priority review → record the dated review → synchronize only that Issue through the bounded work-control path`
+
+Candidate selection remains controlled by `00-Management/AUDIT-Common-Daily.md`: current audit categories plus dependency, impact, urgency, readiness, unblock-value and cleanup evidence. Routine daily audits must **not** bulk-score or assign Priority to every open Issue, and missing Priority alone is not a trigger to score every Issue.
+
+A priority review is required or refreshed when an active Issue becomes materially relevant to current queue maintenance and its Priority/Rank evidence is missing, stale, or materially inconsistent with current evidence. Do not create routine priority-review work for inactive, irrelevant, completed, superseded, or closed Issues merely because priority metadata is absent.
+
+Priority review may inspect and record the actual current `Status`, but prioritization must not invent or advance workflow phase. Material strategic reordering, P0/Urgent changes, scope changes, or other Product Owner decisions stay under the audit's `DECISIONS NEEDED` handling rather than being silently changed.
+
 When a maintained ranked queue exists, the audit should use it as evidence while still applying dependency, impact, urgency, readiness, unblock-value and cleanup checks.
 
 The AI OS audit operates on the `AI OS` Workstream and the VIEPS audit operates on the `VIEPS` Workstream while those queues share the same GitHub Project. Their Rank values are evaluated only inside the applicable Workstream.
 
-Scheduled audits perform prioritization reconciliation and queue maintenance. They do not trigger or depend on an unbounded snapshot reconciliation. If an individual snapshot needs recovery, refresh only that specific open Issue through the bounded single-Issue recovery path.
+Scheduled audits perform prioritization reconciliation and queue maintenance. They do not trigger or depend on an unbounded snapshot reconciliation. Synchronization and recovery remain single-Issue operations. If an individual snapshot needs recovery, refresh only that specific open Issue through the bounded single-Issue recovery path.
+
+Closed Issues remain excluded from routine audit/prioritization maintenance.
 
 An audit may surface a lower-ranked low-hanging-fruit or cleanup action without silently changing the maintained queue. A material reprioritization should be recorded through a new priority review.
