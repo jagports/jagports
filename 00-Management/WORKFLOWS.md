@@ -173,7 +173,7 @@ Do not duplicate those rules in this file.
 
 When review is required, use GitHub's native pull-request review mechanism as the hand-off mechanism. Do **not** invent a separate GitHub PR status such as "Waiting for Review".
 
-### Issue Acceptance and PR checklist roles
+### Checkbox handling
 
 Issue and PR checkboxes serve different purposes and must not duplicate the same state:
 
@@ -212,12 +212,6 @@ continue       Identify PR author/executor
              STOP / BLOCK      Request GitHub review
              no review         from independent reviewer
              may be submitted          |
-                                       v
-                            Project Item Status = REVIEW
-                                       |
-                                       v
-                                Verify Project Status
-                                       |
                                        v
                               EXECUTOR STOPS / DO NOT MERGE
                                        |
@@ -261,6 +255,8 @@ continue       Identify PR author/executor
                                                    v
                                             Continue workflow
 ```
+
+Project Item Status transitions at review hand-off, where applicable, are governed by `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and are executable only by a capable actor/tool. They are not executable steps for the current ChatGPT/GitHub connection.
 
 ### Review conversation terminology
 
