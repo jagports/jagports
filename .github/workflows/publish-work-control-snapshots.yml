@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "17 0 * * *"
 
+concurrency:
+  group: publish-work-control-snapshots
+  cancel-in-progress: false
+
 permissions:
   contents: read
   issues: write
@@ -107,7 +111,7 @@ jobs:
               verified_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
               body="$(printf '%s\n\n## Work-control snapshot\n\nVerified: %s\n\n- Priority: %s\n- Project: %s (#%s)\n- Workstream: %s\n- Status: %s\n- Rank: %s\n\nThis is a read-only agent bridge. Native Issue Priority and Project fields remain authoritative.\n' "$SNAPSHOT_MARKER" "$verified_at" "$priority" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$workstream" "$status" "$rank")"
 
-              comments="$(gh api --paginate "repos/$repo/issues/$issue_number/comments?per_page=100")"
+              comments="$(gh api --paginate "repos/$repo/issues/$issue_number/comments?per_page=100" | jq -s 'add')"
               comment_id="$(jq -r --arg marker "$SNAPSHOT_MARKER" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | if length == 0 then empty elif length == 1 then .[0] else "AMBIGUOUS" end' <<<"$comments")"
 
               if [ "$comment_id" = "AMBIGUOUS" ]; then
@@ -117,7 +121,7 @@ jobs:
                 gh api --method PATCH "repos/$repo/issues/comments/$comment_id" -f body="$body" >/dev/null
               else
                 gh api --method POST "repos/$repo/issues/$issue_number/comments" -f body="$body" >/dev/null
-                comments="$(gh api --paginate "repos/$repo/issues/$issue_number/comments?per_page=100")"
+                comments="$(gh api --paginate "repos/$repo/issues/$issue_number/comments?per_page=100" | jq -s 'add')"
                 comment_id="$(jq -r --arg marker "$SNAPSHOT_MARKER" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | if length == 1 then .[0] else empty end' <<<"$comments")"
                 [ -n "$comment_id" ] || { echo "Snapshot comment creation could not be verified for $repo#$issue_number."; false; }
               fi
