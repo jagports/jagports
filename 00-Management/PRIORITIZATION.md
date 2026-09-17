@@ -19,9 +19,9 @@ Legacy planning identifiers such as `P6` or `P6.1` identify a work-plan position
 For current work:
 
 - **Issue `Priority`** is the authoritative organization-wide current priority metadata. The supported GitHub values are `Urgent`, `High`, `Medium`, and `Low`.
-- **Project `Rank`** is a unique positive-integer ordinal that gives exact order inside one declared Project/backlog scope. Lower numbers execute earlier; `1` is the highest-ranked active item. GitHub's numeric storage representation is transport detail and does not change this integer-only Jagports semantic.
+- **Project `Rank`** is a unique positive integer that gives exact order inside one declared Project/backlog scope. Lower numbers execute earlier; `1` is the highest-ranked active item.
 - **Project `Status`** is the workflow stage of that Issue inside that Project and uses the canonical states defined by `WORKFLOWS.md`.
-- **Project `Workstream`** is the queue boundary when more than one operational queue shares the same Project. Current values are `Intake`, `AI OS`, and `VIEPS`. `Intake` is a deterministic unclassified holding state, not an execution queue.
+- **Project `Workstream`** is the queue boundary when more than one operational queue shares the same Project. Current values are `AI OS` and `VIEPS`.
 - **Priority score** is a comparison aid used to explain priority and rank. It is not itself authoritative metadata.
 - **P0...P5 review band** is retained as decision evidence and as the compact input accepted by the synchronization automation. It maps to native Issue Priority and does not create a second authoritative priority field.
 
@@ -35,7 +35,7 @@ Every ranked queue must state its scope, for example a product release, implemen
 
 Within one declared scope there is one ordered queue. Do not maintain competing ranks for the same scope. An Issue may legitimately have different ranks in different Projects because the queues have different scopes.
 
-When AI OS and VIEPS share one GitHub Project, `Workstream` separates those queues. Rank is interpreted inside one operational Workstream only; `AI OS Rank 1` and `VIEPS Rank 1` are both valid and do not compete in one universal queue. `Intake` items are not part of either execution queue and must not receive an active Rank until they are classified into `AI OS` or `VIEPS`.
+When AI OS and VIEPS share one GitHub Project, `Workstream` separates those queues. Rank is interpreted inside one Workstream only; `AI OS Rank 1` and `VIEPS Rank 1` are both valid and do not compete in one universal queue.
 
 Do not combine unrelated scopes into one universal queue unless the Product Owner explicitly requests that comparison.
 
@@ -127,13 +127,11 @@ A priority value does not replace Project Status. An Issue can be `Urgent` while
 
 ## Exact queue ordering
 
-Every actively ranked item receives one unique positive-integer Project `Rank` within its declared operational Workstream scope: `1`, `2`, `3`, and so on.
+Every actively ranked item receives one unique Project `Rank` within its declared scope: `1`, `2`, `3`, and so on.
 
 Lower numbers mean earlier execution. Ranked Project views should sort `Rank` ascending so Rank `1` appears first.
 
-P5 and `Intake` items have no active Rank.
-
-GitHub Project NUMBER fields may store or return an integer-valued Rank using a floating-point representation such as `1.0`. Synchronization and verification must compare Rank numerically, not as literal text. A requested canonical Rank `1` and authoritative read-back `1.0` are equal. A non-integer value such as `1.5` is invalid for Jagports Rank and must never satisfy verification for an integer request. Human/agent-readable snapshots must normalize integer-valued Rank to canonical integer text such as `Rank: 1`, not `Rank: 1.0`.
+P5 items have no active rank.
 
 Order active items primarily by score after applying workflow gates and explicit Product Owner direction.
 
@@ -200,7 +198,7 @@ Override: none | <recorded Product Owner override>
 Evidence: <Issue/PR/document references>
 ```
 
-The automation maps `Band` to native Issue `Priority`. `Rank: none` is required for P5 and for `Intake`. A score containing any `0` factor is provisional.
+The automation maps `Band` to native Issue `Priority`. `Rank: none` is required for P5. A score containing any `0` factor is provisional.
 
 When priority changes materially, add a new dated record rather than rewriting historical comments.
 
@@ -212,27 +210,11 @@ Issue and Project metadata have separate ownership:
 - Project `Status`, Project `Rank`, and Project `Workstream` belong to a particular Project scope;
 - historical P0...P5 review records remain evidence, not a duplicate live priority field.
 
-The required workflow responsibilities are:
+The current workflows have these responsibilities:
 
-- `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured, and initializes newly created/reopened Project Items to a defined Workstream state rather than leaving Workstream absent.
+- `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
 - `.github/workflows/sync-issue-work-control-to-project.yml` is the single bounded work-control synchronizer. It processes an authorized `<!-- jagports-project-sync -->` comment or standalone `<!-- jagports-workstream-sync -->` comment for one open Issue, maps P0...P5 to native Issue Priority, updates requested Project `Status`, `Rank`, and `Workstream`, independently verifies the authoritative values, and refreshes only that Issue's agent-readable snapshot.
-- Pull Request Project lifecycle automation defined by `00-Management/WORKFLOWS.md` must initialize each PR Project Item with both a deterministic Status and deterministic Workstream behavior; it must not create a Project Item whose queue ownership is silently absent.
 - Manual `workflow_dispatch` on the work-control synchronizer is recovery-only: it requires one explicit Issue number and refreshes only that Issue's snapshot. It cannot request a full-Project reconciliation or authoritative field mutation.
-
-### Workstream intake, classification, and PR inheritance
-
-The shared Project must never rely on an absent Workstream value as its intake mechanism.
-
-1. A newly added Issue Project Item whose queue ownership is not already explicitly known is initialized to `Workstream: Intake` together with its canonical lifecycle Status.
-2. `Intake` is visible classification work, not a ranked execution queue. It receives no active Rank.
-3. Once queue ownership is established, an authorized bounded synchronization changes `Intake` to exactly one operational Workstream: `AI OS` or `VIEPS`, then independently verifies the result.
-4. Automation must not infer `AI OS` versus `VIEPS` from Issue/PR title text, branch names, free-form wording, or other undocumented heuristics.
-5. A Pull Request Project Item inherits the single verified operational Workstream of its owning/closing Issue when that ownership resolves unambiguously to one Workstream.
-6. If a PR has no verified owning Issue Workstream, has only an `Intake` owner, or has multiple owning Issues with conflicting operational Workstreams, initialize the PR Project Item to `Intake`. Do not guess.
-7. A later explicit classification may move that PR Project Item from `Intake` to the correct operational Workstream.
-8. Workstream initialization and reclassification are Project mutations and therefore require authoritative read-back under `MUTATE → VERIFY`.
-
-The Project Workstream configuration is an executable prerequisite. Automation that depends on it must discover exactly one `Workstream` single-select field and verify the required options `Intake`, `AI OS`, and `VIEPS`. If the field or required options are missing or invalid, approved setup/recovery logic may create or minimally repair the configuration while preserving valid existing option identities where GitHub permits it; the resulting field/options must then be independently reread and verified before item mutation continues. Ambiguous/duplicate configuration fails closed.
 
 The work-control workflow:
 
@@ -240,14 +222,12 @@ The work-control workflow:
 2. maps P0→Urgent, P1→High, P2→Medium, P3/P4→Low, and P5→unset;
 3. does not add an Issue to Project #9 merely because only Issue Priority was requested;
 4. resolves/adds the Project Item only when Project Status, Rank, or Workstream is being changed;
-5. requires the canonical Project `Status`, numeric `Rank`, and `Workstream` field definitions to resolve unambiguously and fails closed on missing/duplicate definitions except where the approved Workstream setup/recovery path can deterministically create or repair missing required Workstream configuration;
-6. accepts only canonical `Workstream` values `Intake`, `AI OS`, and `VIEPS`;
-7. accepts only canonical positive-integer Rank input plus `none` where permitted and verifies authoritative Rank numerically, so integer-equivalent transport values such as `1.0` satisfy Rank `1` while non-integer values do not;
-8. independently reads back and verifies every authoritative value it changes;
-9. after successful verification, reads and refreshes only the same Issue's managed snapshot inline rather than dispatching another workflow;
-10. normalizes snapshot Rank to canonical integer text or `none`;
-11. ignores closed Issues for routine work-control mutation and snapshot refresh;
-12. reports failure when requested authoritative state or snapshot state cannot be independently verified.
+5. requires the canonical Project `Status`, numeric `Rank`, and `Workstream` field definitions to resolve unambiguously and fails closed on missing/duplicate definitions;
+6. accepts only canonical `Workstream` values `AI OS` and `VIEPS`;
+7. independently reads back and verifies every authoritative value it changes;
+8. after successful verification, reads and refreshes only the same Issue's managed snapshot inline rather than dispatching another workflow;
+9. ignores closed Issues for routine work-control mutation and snapshot refresh;
+10. reports failure when requested authoritative state or snapshot state cannot be independently verified.
 
 ### Workstream synchronization
 
@@ -264,8 +244,6 @@ or:
 <!-- jagports-workstream-sync -->
 Workstream: VIEPS
 ```
-
-`Workstream: Intake` is also valid for explicit recovery/reclassification to the deterministic intake state, but it must not be used as an active ranked queue.
 
 The same bounded work-control workflow processes this marker. Workstream synchronization does not use a separate `issue_comment` workflow listener.
 
@@ -301,9 +279,9 @@ Snapshot refresh paths are limited to:
 
 There is deliberately **no scheduled full-Project snapshot reconciliation, no broad manual full-Project publisher, and no workflow-to-workflow snapshot dispatch**. Recovery must remain explicitly bounded so a mistaken invocation cannot fan out over hundreds of Issues or consume a material portion of the Actions allowance.
 
-The previous Project text field `Operational Priority` is deprecated duplicate metadata. Existing values were migrated/reconciled to native Issue Priority and the duplicate field was retired only after verification. Historical Issue comments remain evidence.
+The previous Project text field `Operational Priority` is deprecated duplicate metadata. Existing values were migrated/reconciled to native Issue Priority and the duplicate field was retired only after verification. The one-time migration workflow was retired after completion. Historical Issue comments remain evidence.
 
-The workflows intentionally do not rewrite Project view layout or sort configuration. Operational ranked views should be configured to filter by `AI OS` or `VIEPS` as applicable and sort `Rank` ascending. A separate visible `Intake` view must expose items whose Workstream is `Intake` so newly created/unclassified items cannot disappear from normal Project operation.
+The workflows intentionally do not rewrite Project view layout or sort configuration. Ranked views should be configured to filter by Workstream where applicable and sort `Rank` ascending.
 
 Only trusted repository/organization actors may trigger comment-based synchronization. The Issue comment remains the durable decision record.
 
@@ -328,7 +306,7 @@ Daily audit categories such as `SHOW-STOPPERS`, `DO FIRST`, `LOW-HANGING FRUITS`
 
 When a maintained ranked queue exists, the audit should use it as evidence while still applying dependency, impact, urgency, readiness, unblock-value and cleanup checks.
 
-The AI OS audit operates on the `AI OS` Workstream and the VIEPS audit operates on the `VIEPS` Workstream while those queues share the same GitHub Project. Their Rank values are evaluated only inside the applicable Workstream. `Intake` is reviewed for classification/queue hygiene and is not mixed into either ranked execution queue.
+The AI OS audit operates on the `AI OS` Workstream and the VIEPS audit operates on the `VIEPS` Workstream while those queues share the same GitHub Project. Their Rank values are evaluated only inside the applicable Workstream.
 
 Scheduled audits perform prioritization reconciliation and queue maintenance. They do not trigger or depend on an unbounded snapshot reconciliation. If an individual snapshot needs recovery, refresh only that specific open Issue through the bounded single-Issue recovery path.
 
