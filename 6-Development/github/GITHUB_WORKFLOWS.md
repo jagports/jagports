@@ -1,8 +1,8 @@
-# GitHub SKILL Workflow Sections
+# GitHub Workflows
 
 ## Purpose
 
-This file preserves GitHub-related workflow execution sections that were moved out of `0-DocumentationEducationCompetense/SKILL.md` so `SKILL.md` can remain an execution router instead of carrying detailed GitHub workflow bodies.
+This file preserves GitHub-related workflow execution sections under their current GitHub workflow document name.
 
 These sections are GitHub-specific operating/execution details and therefore belong under `6-Development/github/`. They are used with:
 
