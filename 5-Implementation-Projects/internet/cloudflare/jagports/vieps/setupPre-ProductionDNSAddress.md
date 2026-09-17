@@ -2,207 +2,168 @@
 
 ## Purpose
 
-Define the reusable implementation procedure for creating and enabling a Cloudflare Workers `workers.dev` pre-production hostname.
+Define the reusable implementation procedure for enabling and verifying the Cloudflare Workers `workers.dev` pre-production hostname used by VIEPS.
 
-This document defines the hostname mechanism and implementation knowledge used by deployment tasks. It does not record execution results.
+This document defines hostname discovery, derivation and implementation knowledge used by deployment tasks. It does not record execution results.
 
 ## Accepted VIEPS pre-production decision
 
-VIEPS pre-production uses:
+VIEPS pre-production uses the Cloudflare Workers hostname model:
 
 ```text
-<VIEPS-name>.<account>.workers.dev
-```
-
-Selected values:
-
-```text
-Account Workers subdomain: jagports
-Worker name:              vieps
-Pre-production hostname:  vieps.jagports.workers.dev
-Pre-production URL:       https://vieps.jagports.workers.dev
-```
-
-## General hostname model
-
-Cloudflare provides an account-level Workers subdomain:
-
-```text
-<ACCOUNT_SUBDOMAIN>.workers.dev
-```
-
-A Worker enabled on that subdomain is exposed as:
-
-```text
-<WORKER_NAME>.<ACCOUNT_SUBDOMAIN>.workers.dev
-```
-
-Hostname configuration therefore has two levels:
-
-1. establish the account Workers subdomain;
-2. enable the individual Worker on that subdomain.
-
-### Variables
-
-```text
-CLOUDFLARE_ACCOUNT_ID = Cloudflare account identifier
-CLOUDFLARE_API_TOKEN  = API token supplied at execution time; never commit
-ACCOUNT_SUBDOMAIN      = account-level workers.dev subdomain, for example jagports
-WORKER_NAME            = Cloudflare Worker/script name, for example vieps
-WORKERS_DEV_HOSTNAME   = derived value: WORKER_NAME.ACCOUNT_SUBDOMAIN.workers.dev
+<WORKER_NAME>.<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
 ```
 
 For VIEPS:
 
 ```text
-ACCOUNT_SUBDOMAIN    = jagports
-WORKER_NAME          = vieps
-WORKERS_DEV_HOSTNAME = vieps.jagports.workers.dev
+WORKER_NAME = vieps
 ```
 
-`ACCOUNT_SUBDOMAIN` is the text value selected for the account's Workers subdomain. It is not the Cloudflare account ID.
+The account Workers subdomain is **not hard-coded in repository documentation**. It must be discovered from the actual Cloudflare account before deriving the final hostname.
 
-`WORKER_NAME` is the Worker/script name shown by Cloudflare and used by the Worker deployment configuration/API path. For VIEPS it is `vieps`.
-
-## Finding required identifiers before API execution
-
-### Cloudflare account ID
-
-Open the Cloudflare Dashboard while signed in to the intended account:
-
-`https://dash.cloudflare.com/`
-
-Select the intended account and obtain its **Account ID** from the account information/API area. Use that value as `CLOUDFLARE_ACCOUNT_ID`.
-
-### Worker/script name
-
-Confirm the VIEPS Worker name from the Worker deployment configuration and Cloudflare Worker listing. The intended value is:
+Selected VIEPS pre-production hostname form:
 
 ```text
-vieps
+vieps.<derived-from-account>.workers.dev
 ```
 
-### Account subdomain
-
-The account Workers subdomain is a text label selected/configured at account level. For VIEPS it is:
+The final hostname and URL are therefore:
 
 ```text
-jagports
+Pre-production hostname = vieps.<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
+Pre-production URL      = https://vieps.<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
 ```
 
-The resulting account hostname is:
+Do not assume the account Workers subdomain is the Cloudflare account ID, account name, email address, organization name, or `jagports` unless actual Cloudflare account state verifies that value.
+
+## General hostname model
+
+Cloudflare provides each Workers account with an account-level `workers.dev` subdomain in the form:
 
 ```text
-jagports.workers.dev
+<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
 ```
+
+A Worker exposed through `workers.dev` uses:
+
+```text
+<WORKER_NAME>.<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
+```
+
+For this procedure the authoritative order is:
+
+1. authenticate to the intended Cloudflare account;
+2. read/discover the account Workers subdomain;
+3. confirm the Worker/script name is `vieps`;
+4. derive the hostname from those two verified values;
+5. enable the Worker `workers.dev` route if required;
+6. independently verify configuration and the public endpoint.
+
+## Variables
+
+```text
+CLOUDFLARE_ACCOUNT_ID       = Cloudflare account identifier
+CLOUDFLARE_API_TOKEN        = API token supplied at execution time; never commit
+ACCOUNT_WORKERS_SUBDOMAIN   = value read from the intended Cloudflare account
+WORKER_NAME                 = vieps
+WORKERS_DEV_HOSTNAME        = WORKER_NAME.ACCOUNT_WORKERS_SUBDOMAIN.workers.dev
+```
+
+`ACCOUNT_WORKERS_SUBDOMAIN` is a Cloudflare account-level Workers setting. It is not inferred from `CLOUDFLARE_ACCOUNT_ID`.
 
 ## Prerequisites
 
 Before execution:
 
-- the Cloudflare account exists;
-- the operator can access the intended Cloudflare account;
+- the intended Cloudflare account exists;
+- the operator can authenticate to that account;
 - the Cloudflare account ID has been obtained;
-- the intended Worker/script name has been confirmed;
-- the intended account Workers subdomain has been selected;
+- the actual account Workers subdomain can be read from Cloudflare;
+- the intended Worker/script name is confirmed as `vieps`;
 - an API token with the required Workers permission is available when API execution is used;
 - the VIEPS Worker deployment procedure is available;
 - D1 creation, binding and migrations are handled separately.
 
 Do not place API tokens, passwords, account secrets or recovery credentials in repository files or committed scripts.
 
-## Method A — Cloudflare Dashboard
-
-### A1. Configure the account Workers subdomain
+## Method A — Discover account Workers subdomain in Cloudflare Dashboard
 
 1. Open `https://dash.cloudflare.com/`.
 2. Select the intended Cloudflare account.
 3. Open **Workers & Pages**.
-4. Locate the account Workers subdomain setting.
-5. Select **Change** where Cloudflare presents the account subdomain control.
-6. Enter/select the intended subdomain, for example `jagports`.
-7. Confirm that the resulting account hostname is `jagports.workers.dev`.
+4. Locate **Your subdomain** / the account Workers subdomain setting.
+5. Record the displayed account Workers subdomain as `ACCOUNT_WORKERS_SUBDOMAIN` for the current execution record.
+6. Do not change the subdomain merely to make it match repository examples.
 
-### A2. Enable the Worker on `workers.dev`
+If a change of the account-level Workers subdomain is desired, treat that as a separate explicit configuration decision because it can affect all Workers using that account subdomain.
 
-1. Open the `vieps` Worker.
-2. Open its Domains/Routes settings.
-3. Enable the `workers.dev` address.
-4. Confirm the displayed URL is:
+## Method B — Discover account Workers subdomain through Cloudflare API
+
+Read the account Workers subdomain before any mutation:
 
 ```text
-https://vieps.jagports.workers.dev
+GET https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/subdomain
 ```
 
-No external custom DNS hostname is configured as part of this pre-production task.
+Use the returned account subdomain value as `ACCOUNT_WORKERS_SUBDOMAIN`.
 
-## Method B — Wrangler CLI
+### PowerShell
 
-Use the Worker deployment procedure for the exact Worker working directory/configuration. From the configured Worker project, the standard commands are:
+```powershell
+$headers = @{ Authorization = "Bearer $env:CLOUDFLARE_API_TOKEN" }
+$result = Invoke-RestMethod -Method Get -Uri "https://api.cloudflare.com/client/v4/accounts/$env:CLOUDFLARE_ACCOUNT_ID/workers/subdomain" -Headers $headers
+$result
+```
+
+### Bash/curl
+
+```text
+curl "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+```
+
+Do not use the account-subdomain update operation as part of normal VIEPS pre-production setup unless a separate explicit decision authorizes changing the account-wide subdomain.
+
+## Derive the VIEPS pre-production hostname
+
+After `ACCOUNT_WORKERS_SUBDOMAIN` has been read and verified:
+
+```text
+WORKERS_DEV_HOSTNAME = vieps.<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
+```
+
+Example only:
+
+```text
+If ACCOUNT_WORKERS_SUBDOMAIN = example-account-label
+then WORKERS_DEV_HOSTNAME    = vieps.example-account-label.workers.dev
+```
+
+The example value is not a Jagports configuration decision.
+
+## Method C — Wrangler deployment
+
+Use the Worker deployment procedure for the exact Worker working directory/configuration.
+
+Standard commands:
 
 ```text
 npx wrangler login
+npx wrangler whoami
 npx wrangler deploy
 ```
 
-For a configuration-driven deployment, the relevant environment must have:
+For a configuration-driven deployment, the relevant environment must not disable `workers.dev`. Where explicitly represented in Wrangler configuration:
 
 ```toml
 workers_dev = true
 ```
 
-Do not create a second Worker merely to create the hostname. The Worker name in the deployment configuration determines the first hostname label.
+Do not create a second Worker merely to create the hostname. The deployed Worker name provides the first hostname label.
 
-## Method C — Cloudflare API: account Workers subdomain
+## Method D — Enable Worker `workers.dev` route through Cloudflare API
 
-Cloudflare's account subdomain operation is:
-
-```text
-PUT https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/subdomain
-```
-
-Request body:
-
-```json
-{
-  "subdomain": "<ACCOUNT_SUBDOMAIN>"
-}
-```
-
-For VIEPS:
-
-```json
-{
-  "subdomain": "jagports"
-}
-```
-
-### PowerShell
-
-Run from Windows Terminal/PowerShell after setting the required environment variables from the approved credential mechanism:
-
-```powershell
-$headers = @{
-    Authorization = "Bearer $env:CLOUDFLARE_API_TOKEN"
-    "Content-Type" = "application/json"
-}
-$body = @{ subdomain = $env:CLOUDFLARE_WORKERS_SUBDOMAIN } | ConvertTo-Json
-Invoke-RestMethod -Method Put -Uri "https://api.cloudflare.com/client/v4/accounts/$env:CLOUDFLARE_ACCOUNT_ID/workers/subdomain" -Headers $headers -Body $body
-```
-
-### Bash/curl
-
-Run from Git Bash at the repository root or the Worker project directory:
-
-```text
-curl "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" --data "{\"subdomain\":\"$CLOUDFLARE_WORKERS_SUBDOMAIN\"}"
-```
-
-`CLOUDFLARE_WORKERS_SUBDOMAIN` is the text account subdomain, for example `jagports`.
-
-## Method D — Cloudflare API: enable Worker subdomain
-
-After the account subdomain exists, enable the intended Worker:
+After the account Workers subdomain has been discovered, enable the intended Worker when required:
 
 ```text
 POST https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/scripts/{script_name}/subdomain
@@ -223,8 +184,6 @@ Request body:
 }
 ```
 
-`{account_id}` is the Cloudflare Account ID obtained before API execution. `{script_name}` is the actual Worker/script name; for VIEPS it is `vieps`.
-
 ### PowerShell
 
 ```powershell
@@ -242,21 +201,21 @@ Invoke-RestMethod -Method Post -Uri "https://api.cloudflare.com/client/v4/accoun
 curl "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$CLOUDFLARE_WORKER_NAME/subdomain" -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" --data '{"enabled":true,"previews_enabled":false}'
 ```
 
-## Method E — API verification
+## Verification
 
 ### Account-level verification
+
+Re-read:
 
 ```text
 GET https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/subdomain
 ```
 
-Expected account subdomain:
-
-```text
-jagports
-```
+Verify that the returned value is the same `ACCOUNT_WORKERS_SUBDOMAIN` used to derive the hostname.
 
 ### Worker-level verification
+
+Read:
 
 ```text
 GET https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/scripts/{script_name}/subdomain
@@ -274,6 +233,21 @@ Expected relevant value:
 enabled = true
 ```
 
+### Public endpoint verification
+
+Construct the URL from verified values:
+
+```text
+https://vieps.<ACCOUNT_WORKERS_SUBDOMAIN>.workers.dev
+```
+
+Verify separately:
+
+1. hostname resolves;
+2. TLS/HTTPS succeeds;
+3. the intended Worker responds;
+4. the expected VIEPS application response is returned.
+
 A successful API response proves configuration state only. It does not prove application functionality.
 
 ## Deployment task boundary
@@ -286,7 +260,7 @@ Actual execution belongs to:
 3-Deployment/internet/dns/hosting/jagports/setupPre-ProductionAddress.md
 ```
 
-The deployment task should reference this document rather than duplicating the API implementation knowledge.
+The deployment task must record the actual discovered account Workers subdomain and resulting hostname as execution evidence rather than committing that runtime value here as a permanent assumption.
 
 ## Test implementation
 
@@ -296,7 +270,7 @@ Reusable prerequisite/state verification is maintained separately in:
 5-Implementation-Projects/internet/cloudflare/jagports/vieps/setupPre-ProductionDNSAddress-test.md
 ```
 
-The test implementation verifies prerequisites and current Cloudflare state before any create/enable operation is attempted. It must not create resources as part of a prerequisite test.
+The test must discover current account state before any create/enable operation and must not change the account-level Workers subdomain.
 
 ## Pre-production versus production
 
@@ -304,13 +278,15 @@ This procedure is specifically for VIEPS pre-production.
 
 ```text
 Pre-production:
-vieps.jagports.workers.dev
+vieps.<derived-from-account>.workers.dev
 
 Production:
 separate production deployment
 ```
 
 The production hostname requirement is a separate production deployment concern and does not constrain the current pre-production Workers hostname.
+
+Cloudflare recommends routes or custom domains rather than `workers.dev` for business-critical production use; therefore the pre-production `workers.dev` decision must not be silently promoted into the production hostname architecture.
 
 ## Security
 
@@ -327,5 +303,5 @@ The production hostname requirement is a separate production deployment concern 
 - Cloudflare Workers CLI: https://developers.cloudflare.com/workers/get-started/guide/
 - Wrangler configuration: https://developers.cloudflare.com/workers/wrangler/configuration/
 - Cloudflare routing: https://developers.cloudflare.com/workers/configuration/routing/
-- Create account Workers subdomain API: https://developers.cloudflare.com/api/resources/workers/subresources/subdomains/methods/update/
 - Worker subdomain API: https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/subdomain/
+- Account Workers subdomain API: https://developers.cloudflare.com/api/resources/workers/subresources/subdomains/
