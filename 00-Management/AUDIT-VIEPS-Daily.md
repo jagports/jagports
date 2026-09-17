@@ -15,6 +15,8 @@ This file defines the VIEPS scope. The canonical audit processing method and req
 
 ## VIEPS scope
 
+While AI OS and VIEPS share one GitHub Project, the Project single-select `Workstream` value for this queue is **`VIEPS`**. Project `Rank` is interpreted inside the VIEPS workstream only; it must not be compared directly with an AI OS Rank.
+
 Relevant work includes:
 - VIEPS UI/application implementation;
 - Parts Data Model and API/data integration;
@@ -27,6 +29,8 @@ Relevant work includes:
 - VIEPS-specific dependencies and VIEPS-specific research/specification decisions;
 - automated tests and required human verification;
 - VIEPS implementation readiness and documentation.
+
+The audit applies the common prioritization-maintenance procedure to the VIEPS workstream only.
 
 **Dependency boundary:** AI OS is an upstream enabling system for VIEPS. AI OS development may help, slow, constrain, or otherwise affect VIEPS development and may therefore be considered as dependency/context when assessing VIEPS progress. However, AI OS Issues/PRs are not VIEPS audit work and must not be reported as VIEPS progress merely because VIEPS depends on them. Report the resulting VIEPS impact, dependency, or required VIEPS action rather than duplicating the upstream AI OS work.
 

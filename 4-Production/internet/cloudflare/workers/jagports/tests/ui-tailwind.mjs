@@ -17,8 +17,11 @@ test('VIEPS UI uses only a local built Tailwind stylesheet and no Pico/Tailwind 
 test('Tailwind build uses pinned local project dependencies for development and deployment', async () => {
   const pkg = JSON.parse(await readFile(packageUrl, 'utf8'));
   assert.match(pkg.scripts['build:css'], /^tailwindcss\b/);
-  assert.match(pkg.scripts.dev, /npm run build:css/);
-  assert.match(pkg.scripts.deploy, /npm run build:css/);
+  assert.match(pkg.scripts.build, /npm run build:css/);
+  assert.match(pkg.scripts.build, /npm run verify:generated-assets/);
+  assert.match(pkg.scripts.dev, /npm run build/);
+  assert.match(pkg.scripts.deploy, /npm run build/);
+  assert.match(pkg.scripts['verify:deployed-assets'], /verify-deployed-assets\.mjs/);
   assert.equal(pkg.devDependencies.tailwindcss, '4.1.13');
   assert.equal(pkg.devDependencies['@tailwindcss/cli'], '4.1.13');
 });
@@ -57,9 +60,9 @@ test('static shell keeps merged Concept-11 semantic regions without inventing un
   assert.match(html, /class="search-availability-strip"/);
   assert.match(html, /id="availabilitySelect" disabled/);
   assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
-  assert.match(html, /<h2 id="ranges-heading">Suitability Model Ranges<\/h2>/);
-  assert.match(html, /<h2 id="fitment-heading">Suitability \/ Filter<\/h2>/);
-  assert.match(html, /<h2 id="visual-heading">PART \/ Image \/ Status<\/h2>/);
+  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
+  assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
+  assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
   assert.doesNotMatch(html, />Top view</);
   assert.doesNotMatch(html, />Side view</);
 });

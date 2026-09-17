@@ -54,12 +54,12 @@ test("Concept-11 uses one vehicle-location canvas and a separate suitability pan
   assert.doesNotMatch(html, />Side view</);
   assert.doesNotMatch(html, /class="vehicle-views"|class="vehicle-view"/);
   expectRule(".vehicle-location-canvas", [/flex:\s*1 1 auto;/, /min-height:\s*0;/]);
-  assert.match(html, /<h2 id="fitment-heading">Suitability \/ Filter<\/h2>/);
+  assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
 });
 
 test("Concept-11 ranges and lower PART region span the centre/right workspace", () => {
-  assert.match(html, /<h2 id="ranges-heading">Suitability Model Ranges<\/h2>/);
-  assert.match(html, /<h2 id="visual-heading">PART \/ Image \/ Status<\/h2>/);
+  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
+  assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
   assert.match(css, /"tree ranges ranges"/);
   assert.match(css, /"tree details details"/);
 });

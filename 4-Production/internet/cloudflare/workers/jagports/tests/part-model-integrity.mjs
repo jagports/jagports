@@ -20,7 +20,7 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 13);
+  assert.equal(migrations.length, 17);
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
@@ -145,7 +145,7 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
       checked++;
     }
   }
-  assert.equal(checked, 28, 'all 28 FKs in the consolidated schema are exercised');
+  assert.equal(checked, 47, 'all 47 FK columns in the consolidated schema are exercised');
 });
 
 test('canonical and relationship uniqueness reject duplicate populated identities', (t) => {
@@ -244,10 +244,10 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
       const db = new DatabaseSync(':memory:');
       t.after(() => db.close());
       db.exec('PRAGMA foreign_keys=ON');
-      const mvpStockMigration = migrations.indexOf('0011_mvp_stock_model.sql');
-      migrate(db, migrations.slice(0, mvpStockMigration));
+      const stockModelMigration = migrations.indexOf('0011_mvp_stock_model.sql');
+      migrate(db, migrations.slice(0, stockModelMigration));
       db.exec(sql(`tests/fixtures/${fixture}.sql`));
-      migrate(db, migrations.slice(mvpStockMigration));
+      migrate(db, migrations.slice(stockModelMigration));
       assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
       assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);
       continue;
@@ -261,7 +261,7 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
   }
 });
 
-test('MVP API executes real queries after all migrations', async (t) => {
+test('API executes real queries after all migrations', async (t) => {
   const db = withDatabase(t);
   const env = { DB: d1(db) };
   const response = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=MJB7703AA'), env);
@@ -269,8 +269,8 @@ test('MVP API executes real queries after all migrations', async (t) => {
   const result = await response.json();
   assert.equal(result.part.part_number_normalized, 'MJB7703AA');
   assert.equal(result.images.length, 1);
-  assert.equal(result.images[0].image_url, null);
-  assert.equal(result.fitment.length, 4);
+  assert.equal(result.images[0].image_url, '/fixtures/mjb7703aa.svg');
+  assert.equal(result.fitment.length, 6);
   assert.equal(result.diagrams[0].availability_status, 'unavailable');
   assert.deepEqual(result.parts_tree[0].path, ['Body', 'Exterior', 'Clips and Fasteners']);
   const missing = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=DOESNOTEXIST'), env);

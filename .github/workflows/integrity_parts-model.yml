@@ -1,10 +1,11 @@
-name: Parts model integrity tests
+name: VIEPS model integrity tests
 
 on:
   pull_request:
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
       - '5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/**'
+      - '5-Implementation-Projects/internet/jagports/solution/vieps/i18n/**'
       - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
       - '3-Deployment/internet/github/actions/tests/integrity_model_part.md'
@@ -14,6 +15,7 @@ on:
     paths:
       - '4-Production/internet/cloudflare/workers/jagports/**'
       - '5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/**'
+      - '5-Implementation-Projects/internet/jagports/solution/vieps/i18n/**'
       - '6-Development/libraries/css/tailwind/**'
       - '.github/workflows/integrity_parts-model.yml'
       - '3-Deployment/internet/github/actions/tests/integrity_model_part.md'
@@ -31,17 +33,18 @@ jobs:
           sparse-checkout: |
             4-Production/internet/cloudflare/workers/jagports
             5-Implementation-Projects/internet/jagports/solution/vieps/SPEC
+            5-Implementation-Projects/internet/jagports/solution/vieps/i18n
             6-Development/libraries/css/tailwind/4.1.13
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Install pinned local UI build dependencies
+      - name: Restore locked Worker build dependencies
         working-directory: 4-Production/internet/cloudflare/workers/jagports
-        run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Build local Tailwind CSS
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build and verify generated deploy assets
         working-directory: 4-Production/internet/cloudflare/workers/jagports
-        run: npm run build:css
+        run: npm run build
       - name: Execute model, migration and Worker tests
         working-directory: 4-Production/internet/cloudflare/workers/jagports
         run: npm test

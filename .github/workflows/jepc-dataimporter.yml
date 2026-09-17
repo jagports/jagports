@@ -1,0 +1,33 @@
+name: JEPC DataImporter tests
+
+on:
+  pull_request:
+    paths:
+      - '5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/**'
+      - '.github/workflows/jepc-dataimporter.yml'
+  push:
+    branches: [main]
+    paths:
+      - '5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/**'
+      - '.github/workflows/jepc-dataimporter.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: 5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Test runtime and CLI contracts without source installation
+        working-directory: 5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter
+        run: npm test

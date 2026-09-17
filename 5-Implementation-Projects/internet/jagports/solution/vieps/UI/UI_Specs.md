@@ -84,6 +84,59 @@ show Location-at-car and Suitability/Filter side-by-side
 show PART / Image / Status across the lower workspace
 ```
 
+## Deterministic vertical-slice contract
+
+The full #368 UI implementation must support a narrow but coordinated end-to-end path before production/imported catalogue data is complete. This is a UI implementation contract; the current overall MVP closure gate may be narrower or may impose additional requirements through #280 and its active acceptance work.
+
+```text
+enter Jaguar part number or approved deterministic fixture identifier
+        ↓
+resolve canonical PART
+        ↓
+show PART's relevant Parts Tree branch
+        ↓
+show verified suitable vehicle Ranges/models when applicability data is available
+        ↓
+select a Range and show verified applicable variations/qualifiers where available
+        ↓
+show the PART image when available
+        ↓
+pass coordinated end-to-end acceptance validation
+```
+
+The selected canonical PART remains the central identity while Parts Tree, Range, variation/qualifier and image views change their contextual presentation. UI components consume approved API/data contracts and do not duplicate domain-resolution logic.
+
+This UI slice does not by itself make diagram hotspots, whole-car vehicle-location mapping, operational stock, supersession/current-part indicators, Jaguar Classic indicators or alternative entry paths prerequisites. Those capabilities remain governed by their own specifications and by the current overall MVP scope.
+
+The complete Concept-11 information architecture should remain visible early. Real behaviour is implemented where its contract is ready; components awaiting data or later implementation retain their permanent region and use explicit unavailable/not-supported states instead of throwaway layouts or fabricated behaviour.
+
+## Deterministic fixture boundary and migration
+
+Deterministic fixtures are an implementation substrate, not a second domain model. Fixture requests/results use the same UI/API contracts that imported data will later provide.
+
+Fixture identifiers and values must be clearly marked as deterministic test data and must not be represented as production evidence.
+
+Representative fixture coverage for the full #368 vertical-slice contract should include:
+
+- successful part-number or approved fixture-identifier resolution;
+- multiple EPC contexts;
+- a relevant Parts Tree path;
+- multiple applicable model/ranges when supported by the fitment fixture;
+- a qualifier-bearing fitment/variation result when supported;
+- Part Image available and unavailable cases;
+- unavailable secondary data;
+- not-found, invalid and processing-error input states.
+
+Evidence-state rules are invariant across fixtures and imported data:
+
+- Missing image data is an explicit unavailable state, not a fabricated image.
+- Missing Range applicability is not a positive fitment result.
+- Missing variation data is not equivalent to no variation.
+- Missing Parts Tree context is not equivalent to no PART.
+- Unresolved source semantics remain unresolved rather than being guessed by presentation code.
+
+Replacing fixtures with imported data must not require a UI information-architecture rewrite. The backing adapter/data source may change; the UI/API boundary and canonical identity semantics remain stable.
+
 ## Empty-search / stock browsing
 
 Concept-11 states that when Search is empty, a supported stock availability/quality constraint may update both Model Ranges and the Parts Tree to the models/main levels represented by matching stock.
@@ -201,11 +254,11 @@ On the default desktop layout, preserve PR #616 behaviour: the page itself fits 
 ## Related specifications
 
 - `UI_CSS_Kit.md` — Tailwind/style-theme direction.
-- `UI_Specs_Part_Search.md` — search/result-state contract.
+- [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md) — search/result-state contract.
 - `UI_Specs_Parts_Tree.md` — tree hierarchy/selection contract.
 - `UI_Specs_Main_View.md` — Location and PART/Image/Status synchronization.
 - `UI_Specs_Fitment.md` — Model Ranges and Suitability applicability contract.
-- `UI_Specs_Stock_Separation.md` — stock/catalogue boundary.
+- [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md) — stock/catalogue boundary and stock-quality authority.
 
 ## Acceptance principles
 

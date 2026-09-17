@@ -17,11 +17,15 @@ This file defines the AI OS-specific scope. The canonical audit processing metho
 
 Use the repository's inherited operating context and communication protocol. This procedure defines the AI OS-specific audit scope.
 
+While AI OS and VIEPS share one GitHub Project, the Project single-select `Workstream` value for this queue is **`AI OS`**. Project `Rank` is interpreted inside the AI OS workstream only; it must not be compared directly with a VIEPS Rank.
+
 Relevant work includes:
 - Jagports AI OS Management and governance;
 - AI OS implementation, architecture and infrastructure;
 - AI OS documentation and durable knowledge;
 - AI OS research, tooling and agent capabilities;
 - capabilities and enabling work that is part of AI OS or is specifically required to enable AI OS operation or development.
+
+The audit applies the common prioritization-maintenance procedure to the AI OS workstream only.
 
 **Dependency boundary:** AI OS enables downstream applications such as VIEPS. Downstream application work is not AI OS audit work merely because it depends on AI OS. The AI OS audit may consider downstream work only as evidence of an AI OS dependency, capability gap, or enabling requirement when that relationship is directly relevant to AI OS progress. Report the AI OS work or AI OS consequence, not the downstream application work itself.

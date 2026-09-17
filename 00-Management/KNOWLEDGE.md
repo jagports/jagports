@@ -1,5 +1,22 @@
 # Management Knowledge
 
+## Product and Operating Vision
+
+The durable vision documents are:
+
+- [`VISION_AI-OS.md`](VISION_AI-OS.md) — Jagports AI OS operating/product vision, including the GitHub-centered human-governed agent model, durable-memory direction, automation principles, and baseline cost/infrastructure constraints.
+- [`VISION_VIEPS.md`](VISION_VIEPS.md) — VIEPS product vision, including canonical Jaguar/parts knowledge, evidence-backed applicability, catalogue/stock separation, provider direction, and long-term platform direction.
+
+These vision documents state intended direction and durable boundaries. They do not replace `WORKFLOWS.md`, `RULES.md`, detailed specifications, roadmaps, or implementation acceptance criteria.
+
+## Decision Records
+
+[`DECISIONS.md`](DECISIONS.md) is the cross-project index of consequential accepted decisions and their authoritative Issue/PR/document records.
+
+Use the decision log to discover whether a consequential question has already been decided before reopening it. The linked originating record remains the detailed authority; the log preserves concise traceability and supersession history rather than duplicating full decision narratives.
+
+Decision-record content requirements remain defined by `0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md`.
+
 ## Automation and System-of-Record Boundary
 
 Automation may provide execution, scheduling, polling, or notification for Jagports management processes, but an automation mechanism is not itself the project system of record.
@@ -13,6 +30,16 @@ A successful creation or execution of an automation must not be treated as evide
 A recurring Team Lead audit is supported by ChatGPT automation. Its current schedule, prompt, and verified automation metadata are maintained in the scoped management document `00-Management/DAILY_AUDIT_SCHEDULE.md` rather than duplicated here.
 
 The audit is intended to be read-only by default and to identify actionable exceptions while respecting the authoritative Management, workflow, communication, and knowledge sources.
+
+## Current Agent Automation Capability Constraint
+
+For the current Jagports operating environment, a purchasable Codex API subscription suitable for the planned unattended agent runtime is not available. The self-hosted Lead Agent prototype must therefore not be treated as an available production Codex-backed autonomous service.
+
+Automated and scheduled Agent Infrastructure work that depends on Codex API execution is suspended until further notice. This suspension is a capability constraint, not abandonment of the AI OS architecture or its future agent-runtime direction.
+
+The currently available agent-like scheduled capability is ChatGPT scheduled task/prompt automation. Those scheduled ChatGPT prompts may continue where appropriate under the existing Management workflow, governance, verification, and system-of-record rules.
+
+If Codex API or another suitable unattended agent-execution capability becomes available later, the suspended infrastructure work must be explicitly re-evaluated before it is resumed; availability must not be assumed from the existence of the prototype, a ChatGPT subscription, or interactive Codex access.
 
 ## Capability Separation
 

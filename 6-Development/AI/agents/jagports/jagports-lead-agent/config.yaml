@@ -1,0 +1,11 @@
+agent:
+  name: Jagports Lead
+
+github:
+  repository: jagports/jagports
+
+polling:
+  interval_minutes: 60
+
+openai:
+  enabled: false
