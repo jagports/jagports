@@ -142,7 +142,7 @@ Jagports AI OS is not intended to:
 
 ## Relationship to current implementation
 
-Current implementation and sequencing are tracked through GitHub Issues/Projects and the implementation plan in [`../5-Implementation-Projects/Jagports_AI_OS_Prioritized_Work_Plan.md`](../5-Implementation-Projects/Jagports_AI_OS_Prioritized_Work_Plan.md).
+Current implementation, sequencing, priority, dependencies, and completion state are tracked through GitHub Issues and Projects. Repository documents retain durable vision, rules, specifications, decisions, and reusable knowledge rather than a duplicate live task plan.
 
 The current self-hosted Lead Agent and specialist-agent prototypes are implementation experiments toward this vision. Their present architecture is not itself the vision and may change as reliability, operating cost, capability boundaries, and maintainability are validated.
 
