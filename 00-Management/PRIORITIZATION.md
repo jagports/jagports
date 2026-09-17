@@ -210,24 +210,24 @@ Issue and Project metadata have separate ownership:
 - Project `Status`, Project `Rank`, and Project `Workstream` belong to a particular Project scope;
 - historical P0...P5 review records remain evidence, not a duplicate live priority field.
 
-The current workflows have separate responsibilities:
+The current workflows have these responsibilities:
 
 - `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
-- `.github/workflows/sync-issue-work-control-to-project.yml` processes an authorized `<!-- jagports-project-sync -->` comment or manual dispatch. It maps P0...P5 to native Issue Priority and updates requested Project `Status` and `Rank` values.
-- `.github/workflows/sync-workstream-to-project.yml` processes an authorized standalone Workstream command and sets the Project `Workstream` field to `AI OS` or `VIEPS` with independent read-back verification.
-- `.github/workflows/publish-work-control-snapshots.yml` publishes the read-only agent-facing snapshot of authoritative Issue/Project work-control values.
+- `.github/workflows/sync-issue-work-control-to-project.yml` is the single bounded work-control synchronizer. It processes an authorized `<!-- jagports-project-sync -->` comment or standalone `<!-- jagports-workstream-sync -->` comment for one open Issue, maps P0...P5 to native Issue Priority, updates requested Project `Status`, `Rank`, and `Workstream`, independently verifies the authoritative values, and refreshes only that Issue's agent-readable snapshot.
+- Manual `workflow_dispatch` on the work-control synchronizer is recovery-only: it requires one explicit Issue number and refreshes only that Issue's snapshot. It cannot request a full-Project reconciliation or authoritative field mutation.
 
 The work-control workflow:
 
 1. uses the organization Issue `Priority` field as the authoritative current priority;
 2. maps P0→Urgent, P1→High, P2→Medium, P3/P4→Low, and P5→unset;
 3. does not add an Issue to Project #9 merely because only Issue Priority was requested;
-4. resolves/adds the Project Item only when Project Status or Rank is being changed;
-5. dynamically resolves the existing Project `Status` options;
-6. creates numeric Project `Rank` only if missing;
-7. independently reads back and verifies every value it changes;
-8. after successful verification, directly dispatches `publish-work-control-snapshots.yml` through GitHub Actions `workflow_dispatch`;
-9. reports failure when the requested state or snapshot-dispatch request cannot be verified as accepted by GitHub.
+4. resolves/adds the Project Item only when Project Status, Rank, or Workstream is being changed;
+5. requires the canonical Project `Status`, numeric `Rank`, and `Workstream` field definitions to resolve unambiguously and fails closed on missing/duplicate definitions;
+6. accepts only canonical `Workstream` values `AI OS` and `VIEPS`;
+7. independently reads back and verifies every authoritative value it changes;
+8. after successful verification, reads and refreshes only the same Issue's managed snapshot inline rather than dispatching another workflow;
+9. ignores closed Issues for routine work-control mutation and snapshot refresh;
+10. reports failure when requested authoritative state or snapshot state cannot be independently verified.
 
 ### Workstream synchronization
 
@@ -245,15 +245,7 @@ or:
 Workstream: VIEPS
 ```
 
-The Workstream workflow:
-
-1. accepts only trusted repository/organization actors;
-2. accepts only the canonical values `AI OS` or `VIEPS`;
-3. creates the `Workstream` single-select field only if it is absent and verifies that both canonical options exist;
-4. resolves or adds the Project Item where required;
-5. writes the selected Workstream;
-6. independently reads it back before claiming success;
-7. after successful verification, directly dispatches `publish-work-control-snapshots.yml` through GitHub Actions `workflow_dispatch`.
+The same bounded work-control workflow processes this marker. Workstream synchronization does not use a separate `issue_comment` workflow listener.
 
 `Workstream` is a structured Project field, not a repository label.
 
@@ -269,24 +261,25 @@ Each managed snapshot comment is identified by the standalone marker:
 
 The snapshot contains at minimum:
 
-- verification timestamp;
+- verification timestamp when the managed comment is written;
 - native Issue `Priority`;
 - Project identity;
 - Project `Workstream`;
 - Project `Status`;
 - Project `Rank`.
 
-The publisher updates one managed snapshot comment per Project Issue rather than adding a new comment on every refresh. It independently rereads the written comment and verifies the expected Priority, Workstream, Status and Rank lines. If multiple managed snapshot comments exist for one Issue, it fails closed rather than choosing one arbitrarily.
+Snapshot publication is strictly single-Issue and bounded. The work-control workflow resolves Project membership from the target Issue, never by scanning all Project Items. It updates at most one managed snapshot comment for that Issue and independently rereads the comment to verify the expected Priority, Workstream, Status and Rank lines. If multiple managed snapshot comments exist for one Issue, it fails closed rather than choosing one arbitrarily.
 
-Snapshot refresh paths are:
+Snapshot writes use the repository `GITHUB_TOKEN`, while Project reads/writes use the separately authorized Project token. GitHub suppresses ordinary workflow runs for events created by `GITHUB_TOKEN`; this prevents the managed snapshot comment from recursively starting `issue_comment` workflows.
 
-1. **Immediate event-driven refresh** — after a verified authoritative Priority/Status/Rank or Workstream change, the responsible synchronization workflow directly starts `publish-work-control-snapshots.yml` using GitHub Actions `workflow_dispatch` on `main`.
-2. **Daily reconciliation fallback** — `.github/workflows/publish-work-control-snapshots.yml` runs on cron `17 0 * * *`, i.e. once per day at **00:17 UTC**.
-3. **Manual maintenance** — the snapshot publisher itself supports `workflow_dispatch` for an authorized manual reconciliation.
+Snapshot refresh paths are limited to:
 
-The daily run exists to catch drift or direct/manual changes that bypass the immediate event path. It is not the primary synchronization mechanism.
+1. **Immediate event-driven refresh** — after a verified authoritative Priority/Status/Rank or Workstream change, the same workflow refreshes only the affected open Issue's snapshot inline.
+2. **Bounded manual recovery** — `workflow_dispatch` requires one Issue number and performs snapshot-only recovery for that one open Project Issue.
 
-The previous Project text field `Operational Priority` is deprecated duplicate metadata. Existing values were migrated/reconciled to native Issue Priority and the duplicate field was retired only after verification. Historical Issue comments remain evidence.
+There is deliberately **no scheduled full-Project snapshot reconciliation, no broad manual full-Project publisher, and no workflow-to-workflow snapshot dispatch**. Recovery must remain explicitly bounded so a mistaken invocation cannot fan out over hundreds of Issues or consume a material portion of the Actions allowance.
+
+The previous Project text field `Operational Priority` is deprecated duplicate metadata. Existing values were migrated/reconciled to native Issue Priority and the duplicate field was retired only after verification. The one-time migration workflow was retired after completion. Historical Issue comments remain evidence.
 
 The workflows intentionally do not rewrite Project view layout or sort configuration. Ranked views should be configured to filter by Workstream where applicable and sort `Rank` ascending.
 
@@ -315,6 +308,6 @@ When a maintained ranked queue exists, the audit should use it as evidence while
 
 The AI OS audit operates on the `AI OS` Workstream and the VIEPS audit operates on the `VIEPS` Workstream while those queues share the same GitHub Project. Their Rank values are evaluated only inside the applicable Workstream.
 
-The scheduled audits perform prioritization reconciliation and queue maintenance. The separate daily snapshot reconciliation provides a machine-readable fallback; immediate field changes remain event-driven.
+Scheduled audits perform prioritization reconciliation and queue maintenance. They do not trigger or depend on an unbounded snapshot reconciliation. If an individual snapshot needs recovery, refresh only that specific open Issue through the bounded single-Issue recovery path.
 
 An audit may surface a lower-ranked low-hanging-fruit or cleanup action without silently changing the maintained queue. A material reprioritization should be recorded through a new priority review.
