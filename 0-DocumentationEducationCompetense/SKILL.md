@@ -10,11 +10,11 @@ The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`]
 
 **OPEN search → HISTORICAL CLOSED/MERGED search → verify claimed result → valid = no duplicate / insufficient or obsolete = active work / uncertain = clarification → only then create new work.**
 
-The canonical workflow also defines the controlled lifecycle, Project Item Status meaning, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling. GitHub Project/Kanban-specific workflow behavior is defined in `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` and the current ChatGPT/GitHub capability boundary is summarized in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
+The canonical workflow also defines the controlled lifecycle, Project Item Status meaning, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling. GitHub Project/Kanban-specific workflow behavior is defined in `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and the current ChatGPT/GitHub capability boundary is summarized in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 
 ## Current ChatGPT/GitHub Project capability boundary
 
-Detailed Project/Kanban workflow meaning, lifecycle rules, evidence rules, and Product Owner rulings are defined in [`6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md`](../6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md).
+Detailed Project/Kanban workflow meaning, lifecycle rules, evidence rules, and Product Owner rulings are defined in [`6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`](../6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md).
 
 The current ChatGPT/GitHub capability boundary is summarized in [`6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`](../6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md).
 
@@ -98,7 +98,7 @@ Do not duplicate GitHub Project/Kanban lifecycle rules in this file.
 
 Use:
 
-- `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` for Project/Kanban workflow meaning and Product Owner rulings;
+- `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` for Project/Kanban workflow meaning and Product Owner rulings;
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` for the current ChatGPT/GitHub Project capability boundary;
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` for GitHub connection knowledge and environment asymmetry.
 
@@ -235,7 +235,7 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 ## Separation of Responsibilities
 
 - `00-Management/WORKFLOWS.md` — top-level canonical normative Management workflows.
-- `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
+- `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
 - `00-Management/RULES.md` — human governance and rationale; no competing workflow definition.
