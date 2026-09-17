@@ -1,14 +1,14 @@
-# Parts Supersession Knowledge
+# JEPC Supersession Knowledge
 
-## Importer runtime navigation
+## Scope
 
-Jagports-developed importer applications and their operating specifications belong in the [Jagports JEPC-Importers domain](../../jagports/JEPC-Importers/KNOWLEDGE.md), under issue #355. This JLR domain retains source-software research and evidence. See the [DataImporter operating specification](../../jagports/JEPC-Importers/DataImporter/SPEC_DataImporter_v0.1.md) and [runtime instructions](../../jagports/JEPC-Importers/DataImporter/README.md).
+This file records durable JEPC/source knowledge about parts supersession. It belongs with JLR/JEPC research because the relationship semantics, source evidence, and JEPC UI observations originate from catalogue/source investigation rather than from Jagports importer implementation.
 
-## Purpose
-
-Parts supersession is durable catalogue knowledge describing how one catalogue part is replaced by another. It is distinct from current operational stock and from general claims that two parts are interchangeable.
+Jagports-developed importer applications, tests, and operating specifications belong under `5-Implementation-Projects/software/jagports/JEPC-Importers/`.
 
 ## Supersession as a catalogue relationship
+
+Parts supersession describes how one catalogue part is replaced by another. It is distinct from current operational stock and from general claims that two parts are interchangeable.
 
 A superseded or obsolete catalogue part remains an independently addressable catalogue entity. Supersession must not overwrite or delete the historical part number.
 
@@ -16,11 +16,11 @@ A supersession relationship is directed: the source part is the superseded part 
 
 A relationship may be one-to-one, one-to-many, or part of a longer replacement chain. The representation must therefore support multiple replacement relationships and chains without losing the historical links.
 
-### JEPC UI indication
+## JEPC UI indication
 
-The VIEPS concept UI / parts-list reference images preserve an important observation from the JEPC interface: supersession is visually indicated in the parts list by a **round-arrow icon** associated with the superseded part entry. This icon is a catalogue/UI indication of a supersession relationship and is therefore useful evidence when interpreting or validating JEPC parts-list data.
+JEPC parts-list evidence shows supersession visually with a **round-arrow icon** associated with the superseded part entry. This icon is a catalogue/UI indication of a supersession relationship and is useful source evidence when interpreting or validating JEPC parts-list data.
 
-The icon should not be treated as a replacement for the underlying relationship data. The historical part number, replacement relationship, direction, and provenance remain explicit data requirements. The UI indication should be preserved as source-specific evidence/metadata where the imported source representation allows it.
+The icon is not a replacement for the underlying relationship data. The historical part number, replacement relationship, direction, and provenance remain explicit data requirements. The UI indication should be preserved as source-specific evidence or metadata where the imported source representation allows it.
 
 ## Evidence and relationship strength
 
@@ -71,8 +71,4 @@ The knowledge described here defines the domain requirement. It does not prescri
 
 ## Generalization rule
 
-Individual part numbers, individual test cases, temporary research identifiers, and task-specific evidence belong in the relevant research or task record unless they establish a reusable domain rule. This document should remain stable as a generalized source of knowledge while concrete supersession findings accumulate in their appropriate evidence records.
-
-## Traceability
-
-This knowledge consolidates and generalizes the supersession knowledge originally documented for JEPC and JLR Classic Parts in PR #364. The consolidation changes the knowledge location and organization; it does not change the underlying domain requirement that explicit catalogue/manufacturer supersession evidence must be represented as durable, directed catalogue knowledge separate from operational stock.
+Individual part numbers, individual test cases, temporary research identifiers, and task-specific evidence belong in the relevant research or task record unless they establish a reusable domain rule. This document should remain stable as generalized JEPC/source knowledge while concrete supersession findings accumulate in their appropriate evidence records.
