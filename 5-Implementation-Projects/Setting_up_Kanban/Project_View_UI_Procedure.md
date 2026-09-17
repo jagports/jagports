@@ -1,10 +1,10 @@
-# GitHub Project View UI Procedure — Jagports
+# GitHub Project View Script Procedure — Jagports
 
 ## Purpose
 
-This document is the practical GitHub UI procedure for creating and saving a Project view.
+This document is the practical execution procedure for configuring the required GitHub Project views with the repository script.
 
-It is an operational companion to [`Setting_up_Kanban.md`](Setting_up_Kanban.md). The canonical Project-view requirements, Workstream values, Rank semantics, verification requirements, and Management workflow remain defined by that existing documentation and `00-Management/WORKFLOWS.md`. This procedure must not be used as a competing specification.
+It is an operational companion to [`Setting_up_Kanban.md`](Setting_up_Kanban.md). The canonical Project-view requirements, Workstream values, Rank semantics, verification requirements, and Management workflow remain defined by that existing documentation and `00-Management/WORKFLOWS.md`. This procedure must not become a competing specification.
 
 ## Current Jagports Project
 
@@ -17,56 +17,136 @@ Current Project:
 
 For another Project, discover and verify the current owner and Project number instead of reusing Project #9 as a generic identifier.
 
-## Scripted implementation
+## Implementation script
 
-The repository includes a runnable implementation script in the same Kanban setup folder:
+The repository implementation script is:
 
 `5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh`
 
-Run it from a Git Bash checkout of the repository with GitHub CLI authentication that has organization Project write permission:
-
-```bash
-bash 5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh
-```
-
-The script discovers the current Project and `Rank` field, inherits the existing Project view layout, creates only missing `AI OS` and `VIEPS` views, configures their Workstream filters and Rank-ascending sort, and independently reads the resulting view configuration back before reporting success. It deliberately fails closed instead of replacing or overwriting an existing mismatched or duplicate named view.
-
-Use the UI procedure below when the script cannot run because the required GitHub CLI/API capability or permission is unavailable, or when direct visual confirmation is required.
-
-## Create and save one Project view
-
-1. Open the target Project. To the right of the existing view tabs, click **New view**. Open **View** next to the filter/search bar, choose **Rename view**, enter the required view name, and press `Return`.
-2. In the filter control, select the required Project field and value from GitHub's suggestions. For the current Jagports operational views, follow the required `Workstream` condition already defined in `Setting_up_Kanban.md`.
-3. Where the view represents ranked execution order, open **View → Sort**, choose `Rank`, and ensure ascending order so Rank `1` appears first. Then choose **View → Save changes**. GitHub automatically saves creation and renaming, but filter/sort changes remain private until the changed view is explicitly saved.
-4. Reopen or reload the saved view and verify that its filter and sorting match the canonical requirement and that items outside the intended Workstream are excluded. Record the required human verification result in the active implementation record.
-
-Repeat this procedure for each required operational view. Do not create additional Workstreams or operational views as a substitute for unresolved classification unless the canonical specification is changed first.
-
-## Current required views
-
-For convenience during the current implementation, the canonical Kanban document requires these two normal operational views:
+Its target state is exactly:
 
 | View | Required filter | Ranked-order behavior |
 |---|---|---|
 | `AI OS` | `Workstream = AI OS` | `Rank` ascending where ranked execution order is shown |
 | `VIEPS` | `Workstream = VIEPS` | `Rank` ascending where ranked execution order is shown |
 
-No normal operational `Intake` Workstream/view is part of the current model. If this summary and `Setting_up_Kanban.md` ever differ, `Setting_up_Kanban.md` is authoritative for this procedure.
+No normal operational `Intake` Workstream/view is part of the current model.
 
-## Verification
+## Prerequisites
 
-A Project view is not considered verified merely because the tab exists. Confirm the saved state after creation:
+Run the script from the Jagports repository using a Bash environment that has the required local capabilities. The operator's Bash environment is authoritative for execution capability; absence of a command, API wrapper, shell feature, or execution path in an agent environment does not prove that the operator's local environment lacks it.
 
-- the view has the intended name;
-- the saved Workstream filter matches the intended queue;
-- items assigned to the other Workstream are excluded;
-- `Rank` is ascending when the view represents ranked execution order;
-- the saved configuration remains after reopening/reloading the view.
+Required operator-side prerequisites:
 
-When the available connector or automation cannot inspect the saved Project View configuration, verification is a direct human observation of the actual GitHub Project UI.
+1. A checkout of `jagports/jagports`.
+2. GitHub CLI `gh` installed and authenticated.
+3. Authentication with organization Project read/write capability for the `jagports` organization.
+4. Bash capable of running the script and the commands it invokes.
+5. Python available when required by the current script implementation for JSON handling.
+
+Check authentication before mutation:
+
+```bash
+gh auth status
+```
+
+Where the current `gh` authentication requires an additional Project scope, refresh or otherwise authorize the credential according to the authentication method in use before running the script.
+
+## Run the PR implementation before merge
+
+PR #761 contains the implementation before it reaches `main`.
+
+From an existing clone of `jagports/jagports`:
+
+```bash
+gh pr checkout 761
+```
+
+Confirm the checked-out branch contains the script:
+
+```bash
+ls -l 5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh
+```
+
+Optionally inspect the exact script revision that will execute:
+
+```bash
+git status --short
+git log -1 --oneline
+```
+
+Then run:
+
+```bash
+bash 5-Implementation-Projects/Setting_up_Kanban/create_project_views.sh
+```
+
+Do not copy the script from chat or reconstruct it manually. Run the version committed to the PR branch so the executed implementation is traceable to the reviewed repository change.
+
+## Expected execution behavior
+
+The script must fail closed when it cannot safely establish or verify the requested state.
+
+The intended execution pattern is:
+
+1. verify `gh` authentication and Project access;
+2. resolve Project #9 rather than assuming an unverified object identity;
+3. inspect current Project views before mutation;
+4. create only the required missing `AI OS` / `VIEPS` views;
+5. apply the required Workstream filter where the supported Project API permits it;
+6. configure Rank ascending where the supported Project API permits it;
+7. independently read the resulting view state back;
+8. report success only for properties independently verified;
+9. leave an existing duplicate or conflicting view untouched and stop with an error rather than replacing it destructively;
+10. never create an `Intake` view.
+
+If GitHub exposes some Project-view capability in the operator's current `gh`/API environment that is not available in the agent connector or execution environment, that capability may be used by the script when it is explicitly implemented and independently verified. Agent-environment limitations must not be treated as proof that the operator-side GitHub CLI/API path is unavailable.
+
+## After execution
+
+Keep the complete terminal output as execution evidence.
+
+Then independently inspect the live Project:
+
+https://github.com/orgs/jagports/projects/9
+
+The acceptance result must establish:
+
+- `AI OS` view exists;
+- its saved filter corresponds to `Workstream = AI OS`;
+- `VIEPS` view exists;
+- its saved filter corresponds to `Workstream = VIEPS`;
+- ranked execution order is `Rank` ascending where required;
+- the two operational views do not visibly mix items from the other Workstream;
+- no normal operational `Intake` view was introduced.
+
+If the script reports that a required property could not be mutated or independently verified, do not convert that result into PASS. Record the limitation and complete only the unsupported property through an explicitly approved follow-up procedure.
+
+## Rerunning
+
+The script is intended to be safe to rerun:
+
+- discover current state first;
+- avoid recreating a correct existing view;
+- fail closed on duplicate/conflicting named views;
+- independently verify after mutation;
+- do not report success from the mutation response alone.
+
+After correcting an operator-side prerequisite or supported configuration problem, rerun the same committed script rather than creating a second ad-hoc implementation path.
+
+## Verification record
+
+Record the execution result and independent Project observation on the active implementation record for #753 / PR #761.
+
+Use the standard result vocabulary:
+
+- `PASS` — required behavior was executed and verified;
+- `FAIL` — execution completed but required state was not achieved;
+- `BLOCKED` — a prerequisite or capability prevented execution/verification;
+- `NOT TESTED` — the implementation was not executed.
 
 ## GitHub references
 
-- [Managing your views](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/managing-your-views)
-- [Filtering projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/filtering-projects)
-- [REST API endpoints for Project views](https://docs.github.com/en/rest/projects/views)
+- [GitHub CLI project commands](https://cli.github.com/manual/gh_project)
+- [GitHub GraphQL Projects reference](https://docs.github.com/en/graphql/reference/objects#projectv2)
+- [Managing Project views](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/managing-your-views)
