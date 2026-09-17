@@ -171,7 +171,7 @@ Do not duplicate those rules in this file.
 
 ## 5. Review, Testing, Acceptance, and Merge Boundary
 
-When review is required, use GitHub's native pull-request review mechanism as the hand-off mechanism. Do **not** invent a separate GitHub PR status such as "Waiting for Review".
+When review is required, use GitHub's native pull-request review mechanism as the hand-off mechanism. Do **not** invent a separate GitHub PR status such as `Waiting for Review`.
 
 ### Checkbox handling
 
@@ -265,6 +265,7 @@ For human-facing Jagports documentation and communication, use GitHub UI vocabul
 - **Review conversation** is the preferred term for an inline Pull Request review discussion.
 - Use **Unresolved Review conversation** and **Resolved Review conversation** when describing its state.
 - Reserve **review thread** or **review thread object** for GitHub API, GraphQL, or tool implementation details.
+- When a tool/API returns a review-thread object, translate that implementation vocabulary to **Review conversation** before reporting the state to a human.
 - The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
 
 ### Review discussion and formal review rules
@@ -297,6 +298,30 @@ For human-facing Jagports documentation and communication, use GitHub UI vocabul
 26. **Immediately before merge, the executing actor must freshly verify all applicable Issue Acceptance checkboxes, all required PR checklist checkboxes, current/effective review state, and required testing state.**
 27. **Merge is permitted only when all applicable Issue Acceptance boxes are `[x]`, all required PR checklist boxes are `[x]`, required tests are `PASS`, and the current independent review state is `APPROVED`. Any failed component blocks merge.**
 
+### Mandatory Pre-Merge Review Gate
+
+Before **any** merge operation, the executing actor must perform a fresh, independent review-state check for the target PR. This check is a hard precondition for invoking the merge operation; GitHub's technical `mergeable` result is not a substitute.
+
+The check must:
+
+1. Read the PR's current review submissions immediately before merge.
+2. Determine the effective review state from the review history, including whether a later review supersedes an earlier review.
+3. Treat `CHANGES_REQUESTED` / `REQUEST_CHANGES` as a blocking state. **STOP — DO NOT MERGE.**
+4. Never allow an earlier `APPROVED` review to satisfy the gate when a later blocking review exists.
+5. Verify all applicable Issue Acceptance checkboxes are `[x]`.
+6. Verify all required PR checklist checkboxes are `[x]`.
+7. Verify required tests are `PASS`.
+8. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
+9. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
+10. Permit merge only when the current review gate is independently verified as passed and all checkbox/testing gates have passed.
+11. If any required state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
+
+Required decision rule:
+
+`Issue Acceptance all [x] + PR required checklist all [x] + required tests PASS + independent review APPROVED → merge permitted`
+
+This rule applies regardless of whether the requested change is large, small, documentary, mechanical, or apparently implied by the review comment.
+
 Required human validation follows the approved testing gate:
 
 **Issue Acceptance all `[x]` + PR required checklist all `[x]` + required tests `PASS` + independent review `APPROVED` → merge permitted**
@@ -316,6 +341,16 @@ The title of an **open Issue or open PR** may be changed when scope materially c
 Title changes are recommended when scope materially changes, including when a PR legitimately expands to resolve multiple Issues. Cosmetic title changes should be avoided.
 
 **Checkbox-state exception:** an executor/agent may edit the description of an **open Issue or open PR solely to check or uncheck existing executor-controlled checkboxes** so that the persistent record reflects objective implementation/readiness state. A formal reviewer may check/uncheck reviewer-controlled boxes and may return an unsupported executor-controlled claim to `[ ]`. The repository/project owner or another explicitly designated human authority may make the same checkbox-only edits when exercising that authority. This exception does not authorize rewriting criterion/checklist text or any other description content.
+
+Execution rules:
+
+- Never modify descriptions or comments of closed Issues or merged PRs.
+- An open Issue or open PR may have its title changed when scope materially changes.
+- Such title changes are auditable through GitHub's `renamed` history event.
+- Cosmetic title changes should be avoided.
+- An executor/agent may edit an open Issue or PR description solely to check/uncheck existing executor-controlled checkboxes as permitted by the canonical checkbox-state exception.
+- A reviewer may change reviewer-controlled boxes and return unsupported executor claims to `[ ]`.
+- Do not use the checkbox exception to rewrite criteria, checklist wording, or unrelated description content.
 
 Closed Issues and merged PRs remain immutable, including titles and checkbox state.
 
@@ -362,6 +397,8 @@ Maintain the chain:
 Historical references used to justify active work should be explicitly linked in the active record.
 
 When an active Issue or PR materially changes scope, align its title with the current scope. The title-change and checkbox-state exceptions do not permit unrelated modification of historical descriptions/comments.
+
+When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
 
 ---
 
