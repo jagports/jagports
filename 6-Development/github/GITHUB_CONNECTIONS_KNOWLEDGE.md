@@ -2,7 +2,9 @@
 
 ## Scope
 
-This document records durable, source-based knowledge about documented GitHub connection methods used by AI agents. It does not define or replace Jagports Management workflows.
+This document records durable, source-based knowledge about documented GitHub connection methods used by AI agents. It does not define or replace Jagports Management workflows or GitHub operating workflows.
+
+GitHub Issue, Pull Request, review, merge, testing-evidence, record-integrity, field, label, and GitHub-specific operating rules are maintained in `6-Development/github/GITHUB_OPERATING_RULES.md`.
 
 Project/Kanban workflow meaning is maintained in `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 
@@ -44,15 +46,12 @@ Project management/read capability is unavailable through this connection; no Pr
 When the connector does not expose a required Project mutation:
 
 - do not repeatedly attempt unsupported connector/API operations;
-- do not conclude that the Project setting cannot be changed through GitHub;
-- do not downgrade the requested implementation to manual UI instructions merely because the connector cannot perform the mutation;
-- prefer a reviewed repository script that the authorized organization owner can run with GitHub CLI;
-- use `gh project ...` and/or `gh api graphql` when those are the supported execution surfaces for the required operation;
-- discover Project, field, option and view IDs at runtime rather than copying historical IDs;
-- inspect the current GraphQL schema or otherwise verify the supported mutation shape before writing Project configuration;
-- use the user's authenticated `gh` session rather than embedding PAT values or other credentials in repository content;
-- independently read back the resulting Project state after mutation;
-- use direct human UI observation only for aspects that the available API/CLI path cannot authoritatively inspect.
+- do not claim that the Project was mutated;
+- do not claim that Project state was verified;
+- prepare a reviewed repository artifact, script, or owner-run procedure when that is the supported path;
+- record the limitation in the relevant Issue/PR.
+
+This is a connector capability boundary, not a Product Owner decision.
 
 A repository script may therefore be the normal implementation artifact for Project settings that cannot be mutated through the ChatGPT connector. The script remains subject to the normal Issue → branch → PR → review → testing/verification workflow.
 
@@ -78,37 +77,19 @@ Required reporting sentence:
 
 GitHub provides native parent/sub-issue relationships through its product interfaces and APIs. Jagports intentionally does **not** use that native relationship mechanism as an operational task-hierarchy source of truth.
 
-The Jagports task-hierarchy source of truth is explicit Issue-body traceability:
+Jagports hierarchy and traceability are maintained through Issue-body references and linked records:
 
-- a parent Issue lists its child task Issues in its body;
-- a child Issue identifies its parent Issue in its body;
-- identifiers such as P-number/title structure may help locate or cross-check work, but they are not sufficient by themselves to establish hierarchy.
-
-For Jagports work:
-
-- never create, add, remove, reorder, repair, migrate, synchronize, or otherwise mutate native GitHub sub-issue relationships;
-- never use REST, GraphQL, GitHub CLI, GitHub UI, connector-specific operations, or another fallback path to create or repair native sub-issue relationships;
-- never open work solely to reconcile native sub-issue metadata;
-- never audit native `parent_issue`, `sub_issues`, `sub_issues_summary`, or equivalent native hierarchy metadata as required Jagports state;
-- verify hierarchy from the explicit parent/child Issue-body references instead;
-- do not infer a parent solely from a title or priority prefix when the Issue-body relationship is absent or contradictory;
-- historical native sub-issue relationships may remain untouched as legacy metadata and must not be rewritten merely to normalize old records;
-- do not modify closed historical Issue bodies merely to retrofit the current hierarchy convention.
-
-This policy is intentional and is not a claim that GitHub lacks native sub-issue support. It prevents Jagports task hierarchy from depending on a relationship mechanism that has been inconsistently available to agents and was historically attempted by repository scripts, including paths that could suppress mutation failures. Explicit Issue-body relationships are portable, visible through ordinary Issue APIs, and already used by current Jagports task groups.
-
-### Environment asymmetry
-
-The user's shell environment is not identical to the agent execution environment.
-
-In Jagports work the user may run Windows Git Bash with a locally installed and authenticated GitHub CLI. That environment may support shell features, GitHub CLI commands, GraphQL operations, authentication scopes, or Project operations that are unavailable from the current agent container or connector.
+- parent Issue lists child task Issues in its body;
+- child Issue identifies its parent Issue in its body;
+- Pull Requests and comments preserve explicit traceability links;
+- native GitHub parent/sub-issue metadata is not required Jagports state.
 
 Therefore:
 
-- absence of a command, shell feature, API surface, or permission in the agent environment is not evidence that it is unavailable in the user's shell;
-- do not remove or weaken a script solely because the agent cannot execute the same command locally;
-- validate syntax and logic against documented or user-verified capabilities and let the user's actual shell execution provide runtime evidence;
-- when execution differs, record the exact observed result and amend the script from evidence rather than assuming both environments behave identically.
+- do not create native GitHub sub-issues for Jagports task hierarchy;
+- do not require native GitHub sub-issue metadata for hierarchy verification;
+- do not repair hierarchy by adding native GitHub sub-issues;
+- use existing Issue-body traceability as the durable hierarchy source unless a later Product Owner decision changes the model.
 
 The prohibition on native GitHub sub-issues above is a Jagports operating rule and therefore applies regardless of which environment happens to expose the native GitHub operation.
 
@@ -116,44 +97,12 @@ For Jagports Project setup procedures, `6-Development/github/Projects/Setting_up
 
 ## Anthropic / Claude GitHub Custom Connector
 
-Claude supports custom connectors through its connector configuration interface:
+Anthropic documentation currently describes GitHub as a custom connector path for Claude, with organization/admin configuration and repository indexing behavior that differs from ChatGPT's GitHub connection.
 
-https://claude.ai/customize/connectors
+For Jagports, treat Claude/GitHub connector behavior as separate external-agent environment knowledge. Do not infer ChatGPT connector capabilities from Claude connector documentation, and do not infer Claude connector capabilities from ChatGPT connector documentation.
 
-The documented setup flow for the Jagports GitHub connector is:
+## Environment asymmetry rule
 
-1. Open Claude connector configuration.
-2. Select **+** next to **Connectors**.
-3. Select **Add custom connector**.
-4. Give the connector an appropriate name.
-5. Use the GitHub Copilot MCP endpoint:
-   `https://api.githubcopilot.com/mcp/`
-6. Open **Advanced settings**.
-7. Add the header:
-   `Authorization: Bearer <your PAT>`
-8. Paste the actual PAT directly into Claude's connector configuration field.
-9. Select **Add**.
+Different agent environments may expose different GitHub capabilities. A capability available in one environment is not automatically available in another.
 
-The actual PAT is a secret credential. It must never be written into Jagports repository content, Issues, Pull Requests, comments, scripts, logs, or chat messages. Only a placeholder such as `<your PAT>` may appear in documentation.
-
-Authorization and exposed connector capabilities remain separate verification points. Successful connector configuration or authentication does not by itself prove that the current Claude session can perform every GitHub operation required by a task. The specific operation must be tested or otherwise verified before claiming completion.
-
-The Claude connector configuration is an external product configuration and must not become a competing Jagports workflow authority. Current Jagports Management workflow remains defined by `00-Management/WORKFLOWS.md`.
-
-## Capability Transparency
-
-For any AI agent expected to perform an external GitHub action:
-
-- verify the GitHub account authorization;
-- verify that the agent connection exposes the required operation;
-- if the connector does not expose it, check whether a reviewed owner-run `gh`/GraphQL path is appropriate before falling back to manual UI work;
-- perform the operation through the available authorized capability;
-- independently verify the resulting GitHub state before claiming success.
-
-The native GitHub sub-issue prohibition above is an explicit exception: do not search for or use another execution path for that operation because Jagports does not use native sub-issues operationally.
-
-If another required operation is unavailable through every authorized execution path, report the verified limitation and identify the required next step.
-
-## Source Maintenance
-
-When OpenAI, Anthropic/Claude, GitHub, GitHub CLI, or relevant connector capabilities change, review this document against current official documentation and verified Jagports execution evidence, then update it through the normal Jagports Issue and Pull Request workflow.
+Before claiming or performing an operation, verify the specific environment, identity, permission, and tool capability being used.
