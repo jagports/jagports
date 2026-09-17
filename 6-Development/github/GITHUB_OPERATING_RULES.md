@@ -120,22 +120,24 @@ The Product Owner has final authority over priority and queue order.
 
 #### 2.3.1 `@priorize` and priority-synchronization Workstream preservation
 
-`@priorize <Issue/PR numbers>` is GitHub execution shorthand for applying the priority semantics defined by `../../00-Management/PRIORITIZATION.md`; it does not create a separate prioritization model.
+`@priorize <numbers>` is GitHub execution shorthand for applying the priority semantics defined by `../../00-Management/PRIORITIZATION.md`; it does not create a separate prioritization model.
 
-When a prioritization operation synchronizes a Project `Rank`, the authorized `<!-- jagports-project-sync -->` record must also explicitly include the applicable canonical Project `Workstream`:
+Business Priority and Project Rank belong to the owning Issue. Under `Projects/GITHUB_PROJECT_WORKFLOWS.md`, a Pull Request Project Item must not receive a separate competing business Priority/Rank. If an `@priorize` request includes a Pull Request number, resolve its owning/closing Issue and apply the business prioritization there; keep the Pull Request's own Project lifecycle and Workstream handling under the canonical Pull Request Project Item rules.
+
+When a prioritization operation synchronizes an Issue Project `Rank`, the authorized `<!-- jagports-project-sync -->` record must also explicitly include the applicable canonical Project `Workstream`:
 
 - `AI OS`; or
 - `VIEPS`.
 
 `Scope:` in a priority-review comment is descriptive decision context only. It must never be interpreted as, substituted for, or relied on to mutate the Project `Workstream` field.
 
-For an existing Issue or PR, preserve the latest explicitly verified Workstream from authoritative Project read-back evidence, including the managed work-control snapshot produced by the bounded synchronization workflow. Do not silently replace an already verified Workstream merely because a later prioritization request omits it.
+For an existing Issue, preserve the latest explicitly verified Workstream from authoritative Project read-back evidence, including the managed work-control snapshot produced by the bounded synchronization workflow. Do not silently replace an already verified Workstream merely because a later prioritization request omits it.
 
 If no Workstream is known from explicit durable evidence, fail closed for that target. Do not infer Workstream from title, body text, branch name, labels, Issue type, repository path, semantic topic, or other free-text/context heuristics. Obtain an explicit authorized Workstream classification before assigning Project Rank.
 
 Priority, Project Status, Project Rank, and Project Workstream remain separate concerns. A prioritization operation may update them together through one authorized synchronization record, but one field must never be inferred from another.
 
-A prioritization mutation is not successful merely because the request comment was written. Claim success only after the existing bounded work-control automation independently reads back and verifies the requested authoritative fields and refreshes the same record's managed snapshot.
+A prioritization mutation is not successful merely because the request comment was written. Claim success only after the existing bounded work-control automation independently reads back and verifies the requested authoritative fields and refreshes the same Issue's managed snapshot.
 
 ### 2.4 Assignment and Execution Target
 
