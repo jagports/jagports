@@ -132,7 +132,7 @@ while IFS= read -r item_json; do
   workstream="$(jq -r '.workstreamValue.name // ""' <<<"$item_json")"
 
   expected_status=""
-  expected_archived=""
+  expected_archived="false"
   expected_workstream=""
   result="OK"
   findings=()
@@ -142,12 +142,14 @@ while IFS= read -r item_json; do
     findings+=("DUPLICATE_PROJECT_ITEM")
   fi
 
+  # Product Owner ruling: no Pull Request Project Item may ever be archived.
+  if [ "$archived" = "true" ]; then
+    findings+=("PR_ITEM_ARCHIVED_PROHIBITED")
+  fi
+
   if [ "$native_state" != "OPEN" ] || [ "$merged" = "true" ]; then
     expected_status="DONE"
-    expected_archived="true"
-
     [ "$status" = "DONE" ] || findings+=("TERMINAL_STATUS_${status:-MISSING}_EXPECTED_DONE")
-    [ "$archived" = "true" ] || findings+=("TERMINAL_ITEM_NOT_ARCHIVED")
   else
     same_repo_issue_count="$(jq --arg repo "$REPOSITORY" '[.content.closingIssuesReferences.nodes[]? | select(.repository.nameWithOwner == $repo)] | length' <<<"$item_json")"
     operational_values="$(jq -r --arg repo "$REPOSITORY" --arg project "$project_id" '
@@ -168,8 +170,6 @@ while IFS= read -r item_json; do
     fi
 
     if [ -n "$expected_workstream" ]; then
-      expected_archived="false"
-      [ "$archived" = "false" ] || findings+=("ACTIVE_ITEM_ARCHIVED_WITH_VERIFIED_WORKSTREAM")
       [ "$workstream" = "$expected_workstream" ] || findings+=("WORKSTREAM_${workstream:-MISSING}_EXPECTED_${expected_workstream// /_}")
 
       if [ "$draft" = "true" ] || [ "$review_requests" -eq 0 ]; then
@@ -187,10 +187,12 @@ while IFS= read -r item_json; do
         fi
       fi
     else
-      expected_archived="true"
-      expected_status="ARCHIVED_FAIL_CLOSED"
-      [ "$archived" = "true" ] || findings+=("ACTIVE_ITEM_WITHOUT_VERIFIED_WORKSTREAM")
+      # Workstream cannot be inferred safely. The audit must not recommend archiving
+      # as a fail-closed substitute. It only verifies the universal no-archive rule
+      # and rejects terminal DONE on an open PR.
+      expected_status="UNRESOLVED_WORKSTREAM_NO_GUESS"
       [ "$status" != "DONE" ] || findings+=("OPEN_PR_REPRESENTED_AS_DONE")
+      ambiguous="true"
     fi
   fi
 
@@ -205,6 +207,8 @@ while IFS= read -r item_json; do
   findings_text=""
   if [ "${#findings[@]}" -gt 0 ]; then
     findings_text="$(IFS=';'; echo "${findings[*]}")"
+  elif [ "$ambiguous" = "true" ] && [ -z "$expected_workstream" ]; then
+    findings_text="No deterministic Workstream; item must remain unarchived and audit does not guess active lifecycle ownership"
   elif [ "$ambiguous" = "true" ]; then
     findings_text="Outstanding review request with IMPLEMENTATION is allowed after synchronize/rework"
   fi
