@@ -64,7 +64,7 @@ Rules:
 - Every change integrates through a PR.
 - The PR must explicitly trace to every Issue it implements/resolves.
 - Do not attempt GitHub Project management, Project View reads, Project Item reads, Project Item Status reads, Project Item mutations, Project Item Status mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this current ChatGPT/GitHub connection.
-- When Project state would normally be relevant through this current connection, record: `Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
+- When Project state would normally be relevant through this current connection, record: `*** !!! ALERT - GitHub Project functions are non-existing !!! ***`
 - Required review, checkbox, and testing gates must pass before merge.
 - Never treat GitHub's `mergeable` state as proof of review or approval.
 - After merge, verify repository, PR, Issue, review, test, and file state available through this connection. Do not claim Project state unless a capable actor/tool independently verifies it.
@@ -155,6 +155,6 @@ If capability is unavailable, use the exact alert required by the active executi
 
 `*** !!! ALERT - GitHub functions unavailable !!! ***`
 
-For the known Project capability boundary, use the Project capability reporting sentence instead of the general GitHub-functions alert:
+For the known Project capability boundary, use the exact Project-functions alert:
 
-`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
+`*** !!! ALERT - GitHub Project functions are non-existing !!! ***`
