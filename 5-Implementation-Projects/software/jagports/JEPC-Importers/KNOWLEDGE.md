@@ -7,4 +7,4 @@ JEPC importer applications are Jagports software. Their implementation, tests an
 
 Keep application-specific code, tests and specifications inside the named application directory. Standard package metadata and README filenames remain scoped by that directory; executable modules and tests also carry the application name.
 
-DataImporter currently inspects a selected source bundle and persists checksum evidence in a separate local SQLite ledger. Inspection completion is not catalogue import completion. Future transformation must interpret source decision paths and produce explicit destination application relationships. Source research remains in the [JLR JEPC domain](../../jlr/JEPC/KNOWLEDGE.md).
+DataImporter currently inspects a selected source bundle and persists checksum evidence in a separate local SQLite ledger. Inspection completion is not catalogue import completion. Future transformation must interpret source decision paths and produce explicit destination application relationships. Source research remains in the [JLR JEPC research domain](../../../../7-Research/jlr/JEPC/KNOWLEDGE.md).
