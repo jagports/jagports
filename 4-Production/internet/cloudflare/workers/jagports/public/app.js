@@ -112,10 +112,17 @@ function renderSelectedVisual() {
 }
 
 function renderVisuals(images, diagrams) {
+  const visualPriority = (item) => {
+    const available = item.image_url && (!item.availability_status || item.availability_status === "available");
+    const approved = item.verification_status === "verified" || item.verification_status === "fixture";
+    if (available && approved) return 0;
+    if (available) return 1;
+    return 2;
+  };
   visualItems = [
     ...images.map((item) => ({ ...item, label: item.description || t("visual.part_image") })),
     ...diagrams.map((item) => ({ ...item, label: item.title || t("part.diagram") })),
-  ];
+  ].sort((left, right) => visualPriority(left) - visualPriority(right));
   $("visualSelect").innerHTML = visualItems.map((item, index) =>
     `<option value="${index}">${escapeHtml(item.label)}</option>`).join("");
   $("visualSelect").value = "0";
@@ -125,16 +132,25 @@ function renderVisuals(images, diagrams) {
 
 function renderSelectedRange() {
   const code = $("rangeSelect").value;
-  const selected = fitmentRows.filter((item) => item.range_code === code && item.applicability_state === "applicable");
+  const rangeRows = fitmentRows.filter((item) => item.range_code === code);
+  const selected = rangeRows.filter((item) => item.applicability_state === "applicable");
   const range = selected[0];
   $("selectedRange").textContent = range ? `${range.range_code} — ${range.range_name}` : t("fitment.selected_none");
   $("locationStatus").textContent = range
     ? t("location.range_unavailable", { range: range.range_name })
     : t("location.verified_unavailable");
+
+  let variationStateKey = "fitment.no_confirmed";
+  if (!selected.length && rangeRows.some((item) => item.applicability_state === "unavailable")) {
+    variationStateKey = "fitment.unavailable";
+  } else if (!selected.length && rangeRows.length && rangeRows.every((item) => item.applicability_state === "excluded")) {
+    variationStateKey = "fitment.no_match";
+  }
+
   $("fitment").innerHTML = selected.length ? `<div class="table-scroll"><table>
     <thead><tr><th>${escapeHtml(t("fitment.variation"))}</th><th>${escapeHtml(t("fitment.qualifier"))}</th><th>${escapeHtml(t("fitment.verification"))}</th></tr></thead>
     <tbody>${selected.map((item) => `<tr><td>${escapeHtml(item.variation || t("common.not_specified"))}</td><td>${escapeHtml(item.qualifier || t("common.not_supplied"))}</td><td>${escapeHtml(item.verification_status || t("common.not_recorded"))}</td></tr>`).join("")}</tbody>
-    </table></div>` : empty(t("fitment.no_confirmed"));
+    </table></div>` : empty(t(variationStateKey));
 }
 
 function renderFitment(fitment) {
@@ -155,6 +171,10 @@ function renderFitment(fitment) {
   $("ranges").innerHTML = ranges.length ? `<ul class="range-list">${ranges.map((item) =>
     `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>` : empty(emptyLabel);
   renderSelectedRange();
+  if (!ranges.length) {
+    const variationStateKey = unavailable ? "fitment.unavailable" : confirmedNoMatch ? "fitment.no_match" : "fitment.no_confirmed";
+    $("fitment").innerHTML = empty(t(variationStateKey));
+  }
 }
 
 function renderResolvedData(data) {

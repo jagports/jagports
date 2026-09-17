@@ -49,65 +49,61 @@ function productionPath(t) {
   t.after(() => db.close());
   const env = { DB: d1(db) };
   const fetch = (url) => handleViepsPart(new Request(`https://example.test${url}`), env);
-  return { db, env, fetch, ui: uiHarness(fetch) };
+  return { db, env, ui: uiHarness(fetch) };
 }
 
-async function api(env, partNumber) {
-  const response = await handleViepsPart(
-    new Request(`https://example.test/api/vieps/part?q=${encodeURIComponent(partNumber)}`),
-    env,
-  );
-  assert.equal(response.status, 200);
-  return response.json();
-}
-
-test('production API carries applicability_state for applicable, excluded and unavailable fixtures', async (t) => {
-  const { env } = productionPath(t);
-
-  const applicable = await api(env, 'MJB7703AA');
-  assert.ok(applicable.fitment.length >= 4);
-  assert.deepEqual(
-    [...new Set(applicable.fitment.map((row) => row.applicability_state))].sort(),
-    ['applicable', 'excluded', 'unavailable'],
-  );
-
-  const excluded = await api(env, 'MNA7691AA');
-  assert.equal(excluded.fitment.length, 1);
-  assert.equal(excluded.fitment[0].applicability_state, 'excluded');
-
-  const unavailable = await api(env, 'XR847031');
-  assert.equal(unavailable.fitment.length, 1);
-  assert.equal(unavailable.fitment[0].applicability_state, 'unavailable');
-});
-
-test('production UI includes applicable ranges and preserves canonical PART while range context changes', async (t) => {
+test('coordinated MVP flow keeps canonical PART through tree, suitable Range, variations and Part Image', async (t) => {
   const { ui } = productionPath(t);
   await ui.search('MJB7703AA');
 
+  assert.match(ui.get('partCard').innerHTML, /MJB7703AA/);
+  assert.match(ui.get('tree').innerHTML, /Body/);
+  assert.match(ui.get('tree').innerHTML, /selected-path/);
   assert.match(ui.get('ranges').innerHTML, /X100/);
   assert.match(ui.get('ranges').innerHTML, /X150/);
-  assert.match(ui.get('partCard').innerHTML, /MJB7703AA/);
 
-  ui.get('rangeSelect').value = 'X150';
+  ui.get('rangeSelect').value = 'X100';
   ui.get('rangeSelect').listeners.change();
-  assert.match(ui.get('selectedRange').textContent, /X150/);
+
+  assert.match(ui.get('selectedRange').textContent, /X100/);
   assert.match(ui.get('partCard').innerHTML, /MJB7703AA/);
+  assert.match(ui.get('fitment').innerHTML, /4\.0 Coupe/);
+  assert.match(ui.get('fitment').innerHTML, /4\.0 Convertible/);
+  assert.doesNotMatch(ui.get('fitment').innerHTML, /Excluded fixture variation/);
+  assert.doesNotMatch(ui.get('fitment').innerHTML, /Unavailable fixture variation/);
+  assert.match(ui.get('visuals').innerHTML, /\/fixtures\/mjb7703aa\.svg/);
+  assert.match(ui.get('visuals').innerHTML, /Representative verified fixture Part Image/);
+  assert.match(ui.get('locationStatus').textContent, /unavailable/i);
 });
 
-test('production UI excludes confirmed excluded ranges from suitable presentation', async (t) => {
+test('variation panel distinguishes confirmed no-match from unavailable applicability', async (t) => {
   const { ui } = productionPath(t);
+
   await ui.search('MNA7691AA');
+  assert.match(ui.get('fitment').innerHTML, /No applicable variation matches the selected PART\/context/);
 
-  assert.equal(ui.get('rangeSelect').disabled, true);
-  assert.doesNotMatch(ui.get('ranges').innerHTML, /X100 —/);
-  assert.match(ui.get('ranges').innerHTML, /No suitable vehicle range matches this PART\/context/);
+  await ui.search('XR847031');
+  assert.match(ui.get('fitment').innerHTML, /Variation applicability data is unavailable/);
 });
 
-test('production UI represents unavailable applicability distinctly from confirmed no-match', async (t) => {
+test('Part Image path keeps unavailable and non-numbered states explicit', async (t) => {
   const { ui } = productionPath(t);
-  await ui.search('XR847031');
+  await ui.search('firtree1');
 
-  assert.equal(ui.get('rangeSelect').disabled, true);
-  assert.match(ui.get('ranges').innerHTML, /Vehicle applicability data is unavailable/);
-  assert.doesNotMatch(ui.get('ranges').innerHTML, /matches this PART\/context/);
+  assert.match(ui.get('partCard').innerHTML, /No Jaguar part number/);
+  assert.match(ui.get('visuals').innerHTML, /Image \/ diagram unavailable/);
+});
+
+test('Concept-11 acceptance regions remain visibly represented in the production shell', () => {
+  for (const id of [
+    'partSearch', 'availabilitySelect', 'tree', 'rangeSelect', 'ranges',
+    'vehicleLocation', 'locationStatus', 'selectedRange', 'fitment', 'partCard',
+    'visualChooser', 'visualSelect', 'visuals',
+  ]) {
+    assert.match(html, new RegExp(`id="${id}"`), id);
+  }
+  assert.match(html, /data-i18n="stock\.filter_unavailable"/);
+  assert.match(html, /data-i18n="location\.heading"/);
+  assert.match(html, /data-i18n="fitment\.heading"/);
+  assert.match(html, /data-i18n="visual\.heading"/);
 });

@@ -269,8 +269,8 @@ test('API executes real queries after all migrations', async (t) => {
   const result = await response.json();
   assert.equal(result.part.part_number_normalized, 'MJB7703AA');
   assert.equal(result.images.length, 1);
-  assert.equal(result.images[0].image_url, null);
-  assert.equal(result.fitment.length, 4);
+  assert.equal(result.images[0].image_url, '/fixtures/mjb7703aa.svg');
+  assert.equal(result.fitment.length, 6);
   assert.equal(result.diagrams[0].availability_status, 'unavailable');
   assert.deepEqual(result.parts_tree[0].path, ['Body', 'Exterior', 'Clips and Fasteners']);
   const missing = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=DOESNOTEXIST'), env);

@@ -11,8 +11,10 @@
     "browse_help": "Browse mode may expose approved filters; a selected part shows verified applicability facts and qualifiers.",
     "heading": "Suitability / Filter",
     "no_confirmed": "No suitable vehicle applicability is confirmed.",
+    "no_match": "No applicable variation matches the selected PART/context.",
     "qualifier": "Qualifier",
     "selected_none": "No range selected.",
+    "unavailable": "Variation applicability data is unavailable.",
     "variation": "Variation",
     "verification": "Verification"
   },
