@@ -10,7 +10,31 @@ The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`]
 
 **OPEN search → HISTORICAL CLOSED/MERGED search → verify claimed result → valid = no duplicate / insufficient or obsolete = active work / uncertain = clarification → only then create new work.**
 
-The canonical workflow also defines the controlled lifecycle, Project Item Status verification, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling.
+The canonical workflow also defines the controlled lifecycle, Project Item Status meaning, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling. GitHub Project/Kanban-specific workflow behavior is defined in `00-Management/WORKFLOW_GITHUB_PROJECT.md` and the current ChatGPT/GitHub capability boundary is summarized in `00-Management/PROJECT_CAPABILITY_BOUNDARY.md`.
+
+## Current ChatGPT/GitHub Project capability boundary
+
+The current ChatGPT/GitHub connection must not try to use GitHub Project management operations.
+
+For this connection, the following operations are unavailable and must not be attempted as normal executable workflow steps:
+
+- Project View read operations;
+- Project Item read operations;
+- Project Item Status read operations;
+- Project Item mutation operations;
+- Project Item Status mutation operations;
+- Project Item archive/unarchive operations;
+- Project field, view, or option management.
+
+Do not open, inspect, read, infer from, mutate, archive, update, verify, or manage GitHub Project views or Project Items through this connection.
+
+When `WORKFLOW_GITHUB_PROJECT.md`, `WORKFLOWS.md`, `SKILL.md`, another repository document, an Issue, or a PR mentions Project Item Status, Project views, Project transitions, Project verification, Project mutations, Project archival state, or Project management, the current ChatGPT/GitHub connection must interpret that text only as background workflow context for a capable external actor, human, automation, or future tool. It is not permission or instruction for this connection to attempt Project operations.
+
+Required reporting sentence for this connection:
+
+`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
+
+This limitation does not block repository files, Issues, Pull Requests, reviews, commits, comments, checks, or other GitHub operations that are available and independently verifiable through this connection.
 
 ### Dedicated i18n execution skill
 
@@ -25,12 +49,15 @@ Before doing Jagports work:
 1. Verify GitHub repository access.
 2. Read the current `SKILL.md` and the canonical `00-Management/WORKFLOWS.md`.
 3. Verify that the GitHub operations required for the task are available.
-4. Resolve the Issue/PR identity using the canonical discovery workflow before substantive repository modification.
-5. Never claim an external action without verification.
+4. Do not attempt GitHub Project management, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this connection.
+5. Resolve the Issue/PR identity using the canonical discovery workflow before substantive repository modification.
+6. Never claim an external action without verification.
 
 If a required GitHub operation is unavailable, the alert must begin exactly with:
 
 `*** !!! ALERT - GitHub functions unavailable !!! ***`
+
+For unavailable Project operations, do not retry unsupported calls. Use the required Project capability reporting sentence instead.
 
 ## Work-Request Execution
 
@@ -57,7 +84,7 @@ For every request, regardless of requester type:
 
 Every repository modification follows the controlled path:
 
-`Issue → branch → implementation → PR → Project state verification → review → testing → approval/merge → post-merge verification → Issue closure → DONE`
+`Issue → branch → implementation → PR → review → testing → approval/merge → post-merge verification → Issue closure → DONE`
 
 Rules:
 
@@ -65,10 +92,11 @@ Rules:
 - Every change is made on a dedicated branch.
 - Every change integrates through a PR.
 - The PR must explicitly trace to every Issue it implements/resolves.
-- Required Project Item Status transitions must be performed and independently verified.
+- Do not attempt GitHub Project management, Project View reads, Project Item reads, Project Item Status reads, Project Item mutations, Project Item Status mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this connection.
+- When Project state would normally be relevant, record: `Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
 - Required review, checkbox, and testing gates must pass before merge.
 - Never treat GitHub's `mergeable` state as proof of review or approval.
-- After merge, verify repository, PR, Issue, and Project state.
+- After merge, verify repository, PR, Issue, review, test, and file state available through this connection. Do not claim Project state.
 
 A direct-main change is a process violation and requires corrective handling under `WORKFLOWS.md`.
 
@@ -111,38 +139,17 @@ This rule applies regardless of whether the requested change is large, small, do
 
 ## GitHub Project / Kanban Operations
 
-The GitHub Project represents workflow state through an Issue's **Project Item Status**.
+Detailed Project/Kanban workflow meaning, lifecycle rules, evidence rules, and Product Owner rulings such as the no-Pull-Request-Project-Item-archive rule are defined in [`00-Management/WORKFLOW_GITHUB_PROJECT.md`](../00-Management/WORKFLOW_GITHUB_PROJECT.md).
 
-The Project itself is the container; the Status is a property of the Project Item.
+The current ChatGPT/GitHub capability boundary is summarized in [`00-Management/PROJECT_CAPABILITY_BOUNDARY.md`](../00-Management/PROJECT_CAPABILITY_BOUNDARY.md).
 
-For every Project mutation use:
+Execution rule for this current ChatGPT/GitHub connection:
 
-**MUTATE → INDEPENDENTLY VERIFY → CLAIM SUCCESS**
+`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
 
-A successful mutation/API response alone is not sufficient evidence.
+Do not attempt Project management, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this connection.
 
-After adding an Issue or changing Project Item Status:
-
-1. Identify the intended Project.
-2. Identify the resulting Project Item.
-3. Read the resulting Project state independently.
-4. Verify the exact expected field and value.
-5. Claim success only after the expected state is observed.
-
-If mutation fails, the Project Item cannot be found, the expected field/value cannot be verified, or verification is ambiguous:
-
-- report failure;
-- distinguish mutation failure from verification failure when observable;
-- state **no successful Project operation is claimed**;
-- never report an intended state as the actual state.
-
-For a new Project Issue, the required initial sequence is:
-
-`add Issue → set BACKLOG → independently verify Project Item + BACKLOG → record verified result`
-
-If Project setup cannot be performed or verified, report the limitation immediately. Do not claim successful Project setup.
-
-When substantive work starts, move the Project Item from `BACKLOG` to `RESEARCH` unless another canonical state is appropriate, and verify the resulting Status.
+Then continue only repository, Issue, PR, review, commit, check, comment, and file operations that are available and independently verifiable through this connection.
 
 ## Review and Testing Boundary
 
@@ -153,7 +160,7 @@ When review is required, execute the canonical native GitHub hand-off defined in
 - **verify that the selected reviewer is different from both the PR author and the executing actor before requesting or submitting formal review; if identity is equal or ambiguous, STOP/BLOCK and do not submit a review;**
 - **the PR author/executor may perform a private self-check, but must never submit the formal GitHub review; a self-review, including a `COMMENTED` review, does not satisfy the review gate;**
 - ensure applicable executor-controlled Issue Acceptance and required PR checklist boxes reflect actual implementation/readiness state before final approval;
-- set Project Item Status to `REVIEW` and independently verify it;
+- do not set, read, verify, or claim Project Item Status through this connection; use the required Project capability reporting sentence instead;
 - stop implementation and do not merge after hand-off.
 
 Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's native review request/notification and review outcome are the review mechanism.
@@ -241,7 +248,8 @@ Before creating a PR, verify:
 - Reduce request frequency or follow provider-directed retry/backoff only when an observable constraint exists, such as remaining LLM subscription/tool usage being reported low, required subscription/tool access being unavailable, or the provider reporting a rate limit/retry requirement.
 - When such a constraint affects the work, alert/escalate it rather than silently slowing execution or claiming unavailable work succeeded.
 - Do not invent quota/subscription state when it is not observable.
-- Verify mutations with an independent read.
+- Verify supported non-Project mutations with an independent read.
+- Do not attempt Project management, Project reads, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project verification through this connection.
 - Never expose credentials, tokens, or secret values.
 
 ## GitHub Access and Capability Availability
@@ -261,9 +269,13 @@ Distinguish, where observable, among:
 - unavailable integration;
 - technical operation failure.
 
+Project management/read/mutation operations are already known to be unavailable through the current ChatGPT/GitHub connection. Do not test or retry them as part of ordinary work.
+
 If capability is unavailable, use the exact alert:
 
 `*** !!! ALERT - GitHub functions unavailable !!! ***`
+
+For the known Project capability boundary, use the Project capability reporting sentence instead of the general GitHub-functions alert.
 
 ## User Command Requests
 
@@ -309,7 +321,8 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 
 ## Separation of Responsibilities
 
-- `00-Management/WORKFLOWS.md` — canonical normative Management workflows.
+- `00-Management/WORKFLOWS.md` — top-level canonical normative Management workflows.
+- `00-Management/WORKFLOW_GITHUB_PROJECT.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
 - `00-Management/RULES.md` — human governance and rationale; no competing workflow definition.
 - `00-Management/RULES_i18n.md` — canonical VIEPS i18n contributor/governance rules.
 - `SKILL.md` — machine/agent execution of the canonical workflows.
