@@ -159,6 +159,20 @@ Before closure, verify the completion obligations defined by `../../00-Managemen
 
 A merged PR does not by itself prove that the Issue is complete.
 
+### 2.8 Jagports task hierarchy: do not use native GitHub sub-issues
+
+Do **not** use native GitHub sub-issues for Jagports AI OS or VIEPS task hierarchy.
+
+Jagports hierarchy is documented in durable Issue-body traceability instead:
+
+- the parent Issue lists its child task Issues in the Issue body;
+- each child Issue identifies its parent Issue in the Issue body;
+- comments may add traceability evidence, but the Issue body is the durable hierarchy location for active records.
+
+Native GitHub parent/sub-issue metadata is not required Jagports state and must not be created, repaired, synchronized, or treated as the source of truth by agents.
+
+This rule applies regardless of whether native sub-issue operations are exposed through REST, GraphQL, GitHub CLI, UI, connector, or future tooling.
+
 ---
 
 ## 3. Pull Request Rules
