@@ -65,8 +65,11 @@ test('production API carries applicability_state for applicable, excluded and un
   const { env } = productionPath(t);
 
   const applicable = await api(env, 'MJB7703AA');
-  assert.ok(applicable.fitment.length >= 2);
-  assert.ok(applicable.fitment.every((row) => row.applicability_state === 'applicable'));
+  assert.ok(applicable.fitment.length >= 4);
+  assert.deepEqual(
+    [...new Set(applicable.fitment.map((row) => row.applicability_state))].sort(),
+    ['applicable', 'excluded', 'unavailable'],
+  );
 
   const excluded = await api(env, 'MNA7691AA');
   assert.equal(excluded.fitment.length, 1);
