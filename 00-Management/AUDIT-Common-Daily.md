@@ -42,15 +42,27 @@ Find only direct capability/access blockers that actually prevent work from prog
 
 ## Prioritization maintenance
 
+Within each audit's declared Workstream, use this lifecycle:
+
+`audit discovers relevant candidates → inspect current Priority/Rank/Status → if a materially relevant active Issue has missing or stale priority evidence, perform or refresh a priority review → record the dated review → synchronize only that Issue through the bounded work-control path`
+
+Candidate discovery comes from the canonical audit categories and current dependency, impact, urgency, readiness, unblock-value and cleanup evidence. The audit must **not** bulk-score or assign Priority to every open Issue. Missing Priority or Rank alone does not mean an Issue must immediately receive a priority review.
+
+Perform or refresh a priority review when an active Issue becomes materially relevant to current queue maintenance and its Priority/Rank evidence is missing, stale, or materially inconsistent with current evidence. Do not perform routine review work for inactive, irrelevant, completed, superseded, or closed Issues merely because priority metadata is absent.
+
+Priority maintenance does not create or advance workflow phase. Inspect and preserve the Issue's actual `Status`; do not invent a Status transition merely to synchronize Priority or Rank. Material strategic reordering, P0/Urgent changes, scope changes, or other Product Owner decisions belong under `DECISIONS NEEDED` rather than being silently changed.
+
 Within the audit's declared workstream/scope:
 
 1. Read the authoritative native Issue `Priority` and, where available through the approved read bridge or Project access, Project `Rank` and `Status`.
 2. Check that Rank is interpreted only inside the declared workstream/queue and that lower numbers execute earlier.
 3. Check dependencies, blockers, readiness and material new evidence against the maintained order.
-4. Correct routine stale/inconsistent values only when current authority and capability explicitly permit it and the result can be independently verified.
-5. Surface material reordering, P0/Urgent changes, scope changes, or other Product Owner decisions under `DECISIONS NEEDED` rather than silently changing strategic order.
-6. Use the approved machine-readable work-control snapshot as the agent-facing read bridge when Project fields are not directly readable.
-7. If an individual snapshot is stale or missing and recovery is authorized, refresh only that specific open Issue through the bounded single-Issue recovery path documented in `00-Management/PRIORITIZATION.md`.
+4. For a materially relevant active Issue whose Priority/Rank evidence is missing, stale, or materially inconsistent, perform or refresh the priority review defined in `00-Management/PRIORITIZATION.md` and record the dated review in that Issue.
+5. Synchronize only that Issue through the bounded work-control path when synchronization is required and current authority/capability permit it; never turn audit prioritization into a bulk Project scan or bulk-priority operation.
+6. Correct routine stale/inconsistent values only when current authority and capability explicitly permit it and the result can be independently verified.
+7. Surface material reordering, P0/Urgent changes, scope changes, or other Product Owner decisions under `DECISIONS NEEDED` rather than silently changing strategic order.
+8. Use the approved machine-readable work-control snapshot as the agent-facing read bridge when Project fields are not directly readable.
+9. If an individual snapshot is stale or missing and recovery is authorized, refresh only that specific open Issue through the bounded single-Issue recovery path documented in `00-Management/PRIORITIZATION.md`.
 
 The scheduled audit is a reconciliation and queue-maintenance mechanism. Event-driven GitHub automation remains responsible for immediate synchronization after authoritative field changes.
 
@@ -68,7 +80,7 @@ The managed comment is identified by the standalone marker:
 
 The snapshot exposes at minimum:
 
-- verification timestamp when the comment is written;
+- verification timestamp when the managed comment is written;
 - native Issue `Priority`;
 - Project identity;
 - Project `Workstream`;
