@@ -6,6 +6,8 @@ This document defines the VIEPS Stock Admin workflow around the operational stoc
 
 The stock model authority is [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). This workflow does not redefine canonical `PART` identity or catalogue relationships.
 
+The Add Part information architecture and layout concept is defined in [`../UI/UI_NEWPART.md`](../UI/UI_NEWPART.md).
+
 ## Scope
 
 Stock Admin supports authorized creation and maintenance of operational stock records while keeping mutable inventory separate from catalogue/reference data.
@@ -24,6 +26,8 @@ The workflow covers:
 - validation and deterministic error handling;
 - public-read versus authorized-mutation boundaries;
 - test/acceptance environment identification and persisted-record verification.
+
+A future extension may add photographs of the actual physical stock item from device files or a mobile/device camera. This future capability is documented in `UI_NEWPART.md`; it is intentionally not an MVP persistence requirement until separately approved.
 
 ## Stock database readiness
 
@@ -84,7 +88,17 @@ The authorized Stock Admin UI must support, where the current data contract expo
 - show availability and validation state independently from stock-quality classification state;
 - surface deterministic validation/error states.
 
+The Stock Admin UI should reuse the established EndUser VIEPS application shell and keep corresponding navigation, top search, working-area and contextual-panel relationships in similar positions where practical. The detailed Add Part layout is specified in `UI_NEWPART.md`.
+
 Public unauthenticated users must not gain stock mutation capability through the page or its supporting API path.
+
+## Future physical-stock photographs
+
+A future Stock Admin extension may attach multiple photographs to a stock record. Images may be selected from device files/photo storage or captured directly with a mobile/device camera where supported.
+
+Physical-stock photographs are operational evidence for the specific stock record. They are distinct from canonical PART/JEPC catalogue imagery and must not overwrite or redefine catalogue imagery or PART identity.
+
+The future UI should support preview, removal/replacement and designation of one primary stock image before persistence. Media storage, upload API, transformations, retention and storage-provider architecture remain outside the current MVP workflow and require separate approved implementation specification.
 
 ## Operational workflow
 
@@ -180,4 +194,5 @@ This workflow does not define:
 - payment or shipping;
 - provider-specific synchronization;
 - tenant/provider authentication architecture;
-- detailed provenance beyond the approved stock evidence fields.
+- detailed provenance beyond the approved stock evidence fields;
+- physical-stock photo media storage/upload architecture until separately approved.
