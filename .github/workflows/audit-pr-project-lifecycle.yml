@@ -1,5 +1,8 @@
 name: Audit Pull Request Project Lifecycle
 
+# Intentionally manual-only: one workflow invocation runs one job that scans the
+# complete repository PR population. There is no per-PR matrix and no automatic
+# pull_request trigger, preventing this audit from creating repeated Action runs.
 on:
   workflow_dispatch:
     inputs:
@@ -8,10 +11,6 @@ on:
         required: false
         default: false
         type: boolean
-  pull_request:
-    paths:
-      - .github/scripts/audit-pr-project-lifecycle.sh
-      - .github/workflows/audit-pr-project-lifecycle.yml
 
 permissions:
   contents: read
@@ -25,18 +24,17 @@ env:
 
 jobs:
   audit-pr-project-lifecycle:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Audit Pull Request Project Items
+      - name: Audit all Pull Request Project Items in one run
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-          FAIL_ON_DRIFT: ${{ github.event_name == 'workflow_dispatch' && inputs.fail_on_drift && 'true' || 'false' }}
-        run: bash .github/scripts/audit-pr-project-lifecycle.sh
+          FAIL_ON_DRIFT: ${{ inputs.fail_on_drift && 'true' || 'false' }}
+        run: bash 6-Development/github/audit-pr-project-lifecycle.sh
 
       - name: Upload audit report
         if: always()
