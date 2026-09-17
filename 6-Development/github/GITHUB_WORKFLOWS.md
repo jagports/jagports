@@ -51,6 +51,33 @@ For every GitHub work request, regardless of requester type:
 
 ---
 
+## Prioritization Request Execution
+
+A compact request such as `@priorize 671 612 355` is GitHub execution shorthand. Priority meaning, scoring, review bands, Rank semantics, and Product Owner override authority remain defined by `00-Management/PRIORITIZATION.md`; this section defines only the GitHub execution path.
+
+Business Priority and Project Rank belong to the owning Issue. A Pull Request may appear in a prioritization request, but under `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` its Project Item must not receive a separate competing business Priority/Rank.
+
+For each supplied number:
+
+1. Resolve and validate the referenced Issue or Pull Request.
+2. If the reference is a Pull Request, resolve its owning/closing Issue or Issues. Apply business prioritization to the owning Issue; keep the Pull Request's own Status and Workstream lifecycle under the canonical Pull Request Project Item workflow.
+3. Read the owning Issue's latest durable priority/work-control evidence needed to preserve current authoritative state.
+4. Resolve the applicable Project `Workstream` from explicit verified evidence. When a managed work-control snapshot exists, use its verified Workstream rather than inferring from topic or `Scope:` text.
+5. If no explicit/verified Workstream is available, fail closed for that target and obtain an authorized Workstream classification. Do not infer Workstream from title, body, branch, labels, Issue type, repository path, or semantic/free-text context.
+6. Determine or accept the requested priority/order under `00-Management/PRIORITIZATION.md`.
+7. Write one bounded authorized `<!-- jagports-project-sync -->` record on the owning Issue. When Project Rank is set, the record must explicitly include `Workstream: AI OS` or `Workstream: VIEPS` in addition to the applicable Status/Priority/Rank values.
+8. Treat `Scope:` as descriptive review context only; it never substitutes for `Workstream:`.
+9. Wait for the existing bounded work-control automation to complete, then verify the same Issue's managed snapshot/read-back evidence.
+10. Report a successful business prioritization only when the requested Issue fields, including Workstream and Rank where applicable, are independently verified. Do not claim that the Pull Request received a separate Rank.
+
+Execution sequence:
+
+`resolve work records → map PR references to owning Issues → obtain explicit/verified Workstream → calculate/accept priority order → write bounded Issue project-sync record including Workstream → verify resulting Issue snapshot → report only verified result`
+
+The short `@priorize <numbers>` form is sufficient when each owning Issue already has explicit, durable Workstream evidence. An unclassified target requires explicit Workstream resolution before Rank synchronization; compact syntax does not authorize semantic guessing.
+
+---
+
 ## Repository Change Gate
 
 Every GitHub repository modification follows the controlled path:

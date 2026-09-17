@@ -118,6 +118,27 @@ Never put current priority or rank in an Issue title or filename. Historical pla
 
 The Product Owner has final authority over priority and queue order.
 
+#### 2.3.1 `@priorize` and priority-synchronization Workstream preservation
+
+`@priorize <numbers>` is GitHub execution shorthand for applying the priority semantics defined by `../../00-Management/PRIORITIZATION.md`; it does not create a separate prioritization model.
+
+Business Priority and Project Rank belong to the owning Issue. Under `Projects/GITHUB_PROJECT_WORKFLOWS.md`, a Pull Request Project Item must not receive a separate competing business Priority/Rank. If an `@priorize` request includes a Pull Request number, resolve its owning/closing Issue and apply the business prioritization there; keep the Pull Request's own Project lifecycle and Workstream handling under the canonical Pull Request Project Item rules.
+
+When a prioritization operation synchronizes an Issue Project `Rank`, the authorized `<!-- jagports-project-sync -->` record must also explicitly include the applicable canonical Project `Workstream`:
+
+- `AI OS`; or
+- `VIEPS`.
+
+`Scope:` in a priority-review comment is descriptive decision context only. It must never be interpreted as, substituted for, or relied on to mutate the Project `Workstream` field.
+
+For an existing Issue, preserve the latest explicitly verified Workstream from authoritative Project read-back evidence, including the managed work-control snapshot produced by the bounded synchronization workflow. Do not silently replace an already verified Workstream merely because a later prioritization request omits it.
+
+If no Workstream is known from explicit durable evidence, fail closed for that target. Do not infer Workstream from title, body text, branch name, labels, Issue type, repository path, semantic topic, or other free-text/context heuristics. Obtain an explicit authorized Workstream classification before assigning Project Rank.
+
+Priority, Project Status, Project Rank, and Project Workstream remain separate concerns. A prioritization operation may update them together through one authorized synchronization record, but one field must never be inferred from another.
+
+A prioritization mutation is not successful merely because the request comment was written. Claim success only after the existing bounded work-control automation independently reads back and verifies the requested authoritative fields and refreshes the same Issue's managed snapshot.
+
 ### 2.4 Assignment and Execution Target
 
 Each executable Issue should identify the actual executing entity.
@@ -440,7 +461,8 @@ Current approved work-control automation may update:
 
 - native Issue `Priority`;
 - Project `Status`;
-- Project `Rank`.
+- Project `Rank`;
+- Project `Workstream`.
 
 It must not create a second live priority source such as `Operational Priority`.
 
@@ -470,7 +492,7 @@ Current verified mechanisms are:
 
 - Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
 - open Pull Request with a same-repository GitHub closing relationship → `IMPLEMENTATION`: `.github/workflows/sync-closing-pr-to-project.yml` owns that deterministic implementation-start synchronization, preserves protected later/blocking/decision states, and independently verifies the resulting Project Item/status;
-- explicit authorized work-control changes: `.github/workflows/sync-issue-work-control-to-project.yml` may synchronize native Issue `Priority` plus a requested canonical Project `Status` and numeric `Rank` from its authorized marker-comment/manual-dispatch inputs and independently verifies every changed value;
+- explicit authorized work-control changes: `.github/workflows/sync-issue-work-control-to-project.yml` may synchronize native Issue `Priority` plus requested canonical Project `Status`, numeric `Rank`, and canonical `Workstream` from its authorized marker-comment/manual-dispatch inputs and independently verifies every changed value;
 - Issue `closed` → `DONE`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
 
 The closing-linked-PR automation is the authoritative automatic owner of the `IMPLEMENTATION` transition. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
