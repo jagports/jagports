@@ -99,12 +99,21 @@ For a ranked backlog/table view, expose numeric Project field `Rank` and configu
 
 Rank `1` is the highest-ranked active item. The automation supplies Rank values but does not rewrite Project view layout or sorting. View configuration is a separate administrative action and must be independently verified.
 
-When multiple execution queues share one Project, use a Project single-select `Workstream` field to separate them. For the current combined Project the canonical initial values are:
+When multiple execution queues share one Project, use a Project single-select `Workstream` field to separate them. For the current combined Project the canonical values are exactly:
 
 - `AI OS`
 - `VIEPS`
 
-Create a filtered ranked view for each Workstream and sort each view by Rank ascending. Rank is interpreted **inside one Workstream only**; `AI OS Rank 1` and `VIEPS Rank 1` are both valid and do not compete in one universal queue.
+The P1 Open Kanban definition requires two normal operational Project views:
+
+- `AI OS` — filter `Workstream = AI OS`; sort `Rank` ascending where the view represents ranked execution order.
+- `VIEPS` — filter `Workstream = VIEPS`; sort `Rank` ascending where the view represents ranked execution order.
+
+No third `Intake` Workstream or normal operational `Intake` view is part of this model. Unknown Workstream classification must be resolved through the approved work-control process rather than represented by inventing another queue.
+
+Rank is interpreted **inside one Workstream only**; `AI OS Rank 1` and `VIEPS Rank 1` are both valid and do not compete in one universal queue.
+
+Project view configuration is a human-visible Project configuration concern separate from repository Workstream-field automation. P1 verification is incomplete when either required view is absent, mis-filtered, or visibly mixes items from the other Workstream. Human-visible verification is required when the available automation/connector path cannot independently inspect the saved Project View filters and sorting.
 
 Do not sort by Issue Priority when the intent is exact execution order. Issue Priority is organization-wide importance; Project Rank is exact order inside one Project/workstream scope.
 
@@ -308,8 +317,10 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - native organization Issue `Priority` exists and is usable;
 - Project `Rank` exists when exact ordering is used;
 - Project `Workstream` exists with the expected queue values when multiple queues share one Project;
-- AI OS and VIEPS views filter by their own Workstream and sort Rank ascending;
-- ranked views sort Rank ascending where that view is intended to show execution order;
+- required `AI OS` view exists, filters `Workstream = AI OS`, and sorts Rank ascending where ranked execution order is shown;
+- required `VIEPS` view exists, filters `Workstream = VIEPS`, and sorts Rank ascending where ranked execution order is shown;
+- the two operational views do not visibly mix items assigned to the other Workstream;
+- no third `Intake` Workstream/view has been introduced as part of the normal operating model;
 - required repository labels exist;
 - operating rules are committed in the repository;
 - Issue → Project attachment has been tested;
@@ -321,7 +332,7 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - temporary working files have been removed;
 - final reads confirm the expected configuration.
 
-A clean final verification is required after setup rather than relying only on intermediate mutation responses.
+A clean final verification is required after setup rather than relying only on intermediate mutation responses. When saved Project View filters/sorting cannot be inspected through the available automation path, this verification requires a direct human observation of the actual Project views.
 
 ## 14. P1 setup decomposition
 
