@@ -92,6 +92,19 @@ Rules:
 
 A direct-main change is a process violation and requires corrective handling under `WORKFLOWS.md`.
 
+### Checkbox handling
+
+Execute the Issue/PR checkbox roles defined canonically in `WORKFLOWS.md`:
+
+- Issue Acceptance boxes describe required work outcomes; `[x]` is an executor implementation-completion claim, not independent approval.
+- PR checklist boxes describe PR-local integration readiness and must not duplicate the full Issue Acceptance list.
+- An executor/agent may check or uncheck existing **executor-controlled** Issue Acceptance and PR checklist boxes when objective implementation/readiness evidence changes.
+- Checkbox-only edits are permitted on open Issue/PR descriptions for this purpose; do not rewrite criterion/checklist text or unrelated description content under this exception.
+- Never change a reviewer-only checkbox on the reviewer's behalf.
+- A reviewer may return an unsupported executor-controlled checkbox to `[ ]`.
+- Before final approval, all applicable Issue Acceptance and required PR checklist boxes must be `[x]`.
+- Checked boxes do not constitute approval; independent formal GitHub review remains required.
+
 ## GitHub Project / Kanban Operations
 
 Do not duplicate GitHub Project/Kanban lifecycle rules in this file.
@@ -127,6 +140,8 @@ Every PR that completes an Issue must use the GitHub closing form:
 `Closes #123`
 
 Do not use only task identifiers or prose such as `Closes 123` or `Closes Issue 123`.
+
+When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
 
 ## Comment and Traceability Rules
 
