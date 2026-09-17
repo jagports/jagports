@@ -116,7 +116,6 @@ jobs:
           review_request_count="$(jq -r '.data.repository.pullRequest.reviewRequests.totalCount // 0' <<<"$pr_json")"
 
           TARGET_STATUS=""
-          ARCHIVE_AFTER="false"
           case "$PR_ACTION" in
             opened|synchronize|converted_to_draft|ready_for_review)
               TARGET_STATUS="IMPLEMENTATION"
@@ -128,7 +127,7 @@ jobs:
               if [ "$is_draft" = "false" ] && [ "$review_request_count" -gt 0 ]; then TARGET_STATUS="REVIEW"; else TARGET_STATUS="IMPLEMENTATION"; fi
               ;;
             closed)
-              if [ "$merged" = "true" ]; then TARGET_STATUS="DONE"; else ARCHIVE_AFTER="true"; fi
+              TARGET_STATUS="DONE"
               ;;
             *) echo "Unhandled PR action '$PR_ACTION'."; exit 0 ;;
           esac
@@ -162,27 +161,6 @@ jobs:
           UNARCHIVE_ITEM='mutation($project:ID!, $item:ID!) { unarchiveProjectV2Item(input:{projectId:$project,itemId:$item}) { item { id isArchived } } }'
           ARCHIVE_ITEM='mutation($project:ID!, $item:ID!) { archiveProjectV2Item(input:{projectId:$project,itemId:$item}) { item { id isArchived } } }'
 
-          if [ "$ARCHIVE_AFTER" = "true" ]; then
-            if [ -z "$item_id" ]; then
-              echo "Closed-unmerged PR #$PR_NUMBER has no Project Item; no successful-completion state is created."
-              trap - ERR
-              exit 0
-            fi
-            current_status="$(jq -r '.[0].statusValue.name // empty' <<<"$project_items")"
-            [ "$current_status" != "DONE" ] || { echo "Closed-unmerged PR cannot be archived from DONE; refusing false-success state."; false; }
-            gh api graphql -f query="$ARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
-            VERIFY_ARCHIVE='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id isArchived project { id } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } } } } }'
-            verify_json="$(gh api graphql -f query="$VERIFY_ARCHIVE" -F item="$item_id")"
-            [ "$(jq -r '.data.node.id // empty' <<<"$verify_json")" = "$item_id" ] || { echo "Archive verification failed: item identity mismatch."; false; }
-            [ "$(jq -r '.data.node.project.id // empty' <<<"$verify_json")" = "$project_id" ] || { echo "Archive verification failed: Project mismatch."; false; }
-            [ "$(jq -r '.data.node.content.id // empty' <<<"$verify_json")" = "$PR_NODE_ID" ] || { echo "Archive verification failed: PR identity mismatch."; false; }
-            [ "$(jq -r '.data.node.isArchived' <<<"$verify_json")" = "true" ] || { echo "Archive verification failed: item remains active."; false; }
-            [ "$(jq -r '.data.node.statusValue.name // empty' <<<"$verify_json")" != "DONE" ] || { echo "Closed-unmerged PR was incorrectly represented as DONE."; false; }
-            echo "PASS: Closed-unmerged PR #$PR_NUMBER preserved a non-success Status and was archived."
-            trap - ERR
-            exit 0
-          fi
-
           if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$TARGET_WORKSTREAM" ]; then
             if [ -n "$item_id" ] && [ "$item_archived" = "false" ]; then
               gh api graphql -f query="$ARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
@@ -201,7 +179,9 @@ jobs:
           fi
 
           if [ -z "$item_id" ]; then
-            [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot create active PR Project Item without a verified Workstream."; false; }
+            if [ "$TARGET_STATUS" != "DONE" ]; then
+              [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot create active PR Project Item without a verified Workstream."; false; }
+            fi
             gh api graphql -f query="$ADD_ITEM" -F project="$project_id" -F pr="$PR_NODE_ID" >/dev/null
             pr_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
             project_items="$(jq -c --arg project "$project_id" --arg pr "$PR_NODE_ID" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
@@ -210,12 +190,14 @@ jobs:
             item_archived="$(jq -r '.[0].isArchived' <<<"$project_items")"
           fi
 
-          if [ "$item_archived" = "true" ] && [ "$PR_ACTION" = "reopened" ]; then
-            [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot reopen PR Project Item without a verified Workstream."; false; }
+          if [ "$item_archived" = "true" ] && { [ "$PR_ACTION" = "reopened" ] || [ "$TARGET_STATUS" = "DONE" ]; }; then
+            if [ "$TARGET_STATUS" != "DONE" ]; then
+              [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot reopen PR Project Item without a verified Workstream."; false; }
+            fi
             gh api graphql -f query="$UNARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
             item_archived="false"
           fi
-          [ "$item_archived" = "false" ] || { echo "PR Project Item is archived and cannot receive active lifecycle state '$TARGET_STATUS'."; false; }
+          [ "$item_archived" = "false" ] || { echo "PR Project Item is archived and cannot receive lifecycle state '$TARGET_STATUS'."; false; }
 
           status_option_count="$(jq --arg value "$TARGET_STATUS" '[.[0].options[]? | select(.name == $value)] | length' <<<"$status_fields")"
           [ "$status_option_count" -eq 1 ] || { echo "Status option '$TARGET_STATUS' is missing or duplicated."; false; }
@@ -248,8 +230,9 @@ jobs:
           if [ "$TARGET_STATUS" = "DONE" ]; then
             gh api graphql -f query="$ARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
             verify_archive="$(gh api graphql -f query="$VERIFY_ITEM" -F item="$item_id")"
-            [ "$(jq -r '.data.node.isArchived' <<<"$verify_archive")" = "true" ] || { echo "Merged PR Project Item was not archived after DONE."; false; }
-            echo "PASS: merged PR #$PR_NUMBER reached DONE and was archived."
+            [ "$(jq -r '.data.node.isArchived' <<<"$verify_archive")" = "true" ] || { echo "Terminal PR Project Item was not archived after DONE."; false; }
+            [ "$(jq -r '.data.node.statusValue.name // empty' <<<"$verify_archive")" = "DONE" ] || { echo "Terminal PR Project Item did not retain DONE after archival."; false; }
+            echo "PASS: PR #$PR_NUMBER reached terminal DONE and was archived (merged=$merged)."
           else
             echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $TARGET_WORKSTREAM."
           fi
