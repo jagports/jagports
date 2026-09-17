@@ -50,6 +50,8 @@ Candidate discovery comes from the canonical audit categories and current depend
 
 Perform or refresh a priority review when an active Issue becomes materially relevant to current queue maintenance and its Priority/Rank evidence is missing, stale, or materially inconsistent with current evidence. Do not perform routine review work for inactive, irrelevant, completed, superseded, or closed Issues merely because priority metadata is absent.
 
+When the executor uses the compact `@priorize <numbers>` command for that selected work, treat it only as the GitHub execution shorthand defined by `6-Development/github/GITHUB_OPERATING_RULES.md` and `6-Development/github/GITHUB_WORKFLOWS.md`. The command does not change the audit's candidate-selection rules or the prioritization semantics in `00-Management/PRIORITIZATION.md`. In particular, business Priority/Rank remains on the owning Issue, ranked synchronization must preserve an explicit/verified `Workstream`, `Scope:` does not substitute for `Workstream:`, and an unclassified target fails closed rather than being guessed.
+
 Priority maintenance does not create or advance workflow phase. Inspect and preserve the Issue's actual `Status`; do not invent a Status transition merely to synchronize Priority or Rank. Material strategic reordering, P0/Urgent changes, scope changes, or other Product Owner decisions belong under `DECISIONS NEEDED` rather than being silently changed.
 
 Within the audit's declared workstream/scope:
@@ -58,7 +60,7 @@ Within the audit's declared workstream/scope:
 2. Check that Rank is interpreted only inside the declared workstream/queue and that lower numbers execute earlier.
 3. Check dependencies, blockers, readiness and material new evidence against the maintained order.
 4. For a materially relevant active Issue whose Priority/Rank evidence is missing, stale, or materially inconsistent, perform or refresh the priority review defined in `00-Management/PRIORITIZATION.md` and record the dated review in that Issue.
-5. Synchronize only that Issue through the bounded work-control path when synchronization is required and current authority/capability permit it; never turn audit prioritization into a bulk Project scan or bulk-priority operation.
+5. Synchronize only that Issue through the bounded work-control path when synchronization is required and current authority/capability permit it; when using `@priorize`, follow the GitHub-specific execution/verification rules and preserve explicit/verified Workstream rather than inferring it from scope or topic.
 6. Correct routine stale/inconsistent values only when current authority and capability explicitly permit it and the result can be independently verified.
 7. Surface material reordering, P0/Urgent changes, scope changes, or other Product Owner decisions under `DECISIONS NEEDED` rather than silently changing strategic order.
 8. Use the approved machine-readable work-control snapshot as the agent-facing read bridge when Project fields are not directly readable.
