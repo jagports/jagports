@@ -184,8 +184,20 @@ jobs:
           fi
 
           if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$TARGET_WORKSTREAM" ]; then
-            echo "PR #$PR_NUMBER does not resolve to exactly one owning Issue Workstream (AI OS or VIEPS); refusing to guess or create a fallback Workstream."
-            false
+            if [ -n "$item_id" ] && [ "$item_archived" = "false" ]; then
+              gh api graphql -f query="$ARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
+              VERIFY_UNRESOLVED='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id isArchived project { id } content { ... on PullRequest { id number } } } } }'
+              unresolved_json="$(gh api graphql -f query="$VERIFY_UNRESOLVED" -F item="$item_id")"
+              [ "$(jq -r '.data.node.id // empty' <<<"$unresolved_json")" = "$item_id" ] || { echo "Unresolved-Workstream archive verification failed: item mismatch."; false; }
+              [ "$(jq -r '.data.node.project.id // empty' <<<"$unresolved_json")" = "$project_id" ] || { echo "Unresolved-Workstream archive verification failed: Project mismatch."; false; }
+              [ "$(jq -r '.data.node.content.id // empty' <<<"$unresolved_json")" = "$PR_NODE_ID" ] || { echo "Unresolved-Workstream archive verification failed: PR mismatch."; false; }
+              [ "$(jq -r '.data.node.isArchived' <<<"$unresolved_json")" = "true" ] || { echo "Unresolved-Workstream Project Item remains active."; false; }
+              echo "PASS: PR #$PR_NUMBER has no single verified owning Workstream; existing Project Item was archived instead of guessing a Workstream."
+            else
+              echo "PASS: PR #$PR_NUMBER has no single verified owning Workstream; no active Project Item was created and no Workstream was guessed."
+            fi
+            trap - ERR
+            exit 0
           fi
 
           if [ -z "$item_id" ]; then
