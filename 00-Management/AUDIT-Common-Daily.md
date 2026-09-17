@@ -49,11 +49,12 @@ Within the audit's declared workstream/scope:
 3. Check dependencies, blockers, readiness and material new evidence against the maintained order.
 4. Correct routine stale/inconsistent values only when current authority and capability explicitly permit it and the result can be independently verified.
 5. Surface material reordering, P0/Urgent changes, scope changes, or other Product Owner decisions under `DECISIONS NEEDED` rather than silently changing strategic order.
-6. Use the approved machine-readable work-control snapshot as the agent-facing read bridge when Project fields are not directly readable, and refresh it through the documented automation when authorized.
+6. Use the approved machine-readable work-control snapshot as the agent-facing read bridge when Project fields are not directly readable.
+7. If an individual snapshot is stale or missing and recovery is authorized, refresh only that specific open Issue through the bounded single-Issue recovery path documented in `00-Management/PRIORITIZATION.md`.
 
 The scheduled audit is a reconciliation and queue-maintenance mechanism. Event-driven GitHub automation remains responsible for immediate synchronization after authoritative field changes.
 
-The repository also runs a **daily** fallback reconciliation through `.github/workflows/publish-work-control-snapshots.yml`. Its scheduled trigger is `17 0 * * *` (00:17 UTC each day). This is a safety/reconciliation path, not the primary update path: verified work-control or Workstream changes should request an immediate snapshot refresh through the approved event-driven automation.
+The audit must **not** request or depend on a full-Project snapshot scan. There is deliberately no daily or broad manual snapshot reconciliation. Recovery remains single-Issue and explicitly bounded so an audit cannot accidentally fan out across hundreds of Issues or consume a material portion of the GitHub Actions allowance.
 
 ## Machine-readable work-control snapshot
 
@@ -67,14 +68,20 @@ The managed comment is identified by the standalone marker:
 
 The snapshot exposes at minimum:
 
-- verification timestamp;
+- verification timestamp when the comment is written;
 - native Issue `Priority`;
 - Project identity;
 - Project `Workstream`;
 - Project `Status`;
 - Project `Rank`.
 
-`.github/workflows/publish-work-control-snapshots.yml` updates one managed snapshot comment per Project Issue and independently verifies the written values. If multiple matching managed comments exist, the workflow must fail closed rather than guess which comment is authoritative.
+`.github/workflows/sync-issue-work-control-to-project.yml` owns bounded snapshot publication as part of the same single-Issue operation that synchronizes work-control values. After an authorized Priority/Status/Rank/Workstream change it refreshes only the affected open Issue, independently rereads the managed comment, and verifies the expected values. If multiple matching managed comments exist, the workflow must fail closed rather than guess which comment is authoritative.
+
+Manual snapshot recovery is permitted only through the same workflow's `workflow_dispatch` path with one explicit Issue number. Manual dispatch is snapshot-only and cannot request a full-Project scan or authoritative field mutation.
+
+Managed snapshot writes use the repository `GITHUB_TOKEN` so the resulting comment event does not recursively start ordinary `issue_comment` workflows. Project reads/writes continue to use the separately authorized Project token.
+
+Closed Issues are excluded from routine work-control mutation and snapshot refresh.
 
 ## Audit checks
 
