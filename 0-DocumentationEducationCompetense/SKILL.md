@@ -10,15 +10,21 @@ The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`]
 
 **OPEN search → HISTORICAL CLOSED/MERGED search → verify claimed result → valid = no duplicate / insufficient or obsolete = active work / uncertain = clarification → only then create new work.**
 
-The canonical workflow also defines the controlled lifecycle, Project Item Status meaning, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling. GitHub Project/Kanban-specific workflow behavior is defined in `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and the current ChatGPT/GitHub capability boundary is summarized in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
+Detailed GitHub execution rules are defined in [`6-Development/github/GITHUB_OPERATING_RULES.md`](../6-Development/github/GITHUB_OPERATING_RULES.md).
 
-## Current ChatGPT/GitHub Project capability boundary
+GitHub Project/Kanban-specific workflow behavior is defined in [`6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`](../6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md).
 
-Detailed Project/Kanban workflow meaning, lifecycle rules, evidence rules, and Product Owner rulings are defined in [`6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`](../6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md).
-
-The current ChatGPT/GitHub capability boundary is summarized in [`6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`](../6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md).
+The current ChatGPT/GitHub Project capability boundary is defined in [`6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`](../6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md).
 
 GitHub connection capability knowledge is maintained in [`6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md`](../6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md).
+
+### Dedicated i18n execution skill
+
+For VIEPS UI/application changes that create, modify, review, or refactor human-visible text, apply [`SKILL_i18n.md`](SKILL_i18n.md) in addition to this general execution skill.
+
+`SKILL_i18n.md` implements the governance rules in `00-Management/RULES_i18n.md`, including mandatory changed-code scanning for hard-coded localizable strings and EN↔FI resource maintenance.
+
+## Current ChatGPT/GitHub Project capability boundary
 
 Execution rule for this current ChatGPT/GitHub connection:
 
@@ -28,26 +34,19 @@ Do not attempt Project management, Project View reads, Project Item reads, Proje
 
 Then continue only repository, Issue, PR, review, commit, check, comment, and file operations that are available and independently verifiable through this connection.
 
-### Dedicated i18n execution skill
-
-For VIEPS UI/application changes that create, modify, review, or refactor human-visible text, apply [`SKILL_i18n.md`](SKILL_i18n.md) in addition to this general execution skill.
-
-`SKILL_i18n.md` implements the governance rules in `00-Management/RULES_i18n.md`, including mandatory changed-code scanning for hard-coded localizable strings and EN↔FI resource maintenance.
-
 ## Mandatory Start-of-Work Procedure
 
 Before doing Jagports work:
 
-1. Verify GitHub repository access.
+1. Verify GitHub repository access when GitHub work is requested.
 2. Read the current `SKILL.md` and the canonical `00-Management/WORKFLOWS.md`.
-3. Verify that the GitHub operations required for the task are available.
-4. Do not attempt GitHub Project management, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this connection.
-5. Resolve the Issue/PR identity using the canonical discovery workflow before substantive repository modification.
-6. Never claim an external action without verification.
+3. For GitHub Issue, PR, review, branch, merge, test-evidence, record-integrity, field, label, or comment work, apply `6-Development/github/GITHUB_OPERATING_RULES.md`.
+4. For GitHub Project/Kanban work, apply `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and the current capability boundary in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
+5. Verify that the operations required for the task are available before relying on them.
+6. Resolve the work identity using the canonical discovery workflow before substantive repository modification.
+7. Never claim an external action without verification.
 
-If a required GitHub operation is unavailable, the alert must begin exactly with:
-
-`*** !!! ALERT - GitHub functions unavailable !!! ***`
+If a required GitHub operation is unavailable, follow `6-Development/github/GITHUB_OPERATING_RULES.md` and applicable capability-alert wording.
 
 For unavailable Project operations, do not retry unsupported calls. Use the required Project capability reporting sentence instead.
 
@@ -55,155 +54,41 @@ For unavailable Project operations, do not retry unsupported calls. Use the requ
 
 For every request, regardless of requester type:
 
-1. Validate any explicit Issue/PR reference.
-2. If there is no explicit reference, search open Issues first.
-3. Reuse a clear open match.
-4. Reuse a related open Issue when the request is a legitimate amendment, extension, refinement, follow-up, or completion.
-5. If duplication, scope, ownership, authority, or relationship is uncertain, clarify with the requester/decision-maker.
-6. If no suitable active Issue exists, search closed Issues for exact/materially similar historical work.
-7. Verify any historical implementation that claims to satisfy the request.
-8. If valid and still satisfying the request, do not create duplicate active work.
-9. If insufficient, obsolete, superseded, or broken, create/reuse active work and reference the historical item.
-10. After Issue resolution, search open PRs before creating a PR.
-11. Reuse a clear open PR or legitimately extend it when scope remains clear.
-12. If no suitable open PR exists, search merged PRs and verify any claimed prior implementation.
-13. If the merged implementation is still sufficient, do not create duplicate implementation work.
-14. Otherwise create a PR through the Repository Change Gate.
-15. One PR may genuinely resolve multiple Issues; maintain explicit traceability to every Issue.
-16. Once identity and scope are resolved, proceed automatically without unnecessary confirmation.
+1. Apply the work-request precedence in `00-Management/WORKFLOWS.md`.
+2. Apply GitHub-specific Issue/PR/review/merge/record rules from `6-Development/github/GITHUB_OPERATING_RULES.md`.
+3. Apply Project/Kanban rules from `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` only where Project access is available to the actor/tool.
+4. Respect the current ChatGPT/GitHub Project capability boundary in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
+5. Once identity and scope are resolved, proceed automatically without unnecessary confirmation until the applicable review, authority, capability, or completion boundary is reached.
 
 ## Repository Change Gate
 
-Every repository modification follows the controlled path:
+Every repository modification follows the controlled path in `00-Management/WORKFLOWS.md` and the GitHub implementation rules in `6-Development/github/GITHUB_OPERATING_RULES.md`.
 
-`Issue → branch → implementation → PR → review → testing → approval/merge → post-merge verification → Issue closure → DONE`
+Do not modify `main` directly. All repository changes go through a dedicated branch and PR unless a canonical emergency/correction workflow explicitly says otherwise.
 
-Rules:
+## Review, Testing, Merge, and Record Integrity
 
-- Never modify `main` directly.
-- Every change is made on a dedicated branch.
-- Every change integrates through a PR.
-- The PR must explicitly trace to every Issue it implements/resolves.
-- Do not attempt GitHub Project management, Project View reads, Project Item reads, Project Item Status reads, Project Item mutations, Project Item Status mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this connection.
-- When Project state would normally be relevant, record: `Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
-- Required review, checkbox, and testing gates must pass before merge.
-- Never treat GitHub's `mergeable` state as proof of review or approval.
-- After merge, verify repository, PR, Issue, review, test, and file state available through this connection. Do not claim Project state.
+Review, testing, approval, merge, checkbox handling, PR closing syntax, review-conversation handling, line-specific review replies, and historical-record integrity are GitHub-specific execution topics.
 
-A direct-main change is a process violation and requires corrective handling under `WORKFLOWS.md`.
+Use `6-Development/github/GITHUB_OPERATING_RULES.md` as the detailed source for those rules.
 
-### Checkbox handling
+Before merge, the effective gate remains:
 
-Execute the Issue/PR checkbox roles defined canonically in `WORKFLOWS.md`:
+`Issue Acceptance all [x] + PR required checklist all [x] + required tests PASS + independent review APPROVED → merge permitted`
 
-- Issue Acceptance boxes describe required work outcomes; `[x]` is an executor implementation-completion claim, not independent approval.
-- PR checklist boxes describe PR-local integration readiness and must not duplicate the full Issue Acceptance list.
-- An executor/agent may check or uncheck existing **executor-controlled** Issue Acceptance and PR checklist boxes when objective implementation/readiness evidence changes.
-- Checkbox-only edits are permitted on open Issue/PR descriptions for this purpose; do not rewrite criterion/checklist text or unrelated description content under this exception.
-- Never change a reviewer-only checkbox on the reviewer's behalf.
-- A reviewer may return an unsupported executor-controlled checkbox to `[ ]`.
-- Before final approval, all applicable Issue Acceptance and required PR checklist boxes must be `[x]`.
-- Checked boxes do not constitute approval; independent formal GitHub review remains required.
-
-## GitHub Project / Kanban Operations
-
-Do not duplicate GitHub Project/Kanban lifecycle rules in this file.
-
-Use:
-
-- `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` for Project/Kanban workflow meaning and Product Owner rulings;
-- `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` for the current ChatGPT/GitHub Project capability boundary;
-- `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` for GitHub connection knowledge and environment asymmetry.
-
-Execution rule for this current ChatGPT/GitHub connection:
-
-`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
-
-## Review and Testing Boundary
-
-When review is required, execute the canonical native GitHub hand-off defined in `00-Management/WORKFLOWS.md`.
-
-Required human validation follows:
-
-**Issue Acceptance all `[x]` + PR required checklist all `[x]` + required tests `PASS` + independent review `APPROVED` → merge permitted**
-
-A post-merge test cannot substitute for required pre-merge validation. `FAIL`, `BLOCKED`, or `NOT TESTED` is not successful required pre-merge validation.
-
-## Record Integrity and Active Record Changes
-
-Follow `00-Management/WORKFLOWS.md` for the canonical rules.
-
-## GitHub Issue Closing Syntax
-
-Every PR that completes an Issue must use the GitHub closing form:
-
-`Closes #123`
-
-Do not use only task identifiers or prose such as `Closes 123` or `Closes Issue 123`.
-
-When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
-
-## Comment and Traceability Rules
-
-GitHub Issue/PR comments must be concise and traceable:
-
-- Put each distinct traceability statement on its own line or paragraph.
-- When an Issue/PR is the primary reference, put its Markdown link at the beginning of its own line.
-- Separate relationship text such as `implements`, `resolves`, or `previous implementation` from the primary link.
-- Do not bury multiple Issue/PR references in a long inline chain.
-
-Do not rewrite historical comments merely to improve formatting; add a new corrective comment when required and when the record is still mutable.
-
-## Git Branch Rules
-
-- Always create and work on a branch.
-- Never commit directly to `main`.
-- Every branch must have a clear purpose.
-- All repository changes merge through PRs.
-
-Before creating a PR, verify:
-
-- base branch;
-- head branch;
-- Issue number and traceability;
-- PR closing references;
-- intended scope.
+Never treat technical mergeability as approval.
 
 ## GitHub API Rules
 
-- Avoid unnecessary repeated GitHub/API calls.
-- Do not impose an artificial inter-call delay while normal subscription/tool capacity is available.
-- Reduce request frequency or follow provider-directed retry/backoff only when an observable constraint exists, such as remaining LLM subscription/tool usage being reported low, required subscription/tool access being unavailable, or the provider reporting a rate limit/retry requirement.
-- When such a constraint affects the work, alert/escalate it rather than silently slowing execution or claiming unavailable work succeeded.
-- Do not invent quota/subscription state when it is not observable.
-- Verify supported non-Project mutations with an independent read.
-- Do not attempt Project management, Project reads, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project verification through this connection.
-- Never expose credentials, tokens, or secret values.
+For GitHub operations:
 
-## GitHub Access and Capability Availability
+- avoid unnecessary repeated GitHub/API calls;
+- follow the project's current GitHub API pacing rule for operational sequences;
+- reduce request frequency or follow provider-directed retry/backoff when an observable constraint exists;
+- verify supported non-Project mutations with an independent read;
+- never expose credentials, tokens, or secret values.
 
-Before an external action, verify both:
-
-- the account/repository permission relevant to the action; and
-- the current agent/tool capability to perform that specific action.
-
-If the required operation is unavailable, do not silently substitute an unperformed action and do not repeatedly retry an unsupported operation.
-
-Distinguish, where observable, among:
-
-- unavailable tool capability;
-- insufficient permission;
-- authentication failure;
-- unavailable integration;
-- technical operation failure.
-
-Project management/read/mutation operations are already known to be unavailable through the current ChatGPT/GitHub connection. Do not test or retry them as part of ordinary work.
-
-If capability is unavailable, use the exact alert:
-
-`*** !!! ALERT - GitHub functions unavailable !!! ***`
-
-For the known Project capability boundary, use the Project capability reporting sentence instead of the general GitHub-functions alert.
+Do not attempt Project management, Project reads, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project verification through this connection.
 
 ## User Command Requests
 
@@ -250,6 +135,7 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 ## Separation of Responsibilities
 
 - `00-Management/WORKFLOWS.md` — top-level canonical normative Management workflows.
+- `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub Issue, Pull Request, review, merge, testing-evidence, record-integrity, and GitHub field/label operating rules.
 - `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
