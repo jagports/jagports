@@ -3,14 +3,14 @@
 ## Status
 This document defines VIEPS search resolution and its UI/data contract.
 
-**Controlling UI specification:** #468  
-**Implementation parent:** #368  
-**Domain/data dependency:** #354  
-**Specification work record:** #472  
-**Normalized stock-quality authority:** #652  
-**Stock-quality presentation work record:** #653
+Durable specification authorities:
 
-The placement authority is the Concept-11 SVG merged by PR #645 and the normative map in `UI_Specs.md`.
+- [`../UI/UI_Specs.md`](../UI/UI_Specs.md) — controlling VIEPS UI information architecture and layout contract.
+- [`MODEL_PART.md`](MODEL_PART.md) — canonical PART, occurrence/context and catalogue/reference identity.
+- [`MODEL_STOCK.md`](MODEL_STOCK.md) — operational stock model and normalized stock-quality contract.
+- [`../i18n/README.md`](../i18n/README.md) — VIEPS UI translation-resource contract and canonical resource path.
+
+The placement authority is the Concept-11 SVG under `../UI_CONCEPTS/` together with the normative map in `../UI/UI_Specs.md`.
 
 ## Search / Availability placement
 Concept-11 places Search + Availability in the top workspace to the right of the branding/instructions/language block.
@@ -25,7 +25,7 @@ Availability remains operational stock state, separate from catalogue identity. 
 
 ## Stock-quality filter and presentation contract
 
-Stock-quality filtering and available-part presentation consume the normalized operational-stock contract from `MODEL_STOCK.md` / #652.
+Stock-quality filtering and available-part presentation consume the normalized operational-stock contract from [`MODEL_STOCK.md`](MODEL_STOCK.md).
 
 The stable classified filter identities are:
 
@@ -127,7 +127,7 @@ The merged SVG states that when Search is empty, a supported Availability/qualit
 
 That behavior is valid only when an approved stock/catalogue browse contract resolves stock through canonical catalogue/fitment relationships. The illustrated A–E stock qualities are not defined by the artwork itself.
 
-When stock-quality filtering is supported, filter identity is the normalized `A` through `E` code set from #652 / `MODEL_STOCK.md`; localized labels/descriptions remain presentation only. An explicit unclassified state may be filterable when supported by the stock query contract, using `NULL` semantics rather than inventing a placeholder code.
+When stock-quality filtering is supported, filter identity is the normalized `A` through `E` code set defined by [`MODEL_STOCK.md`](MODEL_STOCK.md); localized labels/descriptions remain presentation only. An explicit unclassified state may be filterable when supported by the stock query contract, using `NULL` semantics rather than inventing a placeholder code.
 
 ## API/data boundary
 ```text
@@ -171,7 +171,7 @@ Cover at least:
 Fixture values are test data, not verified Jaguar catalogue facts.
 
 ## Viewport and language
-The default desktop shell retains #616 viewport-fit behavior. Search/Availability/status UI text follows #554 and the repository i18n rules. Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. Parts/catalogue-data language remains independently selectable under #620, matching the separate `[UI]` and `[Parts]` language concerns drawn in Concept-11. This search spec does not implement a parallel localization mechanism.
+The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale and Parts/catalogue-data language remain separate concerns; this search specification does not implement a parallel localization mechanism.
 
 ## Error/unavailable semantics
 - Missing context is not no PART.
@@ -191,7 +191,7 @@ The default desktop shell retains #616 viewport-fit behavior. Search/Availabilit
 - [x] Unsupported stock-driven empty-search behavior is not fabricated.
 - [x] UI-vs-Parts language separation is preserved.
 - [x] Presentation does not redefine the Parts Data Model.
-- [x] Normalized stock-quality codes A–E from #652 are the search/filter identity when stock-quality filtering is supported.
+- [x] Normalized stock-quality codes A–E from `MODEL_STOCK.md` are the search/filter identity when stock-quality filtering is supported.
 - [x] Available-part quality presentation uses localized label/description resources and preserves code identity.
 - [x] The explicit `NULL` / unclassified quality state is represented without creating a sixth quality class.
 - [x] Static A–E explanatory presentation is required to consume the same i18n resource contract.
