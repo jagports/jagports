@@ -16,25 +16,7 @@ GitHub connection capability knowledge is maintained in `6-Development/github/GI
 
 **Core rule:** Project-specific workflow behavior is defined here exactly once. Secondary files must reference this file rather than duplicate Project/Kanban workflow rules.
 
-## Current ChatGPT/GitHub Project capability boundary
-
-Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.
-
-For this connection, the following operations are unavailable and must not be attempted as normal executable workflow steps:
-
-- Project View read operations;
-- Project Item read operations;
-- Project Item Status read operations;
-- Project Item mutation operations;
-- Project Item Status mutation operations;
-- Project Item archive/unarchive operations;
-- Project field, view, or option management.
-
-Do not open, inspect, read, infer from, mutate, archive, update, verify, or manage GitHub Project views or Project Items through this connection.
-
-When this file describes Project Item Status, Project views, Project transitions, Project verification, Project mutations, Project archival state, or Project management, the current ChatGPT/GitHub connection must interpret that text only as workflow meaning for a capable external actor, human, automation, or future tool. It is not permission or instruction for this connection to attempt Project operations.
-
-This limitation does not block repository, Issue, Pull Request, review, commit, comment, check, or file work that can be performed and independently verified without GitHub Project access.
+Current ChatGPT/GitHub execution limitation: the Project workflow meanings below describe required behavior for capable external actors/tools. The current ChatGPT/GitHub connection must follow `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` and must not duplicate or restate that capability-boundary rule here.
 
 ---
 
