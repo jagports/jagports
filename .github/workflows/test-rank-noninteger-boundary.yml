@@ -47,16 +47,22 @@ jobs:
           CLEAR_FIELD='mutation($project:ID!, $item:ID!, $field:ID!) { clearProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field}) { projectV2Item { id } } }'
           VERIFY='query($item:ID!, $rank:String!) { node(id:$item) { ... on ProjectV2Item { id rankValue: fieldValueByName(name:$rank) { ... on ProjectV2ItemFieldNumberValue { number } } } } }'
 
+          set_number() {
+            value="$1"
+            request_json="$(jq -n --arg query "$SET_NUMBER" --arg project "$project_id" --arg item "$item_id" --arg field "$rank_field_id" --argjson number "$value" '{query:$query,variables:{project:$project,item:$item,field:$field,number:$number}}')"
+            printf '%s' "$request_json" | gh api graphql --input - >/dev/null
+          }
+
           restore() {
             if [ "$original_rank" = "none" ]; then
               gh api graphql -f query="$CLEAR_FIELD" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" >/dev/null || true
             else
-              gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" -F number="$original_rank" >/dev/null || true
+              set_number "$original_rank" || true
             fi
           }
           trap restore EXIT
 
-          gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" -F number="1.5" >/dev/null
+          set_number 1.5
           verify_json="$(gh api graphql -f query="$VERIFY" -F item="$item_id" -f rank="$RANK_FIELD_NAME")"
           jq -e '.data.node.rankValue.number == 1.5' <<<"$verify_json" >/dev/null || { echo "Failed to establish non-integer Rank 1.5."; false; }
 
