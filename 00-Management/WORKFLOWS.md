@@ -2,18 +2,21 @@
 
 ## Authority
 
-This file is the **single canonical normative source** for Jagports Management workflows.
+This file is the **top-level canonical normative source** for Jagports Management workflows.
 
-It defines workflow states, transitions, decision precedence, gates, invariants, Issue/PR discovery and historical-work handling, Project Item Status handling, review boundaries, and record-integrity rules.
+It defines workflow states, transitions, decision precedence, gates, invariants, Issue/PR discovery and historical-work handling, review boundaries, record-integrity rules, and the boundaries between general Management workflow and scoped workflow documents.
+
+Project/Kanban-specific workflow behavior is defined once in `00-Management/PROJECT_WORKFLOWS.md` and is incorporated here by reference. That scoped file governs Project Item representation, Project mutations and verification, Project Status/Workstream behavior, and Issue/PR Project Item lifecycle without redefining the general Management lifecycle.
 
 Other documents may explain, implement, or reference these workflows, but must not independently redefine them:
 
+- `00-Management/PROJECT_WORKFLOWS.md` — scoped canonical source for GitHub Project / Kanban workflow behavior, incorporated by reference here.
 - `00-Management/RULES.md` — human-readable governance and rationale.
 - `SKILL.md` — machine/agent execution instructions.
 - `.codex/skills/*` — specialized operational instructions.
 - `KNOWLEDGE.md` — durable knowledge, decisions, and lessons learned.
 
-**Core rule:** A workflow is defined exactly once.
+**Core rule:** A workflow is defined exactly once. Scoped workflow files may own delegated detail only when this file explicitly incorporates them by reference.
 
 ---
 
@@ -37,10 +40,10 @@ The normal Management lifecycle is:
 | `IMPLEMENTATION` | The approved work is actively being produced as repository artifacts, including code, configuration, documentation, data, migrations, tests, workflows, or other committed deliverables. |
 | `REVIEW` | Implementation is complete enough for required review; implementation stops at this boundary. |
 | `TESTING` | Required validation is being executed. |
-| `DONE` | The represented work item or integration artifact has reached a verified terminal lifecycle state and no further work is expected on that item. For successful implementation, required review/testing/merge/closure obligations still apply; PR-specific terminal closure without merge is governed below and does not imply successful integration. |
+| `DONE` | The represented work item or integration artifact has reached a verified terminal lifecycle state and no further work is expected on that item. For successful implementation, required review/testing/merge/closure obligations still apply; PR-specific terminal closure without merge is governed by `00-Management/PROJECT_WORKFLOWS.md` and does not imply successful integration. |
 | `BLOCKED` | A prerequisite or capability prevents the next required transition. |
 
-A state is not established merely by an Issue comment. The Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified when the workflow requires a Project transition.
+A state is not established merely by an Issue comment. When the work is represented in GitHub Project, the Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified according to `00-Management/PROJECT_WORKFLOWS.md`.
 
 ---
 
@@ -158,7 +161,7 @@ Requirements:
 2. Work occurs on a dedicated branch; never modify `main` directly.
 3. A PR is the integration path.
 4. The PR must explicitly trace to every Issue it implements/resolves.
-5. Required Project Item Status transitions must be performed and independently verified.
+5. Required Project Item Status transitions must be performed and independently verified according to `00-Management/PROJECT_WORKFLOWS.md`.
 6. Required review and testing gates must pass before merge.
 7. The executor must stop at the review boundary when review is required.
 8. No actor may merge merely because GitHub reports a PR as mergeable.
@@ -168,96 +171,20 @@ A direct-main change is a process violation and requires corrective handling rat
 
 ---
 
-## 4. GitHub Project / Kanban State Control
+## 4. GitHub Project / Kanban workflow reference
 
-The GitHub Project is the visual/system-of-record representation of workflow state.
+All Project/Kanban-specific workflow rules are defined in **`00-Management/PROJECT_WORKFLOWS.md`**, which is incorporated into this workflow by reference.
 
-An Issue or Pull Request may be represented by a **Project Item**. The workflow state is stored in that Project Item's **Status** field. The Project itself does not have the task's lifecycle Status.
+That scoped canonical file governs:
 
-Issue and Pull Request Project Items represent related but different objects:
+- Project Item representation and field ownership;
+- `MUTATE → VERIFY` for Project operations;
+- Issue Project Item initialization;
+- Pull Request Project Item lifecycle and Workstream inheritance;
+- the explicit Product Owner ruling that **no Pull Request Project Item shall ever be archived until further notice**;
+- Project-specific drift and fail-closed behavior.
 
-- the **Issue Project Item** remains the primary business/work record and represents the lifecycle of the owned work;
-- the **Pull Request Project Item** represents the execution/review state of a concrete integration artifact for that work.
-
-A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. It must not receive a separate competing business Priority/Rank when that prioritization belongs to the owning Issue, unless this canonical workflow explicitly defines such independent prioritization in the future.
-
-### Project operation rule
-
-A Project operation has two distinct phases:
-
-**MUTATE → VERIFY**
-
-A mutation response is not, by itself, proof that the desired Project state exists.
-
-After adding an Issue or Pull Request, changing Status, or performing another relevant Project mutation:
-
-1. Identify the intended Project.
-2. Identify the resulting Project Item.
-3. Read the resulting Project state independently.
-4. Verify the exact expected content identity, Project identity, archive state, field, and value.
-5. Only then claim the operation succeeded.
-
-If mutation fails, the Project Item cannot be found, the expected field/value cannot be verified, or the result is ambiguous:
-
-- report failure;
-- identify whether the failure occurred during mutation or verification when possible;
-- state that **Project operation FAILED**;
-- state that **no successful Project operation is claimed**;
-- never convert an intended state into a claimed actual state.
-
-This rule applies to automated and manual Project operations.
-
-### Issue creation
-
-For a new Issue belonging to the Project:
-
-1. Add it to the Project.
-2. Set `Project Item Status` to `BACKLOG`.
-3. Independently verify Project Item existence and `BACKLOG`.
-4. Record the verified result in the persistent task record.
-
-If Project setup cannot be performed or verified, record the limitation and do not claim successful Project setup.
-
-When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless another state is explicitly appropriate, and verify the Project Item Status.
-
-### Pull Request Project Item lifecycle
-
-A Pull Request that belongs to Jagports work may be represented by its own Project Item so that the Kanban shows the concrete integration artifact as well as the owning Issue. The Pull Request Project Item must use the same controlled workflow meanings defined above; Pull Request events do not create a parallel lifecycle.
-
-**Product Owner ruling — no Pull Request Project Item archiving:** No Pull Request Project Item shall ever be archived until further notice. This rule applies to open, merged, and closed-unmerged Pull Requests and supersedes every earlier workflow, implementation, test expectation, or audit rule that required or permitted archiving a Pull Request Project Item. A later change requires a new explicit Product Owner ruling.
-
-Consequences of this ruling:
-
-- every existing or newly created Pull Request Project Item must remain `isArchived = false`;
-- a historical archived Pull Request Project Item is lifecycle drift and must be unarchived when an authorized correction is performed;
-- automation must never use `archiveProjectV2Item` for Pull Request Project Items;
-- unresolved Workstream must fail closed without guessing and without hiding the Pull Request Project Item through archiving;
-- audit/verification logic must treat any archived Pull Request Project Item as incorrect state.
-
-The Pull Request Project Item follows these deterministic rules:
-
-1. **Opened** → add the Pull Request itself to the Project only when the required ownership/Workstream evidence is deterministic. While implementation is still being produced or the independent review hand-off has not occurred, set the Pull Request Project Item Status to `IMPLEMENTATION`, whether the Pull Request is draft or non-draft.
-2. **Converted to draft** → set the Pull Request Project Item Status to `IMPLEMENTATION`. Draft state is evidence that the integration artifact is not currently at the independent-review boundary; it does not move repository work backwards to `RESEARCH`.
-3. **Marked ready for review / opened non-draft** → being non-draft is a prerequisite for review but does not by itself establish `REVIEW`. Keep `IMPLEMENTATION` until the canonical review hand-off in Section 5 has been completed and verified.
-4. **Independent review requested** → after the PR is open, non-draft, the authorized independent reviewer has been selected, and the native GitHub review request has been made, set the Pull Request Project Item Status to `REVIEW`, verify it, and stop implementation at the canonical review boundary.
-5. **Review request removed or Pull Request returned to active implementation** → return the Pull Request Project Item Status to `IMPLEMENTATION` when the canonical review hand-off no longer applies and implementation work resumes.
-6. **Reopened** → inspect the current PR and review-handoff state. Use `IMPLEMENTATION` unless the canonical independent review hand-off has been re-established and verified; only then use `REVIEW`. If a historical PR Project Item is archived, unarchive and independently verify it before applying the active lifecycle state.
-7. **Merged** → after the required review/testing/merge gates have passed, set the Pull Request Project Item Status to `DONE`, independently verify `DONE`, and independently verify `isArchived = false`. The item remains visible/unarchived.
-8. **Closed without merge** → closing the Pull Request is a terminal lifecycle event for that Pull Request Project Item. Set the Pull Request Project Item Status to `DONE`, independently verify `DONE`, and independently verify `isArchived = false`. `DONE` here means no further work is expected on this Pull Request; it does **not** mean the proposed implementation was merged or successfully integrated. GitHub's native Pull Request state and the durable closure/supersession record preserve whether the terminal outcome was obsolete, superseded, abandoned, rejected, or otherwise closed without merge. The owning Issue determines whether the underlying work remains active, is replaced by another Pull Request, becomes blocked, or is otherwise resolved.
-
-For Pull Request Project Items, `DONE` is therefore a terminal-lifecycle state, not a synonym for successful merge. Successful integration is established by the Pull Request's native merged state together with the required review/testing/merge gates; terminal closure without merge remains distinguishable in GitHub history.
-
-Every Pull Request Project Item add, unarchive, or Status change follows the same **MUTATE → VERIFY** rule. Automation must verify that the resulting Project Item contains the intended Pull Request, belongs to the intended Project, remains unarchived, and has the exact expected Status before success is claimed. An archive mutation is prohibited for Pull Request Project Items under the current ruling.
-
-The Pull Request Project Item lifecycle does not replace the owning Issue lifecycle. In particular, a qualifying closing-linked Pull Request may synchronize the owning Issue to `IMPLEMENTATION`, while the Pull Request's own Project Item also remains `IMPLEMENTATION` until the Section 5 review hand-off. At the verified review boundary, the applicable Project Item or Items transition to `REVIEW` according to the canonical review rules; the two items continue to represent different objects.
-
-### IMPLEMENTATION transition from a closing-linked Pull Request
-
-An **open Pull Request that explicitly has a GitHub closing relationship to an Issue** is the normal deterministic repository signal that implementation for that Issue has begun. Closing relationships created by GitHub closing keywords such as `Closes`, `Fixes`, or `Resolves` qualify; a branch, commit, ordinary Issue mention, or related PR without a closing relationship does not qualify by itself.
-
-When this signal is observed, the Issue's Project Item Status may be synchronized to `IMPLEMENTATION` and then independently verified. This signal describes actual implementation activity and is broader than source-code work; the PR may contain code, documentation, configuration, data, tests, workflows, migrations, or other repository deliverables.
-
-The automatic transition must not overwrite `DECISION NEEDED`, `BLOCKED`, `REVIEW`, `TESTING`, or `DONE`. A closing-linked PR does not itself prove that a required decision, approval, review, testing, or acceptance gate has passed. If implementation exists before a required approval or decision, preserve the applicable gate/blocking evidence rather than using automation to legitimize or hide the process defect.
+Do not duplicate those rules in this file. General lifecycle states, repository/review/testing/merge gates, record integrity, human authority, and conflict handling remain governed here.
 
 ---
 
@@ -374,7 +301,7 @@ For human-facing Jagports documentation and communication, use GitHub UI vocabul
 6. The GitHub review request and notification are the native review hand-off mechanism; no additional PR status is invented.
 7. Before final approval, every applicable Issue Acceptance checkbox and every required PR checklist checkbox must be `[x]`. Any required `[ ]` means the completion/readiness gate has not passed.
 8. The independent reviewer verifies the checked implementation claims. If evidence is insufficient, the reviewer requests changes and the affected checkbox must remain or return to `[ ]`.
-9. Set the Project Item Status to `REVIEW` and independently verify it.
+9. Set the Project Item Status to `REVIEW` and independently verify it according to `00-Management/PROJECT_WORKFLOWS.md`.
 10. After the hand-off, the executing actor stops implementation and does not merge except when responding to reviewer discussion or requested changes under these rules.
 11. **Review discussion and formal review submission are distinct.** A finding that needs maker/executor interaction before the formal review outcome must be communicated through an immediately visible channel.
 12. A GitHub `PENDING` review is only a draft review. Line-level and file-level comments created inside the normal pending-review flow remain part of that pending review and are visible only to the reviewer until submission. Therefore `line comment` or `file comment` alone does not mean the comment is immediately visible.
@@ -462,12 +389,15 @@ When an active Issue or PR materially changes scope, align its title with the cu
 
 If documents disagree about a Management workflow:
 
-1. `00-Management/WORKFLOWS.md` is the normative workflow authority.
-2. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
-3. `SKILL.md` provides machine execution guidance and must implement/reference, not redefine, workflows.
-4. `.codex/skills/*` provides specialized procedures and must reference, not redefine, workflows.
-5. `KNOWLEDGE.md` contains durable knowledge, decisions, and lessons learned; not workflow authority.
+1. `00-Management/WORKFLOWS.md` is the top-level normative workflow authority.
+2. `00-Management/PROJECT_WORKFLOWS.md` is the scoped normative source for Project/Kanban workflow behavior incorporated by reference from this file; it must not redefine general workflow boundaries.
+3. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
+4. `SKILL.md` provides machine execution guidance and must implement/reference, not redefine, workflows.
+5. `.codex/skills/*` provides specialized procedures and must reference, not redefine, workflows.
+6. `KNOWLEDGE.md` contains durable knowledge, decisions, and lessons learned; not workflow authority.
 
 A conflict in a secondary document is a process defect: raise an Issue to correct it rather than silently accepting or bypassing the contradiction.
 
-An unresolved contradiction in the canonical workflow must be treated as a process defect and clarified before relying on the conflicting rule.
+If `WORKFLOWS.md` and `PROJECT_WORKFLOWS.md` disagree on a general workflow boundary, `WORKFLOWS.md` controls. Within the delegated Project/Kanban scope, `PROJECT_WORKFLOWS.md` controls the detailed Project behavior.
+
+An unresolved contradiction in a canonical workflow source must be treated as a process defect and clarified before relying on the conflicting rule.
