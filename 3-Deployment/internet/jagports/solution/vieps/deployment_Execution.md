@@ -4,6 +4,35 @@
 
 Orchestrate the actual VIEPS deployment by calling the task-specific deployment procedures. This file defines order and stop conditions; it does not duplicate the detailed Cloudflare, DNS, D1, or application-management procedures.
 
+## Production-readiness boundary
+
+Deployment readiness is only one part of overall VIEPS production readiness. Production-readiness assessment must distinguish **product/application readiness** from **deployment/infrastructure readiness** before individual deployment prerequisites are ranked.
+
+Product/application readiness includes, as applicable:
+
+- approved UI implementation;
+- Parts Data Model implementation;
+- JEPC data importer implementation;
+- required backend/API/application behaviour;
+- database/schema readiness;
+- authentication/authorization implementation;
+- automated tests and acceptance evidence;
+- pre-production validation.
+
+Deployment/infrastructure readiness includes, as applicable:
+
+- Cloudflare account and GitHub integration;
+- Worker deployment readiness;
+- D1 deployment and migration readiness;
+- DNS/FQDN architecture and production hostname configuration;
+- production operational readiness and rollback capability.
+
+A missing DNS/FQDN prerequisite is therefore a **specific production deployment prerequisite**, not by itself evidence that DNS is the primary or largest overall VIEPS production blocker. Do not rank an individual infrastructure prerequisite as the biggest blocker unless the complete current readiness/dependency picture supports that conclusion.
+
+Pre-production validation may use the accepted Cloudflare-provided Workers hostname documented below. Production custom-domain/DNS work must not block or distort the priority of application implementation and pre-production validation when the accepted `workers.dev` endpoint is sufficient.
+
+This deployment procedure begins only when the applicable implementation and validation prerequisites for the intended environment are ready to execute. Successful completion of P1-P10 does not retroactively prove missing product/application requirements complete.
+
 ## Execution environment
 
 Open Windows Terminal using PowerShell or Git Bash at the Jagports repository root:
