@@ -6,11 +6,11 @@ This file is the **top-level canonical normative source** for Jagports Managemen
 
 It defines workflow states, transitions, decision precedence, gates, invariants, Issue/PR discovery and historical-work handling, review boundaries, record-integrity rules, and the boundaries between general Management workflow and scoped workflow documents.
 
-Project/Kanban-specific workflow behavior is defined once in `00-Management/PROJECT_WORKFLOWS.md` and is incorporated here by reference. That scoped file governs Project Item representation, Project mutations and verification, Project Status/Workstream behavior, and Issue/PR Project Item lifecycle without redefining the general Management lifecycle.
+Project/Kanban-specific workflow behavior is defined in `00-Management/WORKFLOW_GITHUB_PROJECT.md` and is incorporated here by reference.
 
 Other documents may explain, implement, or reference these workflows, but must not independently redefine them:
 
-- `00-Management/PROJECT_WORKFLOWS.md` — scoped canonical source for GitHub Project / Kanban workflow behavior, incorporated by reference here.
+- `00-Management/WORKFLOW_GITHUB_PROJECT.md` — incorporated by reference.
 - `00-Management/RULES.md` — human-readable governance and rationale.
 - `SKILL.md` — machine/agent execution instructions.
 - `.codex/skills/*` — specialized operational instructions.
@@ -40,10 +40,10 @@ The normal Management lifecycle is:
 | `IMPLEMENTATION` | The approved work is actively being produced as repository artifacts, including code, configuration, documentation, data, migrations, tests, workflows, or other committed deliverables. |
 | `REVIEW` | Implementation is complete enough for required review; implementation stops at this boundary. |
 | `TESTING` | Required validation is being executed. |
-| `DONE` | The represented work item or integration artifact has reached a verified terminal lifecycle state and no further work is expected on that item. For successful implementation, required review/testing/merge/closure obligations still apply; PR-specific terminal closure without merge is governed by `00-Management/PROJECT_WORKFLOWS.md` and does not imply successful integration. |
+| `DONE` | The represented work item or integration artifact has reached a verified terminal lifecycle state and no further work is expected on that item. For successful implementation, required review/testing/merge/closure obligations still apply; PR-specific terminal closure without merge is governed by `00-Management/WORKFLOW_GITHUB_PROJECT.md` and does not imply successful integration. |
 | `BLOCKED` | A prerequisite or capability prevents the next required transition. |
 
-A state is not established merely by an Issue comment. When the work is represented in GitHub Project, the Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified according to `00-Management/PROJECT_WORKFLOWS.md`.
+A state is not established merely by an Issue comment. When the work is represented in GitHub Project, the Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified according to `00-Management/WORKFLOW_GITHUB_PROJECT.md`.
 
 ---
 
@@ -161,7 +161,7 @@ Requirements:
 2. Work occurs on a dedicated branch; never modify `main` directly.
 3. A PR is the integration path.
 4. The PR must explicitly trace to every Issue it implements/resolves.
-5. Required Project Item Status transitions must be performed and independently verified according to `00-Management/PROJECT_WORKFLOWS.md`.
+5. Required Project Item Status transitions must be performed and independently verified according to `00-Management/WORKFLOW_GITHUB_PROJECT.md`.
 6. Required review and testing gates must pass before merge.
 7. The executor must stop at the review boundary when review is required.
 8. No actor may merge merely because GitHub reports a PR as mergeable.
@@ -173,18 +173,9 @@ A direct-main change is a process violation and requires corrective handling rat
 
 ## 4. GitHub Project / Kanban workflow reference
 
-All Project/Kanban-specific workflow rules are defined in **`00-Management/PROJECT_WORKFLOWS.md`**, which is incorporated into this workflow by reference.
+Project/Kanban-specific workflow rules are defined in **`00-Management/WORKFLOW_GITHUB_PROJECT.md`**, incorporated by reference.
 
-That scoped canonical file governs:
-
-- Project Item representation and field ownership;
-- `MUTATE → VERIFY` for Project operations;
-- Issue Project Item initialization;
-- Pull Request Project Item lifecycle and Workstream inheritance;
-- the explicit Product Owner ruling that **no Pull Request Project Item shall ever be archived until further notice**;
-- Project-specific drift and fail-closed behavior.
-
-Do not duplicate those rules in this file. General lifecycle states, repository/review/testing/merge gates, record integrity, human authority, and conflict handling remain governed here.
+Do not duplicate those rules in this file.
 
 ---
 
@@ -301,7 +292,7 @@ For human-facing Jagports documentation and communication, use GitHub UI vocabul
 6. The GitHub review request and notification are the native review hand-off mechanism; no additional PR status is invented.
 7. Before final approval, every applicable Issue Acceptance checkbox and every required PR checklist checkbox must be `[x]`. Any required `[ ]` means the completion/readiness gate has not passed.
 8. The independent reviewer verifies the checked implementation claims. If evidence is insufficient, the reviewer requests changes and the affected checkbox must remain or return to `[ ]`.
-9. Set the Project Item Status to `REVIEW` and independently verify it according to `00-Management/PROJECT_WORKFLOWS.md`.
+9. Set the Project Item Status to `REVIEW` and independently verify it according to `00-Management/WORKFLOW_GITHUB_PROJECT.md`.
 10. After the hand-off, the executing actor stops implementation and does not merge except when responding to reviewer discussion or requested changes under these rules.
 11. **Review discussion and formal review submission are distinct.** A finding that needs maker/executor interaction before the formal review outcome must be communicated through an immediately visible channel.
 12. A GitHub `PENDING` review is only a draft review. Line-level and file-level comments created inside the normal pending-review flow remain part of that pending review and are visible only to the reviewer until submission. Therefore `line comment` or `file comment` alone does not mean the comment is immediately visible.
@@ -390,7 +381,7 @@ When an active Issue or PR materially changes scope, align its title with the cu
 If documents disagree about a Management workflow:
 
 1. `00-Management/WORKFLOWS.md` is the top-level normative workflow authority.
-2. `00-Management/PROJECT_WORKFLOWS.md` is the scoped normative source for Project/Kanban workflow behavior incorporated by reference from this file; it must not redefine general workflow boundaries.
+2. `00-Management/WORKFLOW_GITHUB_PROJECT.md` is the scoped normative workflow source incorporated by reference from this file.
 3. `RULES.md` provides governance/rationale and must reference, not redefine, workflows.
 4. `SKILL.md` provides machine execution guidance and must implement/reference, not redefine, workflows.
 5. `.codex/skills/*` provides specialized procedures and must reference, not redefine, workflows.
@@ -398,6 +389,6 @@ If documents disagree about a Management workflow:
 
 A conflict in a secondary document is a process defect: raise an Issue to correct it rather than silently accepting or bypassing the contradiction.
 
-If `WORKFLOWS.md` and `PROJECT_WORKFLOWS.md` disagree on a general workflow boundary, `WORKFLOWS.md` controls. Within the delegated Project/Kanban scope, `PROJECT_WORKFLOWS.md` controls the detailed Project behavior.
+If `WORKFLOWS.md` and `WORKFLOW_GITHUB_PROJECT.md` disagree on a general workflow boundary, `WORKFLOWS.md` controls. Within the delegated Project/Kanban scope, `WORKFLOW_GITHUB_PROJECT.md` controls the detailed Project behavior.
 
 An unresolved contradiction in a canonical workflow source must be treated as a process defect and clarified before relying on the conflicting rule.
