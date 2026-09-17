@@ -129,6 +129,16 @@ Required human validation follows:
 
 A post-merge test cannot substitute for required pre-merge validation. `FAIL`, `BLOCKED`, or `NOT TESTED` is not successful required pre-merge validation.
 
+### Review conversation terminology
+
+For human-facing Jagports documentation and communication, use GitHub UI vocabulary:
+
+- **Review conversation** is the preferred term for an inline Pull Request review discussion.
+- Use **Unresolved Review conversation** and **Resolved Review conversation** when describing its state.
+- Reserve **review thread** or **review thread object** for GitHub API, GraphQL, or tool implementation details.
+- When a tool/API returns a review-thread object, translate that implementation vocabulary to **Review conversation** before reporting the state to a human.
+- The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
+
 ### Mandatory Pre-Merge Review Gate
 
 Before **any** merge operation, the executing actor must perform a fresh, independent review-state check for the target PR. This check is a hard precondition for invoking the merge operation; GitHub's technical `mergeable` result is not a substitute.
