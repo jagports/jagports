@@ -16,15 +16,52 @@ For Jagports work, distinguish:
 
 1. GitHub account authorization and repository access.
 2. The capabilities exposed by the current ChatGPT/agent/tool session.
-3. The capabilities of Codex when repository implementation and Git operations are required.
+3. Capabilities available through the user's own GitHub CLI / shell environment.
+4. The capabilities of Codex when repository implementation and Git operations are required.
 
 Having authorization to a GitHub repository does not by itself prove that the current agent/tool session can perform every GitHub operation needed for a task.
 
-The ChatGPT GitHub connection provides repository access for supported repository analysis and search. The available connection capability must not be assumed to include repository write/push operations.
+The ChatGPT GitHub connection provides repository access for supported repository analysis and repository operations exposed by the active connector. Missing connector capability must not be treated as proof that GitHub itself, GitHub CLI, GraphQL, or the user's authenticated shell cannot perform the operation.
 
-When repository implementation work requires capabilities not exposed by the current ChatGPT connection, use an available tool/product that actually provides those capabilities, such as Codex where appropriate.
+When repository implementation work requires capabilities not exposed by the current ChatGPT connection, use an available tool/product that actually provides those capabilities, such as Codex where appropriate, or prepare a reviewed owner-run `gh` script when the user's authenticated shell is the available execution path.
 
 If an expected repository is not available through the ChatGPT GitHub connection, verify the GitHub app installation/authorization and repository selection or approval applicable to the account or organization, following the current OpenAI documentation.
+
+## GitHub Project configuration and UI settings
+
+GitHub Project configuration is a special capability boundary.
+
+The current ChatGPT GitHub connector may expose repository Issues, Pull Requests, branches and files while not exposing equivalent mutation operations for GitHub Project configuration such as saved views, layouts, filters, sorting, fields, options, or other Project-level settings.
+
+When the connector does not expose a required Project mutation:
+
+- do not repeatedly attempt unsupported connector/API operations;
+- do not conclude that the Project setting cannot be changed through GitHub;
+- do not downgrade the requested implementation to manual UI instructions merely because the connector cannot perform the mutation;
+- prefer a reviewed repository script that the authorized organization owner can run with GitHub CLI;
+- use `gh project ...` and/or `gh api graphql` when those are the supported execution surfaces for the required operation;
+- discover Project, field, option and view IDs at runtime rather than copying historical IDs;
+- inspect the current GraphQL schema or otherwise verify the supported mutation shape before writing Project configuration;
+- use the user's authenticated `gh` session rather than embedding PAT values or other credentials in repository content;
+- independently read back the resulting Project state after mutation;
+- use direct human UI observation only for aspects that the available API/CLI path cannot authoritatively inspect.
+
+A repository script may therefore be the normal implementation artifact for Project settings that cannot be mutated through the ChatGPT connector. The script remains subject to the normal Issue → branch → PR → review → testing/verification workflow.
+
+### Environment asymmetry
+
+The user's shell environment is not identical to the agent execution environment.
+
+In Jagports work the user may run Windows Git Bash with a locally installed and authenticated GitHub CLI. That environment may support shell features, GitHub CLI commands, GraphQL operations, authentication scopes, or Project operations that are unavailable from the current agent container or connector.
+
+Therefore:
+
+- absence of a command, shell feature, API surface, or permission in the agent environment is not evidence that it is unavailable in the user's shell;
+- do not remove or weaken a script solely because the agent cannot execute the same command locally;
+- validate syntax and logic against documented or user-verified capabilities and let the user's actual shell execution provide runtime evidence;
+- when execution differs, record the exact observed result and amend the script from evidence rather than assuming both environments behave identically.
+
+For Jagports Project setup procedures, `5-Implementation-Projects/Setting_up_Kanban/Setting_up_Kanban.md` remains the task-specific authority for Project semantics and verification.
 
 ## Anthropic / Claude GitHub Custom Connector
 
@@ -58,11 +95,12 @@ For any AI agent expected to perform an external GitHub action:
 
 - verify the GitHub account authorization;
 - verify that the agent connection exposes the required operation;
-- perform the operation through the available capability;
+- if the connector does not expose it, check whether a reviewed owner-run `gh`/GraphQL path is appropriate before falling back to manual UI work;
+- perform the operation through the available authorized capability;
 - independently verify the resulting GitHub state before claiming success.
 
-If the required operation is unavailable, report the verified limitation and identify the available alternative or required next step.
+If the required operation is unavailable through every authorized execution path, report the verified limitation and identify the required next step.
 
 ## Source Maintenance
 
-When OpenAI, Anthropic/Claude, GitHub, or the relevant connector capabilities change, review this document against the current official documentation and update it through the normal Jagports Issue and Pull Request workflow.
+When OpenAI, Anthropic/Claude, GitHub, GitHub CLI, or relevant connector capabilities change, review this document against current official documentation and verified Jagports execution evidence, then update it through the normal Jagports Issue and Pull Request workflow.
