@@ -1,0 +1,62 @@
+name: Test Project View Inspection
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+
+jobs:
+  inspect-project-views:
+    if: github.head_ref == 'test/745-merged-pr-lifecycle'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect live Project fields and views
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+
+          QUERY='query($org:String!, $number:Int!) {
+            organization(login:$org) {
+              projectV2(number:$number) {
+                id
+                title
+                fields(first:100) {
+                  nodes {
+                    __typename
+                    ... on ProjectV2SingleSelectField { id name options { id name } }
+                  }
+                }
+                views(first:50) {
+                  nodes { id name layout filter }
+                }
+              }
+            }
+          }'
+
+          result="$(gh api graphql -f query="$QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          echo "$result" | jq '{project:.data.organization.projectV2 | {id,title,workstream:[.fields.nodes[]? | select(.name=="Workstream") | {id,name,type:.__typename,options}],views:.views.nodes}}'
+
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$result")"
+          [ -n "$project_id" ] || { echo "Project not found."; false; }
+          workstream_count="$(jq '[.data.organization.projectV2.fields.nodes[]? | select(.name=="Workstream" and .__typename=="ProjectV2SingleSelectField")] | length' <<<"$result")"
+          [ "$workstream_count" -eq 1 ] || { echo "Expected exactly one Workstream single-select field."; false; }
+          options="$(jq -c '[.data.organization.projectV2.fields.nodes[]? | select(.name=="Workstream" and .__typename=="ProjectV2SingleSelectField") | .options[]?.name] | sort' <<<"$result")"
+          [ "$options" = '["AI OS","VIEPS"]' ] || { echo "Unexpected Workstream options: $options"; false; }
+
+          ai_views="$(jq '[.data.organization.projectV2.views.nodes[]? | select((.filter // "") | contains("AI OS"))] | length' <<<"$result")"
+          vieps_views="$(jq '[.data.organization.projectV2.views.nodes[]? | select((.filter // "") | contains("VIEPS"))] | length' <<<"$result")"
+          echo "AI OS-filtered view count: $ai_views"
+          echo "VIEPS-filtered view count: $vieps_views"
+          [ "$ai_views" -ge 1 ] || { echo "No live Project view references AI OS in its filter."; false; }
+          [ "$vieps_views" -ge 1 ] || { echo "No live Project view references VIEPS in its filter."; false; }
+
+          echo "PASS: live Project has exactly AI OS/VIEPS Workstreams and active views reference both Workstreams in filters."
