@@ -4,6 +4,10 @@
 
 This document records durable, source-based knowledge about documented GitHub connection methods used by AI agents. It does not define or replace Jagports Management workflows.
 
+Project/Kanban workflow meaning is maintained in `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md`.
+
+The current ChatGPT/GitHub Project capability boundary is maintained in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
+
 ## OpenAI / ChatGPT GitHub Connection
 
 Official OpenAI reference:
@@ -32,6 +36,8 @@ If an expected repository is not available through the ChatGPT GitHub connection
 GitHub Project configuration is a special capability boundary.
 
 The current ChatGPT GitHub connector may expose repository Issues, Pull Requests, branches and files while not exposing equivalent mutation operations for GitHub Project configuration such as saved views, layouts, filters, sorting, fields, options, or other Project-level settings.
+
+Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.
 
 When the connector does not expose a required Project mutation:
 
@@ -86,7 +92,7 @@ Therefore:
 
 The prohibition on native GitHub sub-issues above is a Jagports operating rule and therefore applies regardless of which environment happens to expose the native GitHub operation.
 
-For Jagports Project setup procedures, `5-Implementation-Projects/Setting_up_Kanban/Setting_up_Kanban.md` remains the task-specific authority for Project semantics and verification.
+For Jagports Project setup procedures, `6-Development/github/Projects/Setting_up_Kanban.md` remains the task-specific authority for Project semantics and verification.
 
 ## Anthropic / Claude GitHub Custom Connector
 
