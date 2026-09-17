@@ -5,6 +5,7 @@ on:
     types:
       - opened
       - reopened
+      - synchronize
       - converted_to_draft
       - ready_for_review
       - review_requested
@@ -34,8 +35,6 @@ jobs:
           PR_NODE_ID: ${{ github.event.pull_request.node_id }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_ACTION: ${{ github.event.action }}
-          PR_DRAFT: ${{ github.event.pull_request.draft }}
-          PR_MERGED: ${{ github.event.pull_request.merged }}
         shell: bash
         run: |
           set -euo pipefail
@@ -45,7 +44,7 @@ jobs:
             if [ -n "${COMMENT_TOKEN:-}" ]; then
               GH_TOKEN="$COMMENT_TOKEN" gh api \
                 "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
-                -f body="Pull Request Project lifecycle automation **FAILED** for PR #$PR_NUMBER. The PR Project Item was not independently verified in the expected lifecycle state. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
+                -f body="Pull Request Project lifecycle automation **FAILED** for PR #$PR_NUMBER. The PR Project Item was not independently verified in the expected lifecycle/Workstream state. Inspect this workflow run for the exact failure. No successful Project operation is claimed." \
                 >/dev/null || true
             fi
             exit "$status"
@@ -54,89 +53,22 @@ jobs:
 
           [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
 
-          PROJECT_QUERY='
-          query($org:String!, $number:Int!) {
-            organization(login:$org) {
-              projectV2(number:$number) {
-                id
-                title
-                fields(first:100) {
-                  nodes {
-                    __typename
-                    ... on ProjectV2Field { id name dataType }
-                    ... on ProjectV2SingleSelectField { id name options { id name color description } }
-                  }
-                }
-              }
-            }
-          }'
+          OWNER="${REPOSITORY%%/*}"
+          NAME="${REPOSITORY##*/}"
 
-          refresh_project() {
-            project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
-            project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
-            project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
-            [ -n "$project_id" ] || { echo "Project was not found."; false; }
-            [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
-          }
-
-          refresh_project
-
-          workstream_matches="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)]' <<<"$project_json")"
-          workstream_field_count="$(jq 'length' <<<"$workstream_matches")"
-          if [ "$workstream_field_count" -eq 0 ]; then
-            CREATE_WORKSTREAM_FIELD='
-            mutation($project:ID!, $name:String!) {
-              createProjectV2Field(input:{
-                projectId:$project,name:$name,dataType:SINGLE_SELECT,
-                singleSelectOptions:[
-                  {name:"Intake",color:GRAY,description:"Unclassified Project intake; not an execution queue"},
-                  {name:"AI OS",color:BLUE,description:"Jagports AI OS management, architecture and infrastructure"},
-                  {name:"VIEPS",color:GREEN,description:"VIEPS application and product work"}
-                ]
-              }) { projectV2Field { ... on ProjectV2SingleSelectField { id name options { id name } } } }
-            }'
-            gh api graphql -f query="$CREATE_WORKSTREAM_FIELD" -F project="$project_id" -f name="$WORKSTREAM_FIELD_NAME" >/dev/null
-            refresh_project
-            workstream_matches="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name)]' <<<"$project_json")"
-            workstream_field_count="$(jq 'length' <<<"$workstream_matches")"
-          fi
-          [ "$workstream_field_count" -eq 1 ] || { echo "Expected exactly one Workstream field; found $workstream_field_count."; false; }
-          workstream_field_id="$(jq -r '.[0] | select(.__typename == "ProjectV2SingleSelectField") | .id // empty' <<<"$workstream_matches")"
-          [ -n "$workstream_field_id" ] || { echo "Workstream field is not single-select."; false; }
-
-          missing_options="$(jq -r '["Intake","AI OS","VIEPS"] as $required | [ $required[] as $name | select(([.[0].options[]?.name] | index($name)) == null) | $name ] | .[]?' <<<"$workstream_matches")"
-          if [ -n "$missing_options" ]; then
-            options_json="$(jq -c '
-              (.[0].options | map({id:.id,name:.name,color:.color,description:(.description // "")})) as $existing |
-              ($existing | map(.name)) as $names |
-              $existing
-              + (if ($names | index("Intake")) == null then [{name:"Intake",color:"GRAY",description:"Unclassified Project intake; not an execution queue"}] else [] end)
-              + (if ($names | index("AI OS")) == null then [{name:"AI OS",color:"BLUE",description:"Jagports AI OS management, architecture and infrastructure"}] else [] end)
-              + (if ($names | index("VIEPS")) == null then [{name:"VIEPS",color:"GREEN",description:"VIEPS application and product work"}] else [] end)
-            ' <<<"$workstream_matches")"
-            UPDATE_WORKSTREAM_FIELD='
-            mutation($fieldId:ID!, $options:[ProjectV2SingleSelectFieldOptionInput!]) {
-              updateProjectV2Field(input:{fieldId:$fieldId,singleSelectOptions:$options}) {
-                projectV2Field { ... on ProjectV2SingleSelectField { id name options { id name } } }
-              }
-            }'
-            request_json="$(jq -n --arg query "$UPDATE_WORKSTREAM_FIELD" --arg fieldId "$workstream_field_id" --argjson options "$options_json" '{query:$query,variables:{fieldId:$fieldId,options:$options}}')"
-            printf '%s' "$request_json" | gh api graphql --input - >/dev/null
-            refresh_project
-          fi
+          PROJECT_QUERY='query($org:String!, $number:Int!) { organization(login:$org) { projectV2(number:$number) { id title fields(first:100) { nodes { __typename ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }'
+          project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+          project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
+          [ -n "$project_id" ] || { echo "Project was not found."; false; }
+          [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
 
           status_fields="$(jq '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
           workstream_fields="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
           [ "$(jq 'length' <<<"$status_fields")" -eq 1 ] || { echo "Expected exactly one Status field."; false; }
-          [ "$(jq 'length' <<<"$workstream_fields")" -eq 1 ] || { echo "Expected exactly one Workstream field after recovery."; false; }
-          for required in "Intake" "AI OS" "VIEPS"; do
-            count="$(jq --arg value "$required" '[.[0].options[]? | select(.name == $value)] | length' <<<"$workstream_fields")"
-            [ "$count" -eq 1 ] || { echo "Workstream option '$required' is missing or duplicated."; false; }
-          done
-          workstream_field_id="$(jq -r '.[0].id' <<<"$workstream_fields")"
+          [ "$(jq 'length' <<<"$workstream_fields")" -eq 1 ] || { echo "Expected exactly one Workstream field."; false; }
+          [ "$(jq -c '[.[0].options[]?.name] | sort' <<<"$workstream_fields")" = '["AI OS","VIEPS"]' ] || { echo "Workstream options must be exactly AI OS and VIEPS."; false; }
 
-          OWNER="${REPOSITORY%%/*}"
-          NAME="${REPOSITORY##*/}"
           PR_QUERY='
           query($owner:String!, $name:String!, $number:Int!) {
             repository(owner:$owner,name:$name) {
@@ -146,7 +78,6 @@ jobs:
                 state
                 isDraft
                 merged
-                author { login }
                 reviewRequests(first:50) { totalCount }
                 projectItems(first:50) {
                   nodes {
@@ -178,8 +109,7 @@ jobs:
           }'
 
           pr_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
-          verified_pr_id="$(jq -r '.data.repository.pullRequest.id // empty' <<<"$pr_json")"
-          [ "$verified_pr_id" = "$PR_NODE_ID" ] || { echo "PR identity verification failed."; false; }
+          [ "$(jq -r '.data.repository.pullRequest.id // empty' <<<"$pr_json")" = "$PR_NODE_ID" ] || { echo "PR identity verification failed."; false; }
 
           is_draft="$(jq -r '.data.repository.pullRequest.isDraft' <<<"$pr_json")"
           merged="$(jq -r '.data.repository.pullRequest.merged' <<<"$pr_json")"
@@ -188,22 +118,17 @@ jobs:
           TARGET_STATUS=""
           ARCHIVE_AFTER="false"
           case "$PR_ACTION" in
-            opened|converted_to_draft|ready_for_review)
+            opened|synchronize|converted_to_draft|ready_for_review)
               TARGET_STATUS="IMPLEMENTATION"
               ;;
             review_requested)
-              [ "$is_draft" = "false" ] || { echo "Draft PR cannot enter REVIEW; retaining IMPLEMENTATION."; TARGET_STATUS="IMPLEMENTATION"; }
-              [ -n "$TARGET_STATUS" ] || TARGET_STATUS="REVIEW"
+              if [ "$is_draft" = "true" ]; then TARGET_STATUS="IMPLEMENTATION"; else TARGET_STATUS="REVIEW"; fi
               ;;
             review_request_removed|reopened)
               if [ "$is_draft" = "false" ] && [ "$review_request_count" -gt 0 ]; then TARGET_STATUS="REVIEW"; else TARGET_STATUS="IMPLEMENTATION"; fi
               ;;
             closed)
-              if [ "$merged" = "true" ]; then
-                TARGET_STATUS="DONE"
-              else
-                ARCHIVE_AFTER="true"
-              fi
+              if [ "$merged" = "true" ]; then TARGET_STATUS="DONE"; else ARCHIVE_AFTER="true"; fi
               ;;
             *) echo "Unhandled PR action '$PR_ACTION'."; exit 0 ;;
           esac
@@ -219,19 +144,17 @@ jobs:
           unique_operational="$(printf '%s\n' "$operational_values" | sed '/^$/d' | sort -u)"
           unique_count="$(printf '%s\n' "$unique_operational" | sed '/^$/d' | wc -l | tr -d ' ')"
 
+          TARGET_WORKSTREAM=""
           if [ "$same_repo_issue_count" -gt 0 ] && [ "$operational_count" -eq "$same_repo_issue_count" ] && [ "$unique_count" -eq 1 ]; then
             inherited="$(printf '%s\n' "$unique_operational" | head -n1)"
             case "$inherited" in
               "AI OS"|VIEPS) TARGET_WORKSTREAM="$inherited" ;;
-              *) TARGET_WORKSTREAM="Intake" ;;
+              *) TARGET_WORKSTREAM="" ;;
             esac
-          else
-            TARGET_WORKSTREAM="Intake"
           fi
 
           project_items="$(jq -c --arg project "$project_id" --arg pr "$PR_NODE_ID" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
-          total_item_count="$(jq 'length' <<<"$project_items")"
-          [ "$total_item_count" -le 1 ] || { echo "Multiple Project items exist for PR #$PR_NUMBER."; false; }
+          [ "$(jq 'length' <<<"$project_items")" -le 1 ] || { echo "Multiple Project items exist for PR #$PR_NUMBER."; false; }
           item_id="$(jq -r 'if length == 1 then .[0].id else empty end' <<<"$project_items")"
           item_archived="$(jq -r 'if length == 1 then .[0].isArchived else false end' <<<"$project_items")"
 
@@ -239,12 +162,34 @@ jobs:
           UNARCHIVE_ITEM='mutation($project:ID!, $item:ID!) { unarchiveProjectV2Item(input:{projectId:$project,itemId:$item}) { item { id isArchived } } }'
           ARCHIVE_ITEM='mutation($project:ID!, $item:ID!) { archiveProjectV2Item(input:{projectId:$project,itemId:$item}) { item { id isArchived } } }'
 
-          if [ -z "$item_id" ]; then
-            if [ "$ARCHIVE_AFTER" = "true" ]; then
-              echo "Closed-unmerged PR #$PR_NUMBER has no Project Item; no successful-completion state will be created."
+          if [ "$ARCHIVE_AFTER" = "true" ]; then
+            if [ -z "$item_id" ]; then
+              echo "Closed-unmerged PR #$PR_NUMBER has no Project Item; no successful-completion state is created."
               trap - ERR
               exit 0
             fi
+            current_status="$(jq -r '.[0].statusValue.name // empty' <<<"$project_items")"
+            [ "$current_status" != "DONE" ] || { echo "Closed-unmerged PR cannot be archived from DONE; refusing false-success state."; false; }
+            gh api graphql -f query="$ARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
+            VERIFY_ARCHIVE='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id isArchived project { id } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } } } } }'
+            verify_json="$(gh api graphql -f query="$VERIFY_ARCHIVE" -F item="$item_id")"
+            [ "$(jq -r '.data.node.id // empty' <<<"$verify_json")" = "$item_id" ] || { echo "Archive verification failed: item identity mismatch."; false; }
+            [ "$(jq -r '.data.node.project.id // empty' <<<"$verify_json")" = "$project_id" ] || { echo "Archive verification failed: Project mismatch."; false; }
+            [ "$(jq -r '.data.node.content.id // empty' <<<"$verify_json")" = "$PR_NODE_ID" ] || { echo "Archive verification failed: PR identity mismatch."; false; }
+            [ "$(jq -r '.data.node.isArchived' <<<"$verify_json")" = "true" ] || { echo "Archive verification failed: item remains active."; false; }
+            [ "$(jq -r '.data.node.statusValue.name // empty' <<<"$verify_json")" != "DONE" ] || { echo "Closed-unmerged PR was incorrectly represented as DONE."; false; }
+            echo "PASS: Closed-unmerged PR #$PR_NUMBER preserved a non-success Status and was archived."
+            trap - ERR
+            exit 0
+          fi
+
+          if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$TARGET_WORKSTREAM" ]; then
+            echo "PR #$PR_NUMBER does not resolve to exactly one owning Issue Workstream (AI OS or VIEPS); refusing to guess or create a fallback Workstream."
+            false
+          fi
+
+          if [ -z "$item_id" ]; then
+            [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot create active PR Project Item without a verified Workstream."; false; }
             gh api graphql -f query="$ADD_ITEM" -F project="$project_id" -F pr="$PR_NODE_ID" >/dev/null
             pr_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
             project_items="$(jq -c --arg project "$project_id" --arg pr "$PR_NODE_ID" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
@@ -254,54 +199,28 @@ jobs:
           fi
 
           if [ "$item_archived" = "true" ] && [ "$PR_ACTION" = "reopened" ]; then
+            [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot reopen PR Project Item without a verified Workstream."; false; }
             gh api graphql -f query="$UNARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
             item_archived="false"
           fi
-
-          if [ "$ARCHIVE_AFTER" = "true" ]; then
-            current_status="$(jq -r 'if length == 1 then (.[] | select(.id == $item) | .statusValue.name // empty) else empty end' --arg item "$item_id" <<<"$project_items")"
-            [ "$current_status" != "DONE" ] || { echo "Closed-unmerged PR cannot be archived from DONE; refusing false-success state."; false; }
-            gh api graphql -f query="$ARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
-            VERIFY_ITEM='
-            query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id isArchived project { id } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } } } } }
-            '
-            verify_json="$(gh api graphql -f query="$VERIFY_ITEM" -F item="$item_id")"
-            [ "$(jq -r '.data.node.id // empty' <<<"$verify_json")" = "$item_id" ] || { echo "Archive verification failed: item identity mismatch."; false; }
-            [ "$(jq -r '.data.node.project.id // empty' <<<"$verify_json")" = "$project_id" ] || { echo "Archive verification failed: Project mismatch."; false; }
-            [ "$(jq -r '.data.node.content.id // empty' <<<"$verify_json")" = "$PR_NODE_ID" ] || { echo "Archive verification failed: PR identity mismatch."; false; }
-            [ "$(jq -r '.data.node.isArchived' <<<"$verify_json")" = "true" ] || { echo "Archive verification failed: item remains active."; false; }
-            [ "$(jq -r '.data.node.statusValue.name // empty' <<<"$verify_json")" != "DONE" ] || { echo "Closed-unmerged PR was incorrectly represented as DONE."; false; }
-            echo "PASS: Closed-unmerged PR #$PR_NUMBER preserved its non-success Status and was archived."
-            trap - ERR
-            exit 0
-          fi
-
           [ "$item_archived" = "false" ] || { echo "PR Project Item is archived and cannot receive active lifecycle state '$TARGET_STATUS'."; false; }
 
           status_option_count="$(jq --arg value "$TARGET_STATUS" '[.[0].options[]? | select(.name == $value)] | length' <<<"$status_fields")"
           [ "$status_option_count" -eq 1 ] || { echo "Status option '$TARGET_STATUS' is missing or duplicated."; false; }
           status_field_id="$(jq -r '.[0].id' <<<"$status_fields")"
           status_option_id="$(jq -r --arg value "$TARGET_STATUS" '.[0].options[]? | select(.name == $value) | .id' <<<"$status_fields")"
-          workstream_option_id="$(jq -r --arg value "$TARGET_WORKSTREAM" '.[0].options[]? | select(.name == $value) | .id' <<<"$workstream_fields")"
-          [ -n "$workstream_option_id" ] || { echo "Workstream option '$TARGET_WORKSTREAM' was not resolved."; false; }
+          workstream_field_id="$(jq -r '.[0].id' <<<"$workstream_fields")"
 
           SET_SINGLE_SELECT='mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{singleSelectOptionId:$option}}) { projectV2Item { id } } }'
           gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$status_field_id" -F option="$status_option_id" >/dev/null
-          gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$workstream_field_id" -F option="$workstream_option_id" >/dev/null
 
-          VERIFY_ITEM='
-          query($item:ID!) {
-            node(id:$item) {
-              ... on ProjectV2Item {
-                id
-                isArchived
-                project { id title number }
-                content { ... on PullRequest { id number } }
-                statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } }
-                workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } }
-              }
-            }
-          }'
+          if [ -n "$TARGET_WORKSTREAM" ]; then
+            workstream_option_id="$(jq -r --arg value "$TARGET_WORKSTREAM" '.[0].options[]? | select(.name == $value) | .id' <<<"$workstream_fields")"
+            [ -n "$workstream_option_id" ] || { echo "Workstream option '$TARGET_WORKSTREAM' was not resolved."; false; }
+            gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$workstream_field_id" -F option="$workstream_option_id" >/dev/null
+          fi
+
+          VERIFY_ITEM='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id isArchived project { id title number } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } } } }'
           verify_json="$(gh api graphql -f query="$VERIFY_ITEM" -F item="$item_id")"
           [ "$(jq -r '.data.node.id // empty' <<<"$verify_json")" = "$item_id" ] || { echo "Verification failed: Project Item identity mismatch."; false; }
           [ "$(jq -r '.data.node.project.id // empty' <<<"$verify_json")" = "$project_id" ] || { echo "Verification failed: Project identity mismatch."; false; }
@@ -309,9 +228,17 @@ jobs:
           [ "$(jq -r '.data.node.content.number // empty' <<<"$verify_json")" = "$PR_NUMBER" ] || { echo "Verification failed: PR number mismatch."; false; }
           [ "$(jq -r '.data.node.isArchived' <<<"$verify_json")" = "false" ] || { echo "Verification failed: PR Project Item is archived."; false; }
           [ "$(jq -r '.data.node.statusValue.name // empty' <<<"$verify_json")" = "$TARGET_STATUS" ] || { echo "Verification failed: Status mismatch."; false; }
-          [ "$(jq -r '.data.node.statusValue.optionId // empty' <<<"$verify_json")" = "$status_option_id" ] || { echo "Verification failed: Status option mismatch."; false; }
-          [ "$(jq -r '.data.node.workstreamValue.name // empty' <<<"$verify_json")" = "$TARGET_WORKSTREAM" ] || { echo "Verification failed: Workstream mismatch."; false; }
-          [ "$(jq -r '.data.node.workstreamValue.optionId // empty' <<<"$verify_json")" = "$workstream_option_id" ] || { echo "Verification failed: Workstream option mismatch."; false; }
 
-          echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $TARGET_WORKSTREAM."
+          if [ -n "$TARGET_WORKSTREAM" ]; then
+            [ "$(jq -r '.data.node.workstreamValue.name // empty' <<<"$verify_json")" = "$TARGET_WORKSTREAM" ] || { echo "Verification failed: Workstream mismatch."; false; }
+          fi
+
+          if [ "$TARGET_STATUS" = "DONE" ]; then
+            gh api graphql -f query="$ARCHIVE_ITEM" -F project="$project_id" -F item="$item_id" >/dev/null
+            verify_archive="$(gh api graphql -f query="$VERIFY_ITEM" -F item="$item_id")"
+            [ "$(jq -r '.data.node.isArchived' <<<"$verify_archive")" = "true" ] || { echo "Merged PR Project Item was not archived after DONE."; false; }
+            echo "PASS: merged PR #$PR_NUMBER reached DONE and was archived."
+          else
+            echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $TARGET_WORKSTREAM."
+          fi
           trap - ERR
