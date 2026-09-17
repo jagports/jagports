@@ -12,6 +12,8 @@ The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`]
 
 Detailed GitHub execution rules are defined in [`6-Development/github/GITHUB_OPERATING_RULES.md`](../6-Development/github/GITHUB_OPERATING_RULES.md).
 
+GitHub-related workflow sections moved out of this SKILL are preserved in [`6-Development/github/GITHUB_SKILL_WORKFLOW_SECTIONS.md`](../6-Development/github/GITHUB_SKILL_WORKFLOW_SECTIONS.md).
+
 GitHub Project/Kanban-specific workflow behavior is defined in [`6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`](../6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md).
 
 The current ChatGPT/GitHub Project capability boundary is defined in [`6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`](../6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md).
@@ -40,7 +42,7 @@ Before doing Jagports work:
 
 1. Verify GitHub repository access when GitHub work is requested.
 2. Read the current `SKILL.md` and the canonical `00-Management/WORKFLOWS.md`.
-3. For GitHub Issue, PR, review, branch, merge, test-evidence, record-integrity, field, label, or comment work, apply `6-Development/github/GITHUB_OPERATING_RULES.md`.
+3. For GitHub Issue, PR, review, branch, merge, test-evidence, record-integrity, field, label, or comment work, apply `6-Development/github/GITHUB_OPERATING_RULES.md` and `6-Development/github/GITHUB_SKILL_WORKFLOW_SECTIONS.md`.
 4. For GitHub Project/Kanban work, apply `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` and the current capability boundary in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 5. Verify that the operations required for the task are available before relying on them.
 6. Resolve the work identity using the canonical discovery workflow before substantive repository modification.
@@ -55,14 +57,14 @@ For unavailable Project operations, do not retry unsupported calls. Use the requ
 For every request, regardless of requester type:
 
 1. Apply the work-request precedence in `00-Management/WORKFLOWS.md`.
-2. Apply GitHub-specific Issue/PR/review/merge/record rules from `6-Development/github/GITHUB_OPERATING_RULES.md`.
+2. Apply GitHub-specific Issue/PR/review/merge/record rules from `6-Development/github/GITHUB_OPERATING_RULES.md` and the moved section preservation in `6-Development/github/GITHUB_SKILL_WORKFLOW_SECTIONS.md`.
 3. Apply Project/Kanban rules from `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` only where Project access is available to the actor/tool.
 4. Respect the current ChatGPT/GitHub Project capability boundary in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 5. Once identity and scope are resolved, proceed automatically without unnecessary confirmation until the applicable review, authority, capability, or completion boundary is reached.
 
 ## Repository Change Gate
 
-Every repository modification follows the controlled path in `00-Management/WORKFLOWS.md` and the GitHub implementation rules in `6-Development/github/GITHUB_OPERATING_RULES.md`.
+Every repository modification follows the controlled path in `00-Management/WORKFLOWS.md` and the GitHub implementation rules in `6-Development/github/GITHUB_OPERATING_RULES.md` / `6-Development/github/GITHUB_SKILL_WORKFLOW_SECTIONS.md`.
 
 Do not modify `main` directly. All repository changes go through a dedicated branch and PR unless a canonical emergency/correction workflow explicitly says otherwise.
 
@@ -70,7 +72,7 @@ Do not modify `main` directly. All repository changes go through a dedicated bra
 
 Review, testing, approval, merge, checkbox handling, PR closing syntax, review-conversation handling, line-specific review replies, and historical-record integrity are GitHub-specific execution topics.
 
-Use `6-Development/github/GITHUB_OPERATING_RULES.md` as the detailed source for those rules.
+Use `6-Development/github/GITHUB_OPERATING_RULES.md` and `6-Development/github/GITHUB_SKILL_WORKFLOW_SECTIONS.md` as the detailed sources for those rules.
 
 Before merge, the effective gate remains:
 
@@ -136,6 +138,7 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 
 - `00-Management/WORKFLOWS.md` — top-level canonical normative Management workflows.
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub Issue, Pull Request, review, merge, testing-evidence, record-integrity, and GitHub field/label operating rules.
+- `6-Development/github/GITHUB_SKILL_WORKFLOW_SECTIONS.md` — GitHub-related workflow sections moved from this SKILL without redaction.
 - `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
