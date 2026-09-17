@@ -4,7 +4,9 @@
 
 This document records durable, source-based knowledge about documented GitHub connection methods used by AI agents. It does not define or replace Jagports Management workflows.
 
-Project/Kanban workflow meaning is maintained in `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md`.
+Project/Kanban workflow meaning is maintained in `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
+
+Current Project automation knowledge is maintained in `6-Development/github/Projects/GITHUB_PROJECT_AUTOMATIZATION.md`.
 
 The current ChatGPT/GitHub Project capability boundary is maintained in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 
