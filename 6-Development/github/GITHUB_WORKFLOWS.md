@@ -51,6 +51,30 @@ For every GitHub work request, regardless of requester type:
 
 ---
 
+## Prioritization Request Execution
+
+A compact request such as `@priorize 671 612 355` is GitHub execution shorthand. Priority meaning, scoring, review bands, Rank semantics, and Product Owner override authority remain defined by `00-Management/PRIORITIZATION.md`; this section defines only the GitHub execution path.
+
+For each target Issue or PR:
+
+1. Resolve and validate the target work record.
+2. Read the latest durable priority/work-control evidence needed to preserve current authoritative state.
+3. Resolve the applicable Project `Workstream` from explicit verified evidence. When a managed work-control snapshot exists, use its verified Workstream rather than inferring from topic or `Scope:` text.
+4. If no explicit/verified Workstream is available, fail closed for that target and obtain an authorized Workstream classification. Do not infer Workstream from title, body, branch, labels, Issue type, repository path, or semantic/free-text context.
+5. Determine or accept the requested priority/order under `00-Management/PRIORITIZATION.md`.
+6. Write one bounded authorized `<!-- jagports-project-sync -->` record for that target. When Project Rank is set, the record must explicitly include `Workstream: AI OS` or `Workstream: VIEPS` in addition to the applicable Status/Priority/Rank values.
+7. Treat `Scope:` as descriptive review context only; it never substitutes for `Workstream:`.
+8. Wait for the existing bounded work-control automation to complete, then verify the same target's managed snapshot/read-back evidence.
+9. Report a successful prioritization only when the requested authoritative fields, including Workstream and Rank where applicable, are independently verified.
+
+Execution sequence:
+
+`resolve work records → obtain explicit/verified Workstream → calculate/accept priority order → write bounded project-sync record including Workstream → verify resulting snapshot → report only verified result`
+
+The short `@priorize <numbers>` form is sufficient when each target already has explicit, durable Workstream evidence. An unclassified target requires explicit Workstream resolution before Rank synchronization; compact syntax does not authorize semantic guessing.
+
+---
+
 ## Repository Change Gate
 
 Every GitHub repository modification follows the controlled path:
