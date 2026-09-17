@@ -48,6 +48,23 @@ When the connector does not expose a required Project mutation:
 
 A repository script may therefore be the normal implementation artifact for Project settings that cannot be mutated through the ChatGPT connector. The script remains subject to the normal Issue → branch → PR → review → testing/verification workflow.
 
+## Native Issue parent/sub-issue relationships
+
+Native GitHub Issue parent/sub-issue relationships are a separate capability boundary from ordinary Issue CRUD.
+
+A connector may allow an agent to create, read, comment on, edit, and close Issues while exposing no operation to create, remove, reorder, or independently verify native parent/sub-issue relationships. The absence of such an operation in the connector must not be interpreted as a limitation of GitHub itself.
+
+For Jagports work:
+
+- verify that the active connection exposes a native sub-issue relationship operation before accepting work that depends on mutating those relationships;
+- ordinary Issue body links, checklists, or comments are not equivalent to GitHub's native parent/sub-issue relationship and must not be claimed as such;
+- do not create duplicate Issues merely because native hierarchy cannot be mutated through the current connection;
+- if another authorized execution path can safely manage native sub-issues, use that path and verify the resulting relationship independently;
+- if no authorized execution path is available and the remaining task consists only of native hierarchy mutation/verification, record the capability boundary explicitly rather than leaving the work indefinitely described as an implementation defect;
+- when the Product Owner explicitly accepts that capability boundary as the terminal outcome, the affected work item may be closed with a durable comment describing what was and was not completed, while the generalized limitation is retained in knowledge documentation.
+
+This is a tool-capability rule, not a statement that native GitHub sub-issues are unavailable or unsupported by GitHub.
+
 ### Environment asymmetry
 
 The user's shell environment is not identical to the agent execution environment.
