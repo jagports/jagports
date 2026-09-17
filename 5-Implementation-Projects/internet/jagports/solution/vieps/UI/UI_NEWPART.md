@@ -1,196 +1,128 @@
-# VIEPS Stock Admin — Add Part UI Concept
+# VIEPS Stock Admin — Minimum Add Part UI
 
 ## Purpose
 
-This document defines the layout concept for the Stock Admin **Add Part** workflow related to Issue #612.
+This document defines the minimum UI required by Issue #612 to create an operational stock record.
 
-The Admin UI should reuse the established EndUser VIEPS visual structure and keep equivalent elements in similar positions where practical. The goal is one VIEPS application with an authorized administration surface, not a visually unrelated second application.
+The target is **one functional Admin Add Part page**. Navigation, menus, dashboards, account UI, decorative application shell, and visual polish are not requirements for this increment.
 
 The operational stock model remains authoritative in [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md), and workflow behavior remains governed by [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md).
 
-## Visual concept authority
+## Visual reference
 
-The rendered Add Part concept belongs with the other VIEPS visual concepts under `../UI_CONCEPTS/`.
+A concept image may be kept under `../UI_CONCEPTS/` as `UI_Admin_Part_Add.png`, `.jpg`, or another normal web image format. It is a loose visual reference for the Add Part form only. Navigation, menus, branding, account controls, layout decoration, and example values shown in the artwork are not implementation requirements.
 
-Canonical filename:
+The implementation should prefer the simplest page that completes the workflow below.
 
-`../UI_CONCEPTS/UI_Admin_Part_Add.png`
-
-When present, `UI_Admin_Part_Add.png` is the presentation/reference visualization for this workflow. This document remains authoritative for the workflow semantics and model distinctions described below. Example values or controls visible in concept artwork do not create application facts or override the stock model.
-
-The concept image should be committed as its original PNG file. Do not intentionally resize, recompress, convert to a lossy format, or replace it with a screenshot-derived copy when adding it to the repository. Repository review should preserve the original file bytes; GitHub's rendered preview is not the source asset.
-
-## Layout principles
-
-- Reuse the EndUser application shell, spacing, typography, panels, search treatment and responsive behavior.
-- Keep primary navigation at the left on desktop where the existing shell uses that relationship.
-- Keep the global/top search position consistent with the EndUser UI.
-- Use a central working panel for the active Add Part operation.
-- Use a right contextual-information panel for selected-part information and workflow help.
-- Preserve the normalized stock model instead of collapsing distinct concepts: availability is independent from condition; source party is distinct from donor vehicle; unresolved stock is an explicit supported state.
-- Mobile layouts may stack the same logical regions while preserving workflow order.
-
-## Add Part workflow concept
-
-The conceptual workflow is:
+## Minimum workflow
 
 ```text
 Add Part
-  -> 1 Part identification
-  -> 2 Stock details
-  -> 3 Review
-  -> persist through authorized Stock Admin API
+  -> identify existing PART or explicitly choose unresolved
+  -> enter stock details
+  -> review/save
+  -> POST through authorized /api/stock path
+  -> show success or deterministic error
 ```
 
-### Step 1 — Part identification
+A multi-step visual stepper is optional. The three logical stages may be implemented on one page.
 
-The first view should allow an administrator to search for an existing canonical PART before creating stock.
-
-It should support:
-
-- search by part number or descriptive terms using the applicable PART-search contract;
-- result rows showing enough catalogue context to distinguish candidates;
-- selection of an existing canonical PART;
-- a visible selected-part information/context panel;
-- an explicit **Create unresolved part** path when identity cannot yet be established;
-- continuation to Stock details only after an explicit identity choice or unresolved choice.
-
-Conceptual desktop geometry:
+## Minimum page
 
 ```text
-┌──────────────────────┬──────────────────────────────────────────────────────────────────────┐
-│ VIEPS / Admin        │ Global part search                                      Admin       │
-│                      ├──────────────────────────────────────────────────────────────────────┤
-│ EndUser navigation   │ Stock > Add Part                                                     │
-│                      │                                                                      │
-│ Admin                │ ADD PART                                                             │
-│  Stock               │ ● 1 Part identification ─ ○ 2 Stock details ─ ○ 3 Review            │
-│  Parts               │                                                                      │
-│  Vehicles            │ ┌───────────────────────────────────┐ ┌────────────────────────────┐ │
-│  Locations           │ │ PART IDENTIFICATION               │ │ PART INFORMATION           │ │
-│  Source Parties      │ │                                   │ │                            │ │
-│                      │ │ [Search existing] [Unresolved]     │ │ selected-part image/info   │ │
-│ System               │ │                                   │ │ PN / description           │ │
-│  Users               │ │ [ part number / keywords ] [🔍]   │ │ applicability/category     │ │
-│  Settings            │ │                                   │ │ supersessions              │ │
-│                      │ │ Search results                    │ │                            │ │
-│                      │ │ PN | Description | Fitment | Sel.  │ ├────────────────────────────┤ │
-│                      │ │                                   │ │ HELP / NEXT STEP           │ │
-│                      │ │ Can't find the part?              │ │                            │ │
-│                      │ │ [Create unresolved part]          │ │                            │ │
-│                      │ └───────────────────────────────────┘ └────────────────────────────┘ │
-│                      │ [Cancel]                              [Continue to stock details →] │
-└──────────────────────┴──────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ ADD PART                                                     │
+│                                                              │
+│ PART IDENTIFICATION                                          │
+│ [ part number / description                       ] [Search] │
+│                                                              │
+│ Search results                                               │
+│ Part number | Description | Applicability | [Select]         │
+│                                                              │
+│ [ Create unresolved part ]                                   │
+├──────────────────────────────────────────────────────────────┤
+│ STOCK DETAILS                                                │
+│ Quantity        [ ]        Available [ ]                     │
+│ Condition       [ ]                                          │
+│ Location        [ ]                                          │
+│ Source party    [ ]        Donor vehicle [ ]                 │
+│ Source          [ ]        Source reference [ ]              │
+│ Price           [ ]        Currency [ ]                      │
+│ Notes           [                                      ]     │
+├──────────────────────────────────────────────────────────────┤
+│ REVIEW / RESULT                                              │
+│ Selected PART or unresolved identity + entered stock facts   │
+│                                                [ Save stock ]│
+│ Success or deterministic validation/API error               │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## Step 2 — Stock details
+## Part identification
 
-After identity selection, the working panel captures operational stock facts from the approved model:
+The page must provide an explicit identity decision before save:
 
-- quantity;
-- availability;
-- normalized A-E condition or explicit unclassified state;
-- normalized physical storage location;
-- source party;
-- donor vehicle;
-- source/source-reference evidence where applicable;
-- price/currency;
-- operational notes.
+1. select an existing canonical PART returned by the applicable PART-search path; or
+2. explicitly choose unresolved stock with `part_id = NULL`.
 
-Availability and condition must remain separate controls. Source party and donor vehicle must remain separate controls.
+A failed search must not silently create a Jaguar identity, create another canonical identity, or silently choose unresolved stock.
 
-## Future physical-stock photo option
+For an existing PART, search results need only enough information to select the intended record: part number, description and available applicability/context. A separate contextual information panel is optional.
 
-The Add Part UI should reserve a future **Part images** capability for photographs of the actual physical stock item.
+## Stock details
 
-This is a future extension and is not required to block the current #612 MVP implementation unless separately promoted into MVP scope.
+The page must expose the current #612 `/api/stock` create fields needed by the approved model:
 
-The future UI should support:
+- `part_number`;
+- `part_id` when resolved, otherwise `NULL`;
+- integer `quantity`;
+- `available` independently from condition;
+- `condition_code` A-E or unclassified `NULL`;
+- `storage_location_id`;
+- `source_party_id`;
+- `donor_vehicle_id`;
+- `source`;
+- `source_ref`;
+- `price`;
+- three-letter `currency`;
+- `notes`.
 
-- **Take photo** from a mobile/device camera where the browser/device supports capture;
-- **Choose files** from device storage/photo library;
-- multiple images per stock record;
-- preview of selected/captured images before persistence;
-- designation of one image as the primary stock image;
-- removal/replacement before save;
-- later display of the stock photographs in review/detail views.
+The UI may use simple inputs/selects. Rich pickers, visual location browsers, modal workflows and other convenience controls are not required for this increment.
 
-These photographs describe the **physical stock record**, not canonical PART/JEPC imagery. They must not overwrite, redefine or be treated as authoritative catalogue imagery.
+## Validation and persistence
 
-Useful physical-stock photographs can include:
+The page must:
 
-- overall part view;
-- part-number/manufacturer label;
-- condition or damage detail;
-- included hardware/accessories;
-- distinguishing colour/finish or other stock-specific evidence.
+- prevent save until the operator has explicitly chosen resolved or unresolved identity;
+- reject/report invalid quantity, condition, price and currency;
+- surface database/model errors such as required location or unresolved-source evidence;
+- send mutation through the existing administrator-protected Stock API path;
+- show a clear success result after persistence;
+- show deterministic API/validation errors rather than simulating success.
 
-Conceptual component:
+Authorization remains an API requirement. Building an Admin login/account-management UI is outside this page specification.
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│ PART IMAGES                                                         │
-│ Add photographs that identify this physical stock item.             │
-│                                                                     │
-│ ┌──────────────────────┐  ┌──────────────────────┐                  │
-│ │ Take photo           │  │ Choose files         │                  │
-│ │ Mobile/device camera │  │ Phone / computer     │                  │
-│ └──────────────────────┘  └──────────────────────┘                  │
-│                                                                     │
-│ ┌────────────┐ ┌────────────┐ ┌────────────┐                        │
-│ │  image 1   │ │  image 2   │ │  image 3   │                        │
-│ └────────────┘ └────────────┘ └────────────┘                        │
-│ [Primary ✓]   [Make primary] [Make primary]                         │
-│ [Remove]      [Remove]       [Remove]                               │
-│                                                                     │
-│ Suggested: overview, PN/label, relevant condition/detail.           │
-└─────────────────────────────────────────────────────────────────────┘
-```
+## Future physical-stock photos
 
-## Step 3 — Review
+Physical-stock photographs remain a future extension. A later implementation may support device files/photo library and camera capture, multiple previews and a primary image. These images belong to the physical stock record and are distinct from canonical PART/JEPC imagery.
 
-Before persistence, the review view should present the chosen PART/unresolved identity and the stock facts being created. When the future photo capability is implemented, its image previews belong in this review as physical-stock evidence.
+Photo upload, storage and media-provider work **must not block #612 MVP Add Part UI**.
 
-## Component hierarchy
+## Not required for #612 minimum UI
 
-```text
-AppShell
-├── Existing/compatible EndUser navigation shell
-├── Admin navigation
-└── Main
-    ├── TopBar / GlobalPartSearch / AdminAccount
-    ├── Breadcrumb: Stock > Add Part
-    ├── ProgressStepper
-    │   ├── 1 Part identification
-    │   ├── 2 Stock details
-    │   └── 3 Review
-    ├── Step 1: PartIdentification
-    │   ├── SearchExistingPart
-    │   ├── SearchResults
-    │   ├── CreateUnresolvedPart
-    │   └── PartInformation / Help
-    ├── Step 2: StockDetails
-    │   ├── Quantity / Availability
-    │   ├── Condition
-    │   ├── StorageLocation
-    │   ├── SourceParty / DonorVehicle / SourceEvidence
-    │   ├── Price / Currency
-    │   ├── Notes
-    │   └── PartImages [future]
-    │       ├── TakePhoto
-    │       ├── ChooseFiles
-    │       ├── ImagePreview[]
-    │       ├── PrimaryImage
-    │       └── RemoveImage
-    └── Step 3: Review
-        ├── Part identity
-        ├── Stock information
-        ├── Images [future]
-        └── Confirm / Save
-```
+- navigation or menus;
+- sidebar;
+- dashboard;
+- global search header;
+- account/profile UI;
+- breadcrumbs;
+- visual stepper;
+- exact reproduction of the concept artwork;
+- responsive/mobile optimization beyond basic usability;
+- stock-item photo persistence;
+- provider abstraction or #671 completion;
+- reservations, sales, shipping, payment or warehouse ledger;
+- individual physical-unit identity.
 
-## Scope boundary
+## Completion criterion
 
-This concept specifies UI information architecture and future image-input intent. It does not choose media storage, image transformations, upload API shape, retention policy or storage provider. Those concerns require their own approved implementation specification before physical-stock photo persistence is implemented.
-
-The current #612 implementation may therefore establish the Add Part structure without implementing photo storage now, while avoiding a layout that would make the future photo workflow difficult to add.
+The minimum Add Part UI is complete when an authorized operator can use this single page to explicitly choose a resolved or unresolved PART identity, enter valid stock facts, persist the record through the approved `/api/stock` path, and receive a clear success or deterministic error result.
