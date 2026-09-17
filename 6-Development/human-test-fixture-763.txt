@@ -1,0 +1,1 @@
+Controlled regression fixture for PR terminal DONE lifecycle. This file must never be merged.
