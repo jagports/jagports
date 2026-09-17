@@ -95,12 +95,24 @@ jobs:
           SET_NUMBER='mutation($project:ID!, $item:ID!, $field:ID!, $number:Float!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{number:$number}}) { projectV2Item { id } } }'
           CLEAR_FIELD='mutation($project:ID!, $item:ID!, $field:ID!) { clearProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field}) { projectV2Item { id } } }'
 
+          set_number() {
+            number="$1"
+            request_json="$(jq -n \
+              --arg query "$SET_NUMBER" \
+              --arg project "$project_id" \
+              --arg item "$item_id" \
+              --arg field "$rank_field_id" \
+              --argjson number "$number" \
+              '{query:$query,variables:{project:$project,item:$item,field:$field,number:$number}}')"
+            printf '%s' "$request_json" | gh api graphql --input - >/dev/null
+          }
+
           restore_original() {
             set +e
             if [ -z "$original_rank" ]; then
               gh api graphql -f query="$CLEAR_FIELD" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" >/dev/null
             else
-              gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" -F number="$original_rank" >/dev/null
+              set_number "$original_rank"
             fi
           }
 
@@ -111,7 +123,7 @@ jobs:
           }
           trap cleanup EXIT
 
-          gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" -F number="1.5" >/dev/null
+          set_number "1.5"
 
           fractional_state="$(read_state)"
           fractional_rank="$(jq -r --arg project "$project_id" '.data.repository.issue.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false) | .rankValue.number // empty' <<<"$fractional_state" | head -n1)"
