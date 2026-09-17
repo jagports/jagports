@@ -10,31 +10,23 @@ The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`]
 
 **OPEN search → HISTORICAL CLOSED/MERGED search → verify claimed result → valid = no duplicate / insufficient or obsolete = active work / uncertain = clarification → only then create new work.**
 
-The canonical workflow also defines the controlled lifecycle, Project Item Status meaning, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling. GitHub Project/Kanban-specific workflow behavior is defined in `00-Management/WORKFLOW_GITHUB_PROJECT.md` and the current ChatGPT/GitHub capability boundary is summarized in `00-Management/PROJECT_CAPABILITY_BOUNDARY.md`.
+The canonical workflow also defines the controlled lifecycle, Project Item Status meaning, Repository Change Gate, review/testing boundaries, record integrity, title-change exception, and conflict handling. GitHub Project/Kanban-specific workflow behavior is defined in `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` and the current ChatGPT/GitHub capability boundary is summarized in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 
 ## Current ChatGPT/GitHub Project capability boundary
 
-The current ChatGPT/GitHub connection must not try to use GitHub Project management operations.
+Detailed Project/Kanban workflow meaning, lifecycle rules, evidence rules, and Product Owner rulings are defined in [`6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md`](../6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md).
 
-For this connection, the following operations are unavailable and must not be attempted as normal executable workflow steps:
+The current ChatGPT/GitHub capability boundary is summarized in [`6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`](../6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md).
 
-- Project View read operations;
-- Project Item read operations;
-- Project Item Status read operations;
-- Project Item mutation operations;
-- Project Item Status mutation operations;
-- Project Item archive/unarchive operations;
-- Project field, view, or option management.
+GitHub connection capability knowledge is maintained in [`6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md`](../6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md).
 
-Do not open, inspect, read, infer from, mutate, archive, update, verify, or manage GitHub Project views or Project Items through this connection.
-
-When `WORKFLOW_GITHUB_PROJECT.md`, `WORKFLOWS.md`, `SKILL.md`, another repository document, an Issue, or a PR mentions Project Item Status, Project views, Project transitions, Project verification, Project mutations, Project archival state, or Project management, the current ChatGPT/GitHub connection must interpret that text only as background workflow context for a capable external actor, human, automation, or future tool. It is not permission or instruction for this connection to attempt Project operations.
-
-Required reporting sentence for this connection:
+Execution rule for this current ChatGPT/GitHub connection:
 
 `Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
 
-This limitation does not block repository files, Issues, Pull Requests, reviews, commits, comments, checks, or other GitHub operations that are available and independently verifiable through this connection.
+Do not attempt Project management, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this connection.
+
+Then continue only repository, Issue, PR, review, commit, check, comment, and file operations that are available and independently verifiable through this connection.
 
 ### Dedicated i18n execution skill
 
@@ -100,92 +92,23 @@ Rules:
 
 A direct-main change is a process violation and requires corrective handling under `WORKFLOWS.md`.
 
-### Checkbox handling
-
-Execute the Issue/PR checkbox roles defined canonically in `WORKFLOWS.md`:
-
-- Issue Acceptance boxes describe required work outcomes; `[x]` is an executor implementation-completion claim, not independent approval.
-- PR checklist boxes describe PR-local integration readiness and must not duplicate the full Issue Acceptance list.
-- An executor/agent may check or uncheck existing **executor-controlled** Issue Acceptance and PR checklist boxes when objective implementation/readiness evidence changes.
-- Checkbox-only edits are permitted on open Issue/PR descriptions for this purpose; do not rewrite criterion/checklist text or unrelated description content under this exception.
-- Never change a reviewer-only checkbox on the reviewer's behalf.
-- A reviewer may return an unsupported executor-controlled checkbox to `[ ]`.
-- Before final approval, all applicable Issue Acceptance and required PR checklist boxes must be `[x]`.
-- Checked boxes do not constitute approval; independent formal GitHub review remains required.
-
-### Mandatory Pre-Merge Review Gate
-
-Before **any** merge operation, the executing actor must perform a fresh, independent review-state check for the target PR. This check is a hard precondition for invoking the merge operation; GitHub's technical `mergeable` result is not a substitute.
-
-The check must:
-
-1. Read the PR's current review submissions immediately before merge.
-2. Determine the effective review state from the review history, including whether a later review supersedes an earlier review.
-3. Treat `CHANGES_REQUESTED` / `REQUEST_CHANGES` as a blocking state. **STOP — DO NOT MERGE.**
-4. Never allow an earlier `APPROVED` review to satisfy the gate when a later blocking review exists.
-5. Verify all applicable Issue Acceptance checkboxes are `[x]`.
-6. Verify all required PR checklist checkboxes are `[x]`.
-7. Verify required tests are `PASS`.
-8. Treat review-comment wording as content to act on, not as merge authorization. In particular, wording such as `merge files` means modify/combine files unless the review state itself has independently passed.
-9. If requested changes need implementation, implement them on the PR branch, push them, and return to review. Do not resolve the reviewer's blocking comments or merge the PR on the reviewer's behalf.
-10. Permit merge only when the current review gate is independently verified as passed and all checkbox/testing gates have passed.
-11. If any required state cannot be determined reliably, **STOP/BLOCK and DO NOT MERGE** (fail closed).
-
-Required decision rule:
-
-`Issue Acceptance all [x] + PR required checklist all [x] + required tests PASS + independent review APPROVED → merge permitted`
-
-This rule applies regardless of whether the requested change is large, small, documentary, mechanical, or apparently implied by the review comment.
-
 ## GitHub Project / Kanban Operations
 
-Detailed Project/Kanban workflow meaning, lifecycle rules, evidence rules, and Product Owner rulings such as the no-Pull-Request-Project-Item-archive rule are defined in [`00-Management/WORKFLOW_GITHUB_PROJECT.md`](../00-Management/WORKFLOW_GITHUB_PROJECT.md).
+Do not duplicate GitHub Project/Kanban lifecycle rules in this file.
 
-The current ChatGPT/GitHub capability boundary is summarized in [`00-Management/PROJECT_CAPABILITY_BOUNDARY.md`](../00-Management/PROJECT_CAPABILITY_BOUNDARY.md).
+Use:
+
+- `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` for Project/Kanban workflow meaning and Product Owner rulings;
+- `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` for the current ChatGPT/GitHub Project capability boundary;
+- `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` for GitHub connection knowledge and environment asymmetry.
 
 Execution rule for this current ChatGPT/GitHub connection:
 
 `Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
 
-Do not attempt Project management, Project View reads, Project Item reads, Project Item Status reads, Project mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this connection.
-
-Then continue only repository, Issue, PR, review, commit, check, comment, and file operations that are available and independently verifiable through this connection.
-
 ## Review and Testing Boundary
 
-When review is required, execute the canonical native GitHub hand-off defined in `00-Management/WORKFLOWS.md`:
-
-- if the requester is human, request that human as the GitHub PR reviewer;
-- if the requester is an agent, request the designated human reviewer/authority;
-- **verify that the selected reviewer is different from both the PR author and the executing actor before requesting or submitting formal review; if identity is equal or ambiguous, STOP/BLOCK and do not submit a review;**
-- **the PR author/executor may perform a private self-check, but must never submit the formal GitHub review; a self-review, including a `COMMENTED` review, does not satisfy the review gate;**
-- ensure applicable executor-controlled Issue Acceptance and required PR checklist boxes reflect actual implementation/readiness state before final approval;
-- do not set, read, verify, or claim Project Item Status through this connection; use the required Project capability reporting sentence instead;
-- stop implementation and do not merge after hand-off.
-
-Do not invent a separate GitHub PR status such as `Waiting for Review`. GitHub's native review request/notification and review outcome are the review mechanism.
-
-### Review conversation terminology
-
-Use GitHub UI terminology in human-facing communication:
-
-- **Review conversation** is the preferred term for an inline Pull Request review discussion.
-- Describe its state as **Unresolved Review conversation** or **Resolved Review conversation** when state matters.
-- Use **review thread** or **review thread object** only when specifically referring to GitHub API, GraphQL, or tool implementation objects.
-- When a tool/API returns a review-thread object, translate that implementation vocabulary to **Review conversation** before reporting the state to a human.
-- The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
-
-During independent review, distinguish **visible review discussion** from **formal review submission** exactly as defined in `WORKFLOWS.md`:
-
-- a GitHub `PENDING` review and its pending comments are reviewer-private until submission; line-level and file-level comments created inside the normal pending-review flow are also pending and must not be used as the reviewer↔maker discussion channel;
-- do not infer immediate visibility merely because a comment is anchored to a file or line;
-- when anchored interaction is needed before the formal review outcome, use a standalone submitted PR review comment created directly through the review-comment mechanism/API/tool when the available mechanism supports immediate submission without a pending review;
-- if standalone anchored submission is unavailable, use an immediately visible top-level PR Conversation comment and include direct file/line links where needed;
-- the maker/executor may reply and implement changes before formal review submission, but this does not constitute approval;
-- if the referenced code changes and GitHub marks an anchored discussion `outdated`, do not infer that the concern is satisfied; the reviewer must verify whether the concern was actually addressed or remains applicable;
-- formal `APPROVED` remains the independent review gate where required, and unresolved blocking concerns must not result in approval.
-
-Review conversation resolution, requested-change implementation replies, line-specific implementation evidence, checkbox handling, and reviewer-controlled resolution are governed by the canonical rules in `00-Management/WORKFLOWS.md`; this skill must execute those rules rather than redefine them.
+When review is required, execute the canonical native GitHub hand-off defined in `00-Management/WORKFLOWS.md`.
 
 Required human validation follows:
 
@@ -197,14 +120,6 @@ A post-merge test cannot substitute for required pre-merge validation. `FAIL`, `
 
 Follow `00-Management/WORKFLOWS.md` for the canonical rules.
 
-- Never modify descriptions or comments of closed Issues or merged PRs.
-- An open Issue or open PR may have its title changed when scope materially changes.
-- Such title changes are auditable through GitHub's `renamed` history event.
-- Cosmetic title changes should be avoided.
-- An executor/agent may edit an open Issue or PR description solely to check/uncheck existing executor-controlled checkboxes as permitted by the canonical checkbox-state exception.
-- A reviewer may change reviewer-controlled boxes and return unsupported executor claims to `[ ]`.
-- Do not use the checkbox exception to rewrite criteria, checklist wording, or unrelated description content.
-
 ## GitHub Issue Closing Syntax
 
 Every PR that completes an Issue must use the GitHub closing form:
@@ -212,8 +127,6 @@ Every PR that completes an Issue must use the GitHub closing form:
 `Closes #123`
 
 Do not use only task identifiers or prose such as `Closes 123` or `Closes Issue 123`.
-
-When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
 
 ## Comment and Traceability Rules
 
@@ -322,7 +235,9 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 ## Separation of Responsibilities
 
 - `00-Management/WORKFLOWS.md` — top-level canonical normative Management workflows.
-- `00-Management/WORKFLOW_GITHUB_PROJECT.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
+- `6-Development/github/Projects/WORKFLOWS_GITHUB_PROJECT.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
+- `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
+- `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
 - `00-Management/RULES.md` — human governance and rationale; no competing workflow definition.
 - `00-Management/RULES_i18n.md` — canonical VIEPS i18n contributor/governance rules.
 - `SKILL.md` — machine/agent execution of the canonical workflows.
