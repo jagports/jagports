@@ -337,6 +337,14 @@ Reusable knowledge-flow visualizations belong with documentation/knowledge topic
 
 Agents should follow that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
 
+## Repository Structure Placement Rules
+
+Before choosing or creating any repository folder or subfolder, agents must inspect the relevant repository documentation and existing contents.
+
+Agents must use the established documented repository structure and must not invent additional root-level folders or ad hoc hierarchies.
+
+If the correct location is unclear or a new structure appears necessary, the agent must ask the Product Owner rather than inventing it. Repository structure changes require an approved Issue and Pull Request.
+
 ## 4-Production Folder Structure
 
 `4-Production/` is the repository location for production implementations. It may contain the following approved subfolders:
@@ -347,6 +355,6 @@ Agents should follow that protocol when handling Issue communication, acknowledg
 - `application/` — production application implementations.
 - `customer/` — customer-specific production components and configuration.
 
-Existing production subfolders remain valid unless explicitly reorganized through an approved Issue and Pull Request.
+Production files must be placed under `4-Production/` and, where applicable, one of the approved subfolders above.
 
-Agents must not invent additional root-level production folders. Production files must be placed under `4-Production/` and, where applicable, one of the approved subfolders above.
+Existing production subfolders remain valid unless explicitly reorganized through an approved Issue and Pull Request.
