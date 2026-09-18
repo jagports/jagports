@@ -102,7 +102,7 @@ Do not create duplicate Issues when an existing open or historically completed r
 
 ### 2.3 Priority, Rank and Status ownership
 
-Priority is **optional** and is used only when explicitly requested by the requester, a human, or the Product Owner.
+Priority is assessed automatically for every newly opened Issue. Opening a Pull Request triggers an initial or refreshed business-priority assessment of its owning/closing Issue. Pull Requests do not receive a separate competing business Priority/Rank. Outside these open-event assessments and other explicitly authorized prioritization paths, Priority is optional and may be requested by the requester, a human, or the Product Owner.
 
 When priority is in use:
 
@@ -118,7 +118,19 @@ Never put current priority or rank in an Issue title or filename. Historical pla
 
 The Product Owner has final authority over priority and queue order.
 
-#### 2.3.1 `@priorize` and priority-synchronization Workstream preservation
+#### 2.3.1 Automatic prioritization on open
+
+The opening of a new GitHub work record is a prioritization trigger:
+
+- **Issue opened** → run an initial priority assessment on that Issue under `../../00-Management/PRIORITIZATION.md`.
+- **Pull Request opened** → resolve the owning/closing Issue and run an initial or refreshed priority assessment on that Issue.
+- The Pull Request itself must not receive a separate business Priority or Project Rank.
+- Do not infer the owning Issue from title/body heuristics when no durable closing/ownership relationship exists.
+- This rule is prospective and bounded to the newly opened record. It does not authorize bulk reprioritization of the existing backlog.
+
+The resulting priority record remains evidence subject to the normal synchronization, Workstream, workflow-gate, verification, and Product Owner rules.
+
+#### 2.3.2 `@priorize` and priority-synchronization Workstream preservation
 
 `@priorize <numbers>` is GitHub execution shorthand for applying the priority semantics defined by `../../00-Management/PRIORITIZATION.md`; it does not create a separate prioritization model.
 
