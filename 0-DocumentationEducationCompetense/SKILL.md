@@ -81,6 +81,8 @@ Apply the prioritization method in `00-Management/PRIORITIZATION.md` automatical
 - Do not assign a separate business Priority/Rank to the Pull Request.
 - If the owning Issue cannot be established from a durable GitHub relationship, do not guess it from free text.
 - Treat incomplete evidence as provisional rather than inventing factor values.
+- If `Workstream` is missing or unverified, still complete and verify the native Issue Priority update. Leave Project `Rank` as `none`; do not treat missing Workstream as prioritization failure.
+- Assign Rank only after an explicit/verified Workstream is available. Do not repeat the Issue Priority assessment merely to establish Rank unless priority evidence has materially changed.
 - Keep this trigger bounded to the newly opened record; do not bulk-score the existing open backlog merely because Priority is missing.
 
 This is the default initial `@priorize` behavior for newly opened records and does not replace explicit later reprioritization when evidence materially changes.
