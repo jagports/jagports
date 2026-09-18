@@ -108,6 +108,65 @@ A practical sequence is:
 
 With these changes, several current "No" capabilities can become "Yes" without replacing `LeadAgent`, `AgentRegistry`, `Event`, `AgentResult`, state handling, reporting, or notification infrastructure.
 
+## Roadmap
+
+The preferred next evolution is incremental: preserve the working deterministic event/state/routing framework and add model-backed reasoning only where it creates measurable value.
+
+### v0.1-mvp — minimum reasoning enablement with OpenAI Agents SDK
+
+Target: turn one current rule-based specialist into a real semantic reasoning agent while keeping risk, scope, and recurring cost small.
+
+Planned minimum:
+
+1. **Keep the existing coordinator infrastructure**
+   - retain `GitHubService`, `StateService`, `Event`, `LeadAgent`, `AgentRegistry`, `AgentResult`, reporting, and notification boundaries.
+
+2. **Compact event context before model use**
+   - carry changed Issue identifiers and small lifecycle metadata rather than the full repository snapshot;
+   - perform no model call when no relevant change exists.
+
+3. **Add lazy Issue-detail retrieval**
+   - retrieve title, body, labels, and only the comments needed by the specialist;
+   - avoid repeatedly fetching or prompting with unrelated repository state.
+
+4. **Introduce a model-neutral reasoning service**
+   - use the OpenAI Agents SDK behind one service boundary;
+   - keep provider/model selection outside specialist business logic where practical;
+   - preserve the option to replace the model provider later.
+
+5. **Enable one specialist first**
+   - start with `DocumentationAgent` or `KnowledgeAgent`;
+   - classify whether a changed Issue is actually relevant;
+   - return a structured `AgentResult` containing the decision, rationale, and relevant files or knowledge areas.
+
+6. **Load only relevant repository guidance**
+   - provide the applicable `KNOWLEDGE.md`, workflow, or SPEC excerpts as needed;
+   - do not send all repository documentation to every run.
+
+7. **Keep deterministic routing before paid reasoning**
+   - zero relevant changes means zero model calls;
+   - invoke only the specialist plausibly affected by the event;
+   - begin with a low-cost model and record actual token/cost usage before expanding scope.
+
+8. **Keep write authority out of v0.1-mvp**
+   - reasoning may classify, explain, recommend, and prepare plans;
+   - it must not gain autonomous merge, deployment, or unrestricted repository-write authority.
+
+The OpenAI Agents SDK is expected to use normal OpenAI API authentication and usage billing rather than requiring a separate SDK subscription. Current model/pricing details are operational inputs and must be rechecked before activation rather than hard-coded into this durable roadmap.
+
+### Later roadmap direction
+
+After v0.1-mvp demonstrates useful reasoning at acceptable cost and reliability:
+
+- extend semantic reasoning to the remaining specialists;
+- add repository/Issue/PR lookup tools with minimum required permissions;
+- add planning capability that can turn an approved Issue into a proposed implementation plan;
+- add semantic PR/code review as an advisory capability;
+- add robust event replay, retries, duplicate-event protection, failure isolation, and observability;
+- introduce controlled code-edit/test execution only after tool permissions and human review boundaries are proven;
+- evaluate whether the self-hosted coordinator remains simpler than moving long-running/resumable orchestration to a managed agent runtime;
+- progress toward an automated multi-agent team only where each additional autonomous action has an explicit permission boundary, verification path, and human-governed decision/merge/deploy gate.
+
 ## Governance boundary
 
 GitHub remains the durable system of record. Repository workflow, review, testing, approval, and merge rules remain authoritative regardless of which model provider may later be connected.
