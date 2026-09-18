@@ -26,6 +26,123 @@ GitHub
   -> notification infrastructure
 ```
 
+
+### Current processing workflow
+
+```text
+systemd / manual run
+        |
+        v
+     main.py
+        |
+        v
+   LeadAgent.run()
+        |
+        +--> GitHubAgent --> GitHubService --> GitHub Issues
+        |
+        +--> StateService
+        |      |
+        |      +--> compare current snapshot with previous state
+        |      +--> detect new / closed / reopened
+        |
+        +--> Event("issue.lifecycle.changed")
+        |      |
+        |      +--> data = lifecycle delta
+        |      +--> context = current Issue snapshot
+        |
+        +--> AgentRegistry.analyse_all(event)
+               |
+               +--> DocumentationAgent --+
+               +--> DeploymentAgent -----+--> AgentResult[]
+               +--> KnowledgeAgent ------+
+        |
+        +--> ReportService
+        |
+        +--> notification infrastructure
+```
+
+The implementation above is real runtime infrastructure. The present limitation is not that the whole prototype is a mock: collection, lifecycle comparison, event propagation, specialist dispatch, result collection, state persistence, and reporting are implemented. The current specialists themselves are rule-based and do not yet perform LLM-backed semantic reasoning.
+
+### v0.1-mvp target workflow
+
+```text
+GitHub change
+    |
+    v
+deterministic lifecycle detection
+    |
+    v
+compact Event
+    |
+    +--> no relevant change ----------------------> no model call / no API cost
+    |
+    v
+deterministic specialist routing
+    |
+    v
+one relevant specialist
+    |
+    +--> lazy Issue detail lookup
+    |       title / body / labels / needed comments
+    |
+    +--> load only relevant repository guidance
+    |       KNOWLEDGE.md / workflow / SPEC excerpts
+    |
+    v
+model-neutral ReasoningService
+    |
+    v
+OpenAI Agents SDK
+    |
+    v
+semantic classification / explanation
+    |
+    v
+structured AgentResult
+    |
+    v
+existing ReportService / notification path
+```
+
+This design intentionally adds intelligence in the middle of the existing architecture rather than replacing the coordinator, state, event, registry, result, reporting, or notification boundaries.
+
+### Longer-term development workflow
+
+```text
+Issue / PR event
+      |
+      v
+Lead / coordinator
+      |
+      +--> deterministic filters and policy gates
+      |
+      +--> Documentation specialist
+      +--> Knowledge specialist
+      +--> Deployment specialist
+      +--> Planning specialist
+      +--> Review specialist
+      |
+      v
+reasoning + bounded tools
+      |
+      +--> read Issue / PR / repository guidance
+      +--> inspect relevant code or diffs
+      +--> prepare plan / recommendation / test proposal
+      |
+      v
+controlled execution boundary
+      |
+      +--> optional code edit / tests / Issue-PR updates
+      |
+      v
+independent review / required human decision gates
+      |
+      v
+GitHub durable system of record
+```
+
+Full autonomy is a later capability stage, not a requirement of v0.1-mvp.
+
 ## Current capabilities
 
 | Capability | Current state | Notes |
@@ -48,6 +165,40 @@ GitHub
 | Enforce Jagports workflow semantically | No | Repository governance exists in project documentation, but the prototype does not reason over it. |
 | LLM reasoning in current modular execution path | No | `services/openai_service.py` exists, but `main.py` / `LeadAgent` do not currently call it. |
 | Production unattended agent service | No | The implementation remains a prototype/reference runtime. |
+
+
+## Capability evolution matrix
+
+| Capability | Current prototype | v0.1-mvp target | Later direction |
+|---|---|---|---|
+| Read GitHub Issue snapshots | Yes | Yes | Yes |
+| Persist and compare Issue state | Yes | Yes | Yes |
+| Detect new / closed / reopened | Yes | Yes | Yes, with stronger event coverage |
+| Create and route internal Events | Yes | Yes | Yes |
+| Run multiple specialist components | Yes | Yes | Yes |
+| Return structured `AgentResult` objects | Yes | Yes | Yes |
+| Produce reports | Yes | Yes | Yes |
+| Telegram notification support | Partial | Keep existing | Reliable delivery/retry/observability |
+| Understand Issue semantics | No | **Yes for one enabled specialist** | Yes across justified specialists |
+| Determine true documentation/knowledge relevance | No | **Yes** | Yes |
+| Read changed Issue body/comments on demand | No | **Yes** | Yes |
+| Retrieve only relevant repository guidance | No | **Yes** | Yes, with broader tool-assisted lookup |
+| Reason across Issue + selected knowledge | No | **Yes** | Yes |
+| Explain the reason for a specialist decision | No | **Yes** | Yes |
+| Measure model/token usage | No | **Yes** | Yes with budgets/limits |
+| Plan implementation work | No | Possible next step | Yes |
+| Reason across related Issues and PRs | No | Limited/optional | Yes |
+| Semantic PR/code review | No | No | Advisory first, then broader controlled review |
+| Modify repository code | No | No | Controlled tool capability only |
+| Run tests as an agent action | No | No | Controlled execution stage |
+| Update Issues/PRs autonomously | No | No | Bounded permissions and verification only |
+| Merge or deploy autonomously | No | No | Not implied; remains governed by project rules |
+| Reliable unattended service | No | No requirement | Later productionization step |
+| Durable replay/retry/deduplication | No | No requirement | Yes before unattended production use |
+| Parallel reasoning subagents | No | No requirement | Consider only when workload justifies it |
+| Managed long-running agent runtime | No | No | Evaluate if local orchestration becomes burdensome |
+
+The v0.1-mvp goal is deliberately narrow: convert useful semantic-analysis capabilities from `No` to `Yes` without prematurely taking on autonomous coding, merge authority, deployment authority, or production-grade distributed-agent infrastructure.
 
 ## Specialist behavior today
 
@@ -107,6 +258,79 @@ A practical sequence is:
    - do not couple model reasoning directly to merge/deployment authority.
 
 With these changes, several current "No" capabilities can become "Yes" without replacing `LeadAgent`, `AgentRegistry`, `Event`, `AgentResult`, state handling, reporting, or notification infrastructure.
+
+
+## Why the Agents SDK is an incremental fit
+
+The OpenAI Agents SDK is intended here as a reasoning/tool layer, not as a replacement for the Jagports coordinator architecture.
+
+### Keep
+
+- `GitHubService` and current GitHub collection logic;
+- `StateService` and lifecycle comparison;
+- `Event` as the internal change contract;
+- `LeadAgent` as coordinator;
+- `AgentRegistry` as specialist registration/execution boundary;
+- `AgentResult` as the normalized specialist output;
+- `ReportService` and notification integration;
+- GitHub as the durable work and communication record.
+
+### Add or amend
+
+- compact Event payloads before any model call;
+- lazy Issue-detail and, later, PR/repository-detail retrieval;
+- one model-neutral `ReasoningService`;
+- OpenAI Agents SDK inside that reasoning boundary;
+- a structured semantic-output schema for the first reasoning specialist;
+- selective loading of repository guidance;
+- usage/cost recording and bounded model invocation;
+- later, narrowly permissioned tools only when a specialist genuinely needs them.
+
+### Replace or retire over time
+
+The existing `services/openai_service.py` is only a thin direct model-call wrapper and is not currently used by the modular runtime. Once an SDK-backed reasoning boundary is implemented and verified, that wrapper can be replaced or retired rather than maintained as a second competing model-integration path.
+
+## Cost-control model
+
+The intended cost model is event-driven and selective:
+
+```text
+poll
+ |
+ +--> no meaningful change
+ |       |
+ |       +--> no LLM call
+ |
+ +--> changed work item
+         |
+         +--> deterministic relevance filter
+                 |
+                 +--> irrelevant --> no LLM call
+                 |
+                 +--> relevant
+                         |
+                         +--> fetch compact context
+                         +--> invoke one specialist
+                         +--> record actual usage/cost
+```
+
+The SDK itself should not be treated as a reason to send every Issue to every specialist. Cost control comes primarily from the existing deterministic architecture, compact events, lazy retrieval, selective specialist invocation, and measured API use.
+
+The roadmap intentionally avoids hard-coding model names or prices because those are operational choices that may change. Initial experimentation should use the lowest-cost model that reliably satisfies the specialist task, with escalation to a stronger model only for demonstrably harder work.
+
+## v0.1-mvp success criteria
+
+The minimum reasoning increment should be considered successful when all of the following are demonstrated:
+
+- one specialist receives only the changed work item and relevant repository guidance;
+- the specialist makes a semantic relevance decision rather than relying only on lifecycle state;
+- the result is returned through the existing `AgentResult` contract;
+- the result includes an explanation sufficient for human review;
+- a no-change or irrelevant-change run causes no model call;
+- token/API usage for each reasoning run is observable;
+- failures in the reasoning call do not corrupt persistent coordinator state;
+- no autonomous merge, deployment, or unrestricted repository-write capability is introduced;
+- the existing GitHub-centered governance and review gates remain unchanged.
 
 ## Roadmap
 
