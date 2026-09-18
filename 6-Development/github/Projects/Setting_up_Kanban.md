@@ -354,7 +354,3 @@ These are planning/traceability units, not a reason to duplicate command fragmen
 `Setting_up_Kanban-console.log` is historical execution evidence. It may contain obsolete repository/account names from before a repository transfer. Historical evidence must not be edited merely to make it match current configuration, because doing so would falsify the historical record.
 
 Historical logs are not authoritative configuration. Always discover the current repository, Issue fields, Project fields, views, and option IDs before mutation.
-
-## 16. Historical consolidation evidence
-
-The consolidation requirements were recorded in GitHub Issue #437. The durable reusable knowledge from that Issue is incorporated here as procedure, test/error-check requirements, and troubleshooting guidance. The Issue remains the historical work record; this document is the reusable source for future setup work.
