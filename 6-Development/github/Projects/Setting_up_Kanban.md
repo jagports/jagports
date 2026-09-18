@@ -363,7 +363,7 @@ Historical logs are not authoritative configuration. Always discover the current
 - `00-Management/GITHUB_OPERATING_RULES.md` — GitHub record and field ownership rules.
 - `00-Management/PRIORITIZATION.md` — priority scoring, Issue Priority mapping and Rank semantics.
 - `SKILL.md` — machine/agent execution guidance.
-- `5-Implementation-Projects/Setting_up_Kanban/Setting_up_Kanban.md` — reusable Kanban setup and verification procedure.
+- `6-Development/github/Projects/Setting_up_Kanban.md` — reusable Kanban setup and verification procedure.
 - `Setting_up_Kanban-console.log` — historical execution evidence only.
 
 Do not create another parallel Kanban operating-rules authority.
