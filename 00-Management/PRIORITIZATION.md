@@ -48,6 +48,8 @@ New work receives an initial prioritization assessment as part of record creatio
 - Do not create a separate business Priority/Rank for the Pull Request. PR lifecycle/Project handling remains separate from Issue business prioritization.
 - The open-event rule is prospective. It must not be interpreted as authorization to bulk-score all existing open Issues or PRs.
 - If evidence is incomplete, record a provisional assessment rather than inventing values. Existing workflow gates, Workstream preservation, Product Owner authority, and synchronization verification still apply.
+- Missing or unverified `Workstream` must **not** block the organization-level Issue Priority assessment. Synchronize the native Issue Priority from the priority review, leave Project `Rank` as `none`, and treat the automatic prioritization as successfully completed for Priority.
+- Assign Project `Rank` only after an explicit/verified `Workstream` is available. A later Workstream classification must trigger or permit queue ranking without requiring the Issue Priority assessment to be repeated unless its evidence has materially changed.
 - If a PR has no resolvable owning/closing Issue, do not infer ownership from free text. Record the missing relationship and leave business priority on the Issue side unresolved until ownership is established.
 
 The automatic open-event assessment is the default equivalent of an initial `@priorize` pass for newly opened work records; it does not create a second prioritization model.
@@ -234,13 +236,14 @@ The work-control workflow:
 1. uses the organization Issue `Priority` field as the authoritative current priority;
 2. maps P0→Urgent, P1→High, P2→Medium, P3/P4→Low, and P5→unset;
 3. does not add an Issue to Project #9 merely because only Issue Priority was requested;
-4. resolves/adds the Project Item only when Project Status, Rank, or Workstream is being changed;
-5. requires the canonical Project `Status`, numeric `Rank`, and `Workstream` field definitions to resolve unambiguously and fails closed on missing/duplicate definitions;
-6. accepts only canonical `Workstream` values `AI OS` and `VIEPS`;
-7. independently reads back and verifies every authoritative value it changes;
-8. after successful verification, reads and refreshes only the same Issue's managed snapshot inline rather than dispatching another workflow;
-9. ignores closed Issues for routine work-control mutation and snapshot refresh;
-10. reports failure when requested authoritative state or snapshot state cannot be independently verified.
+4. permits Priority-only synchronization when Workstream is unassigned or unverified; in that case `Rank` remains `none` and the Priority synchronization is still a successful prioritization result;
+5. resolves/adds the Project Item only when Project Status, Rank, or Workstream is being changed;
+6. requires the canonical Project `Status`, numeric `Rank`, and `Workstream` field definitions to resolve unambiguously when those Project fields are requested, and fails closed on missing/duplicate definitions for the requested Project mutation;
+7. accepts only canonical `Workstream` values `AI OS` and `VIEPS`;
+8. independently reads back and verifies every authoritative value it changes;
+9. after successful verification, reads and refreshes only the same Issue's managed snapshot inline rather than dispatching another workflow;
+10. ignores closed Issues for routine work-control mutation and snapshot refresh;
+11. reports failure when requested authoritative state or snapshot state cannot be independently verified.
 
 ### Workstream synchronization
 
