@@ -140,6 +140,24 @@ Jagports AI OS is not intended to:
 - preserve temporary implementation history as permanent knowledge;
 - require a particular AI vendor or model for the long-term architecture.
 
+## Capability roadmap direction
+
+The AI OS should evolve in small, independently useful capability steps rather than attempting full autonomy in one transition.
+
+A possible roadmap is:
+
+1. **Deterministic prototype** — GitHub collection, state comparison, lifecycle Events, specialist routing, standardized results, reporting, and notifications.
+2. **v0.1-mvp / minimum Agents SDK reasoning** — preserve the deterministic coordinator, add compact event payloads and lazy Issue-detail retrieval, then enable one specialist to perform semantic reasoning through the OpenAI Agents SDK with structured results and bounded API cost.
+3. **Reasoning specialist team** — extend semantic reasoning only to justified specialist roles, with selective repository knowledge/Issue/PR retrieval and deterministic routing before model calls.
+4. **Planning and advisory development workflow** — let agents prepare implementation plans, documentation-impact analysis, knowledge updates, and semantic review recommendations while humans retain consequential approval and merge/deploy authority.
+5. **Controlled execution** — add narrowly permissioned code-edit, test, Issue/PR update, and other repository tools with explicit verification, retries, observability, and failure isolation.
+6. **Reliable unattended coordination** — add durable scheduling/event execution, replay/deduplication, recovery, resumable work, bounded context, cost controls, and auditable hand-offs between specialists.
+7. **Automated autonomous reasoning team** — permit agents to carry larger portions of research, planning, implementation, review preparation, testing, and coordination automatically, while preserving the authoritative workflow, independent review where required, explicit human decision gates, and GitHub as the durable system of record.
+
+The roadmap does not require one permanent runtime or model vendor. The current self-hosted Lead Agent can be evolved incrementally; a managed agent runtime becomes worth evaluating if long-running sessions, durable recovery, parallel subagents, sandbox lifecycle, or coordinator maintenance become more costly or complex to operate locally.
+
+Paid model/API use should remain demand-driven and measurable. Deterministic filtering and lazy retrieval should prevent routine no-change polling from creating model cost, and any recurring-cost departure from the baseline target remains subject to the existing cost/governance decision boundary.
+
 ## Relationship to current implementation
 
 Current implementation, sequencing, priority, dependencies, and completion state are tracked through GitHub Issues and Projects. Repository documents retain durable vision, rules, specifications, decisions, and reusable knowledge rather than a duplicate live task plan.
