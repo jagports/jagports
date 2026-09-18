@@ -72,6 +72,19 @@ For every request, regardless of requester type:
 15. One PR may genuinely resolve multiple Issues; maintain explicit traceability to every Issue.
 16. Once identity and scope are resolved, proceed automatically without unnecessary confirmation.
 
+## Automatic Prioritization on Open
+
+Apply the prioritization method in `00-Management/PRIORITIZATION.md` automatically when new work records are opened:
+
+- On **Issue open**, perform an initial priority assessment for that Issue.
+- On **Pull Request open**, resolve its owning/closing Issue and perform an initial or refreshed priority assessment for that Issue.
+- Do not assign a separate business Priority/Rank to the Pull Request.
+- If the owning Issue cannot be established from a durable GitHub relationship, do not guess it from free text.
+- Treat incomplete evidence as provisional rather than inventing factor values.
+- Keep this trigger bounded to the newly opened record; do not bulk-score the existing open backlog merely because Priority is missing.
+
+This is the default initial `@priorize` behavior for newly opened records and does not replace explicit later reprioritization when evidence materially changes.
+
 ## Repository Change Gate
 
 Every repository modification follows the controlled path:
