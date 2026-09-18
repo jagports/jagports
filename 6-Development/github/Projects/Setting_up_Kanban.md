@@ -333,24 +333,3 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - final reads confirm the expected configuration.
 
 A clean final verification is required after setup rather than relying only on intermediate mutation responses. When saved Project View filters/sorting cannot be inspected through the available automation path, this verification requires a direct human observation of the actual Project views.
-
-## 14. P1 setup decomposition
-
-The historical one-by-one P1 work is consolidated conceptually as:
-
-```text
-P1   Open Kanban
- ├─ P1.1 Select GitHub Projects
- ├─ P1.2 Establish/verify repository
- ├─ P1.3 Configure and verify workflow
- ├─ P1.4 Configure and verify fields/labels
- └─ P1.5 Define and commit operating rules
-```
-
-These are planning/traceability units, not a reason to duplicate command fragments. The reusable implementation procedure is the sequence in this document.
-
-## 15. Historical evidence
-
-`Setting_up_Kanban-console.log` is historical execution evidence. It may contain obsolete repository/account names from before a repository transfer. Historical evidence must not be edited merely to make it match current configuration, because doing so would falsify the historical record.
-
-Historical logs are not authoritative configuration. Always discover the current repository, Issue fields, Project fields, views, and option IDs before mutation.
