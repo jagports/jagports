@@ -10,7 +10,7 @@ It complements, and does not redefine:
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
-Priority remains optional unless explicitly requested. The Product Owner has final authority over business priority and may override a calculated order when the reason is recorded.
+Priority is assessed automatically for every newly opened Issue. Opening a Pull Request also triggers an initial or refreshed priority assessment of its owning/closing Issue. Pull Requests do not receive a separate competing business Priority/Rank; business priority remains owned by the Issue. Outside these open-event assessments and other explicitly authorized prioritization paths, priority remains optional unless explicitly requested. The Product Owner has final authority over business priority and may override a calculated order when the reason is recorded.
 
 ## Identifiers, Issue Priority, Project Rank and score are different concepts
 
@@ -38,6 +38,19 @@ Within one declared scope there is one ordered queue. Do not maintain competing 
 When AI OS and VIEPS share one GitHub Project, `Workstream` separates those queues. Rank is interpreted inside one Workstream only; `AI OS Rank 1` and `VIEPS Rank 1` are both valid and do not compete in one universal queue.
 
 Do not combine unrelated scopes into one universal queue unless the Product Owner explicitly requests that comparison.
+
+## Automatic initial assessment on open
+
+New work receives an initial prioritization assessment as part of record creation:
+
+- **Issue opened** → perform an initial priority assessment for that Issue using this method.
+- **Pull Request opened** → resolve the owning/closing Issue and perform an initial or refreshed priority assessment for that Issue.
+- Do not create a separate business Priority/Rank for the Pull Request. PR lifecycle/Project handling remains separate from Issue business prioritization.
+- The open-event rule is prospective. It must not be interpreted as authorization to bulk-score all existing open Issues or PRs.
+- If evidence is incomplete, record a provisional assessment rather than inventing values. Existing workflow gates, Workstream preservation, Product Owner authority, and synchronization verification still apply.
+- If a PR has no resolvable owning/closing Issue, do not infer ownership from free text. Record the missing relationship and leave business priority on the Issue side unresolved until ownership is established.
+
+The automatic open-event assessment is the default equivalent of an initial `@priorize` pass for newly opened work records; it does not create a second prioritization model.
 
 Before scoring an item:
 
