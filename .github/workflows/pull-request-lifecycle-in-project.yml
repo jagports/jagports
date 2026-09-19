@@ -301,6 +301,10 @@ jobs:
 
   request-prioritization-on-open:
     if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Record automatic @priorize request and Workstream notification
