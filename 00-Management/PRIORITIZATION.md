@@ -59,17 +59,24 @@ The automatic open-event assessment is the default equivalent of an initial `@pr
 
 **Issue**
 
-- native Issue `Priority` — authoritative business/work priority;
-- Project `Rank` — exact Issue order inside one Workstream;
-- Project `Workstream`;
-- Project `Status`.
+The Issue itself owns native Issue `Priority`. Its Project Item contains exactly the Kanban work-control fields:
+
+- Project `Status`;
+- Project `Rank`;
+- Project `Urgency` — integer `0...5`;
+- Project `Workstream`.
 
 **Pull Request**
 
+The Pull Request Project Item contains:
+
 - Project `PR Priority` — authoritative review/integration priority;
 - Project `PR Rank` — exact PR order inside one Workstream;
+- Project `PR Urgency` — integer `0...5`;
 - Project `Workstream`;
 - Project `Status`.
+
+Both Project Item types are shown on the Kanban. Issue native `Priority` remains attached to the Issue record and is not duplicated as a separate Issue Project field.
 
 
 Issue Rank and PR Rank are separate queues within each Workstream. The same numeric value may therefore exist once in the Issue queue and once in the PR queue for the same Workstream.
@@ -241,13 +248,13 @@ When priority changes materially, add a new dated record rather than rewriting h
 Issue and Project metadata have separate ownership:
 
 - native Issue `Priority` is organization-wide and belongs to the Issue itself;
-- Project `Status`, Project `Rank`, and Project `Workstream` belong to a particular Project scope;
+- Project `Status`, Project `Rank`, Project `Urgency`, and Project `Workstream` belong to an Issue Project Item in a particular Project scope;
 - historical P0...P5 review records remain evidence, not a duplicate live priority field.
 
 The current workflows have these responsibilities:
 
 - `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
-- `.github/workflows/sync-issue-work-control-to-project.yml` is the single bounded work-control synchronizer. It processes an authorized `<!-- jagports-project-sync -->` comment or standalone `<!-- jagports-workstream-sync -->` comment for one open Issue, maps P0...P5 to native Issue Priority, updates requested Project `Status`, `Rank`, and `Workstream`, independently verifies the authoritative values, and refreshes only that Issue's agent-readable snapshot.
+- `.github/workflows/sync-issue-work-control-to-project.yml` is the single bounded work-control synchronizer. It processes an authorized `<!-- jagports-project-sync -->` comment or standalone `<!-- jagports-workstream-sync -->` comment for one open Issue, maps P0...P5 to native Issue Priority, updates requested Project `Status`, `Rank`, `Urgency`, and `Workstream`, independently verifies the authoritative values, and refreshes only that Issue's agent-readable snapshot.
 - Manual `workflow_dispatch` on the work-control synchronizer is recovery-only: it requires one explicit Issue number and refreshes only that Issue's snapshot. It cannot request a full-Project reconciliation or authoritative field mutation.
 
 The work-control workflow:
