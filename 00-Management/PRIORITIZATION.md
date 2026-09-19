@@ -61,22 +61,21 @@ Both **Issues** and **Pull Requests** have the same authoritative prioritization
 
 - **Priority** — authoritative current business/work or review/integration priority;
 - **Rank** — exact order inside one Workstream;
-- **Urgency** — current urgency / cost-of-delay factor on the `0...5` scale;
 - **Workstream** — canonical queue boundary;
 - **Status** — canonical workflow state.
 
-The semantic model is identical for both record types. GitHub storage differs only where the platform requires it:
+GitHub storage differs only where the platform requires it:
 
-| Record | Priority storage | Rank storage | Urgency storage | Workstream | Status |
-|---|---|---|---|---|---|
-| Issue | native Issue `Priority` | Project `Rank` | Project `Urgency` | Project `Workstream` | Project `Status` |
-| Pull Request | Project `PR Priority` | Project `PR Rank` | Project `PR Urgency` | Project `Workstream` | Project `Status` |
+| Record | Priority storage | Rank storage | Workstream | Status |
+|---|---|---|---|---|
+| Issue | native Issue `Priority` | Project `Rank` | Project `Workstream` | Project `Status` |
+| Pull Request | Project `PR Priority` | Project `PR Rank` | Project `Workstream` | Project `Status` |
 
 GitHub native Issue fields do not apply to Pull Requests, so `PR Priority` is the PR storage implementation for the same authoritative **Priority** concept; it is not a different prioritization model.
 
 Issue Rank and PR Rank are separate queues within each Workstream. The same numeric value may therefore exist once in the Issue queue and once in the PR queue for the same Workstream.
 
-`@priorize` evaluates the same five concepts for either target type and writes them to the record-appropriate storage above.
+`@priorize` evaluates the same four concepts for either target type and writes them to the record-appropriate storage above.
 
 Before scoring an item:
 
@@ -247,13 +246,12 @@ When priority changes materially, add a new dated record rather than rewriting h
 Issue and Project metadata have separate ownership:
 
 - native Issue `Priority` is organization-wide and belongs to the Issue itself;
-- Project `Status`, Project `Rank`, Project `Urgency`, and Project `Workstream` belong to an Issue Project Item in a particular Project scope;
+- Project `Status`, Project `Rank`, and Project `Workstream` belong to an Issue Project Item in a particular Project scope;
 - historical P0...P5 review records remain evidence, not a duplicate live priority field.
 
 The current workflows have these responsibilities:
 
 - `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
-- `.github/workflows/sync-issue-work-control-to-project.yml` is the single bounded work-control synchronizer. It processes an authorized `<!-- jagports-project-sync -->` comment or standalone `<!-- jagports-workstream-sync -->` comment for one open Issue, maps P0...P5 to native Issue Priority, updates requested Project `Status`, `Rank`, `Urgency`, and `Workstream`, independently verifies the authoritative values, and refreshes only that Issue's agent-readable snapshot.
 - Manual `workflow_dispatch` on the work-control synchronizer is recovery-only: it requires one explicit Issue number and refreshes only that Issue's snapshot. It cannot request a full-Project reconciliation or authoritative field mutation.
 
 The work-control workflow:
