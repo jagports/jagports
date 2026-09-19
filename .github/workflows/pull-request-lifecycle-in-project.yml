@@ -291,7 +291,9 @@ jobs:
           project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
 
           if [ -z "$TARGET_WORKSTREAM" ] && [ "$TARGET_STATUS" != "DONE" ]; then
-            GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$(printf 'PR #%s prioritization requires Workstream classification. No Workstream was guessed.\n\nProject item: %s' "$PR_NUMBER" "$project_item_url")" >/dev/null
+            if ! GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$(printf 'PR #%s prioritization requires Workstream classification. No Workstream was guessed.\n\nProject item: %s' "$PR_NUMBER" "$project_item_url")" >/dev/null; then
+              echo "INFO: unable to post optional Workstream-classification comment with the event token; verified Project lifecycle state remains valid."
+            fi
           fi
 
           if [ "$TARGET_STATUS" = "DONE" ]; then
