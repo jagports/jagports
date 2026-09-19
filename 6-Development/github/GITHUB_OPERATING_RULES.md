@@ -123,7 +123,7 @@ The Product Owner has final authority over priority and queue order.
 The opening of a new GitHub work record is a prioritization trigger:
 
 - **Issue opened** → run an initial priority assessment on that Issue under `../../00-Management/PRIORITIZATION.md`.
-- **Pull Request opened** → automatically run the same initial prioritization as explicit `@priorize <PR-number>` for that Pull Request itself.
+- **Pull Request opened** → automatically run the same initial prioritization as explicit `@priorize <PR-number>` for that Pull Request itself. If Workstream cannot be established from durable authoritative evidence, leave it unassigned without guessing and include a durable human-facing notification with a direct Project Item link in the automatic open-event record.
 - Pull Request Project Items maintain `PR Priority`, shared Project `Band`, `PR Rank`, `Workstream`, and `Status` independently from the owning Issue.
 - Do not infer the owning Issue from title/body heuristics when no durable closing/ownership relationship exists.
 - If Project `Workstream` is missing or unverified, the prioritization operation must first attempt to classify it from durable authoritative evidence.
