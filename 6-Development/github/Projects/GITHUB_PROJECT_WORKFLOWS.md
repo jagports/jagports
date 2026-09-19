@@ -31,7 +31,7 @@ Issue and Pull Request Project Items represent related but different objects:
 - the **Issue Project Item** remains the primary business/work record and represents the lifecycle of the owned work;
 - the **Pull Request Project Item** represents the execution/review state of a concrete integration artifact for that work.
 
-A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. It must not receive a separate competing business Priority/Rank when that prioritization belongs to the owning Issue, unless this canonical Project workflow explicitly defines such independent prioritization in the future.
+A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. It has its own review/integration prioritization using Project fields `PR Priority` and `PR Rank`. These values are independent from the owning Issue's business/work Priority and Issue Rank and must not overwrite them.
 
 ### State meaning
 
@@ -92,6 +92,15 @@ For a new Issue belonging to the Project:
 If Project setup cannot be performed or verified, record the limitation and do not claim successful Project setup.
 
 When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless another state is explicitly appropriate, and verify the Project Item Status.
+
+### Pull Request prioritization fields
+
+Pull Request Project Items use separate Project-scoped prioritization fields:
+
+- `PR Priority` — single-select values `Urgent`, `High`, `Medium`, `Low` for review/integration urgency.
+- `PR Rank` — numeric exact order inside the active PR review/integration queue for one Workstream.
+
+These fields intentionally do not reuse Issue native `Priority` or Issue `Rank`. A PR may initially inherit verified owning-Issue Priority and Workstream when unambiguous, but later PR prioritization may diverge based on review urgency, merge blockers, readiness, dependency leverage, risk, or other PR-specific evidence. Rank values are unique inside the PR queue for a Workstream, not across the Issue queue.
 
 ### Pull Request Project Item lifecycle
 
