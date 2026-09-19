@@ -310,6 +310,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_NODE_ID: ${{ github.event.pull_request.node_id }}
+          PRODUCT_OWNER_GITHUB: ${{ vars.PRODUCT_OWNER_GITHUB }}
         shell: bash
         run: |
           set -euo pipefail
@@ -355,7 +356,8 @@ jobs:
               notification=""
               ;;
             "")
-              notification="$(printf '\n\n**Human action required:** Workstream is unassigned. Set the PR Project Item Workstream to `AI OS` or `VIEPS`.\n\nProject item: %s' "$project_item_url")"
+              [ -n "${PRODUCT_OWNER_GITHUB:-}" ] || { echo "Repository Actions variable PRODUCT_OWNER_GITHUB is not configured."; false; }
+              notification="$(printf '\n\n@%s **Human action required:** Workstream is unassigned. Set the PR Project Item Workstream to `AI OS` or `VIEPS`.\n\nProject item: %s' "$PRODUCT_OWNER_GITHUB" "$project_item_url")"
               ;;
             *)
               echo "Unexpected Workstream '$actual_workstream'."
@@ -384,7 +386,7 @@ jobs:
           grep -Fxq "$marker" <<<"$verify_body" || { echo "Marker verification failed."; false; }
           grep -Fxq "@priorize $PR_NUMBER" <<<"$verify_body" || { echo "@priorize request verification failed."; false; }
           if [ -z "$actual_workstream" ]; then
-            grep -Fq "**Human action required:** Workstream is unassigned." <<<"$verify_body" || { echo "Human Workstream notification verification failed."; false; }
+            grep -Fq "@$PRODUCT_OWNER_GITHUB **Human action required:** Workstream is unassigned." <<<"$verify_body" || { echo "Product Owner mention / human Workstream notification verification failed."; false; }
             grep -Fq "$project_item_url" <<<"$verify_body" || { echo "Project item link notification verification failed."; false; }
           fi
 
