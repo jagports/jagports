@@ -74,21 +74,13 @@ For every request, regardless of requester type:
 
 ## Automatic Prioritization on Open
 
-Apply the prioritization method in `00-Management/PRIORITIZATION.md` automatically when new work records are opened:
+Execute automatic/open-event and explicit `@priorize` behavior by reference to:
 
-- On **Issue open**, perform an initial priority assessment for that Issue.
-- On **Pull Request open**, perform an initial priority assessment for the Pull Request Project Item itself. Use verified owning-Issue Priority/Workstream only as an initial baseline when unambiguous; refresh the Issue separately only when its own evidence changed.
-- Maintain Pull Request `PR Priority` and `PR Rank` independently from the owning Issue's native `Priority` and Issue `Rank`.
-- If the owning Issue cannot be established from a durable GitHub relationship, do not guess it from free text.
-- Treat incomplete evidence as provisional rather than inventing factor values.
-- If `Workstream` is missing or unverified, actively attempt to determine it from durable authoritative evidence: an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
-- When exactly one canonical Workstream is established, include `Workstream: AI OS` or `Workstream: VIEPS` in the synchronization record and verify the resulting Project field.
-- Do not determine Workstream from title, labels, repository paths, branch names, or semantic/topic similarity alone.
-- If the evidence remains absent, conflicting, or ambiguous, still complete and verify native Issue Priority; leave Workstream unassigned and Project `Rank` as `none`. Use `Rank: none` in the synchronization record so the Project item is resolved/created when needed. In the user-facing prioritization result, explicitly provide a direct link to that GitHub Project item so the human can open it and set Workstream.
-- Assign Rank only after an explicit/verified Workstream is available. Do not repeat the Issue Priority assessment merely to establish Rank unless priority evidence has materially changed.
-- Keep this trigger bounded to the newly opened record; do not bulk-score the existing open backlog merely because Priority is missing.
+- `00-Management/PRIORITIZATION.md` for scoring, Issue Priority, PR Priority, Issue Rank, PR Rank, Workstream evidence, unknown-Workstream handling, and Product Owner authority.
+- `6-Development/github/GITHUB_WORKFLOWS.md` for GitHub execution routing and bounded synchronization records.
+- `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` for Project Item lifecycle and Project-scoped field behavior.
 
-This is the default initial `@priorize` behavior for newly opened records and does not replace explicit later reprioritization when evidence materially changes.
+Do not duplicate those rules here. This connection must still obey the Project capability boundary above.
 
 ## Repository Change Gate
 
