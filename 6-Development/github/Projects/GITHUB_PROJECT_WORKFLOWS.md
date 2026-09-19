@@ -113,12 +113,12 @@ Consequences of this ruling:
 - every existing or newly created Pull Request Project Item must remain `isArchived = false`;
 - a historical archived Pull Request Project Item is lifecycle drift and must be unarchived when an authorized correction is performed;
 - automation must never use `archiveProjectV2Item` for Pull Request Project Items;
-- unresolved Workstream must fail closed without guessing and without hiding the Pull Request Project Item through archiving;
+- unresolved Workstream must never be guessed; keep/create the Pull Request Project Item unarchived with Workstream unassigned so prioritization can return its direct Project-item link for human classification;
 - audit/verification logic must treat any archived Pull Request Project Item as incorrect state.
 
 The Pull Request Project Item follows these deterministic rules:
 
-1. **Opened** → add the Pull Request itself to the Project only when the required ownership/Workstream evidence is deterministic. While implementation is still being produced or the independent review hand-off has not occurred, set the Pull Request Project Item Status to `IMPLEMENTATION`, whether the Pull Request is draft or non-draft.
+1. **Opened** → add the Pull Request itself to the Project and set its Project Item Status to `IMPLEMENTATION`, whether draft or non-draft. If Workstream is deterministically inherited/classified, set and verify it. Otherwise keep Workstream unassigned without guessing; the Project Item remains available for direct human correction and later prioritization.
 2. **Converted to draft** → set the Pull Request Project Item Status to `IMPLEMENTATION`. Draft state is evidence that the integration artifact is not currently at the independent-review boundary; it does not move repository work backwards to `RESEARCH`.
 3. **Marked ready for review / opened non-draft** → being non-draft is a prerequisite for review but does not by itself establish `REVIEW`. Keep `IMPLEMENTATION` until the canonical review hand-off in `00-Management/WORKFLOWS.md` has been completed and verified.
 4. **Independent review requested** → after the PR is open, non-draft, the authorized independent reviewer has been selected, and the native GitHub review request has been made, set the Pull Request Project Item Status to `REVIEW`, verify it, and stop implementation at the canonical review boundary.
