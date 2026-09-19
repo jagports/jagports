@@ -506,9 +506,9 @@ Use `../../00-Management/WORKFLOWS.md` for:
 
 Current verified mechanisms are:
 
-- Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
+- Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issue-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
 - open Pull Request with a same-repository GitHub closing relationship → `IMPLEMENTATION`: `.github/workflows/sync-closing-pr-to-project.yml` owns that deterministic implementation-start synchronization, preserves protected later/blocking/decision states, and independently verifies the resulting Project Item/status;
-- Issue `closed` → `DONE`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
+- Issue `closed` → `DONE`: `.github/workflows/issue-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
 
 The closing-linked-PR automation is the authoritative automatic owner of the `IMPLEMENTATION` transition. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
 
