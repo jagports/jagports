@@ -22,7 +22,7 @@ jobs:
           set -euo pipefail
 
           marker="<!-- jagports-auto-priorize-request -->"
-          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when Issue #%s opened. Execute the canonical @priorize Issue path for this Issue itself, including native Issue Priority and Project Item Rank, Urgency, Workstream and Status.' "$marker" "$ISSUE_NUMBER" "$ISSUE_NUMBER")"
+          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when Issue #%s opened. Execute the canonical @priorize Issue path for this Issue itself, including native Issue Priority and Project Item Rank, Workstream and Status.' "$marker" "$ISSUE_NUMBER" "$ISSUE_NUMBER")"
 
           comments="$(gh api --paginate "repos/$REPOSITORY/issues/$ISSUE_NUMBER/comments?per_page=100" | jq -s 'add // []')"
           existing_count="$(jq --arg marker "$marker" '[.[] | select((.body | split("\n") | index($marker)) != null)] | length' <<<"$comments")"
