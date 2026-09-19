@@ -93,6 +93,8 @@ If Project setup cannot be performed or verified, record the limitation and do n
 
 When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless another state is explicitly appropriate, and verify the Project Item Status.
 
+When a closed Issue is **reopened**, set its Project Item Status to `RESEARCH` and independently verify the result. Reopening means the previous terminal assumption has been invalidated and the work requires renewed investigation; it must not be reset to `BACKLOG`, because substantive work has already occurred. More specific states such as `DECISION NEEDED`, `BLOCKED`, or `IMPLEMENTATION` may follow once the renewed investigation establishes the next lifecycle condition.
+
 ### Prioritization fields by Project Item type
 
 Both Issue and Pull Request Project Items expose the same authoritative prioritization concepts:

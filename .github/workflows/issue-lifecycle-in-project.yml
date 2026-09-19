@@ -50,8 +50,11 @@ jobs:
           fi
 
           case "$ISSUE_ACTION" in
-            opened|reopened)
+            opened)
               TARGET_LABEL="BACKLOG"
+              ;;
+            reopened)
+              TARGET_LABEL="RESEARCH"
               ;;
             closed)
               TARGET_LABEL="DONE"
