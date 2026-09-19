@@ -95,38 +95,36 @@ When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless ano
 
 ### Prioritization fields by Project Item type
 
-The Project Item is the object shown on the Kanban. The underlying Issue or Pull Request remains the repository record linked by that Project Item.
+Both Issue and Pull Request Project Items expose the same authoritative prioritization concepts:
 
-**Issue**
+- **Priority**
+- **Rank**
+- **Urgency**
+- **Workstream**
+- **Status**
 
-```text
-Issue
-  │
-  └── Project Item
-        ├─ Status
-        ├─ Rank
-        ├─ Urgency
-        ├─ Workstream
-        └─ shown on Kanban
-```
+Their physical GitHub storage is:
 
-The Issue's organization-wide `Priority` remains a native Issue field on the Issue record. It is not duplicated as a separate Project field.
+**Issue Project Item**
 
-**Pull Request**
+- native Issue `Priority`;
+- Project `Rank`;
+- Project `Urgency` (`0...5`);
+- Project `Workstream`;
+- Project `Status`.
 
-```text
-Pull Request
-  │
-  └── Project Item
-        ├─ PR Priority
-        ├─ PR Rank
-        ├─ PR Urgency
-        ├─ Workstream
-        ├─ Status
-        └─ shown on Kanban
-```
+**Pull Request Project Item**
 
-`Urgency` and `PR Urgency` are numeric integer values `0...5`, where `0` means unknown/not assessed. Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Urgency/Workstream only when the evidence is unambiguous; the PR remains independently reprioritizable afterwards.
+- Project `PR Priority` (`Urgent`, `High`, `Medium`, `Low`) — storage for the PR's authoritative Priority concept;
+- Project `PR Rank`;
+- Project `PR Urgency` (`0...5`);
+- Project `Workstream`;
+- Project `Status`.
+
+The `PR ` prefix is an implementation/storage distinction required to avoid collision with native Issue Priority/Issue queue fields; it does not define a different semantic model. GitHub native Issue fields are unavailable on Pull Requests.
+
+Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Urgency/Workstream only when the evidence is unambiguous. The PR remains independently reprioritizable afterwards.
+
 
 ### Pull Request Project Item lifecycle
 
