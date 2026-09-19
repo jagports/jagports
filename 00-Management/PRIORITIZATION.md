@@ -251,7 +251,7 @@ Issue and Project metadata have separate ownership:
 
 The current workflows have these responsibilities:
 
-- `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
+- `.github/workflows/issue-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
 - Manual `workflow_dispatch` on the work-control synchronizer is recovery-only: it requires one explicit Issue number and refreshes only that Issue's snapshot. It cannot request a full-Project reconciliation or authoritative field mutation.
 
 The work-control workflow:
