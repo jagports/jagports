@@ -1,0 +1,45 @@
+name: Request Pull Request Prioritization on Open
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  request-prioritization:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record existing @priorize request for opened Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          marker="<!-- jagports-auto-priorize-request -->"
+          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when PR #%s opened. Execute using the existing canonical @priorize PR path; do not create a separate PR Priority/Rank model.' "$marker" "$PR_NUMBER" "$PR_NUMBER")"
+
+          comments="$(gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
+          existing_count="$(jq --arg marker "$marker" '[.[] | select((.body | split("\n") | index($marker)) != null)] | length' <<<"$comments")"
+
+          if [ "$existing_count" -gt 0 ]; then
+            echo "PASS: PR #$PR_NUMBER already has the automatic prioritization request."
+            exit 0
+          fi
+
+          created="$(gh api --method POST "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body")"
+          created_id="$(jq -r '.id // empty' <<<"$created")"
+          [ -n "$created_id" ] || { echo "Automatic prioritization request comment was not created."; false; }
+
+          verify="$(gh api "repos/$REPOSITORY/issues/comments/$created_id")"
+          verify_body="$(jq -r '.body // empty' <<<"$verify")"
+          grep -Fxq "$marker" <<<"$verify_body" || { echo "Marker verification failed."; false; }
+          grep -Fxq "@priorize $PR_NUMBER" <<<"$verify_body" || { echo "@priorize request verification failed."; false; }
+
+          echo "PASS: PR #$PR_NUMBER received the existing @priorize request on open."
