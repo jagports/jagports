@@ -235,9 +235,9 @@ Override: none | <recorded Product Owner override>
 Evidence: <Issue/PR/document references>
 ```
 
-For Issues, the automation maps `Band` to native Issue `Priority` and writes `Rank` / `Urgency` to the Issue Project Item. `Rank: none` is required for P5. A score containing any `0` factor is provisional.
+For Issues, the automation maps `Band` to native Issue `Priority` and writes `Rank` to the Issue Project Item. `Rank: none` is required for P5. A score containing any `0` factor is provisional.
 
-For Pull Requests, use the PR synchronization record with `PR Priority`, `PR Rank`, and `PR Urgency`; these values belong to the PR Project Item and do not overwrite the owning Issue.
+For Pull Requests, use the PR synchronization record with `PR Priority` and `PR Rank`; these values belong to the PR Project Item and do not overwrite the owning Issue.
 
 When priority changes materially, add a new dated record rather than rewriting historical comments.
 
