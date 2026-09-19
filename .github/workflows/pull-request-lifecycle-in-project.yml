@@ -254,7 +254,7 @@ jobs:
           SET_SINGLE_SELECT='mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{singleSelectOptionId:$option}}) { projectV2Item { id } } }'
           gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$status_field_id" -F option="$status_option_id" >/dev/null
 
-          if [ "$PR_ACTION" = "opened" ] && [ -z "$existing_pr_priority" ] && [ -n "$TARGET_PR_PRIORITY" ]; then
+          if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$existing_pr_priority" ] && [ -n "$TARGET_PR_PRIORITY" ]; then
             pr_priority_field_id="$(jq -r '.[0].id' <<<"$pr_priority_fields")"
             pr_priority_option_id="$(jq -r --arg value "$TARGET_PR_PRIORITY" '.[0].options[]? | select(.name == $value) | .id' <<<"$pr_priority_fields")"
             [ -n "$pr_priority_option_id" ] || { echo "PR Priority option '$TARGET_PR_PRIORITY' was not resolved."; false; }
@@ -278,7 +278,7 @@ jobs:
           if [ -n "$TARGET_WORKSTREAM" ]; then
             [ "$(jq -r '.data.node.workstreamValue.name // empty' <<<"$verify_json")" = "$TARGET_WORKSTREAM" ] || { echo "Verification failed: Workstream mismatch."; false; }
           fi
-          if [ "$PR_ACTION" = "opened" ] && [ -z "$existing_pr_priority" ] && [ -n "$TARGET_PR_PRIORITY" ]; then
+          if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$existing_pr_priority" ] && [ -n "$TARGET_PR_PRIORITY" ]; then
             [ "$(jq -r '.data.node.prPriorityValue.name // empty' <<<"$verify_json")" = "$TARGET_PR_PRIORITY" ] || { echo "Verification failed: initial PR Priority mismatch."; false; }
           fi
 
