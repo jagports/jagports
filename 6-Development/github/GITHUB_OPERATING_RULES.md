@@ -102,7 +102,7 @@ Do not create duplicate Issues when an existing open or historically completed r
 
 ### 2.3 Priority, Rank and Status ownership
 
-Priority is assessed automatically for every newly opened Issue and Pull Request. Issues retain business/work Priority and Issue Rank; Pull Requests receive independent review/integration `PR Priority` and `PR Rank` on their Project Items. A PR may inherit verified owning-Issue Priority and Workstream as an initial baseline, but later PR prioritization may diverge without overwriting Issue priority/order. Outside these open-event assessments and other explicitly authorized prioritization paths, Priority is optional and may be requested by the requester, a human, or the Product Owner.
+Priority is assessed automatically for every newly opened Issue and Pull Request. Issues retain business/work Priority and Issue Rank; Pull Requests receive independent review/integration `PR Priority` and `PR Rank` on their Project Items. Capable repository automation may inherit verified owning-Issue Priority and Workstream into a PR Project Item as an initial baseline; the current ChatGPT/GitHub connection must not read or claim Project Item state itself. Later PR prioritization may diverge without overwriting Issue priority/order. Outside these open-event assessments and other explicitly authorized prioritization paths, Priority is optional and may be requested by the requester, a human, or the Product Owner.
 
 When priority is in use:
 
