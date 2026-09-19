@@ -10,7 +10,7 @@ It complements, and does not redefine:
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
-Priority is assessed automatically for every newly opened Issue. When a Pull Request opens, repository automation records the existing compact `@priorize <PR-number>` request. A PR number is an entry point to the owning/closing Issue prioritization path; business Priority and Project Rank remain on the Issue and no separate PR Priority/Rank model is introduced. Outside these open-event assessments and other explicitly authorized prioritization paths, priority remains optional unless explicitly requested. The Product Owner has final authority over priority and may override a calculated order when the reason is recorded.
+Priority is assessed automatically for every newly opened Issue and every newly opened Pull Request. Issues and Pull Requests are separate prioritized work records. `@priorize <Issue-number>` prioritizes that Issue; `@priorize <PR-number>` prioritizes that Pull Request. Issue prioritization uses native Issue `Priority`, Project `Rank`, and Project `Urgency`. Pull Request prioritization uses Project `PR Priority`, `PR Rank`, and `PR Urgency`. The Product Owner has final authority over priority and may override a calculated order when the reason is recorded.
 
 ## Identifiers, Issue Priority, Project Rank and score are different concepts
 
@@ -44,7 +44,7 @@ Do not combine unrelated scopes into one universal queue unless the Product Owne
 New work receives an initial prioritization assessment as part of record creation:
 
 - **Issue opened** → perform an initial priority assessment for that Issue using this method.
-- **Pull Request opened** → record one `@priorize <PR-number>` request and execute the existing PR-reference rule: resolve the owning/closing Issue and perform the priority assessment there. Do not create separate PR Priority/Rank fields.
+- **Pull Request opened** → perform the same initial priority assessment as explicit `@priorize <PR-number>` for that Pull Request itself.
 - The open-event rule is prospective. It must not be interpreted as authorization to bulk-score all existing open Issues or PRs.
 - If evidence is incomplete, record a provisional assessment rather than inventing values. Existing workflow gates, Workstream preservation, Product Owner authority, and synchronization verification still apply.
 - When `Workstream` is missing or unverified, the prioritization pass must attempt to determine it from durable authoritative evidence before leaving it unassigned.
@@ -52,9 +52,33 @@ New work receives an initial prioritization assessment as part of record creatio
 - When the evidence identifies exactly one canonical Workstream, include `Workstream: AI OS` or `Workstream: VIEPS` in the same authorized synchronization record and independently verify the Project field.
 - When durable evidence is absent, conflicting, or genuinely ambiguous, do not guess. Synchronize native Issue Priority, leave Workstream unassigned and Project `Rank` as `none`, and treat Priority synchronization as successful but queue placement as incomplete. **The synchronization record must explicitly use `Rank: none` so the bounded Project path can resolve/create the Project item when needed, and the user-facing prioritization result must include a direct link to that Issue's GitHub Project item so a human can immediately open it and set Workstream.**
 - Assign Project `Rank` only after an explicit/verified `Workstream` is available. A later Workstream classification must trigger or permit queue ranking without requiring the Issue Priority assessment to be repeated unless its evidence has materially changed.
-- If a PR has no resolvable owning/closing Issue, do not infer ownership from free text and do not invent a separate PR Priority/Rank. Record that the automatic prioritization request cannot resolve an owning Issue and leave business priority unchanged until ownership is established.
+- If a PR has no resolvable owning/closing Issue, do not infer ownership from free text. Prioritize the PR from its own verified review/integration evidence. An owning Issue is optional context, not a prerequisite for PR prioritization.
 
 The automatic open-event assessment is the default equivalent of an initial `@priorize` pass for newly opened work records; it does not create a second prioritization model.
+
+### Record-specific authoritative fields
+
+**Issue**
+
+- native Issue `Priority` — authoritative business/work priority;
+- Project `Rank` — exact Issue order inside one Workstream;
+- Project `Urgency` — integer `0...5` urgency factor exposed on the Issue Project Item;
+- Project `Workstream`;
+- Project `Status`.
+
+**Pull Request**
+
+- Project `PR Priority` — authoritative review/integration priority;
+- Project `PR Rank` — exact PR order inside one Workstream;
+- Project `PR Urgency` — integer `0...5` review/integration urgency factor;
+- Project `Workstream`;
+- Project `Status`.
+
+Issue and PR Priority/Rank/Urgency values are independent. An unambiguous owning Issue may seed a PR's initial Priority, Urgency and Workstream, but later PR prioritization may diverge from that baseline without overwriting the Issue.
+
+Issue Rank and PR Rank are separate queues within each Workstream. The same numeric value may therefore exist once in the Issue queue and once in the PR queue for the same Workstream.
+
+`Urgency` and `PR Urgency` expose the existing urgency factor from this prioritization method. The value domain is `0...5`: `0` means unknown/not assessed and `1...5` means increasing urgency/cost-of-delay pressure. Urgency is an input/evidence field; it does not replace Priority, Rank, Status or Workstream.
 
 Before scoring an item:
 
