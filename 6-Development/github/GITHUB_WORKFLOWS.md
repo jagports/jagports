@@ -54,7 +54,7 @@ For every GitHub work request, regardless of requester type:
 ## Prioritization Request Execution
 
 
-Issues and Pull Requests are separate prioritized work records.
+Issues and Pull Requests are separate prioritized work records but share one semantic field model: Priority, Rank, Urgency, Workstream, and Status.
 
 For each supplied number:
 
