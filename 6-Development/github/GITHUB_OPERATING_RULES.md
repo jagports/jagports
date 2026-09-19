@@ -126,8 +126,12 @@ The opening of a new GitHub work record is a prioritization trigger:
 - **Pull Request opened** → resolve the owning/closing Issue and run an initial or refreshed priority assessment on that Issue.
 - The Pull Request itself must not receive a separate business Priority or Project Rank.
 - Do not infer the owning Issue from title/body heuristics when no durable closing/ownership relationship exists.
-- Missing or unverified Project `Workstream` does not block initial Issue Priority. Synchronize native Issue Priority, leave Project `Rank` as `none`, and record the initial prioritization as successful for Priority.
-- Project `Rank` is assigned only after an explicit/verified Workstream exists. Workstream classification and queue ranking are a later Project-scoped step and do not invalidate the completed Issue Priority assessment.
+- If Project `Workstream` is missing or unverified, the prioritization operation must first attempt to classify it from durable authoritative evidence.
+- Valid classification evidence is limited to an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
+- If exactly one canonical Workstream is established, synchronize and independently verify that Workstream as part of the prioritization operation.
+- Do not classify Workstream from title, labels, repository paths, branch names, or topical/semantic similarity alone.
+- If durable evidence is absent, conflicting, or ambiguous, native Issue Priority may still succeed; leave Workstream unassigned and Project `Rank` as `none`.
+- Project `Rank` is assigned only after an explicit/verified Workstream exists.
 - This rule is prospective and bounded to the newly opened record. It does not authorize bulk reprioritization of the existing backlog.
 
 The resulting priority record remains evidence subject to the normal synchronization, Workstream, workflow-gate, verification, and Product Owner rules.
@@ -147,7 +151,7 @@ When a prioritization operation synchronizes an Issue Project `Rank`, the author
 
 For an existing Issue, preserve the latest explicitly verified Workstream from authoritative Project read-back evidence, including the managed work-control snapshot produced by the bounded synchronization workflow. Do not silently replace an already verified Workstream merely because a later prioritization request omits it.
 
-If no Workstream is known from explicit durable evidence, do not infer Workstream from title, body text, branch name, labels, Issue type, repository path, semantic topic, or other free-text/context heuristics. **This does not block native Issue Priority synchronization.** Complete and verify the Issue Priority update, leave Project `Rank` as `none`, and obtain an explicit authorized Workstream classification before assigning Project Rank.
+If no Workstream is already known, actively resolve it using the durable classification evidence defined above. When exactly one canonical Workstream is established, include it in the authorized synchronization record and verify the resulting Project field. If the evidence remains absent, conflicting, or ambiguous, do not infer Workstream from title, body prose, branch name, labels, Issue type, repository path, semantic topic, or other free-text/context heuristics. **This does not block native Issue Priority synchronization.** Complete and verify the Issue Priority update, leave Project `Rank` as `none`, and defer queue placement until Workstream is explicitly established.
 
 Priority, Project Status, Project Rank, and Project Workstream remain separate concerns. A prioritization operation may update them together through one authorized synchronization record, but one field must never be inferred from another.
 
