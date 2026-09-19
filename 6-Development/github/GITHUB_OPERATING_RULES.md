@@ -102,6 +102,7 @@ Do not create duplicate Issues when an existing open or historically completed r
 
 ### 2.3 Priority, Rank and Status ownership
 
+Priority is assessed automatically for every newly opened Issue and Pull Request. Issues retain business/work Priority and Issue Rank; Pull Requests receive independent review/integration `PR Priority` and `PR Rank` on their Project Items. Both record types also store the shared Project `Band` (`P0...P5`) as visible prioritization evidence. Capable repository automation may inherit verified owning-Issue Priority and Workstream into a PR Project Item as an initial baseline; the current ChatGPT/GitHub connection must not read or claim Project Item state itself. Later PR prioritization may diverge without overwriting Issue priority/order. Outside these open-event assessments and other explicitly authorized prioritization paths, Priority is optional and may be requested by the requester, a human, or the Product Owner.
 
 When priority is in use:
 
@@ -139,6 +140,7 @@ The resulting priority record remains evidence subject to the normal synchroniza
 
 `@priorize <numbers>` is GitHub execution shorthand for applying the priority semantics defined by `../../00-Management/PRIORITIZATION.md`; it does not create a separate prioritization model.
 
+Issue business Priority and Issue Rank belong to the Issue. Pull Request review/integration priority belongs to the Pull Request Project Item as `PR Priority` and `PR Rank`. Both record types store the shared Project `Band` as the visible P0...P5 prioritization classification. If an `@priorize` request includes a Pull Request number, prioritize that Pull Request directly; resolve its owning/closing Issue only for verified baseline/context and Workstream inheritance. Do not overwrite the owning Issue's Priority/Rank unless the Issue itself is also explicitly or automatically due for reassessment.
 
 When a prioritization operation synchronizes an Issue Project `Rank`, the authorized `<!-- jagports-project-sync -->` record must also explicitly include the applicable canonical Project `Workstream`:
 
