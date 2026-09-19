@@ -78,7 +78,7 @@ The short `@priorize <numbers>` form is sufficient for both Issues and Pull Requ
 
 ### Automatic request when a Pull Request opens
 
-`.github/workflows/request-pr-prioritization-on-open.yml` runs only on `pull_request: opened` and records exactly one durable `@priorize <PR-number>` request on the newly opened Pull Request.
+`.github/workflows/request-pr-prioritization-on-open.yml` runs only on `pull_request_target: opened` and records exactly one durable `@priorize <PR-number>` request on the newly opened Pull Request.
 
 That Action does **not** calculate Priority, create Project fields, mutate ProjectV2, or introduce PR-specific Priority/Rank storage. It only invokes the already-defined `@priorize` execution contract. The executor that handles the request must follow the sequence above and therefore map the PR to its owning/closing Issue.
 
