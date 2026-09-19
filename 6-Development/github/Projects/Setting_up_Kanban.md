@@ -44,7 +44,7 @@ Discover the current Project number rather than copying it from historical work.
 gh project field-list PROJECT_NUMBER --owner PROJECT_OWNER --format json
 ```
 
-Use the current result to identify the Project `Status`, `Rank`, and where used `Workstream` fields and their option IDs. Project IDs, field IDs, option IDs, and view IDs are Project-specific and must not be guessed or copied from another Project.
+Use the current result to identify the Project `Status`, `Band`, `Rank`, and where used `Workstream` fields and their option IDs. Project IDs, field IDs, option IDs, and view IDs are Project-specific and must not be guessed or copied from another Project.
 
 For organization-level Issue fields, inspect the current organization definition through the supported Issue Fields API before relying on it. The native Issue field named `Priority` is the authoritative Jagports current-priority field.
 
@@ -211,7 +211,7 @@ At minimum, a ranked workflow Project uses:
 - `PR Rank` — numeric exact order for Pull Request Project Items within one Workstream;
 - `Workstream` — single-select queue boundary. Current values: `AI OS`, `VIEPS`.
 
-The Issue's native organization `Priority` stays on the Issue record. The Issue Project Item itself carries `Status`, `Rank`, and `Workstream`. The Pull Request Project Item carries `PR Priority`, `PR Rank`, `Workstream`, and `Status`. These Project Items are what appear on the Kanban.
+The Issue's native organization `Priority` stays on the Issue record. The Issue Project Item carries shared Project `Band`, `Status`, `Rank`, and `Workstream`. The Pull Request Project Item carries `PR Priority`, shared Project `Band`, `PR Rank`, `Workstream`, and `Status`. These Project Items are what appear on the Kanban. Configure the Kanban to show both Priority and Band, for example `High` and `P1`, as separate fields rather than composing duplicate text such as `High (P1)`.
 
 
 Other Project fields may include:
