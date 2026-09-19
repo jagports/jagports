@@ -107,6 +107,7 @@ jobs:
                 projectItems(first:50) {
                   nodes {
                     id
+                    fullDatabaseId
                     isArchived
                     project { id title number }
                     content { ... on PullRequest { id number } }
@@ -214,7 +215,7 @@ jobs:
 
           ADD_ITEM='mutation($project:ID!, $pr:ID!) { addProjectV2ItemById(input:{projectId:$project,contentId:$pr}) { item { id } } }'
           UNARCHIVE_ITEM='mutation($project:ID!, $item:ID!) { unarchiveProjectV2Item(input:{projectId:$project,itemId:$item}) { item { id isArchived } } }'
-          VERIFY_ITEM='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id isArchived project { id title number } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } } } }'
+          VERIFY_ITEM='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id fullDatabaseId isArchived project { id title number } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } } } }'
 
           # Product Owner ruling: Pull Request Project Items must never be archived.
           # Recover any historical archived item before considering lifecycle state.
@@ -229,30 +230,17 @@ jobs:
           fi
 
           if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$TARGET_WORKSTREAM" ]; then
-            if [ -n "$item_id" ]; then
-              verify_unresolved="$(gh api graphql -f query="$VERIFY_ITEM" -F item="$item_id")"
-              [ "$(jq -r '.data.node.id // empty' <<<"$verify_unresolved")" = "$item_id" ] || { echo "Unresolved-Workstream verification failed: item mismatch."; false; }
-              [ "$(jq -r '.data.node.project.id // empty' <<<"$verify_unresolved")" = "$project_id" ] || { echo "Unresolved-Workstream verification failed: Project mismatch."; false; }
-              [ "$(jq -r '.data.node.content.id // empty' <<<"$verify_unresolved")" = "$PR_NODE_ID" ] || { echo "Unresolved-Workstream verification failed: PR mismatch."; false; }
-              [ "$(jq -r '.data.node.isArchived' <<<"$verify_unresolved")" = "false" ] || { echo "Unresolved-Workstream PR Project Item is archived."; false; }
-              echo "PASS: PR #$PR_NUMBER has no single verified owning Workstream; existing Project Item remains unarchived and no Workstream was guessed."
-            else
-              echo "PASS: PR #$PR_NUMBER has no single verified owning Workstream; no Project Item was created and no Workstream was guessed."
-            fi
-            trap - ERR
-            exit 0
+            echo "PR #$PR_NUMBER has no single verified owning Workstream; Project Item will remain unassigned rather than guessing."
           fi
 
           if [ -z "$item_id" ]; then
-            if [ "$TARGET_STATUS" != "DONE" ]; then
-              [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot create active PR Project Item without a verified Workstream."; false; }
-            fi
             gh api graphql -f query="$ADD_ITEM" -F project="$project_id" -F pr="$PR_NODE_ID" >/dev/null
             pr_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
             project_items="$(jq -c --arg project "$project_id" --arg pr "$PR_NODE_ID" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
             [ "$(jq 'length' <<<"$project_items")" -eq 1 ] || { echo "PR Project Item could not be resolved after creation."; false; }
             item_id="$(jq -r '.[0].id' <<<"$project_items")"
             item_archived="$(jq -r '.[0].isArchived' <<<"$project_items")"
+            existing_pr_priority="$(jq -r '.[0].prPriorityValue.name // empty' <<<"$project_items")"
           fi
 
           [ "$item_archived" = "false" ] || { echo "PR Project Item is archived; current Product Owner rule requires every PR Project Item to remain unarchived."; false; }
@@ -294,9 +282,18 @@ jobs:
             [ "$(jq -r '.data.node.prPriorityValue.name // empty' <<<"$verify_json")" = "$TARGET_PR_PRIORITY" ] || { echo "Verification failed: initial PR Priority mismatch."; false; }
           fi
 
+          item_database_id="$(jq -r '.data.node.fullDatabaseId // empty' <<<"$verify_json")"
+          [ -n "$item_database_id" ] || { echo "PR Project Item fullDatabaseId was not resolved."; false; }
+          project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
+
+          if [ -z "$TARGET_WORKSTREAM" ] && [ "$TARGET_STATUS" != "DONE" ]; then
+            GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$(printf 'PR #%s prioritization requires Workstream classification. No Workstream was guessed.\n\nProject item: %s' "$PR_NUMBER" "$project_item_url")" >/dev/null
+          fi
+
           if [ "$TARGET_STATUS" = "DONE" ]; then
             echo "PASS: PR #$PR_NUMBER reached terminal DONE and remains unarchived (merged=$merged)."
           else
-            echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $TARGET_WORKSTREAM; Project Item remains unarchived."
+            display_workstream="${TARGET_WORKSTREAM:-Unassigned}"
+            echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $display_workstream; Project Item remains unarchived at $project_item_url."
           fi
           trap - ERR
