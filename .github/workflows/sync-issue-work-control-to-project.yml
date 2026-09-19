@@ -351,7 +351,7 @@ jobs:
           comment_id="$(printf '%s\n' "$comment_ids" | sed '/^$/d' | head -n1)"
 
           verified_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          snapshot_body="$(printf '%s\n\n## Work-control snapshot\n\nVerified: %s\n\n- Priority: %s\n- Project: %s (#%s)\n- Project item: %s\n- Workstream: %s\n- Status: %s\n- Rank: %s\n\nThis is a read-only agent bridge. Native Issue Priority and Project fields remain authoritative.\n' "$SNAPSHOT_MARKER" "$verified_at" "$actual_priority" "$actual_band" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$project_item_url" "$actual_workstream" "$actual_status" "$actual_rank")"
+          snapshot_body="$(printf '%s\n\n## Work-control snapshot\n\nVerified: %s\n\n- Priority: %s\n- Band: %s\n- Project: %s (#%s)\n- Project item: %s\n- Workstream: %s\n- Status: %s\n- Rank: %s\n\nThis is a read-only agent bridge. Native Issue Priority and Project fields remain authoritative.\n' "$SNAPSHOT_MARKER" "$verified_at" "$actual_priority" "$actual_band" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$project_item_url" "$actual_workstream" "$actual_status" "$actual_rank")"
 
           write_snapshot="true"
           if [ -n "$comment_id" ]; then
@@ -597,7 +597,7 @@ jobs:
           if [ -n "$PR_RANK" ]; then [ "$actual_rank" = "$PR_RANK" ] || { echo "Verification failed: PR Rank is '$actual_rank', expected '$PR_RANK'."; false; }; fi
           if [ -n "$WORKSTREAM" ]; then [ "$actual_workstream" = "$WORKSTREAM" ] || { echo "Verification failed: Workstream is '$actual_workstream', expected '$WORKSTREAM'."; false; }; fi
 
-          snapshot_body="$(printf '%s\n\n## PR work-control snapshot\n\n- PR Priority: %s\n- Project: %s (#%s)\n- Project item: %s\n- Workstream: %s\n- Status: %s\n- PR Rank: %s\n\nThis is a read-only agent bridge. Project fields remain authoritative.\n' "$PR_SNAPSHOT_MARKER" "$actual_priority" "$actual_band" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$project_item_url" "$actual_workstream" "$actual_status" "$actual_rank")"
+          snapshot_body="$(printf '%s\n\n## PR work-control snapshot\n\n- PR Priority: %s\n- Band: %s\n- Project: %s (#%s)\n- Project item: %s\n- Workstream: %s\n- Status: %s\n- PR Rank: %s\n\nThis is a read-only agent bridge. Project fields remain authoritative.\n' "$PR_SNAPSHOT_MARKER" "$actual_priority" "$actual_band" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$project_item_url" "$actual_workstream" "$actual_status" "$actual_rank")"
 
           comments="$(GH_TOKEN="$COMMENT_TOKEN" gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
           snapshot_ids="$(jq -r --arg marker "$PR_SNAPSHOT_MARKER" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | .[]?' <<<"$comments")"
