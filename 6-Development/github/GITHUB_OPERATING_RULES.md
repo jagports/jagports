@@ -130,7 +130,7 @@ The opening of a new GitHub work record is a prioritization trigger:
 - Valid classification evidence is limited to an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
 - If exactly one canonical Workstream is established, synchronize and independently verify that Workstream as part of the prioritization operation.
 - Do not classify Workstream from title, labels, repository paths, branch names, or topical/semantic similarity alone.
-- If durable evidence is absent, conflicting, or ambiguous, native Issue Priority may still succeed; leave Workstream unassigned and Project `Rank` as `none`. The user-facing prioritization result must include a direct link to the Issue's Project item so a human can immediately set Workstream.
+- If durable evidence is absent, conflicting, or ambiguous, native Issue Priority may still succeed; leave Workstream unassigned and Project `Rank` as `none`. The synchronization record must explicitly use `Rank: none` so the Project item can be resolved/created when needed, and the user-facing prioritization result must include a direct link to that Project item so a human can immediately set Workstream.
 - Project `Rank` is assigned only after an explicit/verified Workstream exists.
 - This rule is prospective and bounded to the newly opened record. It does not authorize bulk reprioritization of the existing backlog.
 
