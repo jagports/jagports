@@ -43,7 +43,7 @@ Do not combine unrelated scopes into one universal queue unless the Product Owne
 New work receives an initial prioritization assessment as part of record creation:
 
 - **Issue opened** → perform an initial priority assessment for that Issue using this method.
-- **Pull Request opened** → perform the same initial priority assessment as explicit `@priorize <PR-number>` for that Pull Request itself.
+- **Pull Request opened** → perform the same initial priority assessment as explicit `@priorize <PR-number>` for that Pull Request itself. If Workstream remains unresolved after checking durable authoritative evidence, the automatic open-event result must notify a human and include a direct Project Item link for immediate Workstream classification.
 - The open-event rule is prospective. It must not be interpreted as authorization to bulk-score all existing open Issues or PRs.
 - If evidence is incomplete, record a provisional assessment rather than inventing values. Existing workflow gates, Workstream preservation, Product Owner authority, and synchronization verification still apply.
 - When `Workstream` is missing or unverified, the prioritization pass must attempt to determine it from durable authoritative evidence before leaving it unassigned.
