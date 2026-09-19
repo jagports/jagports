@@ -77,8 +77,8 @@ For every request, regardless of requester type:
 Apply the prioritization method in `00-Management/PRIORITIZATION.md` automatically when new work records are opened:
 
 - On **Issue open**, perform an initial priority assessment for that Issue.
-- On **Pull Request open**, resolve its owning/closing Issue and perform an initial or refreshed priority assessment for that Issue.
-- Do not assign a separate business Priority/Rank to the Pull Request.
+- On **Pull Request open**, perform an initial priority assessment for the Pull Request Project Item itself. Use verified owning-Issue Priority/Workstream only as an initial baseline when unambiguous; refresh the Issue separately only when its own evidence changed.
+- Maintain Pull Request `PR Priority` and `PR Rank` independently from the owning Issue's native `Priority` and Issue `Rank`.
 - If the owning Issue cannot be established from a durable GitHub relationship, do not guess it from free text.
 - Treat incomplete evidence as provisional rather than inventing factor values.
 - If `Workstream` is missing or unverified, actively attempt to determine it from durable authoritative evidence: an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
