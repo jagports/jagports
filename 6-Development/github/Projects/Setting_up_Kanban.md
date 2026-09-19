@@ -205,9 +205,15 @@ The P0...P5 review bands map to native Issue Priority through `00-Management/PRI
 
 At minimum, a ranked workflow Project uses:
 
-- `Status` — controlled Project Item workflow state;
-- `Rank` — numeric exact order for Issue work within that Project/workstream queue; lower number means earlier execution;
-- `Workstream` — single-select queue boundary when multiple operational queues share one Project. Current values: `AI OS`, `VIEPS`.
+- `Status` — controlled Project Item workflow state for Issues and Pull Requests;
+- `Rank` — numeric exact order for Issue work within one Workstream;
+- `Urgency` — numeric Issue urgency factor `0...5`;
+- `PR Priority` — single-select Pull Request review/integration priority: `Urgent`, `High`, `Medium`, `Low`;
+- `PR Rank` — numeric exact order for Pull Request review/integration work within one Workstream;
+- `PR Urgency` — numeric Pull Request urgency factor `0...5`;
+- `Workstream` — single-select queue boundary. Current values: `AI OS`, `VIEPS`.
+
+Issue native `Priority` remains the Issue priority authority and is shown with Issue Project Items. Pull Requests have no native Issue Priority field, so `PR Priority` is Project-scoped. Both item types therefore expose Priority, Rank, Urgency, Workstream, and Status in the Kanban using their record-appropriate fields.
 
 Other Project fields may include:
 
