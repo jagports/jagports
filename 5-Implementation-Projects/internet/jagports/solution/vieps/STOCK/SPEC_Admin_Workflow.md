@@ -59,10 +59,14 @@ Mutable stock test records must remain separate from immutable catalogue/referen
 Stock Admin supports these stock-record paths:
 
 1. resolved stock linked to an existing canonical `PART`;
-2. reusable product identity created through the applicable canonical PART/product workflow before stock linkage;
+2. reusable Jagports-owned canonical `PART` created through the applicable product workflow before stock linkage when no suitable Jaguar/JEPC PART exists;
 3. explicitly unresolved/non-catalogue stock where no canonical identity is yet established.
 
-A canonical `PART` must not be fabricated merely to satisfy a stock relationship.
+A canonical `PART` must not be fabricated merely to satisfy a stock relationship. A known reusable non-JEPC product should normally receive a Jagports-owned canonical PART rather than remain permanently unresolved. `stock_item.part_id = NULL` is reserved for items whose reusable product identity is genuinely not yet established.
+
+Jagports-owned PART identity and vendor identity remain separate. A vendor part number may be recorded as source/reference evidence, but it must not replace the canonical Jagports PART identity. Jagports-owned identifiers must remain explicitly namespaced/sourced and must never be presented as Jaguar-issued part numbers.
+
+For service products such as third-party/NSS repair components, the canonical product workflow may record typed relationships such as `service_scope_extension_of`, `service_subpart_of`, or `component_of`. Such a relationship does not by itself prove vehicle suitability. MVP applicability may be supported by explicit fixture/manual evidence; suitability must not be silently inherited from every occurrence of a related Jaguar PART.
 
 ## Stock management UI
 
@@ -71,7 +75,9 @@ The authorized Stock Admin UI must support, where the current data contract expo
 - create a stock record;
 - edit approved mutable stock fields;
 - select a canonical PART reference where resolved;
-- retain an explicit unresolved path where appropriate;
+- when no suitable Jaguar/JEPC PART exists for a known reusable product, create/select a Jagports-owned canonical PART before creating stock;
+- retain an explicit unresolved path only where reusable product identity is genuinely not yet established;
+- keep vendor part-number/reference data distinct from the canonical Jagports PART identity;
 - capture integer quantity;
 - select normalized stock quality `A` through `E` using the meanings in `MODEL_STOCK.md`;
 - select physical site and rack/shelf/box storage location;
@@ -89,7 +95,7 @@ Public unauthenticated users must not gain stock mutation capability through the
 ```text
 admin opens Stock Admin
   -> verifies stock database/environment
-  -> resolves or explicitly leaves stock identity unresolved
+  -> selects an existing canonical PART, creates a Jagports-owned canonical PART, or explicitly leaves genuinely unidentified stock unresolved
   -> captures mutable stock facts
   -> validates quantity, quality, location, source and availability rules
   -> persists the stock record through the approved application/database path
@@ -149,6 +155,8 @@ A validation or acceptance record must identify the environment being exercised 
 At minimum, validation should establish that:
 
 - a known catalogue or fixture-backed PART can be resolved when that is the chosen stock identity path;
+- a known reusable non-JEPC product can be given a Jagports-owned canonical PART and stock can be persisted against it;
+- an unidentified item can remain explicitly unresolved without fabricating either Jaguar or Jagports identity;
 - permitted stock information can be read for known stock records;
 - an authorized operator can create or update approved mutable stock fields;
 - the persisted result can be read back through the approved application/database path;
@@ -163,6 +171,7 @@ A local or preview result is evidence only for that environment. It must not be 
 This workflow does not define:
 
 - catalogue PART identity or JEPC import;
+- the Post-MVP JEPC-assisted manual PART context selector (Model/Range -> category -> item/service item -> occurrence/context); MVP uses limited explicit fixture/manual applicability evidence instead;
 - warehouse transaction/history ledger;
 - reservations, checkout or sales workflow;
 - individual physical-unit identity;
