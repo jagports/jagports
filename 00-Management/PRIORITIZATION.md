@@ -10,7 +10,6 @@ It complements, and does not redefine:
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
-Priority is assessed automatically for every newly opened Issue and every newly opened Pull Request. Issues and Pull Requests are separate prioritized work records. `@priorize <Issue-number>` prioritizes that Issue; `@priorize <PR-number>` prioritizes that Pull Request. Issue prioritization uses native Issue `Priority`, Project `Rank`, and Project `Urgency`. Pull Request prioritization uses Project `PR Priority`, `PR Rank`, and `PR Urgency`. The Product Owner has final authority over priority and may override a calculated order when the reason is recorded.
 
 ## Identifiers, Issue Priority, Project Rank and score are different concepts
 
@@ -62,7 +61,6 @@ The automatic open-event assessment is the default equivalent of an initial `@pr
 
 - native Issue `Priority` — authoritative business/work priority;
 - Project `Rank` — exact Issue order inside one Workstream;
-- Project `Urgency` — integer `0...5` urgency factor exposed on the Issue Project Item;
 - Project `Workstream`;
 - Project `Status`.
 
@@ -70,15 +68,12 @@ The automatic open-event assessment is the default equivalent of an initial `@pr
 
 - Project `PR Priority` — authoritative review/integration priority;
 - Project `PR Rank` — exact PR order inside one Workstream;
-- Project `PR Urgency` — integer `0...5` review/integration urgency factor;
 - Project `Workstream`;
 - Project `Status`.
 
-Issue and PR Priority/Rank/Urgency values are independent. An unambiguous owning Issue may seed a PR's initial Priority, Urgency and Workstream, but later PR prioritization may diverge from that baseline without overwriting the Issue.
 
 Issue Rank and PR Rank are separate queues within each Workstream. The same numeric value may therefore exist once in the Issue queue and once in the PR queue for the same Workstream.
 
-`Urgency` and `PR Urgency` expose the existing urgency factor from this prioritization method. The value domain is `0...5`: `0` means unknown/not assessed and `1...5` means increasing urgency/cost-of-delay pressure. Urgency is an input/evidence field; it does not replace Priority, Rank, Status or Workstream.
 
 Before scoring an item:
 
@@ -107,7 +102,6 @@ Use the same scale for positive and negative factors:
 | Customer value | Direct benefit to users/customers or reduction of an important customer problem. |
 | Business value | Revenue, cost, productivity, reliability or other material business benefit. |
 | Strategic differentiation | Contribution to capabilities that materially strengthen Jagports/VIEPS differentiation or long-term direction. |
-| Urgency | Cost of delay, time sensitivity, deadline pressure or rapidly increasing impact. |
 | Dependency leverage | Degree to which completing the item unblocks or enables other important work. Hard blocked dependencies are handled separately through workflow/readiness. |
 | Evidence confidence | Strength and reliability of evidence supporting the need, proposed outcome and expected value. |
 | Readiness | Degree to which scope, inputs, acceptance conditions and prerequisites are clear enough for execution now. |
@@ -226,7 +220,6 @@ Score state: complete | provisional
 Customer value: 0..5
 Business value: 0..5
 Strategic differentiation: 0..5
-Urgency: 0..5
 Dependency leverage: 0..5
 Evidence confidence: 0..5
 Readiness: 0..5
