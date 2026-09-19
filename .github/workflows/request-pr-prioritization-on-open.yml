@@ -23,7 +23,7 @@ jobs:
           set -euo pipefail
 
           marker="<!-- jagports-auto-priorize-request -->"
-          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when PR #%s opened. Execute using the existing canonical @priorize PR path; do not create a separate PR Priority/Rank model.' "$marker" "$PR_NUMBER" "$PR_NUMBER")"
+          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when PR #%s opened. Execute the canonical @priorize PR path for this Pull Request itself, including PR Priority, PR Rank, PR Urgency, Workstream and Status.' "$marker" "$PR_NUMBER" "$PR_NUMBER")"
 
           comments="$(gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
           existing_count="$(jq --arg marker "$marker" '[.[] | select((.body | split("\n") | index($marker)) != null)] | length' <<<"$comments")"
