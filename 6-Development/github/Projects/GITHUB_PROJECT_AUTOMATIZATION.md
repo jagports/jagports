@@ -71,3 +71,54 @@ No automatic `BACKLOG` to `RESEARCH` or later transition is introduced by this I
 ## Verification requirement
 
 A successful workflow run is required as execution evidence. Repository inspection alone does not establish that the real Project operation succeeded.
+
+
+## Repository Actions variables
+
+Repository-level GitHub Actions variables provide non-secret operational identities and configuration shared by Project automation. They are runtime configuration, not credentials.
+
+### `PRODUCT_OWNER_GITHUB`
+
+`PRODUCT_OWNER_GITHUB` is the canonical GitHub login used when repository automation must explicitly notify the Product Owner that human action is required and no more specific responsible human/agent can be resolved from durable workflow evidence.
+
+Current configured value:
+
+```text
+PRODUCT_OWNER_GITHUB=tlindi
+```
+
+Configure it in GitHub:
+
+```text
+Repository
+→ Settings
+→ Secrets and variables
+→ Actions
+→ Variables
+→ New repository variable
+```
+
+Create:
+
+- Name: `PRODUCT_OWNER_GITHUB`
+- Value: the Product Owner's GitHub login without the leading `@` (currently `tlindi`).
+
+Workflows read it as:
+
+```yaml
+${{ vars.PRODUCT_OWNER_GITHUB }}
+```
+
+This is intentionally a **Variable**, not a Secret. The GitHub login is public routing metadata and must be available for explicit `@username` notification in durable Issue/PR communication.
+
+For Pull Request open-event Workstream handling:
+
+1. Automation first attempts to resolve Workstream from durable authoritative evidence.
+2. If exactly one canonical Workstream is resolved, it assigns and verifies that value; no Product Owner escalation is required.
+3. If Workstream remains unresolved or ambiguous, automation must not guess.
+4. The PR Project Item remains unassigned for Workstream.
+5. The trusted open-event workflow reads `PRODUCT_OWNER_GITHUB` and creates/updates the durable `@priorize <PR>` PR Conversation comment with an explicit `@<PRODUCT_OWNER_GITHUB>` mention, a **Human action required** message, and the direct Project Item link.
+6. The workflow independently rereads the comment and verifies both the Product Owner mention and Project Item link.
+7. If `PRODUCT_OWNER_GITHUB` is missing when escalation is required, the workflow fails clearly rather than claiming that a human was notified.
+
+Changing Product Owner therefore requires updating this repository Actions variable. Workflow source must not hard-code a particular Product Owner login.
