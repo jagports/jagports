@@ -6,6 +6,8 @@ This document defines the VIEPS Stock Admin workflow around the operational stoc
 
 The stock model authority is [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). This workflow does not redefine canonical `PART` identity or catalogue relationships.
 
+The minimum Add Part page is defined in [`../UI/UI_NEWPART.md`](../UI/UI_NEWPART.md).
+
 ## Scope
 
 Stock Admin supports authorized creation and maintenance of operational stock records while keeping mutable inventory separate from catalogue/reference data.
@@ -24,6 +26,8 @@ The workflow covers:
 - validation and deterministic error handling;
 - public-read versus authorized-mutation boundaries;
 - test/acceptance environment identification and persisted-record verification.
+
+A future extension may add photographs of the actual physical stock item from device files or a mobile/device camera. This future capability is documented in `UI_NEWPART.md`; it is intentionally not an MVP persistence requirement until separately approved.
 
 ## Stock database readiness
 
@@ -67,37 +71,48 @@ A canonical `PART` must not be fabricated merely to satisfy a stock relationship
 
 ## Stock management UI
 
-The authorized Stock Admin UI must support, where the current data contract exposes the field:
+For #612 MVP, the UI target is one functional Add Part page. Navigation, menus, dashboard, account/profile UI, breadcrumbs, decorative shell and exact reproduction of concept artwork are not requirements.
 
+The authorized Add Part page must support, where the current data contract exposes the field:
+
+- search/select a canonical PART or explicitly choose unresolved stock;
 - create a stock record;
-- edit approved mutable stock fields;
-- select a canonical PART reference where resolved;
-- retain an explicit unresolved path where appropriate;
 - capture integer quantity;
 - select normalized stock quality `A` through `E` using the meanings in `MODEL_STOCK.md` when quality is classified;
 - retain an explicit unclassified quality state when no A-E classification has yet been assigned;
-- select physical site and rack/shelf/box storage location;
+- capture/select physical storage location;
 - capture source party separately from donor vehicle;
 - capture donor vehicle where known;
+- capture source and source-reference evidence;
 - capture price and currency where supported;
 - capture operational notes;
-- show availability and validation state independently from stock-quality classification state;
-- surface deterministic validation/error states.
+- show availability independently from stock-quality classification;
+- surface deterministic validation/error states;
+- persist through the administrator-protected Stock API path and show success or failure.
+
+The implementation may use simple form controls. Rich pickers, multi-page navigation and other convenience UI are not required for the minimum increment.
 
 Public unauthenticated users must not gain stock mutation capability through the page or its supporting API path.
+
+## Future physical-stock photographs
+
+A future Stock Admin extension may attach multiple photographs to a stock record. Images may be selected from device files/photo storage or captured directly with a mobile/device camera where supported.
+
+Physical-stock photographs are operational evidence for the specific stock record. They are distinct from canonical PART/JEPC catalogue imagery and must not overwrite or redefine catalogue imagery or PART identity.
+
+The future UI may support preview, removal/replacement and designation of one primary stock image before persistence. Media storage, upload API, transformations, retention and storage-provider architecture remain outside the current MVP workflow and require separate approved implementation specification.
 
 ## Operational workflow
 
 ```text
-admin opens Stock Admin
-  -> verifies stock database/environment
+admin opens Add Part page
   -> resolves or explicitly leaves stock identity unresolved
   -> captures mutable stock facts
   -> classifies stock quality with A-E when known or leaves it explicitly unclassified
   -> validates quantity, location, source and availability rules
   -> persists the stock record through the approved application/database path
-  -> reads the persisted record back
-  -> public/read presentation exposes only permitted stock information
+  -> receives success or deterministic error
+  -> persisted record remains queryable through the approved data path
 ```
 
 The workflow is complete only when the persisted record can be read back from the same environment through the approved data path. A UI-only state change or repository fixture change is not persistence evidence.
@@ -139,6 +154,8 @@ Search behavior must preserve the catalogue/stock boundary and authorization rul
 
 Search/filter validation should use known records from the target environment and confirm that expected records are returned without exposing restricted stock details to unauthorized users.
 
+A separate stock-management search/filter screen is not required to complete the minimum #612 Add Part page.
+
 ## Validation and errors
 
 The UI/API must explicitly reject or report:
@@ -160,8 +177,7 @@ A validation or acceptance record must identify the environment being exercised 
 At minimum, validation should establish that:
 
 - a known catalogue or fixture-backed PART can be resolved when that is the chosen stock identity path;
-- permitted stock information can be read for known stock records;
-- an authorized operator can create or update approved mutable stock fields;
+- an authorized operator can create approved mutable stock fields through the Add Part page;
 - the persisted result can be read back through the approved application/database path;
 - an unauthenticated or otherwise unauthorized user cannot mutate stock;
 - invalid stock operations fail deterministically;
@@ -174,10 +190,13 @@ A local or preview result is evidence only for that environment. It must not be 
 This workflow does not define:
 
 - catalogue PART identity or JEPC import;
+- navigation/menu architecture for the Admin page;
+- dashboard/account/profile UI;
 - warehouse transaction/history ledger;
 - reservations, checkout or sales workflow;
 - individual physical-unit identity;
 - payment or shipping;
 - provider-specific synchronization;
 - tenant/provider authentication architecture;
-- detailed provenance beyond the approved stock evidence fields.
+- detailed provenance beyond the approved stock evidence fields;
+- physical-stock photo media storage/upload architecture until separately approved.
