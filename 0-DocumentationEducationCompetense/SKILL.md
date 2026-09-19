@@ -76,7 +76,7 @@ For every request, regardless of requester type:
 
 Execute automatic/open-event and explicit `@priorize` behavior by reference to:
 
-- `00-Management/PRIORITIZATION.md` for scoring, Issue Priority, PR Priority, Issue Rank, PR Rank, Workstream evidence, unknown-Workstream handling, and Product Owner authority.
+- `00-Management/PRIORITIZATION.md` for scoring, Issue Priority, Issue Rank, Workstream evidence, PR-reference handling through the owning Issue, and Product Owner authority.
 - `6-Development/github/GITHUB_WORKFLOWS.md` for GitHub execution routing and bounded synchronization records.
 - `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` for Project Item lifecycle and Project-scoped field behavior.
 
