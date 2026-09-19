@@ -31,7 +31,7 @@ Issue and Pull Request Project Items represent related but different objects:
 - the **Issue Project Item** remains the primary business/work record and represents the lifecycle of the owned work;
 - the **Pull Request Project Item** represents the execution/review state of a concrete integration artifact for that work.
 
-A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. Business Priority and Project Rank remain on the owning Issue. A Pull Request number may be used as an `@priorize` entry point, but that resolves to the owning/closing Issue rather than creating competing PR Priority/Rank fields.
+A Pull Request Project Item must retain traceability to its owning/closing Issue or Issues. It is also an independently prioritized work record for review/integration. Issue and PR prioritization fields are separate and must not overwrite one another.
 
 ### State meaning
 
@@ -93,6 +93,28 @@ If Project setup cannot be performed or verified, record the limitation and do n
 
 When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless another state is explicitly appropriate, and verify the Project Item Status.
 
+### Prioritization fields by Project Item type
+
+Both Issues and Pull Requests may appear on the same Kanban, but they use separate prioritization fields.
+
+**Issue Project Item**
+
+- native Issue `Priority`;
+- Project `Rank`;
+- Project `Urgency` (integer `0...5`);
+- Project `Workstream`;
+- Project `Status`.
+
+**Pull Request Project Item**
+
+- Project `PR Priority` (`Urgent`, `High`, `Medium`, `Low`);
+- Project `PR Rank`;
+- Project `PR Urgency` (integer `0...5`);
+- Project `Workstream`;
+- Project `Status`.
+
+Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Urgency/Workstream only when the evidence is unambiguous. The PR remains independently reprioritizable afterwards.
+
 ### Pull Request Project Item lifecycle
 
 A Pull Request that belongs to Jagports work may be represented by its own Project Item so that the Kanban shows the concrete integration artifact as well as the owning Issue. The Pull Request Project Item uses the controlled workflow meanings defined in `00-Management/WORKFLOWS.md`; Pull Request events do not create a parallel lifecycle.
@@ -104,7 +126,7 @@ Consequences of this ruling:
 - every existing or newly created Pull Request Project Item must remain `isArchived = false`;
 - a historical archived Pull Request Project Item is lifecycle drift and must be unarchived when an authorized correction is performed;
 - automation must never use `archiveProjectV2Item` for Pull Request Project Items;
-- unresolved Workstream must never be guessed; Pull Request Project Item handling follows the lifecycle rules below and is not used as a separate Priority/Rank store;
+- unresolved Workstream must never be guessed; PR Priority/PR Urgency may still be maintained while PR Rank remains `none` until Workstream is explicitly resolved;
 - audit/verification logic must treat any archived Pull Request Project Item as incorrect state.
 
 The Pull Request Project Item follows these deterministic rules:
