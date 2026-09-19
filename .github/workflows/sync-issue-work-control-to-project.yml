@@ -226,12 +226,13 @@ jobs:
           [ "$(jq 'length' <<<"$workstream_fields")" -eq 1 ] || { echo "Expected exactly one single-select Workstream field."; false; }
           [ "$(jq -c '[.[0].options[]?.name] | sort' <<<"$workstream_fields")" = "$desired_names" ] || { echo "Workstream options are not exactly AI OS and VIEPS after recovery."; false; }
 
-          ISSUE_QUERY='query($issue:ID!) { node(id:$issue) { ... on Issue { id number projectItems(first:50) { nodes { id isArchived project { id title number } content { ... on Issue { id number } } } } } } }'
+          ISSUE_QUERY='query($issue:ID!) { node(id:$issue) { ... on Issue { id number projectItems(first:50) { nodes { id fullDatabaseId isArchived project { id title number } content { ... on Issue { id number } } } } } } }'
           issue_json="$(gh api graphql -f query="$ISSUE_QUERY" -F issue="$ISSUE_NODE_ID")"
           item_matches="$(jq -c --arg project "$project_id" --arg issue "$ISSUE_NODE_ID" '[.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue)]' <<<"$issue_json")"
           item_count="$(jq 'length' <<<"$item_matches")"
           [ "$item_count" -le 1 ] || { echo "Multiple active Project items exist for Issue #$ISSUE_NUMBER."; false; }
           item_id="$(jq -r 'if length == 1 then .[0].id else empty end' <<<"$item_matches")"
+          item_database_id="$(jq -r 'if length == 1 then (.[0].fullDatabaseId // empty) else empty end' <<<"$item_matches")"
 
           needs_project_mutation="false"
           if [ -n "$STATUS" ] || [ -n "$RANK" ] || [ -n "$WORKSTREAM" ]; then needs_project_mutation="true"; fi
@@ -242,6 +243,7 @@ jobs:
             item_matches="$(jq -c --arg project "$project_id" --arg issue "$ISSUE_NODE_ID" '[.data.node.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false and .content.id == $issue)]' <<<"$issue_json")"
             [ "$(jq 'length' <<<"$item_matches")" -eq 1 ] || { echo "Project Item could not be resolved uniquely after creation."; false; }
             item_id="$(jq -r '.[0].id' <<<"$item_matches")"
+            item_database_id="$(jq -r '.[0].fullDatabaseId // empty' <<<"$item_matches")"
           fi
           if [ -z "$item_id" ]; then
             echo "Issue #$ISSUE_NUMBER is not an active Project item; no Project snapshot is applicable."
@@ -292,6 +294,8 @@ jobs:
           actual_rank_number="$(jq -r '.data.node.rankValue.number // empty' <<<"$verify_json")"
           actual_rank="$(jq -r 'if .data.node.rankValue.number == null then "none" elif (.data.node.rankValue.number | floor) == .data.node.rankValue.number then (.data.node.rankValue.number | floor | tostring) else (.data.node.rankValue.number | tostring) end' <<<"$verify_json")"
           actual_workstream="$(jq -r '.data.node.workstreamValue.name // "Unassigned"' <<<"$verify_json")"
+          [ -n "$item_database_id" ] || { echo "Project Item fullDatabaseId was not resolved; cannot provide a direct human Project item link."; false; }
+          project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
 
           if [ -n "$STATUS" ]; then [ "$actual_status" = "$STATUS" ] || { echo "Verification failed: Status is '$actual_status', expected '$STATUS'."; false; }; fi
           if [ -n "$RANK" ]; then
@@ -323,7 +327,7 @@ jobs:
           comment_id="$(printf '%s\n' "$comment_ids" | sed '/^$/d' | head -n1)"
 
           verified_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          snapshot_body="$(printf '%s\n\n## Work-control snapshot\n\nVerified: %s\n\n- Priority: %s\n- Project: %s (#%s)\n- Workstream: %s\n- Status: %s\n- Rank: %s\n\nThis is a read-only agent bridge. Native Issue Priority and Project fields remain authoritative.\n' "$SNAPSHOT_MARKER" "$verified_at" "$actual_priority" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$actual_workstream" "$actual_status" "$actual_rank")"
+          snapshot_body="$(printf '%s\n\n## Work-control snapshot\n\nVerified: %s\n\n- Priority: %s\n- Project: %s (#%s)\n- Project item: %s\n- Workstream: %s\n- Status: %s\n- Rank: %s\n\nThis is a read-only agent bridge. Native Issue Priority and Project fields remain authoritative.\n' "$SNAPSHOT_MARKER" "$verified_at" "$actual_priority" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$project_item_url" "$actual_workstream" "$actual_status" "$actual_rank")"
 
           write_snapshot="true"
           if [ -n "$comment_id" ]; then
@@ -331,6 +335,7 @@ jobs:
             if grep -Fxq "$SNAPSHOT_MARKER" <<<"$existing_body" \
               && grep -Fxq -- "- Priority: $actual_priority" <<<"$existing_body" \
               && grep -Fxq -- "- Project: $PROJECT_TITLE (#$PROJECT_NUMBER)" <<<"$existing_body" \
+              && grep -Fxq -- "- Project item: $project_item_url" <<<"$existing_body" \
               && grep -Fxq -- "- Workstream: $actual_workstream" <<<"$existing_body" \
               && grep -Fxq -- "- Status: $actual_status" <<<"$existing_body" \
               && grep -Fxq -- "- Rank: $actual_rank" <<<"$existing_body"; then
@@ -353,6 +358,7 @@ jobs:
           grep -Fxq "$SNAPSHOT_MARKER" <<<"$verify_body" || { echo "Snapshot marker verification failed."; false; }
           grep -Fxq -- "- Priority: $actual_priority" <<<"$verify_body" || { echo "Priority snapshot verification failed."; false; }
           grep -Fxq -- "- Project: $PROJECT_TITLE (#$PROJECT_NUMBER)" <<<"$verify_body" || { echo "Project snapshot verification failed."; false; }
+          grep -Fxq -- "- Project item: $project_item_url" <<<"$verify_body" || { echo "Project item link snapshot verification failed."; false; }
           grep -Fxq -- "- Workstream: $actual_workstream" <<<"$verify_body" || { echo "Workstream snapshot verification failed."; false; }
           grep -Fxq -- "- Status: $actual_status" <<<"$verify_body" || { echo "Status snapshot verification failed."; false; }
           grep -Fxq -- "- Rank: $actual_rank" <<<"$verify_body" || { echo "Rank snapshot verification failed."; false; }
