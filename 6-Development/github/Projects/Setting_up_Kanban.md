@@ -268,7 +268,7 @@ For `Band:` values it maps:
 - P3/P4 → `Low`;
 - P5 → Issue Priority unset and no active Rank.
 
-When `Status:` or `Rank:` is supplied, the workflow resolves Project #9 and updates those Project-scoped fields. When only `Band:` is supplied, it updates only the native Issue Priority and does not create Project #9 membership.
+When `Band:`, `Status:`, or `Rank:` is supplied, the workflow resolves Project #9 as needed and updates the corresponding Project-scoped fields. `Band:` also maps to native Issue Priority for Issues or `PR Priority` for Pull Requests, and therefore a Band synchronization ensures the record has a Project Item so the Band is visible on Kanban.
 
 Workstream-aware queue maintenance must not compare or renumber Rank across different Workstream values.
 
