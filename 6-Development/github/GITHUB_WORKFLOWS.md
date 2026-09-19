@@ -55,7 +55,7 @@ For every GitHub work request, regardless of requester type:
 
 A compact request such as `@priorize 671 612 355` is GitHub execution shorthand. Priority meaning, scoring, review bands, Rank semantics, and Product Owner override authority remain defined by `00-Management/PRIORITIZATION.md`; this section defines only the GitHub execution path.
 
-Issue business Priority and Issue Rank belong to the Issue. Pull Requests are independently prioritized for review/integration work through Project fields `PR Priority` and `PR Rank` under `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
+Business Priority and Project Rank belong to the owning Issue. A Pull Request number is a supported `@priorize` entry point, but it resolves to the owning/closing Issue and does not create separate PR Priority/Rank fields.
 
 For each supplied number:
 
