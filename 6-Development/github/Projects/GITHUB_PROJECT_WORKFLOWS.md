@@ -95,23 +95,38 @@ When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless ano
 
 ### Prioritization fields by Project Item type
 
-Both Issues and Pull Requests may appear on the same Kanban, but they use separate prioritization fields.
+The Project Item is the object shown on the Kanban. The underlying Issue or Pull Request remains the repository record linked by that Project Item.
 
-**Issue Project Item**
+**Issue**
 
-- native Issue `Priority`;
-- Project `Rank`;
-- Project `Workstream`;
-- Project `Status`.
+```text
+Issue
+  │
+  └── Project Item
+        ├─ Status
+        ├─ Rank
+        ├─ Urgency
+        ├─ Workstream
+        └─ shown on Kanban
+```
 
-**Pull Request Project Item**
+The Issue's organization-wide `Priority` remains a native Issue field on the Issue record. It is not duplicated as a separate Project field.
 
-- Project `PR Priority` (`Urgent`, `High`, `Medium`, `Low`);
-- Project `PR Rank`;
-- Project `Workstream`;
-- Project `Status`.
+**Pull Request**
 
-Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Workstream only when the evidence is unambiguous. The PR remains independently reprioritizable afterwards.
+```text
+Pull Request
+  │
+  └── Project Item
+        ├─ PR Priority
+        ├─ PR Rank
+        ├─ PR Urgency
+        ├─ Workstream
+        ├─ Status
+        └─ shown on Kanban
+```
+
+`Urgency` and `PR Urgency` are numeric integer values `0...5`, where `0` means unknown/not assessed. Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Urgency/Workstream only when the evidence is unambiguous; the PR remains independently reprioritizable afterwards.
 
 ### Pull Request Project Item lifecycle
 
