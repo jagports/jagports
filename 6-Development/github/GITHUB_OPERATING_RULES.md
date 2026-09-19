@@ -123,7 +123,7 @@ The opening of a new GitHub work record is a prioritization trigger:
 
 - **Issue opened** → run an initial priority assessment on that Issue under `../../00-Management/PRIORITIZATION.md`.
 - **Pull Request opened** → automatically run the same initial prioritization as explicit `@priorize <PR-number>` for that Pull Request itself.
-- Pull Request Project Items maintain `PR Priority`, `PR Rank`, `PR Urgency`, `Workstream`, and `Status` independently from the owning Issue.
+- Pull Request Project Items maintain `PR Priority`, `PR Rank`, `Workstream`, and `Status` independently from the owning Issue.
 - Do not infer the owning Issue from title/body heuristics when no durable closing/ownership relationship exists.
 - If Project `Workstream` is missing or unverified, the prioritization operation must first attempt to classify it from durable authoritative evidence.
 - Valid classification evidence is limited to an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
@@ -478,7 +478,6 @@ Current approved work-control automation may update:
 - native Issue `Priority` on the Issue record;
 - Project Item `Status`;
 - Project Item `Rank`;
-- Project Item `Urgency`;
 - Project Item `Workstream`.
 
 It must not create a second live priority source such as `Operational Priority`.
@@ -509,7 +508,6 @@ Current verified mechanisms are:
 
 - Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
 - open Pull Request with a same-repository GitHub closing relationship → `IMPLEMENTATION`: `.github/workflows/sync-closing-pr-to-project.yml` owns that deterministic implementation-start synchronization, preserves protected later/blocking/decision states, and independently verifies the resulting Project Item/status;
-- explicit authorized work-control changes: `.github/workflows/sync-issue-work-control-to-project.yml` may synchronize native Issue `Priority` plus requested canonical Project Item `Status`, numeric `Rank`, numeric `Urgency`, and canonical `Workstream` from its authorized marker-comment/manual-dispatch inputs and independently verifies every changed value;
 - Issue `closed` → `DONE`: `.github/workflows/issues-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
 
 The closing-linked-PR automation is the authoritative automatic owner of the `IMPLEMENTATION` transition. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
