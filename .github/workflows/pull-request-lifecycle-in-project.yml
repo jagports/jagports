@@ -215,7 +215,7 @@ jobs:
 
           ADD_ITEM='mutation($project:ID!, $pr:ID!) { addProjectV2ItemById(input:{projectId:$project,contentId:$pr}) { item { id } } }'
           UNARCHIVE_ITEM='mutation($project:ID!, $item:ID!) { unarchiveProjectV2Item(input:{projectId:$project,itemId:$item}) { item { id isArchived } } }'
-          VERIFY_ITEM='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id fullDatabaseId isArchived project { id title number } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } } } }'
+          VERIFY_ITEM='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id fullDatabaseId isArchived project { id title number } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } prPriorityValue: fieldValueByName(name:"PR Priority") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } prRankValue: fieldValueByName(name:"PR Rank") { ... on ProjectV2ItemFieldNumberValue { number } } } } }'
 
           # Product Owner ruling: Pull Request Project Items must never be archived.
           # Recover any historical archived item before considering lifecycle state.
