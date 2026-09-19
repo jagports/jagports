@@ -10,7 +10,7 @@ It complements, and does not redefine:
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
-Priority is assessed automatically for every newly opened Issue. Opening a Pull Request also triggers an initial or refreshed priority assessment of its owning/closing Issue. Pull Requests do not receive a separate competing business Priority/Rank; business priority remains owned by the Issue. Outside these open-event assessments and other explicitly authorized prioritization paths, priority remains optional unless explicitly requested. The Product Owner has final authority over business priority and may override a calculated order when the reason is recorded.
+Priority is assessed automatically for every newly opened Issue and every newly opened Pull Request. Issues and Pull Requests are prioritized as different work records: the Issue carries business/work priority and Issue Rank; the Pull Request carries review/integration priority and PR Rank. A PR may inherit its owning Issue's verified Priority and Workstream as an initial baseline when that relationship is unambiguous, but later PR prioritization may diverge without overwriting the Issue. Outside these open-event assessments and other explicitly authorized prioritization paths, priority remains optional unless explicitly requested. The Product Owner has final authority over priority and may override a calculated order when the reason is recorded.
 
 ## Identifiers, Issue Priority, Project Rank and score are different concepts
 
@@ -44,8 +44,8 @@ Do not combine unrelated scopes into one universal queue unless the Product Owne
 New work receives an initial prioritization assessment as part of record creation:
 
 - **Issue opened** → perform an initial priority assessment for that Issue using this method.
-- **Pull Request opened** → resolve the owning/closing Issue and perform an initial or refreshed priority assessment for that Issue.
-- Do not create a separate business Priority/Rank for the Pull Request. PR lifecycle/Project handling remains separate from Issue business prioritization.
+- **Pull Request opened** → perform an initial priority assessment for the Pull Request Project Item. Resolve verified owning/closing Issue evidence when available and use it only as the initial PR baseline; refresh the owning Issue only when its own evidence materially changed.
+- Pull Request prioritization is separate from Issue prioritization. Use Project `PR Priority` for the PR's current review/integration priority and Project `PR Rank` for exact order within the PR review/integration queue. Do not write those values into the owning Issue's native `Priority` or Issue `Rank`.
 - The open-event rule is prospective. It must not be interpreted as authorization to bulk-score all existing open Issues or PRs.
 - If evidence is incomplete, record a provisional assessment rather than inventing values. Existing workflow gates, Workstream preservation, Product Owner authority, and synchronization verification still apply.
 - When `Workstream` is missing or unverified, the prioritization pass must attempt to determine it from durable authoritative evidence before leaving it unassigned.
@@ -53,7 +53,7 @@ New work receives an initial prioritization assessment as part of record creatio
 - When the evidence identifies exactly one canonical Workstream, include `Workstream: AI OS` or `Workstream: VIEPS` in the same authorized synchronization record and independently verify the Project field.
 - When durable evidence is absent, conflicting, or genuinely ambiguous, do not guess. Synchronize native Issue Priority, leave Workstream unassigned and Project `Rank` as `none`, and treat Priority synchronization as successful but queue placement as incomplete. **The synchronization record must explicitly use `Rank: none` so the bounded Project path can resolve/create the Project item when needed, and the user-facing prioritization result must include a direct link to that Issue's GitHub Project item so a human can immediately open it and set Workstream.**
 - Assign Project `Rank` only after an explicit/verified `Workstream` is available. A later Workstream classification must trigger or permit queue ranking without requiring the Issue Priority assessment to be repeated unless its evidence has materially changed.
-- If a PR has no resolvable owning/closing Issue, do not infer ownership from free text. Record the missing relationship and leave business priority on the Issue side unresolved until ownership is established.
+- If a PR has no resolvable owning/closing Issue, do not infer ownership from free text. Prioritize the PR from its own verified review/integration evidence; leave Issue-side business priority untouched until ownership is established.
 
 The automatic open-event assessment is the default equivalent of an initial `@priorize` pass for newly opened work records; it does not create a second prioritization model.
 
@@ -343,3 +343,15 @@ Scheduled audits perform prioritization reconciliation and queue maintenance. Th
 Closed Issues remain excluded from routine audit/prioritization maintenance.
 
 An audit may surface a lower-ranked low-hanging-fruit or cleanup action without silently changing the maintained queue. A material reprioritization should be recorded through a new priority review.
+
+
+## Pull Request priority and rank
+
+Pull Request prioritization uses the same evidence discipline and 0..5 factor scale, but evaluates the integration artifact rather than duplicating the owning Issue's business decision.
+
+- `PR Priority` is a Project single-select field with values `Urgent`, `High`, `Medium`, and `Low`.
+- `PR Rank` is a Project numeric field giving exact order inside the PR review/integration queue for one Workstream. Lower numbers are earlier; `1` is the highest-ranked active PR in that Workstream.
+- Issue `Rank` and `PR Rank` are different queues and may reuse the same integer values without conflict.
+- On PR open, an unambiguous owning Issue may seed the initial PR Priority and Workstream. This inheritance is a baseline, not permanent coupling.
+- Reprioritize a PR when review urgency, merge blockers, dependency leverage, readiness, risk, or other integration evidence materially changes.
+- Closing/merging a PR removes it from the active PR Rank queue; historical priority evidence remains in the PR record.
