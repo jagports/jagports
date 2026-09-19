@@ -217,7 +217,6 @@ Scope: <declared queue scope>
 Status: BACKLOG | RESEARCH | PROPOSED | DECISION NEEDED | APPROVED | IMPLEMENTATION | REVIEW | TESTING | BLOCKED | DONE
 Band: P0 | P1 | P2 | P3 | P4 | P5
 Rank: <unique positive integer within Project scope> | none
-Urgency: 0..5
 Score: <-10...+10 integer>
 Score state: complete | provisional
 Customer value: 0..5
