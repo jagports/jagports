@@ -290,12 +290,6 @@ jobs:
           [ -n "$item_database_id" ] || { echo "PR Project Item fullDatabaseId was not resolved."; false; }
           project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
 
-          if [ -z "$TARGET_WORKSTREAM" ] && [ "$TARGET_STATUS" != "DONE" ]; then
-            if ! GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$(printf 'PR #%s prioritization requires Workstream classification. No Workstream was guessed.\n\nProject item: %s' "$PR_NUMBER" "$project_item_url")" >/dev/null; then
-              echo "INFO: unable to post optional Workstream-classification comment with the event token; verified Project lifecycle state remains valid."
-            fi
-          fi
-
           if [ "$TARGET_STATUS" = "DONE" ]; then
             echo "PASS: PR #$PR_NUMBER reached terminal DONE and remains unarchived (merged=$merged)."
           else
@@ -309,33 +303,89 @@ jobs:
     if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
-      - name: Record automatic @priorize request
+      - name: Record automatic @priorize request and Workstream notification
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          COMMENT_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NODE_ID: ${{ github.event.pull_request.node_id }}
         shell: bash
         run: |
           set -euo pipefail
 
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+          [ -n "${COMMENT_TOKEN:-}" ] || { echo "Repository token is not available."; false; }
+
           marker="<!-- jagports-auto-priorize-request -->"
-          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when PR #%s opened. Prioritize this Pull Request using the canonical @priorize path, including PR Priority plus Project Item Band, PR Rank, Workstream and existing lifecycle Status.' "$marker" "$PR_NUMBER" "$PR_NUMBER")"
+          OWNER="${REPOSITORY%%/*}"
+          NAME="${REPOSITORY##*/}"
 
-          comments="$(gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
-          existing_count="$(jq --arg marker "$marker" '[.[] | select((.body | split("\n") | index($marker)) != null)] | length' <<<"$comments")"
+          PROJECT_QUERY='query($org:String!, $number:Int!) { organization(login:$org) { projectV2(number:$number) { id title } } }'
+          project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+          [ -n "$project_id" ] || { echo "Project was not found."; false; }
+          [ "$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title."; false; }
 
-          if [ "$existing_count" -gt 0 ]; then
-            echo "PASS: PR #$PR_NUMBER already has the automatic prioritization request."
-            exit 0
+          PR_ITEM_QUERY='query($owner:String!, $name:String!, $number:Int!) { repository(owner:$owner,name:$name) { pullRequest(number:$number) { id projectItems(first:50) { nodes { id fullDatabaseId isArchived project { id } content { ... on PullRequest { id number } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name } } } } } } }'
+
+          item_id=""
+          item_database_id=""
+          actual_workstream=""
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            pr_json="$(gh api graphql -f query="$PR_ITEM_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
+            [ "$(jq -r '.data.repository.pullRequest.id // empty' <<<"$pr_json")" = "$PR_NODE_ID" ] || { echo "PR identity verification failed."; false; }
+            items="$(jq -c --arg project "$project_id" --arg pr "$PR_NODE_ID" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr and .isArchived == false)]' <<<"$pr_json")"
+            [ "$(jq 'length' <<<"$items")" -le 1 ] || { echo "Multiple active Project items exist for PR #$PR_NUMBER."; false; }
+            if [ "$(jq 'length' <<<"$items")" -eq 1 ]; then
+              item_id="$(jq -r '.[0].id' <<<"$items")"
+              item_database_id="$(jq -r '.[0].fullDatabaseId // empty' <<<"$items")"
+              actual_workstream="$(jq -r '.[0].workstreamValue.name // empty' <<<"$items")"
+              break
+            fi
+            sleep 2
+          done
+
+          [ -n "$item_id" ] || { echo "PR Project Item was not resolved after waiting for lifecycle synchronization."; false; }
+          [ -n "$item_database_id" ] || { echo "PR Project Item fullDatabaseId was not resolved."; false; }
+          project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
+
+          case "$actual_workstream" in
+            "AI OS"|VIEPS)
+              notification=""
+              ;;
+            "")
+              notification="$(printf '\n\n**Human action required:** Workstream is unassigned. Set the PR Project Item Workstream to `AI OS` or `VIEPS`.\n\nProject item: %s' "$project_item_url")"
+              ;;
+            *)
+              echo "Unexpected Workstream '$actual_workstream'."
+              false
+              ;;
+          esac
+
+          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when PR #%s opened. Prioritize this Pull Request using the canonical @priorize path, including PR Priority plus Project Item Band, PR Rank, Workstream and existing lifecycle Status.%s' "$marker" "$PR_NUMBER" "$PR_NUMBER" "$notification")"
+
+          comments="$(GH_TOKEN="$COMMENT_TOKEN" gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
+          existing_ids="$(jq -r --arg marker "$marker" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | .[]?' <<<"$comments")"
+          existing_count="$(printf '%s\n' "$existing_ids" | sed '/^$/d' | wc -l | tr -d ' ')"
+          [ "$existing_count" -le 1 ] || { echo "Multiple automatic prioritization-request comments exist."; false; }
+
+          if [ "$existing_count" -eq 1 ]; then
+            created_id="$(printf '%s\n' "$existing_ids" | sed '/^$/d' | head -n1)"
+            GH_TOKEN="$COMMENT_TOKEN" gh api --method PATCH "repos/$REPOSITORY/issues/comments/$created_id" -f body="$body" >/dev/null
+          else
+            created="$(GH_TOKEN="$COMMENT_TOKEN" gh api --method POST "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body")"
+            created_id="$(jq -r '.id // empty' <<<"$created")"
           fi
+          [ -n "$created_id" ] || { echo "Automatic prioritization request comment was not created or resolved."; false; }
 
-          created="$(gh api --method POST "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body")"
-          created_id="$(jq -r '.id // empty' <<<"$created")"
-          [ -n "$created_id" ] || { echo "Automatic prioritization request comment was not created."; false; }
-
-          verify="$(gh api "repos/$REPOSITORY/issues/comments/$created_id")"
+          verify="$(GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/comments/$created_id")"
           verify_body="$(jq -r '.body // empty' <<<"$verify")"
           grep -Fxq "$marker" <<<"$verify_body" || { echo "Marker verification failed."; false; }
           grep -Fxq "@priorize $PR_NUMBER" <<<"$verify_body" || { echo "@priorize request verification failed."; false; }
+          if [ -z "$actual_workstream" ]; then
+            grep -Fq "**Human action required:** Workstream is unassigned." <<<"$verify_body" || { echo "Human Workstream notification verification failed."; false; }
+            grep -Fq "$project_item_url" <<<"$verify_body" || { echo "Project item link notification verification failed."; false; }
+          fi
 
-          echo "PASS: PR #$PR_NUMBER received the automatic @priorize request on open."
+          echo "PASS: PR #$PR_NUMBER received the automatic @priorize request; Workstream state and any required human notification were verified."
