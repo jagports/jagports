@@ -72,6 +72,16 @@ For every request, regardless of requester type:
 15. One PR may genuinely resolve multiple Issues; maintain explicit traceability to every Issue.
 16. Once identity and scope are resolved, proceed automatically without unnecessary confirmation.
 
+## Automatic Prioritization on Open
+
+Execute automatic/open-event and explicit `@priorize` behavior by reference to:
+
+- `00-Management/PRIORITIZATION.md` for scoring, Issue Priority, PR Priority, Issue Rank, PR Rank, Workstream evidence, unknown-Workstream handling, and Product Owner authority.
+- `6-Development/github/GITHUB_WORKFLOWS.md` for GitHub execution routing and bounded synchronization records.
+- `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` for Project Item lifecycle and Project-scoped field behavior.
+
+Do not duplicate those rules here. This connection must still obey the Project capability boundary above.
+
 ## Repository Change Gate
 
 Every repository modification follows the controlled path:
