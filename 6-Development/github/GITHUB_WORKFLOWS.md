@@ -53,34 +53,35 @@ For every GitHub work request, regardless of requester type:
 
 ## Prioritization Request Execution
 
-A compact request such as `@priorize 671 612 355` is GitHub execution shorthand. Priority meaning, scoring, review bands, Rank semantics, and Product Owner override authority remain defined by `00-Management/PRIORITIZATION.md`; this section defines only the GitHub execution path.
+A compact request such as `@priorize 671 612 355` is GitHub execution shorthand. Priority meaning, scoring, Urgency semantics, Rank semantics, review bands, and Product Owner override authority remain defined by `00-Management/PRIORITIZATION.md`; this section defines only the GitHub execution path.
 
-Business Priority and Project Rank belong to the owning Issue. A Pull Request number is a supported `@priorize` entry point, but it resolves to the owning/closing Issue and does not create separate PR Priority/Rank fields.
+Issues and Pull Requests are separate prioritized work records.
 
 For each supplied number:
 
-1. Resolve and validate the referenced Issue or Pull Request.
-2. If the reference is a Pull Request, resolve its owning/closing Issue or Issues. Apply business prioritization to the owning Issue; keep the Pull Request's own Status and Workstream lifecycle under the canonical Pull Request Project Item workflow.
-3. Read the owning Issue's latest durable priority/work-control evidence needed to preserve current authoritative state.
-4. Resolve the applicable Project `Workstream` from explicit verified evidence. When a managed work-control snapshot exists, use its verified Workstream rather than inferring from topic or `Scope:` text.
-5. If no explicit/verified Workstream is available, fail closed for ranked queue placement. Do not infer Workstream from title, body, branch, labels, Issue type, repository path, or semantic/free-text context.
-6. Determine or accept the requested priority/order under `00-Management/PRIORITIZATION.md`.
-7. Write one bounded authorized `<!-- jagports-project-sync -->` record on the owning Issue. When Project Rank is set, the record must explicitly include `Workstream: AI OS` or `Workstream: VIEPS`.
-8. Treat `Scope:` as descriptive review context only; it never substitutes for `Workstream:`.
-9. Wait for the existing bounded work-control automation to complete, then verify the same Issue's managed snapshot/read-back evidence.
-10. Report successful business prioritization only when the requested owning-Issue fields are independently verified. Do not create a separate PR Priority/Rank.
+1. Resolve and validate whether the target is an Issue or Pull Request.
+2. For an Issue, prioritize that Issue itself using native `Priority`, Project `Rank`, Project `Urgency`, `Workstream`, and `Status`.
+3. For a Pull Request, prioritize that Pull Request itself using Project `PR Priority`, `PR Rank`, `PR Urgency`, `Workstream`, and `Status`.
+4. For a PR, resolve owning/closing Issue evidence when available only as verified baseline/context. Do not overwrite Issue Priority/Rank/Urgency unless the Issue itself is separately targeted or due for reassessment.
+5. Resolve the applicable `Workstream` from durable verified evidence; never guess from free text/topic.
+6. Determine or accept Priority, Rank, and Urgency under `00-Management/PRIORITIZATION.md`.
+7. For an Issue, write one bounded authorized Issue work-control record and verify the resulting Issue fields/snapshot.
+8. For a Pull Request, write one bounded authorized PR work-control record and verify `PR Priority`, `PR Rank`, `PR Urgency`, `Workstream`, and `Status`.
+9. If Workstream is unresolved, Priority/Urgency may still be synchronized, but Rank remains `none`.
+10. Report success only after the target record's authoritative values are independently read back and verified.
 
 Execution sequence:
 
-`resolve work records → map PR references to owning Issues → obtain explicit/verified Workstream → calculate/accept priority order → write bounded Issue project-sync record including Workstream → verify resulting Issue snapshot → report only verified result`
+`resolve target → classify Issue/PR → calculate/accept Priority + Urgency + Rank → synchronize only that target → independently verify → report`
 
-The short `@priorize <numbers>` form is sufficient for both Issues and Pull Requests. A Pull Request number is only an entry point to its owning/closing Issue prioritization; it does not create a second PR priority model.
+The short `@priorize <numbers>` form is sufficient for both Issues and Pull Requests. It prioritizes every referenced record directly according to its record type.
 
-### Automatic request when a Pull Request opens
+### Automatic prioritization on open
 
-`.github/workflows/request-pr-prioritization-on-open.yml` runs only on `pull_request_target: opened` and records exactly one durable `@priorize <PR-number>` request on the newly opened Pull Request.
-
-That Action does **not** calculate Priority, create Project fields, mutate ProjectV2, or introduce PR-specific Priority/Rank storage. It only invokes the already-defined `@priorize` execution contract. The executor that handles the request must follow the sequence above and therefore map the PR to its owning/closing Issue.
+- Issue open automatically invokes the same initial prioritization behavior as `@priorize <Issue-number>`.
+- Pull Request open automatically invokes the same initial prioritization behavior as `@priorize <PR-number>`.
+- Both automatic paths are bounded to the newly opened record and do not bulk-score the existing backlog.
+- The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers, not separate prioritization models.
 
 
 ---
