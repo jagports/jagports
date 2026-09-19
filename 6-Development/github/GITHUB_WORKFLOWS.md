@@ -59,13 +59,13 @@ Issues and Pull Requests are separate prioritized work records.
 For each supplied number:
 
 1. Resolve and validate whether the target is an Issue or Pull Request.
-2. For an Issue, prioritize that Issue itself using native `Priority`, Project `Rank`, `Workstream`, and `Status`.
-3. For a Pull Request, prioritize that Pull Request itself using Project `PR Priority`, `PR Rank`, `Workstream`, and `Status`.
+2. For an Issue, prioritize that Issue itself using native Issue `Priority` plus Project Item `Rank`, `Urgency`, `Workstream`, and `Status`.
+3. For a Pull Request, prioritize that Pull Request itself using Project Item `PR Priority`, `PR Rank`, `PR Urgency`, `Workstream`, and `Status`.
 4. For a PR, resolve owning/closing Issue evidence when available only as verified baseline/context. Do not overwrite Issue Priority/Rank unless the Issue itself is separately targeted or due for reassessment.
 5. Resolve the applicable `Workstream` from durable verified evidence; never guess from free text/topic.
 6. Determine or accept Priority and Rank under `00-Management/PRIORITIZATION.md`.
 7. For an Issue, write one bounded authorized Issue work-control record and verify the resulting Issue fields/snapshot.
-8. For a Pull Request, write one bounded authorized PR work-control record and verify `PR Priority`, `PR Rank`, `Workstream`, and `Status`.
+8. For a Pull Request, write one bounded authorized PR work-control record and verify `PR Priority`, `PR Rank`, `PR Urgency`, `Workstream`, and `Status`.
 9. If Workstream is unresolved, Priority may still be synchronized, but Rank remains `none`.
 10. Report success only after the target record's authoritative values are independently read back and verified.
 
