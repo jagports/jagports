@@ -98,6 +98,7 @@ When substantive work begins, transition from `BACKLOG` to `RESEARCH` unless ano
 Both Issue and Pull Request Project Items expose the same authoritative prioritization concepts:
 
 - **Priority**
+- **Band**
 - **Rank**
 - **Workstream**
 - **Status**
@@ -107,6 +108,7 @@ Their physical GitHub storage is:
 **Issue Project Item**
 
 - native Issue `Priority`;
+- Project `Band` (`P0`...`P5`);
 - Project `Rank`;
 - Project `Workstream`;
 - Project `Status`.
@@ -114,13 +116,14 @@ Their physical GitHub storage is:
 **Pull Request Project Item**
 
 - Project `PR Priority` (`Urgent`, `High`, `Medium`, `Low`) — storage for the PR's authoritative Priority concept;
+- Project `Band` (`P0`...`P5`);
 - Project `PR Rank`;
 - Project `Workstream`;
 - Project `Status`.
 
 The `PR ` prefix is an implementation/storage distinction required to avoid collision with native Issue Priority/Issue queue fields; it does not define a different semantic model. GitHub native Issue fields are unavailable on Pull Requests.
 
-Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Workstream only when the evidence is unambiguous. The PR remains independently reprioritizable afterwards.
+`Band` is one shared Project field used for both Issue and PR Project Items so Kanban can show the P0...P5 classification directly. Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Workstream only when the evidence is unambiguous. The PR remains independently reprioritizable afterwards.
 
 
 ### Pull Request Project Item lifecycle
