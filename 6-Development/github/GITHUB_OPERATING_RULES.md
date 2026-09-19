@@ -102,7 +102,7 @@ Do not create duplicate Issues when an existing open or historically completed r
 
 ### 2.3 Priority, Rank and Status ownership
 
-Priority is assessed automatically for every newly opened Issue and Pull Request. Issues retain business/work Priority and Issue Rank; Pull Requests receive independent review/integration `PR Priority` and `PR Rank` on their Project Items. Capable repository automation may inherit verified owning-Issue Priority and Workstream into a PR Project Item as an initial baseline; the current ChatGPT/GitHub connection must not read or claim Project Item state itself. Later PR prioritization may diverge without overwriting Issue priority/order. Outside these open-event assessments and other explicitly authorized prioritization paths, Priority is optional and may be requested by the requester, a human, or the Product Owner.
+Priority is assessed automatically for every newly opened Issue. When a Pull Request opens, repository automation records an `@priorize <PR-number>` request that uses the existing PR-entry-point semantics: resolve the owning/closing Issue and apply business Priority/Rank there. Pull Requests do not gain a separate competing Priority/Rank model. Outside these open-event assessments and other explicitly authorized prioritization paths, Priority is optional and may be requested by the requester, a human, or the Product Owner.
 
 When priority is in use:
 
@@ -123,8 +123,8 @@ The Product Owner has final authority over priority and queue order.
 The opening of a new GitHub work record is a prioritization trigger:
 
 - **Issue opened** → run an initial priority assessment on that Issue under `../../00-Management/PRIORITIZATION.md`.
-- **Pull Request opened** → run an initial priority assessment for the Pull Request Project Item itself. Resolve owning/closing Issue evidence when available and use it only as an initial PR baseline; refresh the owning Issue only when its own evidence materially changed.
-- Pull Request Project Items use `PR Priority` and `PR Rank`; these fields are independent from the owning Issue's native `Priority` and Issue `Rank`.
+- **Pull Request opened** → `.github/workflows/request-pr-prioritization-on-open.yml` records one durable `@priorize <PR-number>` request on that PR. Execution then follows the existing `@priorize` rule by resolving the owning/closing Issue and applying business Priority/Rank there.
+- Do not create or maintain separate PR Priority/Rank fields as part of this automatic-open behavior. Pull Request Project Items remain lifecycle/Workstream records under `Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 - Do not infer the owning Issue from title/body heuristics when no durable closing/ownership relationship exists.
 - If Project `Workstream` is missing or unverified, the prioritization operation must first attempt to classify it from durable authoritative evidence.
 - Valid classification evidence is limited to an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
@@ -140,7 +140,7 @@ The resulting priority record remains evidence subject to the normal synchroniza
 
 `@priorize <numbers>` is GitHub execution shorthand for applying the priority semantics defined by `../../00-Management/PRIORITIZATION.md`; it does not create a separate prioritization model.
 
-Issue business Priority and Issue Rank belong to the Issue. Pull Request review/integration priority belongs to the Pull Request Project Item as `PR Priority` and `PR Rank`. If an `@priorize` request includes a Pull Request number, prioritize that Pull Request directly; resolve its owning/closing Issue only for verified baseline/context and Workstream inheritance. Do not overwrite the owning Issue's Priority/Rank unless the Issue itself is also explicitly or automatically due for reassessment.
+Business Priority and Project Rank belong to the owning Issue. If an `@priorize` request includes a Pull Request number, resolve its owning/closing Issue and apply the business prioritization there rather than creating a competing PR Priority/Rank. Keep the Pull Request's own Project lifecycle and Workstream handling under `Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 
 When a prioritization operation synchronizes an Issue Project `Rank`, the authorized `<!-- jagports-project-sync -->` record must also explicitly include the applicable canonical Project `Workstream`:
 
