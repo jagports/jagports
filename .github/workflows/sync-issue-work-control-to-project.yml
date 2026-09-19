@@ -155,7 +155,7 @@ jobs:
             RANK="none"
           fi
           if [ "$SNAPSHOT_ONLY" = "false" ] && [ -z "$STATUS" ] && [ -z "$PRIORITY" ] && [ -z "$RANK" ] && [ -z "$WORKSTREAM" ]; then
-            echo "No Status, Priority, Rank or Workstream value was supplied."
+            echo "No Status, Band, Rank or Workstream value was supplied."
             false
           fi
 
