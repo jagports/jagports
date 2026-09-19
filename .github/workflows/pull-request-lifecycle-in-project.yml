@@ -22,6 +22,9 @@ env:
   PROJECT_NUMBER: "9"
   PROJECT_TITLE: Jagports AI OS
   WORKSTREAM_FIELD_NAME: Workstream
+  PR_PRIORITY_FIELD_NAME: PR Priority
+  PR_RANK_FIELD_NAME: PR Rank
+  PR_URGENCY_FIELD_NAME: PR Urgency
 
 jobs:
   sync-pr-lifecycle:
@@ -56,17 +59,49 @@ jobs:
           OWNER="${REPOSITORY%%/*}"
           NAME="${REPOSITORY##*/}"
 
-          PROJECT_QUERY='query($org:String!, $number:Int!) { organization(login:$org) { projectV2(number:$number) { id title fields(first:100) { nodes { __typename ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }'
+          PROJECT_QUERY='query($org:String!, $number:Int!) { organization(login:$org) { projectV2(number:$number) { id title fields(first:100) { nodes { __typename ... on ProjectV2Field { id name dataType } ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }'
           project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
           project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
           project_title="$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")"
           [ -n "$project_id" ] || { echo "Project was not found."; false; }
           [ "$project_title" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title: $project_title"; false; }
 
+          refresh_project() {
+            project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+          }
+
+          pr_priority_fields="$(jq --arg name "$PR_PRIORITY_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
+          if [ "$(jq 'length' <<<"$pr_priority_fields")" -eq 0 ]; then
+            CREATE_PR_PRIORITY_FIELD='mutation($project:ID!, $name:String!) { createProjectV2Field(input:{projectId:$project,name:$name,dataType:SINGLE_SELECT,singleSelectOptions:[{name:"Urgent",color:RED,description:"Immediate PR review/integration priority"},{name:"High",color:ORANGE,description:"High PR review/integration priority"},{name:"Medium",color:YELLOW,description:"Medium PR review/integration priority"},{name:"Low",color:GRAY,description:"Low PR review/integration priority"}]}) { projectV2Field { ... on ProjectV2SingleSelectField { id name } } } }'
+            gh api graphql -f query="$CREATE_PR_PRIORITY_FIELD" -F project="$project_id" -f name="$PR_PRIORITY_FIELD_NAME" >/dev/null
+            refresh_project
+          fi
+
+          pr_rank_fields="$(jq --arg name "$PR_RANK_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field" and .dataType == "NUMBER")]' <<<"$project_json")"
+          pr_urgency_fields="$(jq --arg name "$PR_URGENCY_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field" and .dataType == "NUMBER")]' <<<"$project_json")"
+          if [ "$(jq 'length' <<<"$pr_rank_fields")" -eq 0 ]; then
+            CREATE_PR_RANK_FIELD='mutation($project:ID!, $name:String!) { createProjectV2Field(input:{projectId:$project,name:$name,dataType:NUMBER}) { projectV2Field { ... on ProjectV2Field { id name dataType } } } }'
+            gh api graphql -f query="$CREATE_PR_RANK_FIELD" -F project="$project_id" -f name="$PR_RANK_FIELD_NAME" >/dev/null
+            refresh_project
+          fi
+
+          pr_urgency_fields="$(jq --arg name "$PR_URGENCY_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field" and .dataType == "NUMBER")]' <<<"$project_json")"
+          if [ "$(jq 'length' <<<"$pr_urgency_fields")" -eq 0 ]; then
+            CREATE_PR_URGENCY_FIELD='mutation($project:ID!, $name:String!) { createProjectV2Field(input:{projectId:$project,name:$name,dataType:NUMBER}) { projectV2Field { ... on ProjectV2Field { id name dataType } } } }'
+            gh api graphql -f query="$CREATE_PR_URGENCY_FIELD" -F project="$project_id" -f name="$PR_URGENCY_FIELD_NAME" >/dev/null
+            refresh_project
+          fi
+
           status_fields="$(jq '[.data.organization.projectV2.fields.nodes[]? | select(.name == "Status" and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
           workstream_fields="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
+          pr_priority_fields="$(jq --arg name "$PR_PRIORITY_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
+          pr_rank_fields="$(jq --arg name "$PR_RANK_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field" and .dataType == "NUMBER")]' <<<"$project_json")"
           [ "$(jq 'length' <<<"$status_fields")" -eq 1 ] || { echo "Expected exactly one Status field."; false; }
           [ "$(jq 'length' <<<"$workstream_fields")" -eq 1 ] || { echo "Expected exactly one Workstream field."; false; }
+          [ "$(jq 'length' <<<"$pr_priority_fields")" -eq 1 ] || { echo "Expected exactly one PR Priority field."; false; }
+          [ "$(jq 'length' <<<"$pr_rank_fields")" -eq 1 ] || { echo "Expected exactly one numeric PR Rank field."; false; }
+          [ "$(jq 'length' <<<"$pr_urgency_fields")" -eq 1 ] || { echo "Expected exactly one numeric PR Urgency field."; false; }
+          [ "$(jq -c '[.[0].options[]?.name] | sort' <<<"$pr_priority_fields")" = '["High","Low","Medium","Urgent"]' ] || { echo "PR Priority options must be exactly Urgent, High, Medium, Low."; false; }
           [ "$(jq -c '[.[0].options[]?.name] | sort' <<<"$workstream_fields")" = '["AI OS","VIEPS"]' ] || { echo "Workstream options must be exactly AI OS and VIEPS."; false; }
 
           PR_QUERY='
@@ -82,11 +117,15 @@ jobs:
                 projectItems(first:50) {
                   nodes {
                     id
+                    fullDatabaseId
                     isArchived
                     project { id title number }
                     content { ... on PullRequest { id number } }
                     statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } }
                     workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } }
+                    prPriorityValue: fieldValueByName(name:"PR Priority") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } }
+                    prRankValue: fieldValueByName(name:"PR Rank") { ... on ProjectV2ItemFieldNumberValue { number } }
+                    prUrgencyValue: fieldValueByName(name:"PR Urgency") { ... on ProjectV2ItemFieldNumberValue { number } }
                   }
                 }
                 closingIssuesReferences(first:50) {
@@ -94,12 +133,22 @@ jobs:
                     id
                     number
                     repository { nameWithOwner }
+                    issueFieldValues(first:50) {
+                      nodes {
+                        __typename
+                        ... on IssueFieldSingleSelectValue {
+                          name
+                          field { ... on IssueFieldSingleSelect { name } }
+                        }
+                      }
+                    }
                     projectItems(first:20) {
                       nodes {
                         id
                         isArchived
                         project { id }
                         workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
+                        urgencyValue: fieldValueByName(name:"Urgency") { ... on ProjectV2ItemFieldNumberValue { number } }
                       }
                     }
                   }
@@ -152,14 +201,51 @@ jobs:
             esac
           fi
 
+          inherited_priority_values="$(jq -r --arg repo "$REPOSITORY" '
+            .data.repository.pullRequest.closingIssuesReferences.nodes[]?
+            | select(.repository.nameWithOwner == $repo)
+            | [.issueFieldValues.nodes[]? | select(.__typename == "IssueFieldSingleSelectValue" and .field.name == "Priority") | .name]
+            | if length == 1 then .[0] else "" end
+          ' <<<"$pr_json")"
+          inherited_priority_count="$(printf '%s\n' "$inherited_priority_values" | sed '/^$/d' | wc -l | tr -d ' ')"
+          unique_inherited_priorities="$(printf '%s\n' "$inherited_priority_values" | sed '/^$/d' | sort -u)"
+          unique_inherited_priority_count="$(printf '%s\n' "$unique_inherited_priorities" | sed '/^$/d' | wc -l | tr -d ' ')"
+          TARGET_PR_PRIORITY=""
+          if [ "$same_repo_issue_count" -gt 0 ] && [ "$inherited_priority_count" -eq "$same_repo_issue_count" ] && [ "$unique_inherited_priority_count" -eq 1 ]; then
+            inherited_priority="$(printf '%s\n' "$unique_inherited_priorities" | head -n1)"
+            case "$inherited_priority" in
+              Urgent|High|Medium|Low) TARGET_PR_PRIORITY="$inherited_priority" ;;
+              *) TARGET_PR_PRIORITY="" ;;
+            esac
+          fi
+
+          TARGET_PR_URGENCY="0"
+          inherited_urgency_values="$(jq -r --arg repo "$REPOSITORY" --arg project "$project_id" '
+            .data.repository.pullRequest.closingIssuesReferences.nodes[]?
+            | select(.repository.nameWithOwner == $repo)
+            | [.projectItems.nodes[]? | select(.project.id == $project and .isArchived == false) | .urgencyValue.number]
+            | if length == 1 and .[0] != null then (.[0] | tostring) else "" end
+          ' <<<"$pr_json")"
+          inherited_urgency_count="$(printf '%s\n' "$inherited_urgency_values" | sed '/^$/d' | wc -l | tr -d ' ')"
+          unique_inherited_urgencies="$(printf '%s\n' "$inherited_urgency_values" | sed '/^$/d' | sort -u)"
+          unique_inherited_urgency_count="$(printf '%s\n' "$unique_inherited_urgencies" | sed '/^$/d' | wc -l | tr -d ' ')"
+          if [ "$same_repo_issue_count" -gt 0 ] && [ "$inherited_urgency_count" -eq "$same_repo_issue_count" ] && [ "$unique_inherited_urgency_count" -eq 1 ]; then
+            inherited_urgency="$(printf '%s\n' "$unique_inherited_urgencies" | head -n1)"
+            if jq -e --argjson value "$inherited_urgency" '$value >= 0 and $value <= 5 and ($value|floor) == $value' >/dev/null 2>&1; then
+              TARGET_PR_URGENCY="$inherited_urgency"
+            fi
+          fi
+
           project_items="$(jq -c --arg project "$project_id" --arg pr "$PR_NODE_ID" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
           [ "$(jq 'length' <<<"$project_items")" -le 1 ] || { echo "Multiple Project items exist for PR #$PR_NUMBER."; false; }
           item_id="$(jq -r 'if length == 1 then .[0].id else empty end' <<<"$project_items")"
           item_archived="$(jq -r 'if length == 1 then .[0].isArchived else false end' <<<"$project_items")"
+          existing_pr_priority="$(jq -r 'if length == 1 then (.[0].prPriorityValue.name // empty) else empty end' <<<"$project_items")"
+          existing_pr_urgency="$(jq -r 'if length == 1 and .[0].prUrgencyValue.number != null then (.[0].prUrgencyValue.number|tostring) else empty end' <<<"$project_items")"
 
           ADD_ITEM='mutation($project:ID!, $pr:ID!) { addProjectV2ItemById(input:{projectId:$project,contentId:$pr}) { item { id } } }'
           UNARCHIVE_ITEM='mutation($project:ID!, $item:ID!) { unarchiveProjectV2Item(input:{projectId:$project,itemId:$item}) { item { id isArchived } } }'
-          VERIFY_ITEM='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id isArchived project { id title number } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } } } }'
+          VERIFY_ITEM='query($item:ID!) { node(id:$item) { ... on ProjectV2Item { id fullDatabaseId isArchived project { id title number } content { ... on PullRequest { id number } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } prPriorityValue: fieldValueByName(name:"PR Priority") { ... on ProjectV2ItemFieldSingleSelectValue { name optionId } } prRankValue: fieldValueByName(name:"PR Rank") { ... on ProjectV2ItemFieldNumberValue { number } } prUrgencyValue: fieldValueByName(name:"PR Urgency") { ... on ProjectV2ItemFieldNumberValue { number } } } } }'
 
           # Product Owner ruling: Pull Request Project Items must never be archived.
           # Recover any historical archived item before considering lifecycle state.
@@ -174,30 +260,18 @@ jobs:
           fi
 
           if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$TARGET_WORKSTREAM" ]; then
-            if [ -n "$item_id" ]; then
-              verify_unresolved="$(gh api graphql -f query="$VERIFY_ITEM" -F item="$item_id")"
-              [ "$(jq -r '.data.node.id // empty' <<<"$verify_unresolved")" = "$item_id" ] || { echo "Unresolved-Workstream verification failed: item mismatch."; false; }
-              [ "$(jq -r '.data.node.project.id // empty' <<<"$verify_unresolved")" = "$project_id" ] || { echo "Unresolved-Workstream verification failed: Project mismatch."; false; }
-              [ "$(jq -r '.data.node.content.id // empty' <<<"$verify_unresolved")" = "$PR_NODE_ID" ] || { echo "Unresolved-Workstream verification failed: PR mismatch."; false; }
-              [ "$(jq -r '.data.node.isArchived' <<<"$verify_unresolved")" = "false" ] || { echo "Unresolved-Workstream PR Project Item is archived."; false; }
-              echo "PASS: PR #$PR_NUMBER has no single verified owning Workstream; existing Project Item remains unarchived and no Workstream was guessed."
-            else
-              echo "PASS: PR #$PR_NUMBER has no single verified owning Workstream; no Project Item was created and no Workstream was guessed."
-            fi
-            trap - ERR
-            exit 0
+            echo "PR #$PR_NUMBER has no single verified owning Workstream; Project Item will remain unassigned rather than guessing."
           fi
 
           if [ -z "$item_id" ]; then
-            if [ "$TARGET_STATUS" != "DONE" ]; then
-              [ -n "$TARGET_WORKSTREAM" ] || { echo "Cannot create active PR Project Item without a verified Workstream."; false; }
-            fi
             gh api graphql -f query="$ADD_ITEM" -F project="$project_id" -F pr="$PR_NODE_ID" >/dev/null
             pr_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
             project_items="$(jq -c --arg project "$project_id" --arg pr "$PR_NODE_ID" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
             [ "$(jq 'length' <<<"$project_items")" -eq 1 ] || { echo "PR Project Item could not be resolved after creation."; false; }
             item_id="$(jq -r '.[0].id' <<<"$project_items")"
             item_archived="$(jq -r '.[0].isArchived' <<<"$project_items")"
+            existing_pr_priority="$(jq -r '.[0].prPriorityValue.name // empty' <<<"$project_items")"
+            existing_pr_urgency="$(jq -r 'if .[0].prUrgencyValue.number != null then (.[0].prUrgencyValue.number|tostring) else empty end' <<<"$project_items")"
           fi
 
           [ "$item_archived" = "false" ] || { echo "PR Project Item is archived; current Product Owner rule requires every PR Project Item to remain unarchived."; false; }
@@ -209,7 +283,20 @@ jobs:
           workstream_field_id="$(jq -r '.[0].id' <<<"$workstream_fields")"
 
           SET_SINGLE_SELECT='mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{singleSelectOptionId:$option}}) { projectV2Item { id } } }'
+          SET_NUMBER='mutation($project:ID!, $item:ID!, $field:ID!, $number:Float!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{number:$number}}) { projectV2Item { id } } }'
           gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$status_field_id" -F option="$status_option_id" >/dev/null
+
+          if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$existing_pr_priority" ] && [ -n "$TARGET_PR_PRIORITY" ]; then
+            pr_priority_field_id="$(jq -r '.[0].id' <<<"$pr_priority_fields")"
+            pr_priority_option_id="$(jq -r --arg value "$TARGET_PR_PRIORITY" '.[0].options[]? | select(.name == $value) | .id' <<<"$pr_priority_fields")"
+            [ -n "$pr_priority_option_id" ] || { echo "PR Priority option '$TARGET_PR_PRIORITY' was not resolved."; false; }
+            gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$pr_priority_field_id" -F option="$pr_priority_option_id" >/dev/null
+          fi
+
+          if [ -z "$existing_pr_urgency" ]; then
+            pr_urgency_field_id="$(jq -r '.[0].id' <<<"$pr_urgency_fields")"
+            gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$pr_urgency_field_id" -F number="$TARGET_PR_URGENCY" >/dev/null
+          fi
 
           if [ -n "$TARGET_WORKSTREAM" ]; then
             workstream_option_id="$(jq -r --arg value "$TARGET_WORKSTREAM" '.[0].options[]? | select(.name == $value) | .id' <<<"$workstream_fields")"
@@ -228,10 +315,25 @@ jobs:
           if [ -n "$TARGET_WORKSTREAM" ]; then
             [ "$(jq -r '.data.node.workstreamValue.name // empty' <<<"$verify_json")" = "$TARGET_WORKSTREAM" ] || { echo "Verification failed: Workstream mismatch."; false; }
           fi
+          if [ -z "$existing_pr_urgency" ]; then
+            [ "$(jq -r '.data.node.prUrgencyValue.number // empty | tostring' <<<"$verify_json")" = "$TARGET_PR_URGENCY" ] || { echo "Verification failed: initial PR Urgency mismatch."; false; }
+          fi
+          if [ "$TARGET_STATUS" != "DONE" ] && [ -z "$existing_pr_priority" ] && [ -n "$TARGET_PR_PRIORITY" ]; then
+            [ "$(jq -r '.data.node.prPriorityValue.name // empty' <<<"$verify_json")" = "$TARGET_PR_PRIORITY" ] || { echo "Verification failed: initial PR Priority mismatch."; false; }
+          fi
+
+          item_database_id="$(jq -r '.data.node.fullDatabaseId // empty' <<<"$verify_json")"
+          [ -n "$item_database_id" ] || { echo "PR Project Item fullDatabaseId was not resolved."; false; }
+          project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
+
+          if [ -z "$TARGET_WORKSTREAM" ] && [ "$TARGET_STATUS" != "DONE" ]; then
+            GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$(printf 'PR #%s prioritization requires Workstream classification. No Workstream was guessed.\n\nProject item: %s' "$PR_NUMBER" "$project_item_url")" >/dev/null
+          fi
 
           if [ "$TARGET_STATUS" = "DONE" ]; then
             echo "PASS: PR #$PR_NUMBER reached terminal DONE and remains unarchived (merged=$merged)."
           else
-            echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $TARGET_WORKSTREAM; Project Item remains unarchived."
+            display_workstream="${TARGET_WORKSTREAM:-Unassigned}"
+            echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $display_workstream; Project Item remains unarchived at $project_item_url."
           fi
           trap - ERR
