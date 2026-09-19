@@ -87,21 +87,51 @@ Current configured value:
 PRODUCT_OWNER_GITHUB=tlindi
 ```
 
-Configure it in GitHub:
+Configure it with GitHub CLI (`gh`). The repository Actions variable can be created or updated directly from the command line.
 
-```text
-Repository
-→ Settings
-→ Secrets and variables
-→ Actions
-→ Variables
-→ New repository variable
+First verify which GitHub account is active:
+
+```powershell
+gh auth status --active --hostname github.com
 ```
 
-Create:
+Then perform a repository-permission preflight:
 
-- Name: `PRODUCT_OWNER_GITHUB`
-- Value: the Product Owner's GitHub login without the leading `@` (currently `tlindi`).
+```powershell
+gh api graphql -f query='query { viewer { login } repository(owner:"jagports", name:"jagports") { viewerPermission } }' --jq '.data | "login=\(.viewer.login) repositoryPermission=\(.repository.viewerPermission)"'
+```
+
+The result must identify the intended account and a repository permission level sufficient to administer this repository configuration. For the normal Product Owner setup this should be `ADMIN`.
+
+This permission preflight is intentionally non-mutating. GitHub does not provide a dry-run endpoint that proves Actions-variable **write** permission without attempting a write, and fine-grained tokens can further restrict repository-variable access. Therefore the definitive permission check is the actual `gh variable set` command followed by read-back verification.
+
+Create or update the repository variable:
+
+```powershell
+gh variable set PRODUCT_OWNER_GITHUB --body "tlindi" --repo jagports/jagports
+```
+
+Verify the persisted value:
+
+```powershell
+gh variable get PRODUCT_OWNER_GITHUB --repo jagports/jagports
+```
+
+Expected value:
+
+```text
+tlindi
+```
+
+Optionally list all repository variables:
+
+```powershell
+gh variable list --repo jagports/jagports
+```
+
+If `gh variable set` fails with a permission error, do not claim the configuration exists. Correct the active GitHub identity/token permissions first, then rerun the set and read-back commands.
+
+The variable value is the Product Owner's GitHub login without the leading `@` (currently `tlindi`).
 
 Workflows read it as:
 
