@@ -141,7 +141,7 @@ Consequences of this ruling:
 
 The Pull Request Project Item follows these deterministic rules:
 
-1. **Opened** → add the Pull Request itself to the Project and set its Project Item Status to `IMPLEMENTATION`, whether draft or non-draft. If Workstream is deterministically inherited/classified, set and verify it. Otherwise keep Workstream unassigned without guessing; the Project Item remains available for direct human correction and later prioritization.
+1. **Opened** → add the Pull Request itself to the Project and set its Project Item Status to `IMPLEMENTATION`, whether draft or non-draft. If Workstream is deterministically inherited/classified, set and verify it. Otherwise keep Workstream unassigned without guessing and create a durable human-facing notification containing the direct Project Item link so a human can immediately set `AI OS` or `VIEPS`; later prioritization may then rank it.
 2. **Converted to draft** → set the Pull Request Project Item Status to `IMPLEMENTATION`. Draft state is evidence that the integration artifact is not currently at the independent-review boundary; it does not move repository work backwards to `RESEARCH`.
 3. **Marked ready for review / opened non-draft** → being non-draft is a prerequisite for review but does not by itself establish `REVIEW`. Keep `IMPLEMENTATION` until the canonical review hand-off in `00-Management/WORKFLOWS.md` has been completed and verified.
 4. **Independent review requested** → after the PR is open, non-draft, the authorized independent reviewer has been selected, and the native GitHub review request has been made, set the Pull Request Project Item Status to `REVIEW`, verify it, and stop implementation at the canonical review boundary.
