@@ -1,0 +1,226 @@
+name: Sync Pull Request Work Control to Project
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+  PROJECT_TITLE: Jagports AI OS
+  PR_PRIORITY_FIELD_NAME: PR Priority
+  PR_RANK_FIELD_NAME: PR Rank
+  WORKSTREAM_FIELD_NAME: Workstream
+  SNAPSHOT_MARKER: "<!-- jagports-pr-work-control-snapshot -->"
+
+jobs:
+  sync-pr-work-control:
+    if: >-
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '<!-- jagports-pr-project-sync -->')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Synchronize and verify one Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          COMMENT_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          case "$COMMENT_AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR) ;;
+            *) echo "Ignoring PR work-control command from untrusted association '$COMMENT_AUTHOR_ASSOCIATION'."; exit 0 ;;
+          esac
+
+          printf '%s\n' "$COMMENT_BODY" | tr -d '\r' | grep -Fxq '<!-- jagports-pr-project-sync -->' || {
+            echo "No standalone PR work-control marker; nothing to do."
+            exit 0
+          }
+
+          extract_field() {
+            field="$1"
+            printf '%s\n' "$COMMENT_BODY" | sed -n "s/^${field}:[[:space:]]*//p" | tail -n1 | tr -d '\r'
+          }
+
+          BAND="$(extract_field 'Band')"
+          PR_PRIORITY="$(extract_field 'PR Priority')"
+          PR_RANK="$(extract_field 'PR Rank')"
+          WORKSTREAM="$(extract_field 'Workstream')"
+
+          if [ -z "$PR_PRIORITY" ] && [ -n "$BAND" ]; then
+            case "$BAND" in
+              P0) PR_PRIORITY="Urgent" ;;
+              P1) PR_PRIORITY="High" ;;
+              P2) PR_PRIORITY="Medium" ;;
+              P3|P4) PR_PRIORITY="Low" ;;
+              P5) PR_PRIORITY="none"; PR_RANK="none" ;;
+              *) echo "Invalid Band '$BAND'."; false ;;
+            esac
+          fi
+
+          case "$PR_PRIORITY" in
+            ""|Urgent|High|Medium|Low|none) ;;
+            *) echo "PR Priority must be Urgent, High, Medium, Low, or none."; false ;;
+          esac
+          if [ -n "$PR_RANK" ] && [ "$PR_RANK" != "none" ] && ! [[ "$PR_RANK" =~ ^[1-9][0-9]*$ ]]; then
+            echo "PR Rank must be a positive integer or none."
+            false
+          fi
+          case "$WORKSTREAM" in
+            ""|"AI OS"|VIEPS) ;;
+            *) echo "Workstream must be exactly AI OS or VIEPS."; false ;;
+          esac
+          if [ -n "$PR_RANK" ] && [ "$PR_RANK" != "none" ] && [ -z "$WORKSTREAM" ]; then
+            echo "Numeric PR Rank requires an explicit verified Workstream."
+            false
+          fi
+          if [ -z "$PR_PRIORITY" ] && [ -z "$PR_RANK" ] && [ -z "$WORKSTREAM" ]; then
+            echo "No PR Priority, PR Rank, or Workstream value was supplied."
+            false
+          fi
+
+          [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+          OWNER="${REPOSITORY%%/*}"
+          NAME="${REPOSITORY##*/}"
+
+          report_failure() {
+            status=$?
+            GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments"               -f body="Pull Request work-control automation **FAILED** for PR #$PR_NUMBER. Requested PR Priority/Rank/Workstream state was not independently verified. Inspect this workflow run for the exact failure." >/dev/null || true
+            exit "$status"
+          }
+          trap report_failure ERR
+
+          PROJECT_QUERY='query($org:String!, $number:Int!) { organization(login:$org) { projectV2(number:$number) { id title fields(first:100) { nodes { __typename ... on ProjectV2Field { id name dataType } ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }'
+          refresh_project() {
+            project_json="$(gh api graphql -f query="$PROJECT_QUERY" -F org="$PROJECT_ORG" -F number="$PROJECT_NUMBER")"
+            project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$project_json")"
+            [ -n "$project_id" ] || { echo "Project was not found."; false; }
+            [ "$(jq -r '.data.organization.projectV2.title // empty' <<<"$project_json")" = "$PROJECT_TITLE" ] || { echo "Unexpected Project title."; false; }
+          }
+          refresh_project
+
+          pr_priority_fields="$(jq --arg name "$PR_PRIORITY_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
+          if [ "$(jq 'length' <<<"$pr_priority_fields")" -eq 0 ]; then
+            CREATE_PR_PRIORITY_FIELD='mutation($project:ID!, $name:String!) { createProjectV2Field(input:{projectId:$project,name:$name,dataType:SINGLE_SELECT,singleSelectOptions:[{name:"Urgent",color:RED,description:"Immediate PR review/integration priority"},{name:"High",color:ORANGE,description:"High PR review/integration priority"},{name:"Medium",color:YELLOW,description:"Medium PR review/integration priority"},{name:"Low",color:GRAY,description:"Low PR review/integration priority"}]}) { projectV2Field { ... on ProjectV2SingleSelectField { id } } } }'
+            gh api graphql -f query="$CREATE_PR_PRIORITY_FIELD" -F project="$project_id" -f name="$PR_PRIORITY_FIELD_NAME" >/dev/null
+            refresh_project
+          fi
+
+          pr_rank_fields="$(jq --arg name "$PR_RANK_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field" and .dataType == "NUMBER")]' <<<"$project_json")"
+          if [ "$(jq 'length' <<<"$pr_rank_fields")" -eq 0 ]; then
+            CREATE_PR_RANK_FIELD='mutation($project:ID!, $name:String!) { createProjectV2Field(input:{projectId:$project,name:$name,dataType:NUMBER}) { projectV2Field { ... on ProjectV2Field { id } } } }'
+            gh api graphql -f query="$CREATE_PR_RANK_FIELD" -F project="$project_id" -f name="$PR_RANK_FIELD_NAME" >/dev/null
+            refresh_project
+          fi
+
+          pr_priority_fields="$(jq --arg name "$PR_PRIORITY_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
+          pr_rank_fields="$(jq --arg name "$PR_RANK_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2Field" and .dataType == "NUMBER")]' <<<"$project_json")"
+          workstream_fields="$(jq --arg name "$WORKSTREAM_FIELD_NAME" '[.data.organization.projectV2.fields.nodes[]? | select(.name == $name and .__typename == "ProjectV2SingleSelectField")]' <<<"$project_json")"
+          [ "$(jq 'length' <<<"$pr_priority_fields")" -eq 1 ] || { echo "Expected exactly one PR Priority field."; false; }
+          [ "$(jq 'length' <<<"$pr_rank_fields")" -eq 1 ] || { echo "Expected exactly one PR Rank field."; false; }
+          [ "$(jq 'length' <<<"$workstream_fields")" -eq 1 ] || { echo "Expected exactly one Workstream field."; false; }
+
+          PR_QUERY='query($owner:String!, $name:String!, $number:Int!) { repository(owner:$owner,name:$name) { pullRequest(number:$number) { id number state projectItems(first:50) { nodes { id fullDatabaseId isArchived project { id title number } content { ... on PullRequest { id number } } priorityValue: fieldValueByName(name:"PR Priority") { ... on ProjectV2ItemFieldSingleSelectValue { name } } rankValue: fieldValueByName(name:"PR Rank") { ... on ProjectV2ItemFieldNumberValue { number } } workstreamValue: fieldValueByName(name:"Workstream") { ... on ProjectV2ItemFieldSingleSelectValue { name } } statusValue: fieldValueByName(name:"Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } } } } } } }'
+          pr_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
+          pr_id="$(jq -r '.data.repository.pullRequest.id // empty' <<<"$pr_json")"
+          [ -n "$pr_id" ] || { echo "Pull Request #$PR_NUMBER was not found."; false; }
+
+          items="$(jq -c --arg project "$project_id" --arg pr "$pr_id" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
+          [ "$(jq 'length' <<<"$items")" -le 1 ] || { echo "Multiple Project items exist for PR #$PR_NUMBER."; false; }
+          item_id="$(jq -r 'if length == 1 then .[0].id else empty end' <<<"$items")"
+
+          if [ -z "$item_id" ]; then
+            ADD_ITEM='mutation($project:ID!, $pr:ID!) { addProjectV2ItemById(input:{projectId:$project,contentId:$pr}) { item { id } } }'
+            gh api graphql -f query="$ADD_ITEM" -F project="$project_id" -F pr="$pr_id" >/dev/null
+            pr_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
+            items="$(jq -c --arg project "$project_id" --arg pr "$pr_id" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$pr_json")"
+            [ "$(jq 'length' <<<"$items")" -eq 1 ] || { echo "PR Project Item could not be resolved after creation."; false; }
+            item_id="$(jq -r '.[0].id' <<<"$items")"
+          fi
+
+          SET_SINGLE_SELECT='mutation($project:ID!, $item:ID!, $field:ID!, $option:String!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{singleSelectOptionId:$option}}) { projectV2Item { id } } }'
+          SET_NUMBER='mutation($project:ID!, $item:ID!, $field:ID!, $number:Float!) { updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{number:$number}}) { projectV2Item { id } } }'
+          CLEAR_FIELD='mutation($project:ID!, $item:ID!, $field:ID!) { clearProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field}) { projectV2Item { id } } }'
+
+          if [ -n "$PR_PRIORITY" ]; then
+            field_id="$(jq -r '.[0].id' <<<"$pr_priority_fields")"
+            if [ "$PR_PRIORITY" = "none" ]; then
+              gh api graphql -f query="$CLEAR_FIELD" -F project="$project_id" -F item="$item_id" -F field="$field_id" >/dev/null
+            else
+              option_id="$(jq -r --arg value "$PR_PRIORITY" '.[0].options[]? | select(.name == $value) | .id' <<<"$pr_priority_fields")"
+              [ -n "$option_id" ] || { echo "PR Priority option '$PR_PRIORITY' was not found."; false; }
+              gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$field_id" -F option="$option_id" >/dev/null
+            fi
+          fi
+
+          if [ -n "$PR_RANK" ]; then
+            field_id="$(jq -r '.[0].id' <<<"$pr_rank_fields")"
+            if [ "$PR_RANK" = "none" ]; then
+              gh api graphql -f query="$CLEAR_FIELD" -F project="$project_id" -F item="$item_id" -F field="$field_id" >/dev/null
+            else
+              gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$field_id" -F number="$PR_RANK" >/dev/null
+            fi
+          fi
+
+          if [ -n "$WORKSTREAM" ]; then
+            field_id="$(jq -r '.[0].id' <<<"$workstream_fields")"
+            option_id="$(jq -r --arg value "$WORKSTREAM" '.[0].options[]? | select(.name == $value) | .id' <<<"$workstream_fields")"
+            [ -n "$option_id" ] || { echo "Workstream option '$WORKSTREAM' was not found."; false; }
+            gh api graphql -f query="$SET_SINGLE_SELECT" -F project="$project_id" -F item="$item_id" -F field="$field_id" -F option="$option_id" >/dev/null
+          fi
+
+          verify_json="$(gh api graphql -f query="$PR_QUERY" -f owner="$OWNER" -f name="$NAME" -F number="$PR_NUMBER")"
+          verify_item="$(jq -c --arg project "$project_id" --arg pr "$pr_id" '[.data.repository.pullRequest.projectItems.nodes[]? | select(.project.id == $project and .content.id == $pr)]' <<<"$verify_json")"
+          [ "$(jq 'length' <<<"$verify_item")" -eq 1 ] || { echo "Verification failed: PR Project Item not unique."; false; }
+          [ "$(jq -r '.[0].isArchived' <<<"$verify_item")" = "false" ] || { echo "Verification failed: PR Project Item is archived."; false; }
+
+          actual_priority="$(jq -r '.[0].priorityValue.name // "unset"' <<<"$verify_item")"
+          actual_rank="$(jq -r 'if .[0].rankValue.number == null then "none" elif (.[0].rankValue.number | floor) == .[0].rankValue.number then (.[0].rankValue.number | floor | tostring) else (.[0].rankValue.number | tostring) end' <<<"$verify_item")"
+          actual_workstream="$(jq -r '.[0].workstreamValue.name // "Unassigned"' <<<"$verify_item")"
+          actual_status="$(jq -r '.[0].statusValue.name // "unset"' <<<"$verify_item")"
+          item_database_id="$(jq -r '.[0].fullDatabaseId // empty' <<<"$verify_item")"
+          [ -n "$item_database_id" ] || { echo "Project Item fullDatabaseId was not resolved."; false; }
+          project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
+
+          if [ -n "$PR_PRIORITY" ]; then
+            expected_priority="$PR_PRIORITY"; [ "$expected_priority" = "none" ] && expected_priority="unset"
+            [ "$actual_priority" = "$expected_priority" ] || { echo "Verification failed: PR Priority is '$actual_priority', expected '$expected_priority'."; false; }
+          fi
+          if [ -n "$PR_RANK" ]; then [ "$actual_rank" = "$PR_RANK" ] || { echo "Verification failed: PR Rank is '$actual_rank', expected '$PR_RANK'."; false; }; fi
+          if [ -n "$WORKSTREAM" ]; then [ "$actual_workstream" = "$WORKSTREAM" ] || { echo "Verification failed: Workstream is '$actual_workstream', expected '$WORKSTREAM'."; false; }; fi
+
+          snapshot_body="$(printf '%s\n\n## PR work-control snapshot\n\n- PR Priority: %s\n- Project: %s (#%s)\n- Project item: %s\n- Workstream: %s\n- Status: %s\n- PR Rank: %s\n\nThis is a read-only agent bridge. Project fields remain authoritative.\n' "$SNAPSHOT_MARKER" "$actual_priority" "$PROJECT_TITLE" "$PROJECT_NUMBER" "$project_item_url" "$actual_workstream" "$actual_status" "$actual_rank")"
+
+          comments="$(GH_TOKEN="$COMMENT_TOKEN" gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
+          snapshot_ids="$(jq -r --arg marker "$SNAPSHOT_MARKER" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | .[]?' <<<"$comments")"
+          snapshot_count="$(printf '%s\n' "$snapshot_ids" | sed '/^$/d' | wc -l | tr -d ' ')"
+          [ "$snapshot_count" -le 1 ] || { echo "Multiple PR work-control snapshots exist."; false; }
+          snapshot_id="$(printf '%s\n' "$snapshot_ids" | sed '/^$/d' | head -n1)"
+          if [ -n "$snapshot_id" ]; then
+            GH_TOKEN="$COMMENT_TOKEN" gh api --method PATCH "repos/$REPOSITORY/issues/comments/$snapshot_id" -f body="$snapshot_body" >/dev/null
+          else
+            created="$(GH_TOKEN="$COMMENT_TOKEN" gh api --method POST "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$snapshot_body")"
+            snapshot_id="$(jq -r '.id // empty' <<<"$created")"
+          fi
+          [ -n "$snapshot_id" ] || { echo "PR snapshot comment ID missing."; false; }
+
+          verify_comment="$(GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/comments/$snapshot_id")"
+          verify_body="$(jq -r '.body // empty' <<<"$verify_comment")"
+          grep -Fxq "$SNAPSHOT_MARKER" <<<"$verify_body" || { echo "PR snapshot marker verification failed."; false; }
+          grep -Fxq -- "- PR Priority: $actual_priority" <<<"$verify_body" || { echo "PR Priority snapshot verification failed."; false; }
+          grep -Fxq -- "- Project item: $project_item_url" <<<"$verify_body" || { echo "Project item link snapshot verification failed."; false; }
+          grep -Fxq -- "- Workstream: $actual_workstream" <<<"$verify_body" || { echo "Workstream snapshot verification failed."; false; }
+          grep -Fxq -- "- PR Rank: $actual_rank" <<<"$verify_body" || { echo "PR Rank snapshot verification failed."; false; }
+
+          echo "PASS: PR #$PR_NUMBER work-control values and snapshot were independently verified."
+          trap - ERR
