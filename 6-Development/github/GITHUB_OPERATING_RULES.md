@@ -102,7 +102,7 @@ Do not create duplicate Issues when an existing open or historically completed r
 
 ### 2.3 Priority, Rank and Status ownership
 
-Priority is assessed automatically for every newly opened Issue. When a Pull Request opens, repository automation records an `@priorize <PR-number>` request that uses the existing PR-entry-point semantics: resolve the owning/closing Issue and apply business Priority/Rank there. Pull Requests do not gain a separate competing Priority/Rank model. Outside these open-event assessments and other explicitly authorized prioritization paths, Priority is optional and may be requested by the requester, a human, or the Product Owner.
+Priority is assessed automatically for every newly opened Issue and every newly opened Pull Request. Issues and Pull Requests are independently prioritized work records. Issues use native `Priority` plus Project `Rank` and `Urgency`; Pull Requests use Project `PR Priority`, `PR Rank`, and `PR Urgency`. Opening either record invokes the same prioritization semantics as explicit `@priorize` for that record.
 
 When priority is in use:
 
@@ -123,8 +123,8 @@ The Product Owner has final authority over priority and queue order.
 The opening of a new GitHub work record is a prioritization trigger:
 
 - **Issue opened** → run an initial priority assessment on that Issue under `../../00-Management/PRIORITIZATION.md`.
-- **Pull Request opened** → `.github/workflows/request-pr-prioritization-on-open.yml` records one durable `@priorize <PR-number>` request on that PR. Execution then follows the existing `@priorize` rule by resolving the owning/closing Issue and applying business Priority/Rank there.
-- Do not create or maintain separate PR Priority/Rank fields as part of this automatic-open behavior. Pull Request Project Items remain lifecycle/Workstream records under `Projects/GITHUB_PROJECT_WORKFLOWS.md`.
+- **Pull Request opened** → automatically run the same initial prioritization as explicit `@priorize <PR-number>` for that Pull Request itself.
+- Pull Request Project Items maintain `PR Priority`, `PR Rank`, `PR Urgency`, `Workstream`, and `Status` independently from the owning Issue.
 - Do not infer the owning Issue from title/body heuristics when no durable closing/ownership relationship exists.
 - If Project `Workstream` is missing or unverified, the prioritization operation must first attempt to classify it from durable authoritative evidence.
 - Valid classification evidence is limited to an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
@@ -140,7 +140,7 @@ The resulting priority record remains evidence subject to the normal synchroniza
 
 `@priorize <numbers>` is GitHub execution shorthand for applying the priority semantics defined by `../../00-Management/PRIORITIZATION.md`; it does not create a separate prioritization model.
 
-Business Priority and Project Rank belong to the owning Issue. If an `@priorize` request includes a Pull Request number, resolve its owning/closing Issue and apply the business prioritization there rather than creating a competing PR Priority/Rank. Keep the Pull Request's own Project lifecycle and Workstream handling under `Projects/GITHUB_PROJECT_WORKFLOWS.md`.
+`@priorize <Issue-number>` prioritizes that Issue itself. `@priorize <PR-number>` prioritizes that Pull Request itself. An owning/closing Issue may provide verified baseline/context for the PR, but the PR's `PR Priority`, `PR Rank`, and `PR Urgency` remain independently maintainable and must not overwrite the Issue's `Priority`, `Rank`, or `Urgency`.
 
 When a prioritization operation synchronizes an Issue Project `Rank`, the authorized `<!-- jagports-project-sync -->` record must also explicitly include the applicable canonical Project `Workstream`:
 
@@ -153,7 +153,7 @@ For an existing Issue, preserve the latest explicitly verified Workstream from a
 
 If no Workstream is already known, actively resolve it using the durable classification evidence defined above. When exactly one canonical Workstream is established, include it in the authorized synchronization record and verify the resulting Project field. If the evidence remains absent, conflicting, or ambiguous, do not infer Workstream from title, body prose, branch name, labels, Issue type, repository path, semantic topic, or other free-text/context heuristics. **This does not block native Issue Priority synchronization.** Complete and verify the Issue Priority update, leave Project `Rank` as `none`, and defer queue placement until Workstream is explicitly established.
 
-Priority, Project Status, Project Rank, and Project Workstream remain separate concerns. A prioritization operation may update them together through one authorized synchronization record, but one field must never be inferred from another.
+Priority, Urgency, Project Status, Project Rank, and Project Workstream remain separate concerns. Issue and PR fields are also separate concerns; one record type must not overwrite the other's values. A prioritization operation may update them together through one authorized synchronization record, but one field must never be inferred from another.
 
 A prioritization mutation is not successful merely because the request comment was written. Claim success only after the existing bounded work-control automation independently reads back and verifies the requested authoritative fields and refreshes the same Issue's managed snapshot.
 
