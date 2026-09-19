@@ -238,9 +238,10 @@ When an Issue participates in a Project workflow:
 4. Set the Project Item `Workstream` when the Project contains more than one queue.
 5. Set the Project Item Status to `BACKLOG`, unless another canonical state is explicitly justified.
 6. Assign Project Rank when the Issue participates in an explicitly ranked queue, ensuring uniqueness inside the same Workstream.
-7. A capable Project-aware actor or repository automation must independently read the resulting Issue/PR and Project Item values. The current ChatGPT/GitHub connection cannot perform Project Item reads and must not claim that verification itself.
-8. That capable actor/automation must verify the content identity, Project identity, Workstream, exact Status and applicable Issue Rank values, and Issue Priority when changed.
-9. When work changes phase, update the same Project Item Status and independently verify the resulting value.
+7. For a Pull Request Project Item, maintain `PR Priority` and `PR Rank` separately from the owning Issue's Priority/Rank. Initial PR Priority and Workstream may inherit from one unambiguous owning Issue, but later PR prioritization may diverge. Store the shared Project `Band` on the PR Project Item as visible P0...P5 prioritization evidence.
+8. A capable Project-aware actor or repository automation must independently read the resulting Issue/PR and Project Item values. The current ChatGPT/GitHub connection cannot perform Project Item reads and must not claim that verification itself.
+9. That capable actor/automation must verify the content identity, Project identity, Workstream, exact Status, applicable Issue Rank or PR Rank values, shared Project Band when changed, and applicable Issue Priority or PR Priority when changed.
+10. When work changes phase, update the same Project Item Status and independently verify the resulting value.
 
 The required verification pattern is:
 
@@ -254,7 +255,7 @@ The approved work-control workflow may also move Project Status when an authoriz
 
 A closing-linked PR or explicit `IMPLEMENTATION` command proves that implementation work exists; it does **not** by itself prove that required approval, decision, review, or testing gates have passed. Automation must not overwrite `DECISION NEEDED`, `BLOCKED`, `REVIEW`, `TESTING`, or `DONE` merely because implementation exists.
 
-Priority-only synchronization must **not** add an Issue to the Jagports AI OS Project. Issue Priority is organization-wide; Project membership and Workstream are scope-specific.
+Native Issue Priority-only synchronization that does **not** include a Project `Band`, Status, Rank, or Workstream must **not** add an Issue to the Jagports AI OS Project. Issue Priority is organization-wide; Project membership and Workstream are scope-specific. A canonical `@priorize` synchronization includes Project `Band`, so it does ensure the Issue has a Project Item in order to show that Band on Kanban.
 
 ## 10. Prioritization synchronization
 
