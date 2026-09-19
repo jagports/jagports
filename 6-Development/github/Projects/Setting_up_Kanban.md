@@ -207,8 +207,6 @@ At minimum, a ranked workflow Project uses:
 
 - `Status` — controlled Project Item workflow state;
 - `Rank` — numeric exact order for Issue work within that Project/workstream queue; lower number means earlier execution;
-- `PR Priority` — single-select review/integration priority for Pull Request Project Items: `Urgent`, `High`, `Medium`, `Low`;
-- `PR Rank` — numeric exact order for Pull Request review/integration work within one Workstream;
 - `Workstream` — single-select queue boundary when multiple operational queues share one Project. Current values: `AI OS`, `VIEPS`.
 
 Other Project fields may include:
@@ -235,9 +233,8 @@ When an Issue participates in a Project workflow:
 4. Set the Project Item `Workstream` when the Project contains more than one queue.
 5. Set the Project Item Status to `BACKLOG`, unless another canonical state is explicitly justified.
 6. Assign Project Rank when the Issue participates in an explicitly ranked queue, ensuring uniqueness inside the same Workstream.
-7. For a Pull Request Project Item, maintain `PR Priority` and `PR Rank` separately from the owning Issue's Priority/Rank. Initial PR Priority and Workstream may inherit from one unambiguous owning Issue, but later PR prioritization may diverge.
 8. A capable Project-aware actor or repository automation must independently read the resulting Issue/PR and Project Item values. The current ChatGPT/GitHub connection cannot perform Project Item reads and must not claim that verification itself.
-9. That capable actor/automation must verify the content identity, Project identity, Workstream, exact Status and applicable Issue Rank or PR Rank values, and applicable Issue Priority or PR Priority when changed.
+8. That capable actor/automation must verify the content identity, Project identity, Workstream, exact Status and applicable Issue Rank values, and Issue Priority when changed.
 10. When work changes phase, update the same Project Item Status and independently verify the resulting value.
 
 The required verification pattern is:
@@ -319,8 +316,6 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - required Status workflow exists exactly as intended;
 - native organization Issue `Priority` exists and is usable;
 - Project `Rank` exists when exact Issue ordering is used;
-- Project `PR Priority` exists with `Urgent`, `High`, `Medium`, `Low` for Pull Request review/integration prioritization;
-- Project `PR Rank` exists when exact Pull Request review/integration ordering is used;
 - Project `Workstream` exists with the expected queue values when multiple queues share one Project;
 - required `AI OS` view exists, filters `Workstream = AI OS`, and sorts Rank ascending where ranked execution order is shown;
 - required `VIEPS` view exists, filters `Workstream = VIEPS`, and sorts Rank ascending where ranked execution order is shown;
@@ -333,8 +328,6 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - Project Item Status assignment has been tested;
 - Issue Priority assignment has been tested;
 - Issue Rank assignment has been tested where applicable;
-- PR Priority inheritance/assignment has been tested;
-- PR Rank assignment has been tested where applicable;
 - temporary test material has been removed;
 - temporary working files have been removed;
 - final reads confirm the expected configuration.
