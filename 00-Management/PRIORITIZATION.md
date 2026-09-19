@@ -57,30 +57,26 @@ The automatic open-event assessment is the default equivalent of an initial `@pr
 
 ### Record-specific authoritative fields
 
-**Issue**
+Both **Issues** and **Pull Requests** have the same authoritative prioritization concepts:
 
-The Issue itself owns native Issue `Priority`. Its Project Item contains exactly the Kanban work-control fields:
+- **Priority** — authoritative current business/work or review/integration priority;
+- **Rank** — exact order inside one Workstream;
+- **Urgency** — current urgency / cost-of-delay factor on the `0...5` scale;
+- **Workstream** — canonical queue boundary;
+- **Status** — canonical workflow state.
 
-- Project `Status`;
-- Project `Rank`;
-- Project `Urgency` — integer `0...5`;
-- Project `Workstream`.
+The semantic model is identical for both record types. GitHub storage differs only where the platform requires it:
 
-**Pull Request**
+| Record | Priority storage | Rank storage | Urgency storage | Workstream | Status |
+|---|---|---|---|---|---|
+| Issue | native Issue `Priority` | Project `Rank` | Project `Urgency` | Project `Workstream` | Project `Status` |
+| Pull Request | Project `PR Priority` | Project `PR Rank` | Project `PR Urgency` | Project `Workstream` | Project `Status` |
 
-The Pull Request Project Item contains:
-
-- Project `PR Priority` — authoritative review/integration priority;
-- Project `PR Rank` — exact PR order inside one Workstream;
-- Project `PR Urgency` — integer `0...5`;
-- Project `Workstream`;
-- Project `Status`.
-
-Both Project Item types are shown on the Kanban. Issue native `Priority` remains attached to the Issue record and is not duplicated as a separate Issue Project field.
-
+GitHub native Issue fields do not apply to Pull Requests, so `PR Priority` is the PR storage implementation for the same authoritative **Priority** concept; it is not a different prioritization model.
 
 Issue Rank and PR Rank are separate queues within each Workstream. The same numeric value may therefore exist once in the Issue queue and once in the PR queue for the same Workstream.
 
+`@priorize` evaluates the same five concepts for either target type and writes them to the record-appropriate storage above.
 
 Before scoring an item:
 
