@@ -99,7 +99,6 @@ Both Issue and Pull Request Project Items expose the same authoritative prioriti
 
 - **Priority**
 - **Rank**
-- **Urgency**
 - **Workstream**
 - **Status**
 
