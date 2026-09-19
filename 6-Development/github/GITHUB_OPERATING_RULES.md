@@ -123,7 +123,7 @@ The opening of a new GitHub work record is a prioritization trigger:
 
 - **Issue opened** → run an initial priority assessment on that Issue under `../../00-Management/PRIORITIZATION.md`.
 - **Pull Request opened** → automatically run the same initial prioritization as explicit `@priorize <PR-number>` for that Pull Request itself.
-- Pull Request Project Items maintain `PR Priority`, `PR Rank`, `Workstream`, and `Status` independently from the owning Issue.
+- Pull Request Project Items maintain `PR Priority`, shared Project `Band`, `PR Rank`, `Workstream`, and `Status` independently from the owning Issue.
 - Do not infer the owning Issue from title/body heuristics when no durable closing/ownership relationship exists.
 - If Project `Workstream` is missing or unverified, the prioritization operation must first attempt to classify it from durable authoritative evidence.
 - Valid classification evidence is limited to an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
@@ -151,7 +151,7 @@ For an existing Issue, preserve the latest explicitly verified Workstream from a
 
 If no Workstream is already known, actively resolve it using the durable classification evidence defined above. When exactly one canonical Workstream is established, include it in the authorized synchronization record and verify the resulting Project field. If the evidence remains absent, conflicting, or ambiguous, do not infer Workstream from title, body prose, branch name, labels, Issue type, repository path, semantic topic, or other free-text/context heuristics. **This does not block native Issue Priority synchronization.** Complete and verify the Issue Priority update, leave Project `Rank` as `none`, and defer queue placement until Workstream is explicitly established.
 
-Priority, Project Status, Project Rank, and Project Workstream remain separate concerns. Issue and PR fields are also separate concerns; one record type must not overwrite the other's values. A prioritization operation may update them together through one authorized synchronization record, but one field must never be inferred from another.
+Priority, Project Band, Project Status, Project Rank, and Project Workstream remain separate concerns. Issue and PR fields are also separate concerns; one record type must not overwrite the other's values. A prioritization operation may update them together through one authorized synchronization record, but one field must never be inferred from another.
 
 A prioritization mutation is not successful merely because the request comment was written. Claim success only after the existing bounded work-control automation independently reads back and verifies the requested authoritative fields and refreshes the same Issue's managed snapshot.
 
