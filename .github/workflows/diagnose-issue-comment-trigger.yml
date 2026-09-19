@@ -1,0 +1,25 @@
+name: Diagnose Issue Comment Trigger
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  acknowledge-diagnostic-marker:
+    if: contains(github.event.comment.body, '<!-- jagports-work-control-diagnostic -->')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Acknowledge diagnostic marker
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPOSITORY/issues/$NUMBER/comments"             -f body="<!-- jagports-work-control-diagnostic-ack -->
+Issue-comment workflow trigger is active for #$NUMBER."             >/dev/null
