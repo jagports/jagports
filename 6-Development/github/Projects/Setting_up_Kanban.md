@@ -236,8 +236,8 @@ When an Issue participates in a Project workflow:
 5. Set the Project Item Status to `BACKLOG`, unless another canonical state is explicitly justified.
 6. Assign Project Rank when the Issue participates in an explicitly ranked queue, ensuring uniqueness inside the same Workstream.
 7. For a Pull Request Project Item, maintain `PR Priority` and `PR Rank` separately from the owning Issue's Priority/Rank. Initial PR Priority and Workstream may inherit from one unambiguous owning Issue, but later PR prioritization may diverge.
-8. Independently read the resulting Issue/PR and Project Item values.
-9. Verify the content identity, Project identity, Workstream, exact Status and applicable Issue Rank or PR Rank values, and applicable Issue Priority or PR Priority when changed.
+8. A capable Project-aware actor or repository automation must independently read the resulting Issue/PR and Project Item values. The current ChatGPT/GitHub connection cannot perform Project Item reads and must not claim that verification itself.
+9. That capable actor/automation must verify the content identity, Project identity, Workstream, exact Status and applicable Issue Rank or PR Rank values, and applicable Issue Priority or PR Priority when changed.
 10. When work changes phase, update the same Project Item Status and independently verify the resulting value.
 
 The required verification pattern is:
