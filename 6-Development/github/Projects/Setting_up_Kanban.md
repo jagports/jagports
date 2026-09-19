@@ -44,7 +44,7 @@ Discover the current Project number rather than copying it from historical work.
 gh project field-list PROJECT_NUMBER --owner PROJECT_OWNER --format json
 ```
 
-Use the current result to identify the Project `Status`, `Rank`, and where used `Workstream` fields and their option IDs. Project IDs, field IDs, option IDs, and view IDs are Project-specific and must not be guessed or copied from another Project.
+Use the current result to identify the Project `Status`, `Band`, `Rank`, and where used `Workstream` fields and their option IDs. Project IDs, field IDs, option IDs, and view IDs are Project-specific and must not be guessed or copied from another Project.
 
 For organization-level Issue fields, inspect the current organization definition through the supported Issue Fields API before relying on it. The native Issue field named `Priority` is the authoritative Jagports current-priority field.
 
@@ -205,11 +205,14 @@ The P0...P5 review bands map to native Issue Priority through `00-Management/PRI
 
 At minimum, a ranked workflow Project uses:
 
-- `Status` — controlled Project Item workflow state;
-- `Rank` — numeric exact order for Issue work within that Project/workstream queue; lower number means earlier execution;
-- `PR Priority` — single-select review/integration priority for Pull Request Project Items: `Urgent`, `High`, `Medium`, `Low`;
-- `PR Rank` — numeric exact order for Pull Request review/integration work within one Workstream;
-- `Workstream` — single-select queue boundary when multiple operational queues share one Project. Current values: `AI OS`, `VIEPS`.
+- `Status` — controlled Project Item workflow state for Issues and Pull Requests;
+- `Rank` — numeric exact order for Issue Project Items within one Workstream;
+- `PR Priority` — single-select Pull Request Project Item priority: `Urgent`, `High`, `Medium`, `Low`;
+- `PR Rank` — numeric exact order for Pull Request Project Items within one Workstream;
+- `Workstream` — single-select queue boundary. Current values: `AI OS`, `VIEPS`.
+
+The Issue's native organization `Priority` stays on the Issue record. The Issue Project Item carries shared Project `Band`, `Status`, `Rank`, and `Workstream`. The Pull Request Project Item carries `PR Priority`, shared Project `Band`, `PR Rank`, `Workstream`, and `Status`. These Project Items are what appear on the Kanban. Configure the Kanban to show both Priority and Band, for example `High` and `P1`, as separate fields rather than composing duplicate text such as `High (P1)`.
+
 
 Other Project fields may include:
 
@@ -235,9 +238,9 @@ When an Issue participates in a Project workflow:
 4. Set the Project Item `Workstream` when the Project contains more than one queue.
 5. Set the Project Item Status to `BACKLOG`, unless another canonical state is explicitly justified.
 6. Assign Project Rank when the Issue participates in an explicitly ranked queue, ensuring uniqueness inside the same Workstream.
-7. For a Pull Request Project Item, maintain `PR Priority` and `PR Rank` separately from the owning Issue's Priority/Rank. Initial PR Priority and Workstream may inherit from one unambiguous owning Issue, but later PR prioritization may diverge.
+7. For a Pull Request Project Item, maintain `PR Priority` and `PR Rank` separately from the owning Issue's Priority/Rank. Initial PR Priority and Workstream may inherit from one unambiguous owning Issue, but later PR prioritization may diverge. Store the shared Project `Band` on the PR Project Item as visible P0...P5 prioritization evidence.
 8. A capable Project-aware actor or repository automation must independently read the resulting Issue/PR and Project Item values. The current ChatGPT/GitHub connection cannot perform Project Item reads and must not claim that verification itself.
-9. That capable actor/automation must verify the content identity, Project identity, Workstream, exact Status and applicable Issue Rank or PR Rank values, and applicable Issue Priority or PR Priority when changed.
+9. That capable actor/automation must verify the content identity, Project identity, Workstream, exact Status, applicable Issue Rank or PR Rank values, shared Project Band when changed, and applicable Issue Priority or PR Priority when changed.
 10. When work changes phase, update the same Project Item Status and independently verify the resulting value.
 
 The required verification pattern is:
@@ -252,7 +255,7 @@ The approved work-control workflow may also move Project Status when an authoriz
 
 A closing-linked PR or explicit `IMPLEMENTATION` command proves that implementation work exists; it does **not** by itself prove that required approval, decision, review, or testing gates have passed. Automation must not overwrite `DECISION NEEDED`, `BLOCKED`, `REVIEW`, `TESTING`, or `DONE` merely because implementation exists.
 
-Priority-only synchronization must **not** add an Issue to the Jagports AI OS Project. Issue Priority is organization-wide; Project membership and Workstream are scope-specific.
+Native Issue Priority-only synchronization that does **not** include a Project `Band`, Status, Rank, or Workstream must **not** add an Issue to the Jagports AI OS Project. Issue Priority is organization-wide; Project membership and Workstream are scope-specific. A canonical `@priorize` synchronization includes Project `Band`, so it does ensure the Issue has a Project Item in order to show that Band on Kanban.
 
 ## 10. Prioritization synchronization
 
@@ -266,7 +269,7 @@ For `Band:` values it maps:
 - P3/P4 → `Low`;
 - P5 → Issue Priority unset and no active Rank.
 
-When `Status:` or `Rank:` is supplied, the workflow resolves Project #9 and updates those Project-scoped fields. When only `Band:` is supplied, it updates only the native Issue Priority and does not create Project #9 membership.
+When `Band:`, `Status:`, or `Rank:` is supplied, the workflow resolves Project #9 as needed and updates the corresponding Project-scoped fields. `Band:` also maps to native Issue Priority for Issues or `PR Priority` for Pull Requests, and therefore a Band synchronization ensures the record has a Project Item so the Band is visible on Kanban.
 
 Workstream-aware queue maintenance must not compare or renumber Rank across different Workstream values.
 
@@ -319,8 +322,6 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - required Status workflow exists exactly as intended;
 - native organization Issue `Priority` exists and is usable;
 - Project `Rank` exists when exact Issue ordering is used;
-- Project `PR Priority` exists with `Urgent`, `High`, `Medium`, `Low` for Pull Request review/integration prioritization;
-- Project `PR Rank` exists when exact Pull Request review/integration ordering is used;
 - Project `Workstream` exists with the expected queue values when multiple queues share one Project;
 - required `AI OS` view exists, filters `Workstream = AI OS`, and sorts Rank ascending where ranked execution order is shown;
 - required `VIEPS` view exists, filters `Workstream = VIEPS`, and sorts Rank ascending where ranked execution order is shown;
@@ -333,8 +334,6 @@ P1 Kanban setup is complete only after the current repository and Project have b
 - Project Item Status assignment has been tested;
 - Issue Priority assignment has been tested;
 - Issue Rank assignment has been tested where applicable;
-- PR Priority inheritance/assignment has been tested;
-- PR Rank assignment has been tested where applicable;
 - temporary test material has been removed;
 - temporary working files have been removed;
 - final reads confirm the expected configuration.

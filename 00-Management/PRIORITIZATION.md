@@ -10,7 +10,6 @@ It complements, and does not redefine:
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
-Priority is assessed automatically for every newly opened Issue and every newly opened Pull Request. Issues and Pull Requests are prioritized as different work records: the Issue carries business/work priority and Issue Rank; the Pull Request carries review/integration priority and PR Rank. A PR may inherit its owning Issue's verified Priority and Workstream as an initial baseline when that relationship is unambiguous, but later PR prioritization may diverge without overwriting the Issue. Outside these open-event assessments and other explicitly authorized prioritization paths, priority remains optional unless explicitly requested. The Product Owner has final authority over priority and may override a calculated order when the reason is recorded.
 
 ## Identifiers, Issue Priority, Project Rank and score are different concepts
 
@@ -23,7 +22,7 @@ For current work:
 - **Project `Status`** is the workflow stage of that Issue inside that Project and uses the canonical states defined by `WORKFLOWS.md`.
 - **Project `Workstream`** is the queue boundary when more than one operational queue shares the same Project. Current values are `AI OS` and `VIEPS`.
 - **Priority score** is a comparison aid used to explain priority and rank. It is not itself authoritative metadata.
-- **P0...P5 review band** is retained as decision evidence and as the compact input accepted by the synchronization automation. It maps to native Issue Priority and does not create a second authoritative priority field.
+- **Project `Band`** stores the `P0...P5` prioritization review band on both Issue and Pull Request Project Items. It remains decision evidence and a compact prioritization classification; it maps to the record's authoritative Priority but does not replace Priority.
 
 Do not add current priority or rank to an Issue title or filename.
 
@@ -44,8 +43,7 @@ Do not combine unrelated scopes into one universal queue unless the Product Owne
 New work receives an initial prioritization assessment as part of record creation:
 
 - **Issue opened** → perform an initial priority assessment for that Issue using this method.
-- **Pull Request opened** → perform an initial priority assessment for the Pull Request Project Item. Resolve verified owning/closing Issue evidence when available and use it only as the initial PR baseline; refresh the owning Issue only when its own evidence materially changed.
-- Pull Request prioritization is separate from Issue prioritization. Use Project `PR Priority` for the PR's current review/integration priority and Project `PR Rank` for exact order within the PR review/integration queue. Do not write those values into the owning Issue's native `Priority` or Issue `Rank`.
+- **Pull Request opened** → perform the same initial priority assessment as explicit `@priorize <PR-number>` for that Pull Request itself.
 - The open-event rule is prospective. It must not be interpreted as authorization to bulk-score all existing open Issues or PRs.
 - If evidence is incomplete, record a provisional assessment rather than inventing values. Existing workflow gates, Workstream preservation, Product Owner authority, and synchronization verification still apply.
 - When `Workstream` is missing or unverified, the prioritization pass must attempt to determine it from durable authoritative evidence before leaving it unassigned.
@@ -53,9 +51,32 @@ New work receives an initial prioritization assessment as part of record creatio
 - When the evidence identifies exactly one canonical Workstream, include `Workstream: AI OS` or `Workstream: VIEPS` in the same authorized synchronization record and independently verify the Project field.
 - When durable evidence is absent, conflicting, or genuinely ambiguous, do not guess. Synchronize native Issue Priority, leave Workstream unassigned and Project `Rank` as `none`, and treat Priority synchronization as successful but queue placement as incomplete. **The synchronization record must explicitly use `Rank: none` so the bounded Project path can resolve/create the Project item when needed, and the user-facing prioritization result must include a direct link to that Issue's GitHub Project item so a human can immediately open it and set Workstream.**
 - Assign Project `Rank` only after an explicit/verified `Workstream` is available. A later Workstream classification must trigger or permit queue ranking without requiring the Issue Priority assessment to be repeated unless its evidence has materially changed.
-- If a PR has no resolvable owning/closing Issue, do not infer ownership from free text. Prioritize the PR from its own verified review/integration evidence; leave Issue-side business priority untouched until ownership is established.
+- If a PR has no resolvable owning/closing Issue, do not infer ownership from free text. Prioritize the PR from its own verified review/integration evidence. An owning Issue is optional context, not a prerequisite for PR prioritization.
 
 The automatic open-event assessment is the default equivalent of an initial `@priorize` pass for newly opened work records; it does not create a second prioritization model.
+
+### Record-specific authoritative fields
+
+Both **Issues** and **Pull Requests** have the same authoritative prioritization concepts:
+
+- **Priority** — authoritative current business/work or review/integration priority;
+- **Band** — visible `P0...P5` prioritization review band;
+- **Rank** — exact order inside one Workstream;
+- **Workstream** — canonical queue boundary;
+- **Status** — canonical workflow state.
+
+GitHub storage differs only where the platform requires it:
+
+| Record | Priority storage | Band storage | Rank storage | Workstream | Status |
+|---|---|---|---|---|---|
+| Issue | native Issue `Priority` | Project `Band` | Project `Rank` | Project `Workstream` | Project `Status` |
+| Pull Request | Project `PR Priority` | Project `Band` | Project `PR Rank` | Project `Workstream` | Project `Status` |
+
+GitHub native Issue fields do not apply to Pull Requests, so `PR Priority` is the PR storage implementation for the same authoritative **Priority** concept; it is not a different prioritization model.
+
+Issue Rank and PR Rank are separate queues within each Workstream. The same numeric value may therefore exist once in the Issue queue and once in the PR queue for the same Workstream.
+
+`@priorize` evaluates and synchronizes Priority, Band, Rank, Workstream, and the existing lifecycle Status for either target type. Prioritization must not invent or advance Status; it preserves/verifies the lifecycle state.
 
 Before scoring an item:
 
@@ -84,7 +105,6 @@ Use the same scale for positive and negative factors:
 | Customer value | Direct benefit to users/customers or reduction of an important customer problem. |
 | Business value | Revenue, cost, productivity, reliability or other material business benefit. |
 | Strategic differentiation | Contribution to capabilities that materially strengthen Jagports/VIEPS differentiation or long-term direction. |
-| Urgency | Cost of delay, time sensitivity, deadline pressure or rapidly increasing impact. |
 | Dependency leverage | Degree to which completing the item unblocks or enables other important work. Hard blocked dependencies are handled separately through workflow/readiness. |
 | Evidence confidence | Strength and reliability of evidence supporting the need, proposed outcome and expected value. |
 | Readiness | Degree to which scope, inputs, acceptance conditions and prerequisites are clear enough for execution now. |
@@ -122,9 +142,9 @@ The score supports comparison; it is not an autonomous decision engine. Explicit
 
 ## Review bands and native Issue Priority mapping
 
-When a priority review uses the P0...P5 bands, map them to the native Issue `Priority` field as follows:
+When a priority review uses the P0...P5 bands, write that value to Project `Band` and map it to the record's Priority as follows:
 
-| Review band | Meaning | Native Issue `Priority` |
+| Review band | Meaning | Issue native `Priority` / PR `PR Priority` |
 |---|---|---|
 | P0 | Immediate exceptional show-stopper or critical time-bound work | `Urgent` |
 | P1 | Do next | `High` |
@@ -203,7 +223,6 @@ Score state: complete | provisional
 Customer value: 0..5
 Business value: 0..5
 Strategic differentiation: 0..5
-Urgency: 0..5
 Dependency leverage: 0..5
 Evidence confidence: 0..5
 Readiness: 0..5
@@ -216,7 +235,9 @@ Override: none | <recorded Product Owner override>
 Evidence: <Issue/PR/document references>
 ```
 
-The automation maps `Band` to native Issue `Priority`. `Rank: none` is required for P5. A score containing any `0` factor is provisional.
+For Issues, the automation writes `Band` to the Issue Project Item, maps it to native Issue `Priority`, and writes `Rank` when applicable. `Rank: none` is required for P5. A score containing any `0` factor is provisional.
+
+For Pull Requests, the same `Band` is written to the PR Project Item and maps to `PR Priority`; `PR Rank` is maintained independently from the owning Issue.
 
 When priority changes materially, add a new dated record rather than rewriting historical comments.
 
@@ -225,22 +246,21 @@ When priority changes materially, add a new dated record rather than rewriting h
 Issue and Project metadata have separate ownership:
 
 - native Issue `Priority` is organization-wide and belongs to the Issue itself;
-- Project `Status`, Project `Rank`, and Project `Workstream` belong to a particular Project scope;
+- Project `Band`, Project `Status`, Project `Rank`, and Project `Workstream` belong to an Issue Project Item in a particular Project scope;
 - historical P0...P5 review records remain evidence, not a duplicate live priority field.
 
 The current workflows have these responsibilities:
 
-- `.github/workflows/issues-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
-- `.github/workflows/sync-issue-work-control-to-project.yml` is the single bounded work-control synchronizer. It processes an authorized `<!-- jagports-project-sync -->` comment or standalone `<!-- jagports-workstream-sync -->` comment for one open Issue, maps P0...P5 to native Issue Priority, updates requested Project `Status`, `Rank`, and `Workstream`, independently verifies the authoritative values, and refreshes only that Issue's agent-readable snapshot.
+- `.github/workflows/issue-lifecycle-in-project.yml` keeps deterministic lifecycle mapping such as opened/reopened → `BACKLOG` and closed → `DONE` where configured.
 - Manual `workflow_dispatch` on the work-control synchronizer is recovery-only: it requires one explicit Issue number and refreshes only that Issue's snapshot. It cannot request a full-Project reconciliation or authoritative field mutation.
 
 The work-control workflow:
 
 1. uses the organization Issue `Priority` field as the authoritative current priority;
 2. maps P0→Urgent, P1→High, P2→Medium, P3/P4→Low, and P5→unset;
-3. does not add an Issue to Project #9 merely because only Issue Priority was requested;
-4. permits Priority-only synchronization when Workstream is unassigned or unverified; in that case `Rank` remains `none` and the Priority synchronization is still a successful prioritization result;
-5. resolves/adds the Project Item only when Project Status, Rank, or Workstream is being changed;
+3. resolves/adds the Issue Project Item whenever a prioritization Band is synchronized, because `Band` is visible Project metadata;
+4. permits Priority/Band synchronization when Workstream is unassigned or unverified; in that case `Rank` remains `none` and synchronization is still successful;
+5. resolves/adds the Project Item when Band, Status, Rank, or Workstream is being changed;
 6. requires the canonical Project `Status`, numeric `Rank`, and `Workstream` field definitions to resolve unambiguously when those Project fields are requested, and fails closed on missing/duplicate definitions for the requested Project mutation;
 7. accepts only canonical `Workstream` values `AI OS` and `VIEPS`;
 8. independently reads back and verifies every authoritative value it changes;
@@ -282,19 +302,20 @@ The snapshot contains at minimum:
 
 - verification timestamp when the managed comment is written;
 - native Issue `Priority`;
+- Project `Band`;
 - Project identity;
 - direct GitHub Project item URL;
 - Project `Workstream`;
 - Project `Status`;
 - Project `Rank`.
 
-Snapshot publication is strictly single-Issue and bounded. The work-control workflow resolves Project membership from the target Issue, never by scanning all Project Items. It updates at most one managed snapshot comment for that Issue and independently rereads the comment to verify the expected Priority, Workstream, Status and Rank lines. If multiple managed snapshot comments exist for one Issue, it fails closed rather than choosing one arbitrarily.
+Snapshot publication is strictly single-Issue and bounded. The work-control workflow resolves Project membership from the target Issue, never by scanning all Project Items. It updates at most one managed snapshot comment for that Issue and independently rereads the comment to verify the expected Priority, Band, Workstream, Status and Rank lines. If multiple managed snapshot comments exist for one Issue, it fails closed rather than choosing one arbitrarily.
 
 Snapshot writes use the repository `GITHUB_TOKEN`, while Project reads/writes use the separately authorized Project token. GitHub suppresses ordinary workflow runs for events created by `GITHUB_TOKEN`; this prevents the managed snapshot comment from recursively starting `issue_comment` workflows.
 
 Snapshot refresh paths are limited to:
 
-1. **Immediate event-driven refresh** — after a verified authoritative Priority/Status/Rank or Workstream change, the same workflow refreshes only the affected open Issue's snapshot inline.
+1. **Immediate event-driven refresh** — after a verified authoritative Priority/Band/Status/Rank or Workstream change, the same workflow refreshes only the affected open Issue's snapshot inline.
 2. **Bounded manual recovery** — `workflow_dispatch` requires one Issue number and performs snapshot-only recovery for that one open Project Issue.
 
 There is deliberately **no scheduled full-Project snapshot reconciliation, no broad manual full-Project publisher, and no workflow-to-workflow snapshot dispatch**. Recovery must remain explicitly bounded so a mistaken invocation cannot fan out over hundreds of Issues or consume a material portion of the Actions allowance.
@@ -345,13 +366,3 @@ Closed Issues remain excluded from routine audit/prioritization maintenance.
 An audit may surface a lower-ranked low-hanging-fruit or cleanup action without silently changing the maintained queue. A material reprioritization should be recorded through a new priority review.
 
 
-## Pull Request priority and rank
-
-Pull Request prioritization uses the same evidence discipline and 0..5 factor scale, but evaluates the integration artifact rather than duplicating the owning Issue's business decision.
-
-- `PR Priority` is a Project single-select field with values `Urgent`, `High`, `Medium`, and `Low`.
-- `PR Rank` is a Project numeric field giving exact order inside the PR review/integration queue for one Workstream. Lower numbers are earlier; `1` is the highest-ranked active PR in that Workstream.
-- Issue `Rank` and `PR Rank` are different queues and may reuse the same integer values without conflict.
-- On PR open, an unambiguous owning Issue may seed the initial PR Priority and Workstream. This inheritance is a baseline, not permanent coupling.
-- Reprioritize a PR when review urgency, merge blockers, dependency leverage, readiness, risk, or other integration evidence materially changes.
-- Closing/merging a PR removes it from the active PR Rank queue; historical priority evidence remains in the PR record.

@@ -11,6 +11,9 @@ on:
       - review_requested
       - review_request_removed
       - closed
+  pull_request_target:
+    types:
+      - opened
 
 permissions:
   contents: read
@@ -27,6 +30,7 @@ env:
 
 jobs:
   sync-pr-lifecycle:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Synchronize Pull Request Project Item
@@ -297,3 +301,39 @@ jobs:
             echo "PASS: PR #$PR_NUMBER is verified in '$PROJECT_TITLE' with Status $TARGET_STATUS and Workstream $display_workstream; Project Item remains unarchived at $project_item_url."
           fi
           trap - ERR
+
+
+  request-prioritization-on-open:
+    if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record automatic @priorize request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          marker="<!-- jagports-auto-priorize-request -->"
+          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when PR #%s opened. Prioritize this Pull Request using the canonical @priorize path, including PR Priority plus Project Item Band, PR Rank, Workstream and existing lifecycle Status.' "$marker" "$PR_NUMBER" "$PR_NUMBER")"
+
+          comments="$(gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
+          existing_count="$(jq --arg marker "$marker" '[.[] | select((.body | split("\n") | index($marker)) != null)] | length' <<<"$comments")"
+
+          if [ "$existing_count" -gt 0 ]; then
+            echo "PASS: PR #$PR_NUMBER already has the automatic prioritization request."
+            exit 0
+          fi
+
+          created="$(gh api --method POST "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body")"
+          created_id="$(jq -r '.id // empty' <<<"$created")"
+          [ -n "$created_id" ] || { echo "Automatic prioritization request comment was not created."; false; }
+
+          verify="$(gh api "repos/$REPOSITORY/issues/comments/$created_id")"
+          verify_body="$(jq -r '.body // empty' <<<"$verify")"
+          grep -Fxq "$marker" <<<"$verify_body" || { echo "Marker verification failed."; false; }
+          grep -Fxq "@priorize $PR_NUMBER" <<<"$verify_body" || { echo "@priorize request verification failed."; false; }
+
+          echo "PASS: PR #$PR_NUMBER received the automatic @priorize request on open."
