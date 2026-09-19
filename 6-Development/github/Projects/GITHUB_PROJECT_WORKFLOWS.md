@@ -109,7 +109,6 @@ Their physical GitHub storage is:
 
 - native Issue `Priority`;
 - Project `Rank`;
-- Project `Urgency` (`0...5`);
 - Project `Workstream`;
 - Project `Status`.
 
@@ -117,13 +116,12 @@ Their physical GitHub storage is:
 
 - Project `PR Priority` (`Urgent`, `High`, `Medium`, `Low`) — storage for the PR's authoritative Priority concept;
 - Project `PR Rank`;
-- Project `PR Urgency` (`0...5`);
 - Project `Workstream`;
 - Project `Status`.
 
 The `PR ` prefix is an implementation/storage distinction required to avoid collision with native Issue Priority/Issue queue fields; it does not define a different semantic model. GitHub native Issue fields are unavailable on Pull Requests.
 
-Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Urgency/Workstream only when the evidence is unambiguous. The PR remains independently reprioritizable afterwards.
+Issue Rank and PR Rank are separate per-Workstream queues. An owning Issue may seed a PR's initial Priority/Workstream only when the evidence is unambiguous. The PR remains independently reprioritizable afterwards.
 
 
 ### Pull Request Project Item lifecycle
