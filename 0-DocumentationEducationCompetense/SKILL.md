@@ -81,7 +81,10 @@ Apply the prioritization method in `00-Management/PRIORITIZATION.md` automatical
 - Do not assign a separate business Priority/Rank to the Pull Request.
 - If the owning Issue cannot be established from a durable GitHub relationship, do not guess it from free text.
 - Treat incomplete evidence as provisional rather than inventing factor values.
-- If `Workstream` is missing or unverified, still complete and verify the native Issue Priority update. Leave Project `Rank` as `none`; do not treat missing Workstream as prioritization failure.
+- If `Workstream` is missing or unverified, actively attempt to determine it from durable authoritative evidence: an explicit Product Owner/authorized work-control decision, an already verified Workstream/snapshot, an explicit parent/owning/umbrella Issue with verified Workstream, or explicit canonical roadmap/work-plan membership that identifies the Workstream.
+- When exactly one canonical Workstream is established, include `Workstream: AI OS` or `Workstream: VIEPS` in the synchronization record and verify the resulting Project field.
+- Do not determine Workstream from title, labels, repository paths, branch names, or semantic/topic similarity alone.
+- If the evidence remains absent, conflicting, or ambiguous, still complete and verify native Issue Priority; leave Workstream unassigned and Project `Rank` as `none`.
 - Assign Rank only after an explicit/verified Workstream is available. Do not repeat the Issue Priority assessment merely to establish Rank unless priority evidence has materially changed.
 - Keep this trigger bounded to the newly opened record; do not bulk-score the existing open backlog merely because Priority is missing.
 
