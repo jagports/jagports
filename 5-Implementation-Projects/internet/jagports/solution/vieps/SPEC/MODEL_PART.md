@@ -76,6 +76,30 @@ Image descriptions are not identity fields.
 
 An unavailable image placeholder has `image_ref = NULL` and `availability_status = unavailable`; no invented reference is needed.
 
+## Catalogue occurrence tree
+
+A canonical PART may appear in multiple EPC/JEPC source paths. VIEPS therefore treats catalogue browsing as an occurrence-tree problem rather than assigning one tree path to the PART itself.
+
+The imported source path can include:
+
+```text
+model/catalogue ancestry
+    -> category ancestry
+    -> top-level item description
+    -> ordered source description/breakpoint nodes
+    -> PART occurrence
+```
+
+The tree provides browse structure, human-readable occurrence context and source filter candidates. It is not itself the Boolean applicability evaluator.
+
+A full concatenated description path is derived presentation output. Structural identity must preserve source-qualified node identity, parentage, order, language/source scope and the link to the exact PART occurrence/path evidence.
+
+Filtering is occurrence-first: select the branch, retain occurrences satisfying any requested description/VIN/applicability filters, then project distinct PART identities. Reverse PART-number search returns every surviving/source occurrence with its complete tree context.
+
+Source-description-to-domain mappings are a separate enrichment layer and may map one description to multiple normalized facets. Such mappings do not alter source tree descriptions or raw applicability evidence.
+
+JEPC language trees are not assumed to be structurally identical. Preserve language-qualified tree structure independently where source structure differs; share canonical PART identity and reconcile cross-language path identity only where deterministic source correspondence is established.
+
 ## PART vehicle and VIN applicability
 
 Migration `0016_occurrence_applicability.sql` adds occurrence-bound model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain intact. The companion [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md#implemented-persistence-contract) defines these additive relations and their verification limits; no legacy fitment row is automatically promoted into them.
@@ -270,15 +294,18 @@ The implemented occurrence applicability persistence dictionary is maintained in
 | `vehicle_identifier` | `id`; `vehicle_id`; `identifier_type`; `location`; `raw_value`; `normalized_value`; `source_ref`; `verification_status`. |
 | `stock_item` | `id`; `part_number`; `quantity`; `condition`; `status`; `location`; `donor_vehicle`; `source_ref`; `notes`; `created_at`; `updated_at`; `part_id`; `donor_vehicle_id`; `source`; `verification_status`; `confidence`; `available`. Full stock model fields and controlled condition code semantics are defined in `MODEL_STOCK.md`. |
 
-### Retained range and presentation entities
+### Retained range and catalogue-tree entities
 
 `vehicle_range` is not an alias for `model_range`; no unverified conversion or collapse is performed.
 
-| Entity | Fields and purposes |
+The existing physical `part_tree_node` / `part_tree_part` tables are retained, but their current fields are insufficient for a lossless multilingual JEPC occurrence tree. Do not rewrite an applied migration. A controlled additive migration must provide the missing source-qualified structure and occurrence linkage before production JEPC tree import relies on these entities.
+
+| Entity | Current / required purpose |
 |---|---|
-| `vehicle_range` | `id`; `range_code`; `name`; `verification_status`. |
-| `part_tree_node` | `id`; `parent_id`; `label`; `sort_order`. |
-| `part_tree_part` | Composite PK `tree_node_id`, `part_id`. |
+| `vehicle_range` | Current: `id`; `range_code`; `name`; `verification_status`. |
+| `part_tree_node` | Current: `id`; `parent_id`; `label`; `sort_order`. Required refinement: source namespace, model/category/item/language scope as applicable, stable source node/row identity, source description, parentage/order and provenance. Description text is not node identity. |
+| `part_tree_part` | Current broad PART membership link by `tree_node_id`, `part_id`. It may remain as a browse/navigation summary but cannot by itself identify which source occurrence/application/path supplied the PART. |
+| occurrence-to-tree linkage | Required additive relation linking `part_occurrence` to the exact source tree leaf/path evidence. It must permit the same occurrence/application to retain more than one source path where JEPC does so. |
 | `part_diagram` | `id`; `part_id`; `title`; `image_url`; `availability_status`; `source_ref`; `verification_status`. |
 
 ## Cardinalities, identity and deletion
@@ -296,7 +323,8 @@ The implemented occurrence applicability persistence dictionary is maintained in
 | Occurrence → vehicle location | 1:N required occurrence; optional model range. Deleting occurrence or a referenced model removes the mapping. |
 | PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 PART and 0..1 donor. Deleting either parent SET NULL preserves stock identity, quantity, historical number, donor text and location. Supersession never mutates stock. |
 | Vehicle → identifiers | 1:N; cascade on vehicle deletion. Identifier text is not unique. |
-| Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. N:M PART membership. |
+| Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; current N:M PART membership remains a broad browse summary. |
+| Tree ↔ occurrence/path | Required additive occurrence linkage is N:M where necessary so one occurrence/application can retain repeated source paths and one canonical PART can appear through many occurrences. |
 | PART → part diagram | 1:N; cascade on PART deletion. |
 
 The normalized PART number has a partial unique index for non-NULL values; multiple NULL identities and duplicate descriptions are valid.
@@ -324,7 +352,7 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `part_vehicle_location` | `idx_part_vehicle_location_identity`; `idx_part_vehicle_location_model`; `idx_part_vehicle_location_state`. |
 | `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`. |
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
-| `part_tree_node`, `part_tree_part` | `idx_part_tree_parent`; `idx_part_tree_part_part`. |
+| `part_tree_node`, `part_tree_part` | Current: `idx_part_tree_parent`; `idx_part_tree_part_part`. Add source-scope/language/source-node and occurrence-link indexes with the controlled tree migration. |
 | `part_diagram` | `idx_part_diagram_part`. |
 | occurrence applicability | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
 
@@ -364,6 +392,7 @@ The `0016` persistence extension resolves storage of occurrence/context pairing,
 
 | Decision / gap | Current representation |
 |---|---|
+| Catalogue tree / occurrence linkage | Existing `part_tree_node` and `part_tree_part` do not preserve JEPC source scope/language/source-node identity or bind a tree path to an exact `part_occurrence`. Add a controlled source-qualified tree/occurrence migration; do not use flattened descriptions as identity. |
 | Dedicated model/variant and occurrence-scoped range links | Legacy PART-level links remain; `0016` adds source-qualified occurrence applicability through model context and grouped predicates without claiming a complete global model/variant ontology. |
 | VIN ordering, inclusion, decoding and derived provenance | Source TEXT fields only, no ordered-boundary CHECK or decoder, no confidence/derivation column. KOVuosi is not an inference source. |
 | Confidence and verification vocabularies | Uncontrolled text, with REAL affinity only on stock confidence. |
