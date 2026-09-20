@@ -11,7 +11,7 @@ It complements:
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — mutable operational stock;
 - [`MODEL_PART_THIRD_PARTY_LOCATION.md`](MODEL_PART_THIRD_PARTY_LOCATION.md) — optional visual-location evidence for third-party PARTs.
 
-A reusable product has one canonical `PART` identity in the PART database. That identity may have been imported or added manually. Vendor references and operational STOCK remain separate records.
+A reusable product has one canonical `PART` identity in the PART database. That identity may be an imported Jaguar/JEPC PART or a manually added Jagports specified PART. Both use the same canonical `part(id)` namespace. Vendor references and operational STOCK remain separate records.
 
 ## Product cases
 
@@ -128,7 +128,7 @@ Minimum fields:
 
 - `third_party_part_id` — identifier of this vendor-product reference record;
 - `vendor_id` — identifies the vendor;
-- canonical `part_id`;
+- canonical `part_id` — required FK to the VIEPS canonical reusable PART identity; it points to the existing Jaguar PART for a verified 1:1 vendor product, or to the Jagports specified PART for a non-1:1 reusable vendor product;
 - vendor part number;
 - `manufacturer` — manufacturer/brand of the vendor product, kept distinct from the vendor/seller;
 - `description` — vendor-product description;
@@ -145,7 +145,9 @@ Minimum fields:
 
 A third-party product that is verified 1:1 equal to a Jaguar PART links directly to that Jaguar canonical `part_id`.
 
-A third-party product with no 1:1 Jaguar PART links to the Jagports specified canonical PART created for it.
+A third-party product with no 1:1 Jaguar PART links to the Jagports specified canonical `part_id` created for it.
+
+`third_party_part.part_id` is therefore never the vendor-product reference identity itself. It is the canonical VIEPS PART identity that the vendor reference describes. A vendor part number must not be copied into `stock_item.part_id`, and a new canonical PART must not be created for a verified 1:1 vendor reference.
 
 ## Third-party cross-references
 
@@ -390,7 +392,7 @@ The operator:
 
 The operator must know the parent reference before the new Jagports specified PART is created. A missing parent Jaguar PART is a validation error for this path.
 
-Unresolved/non-reusable stock handling belongs to `MODEL_STOCK.md` and is outside this third-party PART specification.
+Unresolved stock handling belongs to `MODEL_STOCK.md` and is outside this third-party PART specification. Once a third-party product is known to be reusable, it is no longer an unresolved-stock identity case: it must resolve to an existing Jaguar `part_id` or to a newly created Jagports specified `part_id` before STOCK is linked.
 
 ## X100 brake-caliper cylinder example
 
@@ -446,6 +448,30 @@ Optional point/region references on imported JEPC illustrations and uploaded loc
 
 This evidence is optional and does not change PART applicability or STOCK state.
 
+## Canonical `part_id` contract
+
+For all third-party workflows:
+
+- `part.id` is the canonical reusable PART identity;
+- `third_party_part.part_id` points to that canonical identity;
+- `stock_item.part_id` points to the same canonical identity when stock is resolved;
+- vendor product identity remains in `third_party_part` and its vendor part number/reference fields;
+- a verified 1:1 vendor product reuses the existing Jaguar `part_id`;
+- a non-1:1 reusable vendor product uses the Jagports specified `part_id`;
+- `stock_item.part_id = NULL` is not an alternative representation for a known reusable third-party product.
+
+```text
+vendor product reference (third_party_part)
+             |
+             v
+canonical reusable PART (part.id)
+             |
+             v
+operational stock (stock_item.part_id)
+```
+
+The relationship direction does not imply that a vendor product is Jaguar-issued. Origin/provenance remains authoritative for that distinction.
+
 ## Search and presentation
 
 Search may resolve:
@@ -490,14 +516,16 @@ Implementation must preserve:
 ## Acceptance criteria
 
 - The specification uses the term **Jagports specified**, not Jagports-owned, for manually defined non-Jaguar PART records.
-- A verified 1:1 third-party product with its own vendor part number can reference the existing Jaguar PART without creating a duplicate canonical PART.
-- A non-1:1 third-party product is represented by a Jagports specified PART with a mandatory Jaguar parent.
+- A verified 1:1 third-party product with its own vendor part number can reference the existing Jaguar `part_id` without creating a duplicate canonical PART.
+- A non-1:1 third-party product is represented by a Jagports specified PART with its own canonical `part_id` and a mandatory Jaguar parent.
 - The parent category/item/occurrence/PART reference is known and retained, and an exact selected `part_occurrence_tree_path` is retained when available.
 - The Jagports specified part number is formed as `<JaguarPN>+<3rdPartyPN>`.
 - Third-party suitability is the same as the referenced Jaguar PART/context and does not create an independent applicability rule set.
 - `third_party_vendor` supports vendor ID, name and one or more home URLs, with descriptions when several URLs are stored.
 - `third_party_part` stores vendor product identity, manufacturer, description, one-or-more product/source URLs where evidenced, verification status and verification date.
 - Verification status has clear `unverified` and `verified` meanings and the date selector defaults to the current day.
+- `third_party_part.part_id` and resolved `stock_item.part_id` reference the same canonical reusable PART identity; vendor identity remains separate.
+- Known reusable third-party products are never represented by `stock_item.part_id = NULL`.
 - Stock Admin can select the Jaguar parent directly or through the imported PART tree.
 - Only reusable products are created through this specification.
 - Optional visual-location evidence is delegated to `MODEL_PART_THIRD_PARTY_LOCATION.md`.
