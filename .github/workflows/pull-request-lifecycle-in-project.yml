@@ -31,12 +31,15 @@ env:
 jobs:
   sync-pr-lifecycle:
     if: github.event_name == 'pull_request'
+    concurrency:
+      group: pr-lifecycle-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - name: Synchronize Pull Request Project Item
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
-          COMMENT_TOKEN: ${{ github.token }}
+          COMMENT_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NODE_ID: ${{ github.event.pull_request.node_id }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -157,21 +160,22 @@ jobs:
           review_request_count="$(jq -r '.data.repository.pullRequest.reviewRequests.totalCount // 0' <<<"$pr_json")"
 
           TARGET_STATUS=""
-          case "$PR_ACTION" in
-            opened|synchronize|converted_to_draft|ready_for_review)
-              TARGET_STATUS="IMPLEMENTATION"
-              ;;
-            review_requested)
-              if [ "$is_draft" = "true" ]; then TARGET_STATUS="IMPLEMENTATION"; else TARGET_STATUS="REVIEW"; fi
-              ;;
-            review_request_removed|reopened)
-              if [ "$is_draft" = "false" ] && [ "$review_request_count" -gt 0 ]; then TARGET_STATUS="REVIEW"; else TARGET_STATUS="IMPLEMENTATION"; fi
-              ;;
-            closed)
-              TARGET_STATUS="DONE"
-              ;;
-            *) echo "Unhandled PR action '$PR_ACTION'."; exit 0 ;;
-          esac
+          current_state="$(jq -r '.data.repository.pullRequest.state // empty' <<<"$pr_json")"
+          if [ "$current_state" = "CLOSED" ] || [ "$merged" = "true" ]; then
+            TARGET_STATUS="DONE"
+          elif [ "$is_draft" = "true" ]; then
+            TARGET_STATUS="IMPLEMENTATION"
+          elif [ "$review_request_count" -gt 0 ]; then
+            TARGET_STATUS="REVIEW"
+          else
+            TARGET_STATUS="IMPLEMENTATION"
+          fi
+
+          echo "Lifecycle event: $PR_ACTION"
+          echo "Current PR state: $current_state"
+          echo "Current draft state: $is_draft"
+          echo "Current review-request count: $review_request_count"
+          echo "Derived Project Item Status: $TARGET_STATUS"
 
           same_repo_issue_count="$(jq --arg repo "$REPOSITORY" '[.data.repository.pullRequest.closingIssuesReferences.nodes[]? | select(.repository.nameWithOwner == $repo)] | length' <<<"$pr_json")"
           operational_values="$(jq -r --arg repo "$REPOSITORY" --arg project "$project_id" '
@@ -310,7 +314,7 @@ jobs:
       - name: Notify Product Owner when opened PR Workstream is unresolved
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
-          COMMENT_TOKEN: ${{ github.token }}
+          COMMENT_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_NODE_ID: ${{ github.event.pull_request.node_id }}
