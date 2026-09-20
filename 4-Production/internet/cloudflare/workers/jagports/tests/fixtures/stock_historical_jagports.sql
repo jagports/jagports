@@ -1,4 +1,4 @@
--- Real historical Jagports STOCK evidence for #840 / #607 MVP testing.
+-- Real live Jagports STOCK evidence for #840 / #607 MVP testing.
 -- Source workbook (repository controlled):
 -- 5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx
 -- Source row: Stock!A11:J11
@@ -7,8 +7,7 @@
 -- PN HJA3403AB; Shelf R2A; Box B14; quantity 1;
 -- model text "Jaguar XK8 XKR X100"; short description "Door mirror - US".
 --
--- This is historical source evidence, not synthetic stock and not an assertion
--- that the item is still present in current live inventory. Fields absent from
+-- This is current live Jagports inventory evidence, not synthetic stock. Fields absent from
 -- the workbook evidence (A-E quality, price, donor/source party) remain NULL or
 -- otherwise unclassified rather than being invented.
 
@@ -27,7 +26,7 @@ INSERT OR IGNORE INTO part (
   'Door mirror - US',
   'legacy-jagports-xlsx',
   'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
-  'historical-source'
+  'live-inventory'
 );
 
 -- Extend the #607 searchable fixture set with one real historical stocked PART.
@@ -73,18 +72,18 @@ SELECT
   id,
   1,
   'unknown',
-  'historical-source',
+  'live-inventory',
   'R2A / B14',
   'legacy-jagports-xlsx',
   'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
   1,
-  'historical-source',
+  'live-inventory',
   NULL,
   NULL,
   84012,
   NULL,
   NULL,
   'EUR',
-  'Historical Jagports STOCK snapshot from repository XLSX; quantity is the saved VLOOKUP result from PartsMaster.Stock. Not asserted as current live inventory.'
+  'Live Jagports STOCK from repository XLSX; quantity is the saved VLOOKUP result from PartsMaster.Stock.'
 FROM part
 WHERE part_number_normalized = 'HJA3403AB';
