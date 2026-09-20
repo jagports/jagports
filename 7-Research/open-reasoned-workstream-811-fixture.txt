@@ -1,0 +1,3 @@
+Disposable fixture for validating canonical @open Issue → reasoned Workstream → PR inheritance behavior.
+
+Do not merge.
