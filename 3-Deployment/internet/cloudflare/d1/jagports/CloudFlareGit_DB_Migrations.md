@@ -75,6 +75,35 @@ cat wrangler.toml
 
 Confirm that the configuration identifies the intended D1 database `jagports` and `migrations_dir = "migrations"`.
 
+## Clean local/test database bootstrap
+
+A clean local/test database must be reproducible from repository state without hand-written DDL.
+
+Use an empty isolated local/test D1 target with the reviewed Worker checkout, then from the Worker root run:
+
+```text
+npx wrangler d1 migrations list jagports --local
+npx wrangler d1 migrations apply jagports --local
+npx wrangler d1 migrations list jagports --local
+```
+
+For a truly clean bootstrap, the local/test target must contain no earlier application state before the first command. Use the installed Wrangler version's supported isolated local-persistence mechanism rather than deleting or depending on undocumented Wrangler internal directories. Record the chosen local/test target in the execution evidence.
+
+Verify the current STOCK structures after the migration chain applies:
+
+```text
+npx wrangler d1 execute jagports --local --command "PRAGMA table_info(stock_item);"
+npx wrangler d1 execute jagports --local --command "PRAGMA table_info(stock_location);"
+npx wrangler d1 execute jagports --local --command "PRAGMA table_info(stock_source_party);"
+npx wrangler d1 execute jagports --local --command "SELECT name, type FROM sqlite_schema WHERE (type='index' OR type='trigger') AND name LIKE 'stock_%' OR name LIKE 'idx_stock_%' ORDER BY type, name;"
+```
+
+Then verify the same target through the Worker/API data path. Schema inspection alone does not prove application persistence.
+
+The repository's model-integrity tests separately construct disposable empty SQLite databases, apply the complete migration chain in order, and exercise the D1-compatible SQL path. That is deterministic migration/model evidence; it is not proof of Cloudflare account state, a remote D1 migration ledger, or real inventory.
+
+Synthetic fixture/seed rows must remain identifiable as fixtures. Real Jagports inventory values are operational input, not values to invent in a migration. When real inventory is used for MVP acceptance, record its evidence source and persist it through the authorized application/database path.
+
 ## Production migration state
 
 Inspect the intended remote database before applying:
@@ -169,7 +198,7 @@ reviewed migration
     -> verify affected runtime request
 ```
 
-No database recreation is required for each new migration.
+No database recreation is required for each new migration. A clean bootstrap is used when proving that the complete repository migration chain can construct a new local/test target from empty state.
 
 ## Migration production record
 
