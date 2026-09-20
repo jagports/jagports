@@ -62,7 +62,7 @@ Stock records used for workflow or acceptance testing must be explicitly identif
 
 Synthetic or deterministic stock test data must not be described as real production Jagports inventory. Rows whose source/reference identifies them as fixtures remain fixture evidence even when persisted in D1.
 
-Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values. Real-stock acceptance evidence requires actual inventory values supplied from an evidenced operator/source and persisted through the stock mutation path. If those values have not been supplied, structural/persistence testing may continue, but the real-inventory acceptance point remains incomplete rather than being filled with invented data.
+Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values. The linked repository workbooks `jagports-parts.xlsx` and `jagports-parts-stock.xlsx` are accepted current live Jagports inventory input. Real-stock acceptance evidence may use a traced workbook row when the mapping records the exact source row, persists the mapped record through the stock mutation path, and leaves source fields that are absent or unknown as NULL/unclassified. Synthetic values must never fill missing workbook facts.
 
 Mutable stock test records must remain separate from immutable catalogue/reference data.
 
