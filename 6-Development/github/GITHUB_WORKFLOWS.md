@@ -73,14 +73,16 @@ Execution sequence:
 
 `resolve target → classify Issue/PR → calculate/accept Band + mapped Priority + Rank → synchronize only that target → independently verify → report`
 
-The short `@priorize <numbers>` form is sufficient for both Issues and Pull Requests. It prioritizes every referenced record directly according to its record type.
+The short `@priorize <numbers>` form is the canonical prioritization command **when it is received by a reasoning executor capable of performing this procedure**. Merely persisting that text in a GitHub comment does not execute prioritization. A request comment and an executor are separate components.
 
 ### Automatic prioritization on open
 
-- Issue open automatically invokes the same initial prioritization behavior as `@priorize <Issue-number>`.
-- Pull Request open automatically invokes the same initial prioritization behavior as `@priorize <PR-number>`.
+- Issue open records a durable prioritization request and must pass it to a real reasoning executor that performs the same initial prioritization behavior as `@priorize <Issue-number>`.
+- Pull Request open records a durable prioritization request and must pass it to a real reasoning executor that performs the same initial prioritization behavior as `@priorize <PR-number>`.
+- Writing the request comment alone is not automatic prioritization and must never be reported as such.
 - Both automatic paths are bounded to the newly opened record and do not bulk-score the existing backlog.
-- The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers, not separate prioritization models.
+- The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers into the executor, not separate prioritization models.
+- Missing/unavailable reasoning runtime is an execution dependency failure. The system may preserve the durable request for retry, but it must not claim Priority/Band/Rank/Workstream were assessed or synchronized.
 
 
 ---
