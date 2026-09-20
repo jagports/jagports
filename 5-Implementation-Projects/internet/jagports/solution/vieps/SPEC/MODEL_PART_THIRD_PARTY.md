@@ -164,6 +164,7 @@ Minimum fields:
 | `jaguar_part_id` | required FK | Existing Jaguar/JEPC canonical PART used as the Jaguar reference. |
 | `relationship_type` | required controlled value | `equivalent_to`, `parent_part`, or `component_of`. |
 | `part_occurrence_id` | nullable FK | Exact imported occurrence/context when known. |
+| `part_occurrence_tree_path_id` | nullable FK | Exact source-qualified catalogue tree path selected for the occurrence when available; references the canonical occurrence-tree persistence from `MODEL_PART.md`. |
 | `category_ref` | nullable except as required below | Retained catalogue category reference for auditable parent/context selection. |
 | `item_number` | nullable except as required below | Retained catalogue item reference for auditable parent/context selection. |
 | `source_ref` | nullable | Evidence supporting this particular relationship. |
@@ -179,7 +180,7 @@ Cardinality and behavior:
 - a product may additionally have `component_of` references where independently evidenced;
 - `parent_part`, `component_of`, `equivalent_to`, and Jaguar supersession remain different relationship types.
 
-For the mandatory `parent_part` record of a Jagports specified PART, the selected Jaguar PART and known catalogue context must be retained. When the imported occurrence exists, `part_occurrence_id` is required and the category/item values must identify that same selected context. If an imported occurrence is not yet available in the active MVP fixture path, explicit fixture/manual category/item context may be retained, but it must not be presented as imported JEPC evidence.
+For the mandatory `parent_part` record of a Jagports specified PART, the selected Jaguar PART and known catalogue context must be retained. When the imported occurrence exists, `part_occurrence_id` is required and the category/item values must identify that same selected context. When the operator selected the parent through a specific imported source tree path and canonical `part_occurrence_tree_path` evidence exists, `part_occurrence_tree_path_id` must retain that exact path. One occurrence may have several source paths, so occurrence identity alone must not be used to claim which catalogue path the operator selected. If an imported occurrence/tree path is not yet available in the active MVP fixture path, explicit fixture/manual category/item context may be retained, but it must not be presented as imported JEPC evidence.
 
 Logical uniqueness rules:
 
@@ -213,7 +214,7 @@ These rules are part of the implementation contract and must be enforced either 
 | `third_party_part_xref.third_party_part_id` | required FK | many xrefs per vendor product allowed. |
 | `third_party_part_xref.jaguar_part_id` | required FK | many third-party products may reference one Jaguar PART. |
 | `relationship_type` | required | only `equivalent_to`, `parent_part`, `component_of`. |
-| xref occurrence/category/item context | nullable generally; required as described for the mandatory parent context | cannot contradict the selected Jaguar PART/occurrence. |
+| xref occurrence/tree-path/category/item context | nullable generally; required as described for the mandatory parent context | cannot contradict the selected Jaguar PART/occurrence; when a source-qualified tree path is selected, the stored path must belong to that occurrence. |
 | vendor price snapshot amount | required when a snapshot exists | non-negative numeric value. |
 | vendor price snapshot currency | required when a snapshot exists | three-character uppercase currency code. |
 | observed/check date | required when a snapshot exists | records evidence date, not price validity forever. |
@@ -262,7 +263,7 @@ Expected results:
 - new canonical Jagports specified PART: `MJD7843AA-Fixture+<3rdPartyPN>`;
 - `source_origin = AddedManually`;
 - `third_party_part.part_id` points to the new Jagports specified PART;
-- exactly one `parent_part` xref points to `MJD7843AA-Fixture` and retains the selected category/item/occurrence context;
+- exactly one `parent_part` xref points to `MJD7843AA-Fixture` and retains the selected category/item/occurrence context plus the exact `part_occurrence_tree_path` when such imported path evidence is available;
 - separately evidenced `component_of` references may include `JLM20079-Fixture`, `JLM21466-Fixture`, `JLM20078-Fixture`, and `JLM21465-Fixture`;
 - the reference image/source may retain `https://parts.jaguarlandroverclassic.com/jlm20079-brake-caliper.html` as evidence for the NSS + item-7 context;
 - operational STOCK points to the Jagports specified PART, not to `MJD7843AA-Fixture` or any `component_of` reference.
@@ -285,7 +286,7 @@ The MVP must be able to:
 - distinguish verified 1:1 vendor products from non-1:1 reusable third-party products;
 - use an existing Jaguar PART directly for a verified 1:1 vendor product;
 - create/select a Jagports specified canonical PART for a non-1:1 reusable product;
-- require exactly one Jaguar parent and retain the selected category/item/occurrence/PART context for that Jagports specified PART;
+- require exactly one Jaguar parent and retain the selected category/item/occurrence/PART context plus the exact selected occurrence-tree path when available for that Jagports specified PART;
 - form and present the Jagports specified identifier as `<JaguarPN>+<3rdPartyPN>`;
 - retain vendor identity, vendor PN, manufacturer, description, one-or-more source/product URLs where evidenced, verification state and the required cross-reference evidence;
 - link operational STOCK to the correct canonical PART without mixing vendor reference data into mutable STOCK;
@@ -456,7 +457,7 @@ Implementation must preserve:
 - one canonical PART identity for each reusable product represented as its own PART;
 - direct vendor-reference mapping to an existing Jaguar PART for verified 1:1 products;
 - mandatory Jaguar parent reference for each non-1:1 Jagports specified PART;
-- required category/item/occurrence/PART reference for the selected parent;
+- required category/item/occurrence/PART reference for the selected parent, plus exact source-qualified occurrence-tree path evidence when the parent is selected through such a path;
 - combined `<JaguarPN>+<3rdPartyPN>` numbering for non-1:1 Jagports specified PARTs;
 - third-party vendor identity and URLs;
 - vendor-product manufacturer, description and multiple source/product URLs;
@@ -469,7 +470,7 @@ Implementation must preserve:
 - The specification uses the term **Jagports specified**, not Jagports-owned, for manually defined non-Jaguar PART records.
 - A verified 1:1 third-party product with its own vendor part number can reference the existing Jaguar PART without creating a duplicate canonical PART.
 - A non-1:1 third-party product is represented by a Jagports specified PART with a mandatory Jaguar parent.
-- The parent category/item/occurrence/PART reference is known and retained.
+- The parent category/item/occurrence/PART reference is known and retained, and an exact selected `part_occurrence_tree_path` is retained when available.
 - The Jagports specified part number is formed as `<JaguarPN>+<3rdPartyPN>`.
 - Third-party suitability is the same as the referenced Jaguar PART/context and does not create an independent applicability rule set.
 - `third_party_vendor` supports vendor ID, name and one or more home URLs, with descriptions when several URLs are stored.
