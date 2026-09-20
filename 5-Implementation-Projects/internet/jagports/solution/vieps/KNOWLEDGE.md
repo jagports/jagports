@@ -80,6 +80,18 @@ Two meanings of location remain separate:
 
 The first belongs to catalogue/occurrence/location modelling; the second belongs to operational stock. Do not infer one from the other.
 
+## Operational STOCK persistence
+
+The native VIEPS MVP operational STOCK persistence path uses Cloudflare D1 through the Worker `DB` binding. D1 is the current persistence/provider implementation for Jagports-owned stock; it is not part of canonical PART identity and must not pull catalogue, JEPC, fitment or supersession authority into the stock backend.
+
+The executable database shape is created by the ordered, reviewed SQL migration chain under the production Worker. Repository Markdown describes the model but does not recreate a parallel schema. Existing applied migrations are not rewritten; schema evolution is additive through a new reviewed migration.
+
+A clean local or test database is derived from an empty target plus the complete ordered migration chain. Local, preview and production D1 states and migration ledgers are separate evidence domains. Validation must identify which environment was exercised and must not present local/preview state as production state.
+
+Deterministic catalogue and STOCK fixtures are test inputs only. Synthetic fixture rows prove behavior but are not evidence that Jagports physically owns those items. Real inventory facts require separate source/operator evidence and must become persisted operational records through the approved application/database path.
+
+The D1 implementation should remain thin enough to sit behind a stock-provider boundary without moving canonical PART or JEPC logic into the provider. A future external provider can use a different persistence model while VIEPS retains the same catalogue/stock separation.
+
 ## Provenance and evidence
 
 Source facts, normalized values, derived interpretations and verification state must remain distinguishable where the distinction matters. Imported or migrated data must remain traceable to its source without depending on an obsolete spreadsheet formula or hidden agent knowledge.
