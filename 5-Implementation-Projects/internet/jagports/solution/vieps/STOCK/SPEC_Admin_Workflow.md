@@ -59,15 +59,23 @@ Mutable stock test records must remain separate from immutable catalogue/referen
 
 Stock Admin supports these stock-record paths:
 
-1. resolved stock linked to an existing canonical `PART`;
-2. reusable Jagports-owned canonical `PART` created through the applicable product workflow before stock linkage when no suitable Jaguar/JEPC PART exists;
-3. explicitly unresolved/non-catalogue stock where no canonical identity is yet established.
+1. resolved stock linked to an existing canonical Jaguar/JEPC `PART`;
+2. reusable third-party stock represented through the approved third-party PART workflow;
+3. explicitly unresolved/non-catalogue stock where no reusable canonical identity is yet established.
 
-A canonical `PART` must not be fabricated merely to satisfy a stock relationship. A known reusable non-JEPC product should normally receive a Jagports-owned canonical PART rather than remain permanently unresolved. `stock_item.part_id = NULL` is reserved for items whose reusable product identity is genuinely not yet established.
+For reusable third-party products, `MODEL_PART_THIRD_PARTY.md` is authoritative:
 
-Jagports-owned PART identity and vendor identity remain separate. A vendor part number may be recorded as source/reference evidence, but it must not replace the canonical Jagports PART identity. Jagports-owned identifiers must remain explicitly namespaced/sourced and must never be presented as Jaguar-issued part numbers.
+- a verified 1:1 vendor product uses the existing Jaguar canonical PART; STOCK points to that Jaguar `part_id`;
+- a non-1:1 reusable product uses a Jagports specified canonical PART; STOCK points to that Jagports specified `part_id`;
+- the Jagports specified PART has exactly one mandatory Jaguar parent cross-reference and retains the selected category/item/occurrence/PART context;
+- vendor identity, vendor PN and `third_party_part_xref` evidence remain separate from mutable STOCK state;
+- the Jagports specified identifier uses `<JaguarPN>+<3rdPartyPN>` and must never be presented as Jaguar-issued.
 
-For service products such as third-party/NSS repair components, the canonical product workflow may record typed relationships such as `service_scope_extension_of`, `service_subpart_of`, or `component_of`. Such a relationship does not by itself prove vehicle suitability. MVP applicability may be supported by explicit fixture/manual evidence; suitability must not be silently inherited from every occurrence of a related Jaguar PART.
+A canonical `PART` must not be fabricated merely to satisfy a stock relationship. `stock_item.part_id = NULL` is reserved for stock whose reusable product identity is genuinely not yet established.
+
+The acquisition/source party on STOCK is not the same concept as vendor-product identity. The same vendor may be both a product vendor and the acquisition source in a particular transaction, but those facts are recorded through their respective models and must not be inferred from one another.
+
+Third-party suitability follows the referenced Jaguar PART/context as defined by `MODEL_PART_THIRD_PARTY.md` and `MODEL_PART_APPLICABILITY.md`. Stock Admin does not create a second fitment model and does not infer suitability from a generic stock relationship.
 
 ## Stock management UI
 
@@ -76,7 +84,7 @@ The authorized Stock Admin UI must support, where the current data contract expo
 - create a stock record;
 - edit approved mutable stock fields;
 - select a canonical PART reference where resolved;
-- when no suitable Jaguar/JEPC PART exists for a known reusable product, create/select a Jagports-owned canonical PART before creating stock;
+- when no suitable Jaguar/JEPC PART exists for a known reusable product, create/select a Jagports specified canonical PART before creating stock;
 - retain an explicit unresolved path only where reusable product identity is genuinely not yet established;
 - keep vendor part-number/reference data distinct from the canonical Jagports PART identity;
 - capture integer quantity;
@@ -97,7 +105,7 @@ Public unauthenticated users must not gain stock mutation capability through the
 ```text
 admin opens Stock Admin
   -> verifies stock database/environment
-  -> selects an existing canonical PART, creates a Jagports-owned canonical PART, or explicitly leaves genuinely unidentified stock unresolved
+  -> selects an existing canonical PART, creates a Jagports specified canonical PART, or explicitly leaves genuinely unidentified stock unresolved
   -> captures mutable stock facts
   -> classifies stock quality with A-E when known or leaves it explicitly unclassified
   -> validates quantity, location, source and availability rules
@@ -166,7 +174,7 @@ A validation or acceptance record must identify the environment being exercised 
 At minimum, validation should establish that:
 
 - a known catalogue or fixture-backed PART can be resolved when that is the chosen stock identity path;
-- a known reusable non-JEPC product can be given a Jagports-owned canonical PART and stock can be persisted against it;
+- a known reusable non-JEPC product can be given a Jagports specified canonical PART and stock can be persisted against it;
 - an unidentified item can remain explicitly unresolved without fabricating either Jaguar or Jagports identity;
 - permitted stock information can be read for known stock records;
 - an authorized operator can create or update approved mutable stock fields;
