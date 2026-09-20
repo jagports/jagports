@@ -99,11 +99,13 @@ Jaguar supersession remains governed by `part_supersession` in `MODEL_PART.md`.
 
 An NSS component may be visible in JEPC even though Jaguar does not provide it as its own Jaguar PART.
 
+Observed XK8 brake-caliper catalogue evidence shows this case inside a higher-level caliper/kit context: the constituent is identifiable in the illustration/callout structure and marked `NSS`, while the higher-level Jaguar assembly remains the serviced catalogue PART. A physically identifiable NSS constituent may nevertheless be sold separately by a third-party vendor.
+
 When a third-party vendor supplies that component as a reusable product, VIEPS may create a Jagports specified PART for it.
 
-The Jagports specified PART must use the relevant existing Jaguar PART as its mandatory parent and must retain the known category/item/occurrence/PART reference.
+The Jagports specified PART must use the relevant existing Jaguar PART as its mandatory parent and must retain the known category/item/occurrence/PART reference. Where the constituent's position inside the parent assembly is known only from JEPC illustration/callout or hotspot evidence, that provenance should be retained rather than represented as though JEPC supplied a standalone Jaguar PART row.
 
-Creating the Jagports specified PART does not modify the imported JEPC record and does not create a Jaguar part number.
+Creating the Jagports specified PART does not modify the imported JEPC record and does not create a Jaguar part number. An `NSS` marker also must not be interpreted as proof that the component cannot exist as a separately supplied third-party product.
 
 ## Third-party vendor entities
 
