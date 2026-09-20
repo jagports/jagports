@@ -82,7 +82,7 @@ Execute automatic/open-event and explicit `@priorize` behavior by reference to:
 
 Do not duplicate those rules here. This connection must still obey the Project capability boundary above.
 
-Interactive `@open` is itself a valid reasoning-executor path: if ChatGPT creates the Issue/PR in the same active execution, ChatGPT must continue directly into the canonical prioritization procedure rather than waiting for GitHub automation to invoke ChatGPT later. The unattended GitHub-open path remains a separate capability and requires the agent-backed executor defined by the canonical automation work.
+Interactive `@open` is the supported automatic-open prioritization path: if ChatGPT creates the Issue/PR in the same active execution, ChatGPT must continue directly into the canonical prioritization procedure. No unattended GitHub-open reasoning executor is currently used or required.
 
 ## Repository Change Gate
 
