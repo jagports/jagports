@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VIEPS Stock Admin</title>
+  <link rel="stylesheet" href="vieps-tailwind.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div class="locale-control" role="group" data-i18n-aria-label="locale.label">
+        <button type="button" class="locale-button" data-language="fi" aria-label="fi-FI">🇫🇮 <span>[fi-FI]</span></button>
+        <button type="button" class="locale-button" data-language="en" aria-label="en-GB">🇬🇧 <span>[en-GB]</span></button>
+      </div>
+      <div><p class="eyebrow" data-i18n="header.product_name"></p><h1 data-i18n="stock_admin.heading"></h1></div>
+    </header>
+    <section class="panel">
+      <h2 data-i18n="stock_admin.access_heading"></h2>
+      <form id="accessForm" class="search-form">
+        <label for="adminToken" data-i18n="stock_admin.token_label"></label>
+        <input id="adminToken" type="password" autocomplete="current-password" required>
+        <button type="submit" data-i18n="stock_admin.connect"></button>
+      </form>
+      <p id="status" class="muted status-line" role="status"></p>
+    </section>
+    <section class="panel">
+      <h2 data-i18n="stock_admin.stock_heading"></h2>
+      <form id="stockSearch" class="search-form">
+        <label for="stockQuery" class="visually-hidden" data-i18n="stock_admin.search_label"></label>
+        <input id="stockQuery" data-i18n-placeholder="stock_admin.search_placeholder">
+        <label for="stockConditionFilter" data-i18n="stock_admin.filter_condition"></label>
+        <select id="stockConditionFilter">
+          <option value="" data-i18n="stock_admin.filter_any"></option>
+          <option value="unclassified" data-i18n="stock.quality.unclassified.label"></option>
+          <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
+        </select>
+        <label for="stockAvailabilityFilter" data-i18n="stock_admin.filter_availability"></label>
+        <select id="stockAvailabilityFilter">
+          <option value="" data-i18n="stock_admin.filter_any"></option>
+          <option value="1" data-i18n="stock_admin.filter_available"></option>
+          <option value="0" data-i18n="stock_admin.filter_unavailable"></option>
+        </select>
+        <label for="stockLocationFilter" data-i18n="stock_admin.filter_location"></label>
+        <select id="stockLocationFilter"><option value="" data-i18n="stock_admin.filter_any"></option></select>
+        <button type="submit" data-i18n="common.search"></button>
+      </form>
+      <div id="stockList"></div>
+    </section>
+    <section class="panel">
+      <h2 data-i18n="stock_admin.edit_heading"></h2>
+      <form id="stockForm">
+        <input id="stockId" type="hidden">
+        <fieldset>
+          <legend data-i18n="stock_admin.identity_heading"></legend>
+          <label for="identityMode" data-i18n="stock_admin.identity_mode"></label>
+          <select id="identityMode">
+            <option value="canonical" data-i18n="stock_admin.identity_canonical"></option>
+            <option value="unresolved" data-i18n="stock_admin.identity_unresolved"></option>
+          </select>
+          <div id="canonicalIdentity">
+            <label for="partLookupQuery" data-i18n="stock_admin.part_lookup"></label>
+            <div class="search-form">
+              <input id="partLookupQuery" data-i18n-placeholder="stock_admin.part_lookup_placeholder">
+              <button id="partLookupButton" type="button" data-i18n="common.search"></button>
+            </div>
+            <div id="partLookupResults"></div>
+            <label for="partId" data-i18n="stock_admin.part_id"></label>
+            <input id="partId" type="number" min="1" readonly>
+          </div>
+          <label for="partNumber" data-i18n="stock_admin.part_number"></label>
+          <input id="partNumber" required>
+          <p class="muted compact-note" data-i18n="stock_admin.identity_note"></p>
+        </fieldset>
+        <div class="search-form">
+          <label for="quantity" data-i18n="stock.qty"></label><input id="quantity" type="number" min="0" step="1" value="1" required>
+          <label for="conditionCode" data-i18n="stock.condition"></label>
+          <select id="conditionCode"><option value="" data-i18n="stock.quality.unclassified.label"></option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select>
+          <label for="storageLocationId" data-i18n="stock.location"></label><select id="storageLocationId"><option value="">—</option></select>
+          <label for="sourcePartyId" data-i18n="stock_admin.source_party"></label><select id="sourcePartyId"><option value="">—</option></select>
+          <label for="donorVehicleId" data-i18n="stock_admin.donor_vehicle"></label><select id="donorVehicleId"><option value="">—</option></select>
+          <label for="source" data-i18n="stock_admin.source_evidence"></label><input id="source">
+          <label for="sourceRef" data-i18n="stock_admin.source_reference"></label><input id="sourceRef">
+          <label for="price" data-i18n="stock.price"></label><input id="price" type="number" min="0" step="0.01">
+          <label for="currency" data-i18n="stock_admin.currency"></label><input id="currency" maxlength="3" value="EUR">
+          <label for="available" data-i18n="common.availability"></label><input id="available" type="checkbox" checked>
+          <label for="notes" data-i18n="stock_admin.notes"></label><textarea id="notes"></textarea>
+        </div>
+        <button type="submit" data-i18n="stock_admin.save"></button>
+        <button id="newStock" type="button" data-i18n="stock_admin.new_record"></button>
+        <button id="deleteStock" type="button" data-i18n="stock_admin.delete_record" disabled></button>
+      </form>
+    </section>
+  </main>
+  <script src="i18n-resources.js"></script>
+  <script src="i18n-runtime.js"></script>
+  <script src="stock-admin.js"></script>
+</body>
+</html>

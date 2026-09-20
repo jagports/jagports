@@ -25,7 +25,7 @@ assert.match(fixture, /9303/);
 assert.match(fixture, /NULL, NULL,\s+'fixture', 'unverified'/);
 assert.match(docs, /PART to operational stock/);
 assert.match(docs, /multiple stock records/);
-assert.match(docs, /unresolved\/non-catalogue stock/);
+assert.match(docs, /Unresolved stock is representable/);
 assert.match(docs, /donor vehicle/);
 
 console.log('part-stock-relationship-model: 16 assertions passed');
