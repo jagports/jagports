@@ -4,12 +4,19 @@
   "type": "module",
   "engines": { "node": ">=24" },
   "scripts": {
+    "build:css": "tailwindcss -i ./styles/vieps-tailwind.css -o ./public/vieps-tailwind.css --minify",
+    "build:i18n": "node ./scripts/build-i18n-assets.mjs",
+    "verify:generated-assets": "node ./scripts/verify-generated-assets.mjs",
+    "verify:deployed-assets": "node ./scripts/verify-deployed-assets.mjs",
+    "build": "npm run build:i18n && npm run build:css && npm run verify:generated-assets",
     "test": "node --test tests/*.mjs",
     "test:runtime": "node --test tests/vieps-runtime-e2e.mjs",
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "4.1.13",
+    "tailwindcss": "4.1.13",
     "wrangler": "^4.35.0"
   }
 }

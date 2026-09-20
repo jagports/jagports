@@ -73,7 +73,7 @@ pwd
 cat wrangler.toml
 ```
 
-Confirm that the configuration identifies the intended D1 database and `migrations_dir = "migrations"`.
+Confirm that the configuration identifies the intended D1 database `jagports` and `migrations_dir = "migrations"`.
 
 ## Production migration state
 
@@ -97,6 +97,8 @@ npx wrangler d1 migrations list jagports --remote
 
 The database name/ID and Cloudflare account must be checked before apply. Do not infer migration state from Worker deployment status.
 
+Use the existing D1 database name `jagports` consistently. Do not rename the D1 database or change operational examples to another logical database name while documenting migration troubleshooting.
+
 For a migration that changes columns used by the deployed Worker, also verify the remote table shape explicitly. Example for the canonical PART image relationship:
 
 ```text
@@ -106,6 +108,40 @@ npx wrangler d1 execute jagports --remote --command "PRAGMA table_info(part_imag
 The PART image migration is not verified merely because the migration ledger reports success. The resulting `part_image` table must contain the columns required by the deployed Worker, including `image_ref` when the Worker query selects that column.
 
 After schema verification, execute the affected application request and confirm that the previous D1 schema error no longer occurs. For example, `D1_ERROR: no such column: image_ref` must be treated as evidence that the deployed Worker and D1 schema are not aligned until the remote table shape and runtime request are both verified.
+
+## Merged Worker + D1 upgrade troubleshooting
+
+When a reviewed `main` Worker deployment is active but a live request fails with:
+
+```text
+D1_ERROR: no such column: <column-name>
+```
+
+first treat it as possible Worker/D1 migration drift. Do not remove DB-specified columns from the Worker query merely to make the live error disappear unless the approved data model or schema has changed.
+
+Minimum sequence from the Worker root:
+
+```text
+npx wrangler whoami
+npx wrangler d1 migrations list jagports --remote
+npx wrangler d1 migrations apply jagports --remote
+npx wrangler d1 migrations list jagports --remote
+```
+
+Then verify the affected runtime request. For the VIEPS searchable fixture dataset, use the reviewed fixture part numbers rather than inventing new probes:
+
+```text
+for PN in MJB7703AA MNA7691AA XR847031 FIX538C; do
+  curl -L "https://vieps.parts-5ec.workers.dev/api/vieps/part?q=${PN}"
+  echo
+done
+```
+
+If the request succeeds after applying a pending migration, record the incident as deployment/runtime drift, not as an application-code fix. Record the migration name, operator, environment, command evidence, runtime endpoint, and observed result in the relevant Issue/PR or execution record.
+
+If there are no pending migrations, inspect the remote table shape with `PRAGMA table_info(...)` for the failing table before changing code. Repeated missing-column errors after a successful Worker deployment are not independent proof that multiple application columns should be deleted; they can be the same unapplied migration surfacing one selected column at a time.
+
+Seed/data migrations follow the same rule as schema migrations. If a live fixture or validation part resolves but returns no expected stock rows, check for a pending reviewed seed migration before changing the API or test contract.
 
 ## Preview and local migration state
 

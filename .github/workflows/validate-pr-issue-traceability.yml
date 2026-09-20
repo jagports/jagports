@@ -1,0 +1,71 @@
+name: Validate PR Issue Traceability
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, edited, synchronize]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  validate-pr-issue-traceability:
+    name: Validate PR Issue Traceability
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require same-repository closing Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          OWNER="${REPOSITORY%%/*}"
+          NAME="${REPOSITORY##*/}"
+
+          QUERY='
+          query($owner:String!, $name:String!, $number:Int!) {
+            repository(owner:$owner, name:$name) {
+              pullRequest(number:$number) {
+                number
+                baseRefName
+                closingIssuesReferences(first:50) {
+                  nodes {
+                    number
+                    state
+                    repository { nameWithOwner }
+                  }
+                }
+              }
+            }
+          }'
+
+          pr_json="$(gh api graphql             -f query="$QUERY"             -f owner="$OWNER"             -f name="$NAME"             -F number="$PR_NUMBER")"
+
+          base_ref="$(jq -r '.data.repository.pullRequest.baseRefName // empty' <<<"$pr_json")"
+          [ "$base_ref" = "main" ] || {
+            echo "PR #$PR_NUMBER does not target main; traceability validation is not applicable."
+            exit 0
+          }
+
+          mapfile -t owning_issues < <(
+            jq -r --arg repo "$REPOSITORY" '
+              .data.repository.pullRequest.closingIssuesReferences.nodes[]?
+              | select(.repository.nameWithOwner == $repo)
+              | "#\(.number) (\(.state))"
+            ' <<<"$pr_json"
+          )
+
+          if [ "${#owning_issues[@]}" -eq 0 ]; then
+            echo "::error::PR #$PR_NUMBER has no GitHub-native same-repository closing Issue relationship."
+            echo "Use canonical closing syntax such as 'Closes #123', 'Fixes #123', or 'Resolves #123'."
+            echo "Arbitrary Issue mentions, title text, branch names, labels, paths, or semantic similarity do not qualify."
+            exit 1
+          fi
+
+          printf 'PASS: PR #%s has qualifying same-repository closing Issue relationship(s):\n' "$PR_NUMBER"
+          printf ' - %s\n' "${owning_issues[@]}"

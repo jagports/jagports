@@ -2,6 +2,10 @@
 
 Issue: #280
 
+Product vision: [`../../../../../00-Management/VISION_VIEPS.md`](../../../../../00-Management/VISION_VIEPS.md)
+
+This document is an implementation/MVP plan under the broader VIEPS product vision. Where this historical plan contains implementation details that have since evolved, current Issues/specifications and the durable VIEPS domain knowledge remain authoritative for the current implementation state.
+
 ## 1. MVP decision
 
 The MVP should be a real full-stack web application, not a GitHub Pages-only application.

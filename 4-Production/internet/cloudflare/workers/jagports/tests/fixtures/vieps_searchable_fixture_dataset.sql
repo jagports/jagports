@@ -30,16 +30,54 @@ SELECT 60711, id, 'fixture-607', 'issue:#607:mjb7703aa:occurrence', 'epc',
        'VIEPS-MVP-607', '1', 'fixture'
 FROM part WHERE part_number_normalized = 'MJB7703AA';
 
+-- #544 deterministic mixed applicability rows are loaded after the migration
+-- chain so production UI filtering is exercised without changing domain schema.
+INSERT OR IGNORE INTO part_fitment (
+  part_id, vehicle_range_id, applicability_state, variation, qualifier,
+  source, source_ref, verification_status
+)
+SELECT p.id, r.id, 'excluded', 'Excluded fixture variation', 'Deterministic excluded variation fixture',
+       'fixture-544', 'issue:#544:mjb7703aa:x100:excluded', 'fixture'
+FROM part p
+JOIN vehicle_range r ON r.range_code = 'X100'
+WHERE p.part_number_normalized = 'MJB7703AA';
+
+INSERT OR IGNORE INTO part_fitment (
+  part_id, vehicle_range_id, applicability_state, variation, qualifier,
+  source, source_ref, verification_status
+)
+SELECT p.id, r.id, 'unavailable', 'Unavailable fixture variation', 'Deterministic unavailable variation fixture',
+       'fixture-544', 'issue:#544:mjb7703aa:x100:unavailable', 'fixture'
+FROM part p
+JOIN vehicle_range r ON r.range_code = 'X100'
+WHERE p.part_number_normalized = 'MJB7703AA';
+
+-- #545 supplies an explicitly synthetic available Part Image for the same
+-- searchable fixture PART; unavailable image cases remain in the fixture set.
+UPDATE part_image
+SET image_ref = '/fixtures/mjb7703aa.svg',
+    description = 'Representative verified fixture Part Image',
+    source = 'fixture-545',
+    source_ref = 'issue:#545:mjb7703aa:image',
+    verification_status = 'fixture',
+    availability_status = 'available'
+WHERE part_id = (SELECT id FROM part WHERE part_number_normalized = 'MJB7703AA')
+  AND image_kind = 'representative';
+
 INSERT OR IGNORE INTO stock_site (id, name) VALUES
   (60790, 'Fixture #607 Site');
 
 INSERT OR IGNORE INTO stock_location (id, site_id, parent_id, location_type, name) VALUES
   (60791, 60790, NULL, 'shelf', 'Fixture Shelf XK'),
-  (60792, 60790, 60791, 'box', 'Box Label'),
-  (60793, 60790, 60791, 'box', 'Box Clips');
+  (60792, 60790, 60791, 'box', 'Box A14'),
+  (60793, 60790, 60791, 'box', 'Box C07'),
+  (60794, 60790, 60791, 'box', 'Box X31'),
+  (60795, 60790, 60791, 'box', 'Box R02'),
+  (60797, 60790, 60791, 'box', 'Box F12'),
+  (60798, 60790, 60791, 'box', 'Box F29');
 
 INSERT OR IGNORE INTO stock_source_party (id, source_type, name, source_ref) VALUES
-  (60794, 'other', 'Fixture #607 synthetic stock generator', 'issue:#607');
+  (60796, 'other', 'Fixture #607 synthetic stock generator', 'issue:#607');
 
 INSERT OR IGNORE INTO stock_item (
   id, part_number, part_id, quantity, condition, status, location, source,
@@ -47,8 +85,8 @@ INSERT OR IGNORE INTO stock_item (
   storage_location_id, source_party_id, price, currency, notes
 )
 SELECT 60740, 'MJB7703AA', id, 2, 'used / inspected', 'available',
-       'Fixture Shelf XK / Box Label', 'fixture-607', 'issue:#607:synthetic-stock:mjb7703aa',
-       1, 'fixture', 0.61, 'B', 60792, 60794, 14.50, 'EUR',
+       'Fixture Shelf XK / Box A14', 'fixture-607', 'issue:#607:synthetic-stock:mjb7703aa',
+       1, 'fixture', 0.61, 'B', 60792, 60796, 14.50, 'EUR',
        'Synthetic demo stock value; not real Jagports inventory evidence.'
 FROM part WHERE part_number_normalized = 'MJB7703AA';
 
@@ -58,8 +96,8 @@ INSERT OR IGNORE INTO stock_item (
   storage_location_id, source_party_id, price, currency, notes
 )
 SELECT 60741, 'MNA7691AA', id, 4, 'used / good', 'available',
-       'Fixture Shelf XK / Box Label', 'fixture-607', 'issue:#607:synthetic-stock:mna7691aa',
-       1, 'fixture', 0.58, 'B', 60792, 60794, 6.00, 'EUR',
+       'Fixture Shelf XK / Box C07', 'fixture-607', 'issue:#607:synthetic-stock:mna7691aa',
+       1, 'fixture', 0.58, 'B', 60793, 60796, 6.00, 'EUR',
        'Synthetic demo stock value; not real Jagports inventory evidence.'
 FROM part WHERE part_number_normalized = 'MNA7691AA';
 
@@ -69,8 +107,8 @@ INSERT OR IGNORE INTO stock_item (
   storage_location_id, source_party_id, price, currency, notes
 )
 SELECT 60742, 'XR847031', id, 1, 'new old stock / shelf wear', 'available',
-       'Fixture Shelf XK / Box Label', 'fixture-607', 'issue:#607:synthetic-stock:xr847031',
-       1, 'fixture', 0.58, 'A', 60792, 60794, 18.50, 'EUR',
+       'Fixture Shelf XK / Box X31', 'fixture-607', 'issue:#607:synthetic-stock:xr847031',
+       1, 'fixture', 0.58, 'A', 60794, 60796, 18.50, 'EUR',
        'Synthetic demo stock value; not real Jagports inventory evidence.'
 FROM part WHERE part_number_normalized = 'XR847031';
 
@@ -80,8 +118,8 @@ INSERT OR IGNORE INTO stock_item (
   storage_location_id, source_party_id, price, currency, notes
 )
 SELECT 60743, 'FIX538C', id, 1, 'test-only', 'available',
-       'Fixture Shelf XK / Box Label', 'fixture-607', 'issue:#607:synthetic-stock:fix538c',
-       1, 'fixture', 0.40, 'D', 60792, 60794, 3.00, 'EUR',
+       'Fixture Shelf XK / Box R02', 'fixture-607', 'issue:#607:synthetic-stock:fix538c',
+       1, 'fixture', 0.40, 'D', 60795, 60796, 3.00, 'EUR',
        'Synthetic chain-endpoint stock value; not real catalogue or inventory evidence.'
 FROM part WHERE part_number_normalized = 'FIX538C';
 
@@ -91,8 +129,8 @@ INSERT OR IGNORE INTO stock_item (
   storage_location_id, source_party_id, price, currency, notes
 )
 SELECT 60744, 'UNNUMBERED-FIRTREE1', id, 12, 'used / mixed', 'available',
-       'Fixture Shelf XK / Box Clips', 'fixture-607', 'issue:#607:synthetic-stock:firtree1',
-       1, 'fixture', 0.50, 'C', 60793, 60794, 0.60, 'EUR',
+       'Fixture Shelf XK / Box F12', 'fixture-607', 'issue:#607:synthetic-stock:firtree1',
+       1, 'fixture', 0.50, 'C', 60797, 60796, 0.60, 'EUR',
        'Synthetic demo stock value for an unidentified fixture clip.'
 FROM part WHERE description = 'firtree1';
 
@@ -102,7 +140,7 @@ INSERT OR IGNORE INTO stock_item (
   storage_location_id, source_party_id, price, currency, notes
 )
 SELECT 60745, 'UNNUMBERED-FIRTREE2', id, 6, 'used / mixed', 'available',
-       'Fixture Shelf XK / Box Clips', 'fixture-607', 'issue:#607:synthetic-stock:firtree2',
-       1, 'fixture', 0.50, 'C', 60793, 60794, 0.80, 'EUR',
+       'Fixture Shelf XK / Box F29', 'fixture-607', 'issue:#607:synthetic-stock:firtree2',
+       1, 'fixture', 0.50, 'C', 60798, 60796, 0.80, 'EUR',
        'Synthetic demo stock value for an unidentified fixture clip.'
 FROM part WHERE description = 'firtree2';

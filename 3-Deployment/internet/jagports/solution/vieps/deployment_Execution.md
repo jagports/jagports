@@ -56,13 +56,38 @@ Follow:
 
 `3-Deployment/internet/cloudflare/workers/jagports/CloudFlareGit_App_Deployment.md`
 
-Run from the repository root:
+The VIEPS Worker contains generated frontend assets. Therefore the Worker deployment path must restore the locked dependencies and run the project-defined build before Wrangler publishes `public/`.
+
+From the Worker root:
 
 ```text
+npm ci
+npm run build
 npx wrangler deploy --dry-run
 ```
 
-Production should normally flow through reviewed `main` -> Workers Builds -> deployment. Use direct `npx wrangler deploy` only as an explicitly recorded fallback/bootstrap operation.
+For normal Git-integrated deployment, verify that the remote Workers Builds trigger matches repository policy before relying on it:
+
+```text
+node 3-Deployment/internet/cloudflare/workers/jagports/apply-build-branches.mjs --check
+```
+
+Production should normally flow through reviewed `main` -> Workers Builds build command -> deploy command. The current VIEPS contract is `npm ci && npm run build` before `npx wrangler deploy`.
+
+Use direct deployment only as an explicitly recorded fallback/bootstrap operation. Direct deployment must use the same build contract:
+
+```text
+npm ci
+npm run deploy
+```
+
+After deployment, verify the generated stylesheet directly:
+
+```text
+npm run verify:deployed-assets
+```
+
+Stop P3 if the generated asset is absent/empty, its deployed URL is not successful with the expected content type, or the rendered application is unstyled. A successful Wrangler/Workers deployment alone is not sufficient P3 verification.
 
 ### P4 — D1 database
 
@@ -96,7 +121,11 @@ Do not recreate the database for a new migration.
 
 For non-production branches use the configured preview build/version mechanism. Keep production on `main`.
 
+Preview deployment must also run the project build first:
+
 ```text
+npm ci
+npm run build
 npx wrangler versions upload
 ```
 
@@ -161,6 +190,8 @@ EXECUTED -> VERIFIED
 ```
 
 A preceding successful task does not prove a later task. `BLOCKED`, `FAIL`, or `NOT RUN` is not success.
+
+For P3 specifically, Worker deployment success does not prove generated frontend assets exist, and generated frontend asset success does not prove D1 migration state. Verify each boundary independently.
 
 Use CLI/API first. Use UI only where no supported programmatic operation is available.
 

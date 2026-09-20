@@ -1,0 +1,3581 @@
+{
+  "issues": {
+    "595": {
+      "number": 595,
+      "title": "Document Jagports Lead Agent setup",
+      "state": "open",
+      "updated_at": "2026-09-12T09:57:31+00:00"
+    },
+    "594": {
+      "number": 594,
+      "title": "[AI OS] Document Lead Agent setup and multi-script agent team architecture",
+      "state": "open",
+      "updated_at": "2026-09-12T09:12:28+00:00"
+    },
+    "593": {
+      "number": 593,
+      "title": "agent test",
+      "state": "open",
+      "updated_at": "2026-09-12T12:24:08+00:00"
+    },
+    "592": {
+      "number": 592,
+      "title": "DEC KNOWLEDGE",
+      "state": "closed",
+      "updated_at": "2026-09-12T07:29:28+00:00"
+    },
+    "591": {
+      "number": 591,
+      "title": "[Documentation] Add Cloudflare D1 storage limits and architecture guidance",
+      "state": "open",
+      "updated_at": "2026-09-12T06:04:35+00:00"
+    },
+    "590": {
+      "number": 590,
+      "title": "VIEPS UI / Consolidate concepts and specifications",
+      "state": "closed",
+      "updated_at": "2026-09-12T05:20:52+00:00"
+    },
+    "589": {
+      "number": 589,
+      "title": "[Implement] jagports.github.io",
+      "state": "closed",
+      "updated_at": "2026-09-12T03:48:50+00:00"
+    },
+    "588": {
+      "number": 588,
+      "title": "Implement GitHub Pages index.html to display /docs/README.png",
+      "state": "closed",
+      "updated_at": "2026-09-12T05:26:16+00:00"
+    },
+    "587": {
+      "number": 587,
+      "title": "Create README.png",
+      "state": "closed",
+      "updated_at": "2026-09-12T03:29:48+00:00"
+    },
+    "586": {
+      "number": 586,
+      "title": "[SOURCE] JEPC Code - Add JEPC data structure findings",
+      "state": "open",
+      "updated_at": "2026-09-12T05:17:32+00:00"
+    },
+    "585": {
+      "number": 585,
+      "title": "[STUDY] Fetch initial JEPC files for JEPC data format analysis",
+      "state": "open",
+      "updated_at": "2026-09-12T03:18:22+00:00"
+    },
+    "584": {
+      "number": 584,
+      "title": "Move JEPCFiles to software path and add JEPC data spec placeholder",
+      "state": "closed",
+      "updated_at": "2026-09-12T00:55:37+00:00"
+    },
+    "583": {
+      "number": 583,
+      "title": "[Post-MVP] Reflect current search state in URL for shareable deep links",
+      "state": "open",
+      "updated_at": "2026-09-11T23:45:09+00:00"
+    },
+    "582": {
+      "number": 582,
+      "title": "Consolidate VIEPS UI specifications and synchronize open issue UI spec references",
+      "state": "closed",
+      "updated_at": "2026-09-12T05:20:53+00:00"
+    },
+    "581": {
+      "number": 581,
+      "title": "AGENT / Post-merge workflow test for #574",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:34:24+00:00"
+    },
+    "580": {
+      "number": 580,
+      "title": "KNOWLEDGE / Test issue for #574 (TitleEdit Test)",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:36:24+00:00"
+    },
+    "579": {
+      "number": 579,
+      "title": "GitHub Actions / Remove unnecessary Windows Parts Model runner",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:13:14+00:00"
+    },
+    "578": {
+      "number": 578,
+      "title": "GitHub Actions / Remove unnecessary Windows Parts Model runner",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:13:15+00:00"
+    },
+    "577": {
+      "number": 577,
+      "title": "VIEPS UI / Align Pico-styled page with Concept EMF and visible initial state",
+      "state": "closed",
+      "updated_at": "2026-09-11T23:23:52+00:00"
+    },
+    "576": {
+      "number": 576,
+      "title": "Standardize Review conversation terminology",
+      "state": "closed",
+      "updated_at": "2026-09-11T21:39:24+00:00"
+    },
+    "575": {
+      "number": 575,
+      "title": "GitHub Actions / Reduce category workflow trigger amplification and document Actions knowledge",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:30:55+00:00"
+    },
+    "574": {
+      "number": 574,
+      "title": "GitHub Actions / Reduce category-convention trigger amplification and Actions-minute usage",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:34:31+00:00"
+    },
+    "573": {
+      "number": 573,
+      "title": "VIEPS UI / Move AI visualization prompt to canonical UI directory",
+      "state": "closed",
+      "updated_at": "2026-09-11T21:22:09+00:00"
+    },
+    "572": {
+      "number": 572,
+      "title": "VIEPS UI / Move AI visualization prompt into canonical UI directory",
+      "state": "closed",
+      "updated_at": "2026-09-11T20:43:28+00:00"
+    },
+    "571": {
+      "number": 571,
+      "title": "VIEPS / Complete MVP operational stock model requirements",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:48:43+00:00"
+    },
+    "570": {
+      "number": 570,
+      "title": "VIEPS / Complete MVP operational stock model requirements",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:48:44+00:00"
+    },
+    "569": {
+      "number": 569,
+      "title": "GitHub Actions / Upgrade Node.js 20-based action dependencies",
+      "state": "closed",
+      "updated_at": "2026-09-11T19:49:17+00:00"
+    },
+    "568": {
+      "number": 568,
+      "title": "GitHub Actions / Upgrade Node.js 20-based action dependencies before removal",
+      "state": "closed",
+      "updated_at": "2026-09-11T19:51:53+00:00"
+    },
+    "567": {
+      "number": 567,
+      "title": "Fix D1 migration execution and image_ref verification for #566",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:56:24+00:00"
+    },
+    "566": {
+      "number": 566,
+      "title": "Complete PART_IMAGE deployment/migration for canonical PART model",
+      "state": "closed",
+      "updated_at": "2026-09-11T19:25:32+00:00"
+    },
+    "565": {
+      "number": 565,
+      "title": "VIEPS UI / Adopt CSS UI kit for MVP visual styling",
+      "state": "closed",
+      "updated_at": "2026-09-11T23:23:53+00:00"
+    },
+    "564": {
+      "number": 564,
+      "title": "VIEPS UI / Add visualization AI prompt and reference mockup",
+      "state": "closed",
+      "updated_at": "2026-09-11T17:55:33+00:00"
+    },
+    "563": {
+      "number": 563,
+      "title": "Define PR review discussion before formal review submission",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:01:30+00:00"
+    },
+    "562": {
+      "number": 562,
+      "title": "GitHub Actions / Separate Parts Model integrity test automation",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:47:08+00:00"
+    },
+    "561": {
+      "number": 561,
+      "title": "GitHub Actions / Specify and automate Parts Model integrity tests",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:40:12+00:00"
+    },
+    "560": {
+      "number": 560,
+      "title": "Define PR review discussion before formal review submission",
+      "state": "closed",
+      "updated_at": "2026-09-11T17:50:26+00:00"
+    },
+    "559": {
+      "number": 559,
+      "title": "Cloudflare: prevent deployment/check noise from unrelated PR branch commits",
+      "state": "open",
+      "updated_at": "2026-09-11T14:02:46+00:00"
+    },
+    "558": {
+      "number": 558,
+      "title": "Cloudflare: restrict deployment/check branches to main with explicit opt-in branch configuration",
+      "state": "closed",
+      "updated_at": "2026-09-11T14:02:53+00:00"
+    },
+    "557": {
+      "number": 557,
+      "title": "Define Issue Acceptance and PR checklist merge gates",
+      "state": "closed",
+      "updated_at": "2026-09-11T21:16:13+00:00"
+    },
+    "556": {
+      "number": 556,
+      "title": "Define Issue Acceptance and PR checklist merge gates",
+      "state": "closed",
+      "updated_at": "2026-09-11T21:16:14+00:00"
+    },
+    "555": {
+      "number": 555,
+      "title": "[post-MVP] Split EPC imported data into separate D1 databases per vehicle Range",
+      "state": "open",
+      "updated_at": "2026-09-11T13:55:06+00:00"
+    },
+    "554": {
+      "number": 554,
+      "title": "[post-MVP] Add i18n support",
+      "state": "open",
+      "updated_at": "2026-09-11T23:16:33+00:00"
+    },
+    "553": {
+      "number": 553,
+      "title": "VIEPS UI / Fix web page language detection showing French",
+      "state": "open",
+      "updated_at": "2026-09-11T12:17:14+00:00"
+    },
+    "552": {
+      "number": 552,
+      "title": "Amend @continue to give review link at every review boundary",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:01:06+00:00"
+    },
+    "551": {
+      "number": 551,
+      "title": "Amend @continue command to always provide review link at review boundary",
+      "state": "closed",
+      "updated_at": "2026-09-11T22:01:07+00:00"
+    },
+    "550": {
+      "number": 550,
+      "title": "VIEPS / Finalize Parts Data Model integrity, fixtures and documentation",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:15:30+00:00"
+    },
+    "549": {
+      "number": 549,
+      "title": "Restore VIEPS solution files to the Jagports solution hierarchy",
+      "state": "closed",
+      "updated_at": "2026-09-12T05:27:06+00:00"
+    },
+    "548": {
+      "number": 548,
+      "title": "Restore VIEPS solution files to the Jagports solution hierarchy",
+      "state": "closed",
+      "updated_at": "2026-09-11T09:31:02+00:00"
+    },
+    "547": {
+      "number": 547,
+      "title": "VIEPS UI / Implement Part-number entry and PART resolution",
+      "state": "closed",
+      "updated_at": "2026-09-12T04:19:13+00:00"
+    },
+    "546": {
+      "number": 546,
+      "title": "VIEPS UI / Execute end-to-end MVP acceptance test",
+      "state": "open",
+      "updated_at": "2026-09-12T04:44:02+00:00"
+    },
+    "545": {
+      "number": 545,
+      "title": "VIEPS UI / Implement PART Part Image view",
+      "state": "open",
+      "updated_at": "2026-09-12T04:43:58+00:00"
+    },
+    "544": {
+      "number": 544,
+      "title": "VIEPS UI / Implement Range to all suitable variations",
+      "state": "open",
+      "updated_at": "2026-09-12T04:43:54+00:00"
+    },
+    "543": {
+      "number": 543,
+      "title": "VIEPS UI / Implement PART to all suitable vehicle Ranges",
+      "state": "open",
+      "updated_at": "2026-09-12T04:43:49+00:00"
+    },
+    "542": {
+      "number": 542,
+      "title": "VIEPS UI / Implement PART to Parts Tree branch",
+      "state": "open",
+      "updated_at": "2026-09-12T04:43:45+00:00"
+    },
+    "541": {
+      "number": 541,
+      "title": "VIEPS UI / Implement Part-number entry and PART resolution",
+      "state": "closed",
+      "updated_at": "2026-09-12T04:31:24+00:00"
+    },
+    "540": {
+      "number": 540,
+      "title": "VIEPS UI / Add Concept View-1 MVP implementation specification",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:18:12+00:00"
+    },
+    "539": {
+      "number": 539,
+      "title": "VIEPS / Implement catalogue PART to operational stock MVP relationship",
+      "state": "closed",
+      "updated_at": "2026-09-11T08:17:15+00:00"
+    },
+    "536": {
+      "number": 536,
+      "title": "VIEPS / Implement PART diagram, hotspot and vehicle-location relationships MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-11T08:02:43+00:00"
+    },
+    "535": {
+      "number": 535,
+      "title": "VIEPS / Implement PART fitment and attribute applicability MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-11T08:17:27+00:00"
+    },
+    "538": {
+      "number": 538,
+      "title": "VIEPS / Finalize Parts Data Model integrity, fixtures and documentation MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:15:31+00:00"
+    },
+    "537": {
+      "number": 537,
+      "title": "VIEPS / Implement catalogue PART to operational stock MVP relationship",
+      "state": "closed",
+      "updated_at": "2026-09-11T08:17:21+00:00"
+    },
+    "534": {
+      "number": 534,
+      "title": "Enforce VIEPS execution evidence template",
+      "state": "closed",
+      "updated_at": "2026-09-11T07:43:40+00:00"
+    },
+    "533": {
+      "number": 533,
+      "title": "Enforce VIEPS execution evidence template in Issues and KNOWLEDGE",
+      "state": "closed",
+      "updated_at": "2026-09-11T07:43:49+00:00"
+    },
+    "532": {
+      "number": 532,
+      "title": "VIEPS / Implement PART supersession MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-11T07:39:47+00:00"
+    },
+    "531": {
+      "number": 531,
+      "title": "VIEPS / Implement PART supersession MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-11T07:39:51+00:00"
+    },
+    "530": {
+      "number": 530,
+      "title": "VIEPS / Implement PART vehicle and VIN range applicability MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:55:00+00:00"
+    },
+    "529": {
+      "number": 529,
+      "title": "VIEPS / Implement PART-to-Vehicle Range and VIN Range applicability MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:55:04+00:00"
+    },
+    "528": {
+      "number": 528,
+      "title": "VIEPS / Implement PART image and identification evidence MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:48:55+00:00"
+    },
+    "527": {
+      "number": 527,
+      "title": "VIEPS / Implement PART image and identification evidence MVP step",
+      "state": "open",
+      "updated_at": "2026-09-10T20:46:59+00:00"
+    },
+    "526": {
+      "number": 526,
+      "title": "VIEPS / Implement PART occurrence and context MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:42:31+00:00"
+    },
+    "525": {
+      "number": 525,
+      "title": "VIEPS / Parts Data Model \u2014 Implement PART occurrence and context MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:42:34+00:00"
+    },
+    "524": {
+      "number": 524,
+      "title": "Repository Structure \u2014 Amend canonical path depth rule for final `vieps` element",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:33:47+00:00"
+    },
+    "523": {
+      "number": 523,
+      "title": "Repository Structure \u2014 Amend canonical path depth rule for final `vieps` element",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:25:24+00:00"
+    },
+    "522": {
+      "number": 522,
+      "title": "VIEPS / Repository Structure \u2014 Move paths to canonical locations",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:25:14+00:00"
+    },
+    "521": {
+      "number": 521,
+      "title": "Deployment Documentation \u2014 Umbrella for unresolved Cloudflare/UI and variation anomalies",
+      "state": "open",
+      "updated_at": "2026-09-10T20:09:43+00:00"
+    },
+    "520": {
+      "number": 520,
+      "title": "VIEPS / Repository Structure \u2014 Move implementation, deployment, production and test paths to canonical locations",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:25:21+00:00"
+    },
+    "519": {
+      "number": 519,
+      "title": "VIEPS / Repository Structure \u2014 Define canonical paths before removing redundant `vieps` levels",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:50:39+00:00"
+    },
+    "518": {
+      "number": 518,
+      "title": "Repository Hygiene \u2014 Ignore generated Wrangler state",
+      "state": "closed",
+      "updated_at": "2026-09-10T19:59:07+00:00"
+    },
+    "517": {
+      "number": 517,
+      "title": "Repository Hygiene \u2014 Exclude generated Wrangler .wrangler state",
+      "state": "closed",
+      "updated_at": "2026-09-10T19:59:08+00:00"
+    },
+    "516": {
+      "number": 516,
+      "title": "VIEPS / Repository Structure \u2014 Remove redundant `vieps` production subdirectory and standardize layer paths",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:33:55+00:00"
+    },
+    "515": {
+      "number": 515,
+      "title": "VIEPS / Deployment-1 \u2014 Replace obsolete /base hierarchy and normalize Worker layout",
+      "state": "closed",
+      "updated_at": "2026-09-10T09:20:39+00:00"
+    },
+    "514": {
+      "number": 514,
+      "title": "Make VIEPS the pre-production Cloudflare Worker",
+      "state": "closed",
+      "updated_at": "2026-09-10T08:51:40+00:00"
+    },
+    "513": {
+      "number": 513,
+      "title": "Define VIEPS Worker environment naming and preserve Deployment-1 MVP endpoint",
+      "state": "closed",
+      "updated_at": "2026-09-10T08:50:21+00:00"
+    },
+    "512": {
+      "number": 512,
+      "title": "Fix VIEPS Cloudflare Worker name and deployment endpoint",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:10:32+00:00"
+    },
+    "511": {
+      "number": 511,
+      "title": "Documentation / Record Cloudflare Workers & Pages UI state and P2 integration anomalies",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:10:49+00:00"
+    },
+    "510": {
+      "number": 510,
+      "title": "Documentation / Node.js must be installed on deployment host before Cloudflare setup",
+      "state": "open",
+      "updated_at": "2026-09-10T06:51:34+00:00"
+    },
+    "509": {
+      "number": 509,
+      "title": "Clarify Cloudflare Account Setup procedure against current Cloudflare UI",
+      "state": "open",
+      "updated_at": "2026-09-10T06:40:13+00:00"
+    },
+    "508": {
+      "number": 508,
+      "title": "VIEPS / Deployment-1 / P2 \u2014 Establish and Verify Cloudflare \u2194 GitHub Integration",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:10:40+00:00"
+    },
+    "507": {
+      "number": 507,
+      "title": "VIEPS / Deployment-1 / P1 \u2014 Establish and Verify Cloudflare Account",
+      "state": "closed",
+      "updated_at": "2026-09-10T07:44:40+00:00"
+    },
+    "506": {
+      "number": 506,
+      "title": "VIEPS UI / Validate Deployment-1 End-to-End",
+      "state": "closed",
+      "updated_at": "2026-09-10T17:31:34+00:00"
+    },
+    "505": {
+      "number": 505,
+      "title": "VIEPS UI / Build Deployment-1 VIEPS UI Integration",
+      "state": "closed",
+      "updated_at": "2026-09-10T18:07:01+00:00"
+    },
+    "504": {
+      "number": 504,
+      "title": "VIEPS UI / Establish Deployment-1 API Data Path",
+      "state": "closed",
+      "updated_at": "2026-09-10T17:29:53+00:00"
+    },
+    "503": {
+      "number": 503,
+      "title": "VIEPS UI / Establish Deployment-1 D1 Data Foundation",
+      "state": "closed",
+      "updated_at": "2026-09-10T07:44:48+00:00"
+    },
+    "502": {
+      "number": 502,
+      "title": "VIEPS UI / Establish Deployment-1 Cloudflare Runtime Foundation",
+      "state": "closed",
+      "updated_at": "2026-09-10T07:39:21+00:00"
+    },
+    "501": {
+      "number": 501,
+      "title": "VIEPS / Deployment-1 / End-to-End Validation",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:34:31+00:00"
+    },
+    "500": {
+      "number": 500,
+      "title": "VIEPS / Deployment-1 / VIEPS UI Integration",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:10:23+00:00"
+    },
+    "499": {
+      "number": 499,
+      "title": "VIEPS / Deployment-1 / API Data Path",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:10:16+00:00"
+    },
+    "498": {
+      "number": 498,
+      "title": "VIEPS / Deployment-1 / D1 Data Foundation",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:10:07+00:00"
+    },
+    "497": {
+      "number": 497,
+      "title": "VIEPS / Deployment-1 / Cloudflare Deployment Foundation",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:09:59+00:00"
+    },
+    "496": {
+      "number": 496,
+      "title": "VIEPS / Deployment-1 \u2014 Establish the First Real End-to-End VIEPS Runtime",
+      "state": "closed",
+      "updated_at": "2026-09-11T08:18:12+00:00"
+    },
+    "495": {
+      "number": 495,
+      "title": "VIEPS UI / Add durable implementation boundary specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:41:52+00:00"
+    },
+    "494": {
+      "number": 494,
+      "title": "VIEPS UI / Add durable MVP vertical-slice specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:41:42+00:00"
+    },
+    "493": {
+      "number": 493,
+      "title": "VIEPS UI / Add durable stock separation specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:42:22+00:00"
+    },
+    "492": {
+      "number": 492,
+      "title": "VIEPS UI / Add durable supersession and Classic specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:42:19+00:00"
+    },
+    "491": {
+      "number": 491,
+      "title": "VIEPS UI / Add durable non-numbered parts specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:42:16+00:00"
+    },
+    "490": {
+      "number": 490,
+      "title": "VIEPS UI / Add durable unavailable-data specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:42:12+00:00"
+    },
+    "489": {
+      "number": 489,
+      "title": "VIEPS UI / Add durable Fitment specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:42:09+00:00"
+    },
+    "488": {
+      "number": 488,
+      "title": "VIEPS UI / Add durable Suitability Ranges specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:42:06+00:00"
+    },
+    "487": {
+      "number": 487,
+      "title": "VIEPS UI / Add durable Vehicle Location specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:42:03+00:00"
+    },
+    "486": {
+      "number": 486,
+      "title": "VIEPS UI / Add durable Main View specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:41:59+00:00"
+    },
+    "485": {
+      "number": 485,
+      "title": "VIEPS UI / Add durable Parts Tree specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:41:55+00:00"
+    },
+    "484": {
+      "number": 484,
+      "title": "VIEPS UI / Specification \u2014 MVP implementation tracking and baseline boundary",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:52+00:00"
+    },
+    "483": {
+      "number": 483,
+      "title": "VIEPS UI / Specification \u2014 Deterministic MVP vertical-slice contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:39+00:00"
+    },
+    "482": {
+      "number": 482,
+      "title": "VIEPS UI / Specification \u2014 Operational stock and catalogue separation",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:35+00:00"
+    },
+    "481": {
+      "number": 481,
+      "title": "VIEPS UI / Specification \u2014 Supersession and Classic indicator semantics",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:30+00:00"
+    },
+    "480": {
+      "number": 480,
+      "title": "VIEPS UI / Specification \u2014 Non-numbered part identity and image contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:25+00:00"
+    },
+    "479": {
+      "number": 479,
+      "title": "VIEPS UI / Specification \u2014 Explicit unavailable-data handling",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:21+00:00"
+    },
+    "478": {
+      "number": 478,
+      "title": "VIEPS UI / Specification \u2014 Fitment qualifiers and VIN applicability contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:16+00:00"
+    },
+    "477": {
+      "number": 477,
+      "title": "VIEPS UI / Specification \u2014 Suitability Model Ranges filtering contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:40:11+00:00"
+    },
+    "476": {
+      "number": 476,
+      "title": "VIEPS UI / Specification \u2014 Vehicle location at car contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:39:55+00:00"
+    },
+    "475": {
+      "number": 475,
+      "title": "VIEPS UI / Specification \u2014 Main part and diagram view synchronization contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:39:51+00:00"
+    },
+    "474": {
+      "number": 474,
+      "title": "VIEPS UI / Specification \u2014 Parts Tree hierarchy and selection contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:39:46+00:00"
+    },
+    "473": {
+      "number": 473,
+      "title": "VIEPS UI / Add durable Part Search specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:16:41+00:00"
+    },
+    "472": {
+      "number": 472,
+      "title": "VIEPS UI / Specification \u2014 Part search resolution and UI data contract",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:16:45+00:00"
+    },
+    "471": {
+      "number": 471,
+      "title": "Amend Management Rules: permit verified acceptance-criterion completion updates on open Issues",
+      "state": "open",
+      "updated_at": "2026-09-10T03:45:54+00:00"
+    },
+    "470": {
+      "number": 470,
+      "title": "VIEPS UI / Alternative entry points to Part Search",
+      "state": "open",
+      "updated_at": "2026-09-11T08:18:07+00:00"
+    },
+    "469": {
+      "number": 469,
+      "title": "VIEPS UI / Add durable UI specifications",
+      "state": "closed",
+      "updated_at": "2026-09-11T15:18:39+00:00"
+    },
+    "468": {
+      "number": 468,
+      "title": "VIEPS UI / Concept View-1 \u2014 Updated MVP UI specification",
+      "state": "closed",
+      "updated_at": "2026-09-10T04:51:28+00:00"
+    },
+    "467": {
+      "number": 467,
+      "title": "UI concept 1",
+      "state": "closed",
+      "updated_at": "2026-09-11T08:15:23+00:00"
+    },
+    "466": {
+      "number": 466,
+      "title": "Treat third parties as a first-class production concept",
+      "state": "open",
+      "updated_at": "2026-09-10T01:31:19+00:00"
+    },
+    "465": {
+      "number": 465,
+      "title": "Explicitly map ownership of Cloudflare production resources",
+      "state": "open",
+      "updated_at": "2026-09-10T01:28:20+00:00"
+    },
+    "464": {
+      "number": 464,
+      "title": "Document VIEPS production party responsibilities",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:11:40+00:00"
+    },
+    "463": {
+      "number": 463,
+      "title": "Document VIEPS production party ownership and operational responsibilities",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:11:58+00:00"
+    },
+    "462": {
+      "number": 462,
+      "title": "Correct VIEPS production-readiness analysis: DNS is not the primary blocker",
+      "state": "open",
+      "updated_at": "2026-09-10T01:22:36+00:00"
+    },
+    "461": {
+      "number": 461,
+      "title": "SKILL / Require line-specific implementation evidence in review replies",
+      "state": "closed",
+      "updated_at": "2026-09-09T23:16:53+00:00"
+    },
+    "460": {
+      "number": 460,
+      "title": "Require line-specific implementation evidence when responding to review change requests",
+      "state": "closed",
+      "updated_at": "2026-09-09T23:16:54+00:00"
+    },
+    "459": {
+      "number": 459,
+      "title": "Generate setupPre-ProductionDNSAddress.md for VIEPS Cloudflare pre-production",
+      "state": "open",
+      "updated_at": "2026-09-09T18:42:58+00:00"
+    },
+    "458": {
+      "number": 458,
+      "title": "Clarify AI OS and VIEPS audit scope boundaries",
+      "state": "closed",
+      "updated_at": "2026-09-09T18:11:21+00:00"
+    },
+    "457": {
+      "number": 457,
+      "title": "Correct AI OS and VIEPS audit scope boundaries",
+      "state": "closed",
+      "updated_at": "2026-09-09T18:11:24+00:00"
+    },
+    "456": {
+      "number": 456,
+      "title": "[REDESIGN] Introduce common daily audit method for AI OS and VIEPS",
+      "state": "closed",
+      "updated_at": "2026-09-09T17:53:41+00:00"
+    },
+    "455": {
+      "number": 455,
+      "title": "[P1 TEST] #84 Human lifecycle test v5 \u2014 async-aware full lifecycle",
+      "state": "closed",
+      "updated_at": "2026-09-09T16:56:42+00:00"
+    },
+    "454": {
+      "number": 454,
+      "title": "[REDESIGN] Streamline AI OS and VIEPS daily audits",
+      "state": "closed",
+      "updated_at": "2026-09-09T17:54:10+00:00"
+    },
+    "453": {
+      "number": 453,
+      "title": "[REDESIGN] Replace Project Audit with AI OS Showstopper & Priority Audit",
+      "state": "closed",
+      "updated_at": "2026-09-09T16:19:09+00:00"
+    },
+    "452": {
+      "number": 452,
+      "title": "[P12] Extend @continue through reviewed merge and close workflow",
+      "state": "closed",
+      "updated_at": "2026-09-09T15:58:46+00:00"
+    },
+    "451": {
+      "number": 451,
+      "title": "[P12] Define AI OS command semantics through reviewed merge and close",
+      "state": "closed",
+      "updated_at": "2026-09-09T15:58:55+00:00"
+    },
+    "450": {
+      "number": 450,
+      "title": "[CORRECTIVE] Generalize capability limitation vs project blocker",
+      "state": "closed",
+      "updated_at": "2026-09-09T16:00:20+00:00"
+    },
+    "449": {
+      "number": 449,
+      "title": "Correct production directory governance to allow technology-specific production structures",
+      "state": "closed",
+      "updated_at": "2026-09-10T20:34:23+00:00"
+    },
+    "448": {
+      "number": 448,
+      "title": "Implement public VIEPS access with administrator stock authorization",
+      "state": "open",
+      "updated_at": "2026-09-11T10:50:40+00:00"
+    },
+    "447": {
+      "number": 447,
+      "title": "Cloudflare Git integrated Jagports deployment execution and VIEPS pre-production address",
+      "state": "closed",
+      "updated_at": "2026-09-10T01:09:56+00:00"
+    },
+    "446": {
+      "number": 446,
+      "title": "Document Cloudflare Git integration and D1 deployment procedure",
+      "state": "closed",
+      "updated_at": "2026-09-10T19:09:14+00:00"
+    },
+    "445": {
+      "number": 445,
+      "title": "Split Cloudflare Worker and D1 deployment documentation",
+      "state": "closed",
+      "updated_at": "2026-09-10T00:01:15+00:00"
+    },
+    "444": {
+      "number": 444,
+      "title": "Add documented streaming Traficom XK range parser",
+      "state": "closed",
+      "updated_at": "2026-09-09T16:50:20+00:00"
+    },
+    "443": {
+      "number": 443,
+      "title": "Create streaming Get XK Range parser",
+      "state": "closed",
+      "updated_at": "2026-09-09T16:50:15+00:00"
+    },
+    "442": {
+      "number": 442,
+      "title": "[DATA BACKUP] Preserve VINClass v1.0 Excel function and Finnish XK Range workbook",
+      "state": "closed",
+      "updated_at": "2026-09-09T17:08:14+00:00"
+    },
+    "441": {
+      "number": 441,
+      "title": "[VIEPS KNOWLEDGE] Remove duplicated implementation detail",
+      "state": "closed",
+      "updated_at": "2026-09-07T09:46:33+00:00"
+    },
+    "440": {
+      "number": 440,
+      "title": "P10.1: consolidate MyNodeBTC Codex CLI setup",
+      "state": "closed",
+      "updated_at": "2026-09-07T09:32:11+00:00"
+    },
+    "439": {
+      "number": 439,
+      "title": "Capture and integrate novel AI OS knowledge from current development work into the prioritized work plan",
+      "state": "open",
+      "updated_at": "2026-09-07T09:14:49+00:00"
+    },
+    "438": {
+      "number": 438,
+      "title": "Consolidate Kanban setup documentation and remove v2",
+      "state": "closed",
+      "updated_at": "2026-09-07T09:07:13+00:00"
+    },
+    "437": {
+      "number": 437,
+      "title": "Consolidate GitHub Project/Kanban setup into tested reusable procedures",
+      "state": "closed",
+      "updated_at": "2026-09-07T09:07:32+00:00"
+    },
+    "436": {
+      "number": 436,
+      "title": "[P1] Recover Kanban after repository transfer and establish organization ownership",
+      "state": "open",
+      "updated_at": "2026-09-07T08:52:07+00:00"
+    },
+    "435": {
+      "number": 435,
+      "title": "Document PR #433 \u2014 Canonical PART model MVP implementation",
+      "state": "closed",
+      "updated_at": "2026-09-11T18:34:48+00:00"
+    },
+    "434": {
+      "number": 434,
+      "title": "Cloudflare placeholder",
+      "state": "closed",
+      "updated_at": "2026-09-07T05:32:51+00:00"
+    },
+    "433": {
+      "number": 433,
+      "title": "Implement canonical PART model MVP step",
+      "state": "closed",
+      "updated_at": "2026-09-07T08:39:57+00:00"
+    },
+    "432": {
+      "number": 432,
+      "title": "docs: standardize daily audit work-path formatting",
+      "state": "closed",
+      "updated_at": "2026-09-07T04:11:22+00:00"
+    },
+    "431": {
+      "number": 431,
+      "title": "Correct daily audit work-path rule traceability for PR #430",
+      "state": "closed",
+      "updated_at": "2026-09-07T03:29:31+00:00"
+    },
+    "430": {
+      "number": 430,
+      "title": "[MERGED] Update daily audit work-path formatting",
+      "state": "closed",
+      "updated_at": "2026-09-07T03:55:53+00:00"
+    },
+    "429": {
+      "number": 429,
+      "title": "Improve daily audits with dependency-enabling work paths",
+      "state": "closed",
+      "updated_at": "2026-09-07T03:07:28+00:00"
+    },
+    "428": {
+      "number": 428,
+      "title": "Fix VIEPS daily audit output references",
+      "state": "closed",
+      "updated_at": "2026-09-07T02:30:45+00:00"
+    },
+    "427": {
+      "number": 427,
+      "title": "temp",
+      "state": "closed",
+      "updated_at": "2026-09-07T06:56:14+00:00"
+    },
+    "426": {
+      "number": 426,
+      "title": "x",
+      "state": "closed",
+      "updated_at": "2026-09-07T02:20:37+00:00"
+    },
+    "425": {
+      "number": 425,
+      "title": "[P1] Fix daily audit procedure filenames and scheduled prompts",
+      "state": "closed",
+      "updated_at": "2026-09-07T02:19:53+00:00"
+    },
+    "424": {
+      "number": 424,
+      "title": "[P1] Fix daily audit procedure filenames and scheduled prompts",
+      "state": "closed",
+      "updated_at": "2026-09-07T02:30:46+00:00"
+    },
+    "423": {
+      "number": 423,
+      "title": "[P1] Fix daily audit procedure filenames and scheduled prompts",
+      "state": "closed",
+      "updated_at": "2026-09-07T02:19:27+00:00"
+    },
+    "422": {
+      "number": 422,
+      "title": "[REDESIGN] Streamline AI OS and VIEPS daily audits",
+      "state": "closed",
+      "updated_at": "2026-09-07T02:22:12+00:00"
+    },
+    "421": {
+      "number": 421,
+      "title": "[CORRECTIVE] Distinguish capability limitations from project blockers",
+      "state": "closed",
+      "updated_at": "2026-09-09T16:00:28+00:00"
+    },
+    "420": {
+      "number": 420,
+      "title": "SPEC: Define third-party parts model",
+      "state": "open",
+      "updated_at": "2026-09-06T23:51:49+00:00"
+    },
+    "419": {
+      "number": 419,
+      "title": "[FIX] Remove superseded daily audit scheduling document",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:43:06+00:00"
+    },
+    "418": {
+      "number": 418,
+      "title": "[FIX] Remove superseded daily audit scheduling document",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:43:07+00:00"
+    },
+    "417": {
+      "number": 417,
+      "title": "[DOCS] Streamline scheduled project task Markdown filenames",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:38:52+00:00"
+    },
+    "416": {
+      "number": 416,
+      "title": "Streamline scheduled audit Markdown filenames",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:38:53+00:00"
+    },
+    "415": {
+      "number": 415,
+      "title": "Split scheduled audits for Jagports AI OS and VIEPS App",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:29:03+00:00"
+    },
+    "414": {
+      "number": 414,
+      "title": "Split scheduled audit PR",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:15:25+00:00"
+    },
+    "413": {
+      "number": 413,
+      "title": "IGNORE",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:15:19+00:00"
+    },
+    "412": {
+      "number": 412,
+      "title": "IGNORE",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:15:16+00:00"
+    },
+    "411": {
+      "number": 411,
+      "title": "IGNORE",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:15:13+00:00"
+    },
+    "410": {
+      "number": 410,
+      "title": "IGNORE",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:15:10+00:00"
+    },
+    "409": {
+      "number": 409,
+      "title": "Split scheduled audit PR scope",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:15:07+00:00"
+    },
+    "408": {
+      "number": 408,
+      "title": "placeholder",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:14:49+00:00"
+    },
+    "407": {
+      "number": 407,
+      "title": "Split scheduled audits implementation",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:14:47+00:00"
+    },
+    "406": {
+      "number": 406,
+      "title": "Remove redundant audit traceability issue",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:14:38+00:00"
+    },
+    "405": {
+      "number": 405,
+      "title": "Implement split scheduled AI OS and VIEPS audits",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:14:34+00:00"
+    },
+    "404": {
+      "number": 404,
+      "title": "VIEPS App audit \u2014 implementation traceability",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:14:31+00:00"
+    },
+    "403": {
+      "number": 403,
+      "title": "VIEPS App audit task \u2014 implementation traceability",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:14:20+00:00"
+    },
+    "402": {
+      "number": 402,
+      "title": "VIEPS App scheduled audit scope and source-of-truth",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:14:18+00:00"
+    },
+    "401": {
+      "number": 401,
+      "title": "Refocus Jagports Daily Audit on AI OS project progress",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:31:18+00:00"
+    },
+    "400": {
+      "number": 400,
+      "title": "Create scheduled VIEPS App progress audit",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:31:21+00:00"
+    },
+    "399": {
+      "number": 399,
+      "title": "Split scheduled audits: Jagports AI OS and VIEPS App",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:30:22+00:00"
+    },
+    "398": {
+      "number": 398,
+      "title": "Move daily audit procedure to durable management Markdown",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:08:43+00:00"
+    },
+    "397": {
+      "number": 397,
+      "title": "Update scheduled Jagports Daily Audit with upstream connector blocker tracking",
+      "state": "closed",
+      "updated_at": "2026-09-06T23:08:44+00:00"
+    },
+    "396": {
+      "number": 396,
+      "title": "KNOWLEDGE / Consolidate and simplify testing practices",
+      "state": "open",
+      "updated_at": "2026-09-07T01:34:40+00:00"
+    },
+    "395": {
+      "number": 395,
+      "title": "KNOWLEDGE / Clarify readable Issue and PR messages",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:12:12+00:00"
+    },
+    "394": {
+      "number": 394,
+      "title": "KNOWLEDGE / Clarify readable formatting for Issue and PR descriptions and comments",
+      "state": "open",
+      "updated_at": "2026-09-04T21:09:44+00:00"
+    },
+    "393": {
+      "number": 393,
+      "title": "FIX / Roll back broken #311 workflow YAML",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:00:52+00:00"
+    },
+    "392": {
+      "number": 392,
+      "title": "TEST / #311 post-merge failure-comment formatting",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:00:53+00:00"
+    },
+    "391": {
+      "number": 391,
+      "title": "KNOWLEDGE / Simplify testing process",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:05+00:00"
+    },
+    "390": {
+      "number": 390,
+      "title": "TEST / PR-branch pre-merge / #311 comment formatting",
+      "state": "closed",
+      "updated_at": "2026-09-04T20:43:36+00:00"
+    },
+    "389": {
+      "number": 389,
+      "title": "[DOCS] Consolidate GitHub Issue and PR operating rules (#356)",
+      "state": "closed",
+      "updated_at": "2026-09-04T19:56:02+00:00"
+    },
+    "388": {
+      "number": 388,
+      "title": "[P5.1] Validate and normalize knowledge architecture",
+      "state": "closed",
+      "updated_at": "2026-09-04T19:24:07+00:00"
+    },
+    "387": {
+      "number": 387,
+      "title": "Implement Root dir /1-CustomerService",
+      "state": "closed",
+      "updated_at": "2026-09-04T18:48:40+00:00"
+    },
+    "386": {
+      "number": 386,
+      "title": "[P1] Move Kanban Project Item mutation test under Setting_up_Kanban",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:08+00:00"
+    },
+    "385": {
+      "number": 385,
+      "title": "[P1] Reorganize root documentation and architecture directories",
+      "state": "closed",
+      "updated_at": "2026-09-04T18:39:51+00:00"
+    },
+    "384": {
+      "number": 384,
+      "title": "[P1] Audit root-level docs, test and jagports-tmp directories and relocate them",
+      "state": "closed",
+      "updated_at": "2026-09-04T18:39:52+00:00"
+    },
+    "383": {
+      "number": 383,
+      "title": "Implement scheduled daily Team Lead project audit",
+      "state": "closed",
+      "updated_at": "2026-09-06T22:44:34+00:00"
+    },
+    "382": {
+      "number": 382,
+      "title": "KNOWLEDGE: document current GitHub Project modification limitation",
+      "state": "closed",
+      "updated_at": "2026-09-04T17:41:35+00:00"
+    },
+    "286": {
+      "number": 286,
+      "title": "Move production implementation into approved foundation/application hierarchy",
+      "state": "closed",
+      "updated_at": "2026-09-04T17:18:45+00:00"
+    },
+    "381": {
+      "number": 381,
+      "title": "Open MVPv0-and-coupe for review",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:47:11+00:00"
+    },
+    "380": {
+      "number": 380,
+      "title": "Open MVPv0-and-coupe for review",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:46:56+00:00"
+    },
+    "379": {
+      "number": 379,
+      "title": "KNOWLEDGE / TEST FIXTURE / category rename cleanup 376 \u2014 fresh",
+      "state": "open",
+      "updated_at": "2026-09-04T16:10:16+00:00"
+    },
+    "378": {
+      "number": 378,
+      "title": "KNOWLEDGE / TEST FIXTURE / category rename cleanup 376",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:07:17+00:00"
+    },
+    "377": {
+      "number": 377,
+      "title": "SKILL / Remove stale category labels on supported-prefix rename",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:01:22+00:00"
+    },
+    "376": {
+      "number": 376,
+      "title": "SKILL / Fix stale category label removal on supported-prefix rename",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:11:16+00:00"
+    },
+    "375": {
+      "number": 375,
+      "title": "Amend #364: consolidate supersession knowledge",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:52:50+00:00"
+    },
+    "374": {
+      "number": 374,
+      "title": "Amend #364: consolidate JEPC supersession knowledge into DocumentationEducationCompetense",
+      "state": "open",
+      "updated_at": "2026-09-04T15:30:17+00:00"
+    },
+    "373": {
+      "number": 373,
+      "title": "[P0] Enforce review gate before merge",
+      "state": "closed",
+      "updated_at": "2026-09-04T15:39:40+00:00"
+    },
+    "372": {
+      "number": 372,
+      "title": "Fix merge-gate enforcement: CHANGES_REQUESTED must always block merge",
+      "state": "closed",
+      "updated_at": "2026-09-04T15:39:41+00:00"
+    },
+    "371": {
+      "number": 371,
+      "title": "Implement and document scheduled daily Team Lead audit",
+      "state": "closed",
+      "updated_at": "2026-09-06T22:37:22+00:00"
+    },
+    "370": {
+      "number": 370,
+      "title": "Followup test issue for #307",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:44:10+00:00"
+    },
+    "369": {
+      "number": 369,
+      "title": "Define VIEPS stock provenance model",
+      "state": "closed",
+      "updated_at": "2026-09-04T13:43:50+00:00"
+    },
+    "368": {
+      "number": 368,
+      "title": "VIEPS UI / Implement MVP Web UI",
+      "state": "open",
+      "updated_at": "2026-09-11T11:15:03+00:00"
+    },
+    "367": {
+      "number": 367,
+      "title": "KNOWLEDGE / Record VIEPS Parts Data Model decisions",
+      "state": "closed",
+      "updated_at": "2026-09-07T09:43:58+00:00"
+    },
+    "366": {
+      "number": 366,
+      "title": "[VIEPS UI] Add UI concepts and X100 WDS silhouette assets",
+      "state": "closed",
+      "updated_at": "2026-09-10T03:07:14+00:00"
+    },
+    "365": {
+      "number": 365,
+      "title": "Define need for updated Jagports vehicle knowledge specifications",
+      "state": "closed",
+      "updated_at": "2026-09-04T11:49:31+00:00"
+    },
+    "364": {
+      "number": 364,
+      "title": "Document JEPC parts supersession knowledge",
+      "state": "closed",
+      "updated_at": "2026-09-04T15:20:47+00:00"
+    },
+    "363": {
+      "number": 363,
+      "title": "Create scheduled daily Team Lead project audit and document automation",
+      "state": "closed",
+      "updated_at": "2026-09-04T20:12:58+00:00"
+    },
+    "362": {
+      "number": 362,
+      "title": "SPEC: Define whole-car zones and image hotspot model",
+      "state": "open",
+      "updated_at": "2026-09-07T00:02:29+00:00"
+    },
+    "361": {
+      "number": 361,
+      "title": "RESEARCH: Resolve Range taxonomy and whole-car zone mapping",
+      "state": "open",
+      "updated_at": "2026-09-04T16:58:13+00:00"
+    },
+    "360": {
+      "number": 360,
+      "title": "VIEPS UI MVP Draft",
+      "state": "closed",
+      "updated_at": "2026-09-10T03:07:06+00:00"
+    },
+    "359": {
+      "number": 359,
+      "title": "Update Jagports_vehicle_knowledge 2 specifications.md",
+      "state": "closed",
+      "updated_at": "2026-09-04T11:49:19+00:00"
+    },
+    "358": {
+      "number": 358,
+      "title": "Research WDS/UFM whole-car silhouette image pull mechanism",
+      "state": "open",
+      "updated_at": "2026-09-04T03:31:22+00:00"
+    },
+    "357": {
+      "number": 357,
+      "title": "Add IPS_QUESTIONS.md; extend SPEC-6.6 zone vocabulary; add SPEC-6.13 application settings",
+      "state": "open",
+      "updated_at": "2026-09-04T03:31:20+00:00"
+    },
+    "356": {
+      "number": 356,
+      "title": "[CONFLICT] ISSUE_OPERATING_RULES.md redefines WORKFLOWS.md's normative content",
+      "state": "closed",
+      "updated_at": "2026-09-04T19:56:02+00:00"
+    },
+    "355": {
+      "number": 355,
+      "title": "IMPL / JEPC Data Importer",
+      "state": "open",
+      "updated_at": "2026-09-12T06:09:17+00:00"
+    },
+    "354": {
+      "number": 354,
+      "title": "Define and implement Parts Data Model",
+      "state": "open",
+      "updated_at": "2026-09-11T14:37:09+00:00"
+    },
+    "353": {
+      "number": 353,
+      "title": "Research Jagports stock data and operational stock model",
+      "state": "closed",
+      "updated_at": "2026-09-04T13:52:19+00:00"
+    },
+    "352": {
+      "number": 352,
+      "title": "RESEARCH / Determine JEPC Flash hotspot coordinate conversion",
+      "state": "open",
+      "updated_at": "2026-09-07T00:02:23+00:00"
+    },
+    "351": {
+      "number": 351,
+      "title": "Remove obsolete Kanban task-import skill",
+      "state": "closed",
+      "updated_at": "2026-09-04T01:34:03+00:00"
+    },
+    "350": {
+      "number": 350,
+      "title": "[P1] KNOWLEDGE / Define the Lessons-Learned \u2192 KNOWLEDGE/SKILL update workflow",
+      "state": "open",
+      "updated_at": "2026-09-03T23:48:53+00:00"
+    },
+    "349": {
+      "number": 349,
+      "title": "[P1 TEST] #84 Human lifecycle test v4 \u2014 minimal UI verification",
+      "state": "closed",
+      "updated_at": "2026-09-03T23:42:47+00:00"
+    },
+    "348": {
+      "number": 348,
+      "title": "[P1 TEST FIXTURE] #84 lifecycle fixture for #347",
+      "state": "closed",
+      "updated_at": "2026-09-03T23:36:12+00:00"
+    },
+    "347": {
+      "number": 347,
+      "title": "[P1 TEST] #84 Human lifecycle test v3 \u2014 short UI verification",
+      "state": "closed",
+      "updated_at": "2026-09-03T23:07:45+00:00"
+    },
+    "346": {
+      "number": 346,
+      "title": "[P1 TEST FIXTURE] #84 lifecycle fresh fixture for #345",
+      "state": "closed",
+      "updated_at": "2026-09-03T23:36:08+00:00"
+    },
+    "345": {
+      "number": 345,
+      "title": "[P1 TEST] #84 Human lifecycle test \u2014 fresh verification after #342",
+      "state": "closed",
+      "updated_at": "2026-09-03T23:01:46+00:00"
+    },
+    "344": {
+      "number": 344,
+      "title": "SKILL / Investigate human-test checklist and direct-URL Markdown formatting",
+      "state": "open",
+      "updated_at": "2026-09-04T21:27:06+00:00"
+    },
+    "343": {
+      "number": 343,
+      "title": "KNOWLEDGE: improve human-test preparation and handover",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:11+00:00"
+    },
+    "342": {
+      "number": 342,
+      "title": "[P1 TEST] #84 Human lifecycle test \u2014 Issue \u2194 Project Item",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:57:41+00:00"
+    },
+    "341": {
+      "number": 341,
+      "title": "[P1 TEST] #84 Project Item lifecycle end-to-end validation",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:43:03+00:00"
+    },
+    "340": {
+      "number": 340,
+      "title": "PROCESS / Prevent PR self-review and require independent review hand-off",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:37:25+00:00"
+    },
+    "339": {
+      "number": 339,
+      "title": "KNOWLEDGE / Prevent PR self-review and require independent review hand-off",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:37:39+00:00"
+    },
+    "338": {
+      "number": 338,
+      "title": "Fix Project Item discovery for #84 lifecycle automation",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:40:41+00:00"
+    },
+    "337": {
+      "number": 337,
+      "title": "Import tasks: document work for #336",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:18:50+00:00"
+    },
+    "336": {
+      "number": 336,
+      "title": "KNOWLEDGE / Import Jagports AI OS tasks as Issues and native sub-issues",
+      "state": "open",
+      "updated_at": "2026-09-04T21:18:54+00:00"
+    },
+    "335": {
+      "number": 335,
+      "title": "AI Agent GitHub Connections Knowledge",
+      "state": "closed",
+      "updated_at": "2026-09-04T15:15:07+00:00"
+    },
+    "334": {
+      "number": 334,
+      "title": "KNOWLEDGE / Record AI Agent GitHub Connections for OpenAI and Claude",
+      "state": "closed",
+      "updated_at": "2026-09-04T15:15:19+00:00"
+    },
+    "333": {
+      "number": 333,
+      "title": "[KNOWLEDGE] Rename communication protocol specification",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:32:58+00:00"
+    },
+    "332": {
+      "number": 332,
+      "title": "Revert direct default-branch commit 309bb263",
+      "state": "closed",
+      "updated_at": "2026-09-04T14:57:47+00:00"
+    },
+    "331": {
+      "number": 331,
+      "title": "[P3.4] Add agent workflow architecture research to #57",
+      "state": "closed",
+      "updated_at": "2026-09-04T14:48:16+00:00"
+    },
+    "330": {
+      "number": 330,
+      "title": "Implement READMEs",
+      "state": "closed",
+      "updated_at": "2026-09-02T20:58:57+00:00"
+    },
+    "329": {
+      "number": 329,
+      "title": "Import Jaguar EPC files base",
+      "state": "closed",
+      "updated_at": "2026-09-02T20:48:55+00:00"
+    },
+    "328": {
+      "number": 328,
+      "title": "KNOWLEDGE / Define readable Issue and PR description creation and formatting",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:34:45+00:00"
+    },
+    "327": {
+      "number": 327,
+      "title": "SKILL / Fix Issue-to-Project automation Project Item discovery",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:30:10+00:00"
+    },
+    "326": {
+      "number": 326,
+      "title": "[KNOWLEDGE][TEST] Verify Issue-to-Project automation with current PROJECTS_TOKEN",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:41:15+00:00"
+    },
+    "325": {
+      "number": 325,
+      "title": "[KNOWLEDGE] Separate secret-storage verification from Project capability verification",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:41:06+00:00"
+    },
+    "324": {
+      "number": 324,
+      "title": "[KNOWLEDGE] Document safe PROJECTS_TOKEN rotation workflow",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:40:58+00:00"
+    },
+    "323": {
+      "number": 323,
+      "title": "[TEST #291] Verify Issue-to-Project automation",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:40:57+00:00"
+    },
+    "322": {
+      "number": 322,
+      "title": "Move tests/ files under 5-Projects-Implementation/tests",
+      "state": "closed",
+      "updated_at": "2026-09-06T21:39:54+00:00"
+    },
+    "321": {
+      "number": 321,
+      "title": "Fix Project Item mutation test for #313",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:43:35+00:00"
+    },
+    "320": {
+      "number": 320,
+      "title": "Update DEPLOYMENT_KNOWLEDGE_PLACEMENT.md",
+      "state": "closed",
+      "updated_at": "2026-09-02T16:01:09+00:00"
+    },
+    "319": {
+      "number": 319,
+      "title": "Rename and copy jagports-mvp to jagports",
+      "state": "closed",
+      "updated_at": "2026-09-02T16:17:01+00:00"
+    },
+    "318": {
+      "number": 318,
+      "title": "Rename application name from jagports-mvp to jagports and move it from production to Projects for implementation",
+      "state": "closed",
+      "updated_at": "2026-09-04T14:34:36+00:00"
+    },
+    "317": {
+      "number": 317,
+      "title": "Reconcile Project automation credential knowledge",
+      "state": "closed",
+      "updated_at": "2026-09-02T15:04:55+00:00"
+    },
+    "316": {
+      "number": 316,
+      "title": "[KNOWLEDGE] Consolidate communication protocol and rename specification",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:33:11+00:00"
+    },
+    "315": {
+      "number": 315,
+      "title": "KNOWLEDGE / Review and remove obsolete Kanban task-import skill and references",
+      "state": "closed",
+      "updated_at": "2026-09-04T01:34:58+00:00"
+    },
+    "314": {
+      "number": 314,
+      "title": "KNOWLEDGE / Keep only current working-set knowledge and code on Default Branch",
+      "state": "closed",
+      "updated_at": "2026-09-04T14:36:23+00:00"
+    },
+    "313": {
+      "number": 313,
+      "title": "KNOWLEDGE / Ensure Project operations are verified before claiming success",
+      "state": "closed",
+      "updated_at": "2026-09-04T17:39:08+00:00"
+    },
+    "312": {
+      "number": 312,
+      "title": "[KNOWLEDGE] Establish centralized Management workflow source of truth",
+      "state": "closed",
+      "updated_at": "2026-09-02T14:45:24+00:00"
+    },
+    "311": {
+      "number": 311,
+      "title": "KNOWLEDGE / Implement readable text formation for automated Issue/PR comments",
+      "state": "closed",
+      "updated_at": "2026-09-04T20:54:28+00:00"
+    },
+    "310": {
+      "number": 310,
+      "title": "KNOWLEDGE / Create 5-Implementation-Projects/TESTING.md and consolidate testing procedures",
+      "state": "open",
+      "updated_at": "2026-09-04T21:27:02+00:00"
+    },
+    "309": {
+      "number": 309,
+      "title": "AGENT / TEST FIXTURE / category rename 308",
+      "state": "open",
+      "updated_at": "2026-09-04T16:10:58+00:00"
+    },
+    "308": {
+      "number": 308,
+      "title": "TEST / HT: category rename fixture",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:58+00:00"
+    },
+    "307": {
+      "number": 307,
+      "title": "Verify PR #267 comment formatting on merged implementation",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:43:48+00:00"
+    },
+    "306": {
+      "number": 306,
+      "title": "KNOWLEDGE / Refine immutable-history governance references",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:18:19+00:00"
+    },
+    "305": {
+      "number": 305,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:39:51+00:00"
+    },
+    "304": {
+      "number": 304,
+      "title": "[STOP]",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:38:59+00:00"
+    },
+    "303": {
+      "number": 303,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:38:50+00:00"
+    },
+    "302": {
+      "number": 302,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:38:35+00:00"
+    },
+    "301": {
+      "number": 301,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:38:27+00:00"
+    },
+    "300": {
+      "number": 300,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:38:11+00:00"
+    },
+    "299": {
+      "number": 299,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:18:32+00:00"
+    },
+    "298": {
+      "number": 298,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:37:55+00:00"
+    },
+    "297": {
+      "number": 297,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:37:31+00:00"
+    },
+    "296": {
+      "number": 296,
+      "title": "[KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:37:44+00:00"
+    },
+    "295": {
+      "number": 295,
+      "title": "[KNOWLEDGE] Centralize Management workflows and Issue/PR discovery",
+      "state": "closed",
+      "updated_at": "2026-09-02T14:45:12+00:00"
+    },
+    "294": {
+      "number": 294,
+      "title": "SKILL / Define automatic Issue/PR work-request discovery, reuse, and title-change workflow",
+      "state": "closed",
+      "updated_at": "2026-09-02T14:45:24+00:00"
+    },
+    "293": {
+      "number": 293,
+      "title": "[TEST][KNOWLEDGE] Superseded test record \u2014 do not execute",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:51:41+00:00"
+    },
+    "292": {
+      "number": 292,
+      "title": "KNOWLEDGE / Define pre-merge testing gate for PR-branch changes",
+      "state": "open",
+      "updated_at": "2026-09-04T21:26:59+00:00"
+    },
+    "291": {
+      "number": 291,
+      "title": "KNOWLEDGE / Document and verify GitHub Project automation credential setup",
+      "state": "closed",
+      "updated_at": "2026-09-02T19:46:32+00:00"
+    },
+    "290": {
+      "number": 290,
+      "title": "Document deployment knowledge placement",
+      "state": "closed",
+      "updated_at": "2026-09-01T15:18:37+00:00"
+    },
+    "289": {
+      "number": 289,
+      "title": "Implement #285 deployment knowledge placement",
+      "state": "closed",
+      "updated_at": "2026-09-04T14:06:11+00:00"
+    },
+    "288": {
+      "number": 288,
+      "title": "Implement #285 deployment knowledge placement",
+      "state": "closed",
+      "updated_at": "2026-09-01T14:59:23+00:00"
+    },
+    "287": {
+      "number": 287,
+      "title": "P-MVP \u2014 Move production implementation into approved foundation hierarchy",
+      "state": "closed",
+      "updated_at": "2026-09-01T14:37:19+00:00"
+    },
+    "285": {
+      "number": 285,
+      "title": "Establish and propagate production/deployment KNOWLEDGE.md structure rules",
+      "state": "closed",
+      "updated_at": "2026-09-01T15:18:49+00:00"
+    },
+    "284": {
+      "number": 284,
+      "title": "Correct MVP deployment documentation placement",
+      "state": "closed",
+      "updated_at": "2026-09-04T14:00:51+00:00"
+    },
+    "283": {
+      "number": 283,
+      "title": "Document approved 4-Production subfolder structure",
+      "state": "closed",
+      "updated_at": "2026-09-01T14:10:37+00:00"
+    },
+    "282": {
+      "number": 282,
+      "title": "Document 4-Production subfolder structure in KNOWLEDGE",
+      "state": "closed",
+      "updated_at": "2026-09-01T14:10:42+00:00"
+    },
+    "281": {
+      "number": 281,
+      "title": "P-MVP \u2014 Add complete application MVP vertical slice",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:18:22+00:00"
+    },
+    "280": {
+      "number": 280,
+      "title": "Define and implement complete Jagports application MVP",
+      "state": "open",
+      "updated_at": "2026-09-12T00:24:31+00:00"
+    },
+    "279": {
+      "number": 279,
+      "title": "Revert direct push of optional vehicle knowledge research document",
+      "state": "closed",
+      "updated_at": "2026-09-01T13:36:35+00:00"
+    },
+    "278": {
+      "number": 278,
+      "title": "KNOWLEDGE / Revert direct push of optional vehicle knowledge research document",
+      "state": "open",
+      "updated_at": "2026-09-03T20:02:58+00:00"
+    },
+    "277": {
+      "number": 277,
+      "title": "KNOWLEDGE / Add reusable ASCII workflow diagrams",
+      "state": "closed",
+      "updated_at": "2026-09-01T10:44:52+00:00"
+    },
+    "276": {
+      "number": 276,
+      "title": "KNOWLEDGE / Add reusable ASCII workflow diagrams",
+      "state": "closed",
+      "updated_at": "2026-09-01T10:46:39+00:00"
+    },
+    "275": {
+      "number": 275,
+      "title": "KNOWLEDGE / Add project management workflow charts",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:37:30+00:00"
+    },
+    "274": {
+      "number": 274,
+      "title": "KNOWLEDGE / Improve project management workflow presentation",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:37:26+00:00"
+    },
+    "273": {
+      "number": 273,
+      "title": "Document complete Issue-to-completion lifecycle",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:12:39+00:00"
+    },
+    "272": {
+      "number": 272,
+      "title": "Document and enforce the complete Issue lifecycle",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:12:44+00:00"
+    },
+    "271": {
+      "number": 271,
+      "title": "Allow ordinary Issue titles without category prefixes",
+      "state": "closed",
+      "updated_at": "2026-09-01T07:35:07+00:00"
+    },
+    "270": {
+      "number": 270,
+      "title": "Allow Issue creation without a known validation prefix",
+      "state": "closed",
+      "updated_at": "2026-09-01T07:37:20+00:00"
+    },
+    "269": {
+      "number": 269,
+      "title": "Enhance Issue-to-Project automation into lifecycle sync",
+      "state": "closed",
+      "updated_at": "2026-09-01T07:28:37+00:00"
+    },
+    "268": {
+      "number": 268,
+      "title": "[TEST] Verify PR #267 Issue and PR comment formatting",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:50:15+00:00"
+    },
+    "267": {
+      "number": 267,
+      "title": "[KNOWLEDGE] Format Issue and PR comments for readability",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:26:28+00:00"
+    },
+    "266": {
+      "number": 266,
+      "title": "[KNOWLEDGE] Define readable formatting for Issue and PR comments",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:11:33+00:00"
+    },
+    "265": {
+      "number": 265,
+      "title": "[TEST][KNOWLEDGE] Verify KNOWLEDGE test categorization and Project automation",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:59:32+00:00"
+    },
+    "264": {
+      "number": 264,
+      "title": "KNOWLEDGE / TEST Automation to Kanban",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:58:03+00:00"
+    },
+    "263": {
+      "number": 263,
+      "title": "[TEST] Verify PR #262 Project automation fix",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:56:49+00:00"
+    },
+    "262": {
+      "number": 262,
+      "title": "Fix Issue-to-Project automation workflow",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:03:42+00:00"
+    },
+    "261": {
+      "number": 261,
+      "title": "[TEST] Verify PROJECTS_TOKEN Project automation",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:56:46+00:00"
+    },
+    "260": {
+      "number": 260,
+      "title": "[TEST] Verify automatic Project Item creation and BACKLOG Status after PROJECTS_TOKEN setup",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:46:19+00:00"
+    },
+    "259": {
+      "number": 259,
+      "title": "Document Project automation user and token setup",
+      "state": "closed",
+      "updated_at": "2026-09-02T15:05:14+00:00"
+    },
+    "258": {
+      "number": 258,
+      "title": "[TEST] Verify automatic Project Item creation and BACKLOG Status",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:56:39+00:00"
+    },
+    "257": {
+      "number": 257,
+      "title": "[P0 TEST] Verify automatic Project Item creation and BACKLOG Status",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:56:36+00:00"
+    },
+    "256": {
+      "number": 256,
+      "title": "TEST / #94 HT-5 \u2014 Issue/PR event and traceability evidence",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:16:53+00:00"
+    },
+    "255": {
+      "number": 255,
+      "title": "TEST / #94 HT-4 \u2014 Kanban independence evidence",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:16:47+00:00"
+    },
+    "254": {
+      "number": 254,
+      "title": "TEST / #94 HT-3 \u2014 invalid, conflicting and multi-prefix evidence",
+      "state": "closed",
+      "updated_at": "2026-09-02T11:59:59+00:00"
+    },
+    "253": {
+      "number": 253,
+      "title": "TEST / #94 HT-2 \u2014 category synchronization and rename evidence",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:16:35+00:00"
+    },
+    "252": {
+      "number": 252,
+      "title": "TEST / #94 HT-1 \u2014 automatic category assignment evidence",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:16:30+00:00"
+    },
+    "251": {
+      "number": 251,
+      "title": "SKILL / #94 ordinary no-prefix title must pass category handling",
+      "state": "closed",
+      "updated_at": "2026-09-09T14:16:27+00:00"
+    },
+    "250": {
+      "number": 250,
+      "title": "KNOWLEDGE / Fix issues found during #94 human testing",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:11:20+00:00"
+    },
+    "249": {
+      "number": 249,
+      "title": "AUTOMATION / Automatically attach Issues and set Project Item Status",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:00:35+00:00"
+    },
+    "248": {
+      "number": 248,
+      "title": "SKILL / Issue workflow event tes",
+      "state": "closed",
+      "updated_at": "2026-09-01T04:18:43+00:00"
+    },
+    "247": {
+      "number": 247,
+      "title": "SKILL / PR workflow event test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:43:22+00:00"
+    },
+    "246": {
+      "number": 246,
+      "title": "HT-Next: Issue \u2192 PR category consistency",
+      "state": "closed",
+      "updated_at": "2026-09-01T04:13:56+00:00"
+    },
+    "245": {
+      "number": 245,
+      "title": "SKILL / Issue to PR consistency test",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:11+00:00"
+    },
+    "244": {
+      "number": 244,
+      "title": "SKILL / Issue to PR consistency test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:41:03+00:00"
+    },
+    "243": {
+      "number": 243,
+      "title": "HT-Next: category independence from Kanban",
+      "state": "closed",
+      "updated_at": "2026-09-01T04:09:26+00:00"
+    },
+    "242": {
+      "number": 242,
+      "title": "SKILL / Kanban independence test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:41:29+00:00"
+    },
+    "241": {
+      "number": 241,
+      "title": "HT-Next: conflicting category label validation",
+      "state": "closed",
+      "updated_at": "2026-09-01T04:05:49+00:00"
+    },
+    "240": {
+      "number": 240,
+      "title": "TEST / HT: conflicting category label #240",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:40:36+00:00"
+    },
+    "239": {
+      "number": 239,
+      "title": "HT-Next: category order independence on Issue rename",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:17+00:00"
+    },
+    "238": {
+      "number": 238,
+      "title": "KNOWLEDGE / Category order independence test",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:22+00:00"
+    },
+    "237": {
+      "number": 237,
+      "title": "HT-Next: PR category label must match Issue category",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:28+00:00"
+    },
+    "236": {
+      "number": 236,
+      "title": "HT-Next: rename existing SKILL category to AGENT",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:51:51+00:00"
+    },
+    "235": {
+      "number": 235,
+      "title": "AGENT / TEST FIXTURE / category renam",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:33+00:00"
+    },
+    "234": {
+      "number": 234,
+      "title": "HT-Next: Issue ordinary no-prefix title must pass",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:00:10+00:00"
+    },
+    "233": {
+      "number": 233,
+      "title": "FEATURE / Unsupported prefix test",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:31:06+00:00"
+    },
+    "232": {
+      "number": 232,
+      "title": "HT-Next: valid category rename cleanup",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:45:13+00:00"
+    },
+    "231": {
+      "number": 231,
+      "title": "SKILL / Category rename test",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:43+00:00"
+    },
+    "230": {
+      "number": 230,
+      "title": "HT-Next: Issue KNOWLEDGE prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:43:53+00:00"
+    },
+    "229": {
+      "number": 229,
+      "title": "KNOWLEDGE / Issue classification test",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:48+00:00"
+    },
+    "228": {
+      "number": 228,
+      "title": "TEST FIXTURE / Issue KNOWLEDGE event assignment",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:52+00:00"
+    },
+    "227": {
+      "number": 227,
+      "title": "HT-Next: Issue KNOWLEDGE prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:57+00:00"
+    },
+    "226": {
+      "number": 226,
+      "title": "TEST / HT: Issue KNOWLEDGE classification",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:40:56+00:00"
+    },
+    "225": {
+      "number": 225,
+      "title": "HT-Next: Issue SKILL prefix classification \u2014 corrected fixture",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:40:20+00:00"
+    },
+    "224": {
+      "number": 224,
+      "title": "SKILL / Issue classification test",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:02+00:00"
+    },
+    "223": {
+      "number": 223,
+      "title": "HT-Next: Issue SKILL prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:37:55+00:00"
+    },
+    "222": {
+      "number": 222,
+      "title": "TEST / HT: Issue SKILL classification",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:41:20+00:00"
+    },
+    "221": {
+      "number": 221,
+      "title": "HT-Next: Issue event automatic category assignment",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:32:09+00:00"
+    },
+    "220": {
+      "number": 220,
+      "title": "AGENT / Issue event category test",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:07+00:00"
+    },
+    "219": {
+      "number": 219,
+      "title": "HT-Next: category independent of Project workflow",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:31:19+00:00"
+    },
+    "218": {
+      "number": 218,
+      "title": "KNOWLEDGE / Category independence test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:55+00:00"
+    },
+    "217": {
+      "number": 217,
+      "title": "HT-Next: conflicting category label validation",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:29:19+00:00"
+    },
+    "216": {
+      "number": 216,
+      "title": "SKILL / Conflicting label test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:40:21+00:00"
+    },
+    "215": {
+      "number": 215,
+      "title": "HT-Next: CHORE PR category exemption",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:25:29+00:00"
+    },
+    "214": {
+      "number": 214,
+      "title": "CHORE / Human test of category exemption",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:40:07+00:00"
+    },
+    "213": {
+      "number": 213,
+      "title": "HT-Next: reject PR without category prefix",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:24:26+00:00"
+    },
+    "212": {
+      "number": 212,
+      "title": "TEST / Ordinary PR without category",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:22+00:00"
+    },
+    "211": {
+      "number": 211,
+      "title": "HT-Next: reject category prefix when not at title start",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:23:31+00:00"
+    },
+    "210": {
+      "number": 210,
+      "title": "TEST / SKILL / Embedded prefix test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:40:50+00:00"
+    },
+    "209": {
+      "number": 209,
+      "title": "HT-Next: unsupported prefix \u2014 fixture correction",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:31:11+00:00"
+    },
+    "208": {
+      "number": 208,
+      "title": "TEMP",
+      "state": "closed",
+      "updated_at": "2026-09-03T20:08:52+00:00"
+    },
+    "207": {
+      "number": 207,
+      "title": "HT-Next: ordinary no-prefix PR title must pass",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:00:28+00:00"
+    },
+    "206": {
+      "number": 206,
+      "title": "HT-Next: ordinary no-prefix PR title must pass",
+      "state": "closed",
+      "updated_at": "2026-09-02T12:00:20+00:00"
+    },
+    "205": {
+      "number": 205,
+      "title": "HT-Next: single KNOWLEDGE prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:18:00+00:00"
+    },
+    "204": {
+      "number": 204,
+      "title": "KNOWLEDGE / Single prefix human test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:43:06+00:00"
+    },
+    "203": {
+      "number": 203,
+      "title": "TEST / HT: single KNOWLEDGE prefix",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:49+00:00"
+    },
+    "202": {
+      "number": 202,
+      "title": "HT-Next: single AGENT prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:13:05+00:00"
+    },
+    "201": {
+      "number": 201,
+      "title": "AGENT / Single prefix human test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:43+00:00"
+    },
+    "200": {
+      "number": 200,
+      "title": "TEMP2",
+      "state": "closed",
+      "updated_at": "2026-09-06T21:42:12+00:00"
+    },
+    "199": {
+      "number": 199,
+      "title": "TEMP",
+      "state": "closed",
+      "updated_at": "2026-09-03T20:08:49+00:00"
+    },
+    "198": {
+      "number": 198,
+      "title": "HT-Next fixture anchor (internal)",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:10:46+00:00"
+    },
+    "197": {
+      "number": 197,
+      "title": "HT-Next: single AGENT prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:25+00:00"
+    },
+    "196": {
+      "number": 196,
+      "title": "TEMP fixture anchor - remove",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:10:15+00:00"
+    },
+    "195": {
+      "number": 195,
+      "title": "HT-Next: single AGENT prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:29+00:00"
+    },
+    "194": {
+      "number": 194,
+      "title": "HT-Next: single SKILL prefix classification",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:09:22+00:00"
+    },
+    "193": {
+      "number": 193,
+      "title": "SKILL / Single prefix human test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:43:10+00:00"
+    },
+    "192": {
+      "number": 192,
+      "title": "[HT] Regression: reject multiple category prefixes without adding a label",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:05:45+00:00"
+    },
+    "191": {
+      "number": 191,
+      "title": "SKILL / KNOWLEDGE / Human multi-prefix regression",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:39+00:00"
+    },
+    "190": {
+      "number": 190,
+      "title": "BUG / Correct multi-category prefix detection",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:00:11+00:00"
+    },
+    "189": {
+      "number": 189,
+      "title": "BUG / Correct multi-category prefix detection",
+      "state": "closed",
+      "updated_at": "2026-09-01T03:00:12+00:00"
+    },
+    "188": {
+      "number": 188,
+      "title": "TEST / Human acceptance of multiple category-prefix rejection",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:50:16+00:00"
+    },
+    "187": {
+      "number": 187,
+      "title": "SKILL / KNOWLEDGE / Human multi-prefix rejection test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:13+00:00"
+    },
+    "186": {
+      "number": 186,
+      "title": "KNOWLEDGE / Define hierarchical KNOWLEDGE.md structure and maintenance rules",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:45:11+00:00"
+    },
+    "185": {
+      "number": 185,
+      "title": "BUG / Reject PR titles containing multiple category prefixes",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:33:10+00:00"
+    },
+    "184": {
+      "number": 184,
+      "title": "BUG / Reject PR titles containing multiple category prefixes",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:28:29+00:00"
+    },
+    "183": {
+      "number": 183,
+      "title": "On test #182 Only category skill appeared.",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:31:37+00:00"
+    },
+    "182": {
+      "number": 182,
+      "title": "TEST / Human verification of multi-category PR title handling",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:34+00:00"
+    },
+    "181": {
+      "number": 181,
+      "title": "SKILL / AGENT / KNOWLEDGE \u2014 multi-category verificatio",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:41:33+00:00"
+    },
+    "180": {
+      "number": 180,
+      "title": "KNOWLEDGE / Enforce human-test fixture preflight and handover verification",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:18+00:00"
+    },
+    "179": {
+      "number": 179,
+      "title": "KNOWLEDGE / Enforce human-test fixture preflight and handover verification",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:39:57+00:00"
+    },
+    "178": {
+      "number": 178,
+      "title": "KNOWLEDGE / Require test checklist and verified Issue links before human handover",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:15+00:00"
+    },
+    "177": {
+      "number": 177,
+      "title": "TEST / Human verification of category conflict handling",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:04:05+00:00"
+    },
+    "176": {
+      "number": 176,
+      "title": "KNOWLEDGE / Require test checklist creation and verified Issue links before human handover",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:39:51+00:00"
+    },
+    "175": {
+      "number": 175,
+      "title": "Test PR \u2014 category conflict validation",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:44+00:00"
+    },
+    "174": {
+      "number": 174,
+      "title": "SKILL / Require human-test Issues to provide direct GitHub URLs",
+      "state": "open",
+      "updated_at": "2026-09-01T01:52:31+00:00"
+    },
+    "173": {
+      "number": 173,
+      "title": "TEST / Human verification of conflicting PR category metadata",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:31:32+00:00"
+    },
+    "172": {
+      "number": 172,
+      "title": "TEST / Human verification of conflicting PR category metadata",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:50:48+00:00"
+    },
+    "171": {
+      "number": 171,
+      "title": "Test PR \u2014 invalid category metadata verification",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:41+00:00"
+    },
+    "170": {
+      "number": 170,
+      "title": "TEST / Human verification of neutral PR title category state",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:39+00:00"
+    },
+    "169": {
+      "number": 169,
+      "title": "TEST / Human verification of PR title rename to neutral",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:46:00+00:00"
+    },
+    "168": {
+      "number": 168,
+      "title": "KNOWLEDGE / Human verification of neutral-title transitio",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:35+00:00"
+    },
+    "167": {
+      "number": 167,
+      "title": "TEST / Human verification of PR title rename back to neutral",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:42:20+00:00"
+    },
+    "166": {
+      "number": 166,
+      "title": "TEST / Human verification of PR title rename to KNOWLEDGE label",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:40:33+00:00"
+    },
+    "165": {
+      "number": 165,
+      "title": "KNOWLEDGE / Human verification of PR title rename",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:32+00:00"
+    },
+    "164": {
+      "number": 164,
+      "title": "Validations run and fail for all the changes",
+      "state": "closed",
+      "updated_at": "2026-09-09T14:16:30+00:00"
+    },
+    "163": {
+      "number": 163,
+      "title": "KNOWLEDGE / Require checkbox tracking for every human-test step",
+      "state": "open",
+      "updated_at": "2026-09-04T21:27:08+00:00"
+    },
+    "162": {
+      "number": 162,
+      "title": "TEST / Human verification of PR title rename to AGENT label",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:49+00:00"
+    },
+    "161": {
+      "number": 161,
+      "title": "Test PR \u2014 human title category verification",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:42:28+00:00"
+    },
+    "160": {
+      "number": 160,
+      "title": "TEST / Human verification of PR title rename to AGENT label",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:35:40+00:00"
+    },
+    "159": {
+      "number": 159,
+      "title": "TEST / Human verification of clean PR category-label assignment",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:20:20+00:00"
+    },
+    "158": {
+      "number": 158,
+      "title": "TEST / Human verification of PR title rename \u2192 automatic category label",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:18:35+00:00"
+    },
+    "157": {
+      "number": 157,
+      "title": "SKILL / Always when making changes to SKILL or any KNOWLEDGE file",
+      "state": "open",
+      "updated_at": "2026-09-03T20:03:26+00:00"
+    },
+    "156": {
+      "number": 156,
+      "title": "KNOWLEDGE / Human-processable automatic category-label verification",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:30:54+00:00"
+    },
+    "155": {
+      "number": 155,
+      "title": "HT-5.3 Verify event results",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:51+00:00"
+    },
+    "154": {
+      "number": 154,
+      "title": "HT-5.2 Execute PR event",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:48+00:00"
+    },
+    "153": {
+      "number": 153,
+      "title": "HT-5.1 Execute Issue event",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:45+00:00"
+    },
+    "152": {
+      "number": 152,
+      "title": "HT-4.3 Verify category independence",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:43+00:00"
+    },
+    "151": {
+      "number": 151,
+      "title": "HT-4.2 Verify Status and Priority",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:40+00:00"
+    },
+    "150": {
+      "number": 150,
+      "title": "HT-4.1 Observe Kanban item",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:37+00:00"
+    },
+    "149": {
+      "number": 149,
+      "title": "HT-3.3 Restore test state",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:35+00:00"
+    },
+    "148": {
+      "number": 148,
+      "title": "HT-3.2 Verify validation failure",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:32+00:00"
+    },
+    "147": {
+      "number": 147,
+      "title": "HT-3.1 Create invalid state",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:30+00:00"
+    },
+    "146": {
+      "number": 146,
+      "title": "HT-2.3 Verify resulting label",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:27+00:00"
+    },
+    "145": {
+      "number": 145,
+      "title": "HT-2.2 Verify automation after change",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:25+00:00"
+    },
+    "144": {
+      "number": 144,
+      "title": "HT-2.1 Change subject",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:22+00:00"
+    },
+    "143": {
+      "number": 143,
+      "title": "HT-1.3 Verify validation result",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:20+00:00"
+    },
+    "142": {
+      "number": 142,
+      "title": "HT-1.2 Verify automatic label",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:17+00:00"
+    },
+    "141": {
+      "number": 141,
+      "title": "HT-1.1 Create controlled test change",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:14+00:00"
+    },
+    "140": {
+      "number": 140,
+      "title": "HT-5 Event coverage",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:11+00:00"
+    },
+    "139": {
+      "number": 139,
+      "title": "HT-4 Kanban independence",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:08+00:00"
+    },
+    "138": {
+      "number": 138,
+      "title": "HT-3 Invalid or mismatched category state",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:05+00:00"
+    },
+    "137": {
+      "number": 137,
+      "title": "HT-2 Subject/category change",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:03+00:00"
+    },
+    "136": {
+      "number": 136,
+      "title": "HT-1 Valid prefix / automatic label",
+      "state": "closed",
+      "updated_at": "2026-09-01T01:08:00+00:00"
+    },
+    "135": {
+      "number": 135,
+      "title": "Establish Jagports AI OS",
+      "state": "open",
+      "updated_at": "2026-09-03T20:05:36+00:00"
+    },
+    "134": {
+      "number": 134,
+      "title": "Add script to create AI OS epic issue",
+      "state": "closed",
+      "updated_at": "2026-09-01T00:42:42+00:00"
+    },
+    "133": {
+      "number": 133,
+      "title": "KNOWLEDGE / Review file ToDo-P2.md",
+      "state": "open",
+      "updated_at": "2026-09-03T20:02:52+00:00"
+    },
+    "132": {
+      "number": 132,
+      "title": "Delete Jagports_AI_OS_Prioritized_Work_Plan.md",
+      "state": "closed",
+      "updated_at": "2026-09-01T00:07:19+00:00"
+    },
+    "131": {
+      "number": 131,
+      "title": "KNOWLEDGE / Define hierarchical KNOWLEDGE.md structure and maintenance rules",
+      "state": "closed",
+      "updated_at": "2026-09-01T02:45:12+00:00"
+    },
+    "130": {
+      "number": 130,
+      "title": "KNOWLEDGE / 6-Development human testing improvement",
+      "state": "open",
+      "updated_at": "2026-09-04T21:27:11+00:00"
+    },
+    "129": {
+      "number": 129,
+      "title": "SKILL / Draft PR workflow and Coding Project State",
+      "state": "open",
+      "updated_at": "2026-08-31T23:32:27+00:00"
+    },
+    "128": {
+      "number": 128,
+      "title": "SKILL / Define, create, preserve, and manage Issue/PR descriptions",
+      "state": "open",
+      "updated_at": "2026-09-02T19:34:31+00:00"
+    },
+    "127": {
+      "number": 127,
+      "title": "Final category automation merge-gate verification",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:28:20+00:00"
+    },
+    "126": {
+      "number": 126,
+      "title": "SKILL / Standard PR review conversation response and resolution",
+      "state": "closed",
+      "updated_at": "2026-09-11T21:39:25+00:00"
+    },
+    "125": {
+      "number": 125,
+      "title": "SKILL / Reply to PR review comments requesting changes",
+      "state": "closed",
+      "updated_at": "2026-09-01T08:29:06+00:00"
+    },
+    "124": {
+      "number": 124,
+      "title": "SKILL / Safe cleanup and deletion verification",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:39:31+00:00"
+    },
+    "123": {
+      "number": 123,
+      "title": "SKILL / Safe cleanup and deletion verification",
+      "state": "open",
+      "updated_at": "2026-08-31T22:39:25+00:00"
+    },
+    "122": {
+      "number": 122,
+      "title": "SKILL / Repository change gate follow-up",
+      "state": "open",
+      "updated_at": "2026-08-31T23:27:10+00:00"
+    },
+    "121": {
+      "number": 121,
+      "title": "DOC: generalize reusable human testing knowledge",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:08:37+00:00"
+    },
+    "120": {
+      "number": 120,
+      "title": "Remove obsolete human-testing branches",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:15+00:00"
+    },
+    "119": {
+      "number": 119,
+      "title": "KNOWLEDGE / Human test category knowledge",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:26:35+00:00"
+    },
+    "118": {
+      "number": 118,
+      "title": "AGENT / Human test category agent",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:31:01+00:00"
+    },
+    "117": {
+      "number": 117,
+      "title": "temp cleanup 2",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:25:38+00:00"
+    },
+    "116": {
+      "number": 116,
+      "title": "temp cleanup",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:25:37+00:00"
+    },
+    "115": {
+      "number": 115,
+      "title": "AGENT / Human test \u2014 category label",
+      "state": "closed",
+      "updated_at": "2026-08-31T21:13:45+00:00"
+    },
+    "114": {
+      "number": 114,
+      "title": "cleanup-temp",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:25:37+00:00"
+    },
+    "113": {
+      "number": 113,
+      "title": "temp",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:25:36+00:00"
+    },
+    "112": {
+      "number": 112,
+      "title": "placeholder",
+      "state": "closed",
+      "updated_at": "2026-08-31T21:04:18+00:00"
+    },
+    "111": {
+      "number": 111,
+      "title": "AGENT / Human test \u2014 category label",
+      "state": "closed",
+      "updated_at": "2026-08-31T21:04:12+00:00"
+    },
+    "110": {
+      "number": 110,
+      "title": "SKILL / Human test category skill",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:28:31+00:00"
+    },
+    "109": {
+      "number": 109,
+      "title": "Test PR \u2014 title-change category-label test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:32+00:00"
+    },
+    "108": {
+      "number": 108,
+      "title": "SKILL / Human test category skill",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:28:22+00:00"
+    },
+    "107": {
+      "number": 107,
+      "title": "CHORE / Deploy category-label workflow to main",
+      "state": "closed",
+      "updated_at": "2026-08-31T20:49:49+00:00"
+    },
+    "106": {
+      "number": 106,
+      "title": "Deploy category-label workflow to main",
+      "state": "closed",
+      "updated_at": "2026-08-31T20:49:50+00:00"
+    },
+    "105": {
+      "number": 105,
+      "title": "SKILL / Human test category skill",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:28:17+00:00"
+    },
+    "104": {
+      "number": 104,
+      "title": "TEST / SKILL category label automation",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:30:24+00:00"
+    },
+    "103": {
+      "number": 103,
+      "title": "AGENT / Human test category agent",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:30:51+00:00"
+    },
+    "102": {
+      "number": 102,
+      "title": "TEST / SKILL category label automation",
+      "state": "closed",
+      "updated_at": "2026-08-31T22:30:27+00:00"
+    },
+    "101": {
+      "number": 101,
+      "title": "KNOWLEDGE / Human test \u2014 category label",
+      "state": "closed",
+      "updated_at": "2026-08-31T21:13:41+00:00"
+    },
+    "100": {
+      "number": 100,
+      "title": "SKILL / Update README.md test",
+      "state": "closed",
+      "updated_at": "2026-09-04T21:39:32+00:00"
+    },
+    "99": {
+      "number": 99,
+      "title": "AGENT / Human test \u2014 final verification and merge gate (simplified)",
+      "state": "closed",
+      "updated_at": "2026-08-31T20:30:33+00:00"
+    },
+    "98": {
+      "number": 98,
+      "title": "AGENT / Human test \u2014 multi-category handling (simplified)",
+      "state": "closed",
+      "updated_at": "2026-08-31T20:30:29+00:00"
+    },
+    "97": {
+      "number": 97,
+      "title": "AGENT / Test issue",
+      "state": "closed",
+      "updated_at": "2026-08-31T21:13:50+00:00"
+    },
+    "96": {
+      "number": 96,
+      "title": "Test PR Revert/pr 66 review feedback",
+      "state": "closed",
+      "updated_at": "2026-08-31T20:30:16+00:00"
+    },
+    "95": {
+      "number": 95,
+      "title": "AGENT / Human test \u2014 category labels and prefixes",
+      "state": "closed",
+      "updated_at": "2026-08-31T20:30:21+00:00"
+    },
+    "94": {
+      "number": 94,
+      "title": "SKILL / Make change-category subject prefixes permanent practice",
+      "state": "closed",
+      "updated_at": "2026-09-04T16:11:24+00:00"
+    },
+    "93": {
+      "number": 93,
+      "title": "SKILL / Issues automatically to Project need research",
+      "state": "closed",
+      "updated_at": "2026-08-31T19:22:33+00:00"
+    },
+    "92": {
+      "number": 92,
+      "title": "SKILL / Convert lessons learned to hard rules",
+      "state": "open",
+      "updated_at": "2026-09-03T20:02:51+00:00"
+    },
+    "91": {
+      "number": 91,
+      "title": "SKILL / Enforce Repository Change Gate (#73)",
+      "state": "closed",
+      "updated_at": "2026-08-31T19:18:13+00:00"
+    },
+    "90": {
+      "number": 90,
+      "title": "SKILL / Do not comment on or mark as resolved human-reviewed code marked as asked to be resolved",
+      "state": "open",
+      "updated_at": "2026-09-03T20:02:48+00:00"
+    },
+    "89": {
+      "number": 89,
+      "title": "[SKILL] Apply review corrections for #67",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:19:44+00:00"
+    },
+    "88": {
+      "number": 88,
+      "title": "Require Issue before SKILL changes",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:07:32+00:00"
+    },
+    "87": {
+      "number": 87,
+      "title": "[SKILL] Require an Issue before changing SKILL",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:05:36+00:00"
+    },
+    "86": {
+      "number": 86,
+      "title": "Automation / Automatically attach Issues and set Project Item Status",
+      "state": "closed",
+      "updated_at": "2026-09-01T05:00:36+00:00"
+    },
+    "85": {
+      "number": 85,
+      "title": "Correct Project Item Status specifications and workflow references",
+      "state": "closed",
+      "updated_at": "2026-09-03T22:18:18+00:00"
+    },
+    "84": {
+      "number": 84,
+      "title": "KNOWLEDGE / Correct Project Item Status specifications and workflow references repository-wide",
+      "state": "closed",
+      "updated_at": "2026-09-09T16:56:46+00:00"
+    },
+    "83": {
+      "number": 83,
+      "title": "Clarify mandatory Project Status transitions and GitHub capability alerts.",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:21:24+00:00"
+    },
+    "82": {
+      "number": 82,
+      "title": "SKILL / Define mandatory Project Status execution, verification, and communication rules",
+      "state": "closed",
+      "updated_at": "2026-08-31T17:26:27+00:00"
+    },
+    "81": {
+      "number": 81,
+      "title": "SKILL / Read repository root subdirectories before Issue work",
+      "state": "closed",
+      "updated_at": "2026-08-31T16:41:51+00:00"
+    },
+    "80": {
+      "number": 80,
+      "title": "SKILL / Make file-move operations preserve rename semantics",
+      "state": "open",
+      "updated_at": "2026-08-31T16:29:56+00:00"
+    },
+    "79": {
+      "number": 79,
+      "title": "AGENT / Add root-level AGENTS.md repository knowledge discovery instructions",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:53:00+00:00"
+    },
+    "78": {
+      "number": 78,
+      "title": "SKILL / Make change-category subject prefixes permanent practice",
+      "state": "open",
+      "updated_at": "2026-08-31T19:35:11+00:00"
+    },
+    "77": {
+      "number": 77,
+      "title": "SKILL / Enforce Repository Change Gate before every repository modification",
+      "state": "closed",
+      "updated_at": "2026-08-31T19:00:34+00:00"
+    },
+    "76": {
+      "number": 76,
+      "title": "AGENT / Add root-level AGENTS.md repository knowledge discovery instructions",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:53:01+00:00"
+    },
+    "75": {
+      "number": 75,
+      "title": "Revert direct-main commit 4ec15ff",
+      "state": "closed",
+      "updated_at": "2026-08-31T16:31:18+00:00"
+    },
+    "74": {
+      "number": 74,
+      "title": "Revert direct-main commit 4ec15ff",
+      "state": "closed",
+      "updated_at": "2026-08-31T16:31:19+00:00"
+    },
+    "73": {
+      "number": 73,
+      "title": "SKILL / Enforce repository change workflow in agent SKILL",
+      "state": "closed",
+      "updated_at": "2026-08-31T19:18:04+00:00"
+    },
+    "72": {
+      "number": 72,
+      "title": "Project task management access is incomplete and must be reopened",
+      "state": "closed",
+      "updated_at": "2026-09-04T15:05:45+00:00"
+    },
+    "71": {
+      "number": 71,
+      "title": "KNOWLEDGE / AGENT_ROLES.md is a standalone file outside the RES-/SPEC-/IMPL- cross-reference convention",
+      "state": "open",
+      "updated_at": "2026-09-03T20:02:33+00:00"
+    },
+    "70": {
+      "number": 70,
+      "title": "KNOWLEDGE / Note regarding Knowledge_fact (\u00a726)",
+      "state": "open",
+      "updated_at": "2026-09-03T22:18:11+00:00"
+    },
+    "69": {
+      "number": 69,
+      "title": "Implement P3 agent communication protocol",
+      "state": "closed",
+      "updated_at": "2026-08-31T15:58:33+00:00"
+    },
+    "68": {
+      "number": 68,
+      "title": "Notify agent when PR review is approved",
+      "state": "open",
+      "updated_at": "2026-09-09T16:01:22+00:00"
+    },
+    "67": {
+      "number": 67,
+      "title": "[SKILL] Require an Issue before changing SKILL",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:19:45+00:00"
+    },
+    "66": {
+      "number": 66,
+      "title": "[SKILL] Require an Issue before changing SKILL or project knowledge",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:15:51+00:00"
+    },
+    "65": {
+      "number": 65,
+      "title": "Clarify mandatory Project Item Status transitions and GitHub capability alerts",
+      "state": "closed",
+      "updated_at": "2026-08-31T18:00:43+00:00"
+    },
+    "64": {
+      "number": 64,
+      "title": "Document direct navigation URLs in UI instructions",
+      "state": "closed",
+      "updated_at": "2026-08-31T12:46:10+00:00"
+    },
+    "63": {
+      "number": 63,
+      "title": "Document GitHub access and Windows Git Bash command rules",
+      "state": "closed",
+      "updated_at": "2026-08-31T11:11:28+00:00"
+    },
+    "62": {
+      "number": 62,
+      "title": "Improve GitHub access and command execution rules",
+      "state": "closed",
+      "updated_at": "2026-08-31T11:10:03+00:00"
+    },
+    "61": {
+      "number": 61,
+      "title": "Document AI tool capability transparency",
+      "state": "closed",
+      "updated_at": "2026-08-31T10:37:22+00:00"
+    },
+    "60": {
+      "number": 60,
+      "title": "[P3.7] PROPOSED: Evaluate coordinator agent architecture",
+      "state": "open",
+      "updated_at": "2026-09-04T17:50:44+00:00"
+    },
+    "59": {
+      "number": 59,
+      "title": "[P3.6] PROPOSED: Evaluate GitHub Actions event-driven agent architecture",
+      "state": "open",
+      "updated_at": "2026-09-04T17:50:38+00:00"
+    },
+    "58": {
+      "number": 58,
+      "title": "[P3.5] PROPOSED: Evaluate scheduled polling agent architecture",
+      "state": "open",
+      "updated_at": "2026-09-04T17:50:33+00:00"
+    },
+    "57": {
+      "number": 57,
+      "title": "[P3.4] PROPOSED: Agent workflow architecture combination system planning",
+      "state": "closed",
+      "updated_at": "2026-09-04T14:48:17+00:00"
+    },
+    "56": {
+      "number": 56,
+      "title": "P2.4 Connect Codex to repository",
+      "state": "closed",
+      "updated_at": "2026-08-30T18:34:02+00:00"
+    },
+    "55": {
+      "number": 55,
+      "title": "[P2.3.1] Improve SKILL PR merge and Issue closing rules",
+      "state": "closed",
+      "updated_at": "2026-08-30T18:12:35+00:00"
+    },
+    "54": {
+      "number": 54,
+      "title": "Improve SKILL PR merge and Issue closing rules",
+      "state": "closed",
+      "updated_at": "2026-08-30T18:15:16+00:00"
+    },
+    "53": {
+      "number": 53,
+      "title": "Update SKILL with mandatory GitHub workflow rules",
+      "state": "closed",
+      "updated_at": "2026-08-30T18:05:39+00:00"
+    },
+    "52": {
+      "number": 52,
+      "title": "P2.3 Define permission boundaries",
+      "state": "closed",
+      "updated_at": "2026-08-30T18:03:51+00:00"
+    },
+    "51": {
+      "number": 51,
+      "title": "P2.2 Validate leader R/W rights",
+      "state": "closed",
+      "updated_at": "2026-08-30T17:45:50+00:00"
+    },
+    "50": {
+      "number": 50,
+      "title": "Jagports AI OS Initial",
+      "state": "closed",
+      "updated_at": "2026-08-30T17:33:36+00:00"
+    },
+    "49": {
+      "number": 49,
+      "title": "[P12] Expand and govern the agent team",
+      "state": "open",
+      "updated_at": "2026-09-02T21:15:19+00:00"
+    },
+    "48": {
+      "number": 48,
+      "title": "[P11.2] Implement first automation",
+      "state": "open",
+      "updated_at": "2026-09-03T18:56:11+00:00"
+    },
+    "47": {
+      "number": 47,
+      "title": "[P11.1] Identify automation candidates",
+      "state": "open",
+      "updated_at": "2026-09-03T18:56:07+00:00"
+    },
+    "46": {
+      "number": 46,
+      "title": "[P11] Add autonomous automation",
+      "state": "open",
+      "updated_at": "2026-09-03T18:54:47+00:00"
+    },
+    "45": {
+      "number": 45,
+      "title": "[P10.3] Establish backup strategy",
+      "state": "open",
+      "updated_at": "2026-09-03T18:56:04+00:00"
+    },
+    "44": {
+      "number": 44,
+      "title": "[P10.2] Define persistent services",
+      "state": "open",
+      "updated_at": "2026-09-03T18:56:00+00:00"
+    },
+    "43": {
+      "number": 43,
+      "title": "[P10.1] Prepare Linux environment",
+      "state": "closed",
+      "updated_at": "2026-09-07T09:32:20+00:00"
+    },
+    "42": {
+      "number": 42,
+      "title": "[P10] Prepare Raspberry Pi infrastructure",
+      "state": "open",
+      "updated_at": "2026-09-03T18:54:43+00:00"
+    },
+    "41": {
+      "number": 41,
+      "title": "[P9.3] Define automated validation",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:52+00:00"
+    },
+    "40": {
+      "number": 40,
+      "title": "[P9.2] Define technical review gate",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:49+00:00"
+    },
+    "39": {
+      "number": 39,
+      "title": "[P9.1] Define acceptance criteria standard",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:45+00:00"
+    },
+    "38": {
+      "number": 38,
+      "title": "[P9] Establish quality gates",
+      "state": "open",
+      "updated_at": "2026-09-03T18:54:39+00:00"
+    },
+    "37": {
+      "number": 37,
+      "title": "[P8.3] Validate delivery loop",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:42+00:00"
+    },
+    "36": {
+      "number": 36,
+      "title": "[P8.2] Implement first approved task",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:38+00:00"
+    },
+    "35": {
+      "number": 35,
+      "title": "[P8.1] Create Codex engineering instructions",
+      "state": "open",
+      "updated_at": "2026-09-04T20:08:38+00:00"
+    },
+    "34": {
+      "number": 34,
+      "title": "[P8] Establish Codex engineering workflow",
+      "state": "open",
+      "updated_at": "2026-09-04T17:56:30+00:00"
+    },
+    "33": {
+      "number": 33,
+      "title": "[P7.3] Escalate only required decisions",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:31+00:00"
+    },
+    "32": {
+      "number": 32,
+      "title": "[P7.2] Convert findings to proposals",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:27+00:00"
+    },
+    "31": {
+      "number": 31,
+      "title": "[P7.1] Run first research cycle",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:24+00:00"
+    },
+    "30": {
+      "number": 30,
+      "title": "[P7] Establish research-to-decision workflow",
+      "state": "open",
+      "updated_at": "2026-09-03T18:54:30+00:00"
+    },
+    "29": {
+      "number": 29,
+      "title": "[P6.3] Populate first ranked backlog",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:20+00:00"
+    },
+    "28": {
+      "number": 28,
+      "title": "[P6.2] Define priority rules",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:17+00:00"
+    },
+    "27": {
+      "number": 27,
+      "title": "[P6.1] Define scoring factors",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:13+00:00"
+    },
+    "26": {
+      "number": 26,
+      "title": "[P6] Establish prioritization system",
+      "state": "open",
+      "updated_at": "2026-09-03T18:54:26+00:00"
+    },
+    "25": {
+      "number": 25,
+      "title": "[P5.3] Create decision log",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:08+00:00"
+    },
+    "24": {
+      "number": 24,
+      "title": "[P5.2] Record product vision and constraints",
+      "state": "open",
+      "updated_at": "2026-09-03T18:55:05+00:00"
+    },
+    "23": {
+      "number": 23,
+      "title": "[P5.1] Create repository knowledge structure",
+      "state": "closed",
+      "updated_at": "2026-09-04T19:24:07+00:00"
+    },
+    "22": {
+      "number": 22,
+      "title": "[P5] Establish Jagports product memory",
+      "state": "open",
+      "updated_at": "2026-09-04T18:54:26+00:00"
+    },
+    "21": {
+      "number": 21,
+      "title": "[P4.3] Define decision template",
+      "state": "open",
+      "updated_at": "2026-09-04T17:49:06+00:00"
+    },
+    "20": {
+      "number": 20,
+      "title": "[P4.2] Define research template",
+      "state": "open",
+      "updated_at": "2026-09-04T17:49:00+00:00"
+    },
+    "19": {
+      "number": 19,
+      "title": "[P4.1] Define feature template",
+      "state": "open",
+      "updated_at": "2026-09-04T17:48:55+00:00"
+    },
+    "18": {
+      "number": 18,
+      "title": "[P4] Create work-item templates",
+      "state": "open",
+      "updated_at": "2026-09-04T17:52:06+00:00"
+    },
+    "17": {
+      "number": 17,
+      "title": "[P3.3] Define agent hand-off format",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:53:58+00:00"
+    },
+    "16": {
+      "number": 16,
+      "title": "[P3.2] Define human decision gate",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:53:54+00:00"
+    },
+    "15": {
+      "number": 15,
+      "title": "[P3.1] Define escalation categories",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:53:49+00:00"
+    },
+    "14": {
+      "number": 14,
+      "title": "[P3] Define agent communication protocol",
+      "state": "closed",
+      "updated_at": "2026-09-04T17:50:29+00:00"
+    },
+    "13": {
+      "number": 13,
+      "title": "[P2.4] Connect Codex to repository",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:51:09+00:00"
+    },
+    "12": {
+      "number": 12,
+      "title": "[P2.3] Define permission boundaries",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:52:10+00:00"
+    },
+    "11": {
+      "number": 11,
+      "title": "[P1] Open Kanban",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:53:20+00:00"
+    },
+    "10": {
+      "number": 10,
+      "title": "[P2.2] Validate leader R/W rights",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:48:36+00:00"
+    },
+    "9": {
+      "number": 9,
+      "title": "[P2.1] Define agent identities",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:48:31+00:00"
+    },
+    "8": {
+      "number": 8,
+      "title": "[P2] Open agent accounts/access to Kanban",
+      "state": "closed",
+      "updated_at": "2026-09-03T18:51:02+00:00"
+    },
+    "7": {
+      "number": 7,
+      "title": "[P1.6] Verify Kanban import and sub-issue structure",
+      "state": "closed",
+      "updated_at": "2026-08-30T16:22:10+00:00"
+    },
+    "6": {
+      "number": 6,
+      "title": "[P1.5] Define Kanban operating rules",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:48:17+00:00"
+    },
+    "5": {
+      "number": 5,
+      "title": "[P1.4] Define Kanban fields and labels",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:48:12+00:00"
+    },
+    "4": {
+      "number": 4,
+      "title": "[P1.3] Configure Kanban workflow",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:48:06+00:00"
+    },
+    "3": {
+      "number": 3,
+      "title": "[P1.2] Create Jagports GitHub repository",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:48:01+00:00"
+    },
+    "2": {
+      "number": 2,
+      "title": "[P1.1] Select Kanban tool",
+      "state": "closed",
+      "updated_at": "2026-09-01T06:47:56+00:00"
+    },
+    "1": {
+      "number": 1,
+      "title": "[P1] Open Kanban \u2014 Jagports AI OS",
+      "state": "closed",
+      "updated_at": "2026-09-01T07:05:17+00:00"
+    }
+  },
+  "changes": {
+    "new": [],
+    "closed": [],
+    "reopened": []
+  },
+  "change_detected": false,
+  "last_run": "2026-09-12T15:30:04.266571"
+}

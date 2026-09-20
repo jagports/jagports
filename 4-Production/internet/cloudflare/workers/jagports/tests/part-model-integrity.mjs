@@ -20,7 +20,7 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 11);
+  assert.equal(migrations.length, 18);
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
@@ -40,6 +40,10 @@ test('complete migration chain and representative graph have no integrity failur
   assert.equal(db.prepare(`SELECT v.vin_raw FROM stock_item s JOIN vehicle v ON v.id=s.donor_vehicle_id WHERE s.id=53901`).get().vin_raw, 'SAJJNADW3TJ123456');
   assert.equal(db.prepare('SELECT part_id FROM stock_item WHERE id=53903').get().part_id, null);
   assert.equal(db.prepare('SELECT count(*) AS n FROM part_image WHERE part_id=53804').get().n, 2);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM part_occurrence_tree_path WHERE part_occurrence_id=53811").get().n, 3);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM part_occurrence_tree_path p JOIN part_tree_node n ON n.id=p.tree_node_id WHERE p.part_occurrence_id=53811 AND n.source_language='en'").get().n, 2);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM part_occurrence_tree_path p JOIN part_tree_node n ON n.id=p.tree_node_id WHERE p.part_occurrence_id=53811 AND n.source_language='fi'").get().n, 1);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM part_tree_node WHERE source_namespace='JEPC' AND source_model_id='M3187' AND source_category_id='C8450' AND source_item_id='I8'").get().n, 8);
   for (const table of ['part', 'part_occurrence', 'part_image', 'model_range', 'vin_range', 'part_model_range', 'part_vin_range', 'part_supersession', 'part_fitment', 'diagram', 'part_vehicle_location', 'stock_item']) {
     assert.ok(db.prepare(`SELECT count(*) AS n FROM ${table} WHERE source='fixture' AND source_ref IS NOT NULL`).get().n > 0, table);
   }
@@ -145,7 +149,7 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
       checked++;
     }
   }
-  assert.equal(checked, 28, 'all 28 FKs in the consolidated schema are exercised');
+  assert.equal(checked, 49, 'all 49 FK columns in the consolidated schema are exercised');
 });
 
 test('canonical and relationship uniqueness reject duplicate populated identities', (t) => {
@@ -156,7 +160,7 @@ test('canonical and relationship uniqueness reject duplicate populated identitie
     ['part_supersession', 'superseded_part_id=53801'], ['part_fitment', 'id=53851'],
     ['part_fitment', 'id=53853'], ['diagram', 'id=53861'], ['part_occurrence_diagram', 'part_occurrence_id=53811'],
     ['part_vehicle_location', 'id=53881'], ['vehicle_range', 'id=1'], ['part_tree_part', 'tree_node_id=3'],
-    ['part_fitment', 'id=1'],
+    ['part_fitment', 'id=1'], ['part_occurrence_tree_path', 'id=83521'],
   ]) {
     const columns = db.prepare(`PRAGMA table_info(${quote(table)})`).all().filter((c) => c.name !== 'id').map((c) => quote(c.name)).join(',');
     rejected(db, `INSERT INTO ${quote(table)} (${columns}) SELECT ${columns} FROM ${quote(table)} WHERE ${where} LIMIT 1`, /UNIQUE constraint failed/);
@@ -244,24 +248,24 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
       const db = new DatabaseSync(':memory:');
       t.after(() => db.close());
       db.exec('PRAGMA foreign_keys=ON');
-      const mvpStockMigration = migrations.indexOf('0011_mvp_stock_model.sql');
-      migrate(db, migrations.slice(0, mvpStockMigration));
+      const stockModelMigration = migrations.indexOf('0011_mvp_stock_model.sql');
+      migrate(db, migrations.slice(0, stockModelMigration));
       db.exec(sql(`tests/fixtures/${fixture}.sql`));
-      migrate(db, migrations.slice(mvpStockMigration));
+      migrate(db, migrations.slice(stockModelMigration));
       assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
       assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);
       continue;
     }
     const db = withDatabase(t, { fixtures: false });
-    if (fixture === 'part_occurrence') db.exec("INSERT INTO part(id,description) VALUES(1,'fixture prerequisite')");
-    if (fixture === 'part_vehicle_vin_applicability') db.exec("INSERT INTO part(part_number_raw,part_number_normalized) VALUES('MNA7691AA','MNA7691AA')");
+    if (fixture === 'part_occurrence') db.exec("INSERT OR IGNORE INTO part(id,description) VALUES(1,'fixture prerequisite')");
+    if (fixture === 'part_vehicle_vin_applicability') db.exec("INSERT OR IGNORE INTO part(part_number_raw,part_number_normalized) VALUES('MNA7691AA','MNA7691AA')");
     db.exec(sql(`tests/fixtures/${fixture}.sql`));
     assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), [], fixture);
     assert.ok(db.prepare('SELECT count(*) AS n FROM part').get().n > 0, fixture);
   }
 });
 
-test('MVP API executes real queries after all migrations', async (t) => {
+test('API executes real queries after all migrations', async (t) => {
   const db = withDatabase(t);
   const env = { DB: d1(db) };
   const response = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=MJB7703AA'), env);
@@ -269,8 +273,8 @@ test('MVP API executes real queries after all migrations', async (t) => {
   const result = await response.json();
   assert.equal(result.part.part_number_normalized, 'MJB7703AA');
   assert.equal(result.images.length, 1);
-  assert.equal(result.images[0].image_url, null);
-  assert.equal(result.fitment.length, 4);
+  assert.equal(result.images[0].image_url, '/fixtures/mjb7703aa.svg');
+  assert.equal(result.fitment.length, 6);
   assert.equal(result.diagrams[0].availability_status, 'unavailable');
   assert.deepEqual(result.parts_tree[0].path, ['Body', 'Exterior', 'Clips and Fasteners']);
   const missing = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=DOESNOTEXIST'), env);
@@ -279,7 +283,7 @@ test('MVP API executes real queries after all migrations', async (t) => {
 
 test('documented indexes exist and principal relationship lookups use indexed searches', (t) => {
   const db = withDatabase(t);
-  const docs = `${sql('PART_MODEL.md')}\n${sql('MVP_STOCK_MODEL.md')}`;
+  const docs = `${sql('MODEL_PART.md')}\n${sql('MODEL_STOCK.md')}`;
   const indexes = db.prepare("SELECT name FROM sqlite_schema WHERE type='index' AND name NOT LIKE 'sqlite_%'").all();
   const documentedNames = [...new Set([...docs.matchAll(/`(idx_[a-z0-9_]+)`/g)].map((match) => match[1]))];
   assert.deepEqual(documentedNames.sort(), indexes.map((index) => index.name).sort());
@@ -296,6 +300,8 @@ test('documented indexes exist and principal relationship lookups use indexed se
     ['part_occurrence_diagram', 'diagram_id', 53861], ['diagram_hotspot', 'diagram_id', 53861],
     ['diagram_hotspot', 'part_occurrence_id', 53811], ['part_vehicle_location', 'part_occurrence_id', 53811],
     ['part_vehicle_location', 'model_range_id', 53831], ['part_vehicle_location', 'mapping_state', 'verified'],
+    ['part_occurrence_tree_path', 'part_occurrence_id', 53811], ['part_occurrence_tree_path', 'tree_node_id', 83503], ['part_occurrence_tree_path', 'source_namespace', 'JEPC'],
+    ['part_tree_node', 'parent_id', 83501], ['part_tree_node', 'source_namespace', 'JEPC'],
     ['stock_item', 'part_id', 53801], ['stock_item', 'donor_vehicle_id', 53891],
     ['stock_item', 'part_number', 'MNA7691AA'], ['stock_item', 'available', 1],
     ['stock_item', 'status', 'reserved'], ['stock_item', 'location', 'BIN-A1'], ['stock_item', 'source', 'fixture'],
@@ -310,6 +316,7 @@ test('documented indexes exist and principal relationship lookups use indexed se
     ['idx_diagram_hotspot_item', ['diagram_id', 'item_number']],
     ['idx_part_vehicle_location_identity', ['part_occurrence_id', 'model_range_id', 'location_ref', 'system_ref', 'category_ref']],
     ['idx_part_fitment_range_identity', ['part_id', 'vehicle_range_id', 'variation', 'qualifier']],
+    ['idx_part_occurrence_tree_path_source', ['source_namespace', 'source_path_id']],
   ]) assert.deepEqual(db.prepare(`PRAGMA index_info(${name})`).all().map((row) => row.name), columns);
   for (const [table, name] of [
     ['part', 'idx_part_number_normalized_unique'], ['part_image', 'idx_part_image_identity'],
@@ -321,4 +328,45 @@ test('documented indexes exist and principal relationship lookups use indexed se
   }
   const fitmentIdentity = db.prepare('PRAGMA index_xinfo(idx_part_fitment_identity)').all().filter((row) => row.key);
   assert.deepEqual(fitmentIdentity.map((row) => row.cid), [1, 2, -2, -2, -2, -2]);
+});
+
+test('source-qualified catalogue trees preserve path multiplicity and language-specific structure', (t) => {
+  const db = withDatabase(t);
+  const enPaths = db.prepare(`
+    SELECT p.source_path_id,n.source_node_id,n.parent_source_node_id,n.source_order
+    FROM part_occurrence_tree_path p
+    JOIN part_tree_node n ON n.id=p.tree_node_id
+    WHERE p.part_occurrence_id=53811 AND n.source_language='en'
+    ORDER BY p.source_path_id
+  `).all();
+  assert.deepEqual(enPaths.map((row) => row.source_path_id), [
+    'M3187/C8450/I8/en/path-a',
+    'M3187/C8450/I8/en/path-b',
+  ]);
+  assert.deepEqual(enPaths.map((row) => row.source_node_id), ['N3', 'N4']);
+
+  const fiDepth = db.prepare(`
+    WITH RECURSIVE path(id,parent_id,depth) AS (
+      SELECT id,parent_id,1 FROM part_tree_node WHERE id=83514
+      UNION ALL
+      SELECT n.id,n.parent_id,path.depth+1
+      FROM part_tree_node n JOIN path ON n.id=path.parent_id
+    )
+    SELECT max(depth) AS depth FROM path
+  `).get().depth;
+  assert.equal(fiDepth, 4);
+
+  rejected(db, `INSERT INTO part_tree_node(
+    parent_id,label,sort_order,source_namespace,source_model_id,source_category_id,
+    source_item_id,source_language,source_node_id,parent_source_node_id,
+    source_description,source_order,source_ref
+  ) SELECT parent_id,'different label',sort_order,source_namespace,source_model_id,
+    source_category_id,source_item_id,source_language,source_node_id,parent_source_node_id,
+    'different description',source_order,'fixture:duplicate'
+    FROM part_tree_node WHERE id=83503`, /UNIQUE constraint failed/);
+
+  rejected(db, `INSERT INTO part_occurrence_tree_path(
+    part_occurrence_id,tree_node_id,source_namespace,source_path_id,application_id,source_ref
+  ) VALUES(53811,83503,'JEPC','M3187/C8450/I8/en/path-a','APP-53811','fixture:duplicate')`,
+  /UNIQUE constraint failed/);
 });

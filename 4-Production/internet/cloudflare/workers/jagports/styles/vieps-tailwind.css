@@ -1,0 +1,229 @@
+@import "tailwindcss";
+@source "../public/*.html";
+@source "../public/*.js";
+
+/*
+ * Visual authorities:
+ * - layout/content relationships: merged VIEPS UI-Concept-11.svg (PR #645)
+ * - Tailwind style/theme: CSS-Kit-2ndRound-Tailwind-CSS.jpg (#632 / PR #640)
+ * Business/data semantics remain controlled by the VIEPS UI/data specifications.
+ */
+@theme {
+  --color-jagports-ink: #18313d;
+  --color-jagports-muted: #667783;
+  --color-jagports-canvas: #eef2f3;
+  --color-jagports-panel: #ffffff;
+  --color-jagports-line: #cfd9dd;
+  --color-jagports-teal: #0d6473;
+  --color-jagports-teal-dark: #084954;
+  --color-jagports-teal-soft: #dcebed;
+  --color-jagports-warm: #efe9dc;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { height: 100%; overflow: hidden; }
+  body {
+    height: 100%;
+    min-height: 100dvh;
+    overflow: hidden;
+    @apply m-0 bg-jagports-canvas text-jagports-ink antialiased;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  h1, h2, h3, p { @apply mt-0; }
+  h1 { @apply text-2xl font-semibold tracking-tight; }
+  h2 { @apply text-base font-semibold tracking-tight; }
+  h3 { @apply text-sm font-semibold; }
+  input, select, button { font: inherit; }
+  button { @apply cursor-pointer; }
+  [hidden] { display: none !important; }
+}
+
+@layer components {
+  .app-shell {
+    width: 100%;
+    max-width: 1720px;
+    height: 100dvh;
+    margin: 0 auto;
+    padding: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow: hidden;
+  }
+  .app-header { @apply flex flex-none items-end justify-start gap-3 border-b border-jagports-line pb-2; margin: 0; }
+  .app-header h1 { @apply text-[1.65rem] leading-none; }
+  .locale-control { @apply flex flex-none items-center gap-1 self-start; }
+  .locale-button {
+    @apply rounded-md border border-jagports-line bg-white px-2 py-1 text-[0.7rem] font-semibold leading-none text-jagports-muted transition hover:border-jagports-teal hover:text-jagports-teal-dark focus:outline-none focus:ring-2 focus:ring-jagports-teal/20;
+  }
+  .locale-button span { @apply ml-0.5; }
+  .eyebrow { @apply mb-1 text-[0.65rem] font-bold uppercase tracking-[0.11em] text-jagports-muted; }
+  .muted, .compact-note { @apply text-jagports-muted; }
+
+  /*
+   * Merged Concept-11 geometry:
+   *   Parts Tree | Search + Availability (spans centre + right)
+   *   Parts Tree | Suitability Model Ranges (spans centre + right)
+   *   Parts Tree | Location at car | Suitability / Filter
+   *   Parts Tree | PART / Image / Status (spans centre + right)
+   */
+  .concept-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    gap: 0.55rem;
+    overflow: hidden;
+    align-items: stretch;
+    grid-template-columns: minmax(14rem, 0.9fr) minmax(19rem, 1.15fr) minmax(24rem, 1.65fr);
+    grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-areas:
+      "tree search search"
+      "tree ranges ranges"
+      "tree location suitability"
+      "tree details details";
+  }
+
+  .search-panel { grid-area: search; }
+  .tree-panel { grid-area: tree; }
+  .location-panel { grid-area: location; }
+  .visual-panel { grid-area: details; }
+  .ranges-panel { grid-area: ranges; }
+  .fitment-panel { grid-area: suitability; }
+
+  .panel {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    @apply rounded-xl border border-jagports-line bg-jagports-panel p-3 shadow-sm;
+  }
+  .section-heading { @apply mb-2 flex-none border-b border-jagports-line pb-1.5; }
+
+  .search-availability-strip {
+    @apply grid flex-none grid-cols-[minmax(0,1.55fr)_minmax(13rem,0.9fr)] gap-3;
+  }
+  .search-block, .availability-block { @apply min-w-0; }
+  .search-block h2 { @apply mb-2; }
+  .availability-block > label { @apply mb-1 block text-xs font-semibold text-jagports-muted; }
+  .availability-block select {
+    @apply w-full min-w-0 rounded-lg border border-jagports-line bg-slate-50 px-3 py-2 text-sm text-jagports-muted;
+  }
+  .availability-block select:disabled { @apply cursor-not-allowed opacity-80; }
+  .availability-block .compact-note { @apply mt-1.5; }
+
+  .search-form { @apply grid flex-none grid-cols-[minmax(0,1fr)_auto] gap-2; }
+  .search-form input, #rangeSelect, #visualSelect {
+    @apply min-w-0 rounded-lg border border-jagports-line bg-white px-3 py-2 text-sm outline-none transition focus:border-jagports-teal focus:ring-2 focus:ring-jagports-teal/15;
+  }
+  .search-form button {
+    @apply rounded-lg bg-jagports-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-jagports-teal-dark focus:outline-none focus:ring-2 focus:ring-jagports-teal/25;
+  }
+  .status-line { @apply mb-0 mt-2 min-h-5 flex-none text-xs; }
+
+  .fixture-guide {
+    overflow: auto;
+    @apply mb-2 max-h-[12rem] flex-none rounded-lg border border-jagports-line bg-jagports-warm/45 p-2.5;
+  }
+  .fixture-guide h3 { @apply mb-1.5; }
+  .fixture-guide h3:not(:first-of-type) { @apply mt-3; }
+  .fixture-guide ul { @apply mb-0 mt-2 pl-5 text-xs leading-5; }
+  .fixture-guide li { @apply my-1 break-words; }
+  .fixture-guide code { @apply whitespace-nowrap rounded bg-white/80 px-1 py-0.5 text-[0.72rem] font-semibold; }
+
+  .empty { @apply m-0 rounded-lg border border-dashed border-jagports-line bg-slate-50 px-3 py-2 text-sm text-jagports-muted; }
+  .card {
+    flex: 0 0 auto;
+    max-height: 8rem;
+    overflow: auto;
+    @apply mb-2 rounded-lg border border-jagports-line bg-white p-3;
+  }
+  .card dl { @apply m-0 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-sm; }
+  .card dt { @apply text-jagports-muted; }
+  .card dd { @apply m-0 break-words font-medium; }
+
+  .vehicle-location-canvas {
+    flex: 1 1 auto;
+    min-height: 0;
+    @apply grid place-items-center rounded-lg bg-slate-50 p-2;
+  }
+  .vehicle-location-canvas .empty { @apply w-full bg-white text-center; }
+  .compact-note { @apply mb-0 mt-2 flex-none text-xs; }
+
+  .tree-panel #tree,
+  .ranges-panel #ranges,
+  .fitment-panel #fitment,
+  .visual-panel #visuals {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .tree-branch { @apply my-1 list-none pl-3 text-sm; }
+  #tree > .tree-branch { @apply pl-0; }
+  .tree-branch li { @apply list-none break-words; }
+  .tree-branch span { @apply my-0.5 block rounded-md border-l-2 border-transparent bg-slate-100 px-2 py-1.5; }
+  .selected-path { @apply border-jagports-teal bg-jagports-teal-soft font-semibold text-jagports-teal-dark; }
+
+  .range-list { @apply pl-5 text-sm; }
+  .range-list li { @apply my-1.5 break-words; }
+  #rangeSelect, #visualSelect { @apply w-full flex-none; }
+  #visualChooser { @apply mb-2 flex-none; }
+  #visualChooser label, .ranges-panel > label { @apply mb-1 block flex-none text-xs font-semibold text-jagports-muted; }
+  #visuals figure { @apply m-0 min-h-0; }
+  #visuals figcaption { @apply mb-2 text-sm font-semibold; }
+  #visuals img { @apply mx-auto block max-h-full max-w-full object-contain; }
+
+  .stock-section {
+    min-height: 0;
+    overflow: auto;
+    @apply mt-2;
+  }
+  .stock-note { @apply mb-2; }
+  .table-scroll { @apply max-h-full overflow-auto rounded-lg border border-jagports-line; }
+  table { @apply m-0 w-full border-collapse text-xs; }
+  th { @apply bg-slate-100 font-semibold text-jagports-ink; }
+  th, td { @apply border-b border-jagports-line px-2.5 py-2 text-left align-top; }
+  .stock-table { @apply min-w-[42rem]; }
+
+  .error { @apply font-semibold text-red-800; }
+  .visually-hidden { @apply absolute h-px w-px overflow-hidden whitespace-nowrap p-0; clip: rect(0, 0, 0, 0); margin: -1px; border: 0; }
+}
+
+@media (max-width: 1100px) {
+  html, body { height: auto; overflow: auto; }
+  .app-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    padding: 0.75rem;
+  }
+  .concept-grid {
+    overflow: visible;
+    grid-template-columns: minmax(13rem, 0.9fr) minmax(0, 2fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      "search search"
+      "ranges ranges"
+      "tree location"
+      "tree suitability"
+      "details details";
+  }
+  .panel { overflow: visible; }
+  .tree-panel #tree,
+  .ranges-panel #ranges,
+  .fitment-panel #fitment,
+  .visual-panel #visuals,
+  .fixture-guide,
+  .stock-section { overflow: visible; max-height: none; }
+}
+
+@media (max-width: 760px) {
+  .app-shell { @apply px-2.5 py-2; }
+  .concept-grid { @apply block; }
+  .panel { @apply mb-2.5; }
+  .search-form, .search-availability-strip { @apply grid-cols-1; }
+  .card dl { @apply grid-cols-1; }
+  .locale-button span { @apply hidden; }
+}

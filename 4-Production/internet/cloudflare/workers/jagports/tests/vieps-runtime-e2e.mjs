@@ -3,6 +3,14 @@ import assert from "node:assert/strict";
 
 const baseUrl = process.env.VIEPS_BASE_URL?.replace(/\/$/, "");
 const partNumber = process.env.VIEPS_PART_NUMBER || "MJB7703AA";
+const fixturePartNumbers = ["MJB7703AA", "MNA7691AA", "XR847031", "FIX538C"];
+const fixtureDescriptiveIdentifiers = ["firtree1", "firtree2"];
+
+function assertFixtureStock(data, label) {
+  assert.ok(Array.isArray(data.stock), label);
+  assert.ok(data.stock.length > 0, `${label} should expose stock rows`);
+  assert.ok(data.stock.some((item) => /^Fixture Shelf XK \/ Box [A-Z0-9]{3}$/.test(item.location)), `${label} should expose a fixture stock location`);
+}
 
 if (!baseUrl) {
   test("VIEPS deployed runtime validation requires VIEPS_BASE_URL", { skip: "No deployed VIEPS URL supplied" }, () => {});
@@ -32,6 +40,27 @@ if (!baseUrl) {
     assert.ok(Array.isArray(data.diagrams));
     assert.ok(Array.isArray(data.fitment));
     assert.ok(data.fitment.length > 0);
+  });
+
+  test("deployed VIEPS fixture parts return stock locations", async () => {
+    for (const fixturePartNumber of fixturePartNumbers) {
+      const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(fixturePartNumber)}`);
+      assert.equal(response.status, 200, fixturePartNumber);
+      const data = await response.json();
+      assert.equal(data.part.part_number_normalized, fixturePartNumber);
+      assertFixtureStock(data, fixturePartNumber);
+    }
+  });
+
+  test("deployed VIEPS non-numbered fixture identifiers return stock locations", async () => {
+    for (const identifier of fixtureDescriptiveIdentifiers) {
+      const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(identifier)}`);
+      assert.equal(response.status, 200, identifier);
+      const data = await response.json();
+      assert.equal(data.part.part_number_normalized, null);
+      assert.equal(data.part.description, identifier);
+      assertFixtureStock(data, identifier);
+    }
   });
 
   test("unknown part returns explicit not-found response", async () => {

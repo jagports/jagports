@@ -3,6 +3,8 @@ name: Human decision gate
 description: Record a decision that requires explicit human approval
 ---
 
+<!-- Policy and template map: ../../0-DocumentationEducationCompetense/work-item-templates/README.md -->
+
 # Human Decision Gate
 
 ## Decision question
@@ -14,7 +16,7 @@ State the exact question requiring a human decision.
 - Context:
 - Constraints:
 
-## Options considered
+## Alternatives considered
 
 ### Option A
 
@@ -32,11 +34,15 @@ State the exact question requiring a human decision.
 
 ## Recommendation
 
-State the recommended option and rationale.
+- Recommended option:
+- Rationale:
 
-## Consequences
+## Impact and reversibility
 
-State the expected consequences and known risks of the recommendation.
+- Expected impact:
+- Known risks:
+- Reversible: YES / NO / PARTLY
+- Reversal path / cost:
 
 ## Human decision
 
@@ -45,5 +51,9 @@ State the expected consequences and known risks of the recommendation.
 - Decision owner:
 - Decision date:
 - Decision rationale:
+
+## Final resolution
+
+Record the final implemented or rejected resolution and link the resulting Issue, Pull Request, decision record, or other persistent evidence.
 
 Agents must not infer approval from inactivity. Implementation depending on this gate may proceed only after explicit approval.

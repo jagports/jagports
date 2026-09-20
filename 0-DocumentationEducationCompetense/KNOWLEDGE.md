@@ -276,7 +276,7 @@ Preferred pattern:
 Comments should be treated as durable project communication rather than disposable chat text.
 
 - Put each distinct traceability statement on its own line or paragraph.
-- Put primary Issue/PR references at the beginning of their own lines.
+- Put primary Issue/PR references at the beginning of their own line.
 - Separate relationship text from the referenced record.
 - Use short headings such as `Result`, `Action`, `Verification`, `Decision`, `Test`, or `Next step` when they improve scanning.
 - Keep diagnostic and traceability information intact.
@@ -331,19 +331,19 @@ This convention applies whether the message is an Issue description, PR descript
 
 Reusable knowledge-flow visualizations belong with documentation/knowledge topics rather than in a central collection of unrelated diagrams. The reusable knowledge-flow diagram is maintained in `0-DocumentationEducationCompetense/KNOWLEDGE_FLOW.md`.
 
-## Project Work Plan Reference
-
-`5-Implementation-Projects/Jagports_AI_OS_Prioritized_Work_Plan.md` is maintained as a **WORK IN PROGRESS** planning document.
-
-Agents should consult it when planning project work, but should critically evaluate its descriptions, assumptions and proposed structures. The work plan is not fixed: agents are encouraged to identify inconsistencies, outdated material, missing work, unnecessary complexity and better approaches, and to freely suggest improvements.
-
-GitHub Issues are the primary work and communication records. The GitHub Project provides a visual representation of Issues and their current Project Item Status. Current lifecycle and Project-state rules are defined in `00-Management/WORKFLOWS.md`.
-
 ## Agent Communication Protocol Reference
 
 `0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md` defines the detailed communication protocol for agents and humans working on Jagports AI OS.
 
 Agents should follow that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
+
+## Repository Structure Placement Rules
+
+Before choosing or creating any repository folder or subfolder, agents must inspect the relevant repository documentation and existing contents.
+
+Agents must use the established documented repository structure and must not invent additional root-level folders or ad hoc hierarchies.
+
+If the correct location is unclear or a new structure appears necessary, the agent must ask the Product Owner rather than inventing it. Repository structure changes require an approved Issue and Pull Request.
 
 ## 4-Production Folder Structure
 
@@ -355,8 +355,6 @@ Agents should follow that protocol when handling Issue communication, acknowledg
 - `application/` — production application implementations.
 - `customer/` — customer-specific production components and configuration.
 
+Production files must be placed under `4-Production/` and, where applicable, one of the approved subfolders above.
+
 Existing production subfolders remain valid unless explicitly reorganized through an approved Issue and Pull Request.
-
-Agents must not invent additional root-level production folders. Production files must be placed under `4-Production/` and, where applicable, one of the approved subfolders above.
-
-Before choosing a production subfolder, agents must inspect the relevant repository documentation and existing contents. If the correct subfolder is unclear, the agent must ask the Product Owner rather than inventing a new structure.

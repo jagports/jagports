@@ -2,7 +2,16 @@ import { DatabaseSync } from 'node:sqlite';
 import { readdirSync, readFileSync } from 'node:fs';
 
 export const root = new URL('../../', import.meta.url);
-export const sql = (relative) => readFileSync(new URL(relative, root), 'utf8');
+export const specRoot = new URL('../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/', root);
+export const sql = (relative) => {
+  if (relative === 'MODEL_PART.md') {
+    return readFileSync(new URL('MODEL_PART.md', specRoot), 'utf8');
+  }
+  if (relative === 'MODEL_STOCK.md') {
+    return readFileSync(new URL('MODEL_STOCK.md', specRoot), 'utf8');
+  }
+  return readFileSync(new URL(relative, root), 'utf8');
+};
 export const migrations = readdirSync(new URL('migrations/', root)).filter((name) => name.endsWith('.sql')).sort();
 
 export function migrate(db, names = migrations) {
@@ -24,20 +33,22 @@ export function database({ fixtures = true } = {}) {
   db.exec('PRAGMA foreign_keys = ON');
 
   if (fixtures) {
-    // The shared integrity fixtures represent persisted data that already exists
-    // before the MVP stock migration. Load them through 0010, then apply 0011+
-    // so upgrade-preservation behavior is tested instead of reinserting legacy
-    // available stock after the new availability trigger already exists.
-    const mvpStockMigration = migrations.indexOf('0011_mvp_stock_model.sql');
-    if (mvpStockMigration >= 0) {
-      migrate(db, migrations.slice(0, mvpStockMigration));
+    // Shared integrity fixtures represent persisted data that already exists
+    // before the stock-model migration. Load them through 0010, then apply
+    // 0011+ so upgrade-preservation behavior is tested instead of reinserting
+    // legacy available stock after the availability trigger already exists.
+    const stockModelMigration = migrations.indexOf('0011_mvp_stock_model.sql');
+    if (stockModelMigration >= 0) {
+      migrate(db, migrations.slice(0, stockModelMigration));
       db.exec(sql('tests/fixtures/part_presentation.sql'));
       db.exec(sql('tests/fixtures/part_model_integrity.sql'));
-      migrate(db, migrations.slice(mvpStockMigration));
-      // Load normalized post-0011 stock fixtures as well so new foreign keys and
-      // indexes are exercised alongside preserved legacy rows.
-      db.exec(sql('tests/fixtures/mvp_stock_storage.sql'));
+      migrate(db, migrations.slice(stockModelMigration));
+      // Load normalized stock and applicability fixtures so current foreign
+      // keys, vocabularies and indexes are exercised alongside preserved rows.
+      db.exec(sql('tests/fixtures/stock_storage.sql'));
       db.exec(sql('tests/fixtures/vieps_searchable_fixture_dataset.sql'));
+      db.exec(sql('tests/fixtures/occurrence_applicability.sql'));
+      db.exec(sql('tests/fixtures/part_tree_occurrence.sql'));
       return db;
     }
   }
@@ -46,6 +57,8 @@ export function database({ fixtures = true } = {}) {
   if (fixtures) {
     db.exec(sql('tests/fixtures/part_presentation.sql'));
     db.exec(sql('tests/fixtures/part_model_integrity.sql'));
+    db.exec(sql('tests/fixtures/occurrence_applicability.sql'));
+    db.exec(sql('tests/fixtures/part_tree_occurrence.sql'));
   }
   return db;
 }

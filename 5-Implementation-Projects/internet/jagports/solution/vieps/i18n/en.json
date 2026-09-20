@@ -1,0 +1,151 @@
+{
+  "common": {
+    "availability": "Availability",
+    "not_recorded": "Not recorded",
+    "not_specified": "Not specified",
+    "not_supplied": "Not supplied",
+    "search": "Find"
+  },
+  "fitment": {
+    "applicability": "Applicability",
+    "browse_help": "Browse mode may expose approved filters; a selected part shows verified applicability facts and qualifiers.",
+    "heading": "Suitability / Filter",
+    "no_confirmed": "No suitable vehicle applicability is confirmed.",
+    "no_match": "No applicable variation matches the selected PART/context.",
+    "qualifier": "Qualifier",
+    "selected_none": "No range selected.",
+    "unavailable": "Variation applicability data is unavailable.",
+    "variation": "Variation",
+    "verification": "Verification"
+  },
+  "fixture": {
+    "descriptive_heading": "Non-numbered fixture identifiers",
+    "descriptive_note": "firtree1 and firtree2 are descriptive identifiers, not Jaguar part numbers.",
+    "firtree1_description": "non-numbered identification fixture",
+    "firtree2_description": "non-numbered identification fixture",
+    "fix538c_description": "synthetic chain endpoint fixture",
+    "heading": "Try these part numbers",
+    "mjb7703aa_description": "representative MVP fixture part",
+    "mna7691aa_description": "#354 supersession fixture source part",
+    "numbered_heading": "Tester fixture data",
+    "randomized_note": "Fixture stock values are randomized demo/test values, not real inventory evidence.",
+    "test_guidance_aria": "MVP fixture search guidance",
+    "tester_data": "Tester fixture data",
+    "xr847031_description": "#354 supersession fixture replacement part"
+  },
+  "header": {
+    "product_name": "Jagports Vehicle Information and EPC System"
+  },
+  "locale": {
+    "english": "English",
+    "finnish": "Finnish",
+    "label": "Language"
+  },
+  "location": {
+    "heading": "Location at car",
+    "main_view": "Main View",
+    "range_unavailable": "{{range}}: verified vehicle views and part-location mapping are unavailable.",
+    "select_help": "Select a part and model range. Verified vehicle-location mapping is unavailable.",
+    "unavailable": "Vehicle-location view unavailable.",
+    "verified_unavailable": "Verified vehicle views and part-location mapping are unavailable."
+  },
+  "part": {
+    "diagram": "Diagram",
+    "epc_context": "EPC context",
+    "epc_occurrence_one": "{{count}} EPC occurrence",
+    "epc_occurrence_other": "{{count}} EPC occurrences",
+    "fixture_stock": "Fixture stock",
+    "fixture_stock_record_one": "{{count}} synthetic fixture stock record",
+    "fixture_stock_record_other": "{{count}} synthetic fixture stock records",
+    "image": "Part image",
+    "image_or_diagram_unavailable": "Image / diagram unavailable.",
+    "no_description": "No description",
+    "no_epc_context": "No EPC occurrence context available",
+    "no_fixture_stock": "No fixture stock shown",
+    "no_jaguar_part_number": "No Jaguar part number",
+    "no_part_resolved": "No part resolved.",
+    "no_part_selected": "No part selected.",
+    "raw_part_number": "Raw part number",
+    "source": "Source",
+    "verification": "Verification"
+  },
+  "ranges": {
+    "applicable_help": "Search to show applicable model ranges. Stock-based browsing is unavailable.",
+    "heading": "Suitability Model Ranges",
+    "label": "Model range / fit",
+    "no_match": "No suitable vehicle range matches this PART/context.",
+    "no_part_selected": "No part selected",
+    "no_suitable": "No suitable vehicle range is confirmed.",
+    "unavailable": "Vehicle applicability data is unavailable."
+  },
+  "search": {
+    "error": "The PART could not be resolved.",
+    "input_aria": "Jaguar part number or fixture identifier",
+    "input_placeholder": "e.g. MJB7703AA, MNA7691AA, firtree1",
+    "not_found": "Part not found.",
+    "prompt": "Enter a Jaguar part number or fixture identifier to begin.",
+    "prompt_with_action": "Enter a Jaguar part number or fixture identifier and press Find.",
+    "resolved": "PART resolved.",
+    "resolving": "Resolving PART…"
+  },
+  "stock": {
+    "condition": "Condition",
+    "evidence": "Evidence",
+    "filter_unavailable": "Stock quality filter unavailable",
+    "filter_unavailable_note": "Stock quality A–E filtering requires the approved stock browsing contract.",
+    "fixture_evidence": "fixture",
+    "location": "Stock location",
+    "no_fixture_location": "No fixture stock location shown",
+    "note": "Synthetic fixture stock values only; not real Jagports inventory evidence.",
+    "price": "Price",
+    "qty": "Qty",
+    "quality": {
+      "A": {
+        "label": "New / Unused / Original Package",
+        "long_description": "The part is new or unused. It may have normal storage or packaging marks, but it must not be classified as used stock. Original packaging may be present but is not required unless separately recorded.",
+        "short_description": "New or unused stock."
+      },
+      "B": {
+        "label": "Used / Good Working / Known History",
+        "long_description": "The part is used, fully working and technically safe, with normal signs of use and known history where available. Minor scratches, small stone chips, light surface rust on underbody parts, or small wear may be present. There must be no defect that prevents function or causes major cosmetic harm.",
+        "short_description": "Good normal used stock."
+      },
+      "C": {
+        "label": "Used / Usable / No warranty",
+        "long_description": "The part is used and usable, or repairable with limited effort, but has clear visual or mechanical wear and carries no warranty classification. Visible scratches, deeper rust, small dents, dull lenses, interior wear or similar defects may be present.",
+        "short_description": "Usable budget or project stock."
+      },
+      "D": {
+        "label": "Repairs / Needs Conditioning / Spares only",
+        "long_description": "The part is not a normal ready-to-fit good used part. It needs repair, conditioning, cleaning, rebuilding, combination with other parts, or other preparation before use. It may be useful as a repair base or donor for subparts.",
+        "short_description": "Repair, conditioning or spares stock."
+      },
+      "E": {
+        "label": "Broken / Reference / Knowledge Gains",
+        "long_description": "The part is broken, incomplete, unsuitable for normal use, or not saleable as a ready-to-use spare part. It may still be useful for reference, comparison, measurement, documentation, learning, diagnosis, research, or other knowledge-gain purposes.",
+        "short_description": "Broken, reference or learning stock."
+      },
+      "unclassified": {
+        "label": "Condition not classified",
+        "long_description": "The stock item exists and may be available, but no A-E stock-quality classification has yet been assigned.",
+        "short_description": "Stock quality has not yet been classified."
+      }
+    },
+    "status": "Status"
+  },
+  "tree": {
+    "catalogue_context": "Catalogue context",
+    "empty": "No Parts Tree context is available.",
+    "heading": "Parts Tree",
+    "no_selection": "{{message}} Search to show the relevant Parts Tree path. Stock-based browsing is unavailable."
+  },
+  "visual": {
+    "chooser_label": "Part image / Diagram",
+    "empty": "Search to show verified part identity/status and the selected part image or exploded diagram.",
+    "heading": "PART / Image / Status",
+    "main_view": "Main View",
+    "no_image_selected": "No part image selected.",
+    "part_image": "Part image",
+    "search_help": "Search to show verified part identity/status and the selected part image or exploded diagram."
+  }
+}
