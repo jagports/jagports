@@ -103,6 +103,10 @@ Follow:
 
 `3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md`
 
+For merged Worker + D1 upgrade troubleshooting, also use:
+
+`3-Deployment/internet/cloudflare/workers/jagports/Cloudflare_Worker_D1_Upgrade_Guide.md`
+
 Worker migration source:
 
 `4-Production/internet/cloudflare/workers/jagports/migrations/`
@@ -115,7 +119,7 @@ npx wrangler d1 migrations apply jagports --remote
 npx wrangler d1 migrations list jagports --remote
 ```
 
-Do not recreate the database for a new migration.
+Do not recreate the database for a new migration. Run these commands from the Worker root unless an explicit Wrangler configuration path is supplied; a repository-root invocation without config is not valid evidence of migration failure.
 
 ### P6 — Preview/development validation
 

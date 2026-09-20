@@ -31,6 +31,8 @@ migrations_dir = "migrations"
 
 Select the migration by its versioned filename/order from the reviewed change. Before applying, verify that the exact migration file is present in the Worker checkout being used and that the target database/environment is the intended one.
 
+Cloudflare migration tracking is based on the full migration filename. If two already-reviewed migrations share the same numeric prefix, do not rename either file merely to make numbering look sequential. First inspect the remote migration ledger. Preserve already-tracked filenames and use a new reviewed filename for any future ordering correction.
+
 Do not run the migration commands from the repository root unless an explicit Wrangler configuration path is supplied. Running from the Worker root keeps the active `wrangler.toml` and its relative `migrations_dir` unambiguous.
 
 ## Review rule
