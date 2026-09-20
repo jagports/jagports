@@ -65,15 +65,18 @@ For each supplied number:
 3. For a Pull Request, prioritize that Pull Request itself using Project Item `PR Priority`, shared `Band`, `PR Rank`, `Workstream`, and existing lifecycle `Status`.
 4. For a PR, resolve owning/closing Issue evidence when available only as verified baseline/context. Do not overwrite Issue Priority/Rank unless the Issue itself is separately targeted or due for reassessment.
 5. Resolve the applicable `Workstream` from durable verified evidence; never guess from free text/topic.
-6. Determine or accept Band, its mapped Priority, and Rank under `00-Management/PRIORITIZATION.md`.
+6. Determine or accept Band, its mapped Priority, and Rank under `00-Management/PRIORITIZATION.md`. A numeric Issue `Rank` or PR `PR Rank` requires a verified Workstream plus an explicit check that the requested position is unused in that active record-type/Workstream queue. If that check was not performed, use `none`.
 7. For an Issue, write one bounded authorized Issue work-control record and verify the resulting Issue fields/snapshot.
 8. For a Pull Request, write one bounded authorized PR work-control record and verify `PR Priority`, `Band`, `PR Rank`, `Workstream`, and `Status`.
-9. If Workstream is unresolved, Priority may still be synchronized, but Rank remains `none`.
-10. Report success only after the target record's authoritative values are independently read back and verified.
+9. The combined work-control workflow serializes Project #9 mutations so concurrent rank assignments cannot both pass the uniqueness check.
+10. The bounded synchronizer rejects duplicate active numeric Issue/PR queue positions and rechecks the position after mutation; `DONE` items are outside the active queue.
+11. PR work-control snapshot/failure comments use `PROJECTS_TOKEN`, the same credential used for Project mutations, because `github.token` produced a verified HTTP 403 on this path.
+12. If Workstream is unresolved, Priority may still be synchronized, but Rank remains `none`.
+13. Report success only after the target record's authoritative values are independently read back and verified.
 
 Execution sequence:
 
-`resolve target → classify Issue/PR → calculate/accept Band + mapped Priority + Rank → synchronize only that target → independently verify → report`
+`resolve target → classify Issue/PR → calculate/accept Band + mapped Priority → inspect queue before any numeric Rank → synchronize only that target → independently verify fields/rank uniqueness → report`
 
 The short `@priorize <numbers>` form is the canonical user/agent command **when it is received by a reasoning executor capable of performing this procedure**. Merely persisting that text in a GitHub comment does not execute prioritization. Repository automation must not create inert `@priorize` comments as substitutes for an executor.
 

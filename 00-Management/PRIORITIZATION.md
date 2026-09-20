@@ -220,6 +220,8 @@ Every actively ranked item receives one unique Project `Rank` within its declare
 
 Lower numbers mean earlier execution. Ranked Project views should sort `Rank` ascending so Rank `1` appears first.
 
+A numeric Issue `Rank` or PR `PR Rank` may be emitted only after the active queue for that record type and verified Workstream has been inspected and the requested number is confirmed unused. If that check has not been performed, use `Rank: none` / `PR Rank: none`; an LLM must not invent an unchecked numeric position. The bounded synchronizer independently rejects a numeric Rank that collides with another active item in the same record-type/Workstream queue.
+
 P5 items have no active rank.
 
 Order active items primarily by score after applying workflow gates and explicit Product Owner direction.

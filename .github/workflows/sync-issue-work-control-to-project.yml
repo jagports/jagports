@@ -11,7 +11,7 @@ on:
         type: string
 
 concurrency:
-  group: work-control-${{ github.event.issue.number || inputs.issue_number }}
+  group: work-control-project-9
   cancel-in-progress: false
 
 permissions:
@@ -70,6 +70,57 @@ jobs:
 
           [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
           [ -n "${ISSUE_TOKEN:-}" ] || { echo "Repository GITHUB_TOKEN is not available."; false; }
+
+          assert_rank_available() {
+            record_type="$1"
+            rank_field="$2"
+            requested_rank="$3"
+            requested_workstream="$4"
+            current_item_id="$5"
+
+            RANK_QUEUE_QUERY='query($org:String!, $number:Int!, $endCursor:String, $rankField:String!, $workstreamField:String!) {
+              organization(login:$org) {
+                projectV2(number:$number) {
+                  items(first:100, after:$endCursor) {
+                    nodes {
+                      id
+                      isArchived
+                      content { __typename }
+                      rankValue: fieldValueByName(name:$rankField) {
+                        ... on ProjectV2ItemFieldNumberValue { number }
+                      }
+                      workstreamValue: fieldValueByName(name:$workstreamField) {
+                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      }
+                      statusValue: fieldValueByName(name:"Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      }
+                    }
+                    pageInfo { hasNextPage endCursor }
+                  }
+                }
+              }
+            }'
+
+            queue_json="$(gh api graphql --paginate               -f query="$RANK_QUEUE_QUERY"               -F org="$PROJECT_ORG"               -F number="$PROJECT_NUMBER"               -f rankField="$rank_field"               -f workstreamField="$WORKSTREAM_FIELD_NAME")"
+
+            conflict_count="$(jq -s               --arg record_type "$record_type"               --arg workstream "$requested_workstream"               --arg item "$current_item_id"               --argjson rank "$requested_rank" '
+                [.[].data.organization.projectV2.items.nodes[]?
+                  | select(.isArchived == false)
+                  | select(.id != $item)
+                  | select(.content.__typename == $record_type)
+                  | select((.statusValue.name // "") != "DONE")
+                  | select(.workstreamValue.name == $workstream)
+                  | select(.rankValue.number == $rank)
+                ] | length
+              ' <<<"$queue_json")"
+
+            [ "$conflict_count" -eq 0 ] || {
+              echo "Rank collision: $record_type rank $requested_rank is already used in Workstream '$requested_workstream'."
+              false
+            }
+          }
+
 
           extract_field() {
             field="$1"
@@ -143,6 +194,10 @@ jobs:
           esac
           if [ -n "$RANK" ] && [ "$RANK" != "none" ] && ! [[ "$RANK" =~ ^[1-9][0-9]*$ ]]; then
             echo "Invalid Rank '$RANK'. Use a positive integer or 'none'."
+            false
+          fi
+          if [ -n "$RANK" ] && [ "$RANK" != "none" ] && [ -z "$WORKSTREAM" ]; then
+            echo "Numeric Rank requires an explicit verified Workstream."
             false
           fi
           case "$WORKSTREAM" in
@@ -290,7 +345,9 @@ jobs:
             if [ "$RANK" = "none" ]; then
               gh api graphql -f query="$CLEAR_FIELD" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" >/dev/null
             else
+              assert_rank_available "Issue" "$RANK_FIELD_NAME" "$RANK" "$WORKSTREAM" "$item_id"
               gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$rank_field_id" -F number="$RANK" >/dev/null
+              assert_rank_available "Issue" "$RANK_FIELD_NAME" "$RANK" "$WORKSTREAM" "$item_id"
             fi
           fi
 
@@ -401,7 +458,7 @@ jobs:
       - name: Synchronize and verify one Pull Request
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
-          COMMENT_TOKEN: ${{ github.token }}
+          COMMENT_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.issue.number }}
           COMMENT_BODY: ${{ github.event.comment.body }}
@@ -469,6 +526,57 @@ jobs:
           fi
 
           [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
+
+          assert_rank_available() {
+            record_type="$1"
+            rank_field="$2"
+            requested_rank="$3"
+            requested_workstream="$4"
+            current_item_id="$5"
+
+            RANK_QUEUE_QUERY='query($org:String!, $number:Int!, $endCursor:String, $rankField:String!, $workstreamField:String!) {
+              organization(login:$org) {
+                projectV2(number:$number) {
+                  items(first:100, after:$endCursor) {
+                    nodes {
+                      id
+                      isArchived
+                      content { __typename }
+                      rankValue: fieldValueByName(name:$rankField) {
+                        ... on ProjectV2ItemFieldNumberValue { number }
+                      }
+                      workstreamValue: fieldValueByName(name:$workstreamField) {
+                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      }
+                      statusValue: fieldValueByName(name:"Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      }
+                    }
+                    pageInfo { hasNextPage endCursor }
+                  }
+                }
+              }
+            }'
+
+            queue_json="$(gh api graphql --paginate               -f query="$RANK_QUEUE_QUERY"               -F org="$PROJECT_ORG"               -F number="$PROJECT_NUMBER"               -f rankField="$rank_field"               -f workstreamField="$WORKSTREAM_FIELD_NAME")"
+
+            conflict_count="$(jq -s               --arg record_type "$record_type"               --arg workstream "$requested_workstream"               --arg item "$current_item_id"               --argjson rank "$requested_rank" '
+                [.[].data.organization.projectV2.items.nodes[]?
+                  | select(.isArchived == false)
+                  | select(.id != $item)
+                  | select(.content.__typename == $record_type)
+                  | select((.statusValue.name // "") != "DONE")
+                  | select(.workstreamValue.name == $workstream)
+                  | select(.rankValue.number == $rank)
+                ] | length
+              ' <<<"$queue_json")"
+
+            [ "$conflict_count" -eq 0 ] || {
+              echo "Rank collision: $record_type rank $requested_rank is already used in Workstream '$requested_workstream'."
+              false
+            }
+          }
+
           OWNER="${REPOSITORY%%/*}"
           NAME="${REPOSITORY##*/}"
 
@@ -564,7 +672,9 @@ jobs:
             if [ "$PR_RANK" = "none" ]; then
               gh api graphql -f query="$CLEAR_FIELD" -F project="$project_id" -F item="$item_id" -F field="$field_id" >/dev/null
             else
+              assert_rank_available "PullRequest" "$PR_RANK_FIELD_NAME" "$PR_RANK" "$WORKSTREAM" "$item_id"
               gh api graphql -f query="$SET_NUMBER" -F project="$project_id" -F item="$item_id" -F field="$field_id" -F number="$PR_RANK" >/dev/null
+              assert_rank_available "PullRequest" "$PR_RANK_FIELD_NAME" "$PR_RANK" "$WORKSTREAM" "$item_id"
             fi
           fi
 
