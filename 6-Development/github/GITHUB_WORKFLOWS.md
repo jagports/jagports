@@ -90,6 +90,22 @@ There are two valid execution paths:
 - The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers into the executor, not separate prioritization models.
 - Missing/unavailable reasoning runtime is an execution dependency failure. The system may retain internal retry state, but it must not claim Priority/Band/Rank/Workstream were assessed or synchronized.
 
+### Unattended executor implementation
+
+The unattended open-event reasoning path is implemented by `.github/workflows/prioritize-open-record.yml` and `.github/scripts/prioritize_open_record.py`.
+
+Runtime dependencies:
+
+- repository secret `OPENAI_API_KEY` — required for semantic prioritization reasoning;
+- repository secret `PROJECTS_TOKEN` — required to create the trusted structured synchronization record and to read back verification state;
+- optional repository variable `PRIORITIZATION_OPENAI_MODEL` — defaults to `gpt-5.6-luna`.
+
+The executor reads the target record, recent durable comments, `00-Management/PRIORITIZATION.md`, and this GitHub workflow guidance. It produces the dated priority-review record and writes that record using `PROJECTS_TOKEN` so the existing `issue_comment` bounded synchronizer is actually triggered.
+
+The executor must then wait for the synchronizer's managed work-control snapshot and verify that Priority/PR Priority, Band, Workstream, Status, and Rank/PR Rank match the requested result. A timeout or mismatch is a failed automatic prioritization run.
+
+Initial automatic queue ordering is fail-safe: unless exact current queue-order evidence is available to the executor, it must emit `Rank: none` / `PR Rank: none`. The reasoning model must never invent a numeric rank from Issue/PR prose. Numeric Rank automation requires a separately verified queue-ordering capability.
+
 
 ---
 
