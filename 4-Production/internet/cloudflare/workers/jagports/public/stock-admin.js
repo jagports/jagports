@@ -9,6 +9,8 @@
   const byId = (id) => document.getElementById(id);
   const headers = () => ({ "content-type": "application/json", "x-admin-token": token });
   const nullableNumber = (id) => byId(id).value ? Number(byId(id).value) : null;
+  const isTechnicalSitePlaceholder = (name) => /name not recorded in xlsx/i.test(name || "");
+  const visibleSiteName = (name) => isTechnicalSitePlaceholder(name) ? "" : (name || "");
 
   async function api(path, options = {}, admin = true) {
     const response = await fetch(path, {
@@ -103,7 +105,8 @@
         names.unshift(current.name);
         current = current.parent_id ? byLocationId.get(current.parent_id) : null;
       }
-      return `${location.site_name} / ${names.join(" / ")} (${location.location_type})`;
+      const path = [visibleSiteName(location.site_name), ...names].filter(Boolean).join(" / ");
+      return `${path} (${location.location_type})`;
     };
     for (const location of meta.locations) {
       const label = locationLabel(location);
@@ -143,7 +146,8 @@
       button.type = "button";
       button.className = "card";
       const quality = row.condition_code || t("stock.quality.unclassified.label");
-      const location = row.storage_location_name ? `${row.storage_site_name || ""} / ${row.storage_location_name}` : t("common.not_recorded");
+      const locationParts = [visibleSiteName(row.storage_site_name), row.storage_location_name].filter(Boolean);
+      const location = row.storage_location_name ? locationParts.join(" / ") : t("common.not_recorded");
       button.textContent = `${row.part_number} — ${t("stock.qty")}: ${row.quantity} — ${quality} — ${location}`;
       button.addEventListener("click", () => edit(row));
       target.append(button);
