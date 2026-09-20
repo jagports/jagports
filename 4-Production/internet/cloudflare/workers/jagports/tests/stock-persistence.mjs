@@ -21,7 +21,7 @@ function environment(db) {
   };
 }
 
-test('historical Jagports XLSX stock evidence is usable as a real-data MVP fixture', async (t) => {
+test('live Jagports XLSX stock evidence is usable as a real-data MVP fixture', async (t) => {
   const db = database({ fixtures: false });
   t.after(() => db.close());
 
