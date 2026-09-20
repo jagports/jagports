@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker from '../src/index.js';
-import { database, d1 } from './helpers/model-db.mjs';
+import { database, d1, sql } from './helpers/model-db.mjs';
 
 function request(path, options = {}) {
   return new Request(`https://example.test${path}`, {
@@ -20,6 +20,92 @@ function environment(db) {
     DB: d1(db),
   };
 }
+
+test('historical Jagports XLSX stock evidence is usable as a real-data MVP fixture', async (t) => {
+  const db = database({ fixtures: false });
+  t.after(() => db.close());
+
+  db.exec(sql('tests/fixtures/stock_historical_jagports.sql'));
+
+  const persisted = db.prepare(`
+    SELECT
+      si.part_number,
+      si.quantity,
+      si.condition_code,
+      si.available,
+      si.location,
+      si.source,
+      si.source_ref,
+      si.source_party_id,
+      si.price,
+      si.currency,
+      p.description,
+      p.source AS part_source,
+      shelf.name AS shelf_name,
+      box.name AS box_name,
+      site.name AS site_name,
+      EXISTS (
+        SELECT 1
+        FROM part_tree_part ptp
+        WHERE ptp.tree_node_id = 60705 AND ptp.part_id = p.id
+      ) AS linked_to_607
+    FROM stock_item si
+    JOIN part p ON p.id = si.part_id
+    JOIN stock_location box ON box.id = si.storage_location_id
+    JOIN stock_location shelf ON shelf.id = box.parent_id
+    JOIN stock_site site ON site.id = box.site_id
+    WHERE si.part_number = 'HJA3403AB'
+  `).get();
+
+  assert.deepEqual({ ...persisted }, {
+    part_number: 'HJA3403AB',
+    quantity: 1,
+    condition_code: null,
+    available: 1,
+    location: 'R2A / B14',
+    source: 'legacy-jagports-xlsx',
+    source_ref: 'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
+    source_party_id: null,
+    price: null,
+    currency: 'EUR',
+    description: 'Door mirror - US',
+    part_source: 'legacy-jagports-xlsx',
+    shelf_name: 'R2A',
+    box_name: 'B14',
+    site_name: 'Legacy RnX site - name not recorded in XLSX',
+    linked_to_607: 1,
+  });
+
+  const read = await worker.fetch(
+    request('/api/stock?q=HJA3403AB'),
+    environment(db),
+  );
+  assert.equal(read.status, 200);
+  const readBody = await read.json();
+  assert.equal(readBody.results.length, 1);
+  assert.deepEqual(
+    {
+      part_number: readBody.results[0].part_number,
+      quantity: readBody.results[0].quantity,
+      condition_code: readBody.results[0].condition_code,
+      available: readBody.results[0].available,
+      location: readBody.results[0].location,
+      source: readBody.results[0].source,
+      source_ref: readBody.results[0].source_ref,
+      price: readBody.results[0].price,
+    },
+    {
+      part_number: 'HJA3403AB',
+      quantity: 1,
+      condition_code: null,
+      available: 1,
+      location: 'R2A / B14',
+      source: 'legacy-jagports-xlsx',
+      source_ref: 'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
+      price: null,
+    },
+  );
+});
 
 test('normalized stock create/read/update persists through the Worker D1 path', async (t) => {
   const db = database({ fixtures: false });
