@@ -55,7 +55,7 @@ New work receives an initial prioritization assessment as part of record creatio
 
 The automatic open-event assessment is the default equivalent of an initial `@priorize` pass for newly opened work records; it does not create a second prioritization model.
 
-A persisted `@priorize <number>` comment is only a **durable request record**. It does not itself invoke ChatGPT, OpenAI, the Lead Agent, or any other reasoning runtime. Automatic prioritization is complete only when an explicit reasoning executor consumes that request, applies this method, emits the structured bounded work-control command, and the resulting authoritative values are independently verified. If no reasoning executor is configured or available, the open-event path must be treated as incomplete/failed prioritization rather than successful automatic prioritization.
+A persisted `@priorize <number>` comment does not invoke ChatGPT, OpenAI, the Lead Agent, or any other reasoning runtime and therefore must not be used as an automatic-open placeholder. Automatic prioritization is complete only when the open event reaches an explicit reasoning executor, that executor applies this method, emits the structured bounded work-control command, and the resulting authoritative values are independently verified. If no reasoning executor is configured or available, the open-event path is incomplete/failed prioritization; do not create a misleading `@priorize` comment that no executor consumes.
 
 ### Record-specific authoritative fields
 
