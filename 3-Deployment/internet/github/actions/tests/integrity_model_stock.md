@@ -20,6 +20,7 @@ This workflow neither creates the production database nor inspects production da
 | Stock model documentation | `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_STOCK.md` |
 | Sparse checkout | Worker directory plus VIEPS `SPEC` model documentation directory and pinned local Tailwind source |
 | Build/install | `npm ci --ignore-scripts --no-audit --no-fund`, then `npm run build` |
+| D1 bootstrap check | `npx wrangler d1 migrations apply jagports --local --persist-to <isolated temp dir>`, followed by migration-list and schema queries |
 | Test command | `npm test` |
 | Runtime | Node.js 24, including built-in `node:sqlite` |
 | Permissions | `contents: read` |
@@ -46,13 +47,17 @@ Checkout the Worker directory, VIEPS `SPEC` model documentation directory, and p
 
 Install Node 24 through the standard GitHub Actions setup action.
 
-Restore the locked Worker build dependencies with `npm ci`, build and verify generated deploy assets with `npm run build`, then execute the full Worker test suite with `npm test`.
+Restore the locked Worker build dependencies with `npm ci` and build/verify generated deploy assets with `npm run build`.
+
+Before the Node test suite, the workflow creates an isolated empty local-D1 persistence directory and runs the repository migration chain through the pinned Wrangler dependency with `d1 migrations apply --local --persist-to`. It then lists migration state and queries the principal STOCK tables through `wrangler d1 execute --local`. This directly proves the repository migrations can bootstrap the local D1 runtime representation without Cloudflare credentials.
+
+The workflow then executes the full Worker test suite with `npm test`.
 
 The model helper creates in-memory SQLite databases with foreign-key enforcement, executes the complete ordered migration chain using individual transactions, and loads deterministic fixtures only where a test explicitly requests them. Clean-schema tests therefore begin from an empty database rather than a prebuilt schema.
 
 These databases are discarded when the process exits.
 
-No Cloudflare credentials, Wrangler deployment, remote D1 migration, inventory data, or live database connection is required.
+No Cloudflare credentials, remote D1 migration, inventory data, or live database connection is required. The Wrangler check targets only the isolated local D1 state created for the workflow run.
 
 ## Covered stock-model behavior
 
