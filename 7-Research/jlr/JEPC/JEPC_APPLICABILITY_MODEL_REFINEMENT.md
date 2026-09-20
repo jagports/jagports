@@ -149,7 +149,7 @@ The Product Owner requested short definitions of applicability, fitment, conditi
 | Application sidecar | Same-name `Itm_M3183_C8067_I1_attributes.xml` absent at checked model-root path | `drilldown/pl_id_3187/Itm_M3187_C8069_I1_attributes.xml` present |
 | Illustration reference | `tm6269c` | `tm6173d` |
 
-Both `menus/pl_id_<model>_attributes.xml` files exist. The bundle also depends on model-list bounds and ancestor evidence. The exact `flash/images/<illustration>.jpg` and `flash/xml/<illustration>.xml` paths are present for both references. Presence does not establish decoding or hotspot coordinate correctness; no #352 work was performed.
+Both `menus/pl_id_<model>_attributes.xml` files exist. The bundle also depends on model-list bounds and ancestor evidence. Corresponding same-identifier illustration and hotspot assets are present for both references. Presence does not establish decoding or hotspot coordinate correctness; no #352 work was performed.
 
 LJA4513AF/application 145240 occurs four times: Canada or USA, each with `Except headlamp levelling` or `headlamp powerwash`, followed by LH side. The selected USA/except-levelling row ID is 1100110001. The top-level sidecar contains item 1 with A21 values 120 and 121; no dictionary mapping of these codes is claimed here.
 
