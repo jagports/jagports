@@ -310,6 +310,32 @@ These mappings are model/source evidence, not global constants. The decoder must
 
 The five IDs hard-coded in `VinDecode.js` are selectors exposed by that VIN/search UI. They provide direct evidence for those individual group names, but they are not evidence of the complete JEPC attribute universe.
 
+### Research scanner versus production importer
+
+The PowerShell JEPC scanner under `7-Research/jlr/JEPC/` is a verification harness, not the production importer implementation.
+
+Its purpose is to prove that the required source joins and normalized outputs are understood before implementing them in the Python DataImporter. The production importer should reproduce the verified behavior directly in Python rather than porting the PowerShell structure mechanically.
+
+The research scanner's primary importer-oriented outputs are:
+
+```text
+*_category.csv
+*_occurrences.csv
+*_filters.csv
+*_applicability_rules.csv
+*_vin_boundaries.csv
+```
+
+Required semantics:
+
+- `category`: preserve the complete JEPC catalogue path, for example `XK8 Coupe/Convertible up to (V) 042775/INTERIOR TRIM AND LININGS/FLOOR COVERINGS/CARPETS`.
+- `occurrences`: preserve PART, application ID, catalogue path, top-level item label and exact item-tree path.
+- `filters`: consolidate discovered `A<group>,<value>` predicates into normalized include/exclude filter rows with scope, evidence count and resolution state; attach a human-readable label only when exact source joins establish it.
+- `applicability_rules`: retain raw source rule identity and `RuleIndex`; repeated source rules are not globally intersected.
+- `vin_boundaries`: retain explicit source FROM/TO predicates and explicit catalogue-domain bounds without inventing a global VIN partition.
+
+Diagnostic tree-family reports may be used during research, but they are not the primary DataImporter interface.
+
 ## Phase 5 — Media import
 
 Priority: P2
