@@ -283,60 +283,92 @@ Do not infer that `LH/RH` is merely presentation or a physical-position dimensio
 
 ## Generic attribute decoding
 
-Raw JEPC group/value identifiers are canonical source evidence. Human-readable mappings may be recovered by correlating many application IDs against their tree ancestry.
+Raw JEPC group/value identifiers are canonical source evidence. Human-readable meanings must be recovered through deterministic source joins, not statistical correlation or semantic guessing.
 
-For each application ID, retain both:
+### VIN token normalization
+
+The VIN decode response exposes vehicle attribute tokens without the applicability prefix, for example:
 
 ```text
-application_id
-  -> raw applicability tuples
-  -> full catalogue ancestry
-  -> part number / occurrence
+[37,614]
 ```
 
-A mapping may be promoted only when repeated, independent occurrences support the same interpretation. Unknown values remain opaque rather than guessed.
+The original JEPC `AJAX_Util.js` converts the first token element before filtering:
+
+```text
+[37,614]
+   ->
+[A37,614]
+```
+
+It does this by parsing `vinDecodeTokens` and prepending `"A"` to the attribute group ID. The normalized token is then compared against the `A<group>,<value>,...` predicates in category, top-level and item applicability sidecars.
+
+The `A` prefix is therefore a runtime applicability namespace marker added by JEPC code; it is not part of the numeric `AttributeID` returned by VIN decode.
+
+### Deterministic source-join procedure
+
+When an unknown `A<group>,<value>` predicate is encountered, the importer/research tooling must attempt to resolve it from JEPC source evidence using exact joins:
+
+```text
+[A<group>,<value>,...]
+        |
+        v
+find exact predicate occurrences in *_attributes.xml
+        |
+        v
+retain owning scope and application/category/top-level ID
+        |
+        v
+join the same source identifier to the corresponding *_L0.xml tree
+        |
+        v
+walk that exact leaf's ancestor path
+        |
+        v
+collect source-visible human-readable labels
+```
+
+Rules:
+
+- The join key must be the exact source identifier for that scope, such as the item application ID.
+- Tree labels are evidence only when they belong to the exact joined occurrence/path.
+- Repetition across independent occurrences is useful validation, but repetition alone is not sufficient to invent a semantic mapping.
+- If exact joins produce different candidate meanings, retain all evidence and mark the mapping unresolved/ambiguous.
+- Do not infer group meaning from nearby labels, frequency, category membership, or absence of another predicate.
+- Preserve the original group ID, value ID, raw tuple, source scope, application ID, model/category/item identity and full path even after a label is established.
 
 Recommended mapping fields:
 
 ```text
 source_attribute_group_id
 source_attribute_value_id
-group_label            nullable
-value_label            nullable
-mapping_status         direct | derived | unknown
+group_label              nullable
+value_label              nullable
+resolution_status        exact_source_join | ambiguous | unresolved
 mapping_evidence
 mapping_version
 ```
 
-The original IDs must remain available even after labels are derived.
+The original IDs remain authoritative source identifiers.
 
-### X100 observed mapping evidence
+### X100 source-resolved examples
 
-The following values are current X100 evidence, not a universal hard-coded Jaguar taxonomy.
+These mappings are specific to the observed X100 JEPC source and must not be promoted into a universal Jaguar taxonomy without corresponding source evidence.
 
-| Group/value | Evidence-supported interpretation | Status |
+| Group/value | Source-resolved interpretation | Evidence |
 |---|---|---|
-| `A23=154` | LHD steering | Direct UI group name + tree correlation |
-| `A23=157` | RHD steering | Direct UI group name + tree correlation |
-| `A155=2932` | Coffee | Derived from repeated part-tree/application joins |
-| `A155=2924` | Flint grey | Derived |
-| `A155=2901` | Sable | Derived |
-| `A155=2908` | Teal | Derived |
-| `A155=2927` | Warm charcoal | Derived |
-| `A156=2793` | Oatmeal | Derived |
-| `A156=2798` | Teal | Derived |
-| `A156=2808` | Warm charcoal | Derived |
-| `A156=2811` | Cream | Derived |
-| `A156=2813` | Ivory | Derived |
-| `A156=2816` | Coffee | Derived |
-| `A156=2819` | Cashmere | Derived |
-| `A157=2795` | cloth | Derived |
-| `A157=6256` | leather | Derived |
-| `A157=6258` | ambla/leather | Derived |
-| `A157=6261` | sports cloth | Derived |
-| `A37=614/615/617` | body/body-configuration variants observed across convertible/coupe branches | Derived; official group/value labels unresolved |
+| `A37=614` | Convertible 2+2 | Application `120140` in `Itm_M3187_C5681_I2_attributes.xml` joins exactly to the `Convertible 2+2` path in `Itm_M3187_C5681_I2_L0.xml`. |
+| `A37=615` | Coupe | Application `120137` in `Itm_M3187_C5681_I1_attributes.xml` joins exactly to the `Coupe` path in `Itm_M3187_C5681_I1_L0.xml`. |
+| `A37=617` | Convertible | Category/application evidence repeatedly joins this value to Convertible-only source paths/categories; retain exact source evidence with the mapping. |
+| `A23=154` | LHD steering | VIN/search UI names group 23 as Steering; item application joins associate value 154 with exact LHD source paths. |
+| `A23=157` | RHD steering | VIN/search UI names group 23 as Steering; item application joins associate value 157 with exact RHD source paths. |
+| `A155=2932` | Coffee | Exact item application/path joins. |
+| `A155=2924` | Flint grey | Exact item application/path joins. |
+| `A155=2901` | Sable | Exact item application/path joins. |
+| `A155=2908` | Teal | Exact item application/path joins. |
+| `A155=2927` | Warm charcoal | Exact item application/path joins. |
 
-`A155` and `A156` are separate source groups even where their displayed value is the same, such as Warm charcoal. They must not be merged merely because their human-facing labels coincide.
+Other observed groups and values remain unresolved unless an exact source join establishes their source-visible meaning. Equal display text in different groups does not make the groups equivalent.
 
 ## Applicability tuple behavior
 
