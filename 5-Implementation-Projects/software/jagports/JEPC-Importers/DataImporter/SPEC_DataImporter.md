@@ -118,6 +118,37 @@ Language-qualified source trees must be preserved independently when JEPC struct
 
 Canonical PART identity may be shared across languages. Source node/path identity remains language-qualified unless deterministic equivalence is proven. Cross-language node or occurrence reconciliation is derived data, not an import assumption.
 
+## Catalogue occurrence-tree persistence target
+
+Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
+
+The importer must not reduce source tree structure to only a flattened description path.
+
+For each source-qualified imported tree node, persist as applicable:
+
+- source namespace;
+- JEPC model/category/item scope;
+- source language;
+- stable source node identity;
+- parent source node identity;
+- source description;
+- source order;
+- source reference/provenance.
+
+Human-readable description text is not node identity.
+
+`part_tree_part` may be populated as a broad browse/navigation summary, but it is not the authoritative occurrence identity.
+
+For each PART occurrence supplied by a JEPC source path, persist an exact `part_occurrence_tree_path` relationship containing the occurrence, source tree node/path identity, source namespace, source path ID, application ID where available, and provenance.
+
+The importer must preserve multiple path rows for the same occurrence/application when JEPC contains them.
+
+Language-specific trees must be imported independently when their source structure differs. Matching labels across languages do not establish node/path equivalence. Canonical PART identity remains shared across language-specific occurrences.
+
+Importer reruns must use the source-qualified node/path identities so identical source evidence is idempotent rather than duplicated.
+
+
+
 ## Incremental source index / processing ledger
 
 The importer shall not build or hold an in-memory array of the complete JEPC installation before processing. The source installation can contain roughly one million files and may differ between JEPC installations/packages.
