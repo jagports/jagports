@@ -25,7 +25,7 @@ test('live Jagports XLSX stock evidence is usable as a real-data MVP fixture', a
   const db = database({ fixtures: false });
   t.after(() => db.close());
 
-  db.exec(sql('tests/fixtures/stock_historical_jagports.sql'));
+  db.exec(sql('tests/fixtures/stock_live_jagports.sql'));
 
   const persisted = db.prepare(`
     SELECT
@@ -63,16 +63,16 @@ test('live Jagports XLSX stock evidence is usable as a real-data MVP fixture', a
     condition_code: null,
     available: 1,
     location: 'R2A / B14',
-    source: 'legacy-jagports-xlsx',
+    source: 'jagports-xlsx',
     source_ref: 'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
     source_party_id: null,
     price: null,
     currency: 'EUR',
     description: 'Door mirror - US',
-    part_source: 'legacy-jagports-xlsx',
+    part_source: 'jagports-xlsx',
     shelf_name: 'R2A',
     box_name: 'B14',
-    site_name: 'Legacy RnX site - name not recorded in XLSX',
+    site_name: 'RnX site - name not recorded in XLSX',
     linked_to_607: 1,
   });
 
@@ -100,7 +100,7 @@ test('live Jagports XLSX stock evidence is usable as a real-data MVP fixture', a
       condition_code: null,
       available: 1,
       location: 'R2A / B14',
-      source: 'legacy-jagports-xlsx',
+      source: 'jagports-xlsx',
       source_ref: 'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
       price: null,
     },
