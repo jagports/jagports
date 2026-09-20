@@ -222,23 +222,21 @@ Repository changes must use a Pull Request as the normal integration path, as re
 
 A PR must maintain explicit traceability to every Issue it implements or resolves.
 
+Before an implementation branch is created or repository content is modified, the executor must already have resolved a valid owning Issue under the discovery/reuse rules in `../../00-Management/WORKFLOWS.md`. Before PR creation, the executor must verify that ownership again and include at least one GitHub-native same-repository closing relationship in the PR description, using `Closes #123`, `Fixes #123`, or `Resolves #123`.
+
+Arbitrary Issue mentions, title text, branch names, labels, repository paths, or semantic similarity are not ownership evidence. Do not create an implementation PR first and add its Issue afterward.
+
 One PR may legitimately address multiple Issues when it genuinely implements each scope and the traceability is explicit.
-
-### 3.1.1 Owning-Issue prerequisite and merge traceability
-
-Before an implementation branch is created or repository content is modified, a valid owning Issue must already exist under the discovery/reuse rules in `../../00-Management/WORKFLOWS.md`. Before a Pull Request is created, the executor must verify that ownership again and include at least one GitHub-native same-repository closing relationship in the PR description.
-
-For PRs targeting `main`, the canonical machine-verifiable relationship is a native closing reference such as `Closes #123`, `Fixes #123`, or `Resolves #123`. Arbitrary Issue mentions, title text, branch names, labels, paths, and semantic similarity are not ownership evidence.
-
-No normal implementation/documentation/configuration PR targeting `main` is exempt from the owning-Issue requirement. A deliberately invalid negative-test PR is permitted only when an already-existing owning test Issue explicitly requires verification of the failure path; that fixture must remain non-mergeable and must be closed after evidence is recorded.
-
-The repository check **Validate PR Issue Traceability** must fail closed when no same-repository native closing Issue relationship exists. Repository/ruleset governance should require that check before merge to `main` so Issue-less PR creation cannot become Issue-less integration.
 
 ### 3.2 PR Scope
 
 The PR title and description must accurately represent the current implementation scope.
 
 When an open PR materially expands or changes scope, its title may be updated. GitHub preserves the previous title through its event history. Do not use title changes to obscure history.
+
+For PRs targeting `main`, the repository check **Validate PR Issue Traceability** independently verifies that at least one same-repository native closing Issue relationship exists and fails closed when none exists. Repository/ruleset governance should require that check before merge.
+
+A deliberately invalid negative-test PR is permitted only when an already-existing owning test Issue explicitly requires verification of the failure path; that fixture must remain non-mergeable and be closed after evidence is recorded.
 
 A PR should identify, where applicable:
 
