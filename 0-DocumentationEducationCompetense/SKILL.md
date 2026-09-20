@@ -82,6 +82,8 @@ Execute automatic/open-event and explicit `@priorize` behavior by reference to:
 
 Do not duplicate those rules here. This connection must still obey the Project capability boundary above.
 
+Interactive `@open` is itself a valid reasoning-executor path: if ChatGPT creates the Issue/PR in the same active execution, ChatGPT must continue directly into the canonical prioritization procedure rather than waiting for GitHub automation to invoke ChatGPT later. The unattended GitHub-open path remains a separate capability and requires the agent-backed executor defined by the canonical automation work.
+
 ## Repository Change Gate
 
 Every repository modification follows the controlled path:
@@ -283,7 +285,7 @@ For UI navigation, provide the direct stable URL to the intended page when known
 
 Short Jagports AI OS commands identify the intended operation. They do not require the user to repeat workflow rules, authorization already established by the session/repository, verification requirements, or completion criteria already defined by authoritative repository sources.
 
-`@open <target>` means open and process the identified Jagports work item or resource using the applicable canonical workflow. Resolve the target from the supplied identifier and current repository state.
+`@open <target>` means open and process the identified Jagports work item or resource using the applicable canonical workflow. Resolve the target from the supplied identifier and current repository state. When `@open` creates a new Issue or Pull Request during an interactive ChatGPT execution, the same execution must immediately perform the real initial prioritization pass for that newly created record using the canonical `@priorize` procedure, then synchronize and independently verify the resulting authoritative fields before reporting prioritization success. Do not create or rely on an inert `@priorize <number>` GitHub comment as an intermediate trigger.
 
 `@implement <target>` means implement the identified work according to the applicable Issue/PR scope and canonical workflow. Proceed through routine implementation steps automatically. When the canonical workflow requires review, stop at that review boundary and require **independent review**; do not merge before the required review and testing gates are satisfied.
 
