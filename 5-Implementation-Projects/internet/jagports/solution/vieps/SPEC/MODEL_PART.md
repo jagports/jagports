@@ -26,9 +26,23 @@ Unresolved physical stock does not require a PART row.
 | `part_number_raw` | optional | Original part-number representation supplied by the source, when known. |
 | `part_number_normalized` | optional, unique when present | Stable lookup identity derived from the raw part number. Multiple NULL values are allowed. |
 | `description` | optional, non-unique | Part description/name; may be empty or NULL. Descriptions are not identity because different parts can share the same description. |
+| `source_origin` | required | How the PART record entered the PART database. Controlled values: `ImportJEPC` or `AddedManually`. |
 | `source` | optional | Source system/document identifier. |
 | `source_ref` | optional | Source reference or URL where available. |
 | `verification_status` | required | Provenance/verification state; defaults to `unverified`. |
+
+## PART record origin
+
+`part.source_origin` records how the PART record entered the PART database.
+
+Allowed values are:
+
+- `ImportJEPC` — the PART record was created from JEPC importer output;
+- `AddedManually` — the PART record was created manually in VIEPS, including Jagports specified third-party PARTs.
+
+This field records record origin only. It does not replace detailed `source`, `source_ref`, verification, occurrence, or importer provenance evidence.
+
+A later verification or enrichment step must not change `source_origin`; the value describes how the canonical PART record was first created.
 
 ## Unidentified parts
 
@@ -61,6 +75,36 @@ One PART may have multiple images, including before its catalogue part number is
 Image descriptions are not identity fields.
 
 An unavailable image placeholder has `image_ref = NULL` and `availability_status = unavailable`; no invented reference is needed.
+
+## Catalogue occurrence tree
+
+A canonical PART may appear in multiple EPC/JEPC source paths. VIEPS therefore treats catalogue browsing as an occurrence-tree problem rather than assigning one tree path to the PART itself.
+
+The imported source path can include:
+
+```text
+model/catalogue ancestry
+    -> category ancestry
+    -> top-level item description
+    -> ordered source description/breakpoint nodes
+    -> PART occurrence
+```
+
+The tree provides browse structure, human-readable occurrence context and source filter candidates. It is not itself the Boolean applicability evaluator.
+
+Migration `0017_part_tree_occurrence.sql` extends the existing tree storage additively. It preserves legacy browse rows while allowing source-qualified imported nodes to retain source namespace, model/category/item scope, source language, stable source node identity, parent source node identity, source description, source order, source reference and verification state.
+
+Description text and flattened full-description paths are not structural identity.
+
+`part_tree_part` remains the broad tree-node ↔ canonical PART browse/navigation summary.
+
+`part_occurrence_tree_path` is the exact occurrence/path relation. It links a `part_occurrence` to the source tree node/path evidence and preserves source namespace, stable source path identity, optional application ID, source reference and verification state. One occurrence may have multiple path rows where the source does so.
+
+Filtering is occurrence-first: select the branch, retain occurrences satisfying requested description/VIN/applicability filters, then project distinct PART identities. Reverse PART-number search can therefore return every occurrence with its complete retained tree context.
+
+JEPC language trees are not assumed to be structurally identical. Language-qualified source nodes are preserved independently and canonical PART identity is shared across them. Cross-language path equivalence is not inferred from matching labels.
+
+Source-description-to-domain mappings are a separate enrichment layer and do not alter source tree identity or raw applicability evidence.
 
 ## PART vehicle and VIN applicability
 
@@ -256,15 +300,16 @@ The implemented occurrence applicability persistence dictionary is maintained in
 | `vehicle_identifier` | `id`; `vehicle_id`; `identifier_type`; `location`; `raw_value`; `normalized_value`; `source_ref`; `verification_status`. |
 | `stock_item` | `id`; `part_number`; `quantity`; `condition`; `status`; `location`; `donor_vehicle`; `source_ref`; `notes`; `created_at`; `updated_at`; `part_id`; `donor_vehicle_id`; `source`; `verification_status`; `confidence`; `available`. Full stock model fields and controlled condition code semantics are defined in `MODEL_STOCK.md`. |
 
-### Retained range and presentation entities
+### Retained range and catalogue-tree entities
 
 `vehicle_range` is not an alias for `model_range`; no unverified conversion or collapse is performed.
 
 | Entity | Fields and purposes |
 |---|---|
 | `vehicle_range` | `id`; `range_code`; `name`; `verification_status`. |
-| `part_tree_node` | `id`; `parent_id`; `label`; `sort_order`. |
-| `part_tree_part` | Composite PK `tree_node_id`, `part_id`. |
+| `part_tree_node` | `id`; `parent_id`; `label`; `sort_order`; source-qualified fields `source_namespace`, `source_model_id`, `source_category_id`, `source_item_id`, `source_language`, `source_node_id`, `parent_source_node_id`, `source_description`, `source_order`, `source_ref`, `verification_status`. Legacy browse rows may leave source-qualified fields NULL. |
+| `part_tree_part` | Composite PK `tree_node_id`, `part_id`. Broad PART membership/browse summary only; it is not exact occurrence/path identity. |
+| `part_occurrence_tree_path` | `id`; `part_occurrence_id`; `tree_node_id`; `source_namespace`; `source_path_id`; optional `application_id`; `source_ref`; `verification_status`. Exact occurrence/path evidence; multiple rows per occurrence are valid when source paths differ. |
 | `part_diagram` | `id`; `part_id`; `title`; `image_url`; `availability_status`; `source_ref`; `verification_status`. |
 
 ## Cardinalities, identity and deletion
@@ -282,7 +327,8 @@ The implemented occurrence applicability persistence dictionary is maintained in
 | Occurrence → vehicle location | 1:N required occurrence; optional model range. Deleting occurrence or a referenced model removes the mapping. |
 | PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 PART and 0..1 donor. Deleting either parent SET NULL preserves stock identity, quantity, historical number, donor text and location. Supersession never mutates stock. |
 | Vehicle → identifiers | 1:N; cascade on vehicle deletion. Identifier text is not unique. |
-| Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. N:M PART membership. |
+| Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. Current N:M PART membership remains a broad browse summary. |
+| Tree ↔ occurrence/path | `part_occurrence_tree_path` is N:M where necessary: one occurrence may retain multiple source paths; deleting occurrence or tree node cascades only the link rows. |
 | PART → part diagram | 1:N; cascade on PART deletion. |
 
 The normalized PART number has a partial unique index for non-NULL values; multiple NULL identities and duplicate descriptions are valid.
@@ -310,7 +356,7 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `part_vehicle_location` | `idx_part_vehicle_location_identity`; `idx_part_vehicle_location_model`; `idx_part_vehicle_location_state`. |
 | `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`. |
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
-| `part_tree_node`, `part_tree_part` | `idx_part_tree_parent`; `idx_part_tree_part_part`. |
+| `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
 | occurrence applicability | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
 
@@ -336,7 +382,7 @@ SQLite execution is not remote D1 deployment evidence.
 
 Synthetic fixtures demonstrate occurrences, unidentified images, model/VIN links, positive/excluded/unavailable fitment, mapped/unmapped hotspots, verified/unavailable locations, `MNA7691AA → XR847031`, a longer synthetic supersession chain, many-to-one replacement, multiple stock records, donor identity and unresolved stock.
 
-Occurrence-applicability fixtures additionally exercise grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, active snapshot replacement/rollback and retained history. These are evidence-storage tests; they do not claim a complete fitment evaluator or production JEPC import.
+Occurrence-applicability fixtures additionally exercise grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, active snapshot replacement/rollback and retained history. Catalogue-tree fixtures additionally exercise source-qualified node identity, ordered parentage, multiple occurrence paths, language-specific structural divergence and idempotent source identities. These are persistence/evidence tests; they do not claim a complete fitment evaluator or production JEPC import.
 
 Provenance is explicitly fixture evidence. Never present synthetic vehicle zones or VINs as verified domain facts.
 
@@ -350,6 +396,7 @@ The `0016` persistence extension resolves storage of occurrence/context pairing,
 
 | Decision / gap | Current representation |
 |---|---|
+| Catalogue tree / occurrence linkage | `0017_part_tree_occurrence.sql` provides source-qualified node identity plus exact `part_occurrence_tree_path` linkage. `part_tree_part` remains only a broad browse summary. Flattened descriptions are not identity and cross-language path equivalence is not inferred. |
 | Dedicated model/variant and occurrence-scoped range links | Legacy PART-level links remain; `0016` adds source-qualified occurrence applicability through model context and grouped predicates without claiming a complete global model/variant ontology. |
 | VIN ordering, inclusion, decoding and derived provenance | Source TEXT fields only, no ordered-boundary CHECK or decoder, no confidence/derivation column. KOVuosi is not an inference source. |
 | Confidence and verification vocabularies | Uncontrolled text, with REAL affinity only on stock confidence. |

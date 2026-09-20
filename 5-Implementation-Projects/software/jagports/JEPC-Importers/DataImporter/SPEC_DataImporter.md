@@ -52,6 +52,37 @@ Observed interpretation to validate across multiple datasets:
 The importer must preserve source scope because related files exist at different levels, including model/category/language and model/category/item/language scopes.
 
 
+## Catalogue occurrence-tree persistence target
+
+Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
+
+The importer must not reduce source tree structure to only a flattened description path.
+
+For each source-qualified imported tree node, persist as applicable:
+
+- source namespace;
+- JEPC model/category/item scope;
+- source language;
+- stable source node identity;
+- parent source node identity;
+- source description;
+- source order;
+- source reference/provenance.
+
+Human-readable description text is not node identity.
+
+`part_tree_part` may be populated as a broad browse/navigation summary, but it is not the authoritative occurrence identity.
+
+For each PART occurrence supplied by a JEPC source path, persist an exact `part_occurrence_tree_path` relationship containing the occurrence, source tree node/path identity, source namespace, source path ID, application ID where available, and provenance.
+
+The importer must preserve multiple path rows for the same occurrence/application when JEPC contains them.
+
+Language-specific trees must be imported independently when their source structure differs. Matching labels across languages do not establish node/path equivalence. Canonical PART identity remains shared across language-specific occurrences.
+
+Importer reruns must use the source-qualified node/path identities so identical source evidence is idempotent rather than duplicated.
+
+
+
 ## Kits, nested kit contents and NSS callouts
 
 JEPC catalogue structure can describe a sellable PART as a kit or assembly while the illustration exposes constituent components separately.
@@ -553,3 +584,11 @@ The importer v0.1/MVP should demonstrate that:
 - PR #621 — JEPC source Region/breadcrumb semantics used by configurable importer source selection.
 
 This specification does not authorize a parallel Parts Data Model. Importer-discovered normalized-schema changes must be reconciled with the approved model and project workflow before becoming production schema. Staging/discovery extensions may be used to preserve and accelerate analysis of source structures without silently redefining normalized VIEPS domain semantics.
+
+## Fixture-to-imported catalogue transition
+
+Fixture or manually entered catalogue-context evidence may be used by VIEPS before the corresponding JEPC data has been imported.
+
+When authoritative imported JEPC evidence becomes available for the same catalogue context, the importer/publication flow must allow that imported evidence to replace or validate the temporary fixture/manual catalogue-side evidence without changing canonical PART identity or operational STOCK records.
+
+Temporary fixture/manual evidence must remain distinguishable from imported Jaguar/JEPC evidence and must never be presented as independently verified source data.
