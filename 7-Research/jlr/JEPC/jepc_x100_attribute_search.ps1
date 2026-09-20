@@ -245,6 +245,55 @@ function Get-ModelAttributeFiles {
     return $script:AttributeFileCache[$key]
 }
 
+
+function Format-MatchFiles {
+    param([string]$MatchFiles)
+
+    if ([string]::IsNullOrWhiteSpace($MatchFiles)) { return "" }
+
+    $items = @($MatchFiles -split '\\s+\\|\\s+' | Where-Object { $_ })
+    $itemGroups = @{}
+    $topCategories = New-Object System.Collections.Generic.List[string]
+    $other = New-Object System.Collections.Generic.List[string]
+
+    foreach ($name in $items) {
+        if ($name -match '^Itm_M\\d+_C(\\d+)_I(\\d+)_attributes\\.xml$') {
+            $cat = "C" + $Matches[1]
+            $item = "I" + $Matches[2]
+            if (-not $itemGroups.ContainsKey($cat)) {
+                $itemGroups[$cat] = New-Object System.Collections.Generic.List[string]
+            }
+            if (-not $itemGroups[$cat].Contains($item)) { $itemGroups[$cat].Add($item) }
+            continue
+        }
+
+        if ($name -match '^tl_M\\d+_C(\\d+)_attributes\\.xml$') {
+            $cat = "C" + $Matches[1]
+            if (-not $topCategories.Contains($cat)) { $topCategories.Add($cat) }
+            continue
+        }
+
+        $other.Add($name)
+    }
+
+    $parts = New-Object System.Collections.Generic.List[string]
+
+    foreach ($cat in @($itemGroups.Keys | Sort-Object)) {
+        $sortedItems = @($itemGroups[$cat] | Sort-Object { [int]($_ -replace '^I','') })
+        $parts.Add($cat + ":" + ($sortedItems -join ","))
+    }
+
+    if ($topCategories.Count -gt 0) {
+        $parts.Add("TL:" + (@($topCategories | Sort-Object) -join ","))
+    }
+
+    foreach ($name in @($other | Sort-Object -Unique)) {
+        $parts.Add($name)
+    }
+
+    return ($parts -join "; ")
+}
+
 function Find-AttributeEvidenceInModel {
     param([int]$M, [string]$Group, [string]$Value)
 
@@ -257,6 +306,7 @@ function Find-AttributeEvidenceInModel {
     if ($files.Count -eq 0) {
         $result = [pscustomobject]@{
             Label=""; Status="UNRESOLVED"; Source="MODEL_SOURCE_SEARCH"; HitCount=0; ExactJoinCount=0
+            CandidateLabels=""
             MatchFiles=""
         }
         $script:AttributeDiscoveryCache[$cacheKey] = $result
@@ -362,6 +412,7 @@ function Find-AttributeEvidenceInModel {
         Source="MODEL_SOURCE_SEARCH"
         HitCount=$hits.Count
         ExactJoinCount=@($evidence | Where-Object { $_.JoinStatus -eq "EXACT_SOURCE_JOIN" }).Count
+        CandidateLabels=($exactLabels -join " | ")
         MatchFiles=(@($matchedFiles | Sort-Object -Unique) -join " | ")
     }
 
@@ -587,6 +638,7 @@ foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) 
     $label = ""
     $status = "UNRESOLVED"
     $resolutionSource = "LOCAL_CATEGORY"
+    $candidateLabels = @($localLabels)
     $discoveryHits = 0
     $discoveryExactJoins = 0
     $matchFiles = @($g.Group | Select-Object -ExpandProperty SourceFile -Unique | Where-Object { $_ } | Sort-Object)
@@ -605,6 +657,9 @@ foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) 
         $discoveryHits = $discovered.HitCount
         $discoveryExactJoins = $discovered.ExactJoinCount
         $resolutionSource = $discovered.Source
+        if ($discovered.CandidateLabels) {
+            $candidateLabels = @($discovered.CandidateLabels -split '\\s+\\|\\s+')
+        }
         if ($discovered.MatchFiles) {
             $matchFiles = @(
                 $matchFiles
@@ -636,6 +691,7 @@ foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) 
         EvidenceCount=$g.Count
         DiscoveryHits=$discoveryHits
         DiscoveryExactJoins=$discoveryExactJoins
+        CandidateLabels=(@($candidateLabels | Where-Object { $_ } | Sort-Object -Unique) -join " | ")
         MatchFiles=($matchFiles -join " | ")
     })
 }
@@ -677,10 +733,15 @@ if ($filters.Count -gt 0) {
         $labelText = ""
         if ($filter.Label) { $labelText = " -> $($filter.Label)" }
 
-        $filesText = ""
-        if ($filter.MatchFiles) { $filesText = " {" + $filter.MatchFiles + "}" }
+        Write-Host ("  " + $filter.Group + "=" + $filter.Value + " " + $filter.Effect + $labelText + " [" + $filter.ResolutionStatus + "]")
 
-        Write-Host ("  " + $filter.Group + "=" + $filter.Value + " " + $filter.Effect + $labelText + " [" + $filter.ResolutionStatus + "]" + $filesText)
+        if ($filter.ResolutionStatus -eq "AMBIGUOUS" -and $filter.CandidateLabels) {
+            Write-Host ("    candidates: " + $filter.CandidateLabels)
+        }
+
+        if ($filter.MatchFiles) {
+            Write-Host ("    sources: " + (Format-MatchFiles $filter.MatchFiles))
+        }
     }
 }
 
