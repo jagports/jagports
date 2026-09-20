@@ -1,3 +1,8 @@
+# Legacy research scanner boundary:
+# - preserves raw applicability tuples and source tree context;
+# - MUST NOT infer A-code meanings from tuple/tree positional order;
+# - human-readable source descriptions are imported from the tree independently;
+# - use jepc_x100_search.ps1 for occurrence-first path inspection.
 [CmdletBinding(PositionalBinding=$false)]
 param(
     [string]$Root = "C:\Program Files\JEPC\applications\JEPC",
@@ -363,19 +368,11 @@ function Find-AttributeEvidenceInModel {
                 @(Parse-VinLabel ([string]$_.Label)).Count -eq 0
             } | ForEach-Object { [string]$_.Label })
 
-            $aTuples = @($tuples | Where-Object { $_.Group.StartsWith("A") })
+            # Preserve the exact application/path context only.
+            # Do NOT map A-tuples to tree descriptions by positional order:
+            # tuple order and visible ancestor order are not a deterministic semantic join.
             $candidate = ""
             $joinStatus = "EXACT_PATH_CONTEXT"
-
-            if ($aTuples.Count -eq $labels.Count -and $aTuples.Count -gt 0) {
-                for ($p = 0; $p -lt $aTuples.Count; $p++) {
-                    if ($aTuples[$p].Group -eq $Group -and $aTuples[$p].Value -eq $Value) {
-                        $candidate = $labels[$p]
-                        $joinStatus = "EXACT_SOURCE_JOIN"
-                        break
-                    }
-                }
-            }
 
             $evidence.Add([pscustomobject]@{
                 Model="M$dm"
@@ -594,22 +591,10 @@ foreach ($m in $modelIds) {
                         ApplicationId=$applicationId; RuleIndex=$tuple.RuleIndex; SourceFile=$rule.SourceFile
                     })
 
-                    $nonVinLabels = @($pathLabels | Where-Object {
-                        @(Parse-VinLabel $_).Count -eq 0
-                    })
-
+                    # Preserve the source path as context only.
+                    # No positional A-tuple -> tree-description mapping is permitted.
                     $candidate = ""
                     $status = "CONTEXT_ONLY"
-
-                    if ($tuple.Scope -eq "APPLICATION" -and $aTuples.Count -eq $nonVinLabels.Count -and $aTuples.Count -gt 0) {
-                        for ($p = 0; $p -lt $aTuples.Count; $p++) {
-                            if ($aTuples[$p].TupleIndex -eq $tuple.TupleIndex) {
-                                $candidate = $nonVinLabels[$p]
-                                $status = "EXACT_SOURCE_JOIN"
-                                break
-                            }
-                        }
-                    }
 
                     $localDecodeEvidence.Add([pscustomobject]@{
                         Model="M$tm"; Category="C$tc"; Group=$tuple.Group; Value=$tuple.Value
