@@ -104,10 +104,22 @@ When multiple execution queues share one Project, use a Project single-select `W
 - `AI OS`
 - `VIEPS`
 
+The current Project #9 view numbers are canonical operational navigation targets:
+
+- **View 1** — all Issues and Pull Requests: `https://github.com/orgs/jagports/projects/9/views/1`.
+- **View 2** — AI OS: `https://github.com/orgs/jagports/projects/9/views/2`.
+- **View 3** — VIEPS: `https://github.com/orgs/jagports/projects/9/views/3`.
+
+When a Pull Request Workstream is unresolved, use View 1 filtered by the PR number so the human lands on the relevant Project Item without relying on GitHub's unsupported Pull Request side panel:
+
+```text
+https://github.com/orgs/jagports/projects/9/views/1?filterQuery=<PR-number>
+```
+
 The P1 Open Kanban definition requires two normal operational Project views:
 
-- `AI OS` — filter `Workstream = AI OS`; sort `Rank` ascending where the view represents ranked execution order.
-- `VIEPS` — filter `Workstream = VIEPS`; sort `Rank` ascending where the view represents ranked execution order.
+- `AI OS` — View 2; filter `Workstream = AI OS`; sort `Rank` ascending where the view represents ranked execution order.
+- `VIEPS` — View 3; filter `Workstream = VIEPS`; sort `Rank` ascending where the view represents ranked execution order.
 
 No third `Intake` Workstream or normal operational `Intake` view is part of this model. Unknown Workstream classification must be resolved through the approved work-control process rather than represented by inventing another queue.
 
@@ -249,7 +261,7 @@ The required verification pattern is:
 
 An API mutation response alone is not sufficient evidence.
 
-Current repository automation handles Issue opened/reopened → `BACKLOG` and closed → `DONE` where the configured Project token is available. A separate PR-linked workflow may move an Issue to `IMPLEMENTATION` when an **open Pull Request explicitly has a closing relationship to that Issue**. The closing relationship, not branch existence or a plain Issue mention, is the deterministic implementation-start signal.
+Current repository automation handles Issue opened → `BACKLOG`, reopened → `RESEARCH`, and closed → `DONE` where the configured Project token is available. A separate PR-linked workflow may move an Issue to `IMPLEMENTATION` when an **open Pull Request explicitly has a closing relationship to that Issue**. The closing relationship, not branch existence or a plain Issue mention, is the deterministic implementation-start signal.
 
 The approved work-control workflow may also move Project Status when an authorized standalone sync command explicitly supplies `Status:`. This is the supported path when an approved executor starts work without a closing-linked PR yet.
 
