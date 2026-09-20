@@ -95,3 +95,19 @@ Those details belong to #676 and are applied on top of this base resource set.
 ```
 
 The live Weblate deployment may be prepared independently, but its repository component must ultimately consume the canonical resource contract established by #554/#676 rather than inventing a parallel resource layout.
+
+
+## JEPC catalogue-language structure
+
+Multilingual JEPC catalogue data is source data, not VIEPS UI translation-resource identity.
+
+Do not assume that every JEPC language uses one identical catalogue/tree structure with only translated description strings. Some source models/languages may differ structurally.
+
+The JEPC importer must therefore preserve language-qualified source tree nodes, parentage, ordering, descriptions and occurrence paths where the source differs. Canonical PART identity remains shared where source identity proves it is the same PART.
+
+Cross-language source-node or occurrence equivalence is derived data and must be established deterministically. Equal text, equal position or a shared part number alone must not force two source tree nodes to become one identity.
+
+VIEPS UI locale and JEPC catalogue-data language remain separate concerns:
+- UI strings come from the VIEPS i18n resource contract;
+- JEPC descriptions come from imported source-language catalogue trees;
+- semantic filter mappings may be layered over imported descriptions without rewriting either source tree identity or UI translation identity.

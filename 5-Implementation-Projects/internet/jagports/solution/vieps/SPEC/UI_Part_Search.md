@@ -90,13 +90,32 @@ A canonical PART may occur in multiple EPC contexts:
 ```text
 PART
   └── OCCURRENCE / CONTEXT
+        ├── complete catalogue/tree path
+        ├── source language/tree scope
         ├── vehicle/model context
-        ├── Parts Tree path
         ├── diagram/item context
         └── applicability/qualifiers
 ```
 
-Multiple occurrences remain distinguishable and do not duplicate canonical PART identity.
+A part-number search returns all matching occurrences and their complete source paths. Multiple occurrences remain distinguishable and do not duplicate canonical PART identity.
+
+## Occurrence-first tree filtering
+
+Catalogue browsing and source-description filters operate on occurrences first:
+
+```text
+selected Parts Tree branch
+    -> all source occurrences below the branch
+    -> optional description / VIN / applicability filters
+    -> surviving occurrences
+    -> distinct visible PARTs
+```
+
+A PART remains visible while at least one occurrence survives. The UI must not merge all occurrence paths into one synthetic applicability path.
+
+Imported JEPC descriptions may be presented as filter candidates. Normalized semantic facets derived from those descriptions are a separate enrichment layer; the UI/API must not treat the facet label as the source-tree identity.
+
+Language-specific JEPC tree structure may differ. Catalogue-data language selection therefore chooses among imported source-language tree contexts rather than assuming that UI translation resources translate one fixed source tree.
 
 ## Result states
 | State | Meaning |
@@ -139,9 +158,9 @@ PartSearchRequest
 PartSearchResult
   state
   canonical_part? / approved non-numbered identity?
-  occurrences[]
+  occurrences[]                  # all matching source occurrences
   selected_occurrence/context
-  tree context
+  tree context                    # complete source path, language-qualified where relevant
   diagram/item context when available
   fitment/suitability context when available
   stock presentation when authorized/available
@@ -185,6 +204,9 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 ## Acceptance criteria
 - [x] Search/result states and canonical identity boundaries are documented.
 - [x] Multiple EPC occurrences remain distinct from canonical PART identity.
+- [x] Part-number search can return every occurrence with its complete source tree path.
+- [x] Catalogue/filter narrowing is occurrence-first; a PART remains while any occurrence survives.
+- [x] Catalogue-data language may select structurally different imported source trees without conflating them with UI i18n.
 - [x] Non-numbered fixture identifiers are not presented as Jaguar part numbers.
 - [x] Search/Availability placement follows merged Concept-11.
 - [x] Result distribution follows the corrected Model Ranges / Location / Suitability / PART geometry.

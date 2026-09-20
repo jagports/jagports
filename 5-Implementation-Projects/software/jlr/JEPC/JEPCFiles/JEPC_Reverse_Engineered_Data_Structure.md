@@ -124,23 +124,13 @@ Meaning:
     attribute group/value rules
     chassis rules
 
-## Attribute Dictionary
+## Attribute / description interpretation
 
-Rules contain codes only.
+Applicability rules contain raw codes and flags. Do not assume that language-menu rows form a complete attribute-code dictionary.
 
-Definitions are in language menu XML files:
+The item tree already carries the human-readable descriptions JEPC displays for many applicability decisions and breakpoints. A PART leaf's application ID links that readable occurrence path to the corresponding raw applicability sidecar.
 
-    menus/L-*/pl_id_*/_l_id_*.xml
-
-Example:
-
-    [3470,3204,'SPEED CONTROL ACTUATOR-6.0 LITRE',1]
-
-Meaning:
-
-    value = 3470
-    text_id = 3204
-    description = SPEED CONTROL ACTUATOR-6.0 LITRE
+Code-to-description mappings, when needed, must be established deterministically from exact source joins and must retain their raw code/value provenance. Tuple order must not be used as a semantic mapping rule.
 
 ## Media
 
@@ -156,16 +146,17 @@ EPC illustrations:
 
 Images should be stored once and referenced.
 
-## VIEPS Target Schema
+## VIEPS Target Concepts
 
-    model
-    category
-    epc_node
-    part
-    applicability_rule
-    attribute_value
-    translation
-    media_asset
+    model / catalogue hierarchy
+    source-qualified tree node
+    canonical part
+    part occurrence
+    occurrence-to-tree path
+    applicability rule / raw predicate
+    optional semantic mapping
+    language-qualified source tree
+    media asset
 
 Import:
 
@@ -173,10 +164,10 @@ Import:
         -> category
 
     tl_*_L0.xml
-        -> translations
+        -> top-level item descriptions
 
     Itm_*_L0.xml
-        -> nodes and parts
+        -> ordered description/breakpoint nodes and PART occurrence leaves
 
     *_attributes.xml
         -> applicability rules
@@ -199,3 +190,23 @@ JEPC already contains the required information:
 
 VIEPS should normalize this data and add direct VIN and part search
 while preserving the original EPC tree context.
+
+
+## Occurrence-first interpretation
+
+The useful source object is a PART occurrence in a complete catalogue/tree context:
+
+```text
+catalogue/category ancestry
+    -> top-level item description
+    -> ordered item-tree descriptions
+    -> PART occurrence
+         + applicationId
+         + raw applicability rules/predicates
+```
+
+The same canonical PART can have many occurrences. Catalogue filtering operates on occurrences first and then projects distinct PARTs. Reverse PART-number search returns every occurrence and its complete source path.
+
+A flattened description path is for presentation and diagnostics only; it is not canonical node or occurrence identity.
+
+Multilingual JEPC data may contain structurally different trees. Preserve language-qualified source tree structure independently where it differs rather than forcing all languages into one shared node graph.

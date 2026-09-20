@@ -172,6 +172,14 @@ A canonical PART may have multiple EPC occurrences without duplicating canonical
 - Availability is operational stock state and does not alter catalogue identity or fitment semantics.
 - If stock-quality filtering is unsupported, the control remains disabled/unavailable rather than simulated.
 
+### Occurrence-first Parts Tree filtering
+
+Imported catalogue browsing is occurrence-first. A Parts Tree branch represents source occurrence contexts; filters narrow those occurrences, then the UI shows the distinct PARTs that still have at least one surviving occurrence.
+
+Part-number reverse search may expose every occurrence/path for the canonical PART. Do not merge those paths into one synthetic applicability path.
+
+JEPC catalogue-data language is distinct from VIEPS UI locale. If imported language trees differ structurally, the Parts Tree presents the selected source-language structure rather than assuming one fixed tree with translated labels.
+
 ## 2. Parts Tree
 
 - Parts Tree is a scrolling persistent left-side region.
