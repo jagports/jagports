@@ -3,6 +3,8 @@
   const t = (key) => i18n?.t(key) ?? key;
   let token = "";
   let rows = [];
+  let statusTranslationKey = null;
+  let statusIsError = false;
 
   const byId = (id) => document.getElementById(id);
   const headers = () => ({ "content-type": "application/json", "x-admin-token": token });
@@ -22,15 +24,26 @@
     return data;
   }
 
-  function localizedError(error) {
+  function localizedErrorKey(error) {
     const key = `stock_admin.error_${error?.code || "request_failed"}`;
-    const localized = t(key);
-    return localized === key ? t("stock_admin.error_request_failed") : localized;
+    return t(key) === key ? "stock_admin.error_request_failed" : key;
   }
 
-  function setStatus(message, error = false) {
+  function setStatus(message, error = false, translationKey = null) {
     byId("status").textContent = message;
     byId("status").classList.toggle("error", error);
+    statusTranslationKey = translationKey;
+    statusIsError = error;
+  }
+
+  function setLocalizedStatus(key, error = false) {
+    setStatus(t(key), error, key);
+  }
+
+  function refreshForLanguageChange() {
+    i18n?.applyDocument();
+    render();
+    if (statusTranslationKey) setLocalizedStatus(statusTranslationKey, statusIsError);
   }
 
   function option(value, label) {
@@ -72,7 +85,7 @@
         byId("partId").value = part.id;
         byId("partNumber").value = number;
         target.replaceChildren();
-        setStatus(t("stock_admin.part_selected"));
+        setLocalizedStatus("stock_admin.part_selected");
       });
       target.append(button);
     }
@@ -163,22 +176,30 @@
     byId("deleteStock").disabled = true;
   }
 
+  i18n?.init();
+  document.querySelectorAll?.("[data-language]").forEach((control) => {
+    control.addEventListener("click", () => {
+      i18n?.changeLanguage(control.dataset.language);
+      refreshForLanguageChange();
+    });
+  });
+
   byId("identityMode").addEventListener("change", (event) => {
     setIdentityMode(event.target.value);
     byId("partNumber").value = "";
   });
-  byId("partLookupButton").addEventListener("click", () => lookupParts().catch((error) => setStatus(localizedError(error), true)));
+  byId("partLookupButton").addEventListener("click", () => lookupParts().catch((error) => setLocalizedStatus(localizedErrorKey(error), true)));
 
   byId("accessForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     token = byId("adminToken").value;
-    try { await loadMeta(); await loadStock(); setStatus(t("stock_admin.connected")); }
-    catch (error) { setStatus(localizedError(error), true); }
+    try { await loadMeta(); await loadStock(); setLocalizedStatus("stock_admin.connected"); }
+    catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
 
   byId("stockSearch").addEventListener("submit", async (event) => {
     event.preventDefault();
-    try { await loadStock(); } catch (error) { setStatus(localizedError(error), true); }
+    try { await loadStock(); } catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
 
   byId("stockForm").addEventListener("submit", async (event) => {
@@ -186,11 +207,11 @@
     const id = byId("stockId").value;
     const canonical = byId("identityMode").value === "canonical";
     if (canonical && !byId("partId").value) {
-      setStatus(t("stock_admin.part_required"), true);
+      setLocalizedStatus("stock_admin.part_required", true);
       return;
     }
     if (!canonical && !byId("source").value.trim() && !byId("sourcePartyId").value) {
-      setStatus(t("stock_admin.unresolved_source_required"), true);
+      setLocalizedStatus("stock_admin.unresolved_source_required", true);
       return;
     }
     const body = {
@@ -210,17 +231,17 @@
     };
     try {
       await api(id ? `/api/stock/${id}` : "/api/stock", { method: id ? "PATCH" : "POST", body: JSON.stringify(body) });
-      setStatus(t("stock_admin.saved"));
+      setLocalizedStatus("stock_admin.saved");
       await loadStock();
-    } catch (error) { setStatus(localizedError(error), true); }
+    } catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
 
   byId("newStock").addEventListener("click", resetForm);
   byId("deleteStock").addEventListener("click", async () => {
     const id = byId("stockId").value;
     if (!id || !confirm(t("stock_admin.delete_confirm"))) return;
-    try { await api(`/api/stock/${id}`, { method: "DELETE" }); resetForm(); setStatus(t("stock_admin.deleted")); await loadStock(); }
-    catch (error) { setStatus(localizedError(error), true); }
+    try { await api(`/api/stock/${id}`, { method: "DELETE" }); resetForm(); setLocalizedStatus("stock_admin.deleted"); await loadStock(); }
+    catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
 
   setIdentityMode("canonical");
