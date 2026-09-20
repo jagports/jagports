@@ -287,7 +287,7 @@ The leaf application ID is `142207`; the corresponding sidecar record is:
 This establishes two important source rules:
 
 1. Tree ancestry and applicability sidecars must be interpreted together.
-2. `RH` and `LHD` are separate labels in the source path. `LHD` correlates with `A23=154` in this application. `RH` is present as an explicit `Itm_*_L0.xml` tree node, but its source semantics and whether it is represented elsewhere by another predicate, scope or occurrence relationship remain unresolved.
+2. `RH` and `LHD` are separate JEPC language descriptions in the source path. `LHD` correlates with `A23=154` in this application. `RH` is present as an explicit `Itm_*_L0.xml` tree node, but its source semantics and whether it is represented elsewhere by another predicate, scope or occurrence relationship remain unresolved.
 
 Do not infer that `LH/RH` is merely presentation or a physical-position dimension from the absence of an extra tuple in one sidecar row. Preserve the tree node and investigate its relationship to applicability independently from `LHD/RHD`.
 
@@ -335,25 +335,25 @@ join the same source identifier to the corresponding *_L0.xml tree
 walk that exact leaf's ancestor path
         |
         v
-collect source-visible human-readable labels
+collect source-visible human-readable descriptions
 ```
 
 Rules:
 
 - The join key must be the exact source identifier for that scope, such as the item application ID.
-- Tree labels are evidence only when they belong to the exact joined occurrence/path.
+- Tree descriptions are evidence only when they belong to the exact joined occurrence/path.
 - Repetition across independent occurrences is useful validation, but repetition alone is not sufficient to invent a semantic mapping.
 - If exact joins produce different candidate meanings, retain all evidence and mark the mapping unresolved/ambiguous.
-- Do not infer group meaning from nearby labels, frequency, category membership, or absence of another predicate.
-- Preserve the original group ID, value ID, raw tuple, source scope, application ID, model/category/item identity and full path even after a label is established.
+- Do not infer group meaning from nearby descriptions, frequency, category membership, or absence of another predicate.
+- Preserve the original group ID, value ID, raw tuple, source scope, application ID, model/category/item identity and full path even after a description mapping is established.
 
 Recommended mapping fields:
 
 ```text
 source_attribute_group_id
 source_attribute_value_id
-group_label              nullable
-value_label              nullable
+group_description        nullable
+value_description        nullable
 resolution_status        exact_source_join | ambiguous | unresolved
 mapping_evidence
 mapping_version
