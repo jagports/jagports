@@ -6,7 +6,7 @@ VIN and configuration describe vehicle context. Fitment relates that context and
 
 “Catalogue role” describes the contextual item/function being fulfilled. It is not a part identity or a requirement for a new table. Establish its mapping to the approved occurrence/category/item model before implementation.
 
-Interpret the source decision logic during import/migration, then expose the resulting relationships through the approved VIEPS Parts Data Model. VIEPS must not require JEPC decision-node traversal to reach applicable parts.
+Preserve the JEPC catalogue/decision tree as source occurrence and browse context, then expose applicability through the approved VIEPS Parts Data Model. VIEPS may traverse the preserved tree for catalogue browsing and occurrence display, but must not use source-tree traversal itself as the Boolean fitment evaluator; applicability remains occurrence-bound and rule/predicate-driven.
 
 A shared part retains its identity across multiple applicable contexts. Vehicle-to-part selection and part-to-applicable-context lookup may query the same relationships, without copying a vehicle list into every part record or prescribing a new UI workflow.
 
@@ -29,7 +29,7 @@ Priority:
 3. XF Range.
 4. Remaining ranges.
 
-Language coverage and final tool packaging remain separate decisions.
+Language coverage remains staged, but the importer model must already permit structurally different language-specific source trees rather than assuming one universal tree with translated strings.
 
 ### Phase 2 — Source catalogue relationships
 
@@ -39,7 +39,20 @@ Process the parent-linked model category menus, category-navigation files, numbe
 - `tl_*`: numbered top-level items with localized descriptions, not merely a translation lookup.
 - `Itm_*`: source decision structure and part/application references.
 
-Preserve category, item and application key scopes and source condition grouping while interpreting the relationships.
+Preserve category, item, application and language/source scopes, ordered source-node ancestry, source descriptions and source condition grouping. A flattened description path is presentation output only, not tree identity.
+
+### Phase 2a — Occurrence tree and reverse search
+
+The same source occurrence model must support both directions:
+
+```text
+catalogue branch -> occurrences -> optional filters -> distinct PARTs
+PART number -> all occurrences -> complete source path + application/rule evidence
+```
+
+Human-readable JEPC descriptions are imported source data and may be exposed as filter candidates. Semantic mappings from those descriptions to normalized VIEPS facets are a later enrichment layer and must not overwrite source descriptions or raw predicates.
+
+When language trees differ structurally, preserve them independently and reconcile cross-language node/path identity only when deterministic correspondence is established.
 
 ### Phase 3 — Fitment transformation
 
