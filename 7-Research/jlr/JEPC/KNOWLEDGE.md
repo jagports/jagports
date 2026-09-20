@@ -72,3 +72,79 @@ The knowledge described here defines the domain requirement. It does not prescri
 ## Generalization rule
 
 Individual part numbers, individual test cases, temporary research identifiers, and task-specific evidence belong in the relevant research or task record unless they establish a reusable domain rule. This document should remain stable as generalized JEPC/source knowledge while concrete supersession findings accumulate in their appropriate evidence records.
+
+
+## Catalogue tree, occurrences, and applicability
+
+JEPC catalogue data must be treated as an occurrence tree, not as a flat PART list and not as a code dictionary that must be decoded before useful catalogue import can begin.
+
+The source-visible path is assembled from linked JEPC scopes:
+
+```text
+model / catalogue ancestry
+    -> category ancestry
+    -> numbered top-level item description
+    -> item-tree descriptions
+    -> PART leaf
+```
+
+In the observed item-tree format, rows whose part/category-entry fields are zero are rendered by the original JEPC code as an **attribute or breakpoint** using the row description. A PART leaf carries its source application identifier. The corresponding applicability sidecar record is joined by that exact source identifier.
+
+The importer therefore preserves both sides of the source:
+
+```text
+human-readable occurrence path
+    +
+application identifier
+    +
+raw applicability rules / predicates
+    +
+source-file and row/path evidence
+```
+
+The visible descriptions already provide the catalogue's human-readable browse and filter vocabulary. Raw `A...`, `C...`, and other applicability tuples remain mandatory provenance and machine-evaluation evidence; they are not discarded merely because the same occurrence has readable tree descriptions.
+
+Do not derive description meaning from tuple order or from positional alignment between applicability tuples and tree ancestors. Raw tuple ordering is not a reliable semantic mapping. If a code-to-description mapping is needed, establish it only from deterministic source evidence and retain the underlying raw code/value and provenance.
+
+### Occurrence identity and queries
+
+A canonical PART may occur in many catalogue paths. Filtering and browsing operate on occurrences first; PART numbers are projected from the surviving occurrence set.
+
+```text
+browse branch
+    -> all occurrences below the branch
+    -> optional description / VIN / applicability filtering
+    -> surviving occurrences
+    -> distinct PART numbers
+```
+
+The reverse query is equally important:
+
+```text
+PART-number search
+    -> all matching source occurrences
+    -> complete catalogue/tree path for each occurrence
+    -> application ID and raw applicability evidence
+```
+
+A PART number must not be reduced to one combined path or one combined applicability record merely because several occurrences share the same canonical PART.
+
+### Source tree versus semantic enrichment
+
+Source descriptions are imported verbatim as source data. VIEPS may later maintain a separate semantic mapping layer, for example mapping a source description into one or more normalized filter facets. Such mappings are enrichment, not JEPC source facts, and may be context-sensitive.
+
+The source tree remains independently recoverable even after enrichment. Re-mapping semantic facets must not require re-importing or rewriting the original JEPC occurrence path.
+
+### Full-path strings are presentation output
+
+A flattened string such as `A > B > C > PART` is useful for diagnostics, exports and human validation. It is not the canonical structural identity of the imported tree.
+
+Canonical import must retain source node identity, parent/child structure, ordering, source scope and occurrence linkage. Do not identify nodes or occurrences solely by concatenated description text.
+
+### Multilingual source trees
+
+Do not assume that all JEPC languages share one identical tree with only translated strings. Some models/languages may have structurally different trees.
+
+Preserve each source-language tree losslessly, including its node identity, parentage, order and descriptions. Share canonical PART identity and other source identifiers only where they are demonstrably common. Cross-language tree-node or occurrence equivalence is an optional derived relationship and must be created only when deterministic correspondence is established.
+
+This rule prevents i18n import from multiplying canonical PART identities while also preventing structurally different source trees from being falsely collapsed.
