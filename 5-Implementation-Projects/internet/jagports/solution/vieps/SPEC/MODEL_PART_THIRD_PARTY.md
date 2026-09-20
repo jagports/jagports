@@ -253,27 +253,49 @@ Expected results:
 - no duplicate canonical PART is created merely because vendor, manufacturer, description or URL differs;
 - STOCK identity remains operational and separate from the vendor/xref evidence.
 
-### Fixture B — non-1:1 Jagports specified PART
+### Fixture B — non-1:1 Jagports specified PARTs
+
+Use two vendor-product fixtures against the same Jaguar parent so numbering, vendor separation and canonical PART creation are deterministic.
+
+Common Jaguar context:
 
 - existing Jaguar parent PART: `MJD7843AA-Fixture`;
-- vendor: a nonblank vendor fixture identity;
-- vendor PN: a nonblank vendor-PN fixture value;
-- manufacturer: a separate nonblank manufacturer fixture value;
-- description: a nonblank vendor-product description;
-- new canonical Jagports specified PART: `MJD7843AA-Fixture+<3rdPartyPN>`;
-- `source_origin = AddedManually`;
-- `third_party_part.part_id` points to the new Jagports specified PART;
-- exactly one `parent_part` xref points to `MJD7843AA-Fixture` and retains the selected category/item/occurrence context plus the exact `part_occurrence_tree_path` when such imported path evidence is available;
+- each vendor product has exactly one `parent_part` xref to `MJD7843AA-Fixture`;
+- each parent xref retains the selected category/item/occurrence context plus the exact `part_occurrence_tree_path` when such imported path evidence is available;
 - separately evidenced `component_of` references may include `JLM20079-Fixture`, `JLM21466-Fixture`, `JLM20078-Fixture`, and `JLM21465-Fixture`;
-- the reference image/source may retain `https://parts.jaguarlandroverclassic.com/jlm20079-brake-caliper.html` as evidence for the NSS + item-7 context;
-- operational STOCK points to the Jagports specified PART, not to `MJD7843AA-Fixture` or any `component_of` reference.
+- the reference image/source may retain `https://parts.jaguarlandroverclassic.com/jlm20079-brake-caliper.html` as evidence for the NSS + item-7 context.
+
+Fixture B1:
+
+- vendor: `Nimark-fixture`;
+- vendor PN: `D41792C-fixture`;
+- manufacturer: a separate nonblank manufacturer fixture value;
+- description: `Nimark-Korjaussarja, jarrusatula (Etuakseli)-Fixture`;
+- product URL: `https://www.nimark.fi/buy/autofrenseinsa_d41792c/`;
+- new canonical Jagports specified PART: `MJD7843AA+D41792C-fixture`;
+- `source_origin = AddedManually`;
+- `third_party_part.part_id` points to `MJD7843AA+D41792C-fixture`.
+
+Fixture B2:
+
+- vendor: `Motonet-fixture`;
+- vendor PN: `23-00843-fixture`;
+- manufacturer: a separate nonblank manufacturer fixture value;
+- description: `Motonet-Jarrusatulan korjaussarja-Fixture`;
+- product URL: `https://www.motonet.fi/tuote/jarrusatulan-korjaussarja-23-00843?product=23-00843`;
+- new canonical Jagports specified PART: `MJD7843AA+23-00843-fixture`;
+- `source_origin = AddedManually`;
+- `third_party_part.part_id` points to `MJD7843AA+23-00843-fixture`.
+
+For both B1 and B2, operational STOCK points to the corresponding Jagports specified PART, not to `MJD7843AA-Fixture` or any `component_of` reference.
 
 Expected results:
 
-- the combined identifier is visibly Jagports specified and never shown as Jaguar-issued;
+- the requested combined identifiers are visibly Jagports specified and never shown as Jaguar-issued;
+- the two vendor products remain separate even though they share the same Jaguar parent/context;
 - applicability follows the selected Jaguar parent/context;
 - deleting or changing operational STOCK does not alter the PART/xref evidence;
-- unresolved STOCK is not used once this reusable identity has been established.
+- unresolved STOCK is not used once either reusable identity has been established.
 
 Fixtures must also include invalid cases for duplicate logical xrefs, a second `parent_part` for the same non-1:1 vendor product, missing mandatory parent context, missing manufacturer, missing description, invalid relationship type, verified status without verification date, duplicate vendor PN within one vendor, and duplicate product URL rows for one vendor product.
 
