@@ -52,6 +52,72 @@ Observed interpretation to validate across multiple datasets:
 The importer must preserve source scope because related files exist at different levels, including model/category/language and model/category/item/language scopes.
 
 
+## Occurrence-first catalogue import contract
+
+The importer shall treat a JEPC PART as a canonical identity that may have multiple source occurrences. Each occurrence is bound to the exact catalogue/tree path and source applicability evidence in which the PART appears.
+
+The source occurrence path is assembled from linked scopes:
+
+```text
+model / catalogue ancestry
+    -> category ancestry
+    -> top-level item description
+    -> ordered item-tree descriptions
+    -> PART leaf
+```
+
+The importer shall preserve, at minimum:
+
+```text
+canonical PART reference
+source model/category/item/language scope
+source tree node identity and ancestry
+source ordering
+source descriptions
+applicationId
+raw applicability rules and predicates
+source-file / record provenance
+```
+
+A flattened `FullDescriptionPath` may be generated for logs, validation and exports, but must not be used as the structural identity of the tree or occurrence.
+
+The human-readable source descriptions can be used as browse/filter candidates immediately. Raw `A`, `C` and other source predicates are still preserved for provenance and later applicability evaluation. The importer must not attempt to reconstruct readable descriptions by positional alignment between predicates and tree nodes.
+
+### Query behavior enabled by the import
+
+Catalogue browsing:
+
+```text
+selected branch
+    -> all occurrences below the branch
+    -> optional description / VIN / applicability filtering
+    -> surviving occurrences
+    -> distinct PART numbers
+```
+
+PART-number search:
+
+```text
+PART number
+    -> every source occurrence
+    -> complete path for each occurrence
+    -> applicationId + raw applicability evidence
+```
+
+Filtering is occurrence-first. The canonical PART remains visible if at least one occurrence survives the selected conditions.
+
+### Semantic mapping is a later enrichment layer
+
+The importer shall not invent domain categories for source descriptions. A later controlled mapping layer may map a source description to one or more normalized facets. The original description, occurrence path and raw predicates remain independently recoverable.
+
+Mappings may be context-sensitive. A mapping change must not require a source re-import when the original occurrence/tree data is already preserved losslessly.
+
+### Multilingual source trees
+
+Language-qualified source trees must be preserved independently when JEPC structure differs between languages. Do not assume that i18n is only a translated string table over one universal tree.
+
+Canonical PART identity may be shared across languages. Source node/path identity remains language-qualified unless deterministic equivalence is proven. Cross-language node or occurrence reconciliation is derived data, not an import assumption.
+
 ## Incremental source index / processing ledger
 
 The importer shall not build or hold an in-memory array of the complete JEPC installation before processing. The source installation can contain roughly one million files and may differ between JEPC installations/packages.
