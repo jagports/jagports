@@ -176,28 +176,35 @@ Models:
 - Daimler Limousine
 - Accessories
 
-## Phase 3 — Catalogue import
+## Phase 3 — Catalogue and occurrence-tree import
 
 Priority: P0
 
 Process:
 
-```
+```text
 cat_Mxxxx_Cyyyy_L0.xml
         |
         v
-Catalogue hierarchy
+catalogue/category ancestry
 
 tl_Mxxxx_Cyyyy_L0.xml
         |
         v
-Translated descriptions
+top-level item descriptions
 
 Itm_Mxxxx_Cyyyy_Ix_L0.xml
         |
         v
-Items and part references
+ordered description/breakpoint tree
+        |
+        v
+PART occurrence leaves
 ```
+
+The importer must preserve the complete source occurrence path, source node identity/parentage/order, PART reference and application identifier. It may expose a flattened full description path for diagnostics and validation, but that string is not the canonical structural identity.
+
+The catalogue/category ancestry and item tree may be presented as one continuous VIEPS browse tree even though their source records come from different JEPC files. Preserve that source boundary in provenance.
 
 ## Phase 4 — Applicability import
 
@@ -229,9 +236,11 @@ The importer must:
 - Retain unknown attribute groups/values unchanged rather than guessing their meanings.
 - Treat `*.jepc` operation names found in JavaScript as unresolved implementation references. Do not assume they were remote, server-only, unavailable offline, or absent from the installation until the on-disk application has been fully traced.
 
-### Attribute dictionary derivation
+### Attribute dictionary derivation and semantic enrichment
 
-Attribute decoding is an importer/research operation, not a fixed five-field VIN schema and not a probabilistic classification task.
+Attribute decoding is an importer/research operation, not a fixed five-field VIN schema and not a probabilistic classification task. It is also **not a prerequisite for importing the human-readable occurrence tree**: JEPC item-tree descriptions already supply the source-visible browse/filter text.
+
+Raw applicability codes remain mandatory source evidence even when readable tree descriptions exist. Code-to-description or description-to-normalized-facet mappings are later enrichment and must not overwrite the raw source data.
 
 The VIN decode response carries numeric attribute IDs/value IDs in `TokenString`. The original JEPC `AJAX_Util.js` parses those tokens and prepends `A` to the group ID before passing them into applicability filtering:
 
@@ -309,6 +318,39 @@ Together with other exact X100 source joins, `A37=617` resolves to `Convertible`
 These mappings are model/source evidence, not global constants. The decoder must retain provenance and be able to detect a conflicting meaning in another JEPC model or dataset version.
 
 The five IDs hard-coded in `VinDecode.js` are selectors exposed by that VIN/search UI. They provide direct evidence for those individual group names, but they are not evidence of the complete JEPC attribute universe.
+
+### Occurrence-first search and filtering contract
+
+The importer must support both forward catalogue browsing and reverse PART-number search from the same occurrence records.
+
+```text
+catalogue branch
+    -> occurrences below branch
+    -> optional source-description / VIN / normalized applicability filters
+    -> surviving occurrences
+    -> distinct PART numbers
+```
+
+```text
+PART-number search
+    -> all occurrences of the PART
+    -> complete source path for each occurrence
+    -> applicationId
+    -> raw rules/predicates
+    -> source evidence
+```
+
+Filters operate on occurrences. A PART remains visible while at least one occurrence survives.
+
+Tree descriptions are imported verbatim and can be offered as filter candidates. A later semantic mapping layer may map a source description to one or more normalized facets, for example steering, trim colour or location. These mappings are independent of the JEPC source import and may be context-sensitive.
+
+VIN-like descriptions can be parsed into convenience range fields when deterministic, but the exact source description and raw `C` predicate evidence remain preserved.
+
+### Multilingual tree handling
+
+Do not assume that different JEPC languages share one identical tree. Import each source-language tree losslessly when its structure differs. Preserve language-qualified source node identity, parentage, ordering and descriptions.
+
+Canonical PART identity is shared across languages where the PART identity is the same. Cross-language node/path/occurrence equivalence is optional derived data and must be created only when deterministic correspondence is established.
 
 ### Research scanner versus production importer
 
