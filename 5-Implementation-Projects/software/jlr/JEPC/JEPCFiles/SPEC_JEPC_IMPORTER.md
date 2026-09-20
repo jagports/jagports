@@ -437,12 +437,13 @@ Source media includes:
 
 ```
 JPG
+PNG
 GIF
 SWF
-flash/xml hotspot data
+hotspot XML
 ```
 
-The current JEPC catalogue uses separate illustration and hotspot resources where available.
+JEPC media processing must use the canonical logical-illustration relationship recorded in JLR/JEPC research knowledge and must not assume that every logical illustration has every asset family.
 
 Target:
 
