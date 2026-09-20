@@ -90,6 +90,8 @@ A clean local or test database is derived from an empty target plus the complete
 
 Deterministic catalogue and STOCK fixtures are test inputs only. Synthetic fixture rows prove behavior but are not evidence that Jagports physically owns those items. Real inventory facts require separate source/operator evidence and must become persisted operational records through the approved application/database path.
 
+The repository-controlled linked workbooks under `5-Implementation-Projects/base/jagports/excel/jagports Excels/` — `jagports-parts.xlsx` and `jagports-parts-stock.xlsx` — are the current live Jagports inventory source. Their operational values are real STOCK evidence, not demo/fixture data. When used by VIEPS, preserve workbook/row provenance and normalize the legacy split quantity/location model without inventing missing fields.
+
 The D1 implementation should remain thin enough to sit behind a stock-provider boundary without moving canonical PART or JEPC logic into the provider. A future external provider can use a different persistence model while VIEPS retains the same catalogue/stock separation.
 
 ## Provenance and evidence
