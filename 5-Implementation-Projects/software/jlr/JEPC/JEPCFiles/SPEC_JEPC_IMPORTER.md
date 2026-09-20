@@ -227,7 +227,7 @@ The importer must:
 - Preserve repeated application/tree paths. Do not infer that repeated paths are duplicates or merge them into one conjunction.
 - Interpret alternative records and within-record conjunctions according to the original JEPC filtering behavior.
 - Retain unknown attribute groups/values unchanged rather than guessing their meanings.
-- Never depend on the obsolete `*.jepc` VIN-decoder/server endpoints.
+- Treat `*.jepc` operation names found in JavaScript as unresolved implementation references. Do not assume they were remote, server-only, unavailable offline, or absent from the installation until the on-disk application has been fully traced.
 
 ### Attribute dictionary derivation
 
@@ -259,7 +259,7 @@ mapping_version
 mapping_evidence
 ```
 
-The five IDs hard-coded in `VinDecode.js` are only the selectors exposed by that historical VIN/search UI. They may provide evidence for those individual group names, but they are not the complete JEPC attribute universe.
+The five IDs hard-coded in `VinDecode.js` are the selectors exposed by that VIN/search UI. They provide evidence for those individual group names, but they are not evidence of the complete JEPC attribute universe.
 
 Unknown mappings must remain available for later reconciliation and must not prevent importing the raw applicability evidence.
 
