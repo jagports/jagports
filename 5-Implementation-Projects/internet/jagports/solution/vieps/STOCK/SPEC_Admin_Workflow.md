@@ -6,7 +6,7 @@ This document defines the VIEPS Stock Admin workflow around the operational stoc
 
 The stock model authority is [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). This workflow does not redefine canonical `PART` identity or catalogue relationships.
 
-The minimum Stock Admin Add/Edit/Delete page is defined in [`../UI/UI_NEWPART.md`](../UI/UI_NEWPART.md).
+The minimum Stock Admin Add/Edit/Delete page is defined in [`../UI/UI_Specs_StockAdmin.md`](../UI/UI_Specs_StockAdmin.md).
 
 ## Scope
 
