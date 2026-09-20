@@ -6,7 +6,7 @@ Refinement and additive persistence implementation for review. This document spe
 
 Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first implementation scope is the selected XK source model `3187`. Additional models require their own mapping validation. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
 
-The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC decision nodes and navigation paths may be retained as import evidence, but VIEPS must not execute the source navigation tree to answer applicability.
+The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC catalogue/tree paths are retained as first-class occurrence/browse context and source evidence. VIEPS may browse and filter occurrences through that preserved tree, but must not treat the source navigation tree itself as the Boolean applicability evaluator; verified applicability still comes from the occurrence-bound rules, predicates and context described here.
 
 ## Required distinctions
 
@@ -29,6 +29,22 @@ In this specification, **applicability** describes the supported vehicle/configu
 | Bundle | A logical set of related source files and references needed to interpret one selected catalogue context together. | Identified by source namespace plus model/category/item/language as appropriate; not a ZIP file, a PART, or necessarily all files in one folder. |
 
 A bundle includes the relevant model/category menu ancestry, category popup and illustration reference, numbered-item list, item/application rows and available applicability sidecars. Shared parent files and referenced media can serve several bundles. Record their dependencies once and link them; report missing dependencies explicitly. The precise transaction/checkpoint boundary remains an importer contract. Referenced media may be processed separately by MediaImporter without losing the bundle relationship.
+
+### Relationship to the preserved catalogue tree
+
+Applicability assertions are bound to source occurrences, and source occurrences retain their complete catalogue/tree path.
+
+The tree serves three purposes that are distinct from predicate evaluation:
+
+1. catalogue browsing;
+2. human-readable occurrence context and filter candidates;
+3. provenance showing where a PART/application appears in JEPC.
+
+The same canonical PART may therefore have several source occurrences and several paths. Filtering removes or retains occurrences first; a PART remains visible while at least one occurrence survives.
+
+A full-path string is presentation/debug output only. The normalized model must retain structural source-node identity, ancestry/order and occurrence linkage independently of concatenated text.
+
+A later semantic enrichment layer may map source descriptions to normalized facets. Such mappings do not replace the raw tree descriptions or the raw JEPC predicates.
 
 ### Headlamp examples
 
@@ -157,6 +173,12 @@ These are logical entities for schema design, not executable DDL. Reuse existing
 
 Foreign keys and uniqueness must enforce scope ownership: a condition cannot leak into another assertion, and an assertion cannot name a different PART from its occurrence. Index occurrence, model context, serial domain/bounds and verified attribute lookup paths appropriate to both query directions. Reject references that mix domains; a free-text context label is insufficient for relational identity.
 
+### Multilingual occurrence-path rule
+
+Language is not assumed to be merely a text translation over one universal JEPC tree. Where source-language trees differ structurally, preserve those trees and their occurrence paths independently.
+
+Canonical PART identity remains language-independent when the source PART identity is the same. Source node/path identity is language-qualified unless deterministic equivalence is established. Cross-language reconciliation is derived data and must not be forced by equal descriptions or a shared application number alone.
+
 ### Stable identity and reprocessing
 
 Separate logical source identity from byte-version evidence. A checksum identifies source bytes, not a new PART or a new logical occurrence. The importer must establish a source key qualified by dataset namespace, model, category, item and application scope; qualify further where observed IDs collide. Language is evidence identity, not a new PART identity. Do not assume application IDs are globally unique or stable merely because they are numeric.
@@ -200,7 +222,7 @@ The three airbag cases and headlamp case below are observed source examples; the
 | No assertion rows, incomplete source scope or parser produced an empty set | `unavailable`; no universal fitment or blanket negative. |
 | Positive and explicit negative match the same occurrence/context | `unavailable` with conflict evidence. |
 | Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; history retained; stale active claims removed only under verified reconciliation. |
-| Two languages describe the same source application | One canonical PART and logically reconciled occurrence, with separate language evidence. |
+| Two languages describe the same source application | One canonical PART. Preserve each language-specific source path/tree independently when structure differs; reconcile a shared logical occurrence only when deterministic source identity/correspondence is established. |
 
 Before implementing production transformation, review the persistence subset below and establish the source identity mapping, approved initial comparator and attribute mappings. Importer validation must exercise the complete selected bundle (menu, top-level and application evidence), not only these isolated examples. Unknown patterns can remain quarantined while verified subsets progress.
 
