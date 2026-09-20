@@ -357,7 +357,8 @@ jobs:
 
           case "$actual_workstream" in
             "AI OS"|VIEPS)
-              notification=""
+              echo "PASS: PR #$PR_NUMBER already has verified Workstream '$actual_workstream'; no human notification is required."
+              exit 0
               ;;
             "")
               [ -n "${PRODUCT_OWNER_GITHUB:-}" ] || { echo "Repository Actions variable PRODUCT_OWNER_GITHUB is not configured."; false; }
