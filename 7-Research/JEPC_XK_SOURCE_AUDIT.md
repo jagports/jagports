@@ -54,7 +54,7 @@ For model 3187, category 11096:
 - `Itm_M3187_C11096_I1_L0.xml` contains source decision headers and part rows. Application 93491 links to part HNA9670BA under the To VIN (023699) header; application 151439 links to HJB9670AA under From VIN (023700).
 - The item applicability file contains `93491,[C,  023699,1,0]` and `151439,[C,  023700,0,0]`.
 - The top-level applicability file contains two records keyed by item 1, one for each boundary. Combining those two records into a single mandatory interval would produce an impossible range and lose the source's alternatives.
-- `flash/xml/tu6333.xml` associates hotspot regions with item numbers, including repeated item 4. Diagram-to-item is not a one-rectangle-per-item relationship.
+- The hotspot resource for illustration `tu6333` associates regions with item numbers, including repeated item 4. Diagram-to-item is not a one-rectangle-per-item relationship.
 
 This describes source evidence only. It does not prescribe decision nodes as VIEPS entities.
 
@@ -70,11 +70,11 @@ This establishes why a universal start/end pair or universal except-flag interpr
 
 The second bracket record of each L0 `cat_*` file yielded **1,051 distinct logical image identifiers**.
 
-| Targeted check | Result |
+| Targeted logical-illustration asset check | Result |
 |---|---:|
-| `flash/images/<id>.jpg` exists | 1,051 |
-| `illustrations/png/<id>.png` exists | 951 |
-| `flash/xml/<id>.xml` exists | 1,007 |
+| Small raster illustration exists | 1,051 |
+| Full-resolution raster illustration exists | 951 |
+| Hotspot resource exists | 1,007 |
 | Existing hotspot XML parsed successfully | 1,007 |
 | Hotspot XML parse failures | 0 |
 | Hotspot item regions across those files | 8,972 |
@@ -146,7 +146,7 @@ The inspected `import_to_sqlite.py` is exploratory: it reads only the first two 
 1. Read the installed model list and resolve the five XK model folders.
 2. Enumerate only those five folders for the subset counts, grouping files by language subfolder or model root; sum logical file sizes with stat.
 3. Read L0 category popup records and collect their second bracket-record values as logical image identifiers.
-4. Check the three exact same-name image/hotspot paths per identifier.
+4. Check the three known same-identifier illustration/hotspot asset families per identifier.
 5. Parse existing hotspot XML with Python ElementTree; count `hotspots/item` elements and repeated `itemno` values within each image.
 6. Trace the airbag sample and compare the relevant source filtering code and research descriptions.
 7. Keep the measured findings separate from unverified transformation and coordinate assumptions.
