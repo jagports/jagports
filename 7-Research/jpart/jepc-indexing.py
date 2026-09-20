@@ -1,175 +1,269 @@
-# ============================================================
-# class jpecFrame(MyFrame):   (main application frame)
-# ============================================================
+"""
+Reconstructed from jPart.exe (JPEC2_Main.pyc), part 2: menu / category-tree
+file-reading code. Extracted the same way as before - located by name in
+the bytecode's code-object tree, disassembled with xdis, hand-translated
+back to Python. Original source line numbers kept in comments.
 
-class jpecFrame:  # (MyFrame) - trimmed to the relevant methods
+This batch exists to check the DataImporter's 8-path list
+(DataImporter_Runtime.mjs bundlePaths()) against what jPart actually reads.
+See the notes at the bottom for the comparison result.
+"""
 
-    # ---- original source lines ~632-658 ----
-    def Create_Tables(self):
-        con = sl.connect(self.sDatabaseFilename)
-        with con:
-            con.execute("""
-                CREATE TABLE IF NOT EXISTS myCars (
-	                name	TEXT UNIQUE,
-	                year	INTEGER,
-	                modelname	TEXT,
-	                modelnumber	INTEGER NOT NULL,
-	                notes	TEXT,
-	                vin	TEXT,
-                    modifiedtime TIMESTAMP,
-                    selectedtime TIMESTAMP,
-	                PRIMARY KEY(name)
-                );
-            """)
-            con.execute("""
-                CREATE TABLE IF NOT EXISTS parts (
-                    description TEXT,
-                    partnumber  TEXT,
-                    model       TEXT,
-                    category    TEXT 
-                );
-            """)
-        con.close
+class jpecFrame:  # (MyFrame) - continued, menu/category-related methods
 
-    # ---- original source lines ~1129-1193 ----
-    def CreateFlatPartList(self, iModel):
-        sModel = str(iModel)
+    # ---- original source lines ~209-232 ----
+    def ReadOptions(self):
+        if os.path.exists(self.sOptionsFilename):
+            data = ET.parse(self.sOptionsFilename)
+            root = data.getroot()
+            header = root.find('header')
 
-        # EPC "drilldown" folder for this model, level 0
-        sDir = self.EPC_Root_Folder + "drilldown/pl_id_" + sModel + "/L0"
-        directory = os.fsencode(sDir)
+            tlmf = header.find('TopLevelMenuFile')
+            self.sTopMenuFile = tlmf.text
 
-        myListOfRealParts = []
+            jdf = header.find('JEPCDataFolder')
+            self.EPC_Root_Folder = jdf.text
 
-        # Walk every "table-of-contents" XML file for this model
-        # (filenames look like tl_M<model>_C<category>_L0.xml)
-        for file in os.listdir(directory):
-            filename = os.fsdecode(file)
+            lsl = header.find('LastShoppingList')
+            if lsl != None:
+                self.lastShoppingList = lsl.text
+        else:
+            # Fallback defaults if no options.xml exists yet
+            sDefaultTopLevelMenu = "C:/JEPC/applications/JEPC/menus/L0/models_l_id_0.xml"
+            sDefaultJEPCRoot = "C:/JEPC/applications/JEPC/"
+            if os.path.exists(sDefaultTopLevelMenu):
+                self.sTopMenuFile = sDefaultTopLevelMenu
+                self.EPC_Root_Folder = sDefaultJEPCRoot
+            self.save_Options()
 
-            if not filename.endswith(".xml"):
-                continue
-            if not filename.startswith("tl_M"):
-                continue
+    # ---- original source lines ~760-822+ (model menu -> Models dropdown) ----
+    def create_ModelSelectionMenu(self):
+        self.listOfModelLists = []
 
-            # Derive the part-category code from the filename
-            sPartCategory = filename.replace("tl_M" + sModel + "_C", "")
-            sPartCategory = sPartCategory.replace("_L0.xml", "")
+        # self.sTopMenuFile comes from options.xml (TopLevelMenuFile), or
+        # defaults to ".../menus/L0/models_l_id_0.xml" - it is NOT derived
+        # from model/category/language the way the other files below are.
+        target_file = codecs.open(self.sTopMenuFile, mode="r", encoding="utf-8")
+        tree = ET.parse(target_file)
+        root = tree.getroot()
 
-            # Read the XML "table of contents" for this category
-            tlfile = codecs.open(sDir + "/" + filename, mode="r", encoding="utf-8")
-            tree = ET.parse(tlfile)
-            root = tree.getroot()
-            tlfile.close
+        # Same "Data element wrapping newline-separated Python-literal rows"
+        # format as everywhere else in this app: [id, parent, 'label', ...]
+        listTemp = root.text.splitlines()
+        listTemp.pop(0)  # header line
 
-            # The XML root's text is a newline-separated list of Python-literal
-            # tuples/lists (one per part-group entry); first line is a header
-            # and is discarded.
-            listPartsTemp = root.text.splitlines()
-            listPartsTemp.pop(0)
+        for sModelRecord in listTemp:
+            self.listOfModelLists.append(ast.literal_eval(sModelRecord))
 
-            mylistOfPartLists = []
-            for sPartRecord in listPartsTemp:
-                sPartRecord = self.fixCSV(sPartRecord)
-                mylistOfPartLists.append(ast.literal_eval(sPartRecord))
+        # ... builds the "Models" menu / hierarchy from listOfModelLists
+        # (tree-building / wx.Menu wiring omitted - not part of file I/O)
 
-            # For each part-group entry, open its per-item detail XML
-            # (Itm_M<model>_C<category>_I<id>_L0.xml) if present, and flatten
-            # every real part it contains into myListOfRealParts.
-            for Part in mylistOfPartLists:
-                sPartDetailFileName = (
-                    sDir + "/" + "Itm_M" + sModel + "_C" + sPartCategory
-                    + "_I" + str(Part[0]) + "_L0.xml"
-                )
+    # ---- original source lines ~880-897 ----
+    def Populate_PartCategoryTree(self):
+        self.tree_ctrl_PartsCategories.DeleteAllItems()
+        self.listOfPartCategoryLists.clear()
 
-                if not os.path.exists(sPartDetailFileName):
-                    continue
-
-                myTempListOfRealParts = self.ConvertPartItmemFileIntoList(
-                    sPartDetailFileName, Part[0], Part[1], sModel, sPartCategory
-                )
-
-                for tmp in myTempListOfRealParts:
-                    myListOfRealParts.append(tmp)
-
-        return myListOfRealParts
-
-    # ---- original source lines ~1199-1208 ----
-    def saveRealPartsToDatabase(self, ListOfParts):
-        con = sl.connect(self.sDatabaseFilename)
-
-        sql = "INSERT INTO parts (description, partnumber, model,category) values(?, ?, ? , ?)"
-
-        with con:
-            con.executemany(sql, ListOfParts)
-        con.close
-
-    # ---- original source lines ~1212-1218 ----
-    def CountPartsInDB(self, sModel):
-        con = sl.connect(self.sDatabaseFilename)
-        cur = con.cursor()
-        cur.execute("SELECT COUNT(*) from parts where model='" + str(sModel) + "'")
-        cur_result = cur.fetchone()
-        rows = cur_result[0]
-        con.close
-        return rows
-
-    # ---- original source lines ~1222-1225 ----
-    def DeletePartsInDB(self, sModel):
-        con = sl.connect(self.sDatabaseFilename)
-        with con:
-            con.execute("DELETE from parts where model='" + str(sModel) + "'")
-        con.close
-
-
-# ============================================================
-# class ManagePartsDB_Class(jPartManageSearchDBDialog_Class):
-#   ("Manage Search Database" dialog - drives the flow above)
-# ============================================================
-
-class ManagePartsDB_Class:  # (jPartManageSearchDBDialog_Class) - trimmed
-
-    # ---- original source lines ~2026-2032 ----
-    def __init__(self, *args, **kwds):
-        jPartManageSearchDBDialog_Class.__init__(self, *args, **kwds)
-        self.Title = "Search Database Management"
-        self.partsDBFile = ""
-        self.CreatePopupMenu()
-        self.list_ctrl_Models.SetColumnWidth(1, 0)
-
-    # ---- original source lines ~2078-2083 ----
-    def GetCurrentCounts(self):
-        num_rows = self.list_ctrl_Models.GetItemCount()
-        for row in range(num_rows):
-            modelnum = self.list_ctrl_Models.GetItemText(row, 1)
-            partcount = app.frame.CountPartsInDB(modelnum)
-            self.list_ctrl_Models.SetStringItem(row, 2, str(partcount))
-
-    # ---- original source lines ~2088-2103 ----
-    def buttonclic_BuildAll(self, event):
-        MessageBox(
-            "Warning: About to rebuild search database for all models of car. "
-            "This will take a long time!"
+        sFilePartCategories = (
+            self.EPC_Root_Folder + "menus/L0/pl_id_"
+            + ascii(self.currentModelNumber) + "_l_id_0.xml"
         )
-        num_rows = self.list_ctrl_Models.GetItemCount()
-        for row in range(num_rows):
-            modelnum = self.list_ctrl_Models.GetItemText(row, 1)
 
-            mylist = app.frame.CreateFlatPartList(modelnum)
-            app.frame.DeletePartsInDB(modelnum)
-            app.frame.saveRealPartsToDatabase(mylist)
+        target_file = codecs.open(sFilePartCategories, mode="r", encoding="utf-8")
+        tree = ET.parse(target_file)
+        root = tree.getroot()
+        target_file.close
 
-            partcount = app.frame.CountPartsInDB(modelnum)
-            self.list_ctrl_Models.SetStringItem(row, 2, str(partcount))
-        event.Skip()
+        listTemp = root.text.splitlines()
+        # ... (pop header, ast.literal_eval each row, same pattern as above,
+        #      populates self.listOfPartCategoryLists / the category tree)
 
-    # ---- original source lines ~2106-2112 ----
-    def buttonClick_DeleteAll(self, event):
-        num_rows = self.list_ctrl_Models.GetItemCount()
-        for row in range(num_rows):
-            modelnum = self.list_ctrl_Models.GetItemText(row, 1)
+    # ---- original source lines ~1004-1085 ----
+    def Populate_PartsTree(self, myPartCategory):
+        sFilePartCategory = (
+            self.EPC_Root_Folder + "drilldown/pl_id_" + ascii(self.currentModelNumber)
+            + "/L0/cat_M" + ascii(self.currentModelNumber)
+            + "_C" + ascii(myPartCategory[0]) + "_L0.xml"
+        )
+        target_file = codecs.open(sFilePartCategory, mode="r", encoding="utf-8")
+        tree = ET.parse(target_file)
+        root = tree.getroot()
+        target_file.close
 
-            app.frame.DeletePartsInDB(modelnum)
+        listTemp = root.text.splitlines()
+        listTemp.pop(0)
 
-            partcount = app.frame.CountPartsInDB(modelnum)
-            self.list_ctrl_Models.SetStringItem(row, 2, str(partcount))
-        event.Skip()
+        # listTemp[1] holds the diagram image/xml basenames for this category
+        sImageFilename = listTemp[1]
+        sImageFilename = self.EPC_Root_Folder + "flash/images/" + sImageFilename.strip("[]") + ".jpg"
+        sXMLFilename = listTemp[1]
+        sXMLFilename = self.EPC_Root_Folder + "flash/xml/" + sXMLFilename.strip("[]") + ".xml"
+
+        # ... loads sImageFilename into the parts-diagram canvas (wx.Image /
+        #     FloatCanvas) - not related to the search index.
+
+        sFilePartNames = (
+            self.EPC_Root_Folder + "drilldown/pl_id_" + ascii(self.currentModelNumber)
+            + "/L0/tl_M" + ascii(self.currentModelNumber)
+            + "_C" + ascii(myPartCategory[0]) + "_L0.xml"
+        )
+        target_file = codecs.open(sFilePartNames, mode="r", encoding="utf-8")
+        tree = ET.parse(target_file)
+        root = tree.getroot()
+        target_file.close
+
+        listPartsTemp = root.text.splitlines()
+        listPartsTemp.pop(0)
+
+        self.listOfPartLists = []
+        for sPartRecord in listPartsTemp:
+            self.listOfPartLists.append(ast.literal_eval(sPartRecord))
+
+        for Part in self.listOfPartLists:
+            tempitem = self.listtree_parts.AppendItem(
+                self.PartsRoot, "[" + ascii(Part[0]) + "] " + Part[1],
+                wx.NO_IMAGE, wx.NO_IMAGE
+            )
+            self.AddPartTree(tempitem, Part, myPartCategory[0])
+
+        self.update_parts_tree_from_shopping_list()
+        self.add_hotspots_to_canvas(sXMLFilename)
+        self.currentPartCategory = ascii(myPartCategory[0])
+
+    # ---- original source lines ~933-976 ----
+    def AddPartTree(self, parenttreeitem, Part, PartCategoryNum):
+        # NOTE: lowercase "itm_M" here, vs. uppercase "Itm_M" used by
+        # CreateFlatPartList / ConvertPartItmemFileIntoList. Same file on a
+        # case-insensitive filesystem (Windows), but a real difference in
+        # the literal string constant baked into the app.
+        sFilePartFile = (
+            self.EPC_Root_Folder + "drilldown/pl_id_" + ascii(self.currentModelNumber)
+            + "/L0/itm_M" + ascii(self.currentModelNumber)
+            + "_C" + ascii(PartCategoryNum) + "_I" + ascii(Part[0]) + "_L0.xml"
+        )
+        target_file = codecs.open(sFilePartFile, mode="r", encoding="utf-8")
+        tree = ET.parse(target_file)
+        root = tree.getroot()
+        target_file.close
+
+        listTemp = root.text.splitlines()
+        listTemp.pop(0)
+
+        self.PartComponents = []
+        for sPartrecord in listTemp:
+            self.PartComponents.append(ast.literal_eval(self.fixCSV(sPartrecord)))
+
+        # ... walks self.PartComponents to build the sub-part tree under
+        #     parenttreeitem (GUI tree population, not search-index related)
+
+    # ---- original source lines ~1274-1328 ----
+    def ConvertPartItmemFileIntoList(self, sPartDetailFileName, sPartId, sBaseDescription, sModel, sCategory):
+        item_file = codecs.open(sPartDetailFileName, mode="r", encoding="utf-8")
+        tree = ET.parse(item_file)
+        root = tree.getroot()
+        item_file.close
+
+        listTemp = root.text.splitlines()
+        listTemp.pop(0)
+
+        myPartComponents = []
+        for sPartrecord in listTemp:
+            sPartrecord = self.fixCSV(sPartrecord)
+            myPartComponents.append(ast.literal_eval(sPartrecord))
+
+        # Roll up child-component descriptions (myComponent[3] > 0) onto the
+        # matching parent record's description field (index 2), walking
+        # backwards through myPartComponents to build the full description
+        # chain.
+        for myComponent in myPartComponents:
+            if myComponent[3] > 0:
+                sDescription = myComponent[2]
+                if str(myComponent[0]) == str(sPartId):
+                    myComponent[2] = sBaseDescription + myComponent[2]
+                    continue
+                sParent = str(myComponent[0])
+                bAtTop = False
+                while not bAtTop:
+                    for tempComponent in reversed(myPartComponents):
+                        if str(tempComponent[1]) == sParent:
+                            sDescription = tempComponent[2] + " " + sDescription
+                            sParent = str(tempComponent[0])
+                            if str(sPartId) == sParent:
+                                bAtTop = True
+                    myComponent[2] = sBaseDescription + " " + sDescription
+
+        # Build the flat (description, partnumber, model, category) rows -
+        # this is what feeds saveRealPartsToDatabase()'s INSERT.
+        myRealParts = []
+        for myComponent in reversed(myPartComponents):
+            if myComponent[3] > 0:
+                tmpRealPart = []
+                tmpRealPart.append(myComponent[2].strip())   # description
+                tmpRealPart.append(myComponent[4])            # partnumber
+                tmpRealPart.append(sModel)                    # model
+                tmpRealPart.append(sCategory)                 # category
+                myRealParts.append(tmpRealPart)
+
+        return myRealParts
+
+    # ---- original source lines ~1100-1109 ----
+    def fixCSV(self, sInput):
+        # Loosens up malformed rows before ast.literal_eval: bare double
+        # quotes are stripped, and if the row is actually single-quoted
+        # (more than 2 apostrophes), those apostrophe-delimited fields are
+        # converted to double-quoted so literal_eval can parse them.
+        sDoubleQuotesRemoved = sInput.replace('"', "in")
+        if sInput.count("'") > 2:
+            sResult = str(sDoubleQuotesRemoved).replace("',", '",')
+            sResult = str(sResult).replace(",'", ',"')
+            sResult = str(sResult).replace("']", '"]')
+            return sResult
+        return sDoubleQuotesRemoved
+
+
+"""
+============================================================
+Comparison vs. DataImporter_Runtime.mjs -> bundlePaths()
+============================================================
+
+JS path (language=0, as coded)                                          | Confirmed against jPart source?
+------------------------------------------------------------------------|----------------------------------------------
+1. menus/models_l_id_0.xml                                              | MISMATCH. Real default is
+                                                                         |   menus/L0/models_l_id_0.xml   (extra "L0/"
+                                                                         |   folder), and in practice this path isn't a
+                                                                         |   fixed template at all - it's read verbatim
+                                                                         |   from options.xml's <TopLevelMenuFile>, which
+                                                                         |   the user can point anywhere.
+2. menus/L{language}/pl_id_{model}_l_id_{language}.xml                  | CONFIRMED - matches Populate_PartCategoryTree's
+                                                                         |   "menus/L0/pl_id_<model>_l_id_0.xml" exactly
+                                                                         |   for language=0.
+3. menus/pl_id_{model}_attributes.xml                                   | NOT FOUND. No "_attributes.xml" string exists
+                                                                         |   anywhere in JPEC2_Main.pyc. jPart doesn't
+                                                                         |   read this file.
+4. drilldown/pl_id_{model}/L{language}/cat_M{model}_C{category}_L{lang}.xml | CONFIRMED - matches Populate_PartsTree's
+                                                                         |   "drilldown/pl_id_<model>/L0/cat_M<model>_C
+                                                                         |   <category>_L0.xml" for language=0.
+5. drilldown/pl_id_{model}/L{language}/tl_M{model}_C{category}_L{lang}.xml  | CONFIRMED - matches both CreateFlatPartList
+                                                                         |   and Populate_PartsTree.
+6. drilldown/pl_id_{model}/L{language}/Itm_M..._I{item}_L{lang}.xml     | CONFIRMED for CreateFlatPartList /
+                                                                         |   ConvertPartItmemFileIntoList (uppercase
+                                                                         |   "Itm_M"). Note AddPartTree uses lowercase
+                                                                         |   "itm_M" for the same file - only matters on
+                                                                         |   a case-sensitive filesystem.
+7. drilldown/pl_id_{model}/tl_M{model}_C{category}_attributes.xml       | NOT FOUND. No "_attributes.xml" string
+                                                                         |   anywhere in the module.
+8. drilldown/pl_id_{model}/Itm_..._I{item}_attributes.xml               | NOT FOUND. Same as above.
+
+Also: jPart reads two more files per part category that aren't in
+bundlePaths() at all - the diagram image (flash/images/<name>.jpg) and its
+hotspot XML (flash/xml/<name>.xml), named from the second field of the
+cat_M...xml row. Irrelevant to search-index building, but relevant if the
+importer is meant to eventually cover "media processing" (which its own
+help text lists as not-yet-implemented).
+
+Net: of the 8 checked paths, 4 are confirmed correct (#2, #4, #5, #6), 1 is
+subtly wrong (#1 - missing "L0/" and, more importantly, not actually a
+fixed path), and 3 don't correspond to anything jPart reads (#3, #7, #8).
+And regardless of path correctness, none of this reconstructed code is
+wired up to actually parse/import the data yet - that's still the gap
+noted last time (saveRealPartsToDatabase / INSERT is unimplemented).
+"""
