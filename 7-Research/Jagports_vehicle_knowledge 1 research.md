@@ -356,9 +356,7 @@ This page hosts the exploded-parts view and ties the pieces together:
 3. If a VIN is active, fetches the `_attributes.xml` file (§4.8) and filters the tree.
 4. Calls `createFlashImage(imageFile)` (defined in this HTML file) to embed
    `PartImage.swf` for the diagram + hotspots.
-5. Renders a "full size image" link that opens `JEPCImageDisplay.html?<imageFile>` in
-   a popup — the non-Flash, full-resolution fallback view (presumably showing
-   `illustrations/png/<imageFile>.png`).
+5. Renders a full-size non-Flash illustration using the same logical illustration identifier.
 6. `flashclick(hotspot)` — fired by the SWF when a hotspot region is clicked — calls
    `hotspotClick(hotspot, modelId, categoryId, languageId)` (definition not located
    yet) and scrolls the matching row into view: clicking the diagram highlights the
@@ -382,8 +380,7 @@ This page hosts the exploded-parts view and ties the pieces together:
 ```
 `selectURL` points at a dead internal server and is irrelevant to local file reading.
 
-`flash/xml/<imageFile>.xml` — one per diagram image, same base name as the matching
-`flash/images/<imageFile>.jpg`:
+The hotspot resource is conventional XML keyed by the logical illustration identifier:
 ```xml
 <image>
    <originalwidth>781</originalwidth>
