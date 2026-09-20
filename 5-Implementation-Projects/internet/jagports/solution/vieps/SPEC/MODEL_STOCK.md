@@ -11,6 +11,7 @@ Mutable operational stock remains separate from canonical `PART` / JEPC catalogu
 | File | Role |
 |---|---|
 | [`MODEL_PART.md`](MODEL_PART.md) | Canonical catalogue `PART` identity and catalogue-side relationships. |
+| [`MODEL_PART_THIRD_PARTY.md`](MODEL_PART_THIRD_PARTY.md) | Third-party/vendor references and Jagports specified PART identity rules. |
 | [`UI_Part_Search.md`](UI_Part_Search.md) | User-facing search controls and available-part presentation. |
 | [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md) | Operational stock create/edit workflow and validation UI. |
 
@@ -22,7 +23,7 @@ Stock quantity, condition/status, stock quality classification, storage location
 
 If stock is held under an older or superseded catalogue part number, the UI may show the supersession relationship while retaining the stocked identity.
 
-A stock record may reference resolved catalogue identity, but unresolved stock remains explicitly unresolved.
+A stock record may reference resolved canonical PART identity, including a Jaguar PART or a Jagports specified PART defined by `MODEL_PART_THIRD_PARTY.md`, but unresolved stock remains explicitly unresolved.
 
 Catalogue vehicle location and physical stock/storage location are never conflated.
 
@@ -32,9 +33,11 @@ Stock quality classification is operational stock data. It may be shown with an 
 
 `stock_item` is the operational stock record.
 
-It may reference canonical `part(id)` when a catalogue match is established.
+It may reference canonical `part(id)` when reusable PART identity is established.
 
-`part_id` remains nullable for unresolved or non-catalogue stock.
+For a verified 1:1 third-party product, `part_id` references the existing Jaguar canonical PART. For a non-1:1 reusable third-party product, `part_id` references the Jagports specified PART created under `MODEL_PART_THIRD_PARTY.md`.
+
+`part_id` remains nullable only while reusable product identity is genuinely unresolved. A known reusable third-party product is not kept permanently as `part_id = NULL` merely because it is absent from Jaguar/JEPC.
 
 One `PART` may have multiple independent stock records.
 
@@ -219,7 +222,7 @@ Provider identity, authentication/authorization identity and multi-tenant owners
 
 Legacy `stock_item.source` remains usable source evidence for unresolved stock where normalized party identity is not yet available.
 
-An unresolved/non-catalogue stock record (`part_id IS NULL`) must retain source evidence through either `source_party_id` or a nonblank legacy `source` value.
+An unresolved stock record (`part_id IS NULL`) must retain source evidence through either `source_party_id` or a nonblank legacy `source` value.
 
 A canonical `PART` must not be fabricated merely to satisfy a relationship.
 
@@ -289,6 +292,7 @@ Executable stock model tests verify:
 - currency and non-negative price;
 - availability/location integrity;
 - unresolved stock source requirement;
+- canonical linkage of reusable third-party stock through Jaguar or Jagports specified PART identity without duplicating third-party PART semantics in STOCK;
 - multiple stock records for one canonical `PART`;
 - relevant stock indexes and invalid cases.
 
