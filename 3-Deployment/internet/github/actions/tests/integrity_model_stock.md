@@ -48,7 +48,7 @@ Install Node 24 through the standard GitHub Actions setup action.
 
 Restore the locked Worker build dependencies with `npm ci`, build and verify generated deploy assets with `npm run build`, then execute the full Worker test suite with `npm test`.
 
-The model helper creates in-memory SQLite databases with foreign-key enforcement, executes migrations in order using individual transactions, and loads deterministic fixtures.
+The model helper creates in-memory SQLite databases with foreign-key enforcement, executes the complete ordered migration chain using individual transactions, and loads deterministic fixtures only where a test explicitly requests them. Clean-schema tests therefore begin from an empty database rather than a prebuilt schema.
 
 These databases are discarded when the process exits.
 
@@ -67,6 +67,7 @@ No Cloudflare credentials, Wrangler deployment, remote D1 migration, inventory d
 - Stock search/filter indexes.
 - Foreign-key failures, uniqueness and CHECK boundaries.
 - Generated UI asset verification before the Worker tests run.
+- Worker/D1-compatible stock create/read/update persistence using normalized stock fields.
 
 ## Results and review
 
@@ -76,4 +77,4 @@ A result on an older commit is historical evidence only.
 
 The deployed-runtime test remains skipped unless `VIEPS_BASE_URL` is supplied; that skip is not evidence of deployed runtime success.
 
-SQLite coverage does not certify Cloudflare D1 deployment behavior, its actual migration ledger, live data integrity, or production-scale query performance.
+SQLite/D1-interface coverage does not certify Cloudflare D1 deployment behavior, its actual migration ledger, live data integrity, real Jagports inventory, or production-scale query performance. Environment-specific D1 verification follows the separate Cloudflare migration procedure.
