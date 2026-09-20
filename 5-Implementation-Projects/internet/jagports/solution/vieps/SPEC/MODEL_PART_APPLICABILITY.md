@@ -56,6 +56,20 @@ The later model `3178` has category `8059`, `HEADLAMP ASSEMBLY-NON POWERWASH ($)
 
 Do not equate the existing presentation `vehicle_range` with canonical `model_range`. Preserve unmapped source contexts without inventing their canonical relationship. Source region/market text, engine attributes and model names must not be substituted for one another.
 
+## JEPC source-attribute interpretation contract
+
+JEPC applicability attributes are an open source vocabulary, not a fixed five-column vehicle schema. The historical VIN/search client hard-codes five editable groups, but the VIN response and local applicability sidecars support additional group IDs. Therefore production normalization must preserve the raw JEPC group/value identity even when a human-readable mapping is available.
+
+A verified mapping can be established from several evidence forms:
+
+- explicit source/UI naming for a specific group;
+- repeated joins between an application ID in an item-tree leaf and the matching `*_attributes.xml` sidecar row;
+- consistent catalogue ancestry across independent occurrences.
+
+One observed X100 example has the tree ancestry `main floor → RH → Coffee → LHD → GJA9460BJSDC` and sidecar `142207,[A155,2932,0,0][A23,154,0,0]`. This supports `A155=2932` as Coffee and `A23=154` as LHD in that source context. It also demonstrates that `RH` installation position is separate from `LHD` steering.
+
+Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display labels in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
+
 ## Occurrence and combination requirements
 
 1. Bind every applicability assertion to exactly one occurrence and one explicit model context. Model/VIN/attribute conditions must stay attached to that same assertion. Never combine independent PART-to-model and PART-to-VIN lists into their Cartesian product.
