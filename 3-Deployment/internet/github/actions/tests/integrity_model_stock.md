@@ -73,6 +73,7 @@ No Cloudflare credentials, remote D1 migration, inventory data, or live database
 - Foreign-key failures, uniqueness and CHECK boundaries.
 - Generated UI asset verification before the Worker tests run.
 - Worker/D1-compatible stock create/read/update persistence using normalized stock fields.
+- Evidence-backed live Jagports STOCK fixture derived from `jagports-parts-stock.xlsx` with workbook-row provenance, while missing normalized fields remain unknown rather than fabricated.
 
 ## Results and review
 
@@ -82,4 +83,4 @@ A result on an older commit is historical evidence only.
 
 The deployed-runtime test remains skipped unless `VIEPS_BASE_URL` is supplied; that skip is not evidence of deployed runtime success.
 
-SQLite/D1-interface coverage does not certify Cloudflare D1 deployment behavior, its actual migration ledger, live data integrity, real Jagports inventory, or production-scale query performance. Environment-specific D1 verification follows the separate Cloudflare migration procedure.
+SQLite/D1-interface coverage does not certify Cloudflare D1 deployment behavior, its actual migration ledger, production synchronization with the live XLSX inventory source, or production-scale query performance. The evidence-backed XLSX row proves that real Jagports inventory can be represented and persisted by the tested model/path; it does not by itself prove that every live workbook row has been synchronized to production D1. Environment-specific D1 verification follows the separate Cloudflare migration procedure.
