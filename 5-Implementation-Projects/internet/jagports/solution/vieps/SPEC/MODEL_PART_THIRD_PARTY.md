@@ -115,7 +115,7 @@ Minimum vendor data:
 
 | Field | Requirement |
 |---|---|
-| `vendor_id` | Required vendor record identifier. |
+| `vendor_id` | Required identifier of the vendor. |
 | `name` | Required vendor name. |
 | home URL(s) | At least one vendor home URL may be stored. Multiple URLs are supported. |
 | home URL description | Required for each URL when more than one home URL is stored, so the URLs can be distinguished. |
@@ -128,8 +128,8 @@ Represents the vendor's own product reference.
 
 Minimum fields:
 
-- record ID;
-- `vendor_id`;
+- `third_party_part_id` — identifier of this vendor-product reference record;
+- `vendor_id` — identifies the vendor;
 - canonical `part_id`;
 - vendor part number;
 - vendor product name/description;
