@@ -153,7 +153,7 @@ Both `menus/pl_id_<model>_attributes.xml` files exist. The bundle also depends o
 
 LJA4513AF/application 145240 occurs four times: Canada or USA, each with `Except headlamp levelling` or `headlamp powerwash`, followed by LH side. The selected USA/except-levelling row ID is 1100110001. The top-level sidecar contains item 1 with A21 values 120 and 121; no dictionary mapping of these codes is claimed here.
 
-LJA4501AG/application 145251 occurs twice: `headlamp levelling → Except Japan → RHD → LH side` (row 110080001), and `Except headlamp powerwash → Except Japan → RHD → LH side` (row 1100310001). Its application sidecar contains `145251,[A23,157,0,0]`, while the corresponding LHD rows use A23/154. This is corroborating context, not a universal code dictionary. The sidecar does not encode all the visible ancestor headings.
+LJA4501AG/application 145251 occurs twice: `headlamp levelling → Except Japan → RHD → LH side` (row 110080001), and `Except headlamp powerwash → Except Japan → RHD → LH side` (row 1100310001). Its application sidecar contains `145251,[A23,157,0,0]`, while the corresponding LHD rows use A23/154. This is corroborating context, not a universal code dictionary. The sidecar does not encode all the visible ancestor descriptions.
 
 The raw source headings, selected row IDs and sidecar tuples are observed. Their complete Boolean translation, equipment semantics across category/title and option branches, and applicability beyond the selected scope still require mapping validation. Do not flatten the displayed alternatives indiscriminately or label missing application sidecars as missing all conditions.
 
