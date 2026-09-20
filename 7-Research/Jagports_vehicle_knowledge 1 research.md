@@ -186,25 +186,8 @@ JEPC/
 │   └── pl_id_<modelId>\
 │       └── <legacyCurrency>\
 │           └── Price_M<modelId>_C<categoryId>_I<itemNo>_<legacyCurrency>.xml
-├── flash\
-│   ├── jepc.xml                    global Flash-viewer config (§4.10)
-│   ├── PartImage.swf               the hotspot-diagram viewer (compiled Flash movie)
-│   ├── images\<imageFile>.jpg      small (400×500 px) display images shown inside the
-│   │                               PartImage.swf viewer, e.g. `5104.jpg`, `ax1000.jpg`
-│   └── xml\<imageFile>.xml         per-image hotspot files, same base filename as the
-│                                   matching .jpg — §4.10
-├── illustrations\
-│   └── png\<code>.png              full-resolution (e.g. 1495×2156 px) line-art
-│                                   diagrams, shown by the "full size image" popup
-│                                   (JEPCImageDisplay.html) as opposed to the small
-│                                   400×500 Flash-viewer image. Filename matches the
-│                                   cat_...xml popup's image code (§4.5) — i.e. this is
-│                                   the category-level diagram, not per-part. The
-│                                   linkage has only been directly verified for the
-│                                   illustrations\png side so far; whether the same
-│                                   code also always has a matching flash\images +
-│                                   flash\xml pair is likely but not yet proven on a
-│                                   single shared example.
+├── flash\            legacy JEPC illustration-viewer/runtime assets
+├── illustrations\    JEPC illustration assets
 ├── images\
 │   └── <modelId>_watermark.jpg     large background/watermark car image shown behind
 │                                   the model-range/category screens — cosmetic only.
@@ -1286,9 +1269,6 @@ This directly corroborates the regression-fixture VIN list already recorded else
   by the client code seen so far — meaning unknown.
 - **14.6. `isDFS` flag** (field index 5, §4.7) — likely "Discontinued/Direct Factory Supply"
   or similar, not fully confirmed.
-- **14.7. Flash-image ↔ full-size-PNG filename linkage** (§4.1/§4.5) — likely but not
-  directly proven on a single category that has both a `flash/images`+`flash/xml`
-  pair and an `illustrations/png` entry sharing the same code.
 - **14.8. `hotspotClick()` definition** — referenced in `JEPCProductDrillDown.html` (§4.9)
   but not located in any JS file reviewed so far. Low priority since the new app only
   needs the underlying data (already decoded, §4.10), not Jaguar's own click-handling.
