@@ -95,4 +95,10 @@ Worker deployment and D1 migration application remain separate operational steps
 
 The current application may still contain the transitional `ADMIN_TOKEN`/`x-admin-token` mechanism. It must not be treated as the final administrator login until Issue #448 is reviewed, tested, and merged.
 
+Current setup instructions for the transitional token, including the required Worker-directory `cd`, Windows PowerShell token generation, Wrangler secret configuration, verification, and VIEPS Authorization-field usage, are maintained in:
+
+```text
+3-Deployment/internet/cloudflare/workers/jagports/CloudFlareGit_App_Deployment.md#transitional-administrator-token-setup
+```
+
 No credentials, password hashes, tokens, or secret values belong in this directory.
