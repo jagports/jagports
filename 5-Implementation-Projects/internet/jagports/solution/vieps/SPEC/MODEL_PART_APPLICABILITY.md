@@ -21,7 +21,7 @@ In this specification, **applicability** describes the supported vehicle/configu
 | Supercharged | Engine configuration: a supercharger is specified. | Requires the verified supercharged configuration. Do not infer it from an unknown group code or assume this attribute occurs in the headlamp examples. |
 | Other option / headlamp levelling / headlamp powerwash | A particular equipment feature or option. | Requires headlamp levelling; or excludes vehicles with it. `Other option` without an identified feature/value is unresolved, not a defined universal flag. |
 | LHD / RHD | Left-hand-drive / right-hand-drive steering configuration of the vehicle. | Requires RHD. |
-| LH / RH source path labels | Observed JEPC decision-tree labels that are distinct from LHD/RHD labels. Their exact semantic role and applicability encoding are still under investigation. | Preserve the labels and path evidence without assuming that they are presentation-only, a physical installation-side dimension, or absent from applicability semantics. |
+| LH / RH source path descriptions | Observed JEPC language descriptions on decision-tree nodes that are distinct from the LHD/RHD descriptions. Their exact semantic role and applicability encoding are still under investigation. | Preserve the descriptions and path evidence without assuming that they are presentation-only, a physical installation-side dimension, or absent from applicability semantics. |
 | Region | A source market grouping used to scope a catalogue model/profile. | A Canada/USA model grouping scopes the catalogue; a USA branch adds a more specific market condition. Region, country/market and steering remain separate dimensions. |
 | `($)` in a category title | An observed source marker, retained verbatim. | In the examined later-XK headlamp category it accompanies Canada and USA branches. Market scope can occur below a shared model. Do not globally equate this marker with an approved geographic vocabulary without further mapping evidence. |
 | Except Japan | An exclusion of the stated market within the surrounding scope. | `market != Japan`; unknown market does not prove this condition true. It does not mean every non-Japanese vehicle worldwide is covered. |
@@ -48,12 +48,12 @@ A later semantic enrichment layer may map source descriptions to normalized face
 
 ### Headlamp examples
 
-The following are observed **source paths** supplied by the Product Owner and confirmed in the installed item files. They are not a claim that each displayed path is the complete final predicate or that all source labels have been mapped to approved typed dimensions.
+The following are observed **source paths** supplied by the Product Owner and confirmed in the installed item files. They are not a claim that each displayed path is the complete final predicate or that all source descriptions have been mapped to approved typed dimensions.
 
 | Part and source context | Meaning of the selected path |
 |---|---|
-| LJA4513AF, model 3183/category 8067/item 1, application 145240 | In the Canada/USA model and HEADLAMP ASSEMBLY-POWERWASH category: headlamp assembly → USA market → except headlamp levelling → LH source-path label. The shown path does not specify LHD or RHD; do not infer steering from USA or the `LH` path label. |
-| LJA4501AG, model 3187/category 8069/item 1, application 145251 | In the earlier XK model and HEADLAMP ASSEMBLY-NON POWERWASH category: headlamp assembly → headlamp levelling → except Japan → RHD steering → LH source-path label. Levelling, market and steering are distinct observed semantics; the exact semantic role of the `LH` label remains unresolved. |
+| LJA4513AF, model 3183/category 8067/item 1, application 145240 | In the Canada/USA model and HEADLAMP ASSEMBLY-POWERWASH category: headlamp assembly → USA market → except headlamp levelling → LH source-path description. The shown path does not specify LHD or RHD; do not infer steering from USA or the `LH` path description. |
+| LJA4501AG, model 3187/category 8069/item 1, application 145251 | In the earlier XK model and HEADLAMP ASSEMBLY-NON POWERWASH category: headlamp assembly → headlamp levelling → except Japan → RHD steering → LH source-path description. Levelling, market and steering are distinct observed semantics; the exact semantic role of the `LH` description remains unresolved. |
 
 The installed file also lists LJA4513AF/application 145240 beneath Canada and USA alternatives, and LJA4501AG/application 145251 beneath another path headed `Except headlamp powerwash`. Preserve every source path and its row identity. The same application ID can repeat under different paths inside one bundle; it is not a unique leaf-row identifier. Verify how the paths combine before emitting normalized condition sets. Never combine all alternative path headings into one mandatory conjunction.
 
@@ -82,16 +82,16 @@ A verified mapping can be established from several evidence forms:
 - repeated joins between an application ID in an item-tree leaf and the matching `*_attributes.xml` sidecar row;
 - consistent catalogue ancestry across independent occurrences.
 
-One observed X100 example has the tree ancestry `main floor → RH → Coffee → LHD → GJA9460BJSDC` and sidecar `142207,[A155,2932,0,0][A23,154,0,0]`. This supports `A155=2932` as Coffee and `A23=154` as LHD in that source context. It also demonstrates that `RH` and `LHD` are separate source-path labels. The example does not establish the semantic role of `RH` or prove that it is absent from applicability semantics elsewhere.
+One observed X100 example has the tree ancestry `main floor → RH → Coffee → LHD → GJA9460BJSDC` and sidecar `142207,[A155,2932,0,0][A23,154,0,0]`. This supports `A155=2932` as Coffee and `A23=154` as LHD in that source context. It also demonstrates that `RH` and `LHD` are separate source-path descriptions. The example does not establish the semantic role of `RH` or prove that it is absent from applicability semantics elsewhere.
 
-Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display labels in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
+Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display descriptions in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
 
 ## Occurrence and combination requirements
 
 1. Bind every applicability assertion to exactly one occurrence and one explicit model context. Model/VIN/attribute conditions must stay attached to that same assertion. Never combine independent PART-to-model and PART-to-VIN lists into their Cartesian product.
 2. An occurrence can have several alternative complete condition sets. Sets are alternatives (`OR`); all predicates within one set must hold together (`AND`). An explicit exclusion within a set is a negative predicate, not a global exclusion of the PART.
 3. Only a verified source mapping may establish set boundaries and operators. Duplicate source IDs are not sufficient evidence for either `AND` or `OR`; category, top-level item and application scopes behave differently.
-4. A condition set can contain typed model/context constraints, serial bounds and verified attribute membership/nonmembership constraints. Known domain dimensions use typed relationships. Unknown source groups stay in evidence; do not turn arbitrary labels or generic EAV rows into verified domain facts.
+4. A condition set can contain typed model/context constraints, serial bounds and verified attribute membership/nonmembership constraints. Known domain dimensions use typed relationships. Unknown source groups stay in evidence; do not turn arbitrary source descriptions or generic EAV rows into verified domain facts.
 5. A source omission is not an unconditional assertion. An unconditional set requires explicit verification that no further condition applies within its stated scope. Empty sets produced by parser failure or missing dependencies are unresolved, never automatically true.
 6. Alternative occurrences of the same PART retain their catalogue roles, constraints and evidence when results are grouped under the PART. A negative result for one occurrence must not veto an independently applicable occurrence in another role/context.
 7. Conflicting positive and explicit negative evidence for the same occurrence and matching context produces `unavailable` with a conflict reason until resolved. There is no implicit last-write-wins or global exclusion-wins rule. Source `exceptFlag` alone is not an explicit negative assertion.
@@ -110,7 +110,7 @@ The logical form is a finite collection of relational condition sets, not a pers
 - A prefix may be unknown when a source model and serial condition are known. The evaluator must have an established context match; absence of a prefix is not a wildcard across all models.
 - Validate bound compatibility and ordering under the selected comparator. Reject/quarantine impossible intervals, invalid values and unsupported comparators; preserve their raw evidence.
 
-For model `3187`, the model label supplies the upper boundary `042775`. Application 151439's `from 023700` condition therefore has an effective interval `023700` through `042775` once model ownership, comparator and inclusivity are verified. Application 93491's `through 023699` interval uses the model start from the authoritative JLHT document once that exact value and citation are captured. The missing citation in this evidence set is not a claim that the model start is unknowable.
+For model `3187`, the model description supplies the upper boundary `042775`. Application 151439's `from 023700` condition therefore has an effective interval `023700` through `042775` once model ownership, comparator and inclusivity are verified. Application 93491's `through 023699` interval uses the model start from the authoritative JLHT document once that exact value and citation are captured. The missing citation in this evidence set is not a claim that the model start is unknowable.
 
 The source model list separately identifies `3178` as `A00083` through `A30644` and `3173` as from `A30645`. These are separate model contexts; capture the latter's end from the cited authoritative document rather than inventing it. Production normalization, alphanumeric ordering and the actual parser-to-comparator path still require source validation. The isolated comparator probe is not evidence that trimming raw source tokens is universally safe.
 
@@ -130,7 +130,7 @@ The observed passenger-airbag records illustrate this. Effective intervals below
 
 HJB9670AA therefore remains one PART across the numeric and A-prefixed source model contexts. Do not replace its two intervals with a universal `023700 through A00115` string comparison. HJE9042AB also remains one PART across A30644/A30645. A display may coalesce proven adjacent intervals only when serial domain, ordering, scope and all other conditions are equivalent; the underlying occurrences and evidence remain separately recoverable. Catalogue succession of part numbers is not, by itself, a supersession or interchangeability statement.
 
-Item number `1` is local to its category/model context. These records do not authorize globally merging every item `1`, category label or application ID. Conversely, requiring separate source occurrences must not duplicate the canonical PART or prevent a query from returning its full supported coverage across sub-models.
+Item number `1` is local to its category/model context. These records do not authorize globally merging every item `1`, category description or application ID. Conversely, requiring separate source occurrences must not duplicate the canonical PART or prevent a query from returning its full supported coverage across sub-models.
 
 ## Attribute and exclusion requirements
 
@@ -138,7 +138,7 @@ Retain record family, key scope, group/code, tuple position, raw value and flag.
 
 Within a verified dimension, a set of alternative included values can be represented by membership; explicit excluded values by nonmembership. Across dimensions, preserve the established combination rather than manufacturing all combinations. Multi-valued vehicle attributes need a defined quantifier/cardinality policy before evaluation; scalar `not equal` is not a safe default for a set.
 
-Unknown group labels do not justify guessed names such as engine, body or market. An opaque source code can be retained, but evaluating it requires a verified mapping to comparable vehicle-context evidence. Unsupported tuples and flags must remain visible as unresolved conditions.
+Unknown source groups do not justify guessed names such as engine, body or market. An opaque source code can be retained, but evaluating it requires a verified mapping to comparable vehicle-context evidence. Unsupported tuples and flags must remain visible as unresolved conditions.
 
 ## Evaluation and query contract
 
@@ -171,7 +171,7 @@ These are logical entities for schema design, not executable DDL. Reuse existing
 | Attribute constraint | Belongs to one set; verified dimension/value-domain reference; membership/nonmembership operator and values; cardinality semantics; raw-evidence links. |
 | Evidence and interpretation | Many evidence records may support one assertion/predicate and one source record may support several derived relationships. Preserve source dataset, relative path, checksum, row/tuple locator, source scope, parser and mapping versions, verification and unresolved reasons. |
 
-Foreign keys and uniqueness must enforce scope ownership: a condition cannot leak into another assertion, and an assertion cannot name a different PART from its occurrence. Index occurrence, model context, serial domain/bounds and verified attribute lookup paths appropriate to both query directions. Reject references that mix domains; a free-text context label is insufficient for relational identity.
+Foreign keys and uniqueness must enforce scope ownership: a condition cannot leak into another assertion, and an assertion cannot name a different PART from its occurrence. Index occurrence, model context, serial domain/bounds and verified attribute lookup paths appropriate to both query directions. Reject references that mix domains; a free-text context description is insufficient for relational identity.
 
 ### Multilingual occurrence-path rule
 
@@ -212,8 +212,8 @@ The three airbag cases and headlamp case below are observed source examples; the
 | XK 3187/category 11096/item 1, application 93491 HNA9670BA through 023699; 151439 HJB9670AA from 023700 | Preserve separate occurrences and source constraints. Intersect with model bounds: the latter ends at 042775, not infinity; the former begins at the cited model start. With a verified comparator and otherwise complete context, 023699 selects the former and 023700 the latter; neither applies outside the model interval. Do not make a single impossible interval. |
 | HJB9670AA in applications 151439 and 151441 | One canonical PART; two model-scoped occurrences and intervals (023700–042775 and A00083–A00115). Reverse lookup returns both without asserting cross-format continuity. |
 | HJE9042AB in applications 171081 and 171082 | One canonical PART across sub-models 3178 and 3173. With complete verified context, coverage includes both A30644 and A30645; retain model ownership/evidence and do not infer the final model endpoint or unconditional fitment from an unqualified item row. |
-| LJA4513AF/application 145240 and LJA4501AG/application 145251 each repeat under several source paths | Preserve all path evidence, reconcile each common application to its occurrence, and retain alternative condition sets. Keep steering (LHD/RHD), `LH/RH` source-path labels, market and equipment evidence separate. Do not assign a physical-position meaning to `LH/RH` until verified. Do not infer the entire applicability chain from the application sidecar alone. |
-| LJA4511AG/application 145267 under model 3178/category 8059 `($)` | Retain the shared model identity and raw category marker; represent Canada/USA market conditions in occurrence alternatives. Do not require a separate North America model or derive a global meaning of `($)` from this sample. Preserve the `LH` source-path label separately from steering; do not assign it a physical-position semantic until verified. |
+| LJA4513AF/application 145240 and LJA4501AG/application 145251 each repeat under several source paths | Preserve all path evidence, reconcile each common application to its occurrence, and retain alternative condition sets. Keep steering (LHD/RHD), `LH/RH` source-path descriptions, market and equipment evidence separate. Do not assign a physical-position meaning to `LH/RH` until verified. Do not infer the entire applicability chain from the application sidecar alone. |
+| LJA4511AG/application 145267 under model 3178/category 8059 `($)` | Retain the shared model identity and raw category marker; represent Canada/USA market conditions in occurrence alternatives. Do not require a separate North America model or derive a global meaning of `($)` from this sample. Preserve the `LH` source-path description separately from steering; do not assign it a physical-position semantic until verified. |
 | Same PART: context M1 through S100, context M2 from S200 | Return only those two context/bound combinations; never M1/from S200 or M2/through S100. |
 | Same occurrence: (body B1 AND engine E1) OR (body B2 AND engine E2) | Match B1/E1 and B2/E2; reject B1/E2 and B2/E1 when scope is complete. |
 | Include one configuration but exclude option X within that set | X defeats that set only; another verified alternative may still match. |
