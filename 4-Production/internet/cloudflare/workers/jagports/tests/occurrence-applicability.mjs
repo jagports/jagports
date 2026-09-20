@@ -137,9 +137,16 @@ test('additive upgrade preserves every pre-existing catalogue, fitment and stock
   assert.ok(applicabilityMigration >= 0);
   migrate(db,migrations.slice(0,applicabilityMigration));
   const tables=db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all();
-  const before=new Map(tables.map(({name})=>[name,db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all()]));
+  const before=new Map(tables.map(({name})=>{
+    const columns=db.prepare(`PRAGMA table_info("${name}")`).all().map(row=>row.name);
+    const projection=columns.map(column=>`"${column.replaceAll('"','""')}"`).join(',');
+    return [name,{columns,rows:db.prepare(`SELECT ${projection} FROM "${name}" ORDER BY rowid`).all()}];
+  }));
   migrate(db,migrations.slice(applicabilityMigration));
-  for(const [name,rows] of before) assert.deepEqual(db.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all(),rows,name);
+  for(const [name,{columns,rows}] of before) {
+    const projection=columns.map(column=>`"${column.replaceAll('"','""')}"`).join(',');
+    assert.deepEqual(db.prepare(`SELECT ${projection} FROM "${name}" ORDER BY rowid`).all(),rows,name);
+  }
   assert.equal(db.prepare('SELECT count(*) n FROM occurrence_applicability').get().n,0);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);
 });

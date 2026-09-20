@@ -1,10 +1,45 @@
-# JEPC Supersession Knowledge
+# JEPC Source Knowledge
 
 ## Scope
 
-This file records durable JEPC/source knowledge about parts supersession. It belongs with JLR/JEPC research because the relationship semantics, source evidence, and JEPC UI observations originate from catalogue/source investigation rather than from Jagports importer implementation.
+This file records durable JEPC/source knowledge established from catalogue/source investigation, including parts supersession and source market/Region semantics. It belongs with JLR/JEPC research because these relationships, source evidence, and JEPC UI observations originate from catalogue/source investigation rather than from Jagports importer implementation.
 
 Jagports-developed importer applications, tests, and operating specifications belong under `5-Implementation-Projects/software/jagports/JEPC-Importers/`.
+
+## Model/menu Region and market semantics
+
+JEPC model/menu names can encode market scope and must be preserved as source context during import.
+
+Verified source examples include:
+
+- XK8 model `3183`: `XK8 Coupe/Convertible - Canada/USA up to (V) 042775`.
+- X308 model `3213`: `XJ Series (From (V)812317 to (V)F59525 (Canada/Mexico/USA)`.
+
+These explicit source names support a normalized broad Region grouping such as `Americas` for importer source selection and validation. Their corresponding non-Americas variants may be represented as `Rest of world excluding Americas` when that mapping has been established for the selected import profile.
+
+The normalized Region label is interpretation layered over retained source evidence. Preserve the original JEPC model/menu text and IDs so vocabulary can be refined without losing source identity.
+
+Region is vehicle/catalogue context, not canonical PART identity. The same canonical PART may occur in multiple Region, market, model, VIN, category and occurrence contexts.
+
+### `($)` marker boundary
+
+A category marker such as `($)` must be retained verbatim as source evidence.
+
+In the examined later-XK headlamp category, `HEADLAMP ASSEMBLY-NON POWERWASH ($)` contains explicit Canada and USA branches. This demonstrates that market scope can exist below a shared JEPC model, but does **not** establish that `($)` universally means `North America`, `Americas`, Canada/USA, or any other geographic vocabulary.
+
+Do not derive a normalized Region from `($)` alone. Use explicit model/menu/branch evidence and preserve the raw marker separately.
+
+Likewise, choosing a normalized vocabulary label such as `North America` versus `Americas` is a controlled mapping decision. It must not be inferred from the marker itself.
+
+Region, country/market, steering, aspiration/supercharger state and equipment options remain separate dimensions.
+
+Source traceability: [PR #621 — JEPC source Region breadcrumb semantics](https://github.com/jagports/jagports/pull/621).
+
+## Importer selection principle
+
+Importer source selection must be configurable below the broad VIEPS Range level where JEPC exposes distinct model/sub-range or market variants. A selected import profile may target a specific JEPC model/sub-range together with Region/market context rather than importing an entire Range at once.
+
+This supports bounded, restartable importer development while preserving original source scope and the ability to expand coverage later.
 
 ## Supersession as a catalogue relationship
 
