@@ -140,8 +140,7 @@ Powers goal §2.I ("click a location on the car image"). Two layers:
   `jepc_part_occurrence.zone_override_id` (§6.1), rather than forcing every part in a
   category to share the same zone.
 - **Admin part-pin table** — lets an admin click/pin a part's exact location directly
-  on an existing JEPC diagram image (the `flash/images/` JPGs and/or the
-  `illustrations/png/` PNGs, §4.1/§4.10) when adding a stock item, which matters most
+  on an existing JEPC diagram image, using the logical JEPC illustration identity and available media asset family, when adding a stock item, which matters most
   for parts with no native JEPC hotspot at all — i.e. items Jaguar never itemized
   separately (§6.7). This is a parts-database concern, not a stock/inventory concern:
   the pinned location describes where on the diagram this kind of part physically is,
@@ -151,13 +150,10 @@ Powers goal §2.I ("click a location on the car image"). Two layers:
   ```
   admin_part_pin
     pin_id (surrogate key)
-    image_ref             (which image this pin belongs to — the flash/xml imageFile
-                           code, §4.5/§4.10, or an illustrations/png filename; store
-                           enough to know which image family/coordinate system
-                           applies, since §4.10's twips-based coordinate hypothesis
-                           only applies to the Flash-viewer image pair, not
-                           necessarily the full-res PNG — see §7 for the open decision
-                           here)
+    image_ref             (logical JEPC illustration identifier plus enough asset-family
+                           provenance to identify the source image and coordinate system;
+                           Flash-viewer hotspot coordinates must not be assumed equivalent
+                           to full-resolution image coordinates — see §7)
     x, y, width, height    (recommend normalized 0–1 fractions of image width/height
                            at storage time, converting from whatever the admin UI's
                            click coordinates were in, so the same pin renders
