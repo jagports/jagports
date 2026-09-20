@@ -461,3 +461,7 @@ Implementation must preserve:
 - Stock Admin can select the Jaguar parent directly or through the imported PART tree.
 - Only reusable products are created through this specification.
 - Optional visual-location evidence is delegated to `MODEL_PART_THIRD_PARTY_LOCATION.md`.
+- `third_party_part_xref` has an explicit record contract, relationship vocabulary, cardinality and logical uniqueness rules.
+- Third-party vendor/product/xref fields have explicit required/nullability and uniqueness expectations.
+- Representative deterministic fixtures cover both verified 1:1 and non-1:1 Jagports specified PART paths plus invalid cases.
+- The retained MVP boundary is explicit and separates required Stock Admin identity/linkage behavior from Post-MVP vendor/marketplace extensions.
