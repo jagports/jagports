@@ -213,6 +213,34 @@ function Parse-VinDescription {
     return @()
 }
 
+function Get-FullDescriptionPath {
+    param(
+        [string]$CataloguePath,
+        [string]$TopDescription,
+        [string[]]$Descriptions
+    )
+
+    $parts = New-Object System.Collections.Generic.List[string]
+
+    if (-not [string]::IsNullOrWhiteSpace($CataloguePath)) {
+        foreach ($segment in @($CataloguePath.Split("/") | ForEach-Object { $_.Trim() })) {
+            if (-not [string]::IsNullOrWhiteSpace($segment)) { $parts.Add($segment) }
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($TopDescription)) {
+        $parts.Add($TopDescription.Trim())
+    }
+
+    foreach ($description in @($Descriptions)) {
+        if (-not [string]::IsNullOrWhiteSpace($description)) {
+            $parts.Add($description.Trim())
+        }
+    }
+
+    return ($parts -join " > ")
+}
+
 function Join-RawRules {
     param([object[]]$Rules)
     if ($null -eq $Rules -or $Rules.Count -eq 0) { return "" }
@@ -360,6 +388,7 @@ foreach ($m in $modelIds) {
                 CataloguePath = $categoryInfo.CataloguePath
                 TopDescription = $topDescription
                 DescriptionPath = ($descriptions -join " > ")
+                FullDescriptionPath = (Get-FullDescriptionPath $categoryInfo.CataloguePath $topDescription $descriptions)
                 RawPredicates = (Join-RawPredicates $allRules)
                 RawRules = (Join-RawRules $allRules)
                 TreeSource = (Get-RelativeJepcPath $file.FullName)
@@ -439,31 +468,71 @@ $summaryLines = New-Object System.Collections.Generic.List[string]
 $summaryLines.Add("============================================================")
 $summaryLines.Add("JEPC X100 SEARCH FINDINGS")
 $summaryLines.Add("============================================================")
-$summaryLines.Add("Categories:        $($categoryRows.Count)")
-$summaryLines.Add("Occurrences:       $($occurrences.Count)")
-$summaryLines.Add("Raw rules:         $($ruleRows.Count)")
-$summaryLines.Add("Predicates:        $($predicateRows.Count)")
-$summaryLines.Add("VIN boundaries:    $($vinBoundarySummary.Count)")
+if ($PartNumber) { $summaryLines.Add("Search: $PartNumber") }
+elseif ($ModelId -and $CategoryId) { $summaryLines.Add("Search: M$($ModelId) / C$($CategoryId)") }
+$summaryLines.Add("Occurrences: $($occurrences.Count)")
+$summaryLines.Add("Raw rules:   $($ruleRows.Count)")
+$summaryLines.Add("Predicates:  $($predicateRows.Count)")
 $summaryLines.Add("")
 
-foreach ($categoryRow in $categoryRows) {
-    $summaryLines.Add("Catalogue:")
-    $summaryLines.Add("  $($categoryRow.CataloguePath)")
-    $summaryLines.Add("")
-}
-
-if ($occurrences.Count -gt 0) {
-    $summaryLines.Add("Occurrences:")
-
+if ($PartNumber) {
+    $occurrenceNo = 0
     foreach ($occurrence in @($occurrences | Sort-Object Model,Category,Item,PartNumber,ApplicationId)) {
-        $summaryLines.Add("  $($occurrence.PartNumber)")
-        $summaryLines.Add("    $($occurrence.TopDescription)")
-        $summaryLines.Add("    $($occurrence.DescriptionPath)")
-        $summaryLines.Add("    applicationId: $($occurrence.ApplicationId)")
-        if ($occurrence.RawPredicates) { $summaryLines.Add("    predicates: $($occurrence.RawPredicates)") }
-        $summaryLines.Add("    tree: $($occurrence.TreeSource)")
-        if ($occurrence.ApplicationAttributeSource) { $summaryLines.Add("    attributes: $($occurrence.ApplicationAttributeSource)") }
+        $occurrenceNo++
+        $summaryLines.Add("Occurrence $occurrenceNo")
+        foreach ($segment in @($occurrence.FullDescriptionPath.Split(">") | ForEach-Object { $_.Trim() })) {
+            if (-not [string]::IsNullOrWhiteSpace($segment)) { $summaryLines.Add("> $segment") }
+        }
+        $summaryLines.Add("> $($occurrence.PartNumber)")
         $summaryLines.Add("")
+        $summaryLines.Add("applicationId: $($occurrence.ApplicationId)")
+
+        $matchingPredicates = @($predicateRows | Where-Object {
+            $_.Model -eq $occurrence.Model -and
+            $_.Category -eq $occurrence.Category -and
+            $_.Item -eq $occurrence.Item -and
+            $_.PartNumber -eq $occurrence.PartNumber -and
+            $_.ApplicationId -eq $occurrence.ApplicationId
+        } | Sort-Object Scope,RuleIndex,PredicateIndex)
+
+        if ($matchingPredicates.Count -gt 0) {
+            $summaryLines.Add("predicates:")
+            foreach ($predicate in $matchingPredicates) {
+                $summaryLines.Add("  $($predicate.RawPredicate)")
+            }
+        }
+
+        $summaryLines.Add("sources:")
+        $summaryLines.Add("  tree: $($occurrence.TreeSource)")
+        if ($occurrence.ApplicationAttributeSource) { $summaryLines.Add("  application attributes: $($occurrence.ApplicationAttributeSource)") }
+        if ($occurrence.TopAttributeSource) { $summaryLines.Add("  top attributes: $($occurrence.TopAttributeSource)") }
+        if ($occurrence.CategoryAttributeSource) { $summaryLines.Add("  category attributes: $($occurrence.CategoryAttributeSource)") }
+        $summaryLines.Add("")
+    }
+}
+else {
+    foreach ($categoryRow in @($categoryRows | Sort-Object Model,Category)) {
+        $categoryOccurrences = @($occurrences | Where-Object {
+            $_.Model -eq $categoryRow.Model -and $_.Category -eq $categoryRow.Category
+        })
+
+        foreach ($segment in @($categoryRow.CataloguePath.Split("/") | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
+            $summaryLines.Add("> $segment")
+        }
+
+        foreach ($topGroup in @($categoryOccurrences | Group-Object TopDescription | Sort-Object Name)) {
+            if (-not [string]::IsNullOrWhiteSpace($topGroup.Name)) { $summaryLines.Add("> $($topGroup.Name)") }
+            foreach ($pn in @($topGroup.Group | Select-Object -ExpandProperty PartNumber -Unique | Sort-Object)) {
+                $summaryLines.Add("  $pn")
+            }
+            $summaryLines.Add("")
+        }
+    }
+
+    $summaryLines.Add("Occurrence paths:")
+    $summaryLines.Add("")
+    foreach ($occurrence in @($occurrences | Sort-Object TopDescription,DescriptionPath,PartNumber,ApplicationId)) {
+        $summaryLines.Add("$($occurrence.FullDescriptionPath) > $($occurrence.PartNumber)")
     }
 }
 
