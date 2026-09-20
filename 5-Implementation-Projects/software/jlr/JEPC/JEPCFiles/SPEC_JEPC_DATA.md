@@ -36,9 +36,9 @@ catalogue tree/content
         |
         +-- price sidecars
         |
-        +-- illustration JPG
+        +-- catalogue illustration/media resources
         |
-        +-- illustration hotspot XML
+        +-- hotspot resources
 ```
 
 ## Model hierarchy
@@ -145,8 +145,8 @@ The core catalogue browser is primarily driven by local files:
 - category menus
 - `cat_*`, `tl_*` and `Itm_*` XML
 - `*_attributes.xml` applicability sidecars
-- `flash/images/*.jpg` illustrations
-- `flash/xml/*.xml` hotspot data
+- catalogue illustration/media resources
+- hotspot resources
 - local price XML where present
 
 The frame-based UI and JavaScript join these files at runtime.
