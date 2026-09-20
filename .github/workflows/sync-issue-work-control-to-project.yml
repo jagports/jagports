@@ -92,6 +92,9 @@ jobs:
                       workstreamValue: fieldValueByName(name:$workstreamField) {
                         ... on ProjectV2ItemFieldSingleSelectValue { name }
                       }
+                      statusValue: fieldValueByName(name:"Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      }
                     }
                     pageInfo { hasNextPage endCursor }
                   }
@@ -106,6 +109,7 @@ jobs:
                   | select(.isArchived == false)
                   | select(.id != $item)
                   | select(.content.__typename == $record_type)
+                  | select((.statusValue.name // "") != "DONE")
                   | select(.workstreamValue.name == $workstream)
                   | select(.rankValue.number == $rank)
                 ] | length
@@ -544,6 +548,9 @@ jobs:
                       workstreamValue: fieldValueByName(name:$workstreamField) {
                         ... on ProjectV2ItemFieldSingleSelectValue { name }
                       }
+                      statusValue: fieldValueByName(name:"Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      }
                     }
                     pageInfo { hasNextPage endCursor }
                   }
@@ -558,6 +565,7 @@ jobs:
                   | select(.isArchived == false)
                   | select(.id != $item)
                   | select(.content.__typename == $record_type)
+                  | select((.statusValue.name // "") != "DONE")
                   | select(.workstreamValue.name == $workstream)
                   | select(.rankValue.number == $rank)
                 ] | length
