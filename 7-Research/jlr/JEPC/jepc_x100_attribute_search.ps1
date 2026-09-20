@@ -313,7 +313,21 @@ function Find-AttributeEvidenceInModel {
                 @(Parse-VinLabel ([string]$_.Label)).Count -eq 0
             } | ForEach-Object { [string]$_.Label })
 
-            $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+
+            $aTuples = @($tuples | Where-Object { $_.Group.StartsWith("A") })
+            $candidate = ""
+            $joinStatus = "EXACT_PATH_CONTEXT"
+
+            if ($aTuples.Count -eq $labels.Count -and $aTuples.Count -gt 0) {
+                for ($p = 0; $p -lt $aTuples.Count; $p++) {
+                    if ($aTuples[$p].Group -eq $Group -and $aTuples[$p].Value -eq $Value) {
+                        $candidate = $labels[$p]
+                        $joinStatus = "EXACT_SOURCE_JOIN"
+                        break
+                    }
+                }
+            }
+
+            $evidence.Add([pscustomobject]@{
                 Model="M$dm"
                 Category="C$dc"
                 Item="I$di"
