@@ -1,4 +1,11 @@
 """
+REFERENCE ONLY — not Jagports production importer code.
+
+This file exists solely as third-party/reconstructed research evidence. Production
+Jagports importer code must not import, execute, package, or depend on this module
+at runtime. Reusable findings belong in the canonical JEPC research/specification
+documents and production behavior is implemented independently.
+
 Reconstructed from jPart.exe (JPEC2_Main.pyc), part 2: menu / category-tree
 file-reading code. Extracted the same way as before - located by name in
 the bytecode's code-object tree, disassembled with xdis, hand-translated
