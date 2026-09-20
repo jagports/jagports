@@ -238,19 +238,19 @@ function Find-AttributeEvidenceInModel(
     [string]$Value
 ) {
     $cacheKey = "$M|$Group|$Value"
+
     if ($attributeDiscoveryCache.ContainsKey($cacheKey)) {
         return $attributeDiscoveryCache[$cacheKey]
     }
 
-    $evidence = New-Object System.Collections.Generic.List[object]
     $files = @(Get-ModelAttributeFiles $M)
 
     if ($files.Count -eq 0) {
         $result = [pscustomobject]@{
-            Label = ""
-            Status = "UNRESOLVED"
-            Source = "MODEL_SOURCE_SEARCH"
-            HitCount = 0
+            Label          = ""
+            Status         = "UNRESOLVED"
+            Source         = "MODEL_SOURCE_SEARCH"
+            HitCount       = 0
             ExactJoinCount = 0
         }
         $attributeDiscoveryCache[$cacheKey] = $result
@@ -262,10 +262,12 @@ function Find-AttributeEvidenceInModel(
     Write-Host ""
     Write-Host "*** Searching model M$M source for $Group=$Value"
 
-    # Native PowerShell equivalent of findstr/grep.
+    # Native PowerShell text search. This replaces DOS findstr.
     $hits = @(Select-String -Path $files -Pattern $pattern -CaseSensitive:$false)
 
     Write-Host "    Select-String hits: $($hits.Count)"
+
+    $evidence = New-Object System.Collections.Generic.List[object]
 
     foreach ($hit in $hits) {
         $line = $hit.Line.Trim()
@@ -276,15 +278,85 @@ function Find-AttributeEvidenceInModel(
         $rawRule = $line.Substring($comma + 1).Trim()
         $tuples = @(Parse-Tuples $rawRule "DISCOVERY" 1)
 
-        $target = @($tuples | Where-Object {
-            $_.Group -eq $Group -and $_.Value -eq $Value
-        })
-
+        $target = @($tuples | Where-Object { $_.Group -eq $Group -and $_.Value -eq $Value })
         if ($target.Count -eq 0) { continue }
 
         $fileName = [IO.Path]::GetFileName($hit.Path)
 
-        if ($fileName -match '(?i)^Itm_M(\d+)_C(\d+)_I(\d+)_attributes\.xml
+        if ($fileName -match '(?i)^Itm_M(\d+)_C(\d+)_I(\d+)_attributes\.xml$') {
+            $dm = [int]$Matches[1]
+            $dc = [int]$Matches[2]
+            $di = [int]$Matches[3]
+
+            $attributesDir = Split-Path -Parent $hit.Path
+            $l0Dir = Join-Path $attributesDir "L0"
+            $l0 = Join-Path $l0Dir "Itm_M$($dm)_C$($dc)_I$($di)_L0.xml"
+
+            if (-not (Test-Path -LiteralPath $l0)) { continue }
+
+            $tree = Get-Tree $l0
+            $leafMatches = @($tree.Rows | Where-Object {
+                $fields = $_.Fields
+                $fields.Count -ge 12 -and ([string]$fields[$fields.Count - 1]).Trim() -eq $recordKey
+            })
+
+            foreach ($leaf in $leafMatches) {
+                $pathNodes = @(Get-Path $tree.Nodes $leaf.Parent)
+                $labels = @($pathNodes | Where-Object {
+                    -not [string]::IsNullOrWhiteSpace($_.Label) -and
+                    @(Parse-VinLabel ([string]$_.Label)).Count -eq 0
+                } | ForEach-Object { [string]$_.Label } | Select-Object -Unique)
+
+                $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+$' })
+                $candidate = ""
+                $joinStatus = "EXACT_PATH_CONTEXT"
+
+                if ($aTuples.Count -eq 1 -and $labels.Count -eq 1) {
+                    $candidate = $labels[0]
+                    $joinStatus = "EXACT_SOURCE_JOIN"
+                }
+
+                $evidence.Add([pscustomobject]@{
+                    Model          = "M$dm"
+                    Category       = "C$dc"
+                    Item           = "I$di"
+                    ApplicationId  = $recordKey
+                    CandidateLabel = $candidate
+                    JoinStatus     = $joinStatus
+                    FullTreePath   = ($labels -join " > ")
+                    SourceFile     = $fileName
+                })
+            }
+        }
+    }
+
+    $exactLabels = @($evidence | Where-Object {
+        $_.JoinStatus -eq "EXACT_SOURCE_JOIN" -and -not [string]::IsNullOrWhiteSpace($_.CandidateLabel)
+    } | Select-Object -ExpandProperty CandidateLabel -Unique)
+
+    $label = ""
+    $status = "UNRESOLVED"
+
+    if ($exactLabels.Count -eq 1) {
+        $label = $exactLabels[0]
+        $status = "DISCOVERED_MODEL_SOURCE_JOIN"
+    }
+    elseif ($exactLabels.Count -gt 1) {
+        $status = "AMBIGUOUS"
+    }
+
+    $result = [pscustomobject]@{
+        Label          = $label
+        Status         = $status
+        Source         = "MODEL_SOURCE_SEARCH"
+        HitCount       = $hits.Count
+        ExactJoinCount = @($evidence | Where-Object { $_.JoinStatus -eq "EXACT_SOURCE_JOIN" }).Count
+    }
+
+    $attributeDiscoveryCache[$cacheKey] = $result
+    return $result
+}
+
 if (($Model -and -not $Category) -or ($Category -and -not $Model)) {
     throw "-Model and -Category must be supplied together."
 }
