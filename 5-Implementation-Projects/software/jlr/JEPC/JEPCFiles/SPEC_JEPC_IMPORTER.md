@@ -230,7 +230,7 @@ The importer must:
 - Preserve every raw `A` and `C` tuple and its source flags.
 - Join item-tree leaves to sidecar rows by the source application identifier.
 - Preserve the complete item-tree ancestry as evidence; do not keep only a flattened description.
-- Preserve `LH/RH` tree labels independently from `LHD/RHD` steering mappings. The current source proves they are separate path nodes, but the semantic role and applicability encoding of `LH/RH` remain to be established.
+- Preserve `LH/RH` tree descriptions independently from `LHD/RHD` steering mappings. The current source proves they are separate path nodes, but the semantic role and applicability encoding of `LH/RH` remain to be established.
 - Preserve repeated application/tree paths. Do not infer that repeated paths are duplicates or merge them into one conjunction.
 - Interpret alternative records and within-record conjunctions according to the original JEPC filtering behavior.
 - Retain unknown attribute groups/values unchanged rather than guessing their meanings.
@@ -260,7 +260,7 @@ When the parser encounters an unknown `A<group>,<value>` pair, it should attempt
 2. Parse and retain the owning source record identifier and scope.
 3. For item applicability, join the application ID to the corresponding `Itm_M<model>_C<category>_I<item>_L0.xml` leaf.
 4. Walk that exact leaf's ancestor chain and retain the complete source-visible path.
-5. Extract candidate labels only from that exact joined path.
+5. Extract candidate descriptions only from that exact joined path.
 6. Repeat across other exact occurrences of the same group/value as validation.
 7. Mark the mapping resolved only when the source joins establish a consistent source-visible meaning.
 8. If exact joined paths disagree or express several different concepts, retain all evidence and mark the mapping ambiguous/unresolved.
@@ -278,8 +278,8 @@ item_id
 application_id
 source_scope
 full_tree_path
-candidate_group_label     nullable
-candidate_value_label     nullable
+candidate_group_description nullable
+candidate_value_description nullable
 resolution_status         exact_source_join | ambiguous | unresolved
 evidence_count
 mapping_version
@@ -371,8 +371,8 @@ The research scanner's primary importer-oriented outputs are:
 Required semantics:
 
 - `category`: preserve the complete JEPC catalogue path, for example `XK8 Coupe/Convertible up to (V) 042775/INTERIOR TRIM AND LININGS/FLOOR COVERINGS/CARPETS`.
-- `occurrences`: preserve PART, application ID, catalogue path, top-level item label and exact item-tree path.
-- `filters`: consolidate discovered `A<group>,<value>` predicates into normalized include/exclude filter rows with scope, evidence count and resolution state; attach a human-readable label only when exact source joins establish it.
+- `occurrences`: preserve PART, application ID, catalogue path, top-level item description and exact item-tree path.
+- `filters`: consolidate discovered `A<group>,<value>` predicates into normalized include/exclude filter rows with scope, evidence count and resolution state; attach a human-readable description mapping only when exact source joins establish it.
 - `applicability_rules`: retain raw source rule identity and `RuleIndex`; repeated source rules are not globally intersected.
 - `vin_boundaries`: retain explicit source FROM/TO predicates and explicit catalogue-domain bounds without inventing a global VIN partition.
 
@@ -481,7 +481,7 @@ Importer behavior should incorporate these observed rules:
 - The observed default top menu is `menus/L0/models_l_id_0.xml`; jPart may instead read a configured `TopLevelMenuFile`.
 - Category data is read from `menus/L0/pl_id_<model>_l_id_0.xml`.
 - Category detail uses `cat_M<model>_C<category>_L0.xml`.
-- Top-level item labels use `tl_M<model>_C<category>_L0.xml`.
+- Top-level item descriptions use `tl_M<model>_C<category>_L0.xml`.
 - Item trees use `Itm_M<model>_C<category>_I<item>_L0.xml`. jPart also contains a lowercase `itm_M` literal, so discovery must be case-safe across filesystems.
 - A jPart record with field index 3 greater than zero is treated as a real part leaf. Preserve the original source row and ancestry when applying equivalent detection.
 - Keep both the source description and any expanded/rolled-up description; do not overwrite the source wording irreversibly.
