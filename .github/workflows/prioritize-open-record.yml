@@ -1,0 +1,35 @@
+name: Prioritize Open Issue or Pull Request
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+env:
+  PROJECT_NUMBER: "9"
+
+jobs:
+  prioritize-open-record:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout trusted main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Run real initial prioritization executor
+        env:
+          REPOSITORY: ${{ github.repository }}
+          RECORD_TYPE: ${{ github.event_name == 'issues' && 'issue' || 'pr' }}
+          RECORD_NUMBER: ${{ github.event_name == 'issues' && github.event.issue.number || github.event.pull_request.number }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.PRIORITIZATION_OPENAI_MODEL || 'gpt-5.6-luna' }}
+          GH_SYNC_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          GH_COMMENT_TOKEN: ${{ github.token }}
+        run: python .github/scripts/prioritize_open_record.py
