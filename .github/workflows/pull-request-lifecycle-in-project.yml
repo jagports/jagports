@@ -299,7 +299,7 @@ jobs:
           trap - ERR
 
 
-  request-prioritization-on-open:
+  notify-unresolved-workstream-on-open:
     if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
     permissions:
       contents: read
@@ -307,7 +307,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - name: Record automatic @priorize request and Workstream notification
+      - name: Notify Product Owner when opened PR Workstream is unresolved
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           COMMENT_TOKEN: ${{ github.token }}
@@ -322,7 +322,7 @@ jobs:
           [ -n "${GH_TOKEN:-}" ] || { echo "PROJECTS_TOKEN is not configured."; false; }
           [ -n "${COMMENT_TOKEN:-}" ] || { echo "Repository token is not available."; false; }
 
-          marker="<!-- jagports-auto-priorize-request -->"
+          marker="<!-- jagports-unresolved-pr-workstream -->"
           OWNER="${REPOSITORY%%/*}"
           NAME="${REPOSITORY##*/}"
 
@@ -357,7 +357,8 @@ jobs:
 
           case "$actual_workstream" in
             "AI OS"|VIEPS)
-              notification=""
+              echo "PASS: PR #$PR_NUMBER already has verified Workstream '$actual_workstream'; no human notification is required."
+              exit 0
               ;;
             "")
               [ -n "${PRODUCT_OWNER_GITHUB:-}" ] || { echo "Repository Actions variable PRODUCT_OWNER_GITHUB is not configured."; false; }
@@ -369,12 +370,12 @@ jobs:
               ;;
           esac
 
-          body="$(printf '%s\n@priorize %s\n\nAutomatically requested when PR #%s opened. Prioritize this Pull Request using the canonical @priorize path, including PR Priority plus Project Item Band, PR Rank, Workstream and existing lifecycle Status.%s' "$marker" "$PR_NUMBER" "$PR_NUMBER" "$notification")"
+          body="$(printf '%s%s' "$marker" "$notification")"
 
           comments="$(GH_TOKEN="$COMMENT_TOKEN" gh api --paginate "repos/$REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" | jq -s 'add // []')"
           existing_ids="$(jq -r --arg marker "$marker" '[.[] | select((.body | split("\n") | index($marker)) != null) | .id] | .[]?' <<<"$comments")"
           existing_count="$(printf '%s\n' "$existing_ids" | sed '/^$/d' | wc -l | tr -d ' ')"
-          [ "$existing_count" -le 1 ] || { echo "Multiple automatic prioritization-request comments exist."; false; }
+          [ "$existing_count" -le 1 ] || { echo "Multiple unresolved-Workstream notification comments exist."; false; }
 
           if [ "$existing_count" -eq 1 ]; then
             created_id="$(printf '%s\n' "$existing_ids" | sed '/^$/d' | head -n1)"
@@ -383,16 +384,15 @@ jobs:
             created="$(GH_TOKEN="$COMMENT_TOKEN" gh api --method POST "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body")"
             created_id="$(jq -r '.id // empty' <<<"$created")"
           fi
-          [ -n "$created_id" ] || { echo "Automatic prioritization request comment was not created or resolved."; false; }
+          [ -n "$created_id" ] || { echo "Unresolved-Workstream notification comment was not created or resolved."; false; }
 
           verify="$(GH_TOKEN="$COMMENT_TOKEN" gh api "repos/$REPOSITORY/issues/comments/$created_id")"
           verify_body="$(jq -r '.body // empty' <<<"$verify")"
           grep -Fxq "$marker" <<<"$verify_body" || { echo "Marker verification failed."; false; }
-          grep -Fxq "@priorize $PR_NUMBER" <<<"$verify_body" || { echo "@priorize request verification failed."; false; }
           if [ -z "$actual_workstream" ]; then
             grep -Fq "@$PRODUCT_OWNER_GITHUB **Human action required:** Workstream is unassigned." <<<"$verify_body" || { echo "Product Owner mention / human Workstream notification verification failed."; false; }
             grep -Fq "$pr_url" <<<"$verify_body" || { echo "Pull request link notification verification failed."; false; }
             grep -Fq "$project_item_view_url" <<<"$verify_body" || { echo "Filtered Project item view notification verification failed."; false; }
           fi
 
-          echo "PASS: PR #$PR_NUMBER received the automatic @priorize request; Workstream state and any required human notification were verified."
+          echo "PASS: PR #$PR_NUMBER Workstream state and any required human notification were verified; no inert @priorize comment was created."

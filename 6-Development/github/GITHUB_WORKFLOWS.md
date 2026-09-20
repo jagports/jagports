@@ -73,14 +73,22 @@ Execution sequence:
 
 `resolve target → classify Issue/PR → calculate/accept Band + mapped Priority + Rank → synchronize only that target → independently verify → report`
 
-The short `@priorize <numbers>` form is sufficient for both Issues and Pull Requests. It prioritizes every referenced record directly according to its record type.
+The short `@priorize <numbers>` form is the canonical user/agent command **when it is received by a reasoning executor capable of performing this procedure**. Merely persisting that text in a GitHub comment does not execute prioritization. Repository automation must not create inert `@priorize` comments as substitutes for an executor.
 
 ### Automatic prioritization on open
 
-- Issue open automatically invokes the same initial prioritization behavior as `@priorize <Issue-number>`.
-- Pull Request open automatically invokes the same initial prioritization behavior as `@priorize <PR-number>`.
+There are two valid execution paths:
+
+1. **Interactive ChatGPT `@open` path** — when ChatGPT creates the Issue or Pull Request in the current execution, that same ChatGPT execution immediately performs the canonical initial prioritization pass, emits the bounded synchronization record, and independently verifies the result before claiming prioritization success.
+2. **Unattended/external GitHub-open path** — when a record is opened outside an active ChatGPT execution, repository/agent automation must invoke or enqueue work for a real reasoning executor.
+
+- Issue open must invoke or enqueue work for a real reasoning executor that performs the same initial prioritization behavior as `@priorize <Issue-number>`.
+- Pull Request open must invoke or enqueue work for a real reasoning executor that performs the same initial prioritization behavior as `@priorize <PR-number>`.
+- Interactive `@open` must not stop after record creation when ChatGPT itself is already the available reasoning executor.
+- Repository lifecycle workflows must not create inert `@priorize` comments when no executor consumes them.
 - Both automatic paths are bounded to the newly opened record and do not bulk-score the existing backlog.
-- The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers, not separate prioritization models.
+- The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers into the executor, not separate prioritization models.
+- Missing/unavailable reasoning runtime is an execution dependency failure. The system may retain internal retry state, but it must not claim Priority/Band/Rank/Workstream were assessed or synchronized.
 
 
 ---
