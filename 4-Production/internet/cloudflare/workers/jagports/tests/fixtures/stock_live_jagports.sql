@@ -29,7 +29,7 @@ INSERT OR IGNORE INTO part (
   'live-inventory'
 );
 
--- Extend the #607 searchable fixture set with one real historical stocked PART.
+-- Extend the #607 searchable fixture set with one real live stocked PART.
 INSERT OR IGNORE INTO part_tree_part (tree_node_id, part_id)
 SELECT 60705, id
 FROM part
