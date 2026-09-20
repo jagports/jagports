@@ -231,37 +231,84 @@ The importer must:
 
 ### Attribute dictionary derivation
 
-Attribute decoding is an importer/research operation, not a fixed five-field VIN schema.
+Attribute decoding is an importer/research operation, not a fixed five-field VIN schema and not a probabilistic classification task.
 
-For every application ID, correlate:
+The VIN decode response carries numeric attribute IDs/value IDs in `TokenString`. The original JEPC `AJAX_Util.js` parses those tokens and prepends `A` to the group ID before passing them into applicability filtering:
 
 ```text
-raw applicability tuples
-        +
-full item-tree ancestry
-        +
-part occurrence
-        =
-attribute mapping evidence
+[37,614]
+   ->
+[A37,614]
 ```
 
-Repeated independent correlations may establish a human-readable value mapping. Store the source IDs even after a label is established.
+The importer must therefore treat `A<group>` as JEPC's normalized applicability form of a numeric VIN-decoder attribute group.
 
-Recommended mapping representation:
+#### Unknown A-code resolution
+
+When the parser encounters an unknown `A<group>,<value>` pair, it should attempt deterministic source resolution:
+
+1. Search the applicable JEPC source scope for the exact `A<group>,<value>` tuple in `*_attributes.xml`.
+2. Parse and retain the owning source record identifier and scope.
+3. For item applicability, join the application ID to the corresponding `Itm_M<model>_C<category>_I<item>_L0.xml` leaf.
+4. Walk that exact leaf's ancestor chain and retain the complete source-visible path.
+5. Extract candidate labels only from that exact joined path.
+6. Repeat across other exact occurrences of the same group/value as validation.
+7. Mark the mapping resolved only when the source joins establish a consistent source-visible meaning.
+8. If exact joined paths disagree or express several different concepts, retain all evidence and mark the mapping ambiguous/unresolved.
+
+Do not promote a mapping from frequency, proximity, category correlation, external vehicle knowledge or absence of competing predicates.
+
+Recommended discovery output:
 
 ```text
 source_attribute_group_id
 source_attribute_value_id
-group_label        nullable
-value_label        nullable
-mapping_status     direct | derived | unknown
+model_id
+category_id
+item_id
+application_id
+source_scope
+full_tree_path
+candidate_group_label     nullable
+candidate_value_label     nullable
+resolution_status         exact_source_join | ambiguous | unresolved
+evidence_count
 mapping_version
-mapping_evidence
 ```
 
-The five IDs hard-coded in `VinDecode.js` are the selectors exposed by that VIN/search UI. They provide evidence for those individual group names, but they are not evidence of the complete JEPC attribute universe.
+Unknown mappings must remain importable as raw applicability evidence.
 
-Unknown mappings must remain available for later reconciliation and must not prevent importing the raw applicability evidence.
+#### Confirmed X100 decoding examples
+
+The following exact joins are implementation fixtures for the decoder:
+
+```text
+Itm_M3187_C5681_I1_attributes.xml
+  120137,[A37,615,0,0]
+
+Itm_M3187_C5681_I1_L0.xml
+  Coupe
+    ... application 120137
+
+=> A37=615 -> Coupe
+```
+
+```text
+Itm_M3187_C5681_I2_attributes.xml
+  120140,[A37,614,0,0]
+
+Itm_M3187_C5681_I2_L0.xml
+  Convertible 2+2
+    ... application 120140
+
+=> A37=614 -> Convertible 2+2
+```
+
+Together with other exact X100 source joins, `A37=617` resolves to `Convertible`.
+
+These mappings are model/source evidence, not global constants. The decoder must retain provenance and be able to detect a conflicting meaning in another JEPC model or dataset version.
+
+The five IDs hard-coded in `VinDecode.js` are selectors exposed by that VIN/search UI. They provide direct evidence for those individual group names, but they are not evidence of the complete JEPC attribute universe.
 
 ## Phase 5 — Media import
 
@@ -354,6 +401,7 @@ Large media assets are not stored inside relational tables.
 - [ ] Catalogue hierarchy imported.
 - [ ] Part references resolved.
 - [ ] Applicability stored as generic rules.
+- [ ] Unknown A-code source-join decoding implemented with provenance and ambiguous/unresolved handling.
 - [ ] Media conversion pipeline defined.
 
 ## Parser behavior learned from JEPC and jPart
