@@ -1,0 +1,3 @@
+Disposable fixture for testing PR work-control snapshot publication permissions on current main.
+
+Do not merge.
