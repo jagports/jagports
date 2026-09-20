@@ -40,6 +40,20 @@ One `PART` may have multiple independent stock records.
 
 Stock does not assign a distinct persistent identity to every physical unit. `quantity` is the integer count of physical items represented by the stock record.
 
+## Reusable third-party and Jagports specified PART linkage
+
+Reusable third-party product identity is governed by `MODEL_PART_THIRD_PARTY.md`; this STOCK model only defines how operational inventory links to that canonical identity.
+
+- For a verified 1:1 vendor product, `stock_item.part_id` references the existing Jaguar canonical PART.
+- For a non-1:1 reusable vendor product, `stock_item.part_id` references the Jagports specified canonical PART created for that product.
+- The Jagports specified PART retains its mandatory Jaguar parent and `third_party_part_xref` evidence outside STOCK.
+- Vendor identity and vendor part number remain third-party PART evidence. They are not encoded by changing `stock_item.part_id` to the Jaguar parent.
+- `stock_source_party` records acquisition/source-party evidence for the stock record. It is not the vendor-product cross-reference model.
+- A vendor may appear in both roles only when both facts are independently true; one role must not be inferred from the other.
+- `part_id IS NULL` remains valid for unresolved/non-reusable stock, but a known reusable product should use its established canonical Jaguar or Jagports specified PART rather than remain permanently unresolved.
+
+Stock mutation must not create, rewrite or delete the third-party PART relationship evidence implicitly. PART/xref creation belongs to the approved canonical product workflow; STOCK then links to the resulting canonical PART.
+
 ## Normalized stock quality / condition code
 
 `stock_item.condition_code` stores the controlled stock quality / condition code when the stock quality has been classified.
