@@ -41,13 +41,15 @@ For every GitHub work request, regardless of requester type:
 7. Verify any historical implementation that claims to satisfy the request.
 8. If valid and still satisfying the request, do not create duplicate active work.
 9. If insufficient, obsolete, superseded, or broken, create/reuse active work and reference the historical item.
-10. After Issue resolution, search open PRs before creating a PR.
-11. Reuse a clear open PR or legitimately extend it when scope remains clear.
-12. If no suitable open PR exists, search merged PRs and verify any claimed prior implementation.
-13. If the merged implementation is still sufficient, do not create duplicate implementation work.
-14. Otherwise create a PR through the Repository Change Gate.
-15. One PR may genuinely resolve multiple Issues; maintain explicit traceability to every Issue.
-16. Once identity and scope are resolved, proceed automatically without unnecessary confirmation.
+10. Before creating an implementation branch or modifying repository content, verify that Issue discovery is complete and at least one concrete owning Issue number has been resolved. If none exists, create/reuse the Issue first; do not begin implementation and repair ownership later.
+11. After Issue resolution, search open PRs before creating a PR.
+12. Reuse a clear open PR or legitimately extend it when scope remains clear.
+13. If no suitable open PR exists, search merged PRs and verify any claimed prior implementation.
+14. If the merged implementation is still sufficient, do not create duplicate implementation work.
+15. Immediately before invoking PR creation, verify again that at least one valid owning Issue exists and that the new PR description will contain a GitHub-native same-repository closing relationship such as `Closes #123`, `Fixes #123`, or `Resolves #123`.
+16. Otherwise create a PR through the Repository Change Gate.
+17. One PR may genuinely resolve multiple Issues; maintain explicit traceability to every Issue.
+18. Once identity and scope are resolved, proceed automatically without unnecessary confirmation.
 
 ---
 
@@ -88,26 +90,6 @@ The supported automatic-open prioritization path is **interactive ChatGPT `@open
 
 ---
 
-## Pre-PR Owning-Issue Gate
-
-Before any material repository modification begins, the executor must resolve and verify at least one valid owning GitHub Issue for the work. The owning Issue must exist before the implementation branch is created and before repository files are modified.
-
-Before invoking any Pull Request creation operation, the executor must verify again that the PR has at least one valid same-repository owning Issue and must include a GitHub-native closing relationship in the PR description, using canonical syntax such as `Closes #123`, `Fixes #123`, or `Resolves #123`.
-
-Required sequence:
-
-`resolve/reuse owning Issue → classify/prioritize as required → create/reuse dedicated branch → modify repository → create PR with closing relationship`
-
-If no suitable Issue exists, create the Issue first through the normal `@open` flow. Do not create an implementation PR first and add an Issue afterward.
-
-Do not infer PR ownership from arbitrary Issue mentions, title text, branch names, labels, repository paths, or semantic similarity.
-
-There is no normal mergeable exemption for repository changes targeting `main`. A controlled negative-test fixture may intentionally omit the closing relationship only when an already-existing owning test Issue explicitly requires validation of the failure path; such a fixture is expected to fail **Validate PR Issue Traceability** and must not be merged.
-
-The repository workflow `.github/workflows/validate-pr-issue-traceability.yml` independently enforces this relationship at PR validation time. Repository/ruleset configuration should require its **Validate PR Issue Traceability** check before merge to `main`.
-
----
-
 ## Repository Change Gate
 
 Every GitHub repository modification follows the controlled path:
@@ -117,8 +99,11 @@ Every GitHub repository modification follows the controlled path:
 Rules:
 
 - Never modify `main` directly.
-- Every change is made on a dedicated branch.
+- Every change is made on a dedicated branch only after a concrete owning Issue has been resolved.
 - Every change integrates through a PR.
+- Before PR creation, re-verify the owning Issue identity and include at least one GitHub-native same-repository closing relationship in the PR description.
+- Arbitrary Issue mentions, title text, branch names, labels, repository paths, or semantic similarity do not satisfy owning-Issue traceability.
+- Do not create an implementation PR first and add its Issue afterward.
 - The PR must explicitly trace to every Issue it implements/resolves.
 - Do not attempt GitHub Project management, Project View reads, Project Item reads, Project Item Status reads, Project Item mutations, Project Item Status mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this current ChatGPT/GitHub connection.
 - When Project state would normally be relevant through this current connection, record: `*** !!! ALERT - GitHub Project functions are non-existing !!! ***`
@@ -179,9 +164,13 @@ A post-merge test cannot substitute for required pre-merge validation. `FAIL`, `
 
 ## GitHub Issue Closing Syntax
 
-Every PR that completes an Issue must use the GitHub closing form:
+Every PR that completes or implements repository work targeting `main` must carry at least one GitHub-native same-repository closing relationship to its owning Issue. Canonical forms include:
 
 `Closes #123`
+
+`Fixes #123`
+
+`Resolves #123`
 
 Do not use only task identifiers or prose such as `Closes 123` or `Closes Issue 123`.
 
