@@ -48,6 +48,7 @@ export function database({ fixtures = true } = {}) {
       db.exec(sql('tests/fixtures/stock_storage.sql'));
       db.exec(sql('tests/fixtures/vieps_searchable_fixture_dataset.sql'));
       db.exec(sql('tests/fixtures/occurrence_applicability.sql'));
+      db.exec(sql('tests/fixtures/part_tree_occurrence.sql'));
       return db;
     }
   }
@@ -57,6 +58,7 @@ export function database({ fixtures = true } = {}) {
     db.exec(sql('tests/fixtures/part_presentation.sql'));
     db.exec(sql('tests/fixtures/part_model_integrity.sql'));
     db.exec(sql('tests/fixtures/occurrence_applicability.sql'));
+    db.exec(sql('tests/fixtures/part_tree_occurrence.sql'));
   }
   return db;
 }
