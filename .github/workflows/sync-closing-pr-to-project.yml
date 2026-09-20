@@ -23,7 +23,7 @@ jobs:
       - name: Move closing-linked Issues to IMPLEMENTATION
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
-          COMMENT_TOKEN: ${{ github.token }}
+          COMMENT_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         shell: bash
