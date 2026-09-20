@@ -10,7 +10,9 @@ Occurrence-bound grouped applicability and versioned source-evidence semantics a
 
 ## Canonical PART identity
 
-`PART` is the stable catalogue/reference identity.
+`PART` is the stable reusable product/reference identity used by VIEPS.
+
+The same canonical `part(id)` namespace contains both imported Jaguar/JEPC PARTs and manually created Jagports specified PARTs. A Jagports specified PART is canonical inside VIEPS but is not Jaguar-issued and must remain distinguishable by origin/provenance.
 
 The internal `id` is the stable PART identity. A part number can be attached later without changing that identity.
 
@@ -208,7 +210,9 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item` is an operational record and is not a catalogue PART identity.
 
-`stock_item.part_id` is a nullable foreign key to canonical `part(id)`, allowing a resolved stock record to point to the catalogue identity while leaving unresolved/non-catalogue stock with `part_id = NULL`.
+`stock_item.part_id` is a nullable foreign key to canonical `part(id)`. When reusable identity is established it points to that canonical PART, whether the PART is an imported Jaguar/JEPC PART or a Jagports specified PART created under `MODEL_PART_THIRD_PARTY.md`.
+
+`stock_item.part_id = NULL` does **not** mean merely "not found in Jaguar/JEPC". It is reserved for stock whose reusable product identity is genuinely unresolved. A known reusable third-party product must first resolve to either an existing Jaguar PART (verified 1:1 case) or a Jagports specified PART (non-1:1 reusable case).
 
 The existing `stock_item.part_number` field is retained as the stocked or historical part-number reference.
 
@@ -220,7 +224,7 @@ Donor vehicle identity is represented separately by nullable `stock_item.donor_v
 
 This is distinct from catalogue vehicle/model/VIN applicability and from physical stock/storage location.
 
-Unresolved/non-catalogue stock is representable without fabricating a canonical PART.
+Unresolved stock is representable without fabricating a canonical PART. Conversely, known reusable third-party products must not be kept unresolved merely because Jaguar did not issue the vendor product number.
 
 The stock relationship does not implement warehouse transaction history, reservations, sales workflow, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
 
@@ -325,7 +329,7 @@ The implemented occurrence applicability persistence dictionary is maintained in
 | Diagram → hotspot | 1:N required diagram; deleting diagram removes hotspots. |
 | Occurrence → hotspot | 1:N optional occurrence; deleting occurrence SET NULL preserves hotspot/source evidence. |
 | Occurrence → vehicle location | 1:N required occurrence; optional model range. Deleting occurrence or a referenced model removes the mapping. |
-| PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 PART and 0..1 donor. Deleting either parent SET NULL preserves stock identity, quantity, historical number, donor text and location. Supersession never mutates stock. |
+| PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 canonical PART and 0..1 donor. The PART may be Jaguar/JEPC-imported or Jagports specified. `part_id = NULL` is reserved for genuinely unresolved reusable identity. Deleting either parent SET NULL preserves stock identity, quantity, historical number, donor text and location. Supersession never mutates stock. |
 | Vehicle → identifiers | 1:N; cascade on vehicle deletion. Identifier text is not unique. |
 | Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. Current N:M PART membership remains a broad browse summary. |
 | Tree ↔ occurrence/path | `part_occurrence_tree_path` is N:M where necessary: one occurrence may retain multiple source paths; deleting occurrence or tree node cascades only the link rows. |
