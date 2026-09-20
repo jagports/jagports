@@ -130,8 +130,9 @@ Minimum fields:
 - `vendor_id` — identifies the vendor;
 - canonical `part_id`;
 - vendor part number;
-- vendor product name/description;
-- product/source URL where available;
+- `manufacturer` — manufacturer/brand of the vendor product, kept distinct from the vendor/seller;
+- `description` — vendor-product description;
+- one or more product/source URLs where available;
 - `verification_status`;
 - `verification_date`.
 
@@ -202,9 +203,10 @@ These rules are part of the implementation contract and must be enforced either 
 | `third_party_part.third_party_part_id` | required | globally unique stable vendor-product reference identity. |
 | `third_party_part.vendor_id` | required FK | many products may belong to one vendor. |
 | vendor part number | required, nonblank | unique within one vendor after the implementation's deterministic normalization; the same text may exist under another vendor. |
+| `manufacturer` | required, nonblank | manufacturer/brand of the vendor product; distinct from the vendor/seller identity and not assumed globally unique. |
+| `description` | required, nonblank | human-readable vendor-product description; not identity. |
 | `third_party_part.part_id` | required FK for a reusable represented product | points to the existing Jaguar PART for verified 1:1 products or to the Jagports specified PART for non-1:1 products. |
-| vendor product description/name | nullable | not unique. |
-| product/source URL | nullable | evidence, not identity. |
+| product/source URL(s) | zero or more | evidence, not identity; several URLs may be retained for one vendor product. Exact duplicate URL rows for one vendor product are invalid. |
 | `verification_status` | required | only `unverified` or `verified`. |
 | `verification_date` | nullable while unverified; required when status is `verified` | one date value for the current verification claim. |
 | `third_party_part_xref.third_party_part_xref_id` | required | globally unique. |
@@ -225,31 +227,45 @@ At minimum, executable or specification-level fixtures must cover these two path
 
 ### Fixture A — verified 1:1 vendor product
 
-- existing Jaguar PART: `JAG-100`;
-- vendor: `Example Vendor`;
-- vendor PN: `EV-100`;
-- `third_party_part.part_id` points to canonical `JAG-100`;
-- one verified `third_party_part_xref` uses `relationship_type = equivalent_to` and points to `JAG-100`;
-- no Jagports specified PART is created;
-- operational STOCK for the product may point to `JAG-100` while retaining vendor-product evidence separately.
+Use a fixture Jaguar PART `JLM21917-Fixture` and at least two vendor-product records that both resolve to that same canonical Jaguar PART.
+
+Representative fixture values include:
+
+- Jaguar PART: `JLM21917-Fixture`;
+- vendor: `Nimark-fixture`;
+- vendor PN: `2312601-fixture`;
+- manufacturer: a separate nonblank manufacturer fixture value, for example `ManufacturerA-fixture`;
+- description: `Nimark-Korjaussarja, jarrusatula (Etuakseli)-Fixture`;
+- product URL: `https://www.nimark.fi/buy/autofrenseinsa_d41792c/`;
+- a second vendor-product fixture for the same `JLM21917-Fixture`, for example vendor `Motonet-fixture`, with its own vendor PN, manufacturer, description and URL;
+- second description: `Motonet-Jarrusatulan korjaussarja-Fixture`;
+- second product URL: `https://www.motonet.fi/tuote/jarrusatulan-korjaussarja-23-00843?product=23-00843`;
+- each `third_party_part.part_id` points to canonical `JLM21917-Fixture`;
+- each verified `third_party_part_xref` uses `relationship_type = equivalent_to` and points to `JLM21917-Fixture`;
+- no Jagports specified PART is created for either verified 1:1 product;
+- operational STOCK may point to `JLM21917-Fixture` while vendor-product evidence remains separate.
 
 Expected results:
 
-- search by `EV-100` may resolve to the existing Jaguar PART with vendor identity shown;
-- no duplicate canonical PART exists for `EV-100`;
-- STOCK identity remains operational and separate from the xref.
+- both vendor PNs may resolve to the same existing Jaguar PART while preserving their different vendor and manufacturer identities;
+- multiple source/product URLs may be retained without collapsing vendor-product identity;
+- no duplicate canonical PART is created merely because vendor, manufacturer, description or URL differs;
+- STOCK identity remains operational and separate from the vendor/xref evidence.
 
 ### Fixture B — non-1:1 Jagports specified PART
 
-- existing Jaguar parent PART: `JAG-200`;
-- vendor: `Example Vendor`;
-- vendor PN: `KIT-42`;
-- new canonical Jagports specified PART: `JAG-200+KIT-42`;
+- existing Jaguar parent PART: `MJD7843AA-Fixture`;
+- vendor: a nonblank vendor fixture identity;
+- vendor PN: a nonblank vendor-PN fixture value;
+- manufacturer: a separate nonblank manufacturer fixture value;
+- description: a nonblank vendor-product description;
+- new canonical Jagports specified PART: `MJD7843AA-Fixture+<3rdPartyPN>`;
 - `source_origin = AddedManually`;
-- `third_party_part.part_id` points to `JAG-200+KIT-42`;
-- exactly one `parent_part` xref points to `JAG-200` and retains the selected category/item/occurrence context;
-- optional additional `component_of` xrefs are allowed only when separately evidenced;
-- operational STOCK points to `JAG-200+KIT-42`, not to the Jaguar parent.
+- `third_party_part.part_id` points to the new Jagports specified PART;
+- exactly one `parent_part` xref points to `MJD7843AA-Fixture` and retains the selected category/item/occurrence context;
+- separately evidenced `component_of` references may include `JLM20079-Fixture`, `JLM21466-Fixture`, `JLM20078-Fixture`, and `JLM21465-Fixture`;
+- the reference image/source may retain `https://parts.jaguarlandroverclassic.com/jlm20079-brake-caliper.html` as evidence for the NSS + item-7 context;
+- operational STOCK points to the Jagports specified PART, not to `MJD7843AA-Fixture` or any `component_of` reference.
 
 Expected results:
 
@@ -258,7 +274,7 @@ Expected results:
 - deleting or changing operational STOCK does not alter the PART/xref evidence;
 - unresolved STOCK is not used once this reusable identity has been established.
 
-Fixtures must also include invalid cases for duplicate logical xrefs, a second `parent_part` for the same non-1:1 vendor product, missing mandatory parent context, invalid relationship type, verified status without verification date, and duplicate vendor PN within one vendor.
+Fixtures must also include invalid cases for duplicate logical xrefs, a second `parent_part` for the same non-1:1 vendor product, missing mandatory parent context, missing manufacturer, missing description, invalid relationship type, verified status without verification date, duplicate vendor PN within one vendor, and duplicate product URL rows for one vendor product.
 
 ## MVP / Post-MVP boundary
 
@@ -271,7 +287,7 @@ The MVP must be able to:
 - create/select a Jagports specified canonical PART for a non-1:1 reusable product;
 - require exactly one Jaguar parent and retain the selected category/item/occurrence/PART context for that Jagports specified PART;
 - form and present the Jagports specified identifier as `<JaguarPN>+<3rdPartyPN>`;
-- retain vendor identity, vendor PN, verification state and the required cross-reference evidence;
+- retain vendor identity, vendor PN, manufacturer, description, one-or-more source/product URLs where evidenced, verification state and the required cross-reference evidence;
 - link operational STOCK to the correct canonical PART without mixing vendor reference data into mutable STOCK;
 - preserve an unresolved STOCK path only when a reusable canonical product identity is genuinely not established.
 
@@ -443,6 +459,7 @@ Implementation must preserve:
 - required category/item/occurrence/PART reference for the selected parent;
 - combined `<JaguarPN>+<3rdPartyPN>` numbering for non-1:1 Jagports specified PARTs;
 - third-party vendor identity and URLs;
+- vendor-product manufacturer, description and multiple source/product URLs;
 - verification status and verification date;
 - suitability identical to the referenced Jaguar PART/context;
 - vendor evidence separate from mutable STOCK.
@@ -456,12 +473,12 @@ Implementation must preserve:
 - The Jagports specified part number is formed as `<JaguarPN>+<3rdPartyPN>`.
 - Third-party suitability is the same as the referenced Jaguar PART/context and does not create an independent applicability rule set.
 - `third_party_vendor` supports vendor ID, name and one or more home URLs, with descriptions when several URLs are stored.
-- `third_party_part` stores vendor product identity, verification status and verification date.
+- `third_party_part` stores vendor product identity, manufacturer, description, one-or-more product/source URLs where evidenced, verification status and verification date.
 - Verification status has clear `unverified` and `verified` meanings and the date selector defaults to the current day.
 - Stock Admin can select the Jaguar parent directly or through the imported PART tree.
 - Only reusable products are created through this specification.
 - Optional visual-location evidence is delegated to `MODEL_PART_THIRD_PARTY_LOCATION.md`.
 - `third_party_part_xref` has an explicit record contract, relationship vocabulary, cardinality and logical uniqueness rules.
-- Third-party vendor/product/xref fields have explicit required/nullability and uniqueness expectations.
+- Third-party vendor/product/xref fields have explicit required/nullability and uniqueness expectations, including separate manufacturer and description fields plus multiple product/source URLs.
 - Representative deterministic fixtures cover both verified 1:1 and non-1:1 Jagports specified PART paths plus invalid cases.
 - The retained MVP boundary is explicit and separates required Stock Admin identity/linkage behavior from Post-MVP vendor/marketplace extensions.
