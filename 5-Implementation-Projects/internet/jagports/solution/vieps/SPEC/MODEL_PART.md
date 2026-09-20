@@ -26,9 +26,23 @@ Unresolved physical stock does not require a PART row.
 | `part_number_raw` | optional | Original part-number representation supplied by the source, when known. |
 | `part_number_normalized` | optional, unique when present | Stable lookup identity derived from the raw part number. Multiple NULL values are allowed. |
 | `description` | optional, non-unique | Part description/name; may be empty or NULL. Descriptions are not identity because different parts can share the same description. |
+| `source_origin` | required | How the PART record entered the PART database. Controlled values: `ImportJEPC` or `AddedManually`. |
 | `source` | optional | Source system/document identifier. |
 | `source_ref` | optional | Source reference or URL where available. |
 | `verification_status` | required | Provenance/verification state; defaults to `unverified`. |
+
+## PART record origin
+
+`part.source_origin` records how the PART record entered the PART database.
+
+Allowed values are:
+
+- `ImportJEPC` — the PART record was created from JEPC importer output;
+- `AddedManually` — the PART record was created manually in VIEPS, including Jagports specified third-party PARTs.
+
+This field records record origin only. It does not replace detailed `source`, `source_ref`, verification, occurrence, or importer provenance evidence.
+
+A later verification or enrichment step must not change `source_origin`; the value describes how the canonical PART record was first created.
 
 ## Unidentified parts
 
