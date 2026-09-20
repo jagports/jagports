@@ -153,25 +153,21 @@ Vendor price snapshots are not operational Jagports stock sale-price state and m
 
 ## Suitability and applicability authority
 
-A relationship to a Jaguar parent PART or service item does not by itself prove that a Jagports/third-party product fits every vehicle context in which that Jaguar identity appears.
+A Jagports/third-party PART does not define an independent vehicle-applicability model when it is referenced as fitting an existing Jaguar/JEPC PART or service-item occurrence.
 
-Third-party/NSS suitability must use verified applicability evidence at the relevant JEPC occurrence/context level when the source differentiates fitment there.
+Its suitability is the same as the verified Jaguar/JEPC reference to which it is mapped.
 
-Relevant constraints can include:
+Where one Jaguar PART appears in several JEPC occurrences with different conditions, the Jagports/third-party product must map to the specific supported occurrence or occurrences. For every selected occurrence, the third-party product reuses that occurrence's complete verified applicability; it must not rewrite, broaden, narrow, or reinterpret the occurrence's condition sets.
 
-- engine or engine variant;
-- supercharged/non-supercharged or source `Except ...` semantics;
-- LH/RH position;
-- body, market or Region;
-- VIN serial boundaries;
-- source revisions/releases;
-- other JEPC attributes or grouped condition sets.
+Therefore:
 
-The grouped occurrence/condition-set authority is `MODEL_PART_APPLICABILITY.md`. Third-party applicability must preserve those occurrence-bound condition sets and source-evidence versions rather than flattening them into a generic parent-PART fitment.
+- a relationship to a canonical Jaguar PART is sufficient only when that PART has one unambiguous applicability scope for the intended use;
+- where JEPC distinguishes applicability by occurrence, the mapping is occurrence-specific;
+- if vendor/Jagports evidence supports only some occurrences of the Jaguar PART, map only those occurrences rather than creating third-party-specific fitment conditions;
+- unselected Jaguar occurrences remain unsupported/unmapped for that third-party product; they are not implicitly excluded Jaguar fitments and are not copied into the third-party product;
+- grouped applicability, source-version context, evidence and evaluation semantics remain owned by [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md).
 
-One Jagports product may map to multiple JEPC occurrences. Each occurrence mapping retains its own provenance, applicability state, condition groups and source-version context.
-
-Applicability must not be guessed by copying a parent PART's or service PART's entire fitment set.
+This model therefore stores the **reference/mapping to the Jaguar applicability authority**, not a second competing set of vehicle-fitment rules for the third-party product.
 
 ## JEPC service-item scope extension
 
@@ -179,7 +175,12 @@ Applicability must not be guessed by copying a parent PART's or service PART's e
 
 It is distinct from physical containment, separately-serviceable-subpart structure, verified interchangeability, and Jaguar supersession.
 
-A service-scope extension should be anchored as precisely as JEPC evidence permits. A canonical relation to a Jaguar service PART can support search/discovery, but authoritative applicability maps to the relevant JEPC `part_occurrence`/service-item context when JEPC branches that item by qualifiers.
+The relation should be anchored as precisely as the catalogue evidence permits:
+
+- the Jaguar/JEPC service PART provides the canonical service reference;
+- when that service PART has multiple occurrence-specific applicability contexts, the Jagports/third-party product identifies the supported occurrence(s);
+- suitability for each mapped occurrence is exactly the suitability of that Jaguar occurrence as defined by the canonical applicability authority;
+- the third-party model does not duplicate the grouped conditions from the applicability specification.
 
 Conceptually:
 
@@ -188,41 +189,22 @@ Jagports PART
    |
    +--> service_scope_extension_of --> Jaguar service PART
    |
-   +--> occurrence mapping A + grouped conditions/provenance
-   +--> occurrence mapping B + grouped conditions/provenance
-   +--> excluded/unavailable occurrence C where evidence requires
+   +--> supports Jaguar occurrence A
+   +--> supports Jaguar occurrence B
 ```
 
-## JEPC importer relationship
+The meaning of each occurrence's conditions and evaluation is defined only by `MODEL_PART_APPLICABILITY.md`.
 
-The JEPC importer imports source occurrence/context and applicability evidence accurately enough for downstream consumers to evaluate these mappings.
+## Imported JEPC evidence boundary
 
-The importer does not create Jagports product policy and does not import mutable Jagports stock.
+Importer behavior is specified by the dedicated JEPC importer work and is not redefined here.
 
-Imported data must retain unresolved source values where semantics are not verified.
+Authoritative importer references include:
 
-The long-term relationship is:
+- [Issue #355 — IMPL / JEPC Data Importer](https://github.com/jagports/jagports/issues/355);
+- `5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/SPEC_DataImporter_v0.1.md`.
 
-```text
-JEPC source
-   |
-   v
-JEPC importer
-   |
-   v
-Jaguar PART + category/item + occurrence + applicability evidence
-   |
-   +------------------------------+
-                                  |
-                           Jagports-owned PART
-                           relationship/mapping
-                                  |
-                                  v
-                          verified suitability
-                                  |
-                                  v
-                           operational stock
-```
+This third-party PART model consumes imported canonical PART, occurrence and applicability evidence through the owning VIEPS model specifications. It must not duplicate importer parsing, transformation, publication, source-version or recovery requirements.
 
 ## Transitional evidence boundary
 
@@ -291,7 +273,9 @@ A third-party supplier may provide cylinder/piston content together with seals e
 
 The Jagports/vendor product is therefore modeled primarily as a `service_scope_extension_of` the relevant item-7 occurrence(s), with optional separately verified `component_of` / `service_subpart_of` relations to complete caliper assemblies.
 
-Each applicable occurrence is mapped independently so supercharged/excluded and VIN-boundary distinctions are preserved.
+Each supported Jaguar seal-kit occurrence is mapped independently. The Jagports/vendor product has exactly the same suitability as each mapped Jaguar occurrence, including its supercharged / `Except 4.0 Litre supercharged` and VIN-boundary conditions.
+
+If the vendor product is verified for only a subset of the Jaguar seal-kit occurrences, VIEPS maps only that subset; it does not create a new third-party applicability rule by editing the Jaguar occurrence conditions.
 
 This is a model example based on supplied JEPC evidence. It is not a claim that every visible occurrence has been independently verified as suitable for any specific vendor product.
 
@@ -323,6 +307,18 @@ The selector should expose enough source context to support deliberate mappings,
 
 One Jagports product may map to multiple categories/occurrences. Each selected mapping remains independently traceable and must not broaden suitability beyond its evidence.
 
+## Optional visual-location evidence
+
+Optional visual-location evidence for Jagports-owned / third-party / NSS PARTs is separate follow-up functionality and is **not a blocking requirement for this specification**.
+
+[Issue #827 — SPEC / Optional visual-location evidence for third-party PARTs](https://github.com/jagports/jagports/issues/827) owns that work.
+
+That follow-up may support:
+
+- a Jagports-created point/region reference to the relevant location on an imported JEPC illustration without altering the JEPC source image or claiming an imported Jaguar hotspot; and/or
+- an uploaded Jagports location/reference image or other explanatory image.
+
+Any such evidence must preserve provenance and remain distinguishable from imported JEPC diagram/hotspot evidence. Absence of visual-location evidence must not block Jagports PART or STOCK creation.
 ## Search and presentation requirements
 
 Search may resolve Jaguar/JEPC numbers, Jagports-owned identifiers, vendor references and descriptions to canonical PART identity.
