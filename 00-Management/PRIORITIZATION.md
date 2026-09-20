@@ -10,6 +10,55 @@ It complements, and does not redefine:
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
+## Prioritization system at a glance
+
+**Score explains why; Priority says importance; Rank says what next; Status says where it is.**
+
+Current capabilities:
+
+- **Score** — `-10...+10` analytical comparison evidence; it supports the decision but is not authoritative metadata.
+- **Band** — `P0...P5` visible prioritization classification and decision evidence.
+- **Priority** — `Urgent`, `High`, `Medium`, or `Low`; the authoritative broad importance of the work record.
+- **Rank** — exact execution order inside one declared Workstream/queue; lower numbers execute earlier.
+- **Workstream** — separates operational queues such as `AI OS` and `VIEPS`.
+- **Status** — canonical workflow phase; prioritization preserves it rather than inventing a transition.
+- **Issues and Pull Requests** — both are prioritized; Pull Requests use Project `PR Priority` and `PR Rank` because native Issue fields do not apply to PRs.
+- **Entry points** — initial assessment on open, explicit `@priorize`, and audit-driven refresh when materially relevant evidence is missing or stale.
+- **Synchronization** — requested authoritative values are written and independently read back; ambiguous or unverifiable state fails closed.
+- **Bounded automation** — synchronization and recovery operate on one work record at a time rather than scanning the whole Project.
+
+```text
+                         PRIORITIZATION
+                               |
+             +-----------------+-----------------+
+             |                                   |
+          EVIDENCE                           LIVE CONTROL
+             |                                   |
+       SCORE + BAND                         PRIORITY
+      -10..+10 / P0..P5                Urgent/High/Medium/Low
+                                                 |
+                                           WORKSTREAM
+                                         AI OS     VIEPS
+                                                 |
+                                               RANK
+                                            1, 2, 3...
+                                      exact queue order
+                                                 |
+                                               STATUS
+                                      BACKLOG -> ... -> DONE
+
+
+ Issue                                  Pull Request
+   |                                        |
+ Priority                                 PR Priority
+ Band                                     Band
+ Rank                                     PR Rank
+ Workstream                               Workstream
+ Status                                   Status
+```
+
+The diagram is a compact orientation aid. The detailed rules below remain authoritative, including the fact that Score supports rather than mechanically determines Band, Priority, or Rank.
+
 
 ## Identifiers, Issue Priority, Project Rank and score are different concepts
 
