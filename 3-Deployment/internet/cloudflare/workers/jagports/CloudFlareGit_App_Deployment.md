@@ -249,6 +249,46 @@ npx wrangler login
 npx wrangler whoami
 ```
 
+### Transitional administrator token setup
+
+The current application still uses `ADMIN_TOKEN` / `x-admin-token` as a transitional stock-mutation authorization mechanism while Issue #448 replaces it with the accepted administrator login/session model. This token is a project-generated application secret; it is not a GitHub token or Cloudflare API token.
+
+Run the setup from the repository root in Windows PowerShell:
+
+```powershell
+cd ".\4-Production\internet\cloudflare\workers\jagports"
+
+npx wrangler whoami
+
+$b = New-Object byte[] 32
+$r = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$r.GetBytes($b)
+$r.Dispose()
+$token = ([BitConverter]::ToString($b) -replace '-','').ToLower()
+
+$token
+
+npx wrangler secret put ADMIN_TOKEN
+```
+
+When Wrangler prompts for the secret value, paste the 64-character value printed by `$token`.
+
+The `cd` step is required when starting at the repository root because `wrangler.toml` is in the Worker directory. That configuration already declares `name = "vieps"`, so no `--name` argument is required when the command is run there.
+
+Use the secret name exactly as `ADMIN_TOKEN`; do not escape the underscore as `ADMIN\_TOKEN`.
+
+Verify that the secret name exists:
+
+```powershell
+npx wrangler secret list
+```
+
+Cloudflare does not reveal the stored secret value. If the value is lost, generate a new token and run `npx wrangler secret put ADMIN_TOKEN` again to rotate it.
+
+Paste the same raw token into the VIEPS **Authorization** field. Do not add a `Bearer ` prefix. The current Worker compares the request header `x-admin-token` directly with `env.ADMIN_TOKEN`.
+
+Never commit, paste into Issues/PRs, or otherwise record the token value in repository content or logs.
+
 Restore the exact locked dependency set and execute the authoritative build:
 
 ```text
