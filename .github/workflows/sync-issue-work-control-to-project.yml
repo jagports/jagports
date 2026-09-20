@@ -85,7 +85,6 @@ jobs:
                     nodes {
                       id
                       isArchived
-                      content { __typename }
                       rankValue: fieldValueByName(name:$rankField) {
                         ... on ProjectV2ItemFieldNumberValue { number }
                       }
@@ -108,7 +107,6 @@ jobs:
                 [.[].data.organization.projectV2.items.nodes[]?
                   | select(.isArchived == false)
                   | select(.id != $item)
-                  | select(.content.__typename == $record_type)
                   | select((.statusValue.name // "") != "DONE")
                   | select(.workstreamValue.name == $workstream)
                   | select(.rankValue.number == $rank)
@@ -541,7 +539,6 @@ jobs:
                     nodes {
                       id
                       isArchived
-                      content { __typename }
                       rankValue: fieldValueByName(name:$rankField) {
                         ... on ProjectV2ItemFieldNumberValue { number }
                       }
@@ -564,7 +561,6 @@ jobs:
                 [.[].data.organization.projectV2.items.nodes[]?
                   | select(.isArchived == false)
                   | select(.id != $item)
-                  | select(.content.__typename == $record_type)
                   | select((.statusValue.name // "") != "DONE")
                   | select(.workstreamValue.name == $workstream)
                   | select(.rankValue.number == $rank)
