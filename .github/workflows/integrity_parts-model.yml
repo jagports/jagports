@@ -45,6 +45,14 @@ jobs:
       - name: Build and verify generated deploy assets
         working-directory: 4-Production/internet/cloudflare/workers/jagports
         run: npm run build
+      - name: Verify clean local D1 bootstrap with Wrangler
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+        run: |
+          D1_STATE="$RUNNER_TEMP/vieps-d1-model-integrity"
+          rm -rf "$D1_STATE"
+          npx wrangler d1 migrations apply jagports --local --persist-to "$D1_STATE"
+          npx wrangler d1 migrations list jagports --local --persist-to "$D1_STATE"
+          npx wrangler d1 execute jagports --local --persist-to "$D1_STATE" --command "SELECT id, part_id, quantity, condition_code, available, storage_location_id, source_party_id, price, currency FROM stock_item LIMIT 0; SELECT id, name FROM stock_site LIMIT 0; SELECT id, site_id, parent_id, location_type, name FROM stock_location LIMIT 0; SELECT id, source_type, name FROM stock_source_party LIMIT 0;"
       - name: Execute model, migration and Worker tests
         working-directory: 4-Production/internet/cloudflare/workers/jagports
         run: npm test
