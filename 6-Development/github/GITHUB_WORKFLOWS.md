@@ -73,16 +73,16 @@ Execution sequence:
 
 `resolve target → classify Issue/PR → calculate/accept Band + mapped Priority + Rank → synchronize only that target → independently verify → report`
 
-The short `@priorize <numbers>` form is the canonical prioritization command **when it is received by a reasoning executor capable of performing this procedure**. Merely persisting that text in a GitHub comment does not execute prioritization. A request comment and an executor are separate components.
+The short `@priorize <numbers>` form is the canonical user/agent command **when it is received by a reasoning executor capable of performing this procedure**. Merely persisting that text in a GitHub comment does not execute prioritization. Repository automation must not create inert `@priorize` comments as substitutes for an executor.
 
 ### Automatic prioritization on open
 
-- Issue open records a durable prioritization request and must pass it to a real reasoning executor that performs the same initial prioritization behavior as `@priorize <Issue-number>`.
-- Pull Request open records a durable prioritization request and must pass it to a real reasoning executor that performs the same initial prioritization behavior as `@priorize <PR-number>`.
-- Writing the request comment alone is not automatic prioritization and must never be reported as such.
+- Issue open must invoke or enqueue work for a real reasoning executor that performs the same initial prioritization behavior as `@priorize <Issue-number>`.
+- Pull Request open must invoke or enqueue work for a real reasoning executor that performs the same initial prioritization behavior as `@priorize <PR-number>`.
+- Repository lifecycle workflows must not create inert `@priorize` comments when no executor consumes them.
 - Both automatic paths are bounded to the newly opened record and do not bulk-score the existing backlog.
 - The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers into the executor, not separate prioritization models.
-- Missing/unavailable reasoning runtime is an execution dependency failure. The system may preserve the durable request for retry, but it must not claim Priority/Band/Rank/Workstream were assessed or synchronized.
+- Missing/unavailable reasoning runtime is an execution dependency failure. The system may retain internal retry state, but it must not claim Priority/Band/Rank/Workstream were assessed or synchronized.
 
 
 ---
