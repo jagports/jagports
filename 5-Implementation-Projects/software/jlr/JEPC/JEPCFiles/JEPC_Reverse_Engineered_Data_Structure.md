@@ -26,15 +26,7 @@ attribute decisions.
 
 ### JEPCProductDrillDown.html
 
-Defines drilldown UI and passes logical image identifiers.
-
-Example:
-
-    tk6123
-
-is resolved as:
-
-    flash/images/tk6123.jpg
+Defines the drilldown UI.
 
 ### JEPC.js
 
@@ -142,20 +134,6 @@ Meaning:
     text_id = 3204
     description = SPEED CONTROL ACTUATOR-6.0 LITRE
 
-## Media
-
-Two namespaces exist.
-
-Model images:
-
-    images/<model_id>.jpg
-
-EPC illustrations:
-
-    flash/images/<image_id>.jpg
-
-Images should be stored once and referenced.
-
 ## VIEPS Target Schema
 
     model
@@ -195,7 +173,6 @@ JEPC already contains the required information:
 -   vehicle attributes
 -   part numbers
 -   translations
--   media references
 
 VIEPS should normalize this data and add direct VIN and part search
 while preserving the original EPC tree context.
