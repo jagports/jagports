@@ -207,3 +207,145 @@ Importer flow:
 8. Validate references.
 
 The importer must not assume that all future EPC data fits into one production database. Partitioning strategy should be based on measured imported size.
+
+## Runtime source architecture and applicability evidence
+
+The installed JEPC application is a frame-based client that joins several local datasets at runtime. Source interpretation must distinguish the local catalogue engine from legacy server-backed functions.
+
+### Local catalogue data
+
+The catalogue browsing and applicability path is recoverable from local files:
+
+```text
+menus/L0/models_l_id_0.xml
+        |
+        v
+menus/L0/pl_id_<model>_l_id_0.xml
+        |
+        v
+drilldown/pl_id_<model>/L0/cat_M<model>_C<category>_L0.xml
+        |
+        +-- tl_M<model>_C<category>_L0.xml
+        |
+        +-- Itm_M<model>_C<category>_I<item>_L0.xml
+        |
+        +-- *_attributes.xml sidecars
+        |
+        +-- flash/images/<diagram>.jpg
+        +-- flash/xml/<diagram>.xml
+```
+
+The top-level model-menu path is `menus/L0/models_l_id_0.xml` in the observed installation. A third-party jPart reconstruction also shows that its top-level menu can be configured through `options.xml`; therefore importer discovery must not assume that every installation uses only one hard-coded path.
+
+The third-party jPart reconstruction is useful for tree/file-reading behavior, but it does not read JEPC applicability sidecars. Its omission of `menus/pl_id_<model>_attributes.xml`, `tl_*_attributes.xml` and `Itm_*_attributes.xml` is not evidence that those files are irrelevant. The original JEPC JavaScript reads and evaluates applicability separately.
+
+### Legacy server-backed VIN UI
+
+`VinDecode.js` shows a historical server contract using endpoints such as `getVinDecode.jepc`. The returned object contained a generic `VehicleAttributes` collection and a `TokenString`. The server endpoint is not available as an importer dependency and must not be required for VIEPS.
+
+Five attribute IDs are hard-coded only because the VIN/search UI exposed editable selectors for them:
+
+- `6` — Engine variant
+- `21` — Market
+- `23` — Steering
+- `24` — Transmission
+- `56` — Trim level
+
+These five are not the complete JEPC attribute taxonomy. Other group IDs occur in applicability sidecars and must remain generic unless independently mapped.
+
+## Decision-tree evidence and application-ID joins
+
+Item files are decision trees, not flat part lists. Preserve the complete ancestry of each leaf.
+
+A part leaf contains an application identifier that can be joined to its applicability sidecar record. Example from X100 model `3187`:
+
+```text
+tree ancestry:
+main floor
+  RH
+    Coffee
+      LHD
+        GJA9460BJSDC
+```
+
+The leaf application ID is `142207`; the corresponding sidecar record is:
+
+```text
+142207,[A155,2932,0,0][A23,154,0,0]
+```
+
+This establishes two important source rules:
+
+1. Tree ancestry and applicability sidecars must be interpreted together.
+2. Catalogue position and vehicle applicability are distinct dimensions. `RH` above describes the physical right-hand part position, while `LHD` is a vehicle steering constraint represented by `A23`.
+
+Do not collapse `LH/RH` part position into `LHD/RHD` steering.
+
+## Generic attribute decoding
+
+Raw JEPC group/value identifiers are canonical source evidence. Human-readable mappings may be recovered by correlating many application IDs against their tree ancestry.
+
+For each application ID, retain both:
+
+```text
+application_id
+  -> raw applicability tuples
+  -> full catalogue ancestry
+  -> part number / occurrence
+```
+
+A mapping may be promoted only when repeated, independent occurrences support the same interpretation. Unknown values remain opaque rather than guessed.
+
+Recommended mapping fields:
+
+```text
+source_attribute_group_id
+source_attribute_value_id
+group_label            nullable
+value_label            nullable
+mapping_status         direct | derived | unknown
+mapping_evidence
+mapping_version
+```
+
+The original IDs must remain available even after labels are derived.
+
+### X100 observed mapping evidence
+
+The following values are current X100 evidence, not a universal hard-coded Jaguar taxonomy.
+
+| Group/value | Evidence-supported interpretation | Status |
+|---|---|---|
+| `A23=154` | LHD steering | Direct UI group name + tree correlation |
+| `A23=157` | RHD steering | Direct UI group name + tree correlation |
+| `A155=2932` | Coffee | Derived from repeated part-tree/application joins |
+| `A155=2924` | Flint grey | Derived |
+| `A155=2901` | Sable | Derived |
+| `A155=2908` | Teal | Derived |
+| `A155=2927` | Warm charcoal | Derived |
+| `A156=2793` | Oatmeal | Derived |
+| `A156=2798` | Teal | Derived |
+| `A156=2808` | Warm charcoal | Derived |
+| `A156=2811` | Cream | Derived |
+| `A156=2813` | Ivory | Derived |
+| `A156=2816` | Coffee | Derived |
+| `A156=2819` | Cashmere | Derived |
+| `A157=2795` | cloth | Derived |
+| `A157=6256` | leather | Derived |
+| `A157=6258` | ambla/leather | Derived |
+| `A157=6261` | sports cloth | Derived |
+| `A37=614/615/617` | body/body-configuration variants observed across convertible/coupe branches | Derived; official group/value labels unresolved |
+
+`A155` and `A156` are separate source groups even where their displayed value is the same, such as Warm charcoal. They must not be merged merely because their human-facing labels coincide.
+
+## Applicability tuple behavior
+
+Observed JEPC applicability uses at least two predicate families:
+
+- `A` tuples for source attribute group/value predicates and flags.
+- `C` tuples for serial/chassis breakpoints.
+
+Within one applicability record, predicates combine as one condition set. Repeated records for the same displayed node/application scope can represent alternative applicability records and must not be flattened into a single conjunction without verifying the source scope.
+
+Serial breakpoint interpretation and attribute include/exclude semantics must follow the original JEPC filtering implementation. Preserve the raw tuple and flags alongside any normalized interpretation so the mapping can be revalidated.
+
