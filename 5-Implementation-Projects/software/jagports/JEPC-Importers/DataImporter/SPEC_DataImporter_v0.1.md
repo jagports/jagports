@@ -51,6 +51,42 @@ Observed interpretation to validate across multiple datasets:
 
 The importer must preserve source scope because related files exist at different levels, including model/category/language and model/category/item/language scopes.
 
+
+## Kits, nested kit contents and NSS callouts
+
+JEPC catalogue structure can describe a sellable PART as a kit or assembly while the illustration exposes constituent components separately.
+
+Observed XK8 source/UI evidence from `XK8 Coupe/Convertible up to (V) 042775 / BRAKING SYSTEM / BRAKE DISC AND CALIPERS` includes catalogue items such as:
+
+```text
+1  Brake disc kit
+2  Brake caliper
+3  Caliper housing
+4  Caliper carrier kit
+5  Guiding pin
+6  Bushing kit
+7  Brake caliper seal kit
+8  Bleed screw
+9  Dust cap
+10 Housing clip
+11 Brake pad kit
+```
+
+The associated illustration uses numbered callouts and visual grouping to show component membership. It also demonstrates that a constituent can itself be a kit/subset, such as item 7 `Brake caliper seal kit`. An illustrated constituent may be marked `NSS` (not serviced separately) even though it is physically identifiable within the higher-level assembly.
+
+For importer purposes:
+
+- a Jaguar kit/assembly and its constituent callouts are distinct catalogue facts and must not be flattened into a single PART occurrence;
+- kit composition may be nested: a kit/assembly may contain another kit/subset;
+- the importer must preserve source parent/child or grouping evidence when it can be derived from catalogue records, illustration callouts, hotspots or bounded visual groups;
+- a constituent callout must not be discarded merely because JEPC supplies no standalone Jaguar part number for it;
+- `NSS` means that JEPC/Jaguar does not service that constituent as its own Jaguar PART in that context; it does not mean that the physical component is nonexistent;
+- the importer must not invent a Jaguar part number for an NSS constituent;
+- where kit membership is evidenced only by illustration/callout/hotspot structure, preserve that evidence and provenance explicitly rather than pretending it came from a textual PART row;
+- later VIEPS data may associate a separately available third-party product with such an NSS constituent through the approved third-party/Jagports-specified PART model, but the JEPC importer itself must not manufacture that third-party identity from catalogue evidence alone.
+
+This means illustration/callout structure is potentially data-bearing source evidence for kit composition, not merely decorative media. The exact source encoding of these relationships remains subject to parser discovery and must be retained losslessly when not yet decoded.
+
 ## Incremental source index / processing ledger
 
 The importer shall not build or hold an in-memory array of the complete JEPC installation before processing. The source installation can contain roughly one million files and may differ between JEPC installations/packages.
@@ -507,6 +543,7 @@ The importer v0.1/MVP should demonstrate that:
 - the operator sees stable aggregate parent/model/path/language/structure metrics without a scrolling per-record console flood;
 - detailed processing and a development-oriented run report remain available in background logs;
 - canonical part identity remains independent from language-specific source occurrences;
+- kit/assembly composition, nested kit subsets and NSS constituent callouts are preserved when evidenced by JEPC source or illustration/callout structure, without inventing Jaguar part numbers;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
 
 ## Related work
