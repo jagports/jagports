@@ -148,13 +148,148 @@ A third-party product with no 1:1 Jaguar PART links to the Jagports specified ca
 
 ## Third-party cross-references
 
-A third-party/vendor reference may point to:
+`third_party_part` identifies the vendor product and the canonical PART used by VIEPS to represent that reusable product.
 
-- an existing Jaguar PART when the vendor product is verified 1:1 equal;
-- a Jagports specified PART when the vendor product has no 1:1 Jaguar PART;
-- other external references where separately required.
+`third_party_part_xref` records the explicit Jaguar reference relationship behind that vendor product. It does not replace `third_party_part.part_id` and it is not operational STOCK.
 
-Cross-references must preserve the reason for the relationship. A generic `fits` relation must not replace the explicit parent/equality/component facts defined here.
+### `third_party_part_xref`
+
+Minimum fields:
+
+| Field | Requirement | Meaning |
+|---|---|---|
+| `third_party_part_xref_id` | required, unique | Stable identifier of the cross-reference record. |
+| `third_party_part_id` | required FK | Vendor-product reference being related. |
+| `jaguar_part_id` | required FK | Existing Jaguar/JEPC canonical PART used as the Jaguar reference. |
+| `relationship_type` | required controlled value | `equivalent_to`, `parent_part`, or `component_of`. |
+| `part_occurrence_id` | nullable FK | Exact imported occurrence/context when known. |
+| `category_ref` | nullable except as required below | Retained catalogue category reference for auditable parent/context selection. |
+| `item_number` | nullable except as required below | Retained catalogue item reference for auditable parent/context selection. |
+| `source_ref` | nullable | Evidence supporting this particular relationship. |
+| `verification_status` | required | `unverified` or `verified`. |
+| `verification_date` | nullable | Date on which this relationship was checked. |
+
+Cardinality and behavior:
+
+- one `third_party_part` may have many cross-reference records;
+- one Jaguar PART may be referenced by many third-party products;
+- a verified 1:1 vendor product has one or more `equivalent_to` records and may point directly to that Jaguar PART through `third_party_part.part_id`;
+- a non-1:1 Jagports specified PART must have exactly one `parent_part` cross-reference used to anchor the required `<JaguarPN>+<3rdPartyPN>` identity;
+- a product may additionally have `component_of` references where independently evidenced;
+- `parent_part`, `component_of`, `equivalent_to`, and Jaguar supersession remain different relationship types.
+
+For the mandatory `parent_part` record of a Jagports specified PART, the selected Jaguar PART and known catalogue context must be retained. When the imported occurrence exists, `part_occurrence_id` is required and the category/item values must identify that same selected context. If an imported occurrence is not yet available in the active MVP fixture path, explicit fixture/manual category/item context may be retained, but it must not be presented as imported JEPC evidence.
+
+Logical uniqueness rules:
+
+- `third_party_part_xref_id` is globally unique;
+- the same logical tuple `(third_party_part_id, jaguar_part_id, relationship_type, part_occurrence_id/category/item context)` must not be duplicated;
+- each non-1:1 `third_party_part` has at most one `parent_part` relationship;
+- duplicate `equivalent_to` or `component_of` rows for the same evidenced context are invalid.
+
+A generic `fits` relation is not part of this model and must not replace explicit relationship semantics.
+
+## Identity, uniqueness and nullability
+
+These rules are part of the implementation contract and must be enforced either by database constraints or deterministic application validation.
+
+| Entity / field | Required / nullable | Uniqueness / validation |
+|---|---|---|
+| `third_party_vendor.vendor_id` | required | globally unique stable vendor identity. |
+| `third_party_vendor.name` | required, nonblank | not assumed globally unique; different vendor identities may have similar names. |
+| vendor home URL | at least one may be stored; additional URLs optional | exact duplicate URL rows for one vendor are invalid. |
+| home URL description | nullable for a single URL; required/nonblank when one vendor has multiple home URLs | descriptive text is not an identity. |
+| `third_party_part.third_party_part_id` | required | globally unique stable vendor-product reference identity. |
+| `third_party_part.vendor_id` | required FK | many products may belong to one vendor. |
+| vendor part number | required, nonblank | unique within one vendor after the implementation's deterministic normalization; the same text may exist under another vendor. |
+| `third_party_part.part_id` | required FK for a reusable represented product | points to the existing Jaguar PART for verified 1:1 products or to the Jagports specified PART for non-1:1 products. |
+| vendor product description/name | nullable | not unique. |
+| product/source URL | nullable | evidence, not identity. |
+| `verification_status` | required | only `unverified` or `verified`. |
+| `verification_date` | nullable while unverified; required when status is `verified` | one date value for the current verification claim. |
+| `third_party_part_xref.third_party_part_xref_id` | required | globally unique. |
+| `third_party_part_xref.third_party_part_id` | required FK | many xrefs per vendor product allowed. |
+| `third_party_part_xref.jaguar_part_id` | required FK | many third-party products may reference one Jaguar PART. |
+| `relationship_type` | required | only `equivalent_to`, `parent_part`, `component_of`. |
+| xref occurrence/category/item context | nullable generally; required as described for the mandatory parent context | cannot contradict the selected Jaguar PART/occurrence. |
+| vendor price snapshot amount | required when a snapshot exists | non-negative numeric value. |
+| vendor price snapshot currency | required when a snapshot exists | three-character uppercase currency code. |
+| observed/check date | required when a snapshot exists | records evidence date, not price validity forever. |
+| price source URL | nullable | evidence, not identity. |
+
+A canonical PART remains unique according to `MODEL_PART.md`; these third-party records do not weaken PART-number uniqueness or create a second canonical identity namespace.
+
+## Representative deterministic fixtures
+
+At minimum, executable or specification-level fixtures must cover these two paths.
+
+### Fixture A — verified 1:1 vendor product
+
+- existing Jaguar PART: `JAG-100`;
+- vendor: `Example Vendor`;
+- vendor PN: `EV-100`;
+- `third_party_part.part_id` points to canonical `JAG-100`;
+- one verified `third_party_part_xref` uses `relationship_type = equivalent_to` and points to `JAG-100`;
+- no Jagports specified PART is created;
+- operational STOCK for the product may point to `JAG-100` while retaining vendor-product evidence separately.
+
+Expected results:
+
+- search by `EV-100` may resolve to the existing Jaguar PART with vendor identity shown;
+- no duplicate canonical PART exists for `EV-100`;
+- STOCK identity remains operational and separate from the xref.
+
+### Fixture B — non-1:1 Jagports specified PART
+
+- existing Jaguar parent PART: `JAG-200`;
+- vendor: `Example Vendor`;
+- vendor PN: `KIT-42`;
+- new canonical Jagports specified PART: `JAG-200+KIT-42`;
+- `source_origin = AddedManually`;
+- `third_party_part.part_id` points to `JAG-200+KIT-42`;
+- exactly one `parent_part` xref points to `JAG-200` and retains the selected category/item/occurrence context;
+- optional additional `component_of` xrefs are allowed only when separately evidenced;
+- operational STOCK points to `JAG-200+KIT-42`, not to the Jaguar parent.
+
+Expected results:
+
+- the combined identifier is visibly Jagports specified and never shown as Jaguar-issued;
+- applicability follows the selected Jaguar parent/context;
+- deleting or changing operational STOCK does not alter the PART/xref evidence;
+- unresolved STOCK is not used once this reusable identity has been established.
+
+Fixtures must also include invalid cases for duplicate logical xrefs, a second `parent_part` for the same non-1:1 vendor product, missing mandatory parent context, invalid relationship type, verified status without verification date, and duplicate vendor PN within one vendor.
+
+## MVP / Post-MVP boundary
+
+### Required for the retained MVP Stock Admin path
+
+The MVP must be able to:
+
+- distinguish verified 1:1 vendor products from non-1:1 reusable third-party products;
+- use an existing Jaguar PART directly for a verified 1:1 vendor product;
+- create/select a Jagports specified canonical PART for a non-1:1 reusable product;
+- require exactly one Jaguar parent and retain the selected category/item/occurrence/PART context for that Jagports specified PART;
+- form and present the Jagports specified identifier as `<JaguarPN>+<3rdPartyPN>`;
+- retain vendor identity, vendor PN, verification state and the required cross-reference evidence;
+- link operational STOCK to the correct canonical PART without mixing vendor reference data into mutable STOCK;
+- preserve an unresolved STOCK path only when a reusable canonical product identity is genuinely not established.
+
+The MVP may use deterministic fixture/manual parent-context evidence where imported JEPC context is not yet available, provided that evidence is explicitly distinguished from imported source data.
+
+### Post-MVP / later extension
+
+The following are not required to close the current reduced MVP unless separately approved:
+
+- full vendor-price-history UI and automated refresh;
+- external vendor synchronization or provider polling;
+- marketplace ordering, reservations, payment, fulfillment or seller workflows;
+- advanced many-reference visualization beyond the required parent/equivalence/component distinctions;
+- broad third-party free-text discovery across external catalogues;
+- automated verification of vendor equivalence;
+- optional visual-location evidence beyond the separately approved location specification.
+
+The data model may preserve fields needed for these later capabilities without making those workflows MVP blockers.
 
 ## Vendor pricing evidence
 
