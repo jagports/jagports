@@ -56,3 +56,20 @@ test("Stock Admin keeps physical-stock photo upload outside current MVP implemen
   assert.doesNotMatch(html, /type="file"/i);
   assert.doesNotMatch(js, /getUserMedia|capture=/i);
 });
+
+
+test("Stock Admin initializes i18n and wires locale controls", () => {
+  assert.match(html, /data-language="fi"/);
+  assert.match(html, /data-language="en"/);
+  assert.match(js, /i18n\?\.init\(\)/);
+  assert.match(js, /querySelectorAll\?\.\("\[data-language\]"\)/);
+  assert.match(js, /changeLanguage\(control\.dataset\.language\)/);
+  assert.match(js, /refreshForLanguageChange/);
+});
+
+test("Stock Admin language refresh reapplies static and dynamic localized content", () => {
+  assert.match(js, /i18n\?\.applyDocument\(\)/);
+  assert.match(js, /render\(\)/);
+  assert.match(js, /statusTranslationKey/);
+  assert.match(js, /setLocalizedStatus\(statusTranslationKey, statusIsError\)/);
+});
