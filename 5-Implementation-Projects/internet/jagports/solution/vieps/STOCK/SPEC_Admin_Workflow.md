@@ -27,19 +27,30 @@ The workflow covers:
 
 ## Stock database readiness
 
-The environment must use the approved schema/migration path and make operational stock records queryable through the application data path.
+The native MVP stock environment uses Cloudflare D1 through the Worker `DB` binding and the reviewed migration chain under `4-Production/internet/cloudflare/workers/jagports/migrations/`.
 
-The operational setup must identify:
+The executable D1 setup procedure is maintained in [`CloudFlareGit_DB_Migrations.md`](../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md). Stock Admin and acceptance work must consume that procedure rather than maintain another DDL/bootstrap sequence here.
 
-- which schema/migration chain is active;
-- how the target database is initialized;
-- how stock test/seed records are loaded when applicable;
-- how an operator can verify stock records before UI testing;
-- which environment is being exercised, such as local, preview or deployed runtime.
+For a clean local/test target, setup means:
+
+1. start with an empty isolated local/test D1 target;
+2. apply the complete ordered reviewed migration chain from the Worker root;
+3. verify the migration ledger;
+4. verify the resulting `stock_item`, `stock_site`, `stock_location` and `stock_source_party` structures and relevant STOCK indexes/triggers;
+5. verify the Worker/API can read from the same target;
+6. persist a stock record through the approved mutation path and read that record back from the same target.
+
+The operational setup record must identify:
+
+- the exact target environment: local, preview, test or deployed runtime;
+- the Worker revision/configuration used;
+- migration ledger state;
+- whether loaded rows are deterministic fixtures/test records or evidenced real inventory;
+- the verification queries/requests used.
 
 Repository Markdown is specification, not mutable stock storage.
 
-A successful stock database setup makes records queryable through the approved Worker/API/database path. Repository fixtures or seed records are inputs to that path; they are not a substitute for persisted operational records in the environment under test.
+A successful stock database setup makes records queryable through the approved Worker/API/database path. Repository fixtures or seed records are inputs to that path; they are not a substitute for persisted operational records in the environment under test. Local/preview success is not production evidence.
 
 ## Test data and inventory evidence
 
@@ -49,9 +60,9 @@ Fixture-backed catalogue PARTs may be used to exercise Stock Admin when imported
 
 Stock records used for workflow or acceptance testing must be explicitly identifiable as test/seed records unless they are independently verified inventory evidence.
 
-Synthetic or deterministic stock test data must not be described as real production Jagports inventory.
+Synthetic or deterministic stock test data must not be described as real production Jagports inventory. Rows whose source/reference identifies them as fixtures remain fixture evidence even when persisted in D1.
 
-Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values.
+Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values. The linked repository workbooks `jagports-parts.xlsx` and `jagports-parts-stock.xlsx` are accepted current live Jagports inventory input. Real-stock acceptance evidence may use a traced workbook row when the mapping records the exact source row, persists the mapped record through the stock mutation path, and leaves source fields that are absent or unknown as NULL/unclassified. Synthetic values must never fill missing workbook facts.
 
 Mutable stock test records must remain separate from immutable catalogue/reference data.
 
@@ -102,8 +113,8 @@ admin opens Stock Admin
   -> captures mutable stock facts
   -> classifies stock quality with A-E when known or leaves it explicitly unclassified
   -> validates quantity, location, source and availability rules
-  -> persists the stock record through the approved application/database path
-  -> reads the persisted record back
+  -> persists the stock record through the approved Worker/D1 application path
+  -> reads the persisted record back from the same D1 target
   -> public/read presentation exposes only permitted stock information
 ```
 

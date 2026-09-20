@@ -65,12 +65,33 @@ export function database({ fixtures = true } = {}) {
 
 // Execute real SQL through the small D1 interface used by the Worker.
 export function d1(db) {
-  return { prepare(query) {
-    return { bind(...params) {
+  const statement = (query, params = []) => ({
+    async first() {
+      return db.prepare(query).get(...params) ?? null;
+    },
+    async all() {
+      return { results: db.prepare(query).all(...params) };
+    },
+    async run() {
+      const result = db.prepare(query).run(...params);
       return {
-        async first() { return db.prepare(query).get(...params) ?? null; },
-        async all() { return { results: db.prepare(query).all(...params) }; },
+        success: true,
+        meta: {
+          changes: Number(result.changes),
+          last_row_id: Number(result.lastInsertRowid),
+        },
       };
-    } };
-  } };
+    },
+  });
+
+  return {
+    prepare(query) {
+      return {
+        ...statement(query),
+        bind(...params) {
+          return statement(query, params);
+        },
+      };
+    },
+  };
 }

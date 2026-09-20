@@ -14,6 +14,7 @@ Mutable operational stock remains separate from canonical `PART` / JEPC catalogu
 | [`MODEL_PART_THIRD_PARTY.md`](MODEL_PART_THIRD_PARTY.md) | Third-party/vendor references and Jagports specified PART identity rules. |
 | [`UI_Part_Search.md`](UI_Part_Search.md) | User-facing search controls and available-part presentation. |
 | [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md) | Operational stock create/edit workflow and validation UI. |
+| [`../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md`](../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md) | D1 database creation/migration execution and environment verification procedure. |
 
 ## Stock/catalogue separation
 
@@ -42,6 +43,24 @@ For a verified 1:1 third-party product, `part_id` references the existing Jaguar
 One `PART` may have multiple independent stock records.
 
 Stock does not assign a distinct persistent identity to every physical unit. `quantity` is the integer count of physical items represented by the stock record.
+
+## Native D1 persistence contract
+
+For the native VIEPS MVP path, `stock_item` and its supporting STOCK tables are persisted in Cloudflare D1 through the Worker `DB` binding.
+
+The current D1 database may physically contain both catalogue/reference tables and operational STOCK tables. Physical co-location does not merge their domain ownership: mutable STOCK facts remain operational data and canonical PART/JEPC facts remain reference data.
+
+The executable schema authority is the ordered reviewed SQL migration chain under:
+
+`4-Production/internet/cloudflare/workers/jagports/migrations/`
+
+This document defines stock semantics; it must not become a second hand-maintained DDL source. An already-applied migration is not rewritten to change current semantics. A schema or integrity change is introduced by a new reviewed migration.
+
+A clean local/test database is reproducible from an empty target by applying the complete ordered migration chain. Local, preview and production D1 targets have independent state and migration ledgers; evidence from one environment must not be claimed for another.
+
+Repository fixture and seed data may prove schema and application behavior, but synthetic fixture rows are not real Jagports inventory. The repository-controlled `jagports-parts.xlsx` plus `jagports-parts-stock.xlsx` linked workbook pair is accepted as the current live Jagports inventory source. A live-stock validation record must retain exact workbook/row provenance, preserve unknown fields as NULL/unclassified rather than inventing values, and persist the mapped record through the approved stock path. No synthetic value may be relabeled as real inventory merely to satisfy acceptance testing.
+
+D1-specific SQL access belongs at the persistence/provider boundary. Canonical PART resolution, JEPC/reference semantics, fitment and supersession remain outside that boundary so the native D1 implementation can later be wrapped by a thin stock provider without redesigning this model.
 
 ## Normalized stock quality / condition code
 
@@ -320,4 +339,6 @@ Outside this model document:
 - authentication/authorization ownership model;
 - automated acquisition history;
 - detailed provenance redesign;
-- production deployment or remote D1 migration execution.
+- production deployment or remote D1 migration execution;
+- Cloudflare account/resource provisioning;
+- provider-specific query/synchronization implementation beyond the native persistence contract.
