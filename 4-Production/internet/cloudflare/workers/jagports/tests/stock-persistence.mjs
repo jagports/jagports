@@ -28,6 +28,8 @@ test('normalized stock create/read/update persists through the Worker D1 path', 
   db.exec(`
     INSERT INTO part (id, part_number_raw, part_number_normalized, description)
       VALUES (84001, 'C2P84001', 'C2P84001', 'Issue 840 persistence fixture');
+    INSERT INTO vehicle (id, vin_raw, identity_status)
+      VALUES (84001, 'SAJ840PERSIST0001', 'test');
     INSERT INTO stock_site (id, name)
       VALUES (84001, 'Issue 840 test site');
     INSERT INTO stock_location (id, site_id, parent_id, location_type, name)
@@ -47,6 +49,7 @@ test('normalized stock create/read/update persists through the Worker D1 path', 
       available: 1,
       storage_location_id: 84001,
       source_party_id: 84001,
+      donor_vehicle_id: 84001,
       source_ref: 'test:840:resolved',
       price: 12.5,
       currency: 'eur',
@@ -70,8 +73,10 @@ test('normalized stock create/read/update persists through the Worker D1 path', 
       available: readBody.results[0].available,
       storage_location_id: readBody.results[0].storage_location_id,
       source_party_id: readBody.results[0].source_party_id,
+      donor_vehicle_id: readBody.results[0].donor_vehicle_id,
       price: readBody.results[0].price,
       currency: readBody.results[0].currency,
+      notes: readBody.results[0].notes,
     },
     {
       quantity: 2,
@@ -80,8 +85,10 @@ test('normalized stock create/read/update persists through the Worker D1 path', 
       available: 1,
       storage_location_id: 84001,
       source_party_id: 84001,
+      donor_vehicle_id: 84001,
       price: 12.5,
       currency: 'EUR',
+      notes: 'persistence test only',
     },
   );
 
@@ -96,7 +103,8 @@ test('normalized stock create/read/update persists through the Worker D1 path', 
   assert.equal(patched.status, 200);
 
   const persisted = db.prepare(`
-    SELECT quantity, condition_code, available, storage_location_id, price, currency
+    SELECT quantity, condition_code, available, storage_location_id,
+           source_party_id, donor_vehicle_id, price, currency, notes
     FROM stock_item WHERE id=?
   `).get(id);
   assert.deepEqual({ ...persisted }, {
@@ -104,8 +112,11 @@ test('normalized stock create/read/update persists through the Worker D1 path', 
     condition_code: 'B',
     available: 1,
     storage_location_id: 84001,
+    source_party_id: 84001,
+    donor_vehicle_id: 84001,
     price: 15,
     currency: 'EUR',
+    notes: 'persistence test only',
   });
 });
 
