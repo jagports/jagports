@@ -213,6 +213,22 @@ function Parse-VinDescription {
     return @()
 }
 
+function Get-CatalogueDisplaySegments {
+    param([string]$CataloguePath)
+
+    if ([string]::IsNullOrWhiteSpace($CataloguePath)) { return @() }
+
+    # JEPC model text can itself contain "/", for example "XK8 Coupe/Convertible".
+    # Do not let that presentation slash create a false catalogue hierarchy level.
+    $displayPath = $CataloguePath -replace '(?i)Coupe/Convertible', 'Coupe Convertible'
+
+    return @(
+        $displayPath.Split("/") |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    )
+}
+
 function Get-FullDescriptionPath {
     param(
         [string]$CataloguePath,
@@ -222,10 +238,8 @@ function Get-FullDescriptionPath {
 
     $parts = New-Object System.Collections.Generic.List[string]
 
-    if (-not [string]::IsNullOrWhiteSpace($CataloguePath)) {
-        foreach ($segment in @($CataloguePath.Split("/") | ForEach-Object { $_.Trim() })) {
-            if (-not [string]::IsNullOrWhiteSpace($segment)) { $parts.Add($segment) }
-        }
+    foreach ($segment in @(Get-CatalogueDisplaySegments $CataloguePath)) {
+        $parts.Add($segment)
     }
 
     if (-not [string]::IsNullOrWhiteSpace($TopDescription)) {
@@ -548,33 +562,6 @@ $summaryLines.Add("Descriptions/filter candidates: $($descriptionFilterSummary.C
 $summaryLines.Add("VIN description ranges:         $($vinRangeSummary.Count)")
 $summaryLines.Add("")
 
-$summaryLines.Add("Descriptions / filter candidates:")
-foreach ($filter in @($descriptionFilterSummary | Where-Object { -not $_.IsVin })) {
-    $summaryLines.Add("  $($filter.Description)  [occurrences=$($filter.OccurrenceCount); parts=$($filter.PartCount)]")
-}
-$summaryLines.Add("")
-
-$summaryLines.Add("VIN descriptions / ranges:")
-if ($vinRangeSummary.Count -eq 0) {
-    $summaryLines.Add("  (none)")
-}
-else {
-    foreach ($range in $vinRangeSummary) {
-        $normalized = ""
-        if ($range.From -and $range.To) { $normalized = "$($range.From)..$($range.To)" }
-        elseif ($range.From) { $normalized = "$($range.From).." }
-        elseif ($range.To) { $normalized = "..$($range.To)" }
-
-        if ($normalized) {
-            $summaryLines.Add("  $($range.Description)  => $normalized  [occurrences=$($range.OccurrenceCount); parts=$($range.PartCount)]")
-        }
-        else {
-            $summaryLines.Add("  $($range.Description)  [occurrences=$($range.OccurrenceCount); parts=$($range.PartCount)]")
-        }
-    }
-}
-$summaryLines.Add("")
-
 if ($PartNumber) {
     $occurrenceNo = 0
     foreach ($occurrence in @($occurrences | Sort-Object Model,Category,Item,PartNumber,ApplicationId)) {
@@ -616,7 +603,7 @@ else {
             $_.Model -eq $categoryRow.Model -and $_.Category -eq $categoryRow.Category
         })
 
-        foreach ($segment in @($categoryRow.CataloguePath.Split("/") | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
+        foreach ($segment in @(Get-CatalogueDisplaySegments $categoryRow.CataloguePath)) {
             $summaryLines.Add("> $segment")
         }
 
@@ -635,6 +622,32 @@ else {
         $summaryLines.Add("$($occurrence.FullDescriptionPath) > $($occurrence.PartNumber)")
     }
 }
+
+$summaryLines.Add("")
+$summaryLines.Add("VIN descriptions / ranges:")
+$summaryLines.Add(("{0,-48} {1,-20} {2,11} {3,7}" -f "Description","Range","Occurrences","Parts"))
+$summaryLines.Add(("{0,-48} {1,-20} {2,11} {3,7}" -f ("-" * 48),("-" * 20),("-" * 11),("-" * 7)))
+if ($vinRangeSummary.Count -eq 0) {
+    $summaryLines.Add("(none)")
+}
+else {
+    foreach ($range in $vinRangeSummary) {
+        $normalized = ""
+        if ($range.From -and $range.To) { $normalized = "$($range.From)..$($range.To)" }
+        elseif ($range.From) { $normalized = "$($range.From).." }
+        elseif ($range.To) { $normalized = "..$($range.To)" }
+        $summaryLines.Add(("{0,-48} {1,-20} {2,11} {3,7}" -f $range.Description,$normalized,$range.OccurrenceCount,$range.PartCount))
+    }
+}
+
+$summaryLines.Add("")
+$summaryLines.Add("Descriptions / filter candidates:")
+$summaryLines.Add(("{0,-32} {1,11} {2,7}" -f "Description","Occurrences","Parts"))
+$summaryLines.Add(("{0,-32} {1,11} {2,7}" -f ("-" * 32),("-" * 11),("-" * 7)))
+foreach ($filter in @($descriptionFilterSummary | Where-Object { -not $_.IsVin })) {
+    $summaryLines.Add(("{0,-32} {1,11} {2,7}" -f $filter.Description,$filter.OccurrenceCount,$filter.PartCount))
+}
+$summaryLines.Add("")
 
 foreach ($line in $summaryLines) { Write-Host $line }
 
