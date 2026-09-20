@@ -58,7 +58,7 @@ This document defines stock semantics; it must not become a second hand-maintain
 
 A clean local/test database is reproducible from an empty target by applying the complete ordered migration chain. Local, preview and production D1 targets have independent state and migration ledgers; evidence from one environment must not be claimed for another.
 
-Repository fixture and seed data may prove schema and application behavior, but synthetic fixture rows are not real Jagports inventory. Real inventory facts require evidenced operational input and persistence through the approved stock mutation path. No synthetic value may be relabeled as real inventory merely to satisfy acceptance testing.
+Repository fixture and seed data may prove schema and application behavior, but synthetic fixture rows are not real Jagports inventory. The repository-controlled `jagports-parts.xlsx` plus `jagports-parts-stock.xlsx` linked workbook pair is accepted as the current live Jagports inventory source. A live-stock validation record must retain exact workbook/row provenance, preserve unknown fields as NULL/unclassified rather than inventing values, and persist the mapped record through the approved stock path. No synthetic value may be relabeled as real inventory merely to satisfy acceptance testing.
 
 D1-specific SQL access belongs at the persistence/provider boundary. Canonical PART resolution, JEPC/reference semantics, fitment and supersession remain outside that boundary so the native D1 implementation can later be wrapped by a thin stock provider without redesigning this model.
 
