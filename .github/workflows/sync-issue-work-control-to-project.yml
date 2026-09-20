@@ -78,21 +78,25 @@ jobs:
             requested_workstream="$4"
             current_item_id="$5"
 
-            RANK_QUEUE_QUERY='query($org:String!, $number:Int!, $endCursor:String, $rankField:String!, $workstreamField:String!) {
+            RANK_QUEUE_QUERY='query($org:String!, $number:Int!, $endCursor:String) {
               organization(login:$org) {
                 projectV2(number:$number) {
                   items(first:100, after:$endCursor) {
                     nodes {
                       id
                       isArchived
-                      rankValue: fieldValueByName(name:$rankField) {
-                        ... on ProjectV2ItemFieldNumberValue { number }
-                      }
-                      workstreamValue: fieldValueByName(name:$workstreamField) {
-                        ... on ProjectV2ItemFieldSingleSelectValue { name }
-                      }
-                      statusValue: fieldValueByName(name:"Status") {
-                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      fieldValues(first:100) {
+                        nodes {
+                          __typename
+                          ... on ProjectV2ItemFieldNumberValue {
+                            number
+                            field { ... on ProjectV2Field { name } }
+                          }
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                            field { ... on ProjectV2SingleSelectField { name } }
+                          }
+                        }
                       }
                     }
                     pageInfo { hasNextPage endCursor }
@@ -101,17 +105,23 @@ jobs:
               }
             }'
 
-            queue_json="$(gh api graphql --paginate               -f query="$RANK_QUEUE_QUERY"               -F org="$PROJECT_ORG"               -F number="$PROJECT_NUMBER"               -f rankField="$rank_field"               -f workstreamField="$WORKSTREAM_FIELD_NAME")"
+            queue_json="$(gh api graphql --paginate               -f query="$RANK_QUEUE_QUERY"               -F org="$PROJECT_ORG"               -F number="$PROJECT_NUMBER")"
 
-            conflict_count="$(jq -s               --arg record_type "$record_type"               --arg workstream "$requested_workstream"               --arg item "$current_item_id"               --argjson rank "$requested_rank" '
+            conflict_count="$(jq -s               --arg rank_field "$rank_field"               --arg workstream_field "$WORKSTREAM_FIELD_NAME"               --arg status_field "$STATUS_FIELD_NAME"               --arg workstream "$requested_workstream"               --arg item "$current_item_id"               --argjson rank "$requested_rank" '
                 [.[].data.organization.projectV2.items.nodes[]?
                   | select(.isArchived == false)
                   | select(.id != $item)
-                  | select((.statusValue.name // "") != "DONE")
-                  | select(.workstreamValue.name == $workstream)
-                  | select(.rankValue.number == $rank)
+                  | (.fieldValues.nodes // []) as $fields
+                  | ($fields | map(select(.__typename == "ProjectV2ItemFieldSingleSelectValue" and (.field.name // "") == $status_field)) | (.[0].name // "")) as $status
+                  | ($fields | map(select(.__typename == "ProjectV2ItemFieldSingleSelectValue" and (.field.name // "") == $workstream_field)) | (.[0].name // "")) as $item_workstream
+                  | ($fields | map(select(.__typename == "ProjectV2ItemFieldNumberValue" and (.field.name // "") == $rank_field)) | (.[0].number // null)) as $item_rank
+                  | select($status != "DONE")
+                  | select($item_workstream == $workstream)
+                  | select($item_rank == $rank)
                 ] | length
               ' <<<"$queue_json")"
+
+            echo "Rank availability check: $record_type '$rank_field'=$requested_rank, Workstream '$requested_workstream', conflicts=$conflict_count"
 
             [ "$conflict_count" -eq 0 ] || {
               echo "Rank collision: $record_type rank $requested_rank is already used in Workstream '$requested_workstream'."
@@ -532,21 +542,25 @@ jobs:
             requested_workstream="$4"
             current_item_id="$5"
 
-            RANK_QUEUE_QUERY='query($org:String!, $number:Int!, $endCursor:String, $rankField:String!, $workstreamField:String!) {
+            RANK_QUEUE_QUERY='query($org:String!, $number:Int!, $endCursor:String) {
               organization(login:$org) {
                 projectV2(number:$number) {
                   items(first:100, after:$endCursor) {
                     nodes {
                       id
                       isArchived
-                      rankValue: fieldValueByName(name:$rankField) {
-                        ... on ProjectV2ItemFieldNumberValue { number }
-                      }
-                      workstreamValue: fieldValueByName(name:$workstreamField) {
-                        ... on ProjectV2ItemFieldSingleSelectValue { name }
-                      }
-                      statusValue: fieldValueByName(name:"Status") {
-                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      fieldValues(first:100) {
+                        nodes {
+                          __typename
+                          ... on ProjectV2ItemFieldNumberValue {
+                            number
+                            field { ... on ProjectV2Field { name } }
+                          }
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                            field { ... on ProjectV2SingleSelectField { name } }
+                          }
+                        }
                       }
                     }
                     pageInfo { hasNextPage endCursor }
@@ -555,17 +569,23 @@ jobs:
               }
             }'
 
-            queue_json="$(gh api graphql --paginate               -f query="$RANK_QUEUE_QUERY"               -F org="$PROJECT_ORG"               -F number="$PROJECT_NUMBER"               -f rankField="$rank_field"               -f workstreamField="$WORKSTREAM_FIELD_NAME")"
+            queue_json="$(gh api graphql --paginate               -f query="$RANK_QUEUE_QUERY"               -F org="$PROJECT_ORG"               -F number="$PROJECT_NUMBER")"
 
-            conflict_count="$(jq -s               --arg record_type "$record_type"               --arg workstream "$requested_workstream"               --arg item "$current_item_id"               --argjson rank "$requested_rank" '
+            conflict_count="$(jq -s               --arg rank_field "$rank_field"               --arg workstream_field "$WORKSTREAM_FIELD_NAME"               --arg status_field "$STATUS_FIELD_NAME"               --arg workstream "$requested_workstream"               --arg item "$current_item_id"               --argjson rank "$requested_rank" '
                 [.[].data.organization.projectV2.items.nodes[]?
                   | select(.isArchived == false)
                   | select(.id != $item)
-                  | select((.statusValue.name // "") != "DONE")
-                  | select(.workstreamValue.name == $workstream)
-                  | select(.rankValue.number == $rank)
+                  | (.fieldValues.nodes // []) as $fields
+                  | ($fields | map(select(.__typename == "ProjectV2ItemFieldSingleSelectValue" and (.field.name // "") == $status_field)) | (.[0].name // "")) as $status
+                  | ($fields | map(select(.__typename == "ProjectV2ItemFieldSingleSelectValue" and (.field.name // "") == $workstream_field)) | (.[0].name // "")) as $item_workstream
+                  | ($fields | map(select(.__typename == "ProjectV2ItemFieldNumberValue" and (.field.name // "") == $rank_field)) | (.[0].number // null)) as $item_rank
+                  | select($status != "DONE")
+                  | select($item_workstream == $workstream)
+                  | select($item_rank == $rank)
                 ] | length
               ' <<<"$queue_json")"
+
+            echo "Rank availability check: $record_type '$rank_field'=$requested_rank, Workstream '$requested_workstream', conflicts=$conflict_count"
 
             [ "$conflict_count" -eq 0 ] || {
               echo "Rank collision: $record_type rank $requested_rank is already used in Workstream '$requested_workstream'."
