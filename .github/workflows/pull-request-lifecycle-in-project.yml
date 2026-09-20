@@ -352,8 +352,8 @@ jobs:
           done
 
           [ -n "$item_id" ] || { echo "PR Project Item was not resolved after waiting for lifecycle synchronization."; false; }
-          [ -n "$item_database_id" ] || { echo "PR Project Item fullDatabaseId was not resolved."; false; }
-          project_item_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER?pane=issue&itemId=$item_database_id"
+          pr_url="https://github.com/$REPOSITORY/pull/$PR_NUMBER"
+          project_item_view_url="https://github.com/orgs/$PROJECT_ORG/projects/$PROJECT_NUMBER/views/1?filterQuery=$PR_NUMBER"
 
           case "$actual_workstream" in
             "AI OS"|VIEPS)
@@ -361,7 +361,7 @@ jobs:
               ;;
             "")
               [ -n "${PRODUCT_OWNER_GITHUB:-}" ] || { echo "Repository Actions variable PRODUCT_OWNER_GITHUB is not configured."; false; }
-              notification="$(printf '\n\n@%s **Human action required:** Workstream is unassigned. Set the PR Project Item Workstream to `AI OS` or `VIEPS`.\n\nProject item: %s' "$PRODUCT_OWNER_GITHUB" "$project_item_url")"
+              notification="$(printf '\n\n@%s **Human action required:** Workstream is unassigned. Set the PR Project Item Workstream to `AI OS` or `VIEPS`.\n\nPull request: %s\n\nProject item view: %s' "$PRODUCT_OWNER_GITHUB" "$pr_url" "$project_item_view_url")"
               ;;
             *)
               echo "Unexpected Workstream '$actual_workstream'."
@@ -391,7 +391,8 @@ jobs:
           grep -Fxq "@priorize $PR_NUMBER" <<<"$verify_body" || { echo "@priorize request verification failed."; false; }
           if [ -z "$actual_workstream" ]; then
             grep -Fq "@$PRODUCT_OWNER_GITHUB **Human action required:** Workstream is unassigned." <<<"$verify_body" || { echo "Product Owner mention / human Workstream notification verification failed."; false; }
-            grep -Fq "$project_item_url" <<<"$verify_body" || { echo "Project item link notification verification failed."; false; }
+            grep -Fq "$pr_url" <<<"$verify_body" || { echo "Pull request link notification verification failed."; false; }
+            grep -Fq "$project_item_view_url" <<<"$verify_body" || { echo "Filtered Project item view notification verification failed."; false; }
           fi
 
           echo "PASS: PR #$PR_NUMBER received the automatic @priorize request; Workstream state and any required human notification were verified."
