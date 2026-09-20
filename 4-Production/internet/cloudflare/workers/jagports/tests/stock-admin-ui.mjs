@@ -4,6 +4,7 @@ import test from "node:test";
 
 const html = fs.readFileSync(new URL("../public/stock-admin.html", import.meta.url), "utf8");
 const js = fs.readFileSync(new URL("../public/stock-admin.js", import.meta.url), "utf8");
+const css = fs.readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 
 test("Stock Admin is one focused page without application navigation shell", () => {
   assert.match(html, /<h1 data-i18n="stock_admin\.heading"><\/h1>/);
@@ -72,4 +73,31 @@ test("Stock Admin language refresh reapplies static and dynamic localized conten
   assert.match(js, /render\(\)/);
   assert.match(js, /statusTranslationKey/);
   assert.match(js, /setLocalizedStatus\(statusTranslationKey, statusIsError\)/);
+});
+
+
+test("Stock Admin uses its own scrollable admin shell instead of the fitted Concept-11 viewport", () => {
+  assert.match(html, /<html[^>]*class="stock-admin-document"/);
+  assert.match(html, /<body[^>]*class="stock-admin-page"/);
+  assert.match(html, /class="app-shell stock-admin-shell"/);
+  assert.match(css, /\.stock-admin-document[\s\S]*overflow:\s*auto/);
+  assert.match(css, /\.stock-admin-shell[\s\S]*height:\s*auto/);
+  assert.match(css, /\.stock-admin-shell[\s\S]*overflow:\s*visible/);
+});
+
+test("Stock Admin multi-field forms use dedicated admin layout classes", () => {
+  assert.match(html, /id="accessForm" class="admin-access-form"/);
+  assert.match(html, /id="stockSearch" class="admin-stock-search"/);
+  assert.match(html, /class="admin-filter-grid"/);
+  assert.match(html, /class="admin-form-grid admin-stock-fields"/);
+  assert.match(html, /class="admin-actions"/);
+  assert.doesNotMatch(html, /id="accessForm" class="search-form"/);
+  assert.doesNotMatch(html, /id="stockSearch" class="search-form"/);
+});
+
+test("Stock Admin responsive CSS keeps fields and actions usable on narrow screens", () => {
+  assert.match(css, /\.admin-filter-grid[\s\S]*grid-cols-3/);
+  assert.match(css, /\.admin-form-grid[\s\S]*grid-cols-2/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.admin-access-form,[\s\S]*\.admin-form-grid,[\s\S]*\.admin-canonical-identity[\s\S]*grid-cols-1/);
+  assert.match(css, /\.admin-actions[\s\S]*flex-col/);
 });
