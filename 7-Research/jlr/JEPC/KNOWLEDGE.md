@@ -1,8 +1,8 @@
-# JEPC Supersession Knowledge
+# JEPC Knowledge
 
 ## Scope
 
-This file records durable JEPC/source knowledge about parts supersession. It belongs with JLR/JEPC research because the relationship semantics, source evidence, and JEPC UI observations originate from catalogue/source investigation rather than from Jagports importer implementation.
+This file records durable, reusable JEPC/source knowledge. It belongs with JLR/JEPC research because the source relationships, semantics and verified runtime behavior originate from catalogue/source investigation rather than from Jagports importer implementation.
 
 Jagports-developed importer applications, tests, and operating specifications belong under `5-Implementation-Projects/software/jagports/JEPC-Importers/`.
 
@@ -68,6 +68,38 @@ Existing stock may legitimately reference a superseded catalogue part number. A 
 The parts data model must support historical catalogue parts as entities and represent supersession as a relationship between those entities. The relationship must retain direction, relationship type, provenance, evidence, and verification information.
 
 The knowledge described here defines the domain requirement. It does not prescribe a particular database schema or implementation technology.
+
+## Catalogue illustration and hotspot media
+
+JEPC category drilldown data carries a **logical illustration identifier**. The identifier is source linkage, not itself a file format. Where the corresponding assets exist, the same logical identifier relates the category to separate media families:
+
+```text
+logical illustration ID
+   ├─ flash/images/<ID>.jpg
+   ├─ flash/xml/<ID>.xml
+   └─ illustrations/png/<ID>.png
+```
+
+The roles are distinct:
+
+- `flash/images/<ID>.jpg` is the small raster illustration used by the legacy Flash diagram viewer.
+- `flash/xml/<ID>.xml` contains conventional XML hotspot geometry and item-number associations for the diagram when hotspot data exists.
+- `illustrations/png/<ID>.png` is the full-resolution raster illustration used by the non-Flash full-size-image view when that asset exists.
+- Model watermark/background images under `images/` are a separate media namespace and must not be conflated with catalogue illustration IDs.
+
+Asset-family presence is not guaranteed to be one-to-one. A logical illustration can have one or more of these corresponding files. Import and validation must therefore preserve the logical identifier and record each discovered asset independently rather than infer that all same-name assets exist.
+
+Hotspot XML relates image regions to catalogue item numbers. One item number can have multiple hotspot regions in the same illustration, so diagram-to-item linkage is not a one-rectangle-per-item relationship.
+
+The legacy Flash viewer has configuration values for its own hotspot coordinate space. Those values and the presence of same-name JPG/XML/PNG assets do not prove pixel identity, coordinate equivalence, or a conversion formula between the Flash-viewer image and the full-resolution PNG. Coordinate conversion must remain evidence-based and separately validated.
+
+For import and VIEPS use:
+
+- preserve the logical illustration identifier as source provenance;
+- preserve asset family, source path, checksum and relationship to the catalogue occurrence/category;
+- preserve hotspot item-number and geometry records losslessly;
+- allow media processing to be separate from catalogue-data processing without losing their source relationship;
+- do not derive missing media, hotspot geometry, or coordinate transformations from filename similarity alone.
 
 ## Generalization rule
 
