@@ -277,9 +277,9 @@ The leaf application ID is `142207`; the corresponding sidecar record is:
 This establishes two important source rules:
 
 1. Tree ancestry and applicability sidecars must be interpreted together.
-2. Catalogue position and vehicle applicability are distinct dimensions. `RH` above describes the physical right-hand part position, while `LHD` is a vehicle steering constraint represented by `A23`.
+2. `RH` and `LHD` are separate labels in the source path. `LHD` correlates with `A23=154` in this application. `RH` is present as an explicit `Itm_*_L0.xml` tree node, but its source semantics and whether it is represented elsewhere by another predicate, scope or occurrence relationship remain unresolved.
 
-Do not collapse `LH/RH` part position into `LHD/RHD` steering.
+Do not infer that `LH/RH` is merely presentation or a physical-position dimension from the absence of an extra tuple in one sidecar row. Preserve the tree node and investigate its relationship to applicability independently from `LHD/RHD`.
 
 ## Generic attribute decoding
 
