@@ -210,7 +210,7 @@ The importer must not assume that all future EPC data fits into one production d
 
 ## Runtime source architecture and applicability evidence
 
-The installed JEPC application is a frame-based client that joins several local datasets at runtime. Source interpretation must distinguish the local catalogue engine from legacy server-backed functions.
+The installed JEPC application is a frame-based application that joins several on-disk datasets and JavaScript components at runtime. The inspected files establish the client-side structure and data contract, but do not establish that any referenced `.jepc` operation required a remote server. Offline/on-disk implementations and resources must remain an open investigation target.
 
 ### Local catalogue data
 
@@ -239,11 +239,11 @@ The top-level model-menu path is `menus/L0/models_l_id_0.xml` in the observed in
 
 The third-party jPart reconstruction is useful for tree/file-reading behavior, but it does not read JEPC applicability sidecars. Its omission of `menus/pl_id_<model>_attributes.xml`, `tl_*_attributes.xml` and `Itm_*_attributes.xml` is not evidence that those files are irrelevant. The original JEPC JavaScript reads and evaluates applicability separately.
 
-### Legacy server-backed VIN UI
+### VIN/search attribute handling
 
-`VinDecode.js` shows a historical server contract using endpoints such as `getVinDecode.jepc`. The returned object contained a generic `VehicleAttributes` collection and a `TokenString`. The server endpoint is not available as an importer dependency and must not be required for VIEPS.
+`VinDecode.js` references operations such as `getVinDecode.jepc` and processes a generic `VehicleAttributes` collection plus a `TokenString`. The inspected JavaScript does not establish where those operations were implemented or whether JEPC required network access. Do not classify them as remote/server-only without evidence; continue searching the installation for on-disk implementations, resources, caches or dictionaries.
 
-Five attribute IDs are hard-coded only because the VIN/search UI exposed editable selectors for them:
+Five attribute IDs are hard-coded because that VIN/search UI exposes editable selectors for them:
 
 - `6` — Engine variant
 - `21` — Market
@@ -251,7 +251,7 @@ Five attribute IDs are hard-coded only because the VIN/search UI exposed editabl
 - `24` — Transmission
 - `56` — Trim level
 
-These five are not the complete JEPC attribute taxonomy. Other group IDs occur in applicability sidecars and must remain generic unless independently mapped.
+These five are examples used by that UI, not evidence of a complete JEPC attribute taxonomy. Other group IDs occur in applicability sidecars and must remain generic unless independently mapped.
 
 ## Decision-tree evidence and application-ID joins
 
