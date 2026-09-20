@@ -9,32 +9,33 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$cache = @{}
-$attributeFileCache = @{}
-$attributeDiscoveryCache = @{}
+$script:FileCache = @{}
+$script:AttributeFileCache = @{}
+$script:AttributeDiscoveryCache = @{}
 
-function Read-Data([string]$Path) {
+function Read-JepcData {
+    param([string]$Path)
     if (-not (Test-Path -LiteralPath $Path)) { return @() }
+
     $full = [IO.Path]::GetFullPath($Path)
-    if ($cache.ContainsKey($full)) { return $cache[$full] }
+    if ($script:FileCache.ContainsKey($full)) { return $script:FileCache[$full] }
 
     Write-Host ""
     Write-Host "*** Reading $full"
 
     $rows = @(Get-Content -LiteralPath $full | ForEach-Object {
         $x = $_.Trim()
-        if ($x -and -not $x.StartsWith("<?xml") -and $x -ne "<Data>" -and $x -ne "</Data>") {
-            $x
-        }
+        if ($x -and -not $x.StartsWith("<?xml") -and $x -ne "<Data>" -and $x -ne "</Data>") { $x }
     })
 
     Write-Host "    $($rows.Count) data rows"
-    $cache[$full] = $rows
+    $script:FileCache[$full] = $rows
     return $rows
 }
 
-function Split-JepcRow([string]$Line) {
-    if (-not $Line.StartsWith("[") -or -not $Line.EndsWith("]")) { return $null }
+function Split-JepcRow {
+    param([string]$Line)
+    if ([string]::IsNullOrWhiteSpace($Line) -or -not $Line.StartsWith("[") -or -not $Line.EndsWith("]")) { return $null }
 
     $s = $Line.Substring(1, $Line.Length - 2)
     $fields = New-Object System.Collections.Generic.List[string]
@@ -43,10 +44,7 @@ function Split-JepcRow([string]$Line) {
 
     for ($i = 0; $i -lt $s.Length; $i++) {
         $c = $s[$i]
-        if ($c -eq "'") {
-            $quoted = -not $quoted
-            continue
-        }
+        if ($c -eq "'") { $quoted = -not $quoted; continue }
         if ($c -eq "," -and -not $quoted) {
             $fields.Add($buf.ToString().Trim())
             $buf.Clear() | Out-Null
@@ -59,117 +57,129 @@ function Split-JepcRow([string]$Line) {
     return ,$fields.ToArray()
 }
 
-function Parse-Tuples([string]$Raw, [string]$Scope, [int]$RuleIndex) {
-    $rows = New-Object System.Collections.Generic.List[object]
-    $i = 0
+function Parse-RuleTuples {
+    param([string]$Raw, [string]$Scope, [int]$RuleIndex)
 
-    foreach ($m in [regex]::Matches(
-        $Raw,
-        '\[(?<g>A\d+|C)\s*,\s*(?<v>[^,\]]+)\s*,\s*(?<f1>[^,\]]+)\s*,\s*(?<f2>[^,\]]+)(?:\s*,\s*(?<f3>[^,\]]+))?\]'
-    )) {
-        $i++
-        $rows.Add([pscustomobject]@{
-            Scope      = $Scope
-            RuleIndex  = $RuleIndex
-            TupleIndex = $i
-            Group      = $m.Groups["g"].Value.Trim()
-            Value      = $m.Groups["v"].Value.Trim()
-            Flag1      = $m.Groups["f1"].Value.Trim()
-            Flag2      = $m.Groups["f2"].Value.Trim()
-            Flag3      = $m.Groups["f3"].Value.Trim()
-            Raw        = $m.Value
+    $result = New-Object System.Collections.Generic.List[object]
+    $tupleIndex = 0
+
+    foreach ($m in [regex]::Matches($Raw, '\[(?<body>[^\]]+)\]')) {
+        $parts = @($m.Groups["body"].Value.Split(",") | ForEach-Object { $_.Trim() })
+        if ($parts.Count -lt 3) { continue }
+
+        $group = [string]$parts[0]
+        if ($group -ne "C" -and $group -notmatch '^A\d+$') { continue }
+
+        $tupleIndex++
+        $flag2 = ""
+        $flag3 = ""
+        if ($parts.Count -ge 4) { $flag2 = [string]$parts[3] }
+        if ($parts.Count -ge 5) { $flag3 = [string]$parts[4] }
+
+        $result.Add([pscustomobject]@{
+            Scope=$Scope; RuleIndex=$RuleIndex; TupleIndex=$tupleIndex
+            Group=$group; Value=[string]$parts[1]; Flag1=[string]$parts[2]
+            Flag2=$flag2; Flag3=$flag3; Raw=$m.Value
         })
     }
 
-    return $rows
+    return $result
 }
 
-function Get-Rules([string]$Path, [string]$Key, [string]$Scope) {
-    $rows = New-Object System.Collections.Generic.List[object]
-    if (-not (Test-Path -LiteralPath $Path)) { return $rows }
+function Get-Rules {
+    param([string]$Path, [string]$Key, [string]$Scope)
+
+    $result = New-Object System.Collections.Generic.List[object]
+    if (-not (Test-Path -LiteralPath $Path)) { return $result }
 
     $ruleIndex = 0
-
-    foreach ($line in Read-Data $Path) {
+    foreach ($line in Read-JepcData $Path) {
         $comma = $line.IndexOf(",")
         if ($comma -lt 1) { continue }
-        if ($line.Substring(0, $comma).Trim() -ne $Key) { continue }
+
+        $recordKey = $line.Substring(0, $comma).Trim()
+        if ($recordKey -ne $Key) { continue }
 
         $ruleIndex++
-        $rows.Add([pscustomobject]@{
-            Scope     = $Scope
-            RuleIndex = $ruleIndex
-            RawRule   = $line.Substring($comma + 1).Trim()
+        $result.Add([pscustomobject]@{
+            Scope=$Scope
+            RuleIndex=$ruleIndex
+            RawRule=$line.Substring($comma + 1).Trim()
         })
     }
 
-    return $rows
+    return $result
 }
 
-function Get-Tree([string]$Path) {
+function Get-Tree {
+    param([string]$Path)
+
     $nodes = @{}
     $rows = New-Object System.Collections.Generic.List[object]
 
-    foreach ($line in Read-Data $Path) {
+    foreach ($line in Read-JepcData $Path) {
         $f = Split-JepcRow $line
         if ($null -eq $f -or $f.Count -lt 3) { continue }
 
-        $r = [pscustomobject]@{
-            Parent = [string]$f[0]
-            Id     = [string]$f[1]
-            Label  = [string]$f[2]
-            Fields = $f
+        $row = [pscustomobject]@{
+            Parent=[string]$f[0]
+            Id=[string]$f[1]
+            Label=[string]$f[2]
+            Fields=$f
         }
 
-        $rows.Add($r)
-        $nodes[$r.Id] = $r
+        $rows.Add($row)
+        $nodes[$row.Id] = $row
     }
 
-    return [pscustomobject]@{ Nodes = $nodes; Rows = $rows }
+    return [pscustomobject]@{ Nodes=$nodes; Rows=$rows }
 }
 
-function Get-Path([hashtable]$Nodes, [string]$ParentId) {
+function Get-Path {
+    param([hashtable]$Nodes, [string]$ParentId)
+
     $reverse = New-Object System.Collections.Generic.List[object]
     $guard = 0
 
     while ($Nodes.ContainsKey($ParentId) -and $guard -lt 100) {
-        $r = $Nodes[$ParentId]
-        $reverse.Add($r)
-        $ParentId = $r.Parent
+        $node = $Nodes[$ParentId]
+        $reverse.Add($node)
+        $ParentId = $node.Parent
         $guard++
     }
 
     $forward = New-Object System.Collections.Generic.List[object]
-    for ($i = $reverse.Count - 1; $i -ge 0; $i--) {
-        $forward.Add($reverse[$i])
-    }
-
+    for ($i = $reverse.Count - 1; $i -ge 0; $i--) { $forward.Add($reverse[$i]) }
     return $forward
 }
 
-function Parse-VinLabel([string]$Label) {
+function Parse-VinLabel {
+    param([string]$Label)
     if ([string]::IsNullOrWhiteSpace($Label)) { return @() }
+
     $x = $Label.Trim()
 
     if ($x -match '(?i)^From\s+VIN\s*\(([^)]+)\)\s*To\s+VIN\s*\(([^)]+)\)$') {
-        return ,([pscustomobject]@{ From = $Matches[1].Trim(); To = $Matches[2].Trim(); Raw = $x })
+        return ,([pscustomobject]@{ From=$Matches[1].Trim(); To=$Matches[2].Trim(); Raw=$x })
     }
     if ($x -match '(?i)^From\s+VIN\s*\(([^)]+)\)$') {
-        return ,([pscustomobject]@{ From = $Matches[1].Trim(); To = ""; Raw = $x })
+        return ,([pscustomobject]@{ From=$Matches[1].Trim(); To=""; Raw=$x })
     }
     if ($x -match '(?i)^To\s+VIN\s*\(([^)]+)\)$') {
-        return ,([pscustomobject]@{ From = ""; To = $Matches[1].Trim(); Raw = $x })
+        return ,([pscustomobject]@{ From=""; To=$Matches[1].Trim(); Raw=$x })
     }
 
     return @()
 }
 
-function Get-CategoryInfo([int]$M, [int]$C) {
+function Get-CategoryInfo {
+    param([int]$M, [int]$C)
+
     $path = Join-Path $Root "drilldown\pl_id_$M\L0\cat_M$($M)_C$($C)_L0.xml"
     $cataloguePath = ""
     $imageRef = ""
 
-    foreach ($line in Read-Data $path) {
+    foreach ($line in Read-JepcData $path) {
         if (-not $cataloguePath -and $line -match '^\[(.+/.+)\]$') {
             $cataloguePath = $Matches[1].Trim()
             continue
@@ -180,18 +190,20 @@ function Get-CategoryInfo([int]$M, [int]$C) {
     }
 
     return [pscustomobject]@{
-        Model         = "M$M"
-        Category      = "C$C"
-        CataloguePath = $cataloguePath
-        ImageRef      = $imageRef
+        Model="M$M"
+        Category="C$C"
+        CataloguePath=$cataloguePath
+        ImageRef=$imageRef
     }
 }
 
-function Get-TopLabel([int]$M, [int]$C, [int]$I) {
+function Get-TopLabel {
+    param([int]$M, [int]$C, [int]$I)
+
     $path = Join-Path $Root "drilldown\pl_id_$M\L0\tl_M$($M)_C$($C)_L0.xml"
     if (-not (Test-Path -LiteralPath $path)) { return "" }
 
-    foreach ($line in Read-Data $path) {
+    foreach ($line in Read-JepcData $path) {
         $f = Split-JepcRow $line
         if ($null -ne $f -and $f.Count -ge 2 -and [string]$f[0] -eq [string]$I) {
             return [string]$f[1]
@@ -201,17 +213,18 @@ function Get-TopLabel([int]$M, [int]$C, [int]$I) {
     return ""
 }
 
-function Effect-FromTuple([object]$Tuple) {
+function Get-Effect {
+    param([object]$Tuple)
     if ($Tuple.Flag1 -eq "0") { return "INCLUDE" }
     if ($Tuple.Flag1 -eq "1") { return "EXCLUDE" }
     return "RAW"
 }
 
-function Get-ModelAttributeFiles([int]$M) {
+function Get-ModelAttributeFiles {
+    param([int]$M)
+
     $key = [string]$M
-    if ($attributeFileCache.ContainsKey($key)) {
-        return $attributeFileCache[$key]
-    }
+    if ($script:AttributeFileCache.ContainsKey($key)) { return $script:AttributeFileCache[$key] }
 
     $files = New-Object System.Collections.Generic.List[string]
     $modelRoot = Join-Path $Root "drilldown\pl_id_$M"
@@ -223,37 +236,28 @@ function Get-ModelAttributeFiles([int]$M) {
     }
 
     $menuAttributes = Join-Path $Root "menus\pl_id_$($M)_attributes.xml"
-    if (Test-Path -LiteralPath $menuAttributes) {
-        $files.Add($menuAttributes)
-    }
+    if (Test-Path -LiteralPath $menuAttributes) { $files.Add($menuAttributes) }
 
-    $attributeFileCache[$key] = @($files)
-    return $attributeFileCache[$key]
+    $script:AttributeFileCache[$key] = @($files)
+    Write-Host ""
+    Write-Host "Model M$M attribute files indexed: $($files.Count)"
+    return $script:AttributeFileCache[$key]
 }
 
+function Find-AttributeEvidenceInModel {
+    param([int]$M, [string]$Group, [string]$Value)
 
-function Find-AttributeEvidenceInModel(
-    [int]$M,
-    [string]$Group,
-    [string]$Value
-) {
     $cacheKey = "$M|$Group|$Value"
-
-    if ($attributeDiscoveryCache.ContainsKey($cacheKey)) {
-        return $attributeDiscoveryCache[$cacheKey]
+    if ($script:AttributeDiscoveryCache.ContainsKey($cacheKey)) {
+        return $script:AttributeDiscoveryCache[$cacheKey]
     }
 
     $files = @(Get-ModelAttributeFiles $M)
-
     if ($files.Count -eq 0) {
         $result = [pscustomobject]@{
-            Label          = ""
-            Status         = "UNRESOLVED"
-            Source         = "MODEL_SOURCE_SEARCH"
-            HitCount       = 0
-            ExactJoinCount = 0
+            Label=""; Status="UNRESOLVED"; Source="MODEL_SOURCE_SEARCH"; HitCount=0; ExactJoinCount=0
         }
-        $attributeDiscoveryCache[$cacheKey] = $result
+        $script:AttributeDiscoveryCache[$cacheKey] = $result
         return $result
     }
 
@@ -262,9 +266,7 @@ function Find-AttributeEvidenceInModel(
     Write-Host ""
     Write-Host "*** Searching model M$M source for $Group=$Value"
 
-    # Native PowerShell text search. This replaces DOS findstr.
     $hits = @(Select-String -Path $files -Pattern $pattern -CaseSensitive:$false)
-
     Write-Host "    Select-String hits: $($hits.Count)"
 
     $evidence = New-Object System.Collections.Generic.List[object]
@@ -276,62 +278,62 @@ function Find-AttributeEvidenceInModel(
 
         $recordKey = $line.Substring(0, $comma).Trim()
         $rawRule = $line.Substring($comma + 1).Trim()
-        $tuples = @(Parse-Tuples $rawRule "DISCOVERY" 1)
+        $tuples = @(Parse-RuleTuples $rawRule "DISCOVERY" 1)
 
         $target = @($tuples | Where-Object { $_.Group -eq $Group -and $_.Value -eq $Value })
         if ($target.Count -eq 0) { continue }
 
         $fileName = [IO.Path]::GetFileName($hit.Path)
+        if ($fileName -notmatch '(?i)^Itm_M(\d+)_C(\d+)_I(\d+)_attributes\.xml$') { continue }
 
-        if ($fileName -match '(?i)^Itm_M(\d+)_C(\d+)_I(\d+)_attributes\.xml$') {
-            $dm = [int]$Matches[1]
-            $dc = [int]$Matches[2]
-            $di = [int]$Matches[3]
+        $dm = [int]$Matches[1]
+        $dc = [int]$Matches[2]
+        $di = [int]$Matches[3]
 
-            $attributesDir = Split-Path -Parent $hit.Path
-            $l0Dir = Join-Path $attributesDir "L0"
-            $l0 = Join-Path $l0Dir "Itm_M$($dm)_C$($dc)_I$($di)_L0.xml"
+        $attributesDir = Split-Path -Parent $hit.Path
+        $l0 = Join-Path (Join-Path $attributesDir "L0") "Itm_M$($dm)_C$($dc)_I$($di)_L0.xml"
+        if (-not (Test-Path -LiteralPath $l0)) { continue }
 
-            if (-not (Test-Path -LiteralPath $l0)) { continue }
+        $tree = Get-Tree $l0
 
-            $tree = Get-Tree $l0
-            $leafMatches = @($tree.Rows | Where-Object {
-                $fields = $_.Fields
-                $fields.Count -ge 12 -and ([string]$fields[$fields.Count - 1]).Trim() -eq $recordKey
-            })
+        $leafMatches = @($tree.Rows | Where-Object {
+            $fields = $_.Fields
+            $fields.Count -ge 4 -and ([string]$fields[$fields.Count - 1]).Trim() -eq $recordKey
+        })
 
-            foreach ($leaf in $leafMatches) {
-                $pathNodes = @(Get-Path $tree.Nodes $leaf.Parent)
-                $labels = @($pathNodes | Where-Object {
-                    -not [string]::IsNullOrWhiteSpace($_.Label) -and
-                    @(Parse-VinLabel ([string]$_.Label)).Count -eq 0
-                } | ForEach-Object { [string]$_.Label } | Select-Object -Unique)
+        foreach ($leaf in $leafMatches) {
+            $pathNodes = @(Get-Path $tree.Nodes $leaf.Parent)
 
-                $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+$' })
-                $candidate = ""
-                $joinStatus = "EXACT_PATH_CONTEXT"
+            $labels = @($pathNodes | Where-Object {
+                -not [string]::IsNullOrWhiteSpace($_.Label) -and
+                @(Parse-VinLabel ([string]$_.Label)).Count -eq 0
+            } | ForEach-Object { [string]$_.Label } | Select-Object -Unique)
 
-                if ($aTuples.Count -eq 1 -and $labels.Count -eq 1) {
-                    $candidate = $labels[0]
-                    $joinStatus = "EXACT_SOURCE_JOIN"
-                }
+            $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+$' })
+            $candidate = ""
+            $joinStatus = "EXACT_PATH_CONTEXT"
 
-                $evidence.Add([pscustomobject]@{
-                    Model          = "M$dm"
-                    Category       = "C$dc"
-                    Item           = "I$di"
-                    ApplicationId  = $recordKey
-                    CandidateLabel = $candidate
-                    JoinStatus     = $joinStatus
-                    FullTreePath   = ($labels -join " > ")
-                    SourceFile     = $fileName
-                })
+            if ($aTuples.Count -eq 1 -and $labels.Count -eq 1) {
+                $candidate = $labels[0]
+                $joinStatus = "EXACT_SOURCE_JOIN"
             }
+
+            $evidence.Add([pscustomobject]@{
+                Model="M$dm"
+                Category="C$dc"
+                Item="I$di"
+                ApplicationId=$recordKey
+                CandidateLabel=$candidate
+                JoinStatus=$joinStatus
+                FullTreePath=($labels -join " > ")
+                SourceFile=$fileName
+            })
         }
     }
 
     $exactLabels = @($evidence | Where-Object {
-        $_.JoinStatus -eq "EXACT_SOURCE_JOIN" -and -not [string]::IsNullOrWhiteSpace($_.CandidateLabel)
+        $_.JoinStatus -eq "EXACT_SOURCE_JOIN" -and
+        -not [string]::IsNullOrWhiteSpace($_.CandidateLabel)
     } | Select-Object -ExpandProperty CandidateLabel -Unique)
 
     $label = ""
@@ -346,14 +348,14 @@ function Find-AttributeEvidenceInModel(
     }
 
     $result = [pscustomobject]@{
-        Label          = $label
-        Status         = $status
-        Source         = "MODEL_SOURCE_SEARCH"
-        HitCount       = $hits.Count
-        ExactJoinCount = @($evidence | Where-Object { $_.JoinStatus -eq "EXACT_SOURCE_JOIN" }).Count
+        Label=$label
+        Status=$status
+        Source="MODEL_SOURCE_SEARCH"
+        HitCount=$hits.Count
+        ExactJoinCount=@($evidence | Where-Object { $_.JoinStatus -eq "EXACT_SOURCE_JOIN" }).Count
     }
 
-    $attributeDiscoveryCache[$cacheKey] = $result
+    $script:AttributeDiscoveryCache[$cacheKey] = $result
     return $result
 }
 
@@ -387,15 +389,13 @@ $occurrences = New-Object System.Collections.Generic.List[object]
 $rawRules = New-Object System.Collections.Generic.List[object]
 $rawFilters = New-Object System.Collections.Generic.List[object]
 $boundaries = New-Object System.Collections.Generic.List[object]
-$decodeEvidence = New-Object System.Collections.Generic.List[object]
+$localDecodeEvidence = New-Object System.Collections.Generic.List[object]
 
 $modelIds = New-Object System.Collections.Generic.List[int]
 
 if ($PartNumber) {
     Get-ChildItem -LiteralPath (Join-Path $Root "drilldown") -Directory | ForEach-Object {
-        if ($_.Name -match '^pl_id_(\d+)$') {
-            $modelIds.Add([int]$Matches[1])
-        }
+        if ($_.Name -match '^pl_id_(\d+)$') { $modelIds.Add([int]$Matches[1]) }
     }
 }
 else {
@@ -414,9 +414,7 @@ foreach ($m in $modelIds) {
         $itemPattern = "Itm_M$($m)_C*_I*_L0.xml"
     }
 
-    $itemFiles = @(Get-ChildItem -LiteralPath $l0Root -File | Where-Object {
-        $_.Name -like $itemPattern
-    } | Sort-Object Name)
+    $itemFiles = @(Get-ChildItem -LiteralPath $l0Root -File | Where-Object { $_.Name -like $itemPattern } | Sort-Object Name)
 
     foreach ($file in $itemFiles) {
         if ($file.Name -notmatch '^Itm_M(\d+)_C(\d+)_I(\d+)_L0\.xml$') { continue }
@@ -426,16 +424,16 @@ foreach ($m in $modelIds) {
         $ti = [int]$Matches[3]
 
         $categoryInfo = Get-CategoryInfo $tm $tc
+        $alreadyHaveCategory = @($categoryRows | Where-Object { $_.Model -eq "M$tm" -and $_.Category -eq "C$tc" }).Count -gt 0
 
-        if (-not @($categoryRows | Where-Object {
-            $_.Model -eq "M$tm" -and $_.Category -eq "C$tc"
-        }).Count) {
+        if (-not $alreadyHaveCategory) {
             $categoryRows.Add($categoryInfo)
 
             if ($categoryInfo.CataloguePath -match '(?i)\bup\s+to\s+\([^)]+\)\s+([A-Z]?\d+)') {
                 $boundaries.Add([pscustomobject]@{
-                    Model="M$tm";Category="C$tc";BoundaryType="DOMAIN_MAX";Value=$Matches[1].Trim()
-                    SourceKind="CATEGORY_HEADER";Scope="CATEGORY";Item="";ApplicationId="";RuleIndex="";Raw=$categoryInfo.CataloguePath
+                    Model="M$tm"; Category="C$tc"; BoundaryType="DOMAIN_MAX"; Value=$Matches[1].Trim()
+                    SourceKind="CATEGORY_HEADER"; Scope="CATEGORY"; Item=""; ApplicationId=""; RuleIndex=""
+                    Raw=$categoryInfo.CataloguePath
                 })
             }
         }
@@ -445,7 +443,7 @@ foreach ($m in $modelIds) {
 
         foreach ($row in $tree.Rows) {
             $f = $row.Fields
-            if ($f.Count -lt 12) { continue }
+            if ($f.Count -lt 5) { continue }
 
             $partRef = 0
             [void][int]::TryParse(([string]$f[3]).Trim(), [ref]$partRef)
@@ -454,7 +452,7 @@ foreach ($m in $modelIds) {
             if ($partRef -le 0 -or [string]::IsNullOrWhiteSpace($pn) -or $pn -eq "0") { continue }
             if ($PartNumber -and $pn -notlike "*$PartNumber*") { continue }
 
-            $app = ([string]$f[$f.Count - 1]).Trim()
+            $applicationId = ([string]$f[$f.Count - 1]).Trim()
             $pathNodes = @(Get-Path $tree.Nodes $row.Parent)
             $pathLabels = @($pathNodes | Where-Object {
                 -not [string]::IsNullOrWhiteSpace($_.Label)
@@ -463,67 +461,76 @@ foreach ($m in $modelIds) {
             $topLabel = Get-TopLabel $tm $tc $ti
 
             $occurrences.Add([pscustomobject]@{
-                Model         = "M$tm"
-                Category      = "C$tc"
-                Item          = "I$ti"
-                PartNumber    = $pn
-                ApplicationId = $app
-                CataloguePath = $categoryInfo.CataloguePath
-                TopLevelLabel = $topLabel
-                ItemTreePath  = ($pathLabels -join " > ")
+                Model="M$tm"
+                Category="C$tc"
+                Item="I$ti"
+                PartNumber=$pn
+                ApplicationId=$applicationId
+                CataloguePath=$categoryInfo.CataloguePath
+                TopLevelLabel=$topLabel
+                ItemTreePath=($pathLabels -join " > ")
             })
 
             foreach ($label in $pathLabels) {
                 foreach ($v in @(Parse-VinLabel $label)) {
                     if ($v.From) {
                         $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType="FROM";Value=$v.From
-                            SourceKind="TREE_TEXT";Scope="ITEM_TREE";Item="I$ti";ApplicationId=$app;RuleIndex="";Raw=$v.Raw
+                            Model="M$tm"; Category="C$tc"; BoundaryType="FROM"; Value=$v.From
+                            SourceKind="TREE_TEXT"; Scope="ITEM_TREE"; Item="I$ti"; ApplicationId=$applicationId
+                            RuleIndex=""; Raw=$v.Raw
                         })
                     }
                     if ($v.To) {
                         $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType="TO";Value=$v.To
-                            SourceKind="TREE_TEXT";Scope="ITEM_TREE";Item="I$ti";ApplicationId=$app;RuleIndex="";Raw=$v.Raw
+                            Model="M$tm"; Category="C$tc"; BoundaryType="TO"; Value=$v.To
+                            SourceKind="TREE_TEXT"; Scope="ITEM_TREE"; Item="I$ti"; ApplicationId=$applicationId
+                            RuleIndex=""; Raw=$v.Raw
                         })
                     }
                 }
             }
 
             $allRules = New-Object System.Collections.Generic.List[object]
-            foreach ($r in @(Get-Rules (Join-Path $Root "menus\pl_id_$($tm)_attributes.xml") ([string]$tc) "CATEGORY")) { $allRules.Add($r) }
-            foreach ($r in @(Get-Rules (Join-Path $modelRoot "tl_M$($tm)_C$($tc)_attributes.xml") ([string]$ti) "TOP")) { $allRules.Add($r) }
-            foreach ($r in @(Get-Rules $itemAttr $app "APPLICATION")) { $allRules.Add($r) }
+
+            foreach ($rule in @(Get-Rules (Join-Path $Root "menus\pl_id_$($tm)_attributes.xml") ([string]$tc) "CATEGORY")) {
+                $allRules.Add($rule)
+            }
+            foreach ($rule in @(Get-Rules (Join-Path $modelRoot "tl_M$($tm)_C$($tc)_attributes.xml") ([string]$ti) "TOP")) {
+                $allRules.Add($rule)
+            }
+            foreach ($rule in @(Get-Rules $itemAttr $applicationId "APPLICATION")) {
+                $allRules.Add($rule)
+            }
 
             foreach ($rule in $allRules) {
                 $rawRules.Add([pscustomobject]@{
-                    Model="M$tm";Category="C$tc";Item="I$ti";PartNumber=$pn;ApplicationId=$app
-                    Scope=$rule.Scope;RuleIndex=$rule.RuleIndex;RawRule=$rule.RawRule
+                    Model="M$tm"; Category="C$tc"; Item="I$ti"; PartNumber=$pn; ApplicationId=$applicationId
+                    Scope=$rule.Scope; RuleIndex=$rule.RuleIndex; RawRule=$rule.RawRule
                 })
 
-                $tuples = @(Parse-Tuples $rule.RawRule $rule.Scope $rule.RuleIndex)
+                $tuples = @(Parse-RuleTuples $rule.RawRule $rule.Scope $rule.RuleIndex)
                 $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+$' })
 
-                foreach ($t in $tuples) {
-                    if ($t.Group -eq "C") {
-                        $type = "UNKNOWN"
-                        if ($t.Flag1 -eq "0") { $type = "FROM" }
-                        if ($t.Flag1 -eq "1") { $type = "TO" }
+                foreach ($tuple in $tuples) {
+                    if ($tuple.Group -eq "C") {
+                        $boundaryType = "UNKNOWN"
+                        if ($tuple.Flag1 -eq "0") { $boundaryType = "FROM" }
+                        elseif ($tuple.Flag1 -eq "1") { $boundaryType = "TO" }
 
                         $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType=$type;Value=$t.Value
-                            SourceKind="ATTRIBUTE_C";Scope=$t.Scope;Item="I$ti";ApplicationId=$app
-                            RuleIndex=$t.RuleIndex;Raw=$t.Raw
+                            Model="M$tm"; Category="C$tc"; BoundaryType=$boundaryType; Value=$tuple.Value
+                            SourceKind="ATTRIBUTE_C"; Scope=$tuple.Scope; Item="I$ti"; ApplicationId=$applicationId
+                            RuleIndex=$tuple.RuleIndex; Raw=$tuple.Raw
                         })
                         continue
                     }
 
-                    if ($t.Group -notmatch '^A\d+$') { continue }
+                    if ($tuple.Group -notmatch '^A\d+$') { continue }
 
-                    $effect = Effect-FromTuple $t
                     $rawFilters.Add([pscustomobject]@{
-                        Model="M$tm";Category="C$tc";Group=$t.Group;Value=$t.Value;Effect=$effect
-                        Scope=$t.Scope;Item="I$ti";ApplicationId=$app;RuleIndex=$t.RuleIndex
+                        Model="M$tm"; Category="C$tc"; Group=$tuple.Group; Value=$tuple.Value
+                        Effect=(Get-Effect $tuple); Scope=$tuple.Scope; Item="I$ti"
+                        ApplicationId=$applicationId; RuleIndex=$tuple.RuleIndex
                     })
 
                     $nonVinLabels = @($pathLabels | Where-Object {
@@ -533,16 +540,14 @@ foreach ($m in $modelIds) {
                     $candidate = ""
                     $status = "CONTEXT_ONLY"
 
-                    if ($t.Scope -eq "APPLICATION" -and $aTuples.Count -eq 1 -and $nonVinLabels.Count -eq 1) {
+                    if ($tuple.Scope -eq "APPLICATION" -and $aTuples.Count -eq 1 -and $nonVinLabels.Count -eq 1) {
                         $candidate = $nonVinLabels[0]
                         $status = "EXACT_SOURCE_JOIN"
                     }
 
-                    $decodeEvidence.Add([pscustomobject]@{
-                        Model="M$tm";Category="C$tc";Group=$t.Group;Value=$t.Value
-                        Item="I$ti";ApplicationId=$app;Scope=$t.Scope;RuleIndex=$t.RuleIndex
-                        CandidateLabel=$candidate;ResolutionStatus=$status
-                        FullTreePath=($nonVinLabels -join " > ")
+                    $localDecodeEvidence.Add([pscustomobject]@{
+                        Model="M$tm"; Category="C$tc"; Group=$tuple.Group; Value=$tuple.Value
+                        CandidateLabel=$candidate; ResolutionStatus=$status
                     })
                 }
             }
@@ -554,75 +559,74 @@ $filters = New-Object System.Collections.Generic.List[object]
 
 foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) {
     $first = $g.Group[0]
-    $evidence = @($decodeEvidence | Where-Object {
+
+    $localLabels = @($localDecodeEvidence | Where-Object {
         $_.Model -eq $first.Model -and
         $_.Category -eq $first.Category -and
         $_.Group -eq $first.Group -and
-        $_.Value -eq $first.Value
-    })
-
-    $labels = @($evidence | Where-Object {
-        $_.ResolutionStatus -eq "EXACT_SOURCE_JOIN" -and $_.CandidateLabel
+        $_.Value -eq $first.Value -and
+        $_.ResolutionStatus -eq "EXACT_SOURCE_JOIN" -and
+        -not [string]::IsNullOrWhiteSpace($_.CandidateLabel)
     } | Select-Object -ExpandProperty CandidateLabel -Unique)
 
-    $resolvedLabel = ""
+    $label = ""
     $status = "UNRESOLVED"
     $resolutionSource = "LOCAL_CATEGORY"
     $discoveryHits = 0
     $discoveryExactJoins = 0
 
-    if ($labels.Count -eq 1) {
-        $resolvedLabel = $labels[0]
+    if ($localLabels.Count -eq 1) {
+        $label = $localLabels[0]
         $status = "EXACT_LOCAL_JOIN"
     }
-    elseif ($labels.Count -gt 1) {
+    elseif ($localLabels.Count -gt 1) {
         $status = "AMBIGUOUS"
     }
     else {
         $modelNumber = [int]($first.Model -replace '^M','')
-        $discovered = Find-AttributeEvidenceInModel -M $modelNumber -Group $first.Group -Value $first.Value
+        $discovered = Find-AttributeEvidenceInModel $modelNumber $first.Group $first.Value
 
         $discoveryHits = $discovered.HitCount
         $discoveryExactJoins = $discovered.ExactJoinCount
+        $resolutionSource = $discovered.Source
 
         if ($discovered.Status -eq "DISCOVERED_MODEL_SOURCE_JOIN") {
-            $resolvedLabel = $discovered.Label
+            $label = $discovered.Label
             $status = $discovered.Status
-            $resolutionSource = $discovered.Source
         }
         elseif ($discovered.Status -eq "AMBIGUOUS") {
             $status = "AMBIGUOUS"
-            $resolutionSource = $discovered.Source
-        }
-        else {
-            $status = "UNRESOLVED"
-            $resolutionSource = $discovered.Source
         }
     }
 
     $scopes = @($g.Group | Select-Object -ExpandProperty Scope -Unique | Sort-Object)
 
     $filters.Add([pscustomobject]@{
-        Model               = $first.Model
-        Category            = $first.Category
-        Group               = $first.Group
-        Value               = $first.Value
-        Label               = $resolvedLabel
-        Effect              = $first.Effect
-        Scopes              = ($scopes -join " | ")
-        ResolutionStatus    = $status
-        ResolutionSource    = $resolutionSource
-        EvidenceCount       = $g.Count
-        DiscoveryHits       = $discoveryHits
-        DiscoveryExactJoins = $discoveryExactJoins
+        Model=$first.Model
+        Category=$first.Category
+        Group=$first.Group
+        Value=$first.Value
+        Label=$label
+        Effect=$first.Effect
+        Scopes=($scopes -join " | ")
+        ResolutionStatus=$status
+        ResolutionSource=$resolutionSource
+        EvidenceCount=$g.Count
+        DiscoveryHits=$discoveryHits
+        DiscoveryExactJoins=$discoveryExactJoins
     })
 }
 
 $boundarySummary = @($boundaries | Group-Object Model,Category,BoundaryType,Value,SourceKind,Scope | ForEach-Object {
     $first = $_.Group[0]
     [pscustomobject]@{
-        Model=$first.Model;Category=$first.Category;BoundaryType=$first.BoundaryType
-        Value=$first.Value;SourceKind=$first.SourceKind;Scope=$first.Scope;Count=$_.Count
+        Model=$first.Model
+        Category=$first.Category
+        BoundaryType=$first.BoundaryType
+        Value=$first.Value
+        SourceKind=$first.SourceKind
+        Scope=$first.Scope
+        Count=$_.Count
     }
 } | Sort-Object Model,Category,Value,BoundaryType)
 
@@ -630,25 +634,27 @@ Write-Host ""
 Write-Host "============================================================"
 Write-Host "IMPORTER-ORIENTED SUMMARY"
 Write-Host "============================================================"
-Write-Host "Categories:       $($categoryRows.Count)"
-Write-Host "Occurrences:      $($occurrences.Count)"
-Write-Host "Normalized filters: $($filters.Count)"
-Write-Host "Raw rules:        $($rawRules.Count)"
-Write-Host "VIN boundaries:   $($boundarySummary.Count)"
+Write-Host "Categories:          $($categoryRows.Count)"
+Write-Host "Occurrences:         $($occurrences.Count)"
+Write-Host "Normalized filters:  $($filters.Count)"
+Write-Host "Raw rules:           $($rawRules.Count)"
+Write-Host "VIN boundaries:      $($boundarySummary.Count)"
 Write-Host ""
 
-foreach ($c in $categoryRows) {
+foreach ($categoryRow in $categoryRows) {
     Write-Host "Catalogue path:"
-    Write-Host "  $($c.CataloguePath)"
+    Write-Host "  $($categoryRow.CataloguePath)"
 }
 
 if ($filters.Count -gt 0) {
     Write-Host ""
     Write-Host "Filters:"
-    foreach ($f in @($filters | Sort-Object Group,Value,Effect)) {
-        $label = ""
-        if ($f.Label) { $label = " -> $($f.Label)" }
-        Write-Host "  $($f.Group)=$($f.Value) $($f.Effect)$label [$($f.ResolutionStatus)]"
+
+    foreach ($filter in @($filters | Sort-Object Group,Value,Effect)) {
+        $labelText = ""
+        if ($filter.Label) { $labelText = " -> $($filter.Label)" }
+
+        Write-Host ("  " + $filter.Group + "=" + $filter.Value + " " + $filter.Effect + $labelText + " [" + $filter.ResolutionStatus + "]")
     }
 }
 
@@ -661,693 +667,16 @@ if ($Inventory) {
     }
 
     $exports = @(
-        @($categoryRows,   "$($prefix)_category.csv"),
-        @($occurrences,    "$($prefix)_occurrences.csv"),
-        @($filters,        "$($prefix)_filters.csv"),
-        @($rawRules,       "$($prefix)_applicability_rules.csv"),
-        @($boundarySummary,"$($prefix)_vin_boundaries.csv")
+        @($categoryRows,    "$($prefix)_category.csv"),
+        @($occurrences,     "$($prefix)_occurrences.csv"),
+        @($filters,         "$($prefix)_filters.csv"),
+        @($rawRules,        "$($prefix)_applicability_rules.csv"),
+        @($boundarySummary, "$($prefix)_vin_boundaries.csv")
     )
 
-    foreach ($e in $exports) {
-        if ($e[0].Count -gt 0) {
-            $e[0] | Export-Csv -LiteralPath (Join-Path $OutDir $e[1]) -NoTypeInformation -Encoding UTF8
-        }
-    }
-
-    Write-Host ""
-    Write-Host "Importer-oriented output written to:"
-    Write-Host "  $OutDir"
-}
-) {
-            $dm = [int]$Matches[1]
-            $dc = [int]$Matches[2]
-            $di = [int]$Matches[3]
-
-            $l0Dir = Join-Path (Split-Path -Parent $hit.Path) "L0"
-            $l0 = Join-Path $l0Dir "Itm_M$($dm)_C$($dc)_I$($di)_L0.xml"
-
-            if (-not (Test-Path -LiteralPath $l0)) { continue }
-
-            $tree = Get-Tree $l0
-            $leafMatches = @($tree.Rows | Where-Object {
-                $fields = $_.Fields
-                $fields.Count -ge 12 -and
-                ([string]$fields[$fields.Count - 1]).Trim() -eq $recordKey
-            })
-
-            foreach ($leaf in $leafMatches) {
-                $pathNodes = @(Get-Path $tree.Nodes $leaf.Parent)
-
-                $labels = @(
-                    $pathNodes |
-                        Where-Object {
-                            -not [string]::IsNullOrWhiteSpace($_.Label) -and
-                            @(Parse-VinLabel ([string]$_.Label)).Count -eq 0
-                        } |
-                        ForEach-Object { [string]$_.Label } |
-                        Select-Object -Unique
-                )
-
-                $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+
-if (($Model -and -not $Category) -or ($Category -and -not $Model)) {
-    throw "-Model and -Category must be supplied together."
-}
-if (-not (($Model -and $Category) -or $PartNumber)) {
-    throw "Use (-Model NNNN -Category MMMM) or -PartNumber PPPP."
-}
-if (-not (Test-Path -LiteralPath $Root)) {
-    throw "JEPC root not found: $Root"
-}
-
-$ModelId = $null
-$CategoryId = $null
-
-if ($Model -and $Category) {
-    if ($Model -notmatch '^M?(\d+)$') { throw "Invalid -Model '$Model'." }
-    $ModelId = [int]$Matches[1]
-
-    if ($Category -notmatch '^C?(\d+)$') { throw "Invalid -Category '$Category'." }
-    $CategoryId = [int]$Matches[1]
-}
-
-if ($Inventory) {
-    New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
-}
-
-$categoryRows = New-Object System.Collections.Generic.List[object]
-$occurrences = New-Object System.Collections.Generic.List[object]
-$rawRules = New-Object System.Collections.Generic.List[object]
-$rawFilters = New-Object System.Collections.Generic.List[object]
-$boundaries = New-Object System.Collections.Generic.List[object]
-$decodeEvidence = New-Object System.Collections.Generic.List[object]
-
-$modelIds = New-Object System.Collections.Generic.List[int]
-
-if ($PartNumber) {
-    Get-ChildItem -LiteralPath (Join-Path $Root "drilldown") -Directory | ForEach-Object {
-        if ($_.Name -match '^pl_id_(\d+)$') {
-            $modelIds.Add([int]$Matches[1])
-        }
-    }
-}
-else {
-    $modelIds.Add($ModelId)
-}
-
-foreach ($m in $modelIds) {
-    $modelRoot = Join-Path $Root "drilldown\pl_id_$m"
-    $l0Root = Join-Path $modelRoot "L0"
-    if (-not (Test-Path -LiteralPath $l0Root)) { continue }
-
-    if ($ModelId -eq $m) {
-        $itemPattern = "Itm_M$($m)_C$($CategoryId)_I*_L0.xml"
-    }
-    else {
-        $itemPattern = "Itm_M$($m)_C*_I*_L0.xml"
-    }
-
-    $itemFiles = @(Get-ChildItem -LiteralPath $l0Root -File | Where-Object {
-        $_.Name -like $itemPattern
-    } | Sort-Object Name)
-
-    foreach ($file in $itemFiles) {
-        if ($file.Name -notmatch '^Itm_M(\d+)_C(\d+)_I(\d+)_L0\.xml$') { continue }
-
-        $tm = [int]$Matches[1]
-        $tc = [int]$Matches[2]
-        $ti = [int]$Matches[3]
-
-        $categoryInfo = Get-CategoryInfo $tm $tc
-
-        if (-not @($categoryRows | Where-Object {
-            $_.Model -eq "M$tm" -and $_.Category -eq "C$tc"
-        }).Count) {
-            $categoryRows.Add($categoryInfo)
-
-            if ($categoryInfo.CataloguePath -match '(?i)\bup\s+to\s+\([^)]+\)\s+([A-Z]?\d+)') {
-                $boundaries.Add([pscustomobject]@{
-                    Model="M$tm";Category="C$tc";BoundaryType="DOMAIN_MAX";Value=$Matches[1].Trim()
-                    SourceKind="CATEGORY_HEADER";Scope="CATEGORY";Item="";ApplicationId="";RuleIndex="";Raw=$categoryInfo.CataloguePath
-                })
-            }
-        }
-
-        $tree = Get-Tree $file.FullName
-        $itemAttr = Join-Path $modelRoot "Itm_M$($tm)_C$($tc)_I$($ti)_attributes.xml"
-
-        foreach ($row in $tree.Rows) {
-            $f = $row.Fields
-            if ($f.Count -lt 12) { continue }
-
-            $partRef = 0
-            [void][int]::TryParse(([string]$f[3]).Trim(), [ref]$partRef)
-            $pn = ([string]$f[4]).Trim()
-
-            if ($partRef -le 0 -or [string]::IsNullOrWhiteSpace($pn) -or $pn -eq "0") { continue }
-            if ($PartNumber -and $pn -notlike "*$PartNumber*") { continue }
-
-            $app = ([string]$f[$f.Count - 1]).Trim()
-            $pathNodes = @(Get-Path $tree.Nodes $row.Parent)
-            $pathLabels = @($pathNodes | Where-Object {
-                -not [string]::IsNullOrWhiteSpace($_.Label)
-            } | ForEach-Object { [string]$_.Label })
-
-            $topLabel = Get-TopLabel $tm $tc $ti
-
-            $occurrences.Add([pscustomobject]@{
-                Model         = "M$tm"
-                Category      = "C$tc"
-                Item          = "I$ti"
-                PartNumber    = $pn
-                ApplicationId = $app
-                CataloguePath = $categoryInfo.CataloguePath
-                TopLevelLabel = $topLabel
-                ItemTreePath  = ($pathLabels -join " > ")
-            })
-
-            foreach ($label in $pathLabels) {
-                foreach ($v in @(Parse-VinLabel $label)) {
-                    if ($v.From) {
-                        $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType="FROM";Value=$v.From
-                            SourceKind="TREE_TEXT";Scope="ITEM_TREE";Item="I$ti";ApplicationId=$app;RuleIndex="";Raw=$v.Raw
-                        })
-                    }
-                    if ($v.To) {
-                        $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType="TO";Value=$v.To
-                            SourceKind="TREE_TEXT";Scope="ITEM_TREE";Item="I$ti";ApplicationId=$app;RuleIndex="";Raw=$v.Raw
-                        })
-                    }
-                }
-            }
-
-            $allRules = New-Object System.Collections.Generic.List[object]
-            foreach ($r in @(Get-Rules (Join-Path $Root "menus\pl_id_$($tm)_attributes.xml") ([string]$tc) "CATEGORY")) { $allRules.Add($r) }
-            foreach ($r in @(Get-Rules (Join-Path $modelRoot "tl_M$($tm)_C$($tc)_attributes.xml") ([string]$ti) "TOP")) { $allRules.Add($r) }
-            foreach ($r in @(Get-Rules $itemAttr $app "APPLICATION")) { $allRules.Add($r) }
-
-            foreach ($rule in $allRules) {
-                $rawRules.Add([pscustomobject]@{
-                    Model="M$tm";Category="C$tc";Item="I$ti";PartNumber=$pn;ApplicationId=$app
-                    Scope=$rule.Scope;RuleIndex=$rule.RuleIndex;RawRule=$rule.RawRule
-                })
-
-                $tuples = @(Parse-Tuples $rule.RawRule $rule.Scope $rule.RuleIndex)
-                $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+$' })
-
-                foreach ($t in $tuples) {
-                    if ($t.Group -eq "C") {
-                        $type = "UNKNOWN"
-                        if ($t.Flag1 -eq "0") { $type = "FROM" }
-                        if ($t.Flag1 -eq "1") { $type = "TO" }
-
-                        $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType=$type;Value=$t.Value
-                            SourceKind="ATTRIBUTE_C";Scope=$t.Scope;Item="I$ti";ApplicationId=$app
-                            RuleIndex=$t.RuleIndex;Raw=$t.Raw
-                        })
-                        continue
-                    }
-
-                    if ($t.Group -notmatch '^A\d+$') { continue }
-
-                    $effect = Effect-FromTuple $t
-                    $rawFilters.Add([pscustomobject]@{
-                        Model="M$tm";Category="C$tc";Group=$t.Group;Value=$t.Value;Effect=$effect
-                        Scope=$t.Scope;Item="I$ti";ApplicationId=$app;RuleIndex=$t.RuleIndex
-                    })
-
-                    $nonVinLabels = @($pathLabels | Where-Object {
-                        @(Parse-VinLabel $_).Count -eq 0
-                    } | Select-Object -Unique)
-
-                    $candidate = ""
-                    $status = "CONTEXT_ONLY"
-
-                    if ($t.Scope -eq "APPLICATION" -and $aTuples.Count -eq 1 -and $nonVinLabels.Count -eq 1) {
-                        $candidate = $nonVinLabels[0]
-                        $status = "EXACT_SOURCE_JOIN"
-                    }
-
-                    $decodeEvidence.Add([pscustomobject]@{
-                        Model="M$tm";Category="C$tc";Group=$t.Group;Value=$t.Value
-                        Item="I$ti";ApplicationId=$app;Scope=$t.Scope;RuleIndex=$t.RuleIndex
-                        CandidateLabel=$candidate;ResolutionStatus=$status
-                        FullTreePath=($nonVinLabels -join " > ")
-                    })
-                }
-            }
-        }
-    }
-}
-
-$filters = New-Object System.Collections.Generic.List[object]
-
-foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) {
-    $first = $g.Group[0]
-    $evidence = @($decodeEvidence | Where-Object {
-        $_.Model -eq $first.Model -and
-        $_.Category -eq $first.Category -and
-        $_.Group -eq $first.Group -and
-        $_.Value -eq $first.Value
-    })
-
-    $labels = @($evidence | Where-Object {
-        $_.ResolutionStatus -eq "EXACT_SOURCE_JOIN" -and $_.CandidateLabel
-    } | Select-Object -ExpandProperty CandidateLabel -Unique)
-
-    $resolvedLabel = ""
-    $status = "UNRESOLVED"
-
-    if ($labels.Count -eq 1) {
-        $resolvedLabel = $labels[0]
-        $status = "RESOLVED"
-    }
-    elseif ($labels.Count -gt 1) {
-        $status = "AMBIGUOUS"
-    }
-
-    $scopes = @($g.Group | Select-Object -ExpandProperty Scope -Unique | Sort-Object)
-
-    $filters.Add([pscustomobject]@{
-        Model            = $first.Model
-        Category         = $first.Category
-        Group            = $first.Group
-        Value            = $first.Value
-        Label            = $resolvedLabel
-        Effect           = $first.Effect
-        Scopes           = ($scopes -join " | ")
-        ResolutionStatus = $status
-        EvidenceCount    = $g.Count
-    })
-}
-
-$boundarySummary = @($boundaries | Group-Object Model,Category,BoundaryType,Value,SourceKind,Scope | ForEach-Object {
-    $first = $_.Group[0]
-    [pscustomobject]@{
-        Model=$first.Model;Category=$first.Category;BoundaryType=$first.BoundaryType
-        Value=$first.Value;SourceKind=$first.SourceKind;Scope=$first.Scope;Count=$_.Count
-    }
-} | Sort-Object Model,Category,Value,BoundaryType)
-
-Write-Host ""
-Write-Host "============================================================"
-Write-Host "IMPORTER-ORIENTED SUMMARY"
-Write-Host "============================================================"
-Write-Host "Categories:       $($categoryRows.Count)"
-Write-Host "Occurrences:      $($occurrences.Count)"
-Write-Host "Normalized filters: $($filters.Count)"
-Write-Host "Raw rules:        $($rawRules.Count)"
-Write-Host "VIN boundaries:   $($boundarySummary.Count)"
-Write-Host ""
-
-foreach ($c in $categoryRows) {
-    Write-Host "Catalogue path:"
-    Write-Host "  $($c.CataloguePath)"
-}
-
-if ($filters.Count -gt 0) {
-    Write-Host ""
-    Write-Host "Filters:"
-    foreach ($f in @($filters | Sort-Object Group,Value,Effect)) {
-        $label = ""
-        if ($f.Label) { $label = " -> $($f.Label)" }
-        Write-Host "  $($f.Group)=$($f.Value) $($f.Effect)$label [$($f.ResolutionStatus)]"
-    }
-}
-
-if ($Inventory) {
-    if ($ModelId -and $CategoryId) {
-        $prefix = "M$($ModelId)_C$($CategoryId)"
-    }
-    else {
-        $prefix = "PN_" + ($PartNumber -replace '[^A-Za-z0-9_-]','_')
-    }
-
-    $exports = @(
-        @($categoryRows,   "$($prefix)_category.csv"),
-        @($occurrences,    "$($prefix)_occurrences.csv"),
-        @($filters,        "$($prefix)_filters.csv"),
-        @($rawRules,       "$($prefix)_applicability_rules.csv"),
-        @($boundarySummary,"$($prefix)_vin_boundaries.csv")
-    )
-
-    foreach ($e in $exports) {
-        if ($e[0].Count -gt 0) {
-            $e[0] | Export-Csv -LiteralPath (Join-Path $OutDir $e[1]) -NoTypeInformation -Encoding UTF8
-        }
-    }
-
-    Write-Host ""
-    Write-Host "Importer-oriented output written to:"
-    Write-Host "  $OutDir"
-}
- })
-                $candidate = ""
-                $joinStatus = "EXACT_PATH_CONTEXT"
-
-                if ($aTuples.Count -eq 1 -and $labels.Count -eq 1) {
-                    $candidate = $labels[0]
-                    $joinStatus = "EXACT_SOURCE_JOIN"
-                }
-
-                $evidence.Add([pscustomobject]@{
-                    Model = "M$dm"
-                    Category = "C$dc"
-                    Item = "I$di"
-                    ApplicationId = $recordKey
-                    CandidateLabel = $candidate
-                    JoinStatus = $joinStatus
-                    FullTreePath = ($labels -join " > ")
-                    SourceFile = $fileName
-                })
-            }
-        }
-    }
-
-    $exactLabels = @(
-        $evidence |
-            Where-Object {
-                $_.JoinStatus -eq "EXACT_SOURCE_JOIN" -and
-                -not [string]::IsNullOrWhiteSpace($_.CandidateLabel)
-            } |
-            Select-Object -ExpandProperty CandidateLabel -Unique
-    )
-
-    $label = ""
-    $status = "UNRESOLVED"
-
-    if ($exactLabels.Count -eq 1) {
-        $label = $exactLabels[0]
-        $status = "DISCOVERED_MODEL_SOURCE_JOIN"
-    }
-    elseif ($exactLabels.Count -gt 1) {
-        $status = "AMBIGUOUS"
-    }
-
-    $result = [pscustomobject]@{
-        Label = $label
-        Status = $status
-        Source = "MODEL_SOURCE_SEARCH"
-        HitCount = $hits.Count
-        ExactJoinCount = @($evidence | Where-Object {
-            $_.JoinStatus -eq "EXACT_SOURCE_JOIN"
-        }).Count
-    }
-
-    $attributeDiscoveryCache[$cacheKey] = $result
-    return $result
-}
-
-
-if (($Model -and -not $Category) -or ($Category -and -not $Model)) {
-    throw "-Model and -Category must be supplied together."
-}
-if (-not (($Model -and $Category) -or $PartNumber)) {
-    throw "Use (-Model NNNN -Category MMMM) or -PartNumber PPPP."
-}
-if (-not (Test-Path -LiteralPath $Root)) {
-    throw "JEPC root not found: $Root"
-}
-
-$ModelId = $null
-$CategoryId = $null
-
-if ($Model -and $Category) {
-    if ($Model -notmatch '^M?(\d+)$') { throw "Invalid -Model '$Model'." }
-    $ModelId = [int]$Matches[1]
-
-    if ($Category -notmatch '^C?(\d+)$') { throw "Invalid -Category '$Category'." }
-    $CategoryId = [int]$Matches[1]
-}
-
-if ($Inventory) {
-    New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
-}
-
-$categoryRows = New-Object System.Collections.Generic.List[object]
-$occurrences = New-Object System.Collections.Generic.List[object]
-$rawRules = New-Object System.Collections.Generic.List[object]
-$rawFilters = New-Object System.Collections.Generic.List[object]
-$boundaries = New-Object System.Collections.Generic.List[object]
-$decodeEvidence = New-Object System.Collections.Generic.List[object]
-
-$modelIds = New-Object System.Collections.Generic.List[int]
-
-if ($PartNumber) {
-    Get-ChildItem -LiteralPath (Join-Path $Root "drilldown") -Directory | ForEach-Object {
-        if ($_.Name -match '^pl_id_(\d+)$') {
-            $modelIds.Add([int]$Matches[1])
-        }
-    }
-}
-else {
-    $modelIds.Add($ModelId)
-}
-
-foreach ($m in $modelIds) {
-    $modelRoot = Join-Path $Root "drilldown\pl_id_$m"
-    $l0Root = Join-Path $modelRoot "L0"
-    if (-not (Test-Path -LiteralPath $l0Root)) { continue }
-
-    if ($ModelId -eq $m) {
-        $itemPattern = "Itm_M$($m)_C$($CategoryId)_I*_L0.xml"
-    }
-    else {
-        $itemPattern = "Itm_M$($m)_C*_I*_L0.xml"
-    }
-
-    $itemFiles = @(Get-ChildItem -LiteralPath $l0Root -File | Where-Object {
-        $_.Name -like $itemPattern
-    } | Sort-Object Name)
-
-    foreach ($file in $itemFiles) {
-        if ($file.Name -notmatch '^Itm_M(\d+)_C(\d+)_I(\d+)_L0\.xml$') { continue }
-
-        $tm = [int]$Matches[1]
-        $tc = [int]$Matches[2]
-        $ti = [int]$Matches[3]
-
-        $categoryInfo = Get-CategoryInfo $tm $tc
-
-        if (-not @($categoryRows | Where-Object {
-            $_.Model -eq "M$tm" -and $_.Category -eq "C$tc"
-        }).Count) {
-            $categoryRows.Add($categoryInfo)
-
-            if ($categoryInfo.CataloguePath -match '(?i)\bup\s+to\s+\([^)]+\)\s+([A-Z]?\d+)') {
-                $boundaries.Add([pscustomobject]@{
-                    Model="M$tm";Category="C$tc";BoundaryType="DOMAIN_MAX";Value=$Matches[1].Trim()
-                    SourceKind="CATEGORY_HEADER";Scope="CATEGORY";Item="";ApplicationId="";RuleIndex="";Raw=$categoryInfo.CataloguePath
-                })
-            }
-        }
-
-        $tree = Get-Tree $file.FullName
-        $itemAttr = Join-Path $modelRoot "Itm_M$($tm)_C$($tc)_I$($ti)_attributes.xml"
-
-        foreach ($row in $tree.Rows) {
-            $f = $row.Fields
-            if ($f.Count -lt 12) { continue }
-
-            $partRef = 0
-            [void][int]::TryParse(([string]$f[3]).Trim(), [ref]$partRef)
-            $pn = ([string]$f[4]).Trim()
-
-            if ($partRef -le 0 -or [string]::IsNullOrWhiteSpace($pn) -or $pn -eq "0") { continue }
-            if ($PartNumber -and $pn -notlike "*$PartNumber*") { continue }
-
-            $app = ([string]$f[$f.Count - 1]).Trim()
-            $pathNodes = @(Get-Path $tree.Nodes $row.Parent)
-            $pathLabels = @($pathNodes | Where-Object {
-                -not [string]::IsNullOrWhiteSpace($_.Label)
-            } | ForEach-Object { [string]$_.Label })
-
-            $topLabel = Get-TopLabel $tm $tc $ti
-
-            $occurrences.Add([pscustomobject]@{
-                Model         = "M$tm"
-                Category      = "C$tc"
-                Item          = "I$ti"
-                PartNumber    = $pn
-                ApplicationId = $app
-                CataloguePath = $categoryInfo.CataloguePath
-                TopLevelLabel = $topLabel
-                ItemTreePath  = ($pathLabels -join " > ")
-            })
-
-            foreach ($label in $pathLabels) {
-                foreach ($v in @(Parse-VinLabel $label)) {
-                    if ($v.From) {
-                        $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType="FROM";Value=$v.From
-                            SourceKind="TREE_TEXT";Scope="ITEM_TREE";Item="I$ti";ApplicationId=$app;RuleIndex="";Raw=$v.Raw
-                        })
-                    }
-                    if ($v.To) {
-                        $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType="TO";Value=$v.To
-                            SourceKind="TREE_TEXT";Scope="ITEM_TREE";Item="I$ti";ApplicationId=$app;RuleIndex="";Raw=$v.Raw
-                        })
-                    }
-                }
-            }
-
-            $allRules = New-Object System.Collections.Generic.List[object]
-            foreach ($r in @(Get-Rules (Join-Path $Root "menus\pl_id_$($tm)_attributes.xml") ([string]$tc) "CATEGORY")) { $allRules.Add($r) }
-            foreach ($r in @(Get-Rules (Join-Path $modelRoot "tl_M$($tm)_C$($tc)_attributes.xml") ([string]$ti) "TOP")) { $allRules.Add($r) }
-            foreach ($r in @(Get-Rules $itemAttr $app "APPLICATION")) { $allRules.Add($r) }
-
-            foreach ($rule in $allRules) {
-                $rawRules.Add([pscustomobject]@{
-                    Model="M$tm";Category="C$tc";Item="I$ti";PartNumber=$pn;ApplicationId=$app
-                    Scope=$rule.Scope;RuleIndex=$rule.RuleIndex;RawRule=$rule.RawRule
-                })
-
-                $tuples = @(Parse-Tuples $rule.RawRule $rule.Scope $rule.RuleIndex)
-                $aTuples = @($tuples | Where-Object { $_.Group -match '^A\d+$' })
-
-                foreach ($t in $tuples) {
-                    if ($t.Group -eq "C") {
-                        $type = "UNKNOWN"
-                        if ($t.Flag1 -eq "0") { $type = "FROM" }
-                        if ($t.Flag1 -eq "1") { $type = "TO" }
-
-                        $boundaries.Add([pscustomobject]@{
-                            Model="M$tm";Category="C$tc";BoundaryType=$type;Value=$t.Value
-                            SourceKind="ATTRIBUTE_C";Scope=$t.Scope;Item="I$ti";ApplicationId=$app
-                            RuleIndex=$t.RuleIndex;Raw=$t.Raw
-                        })
-                        continue
-                    }
-
-                    if ($t.Group -notmatch '^A\d+$') { continue }
-
-                    $effect = Effect-FromTuple $t
-                    $rawFilters.Add([pscustomobject]@{
-                        Model="M$tm";Category="C$tc";Group=$t.Group;Value=$t.Value;Effect=$effect
-                        Scope=$t.Scope;Item="I$ti";ApplicationId=$app;RuleIndex=$t.RuleIndex
-                    })
-
-                    $nonVinLabels = @($pathLabels | Where-Object {
-                        @(Parse-VinLabel $_).Count -eq 0
-                    } | Select-Object -Unique)
-
-                    $candidate = ""
-                    $status = "CONTEXT_ONLY"
-
-                    if ($t.Scope -eq "APPLICATION" -and $aTuples.Count -eq 1 -and $nonVinLabels.Count -eq 1) {
-                        $candidate = $nonVinLabels[0]
-                        $status = "EXACT_SOURCE_JOIN"
-                    }
-
-                    $decodeEvidence.Add([pscustomobject]@{
-                        Model="M$tm";Category="C$tc";Group=$t.Group;Value=$t.Value
-                        Item="I$ti";ApplicationId=$app;Scope=$t.Scope;RuleIndex=$t.RuleIndex
-                        CandidateLabel=$candidate;ResolutionStatus=$status
-                        FullTreePath=($nonVinLabels -join " > ")
-                    })
-                }
-            }
-        }
-    }
-}
-
-$filters = New-Object System.Collections.Generic.List[object]
-
-foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) {
-    $first = $g.Group[0]
-    $evidence = @($decodeEvidence | Where-Object {
-        $_.Model -eq $first.Model -and
-        $_.Category -eq $first.Category -and
-        $_.Group -eq $first.Group -and
-        $_.Value -eq $first.Value
-    })
-
-    $labels = @($evidence | Where-Object {
-        $_.ResolutionStatus -eq "EXACT_SOURCE_JOIN" -and $_.CandidateLabel
-    } | Select-Object -ExpandProperty CandidateLabel -Unique)
-
-    $resolvedLabel = ""
-    $status = "UNRESOLVED"
-
-    if ($labels.Count -eq 1) {
-        $resolvedLabel = $labels[0]
-        $status = "RESOLVED"
-    }
-    elseif ($labels.Count -gt 1) {
-        $status = "AMBIGUOUS"
-    }
-
-    $scopes = @($g.Group | Select-Object -ExpandProperty Scope -Unique | Sort-Object)
-
-    $filters.Add([pscustomobject]@{
-        Model            = $first.Model
-        Category         = $first.Category
-        Group            = $first.Group
-        Value            = $first.Value
-        Label            = $resolvedLabel
-        Effect           = $first.Effect
-        Scopes           = ($scopes -join " | ")
-        ResolutionStatus = $status
-        EvidenceCount    = $g.Count
-    })
-}
-
-$boundarySummary = @($boundaries | Group-Object Model,Category,BoundaryType,Value,SourceKind,Scope | ForEach-Object {
-    $first = $_.Group[0]
-    [pscustomobject]@{
-        Model=$first.Model;Category=$first.Category;BoundaryType=$first.BoundaryType
-        Value=$first.Value;SourceKind=$first.SourceKind;Scope=$first.Scope;Count=$_.Count
-    }
-} | Sort-Object Model,Category,Value,BoundaryType)
-
-Write-Host ""
-Write-Host "============================================================"
-Write-Host "IMPORTER-ORIENTED SUMMARY"
-Write-Host "============================================================"
-Write-Host "Categories:       $($categoryRows.Count)"
-Write-Host "Occurrences:      $($occurrences.Count)"
-Write-Host "Normalized filters: $($filters.Count)"
-Write-Host "Raw rules:        $($rawRules.Count)"
-Write-Host "VIN boundaries:   $($boundarySummary.Count)"
-Write-Host ""
-
-foreach ($c in $categoryRows) {
-    Write-Host "Catalogue path:"
-    Write-Host "  $($c.CataloguePath)"
-}
-
-if ($filters.Count -gt 0) {
-    Write-Host ""
-    Write-Host "Filters:"
-    foreach ($f in @($filters | Sort-Object Group,Value,Effect)) {
-        $label = ""
-        if ($f.Label) { $label = " -> $($f.Label)" }
-        Write-Host "  $($f.Group)=$($f.Value) $($f.Effect)$label [$($f.ResolutionStatus)]"
-    }
-}
-
-if ($Inventory) {
-    if ($ModelId -and $CategoryId) {
-        $prefix = "M$($ModelId)_C$($CategoryId)"
-    }
-    else {
-        $prefix = "PN_" + ($PartNumber -replace '[^A-Za-z0-9_-]','_')
-    }
-
-    $exports = @(
-        @($categoryRows,   "$($prefix)_category.csv"),
-        @($occurrences,    "$($prefix)_occurrences.csv"),
-        @($filters,        "$($prefix)_filters.csv"),
-        @($rawRules,       "$($prefix)_applicability_rules.csv"),
-        @($boundarySummary,"$($prefix)_vin_boundaries.csv")
-    )
-
-    foreach ($e in $exports) {
-        if ($e[0].Count -gt 0) {
-            $e[0] | Export-Csv -LiteralPath (Join-Path $OutDir $e[1]) -NoTypeInformation -Encoding UTF8
+    foreach ($export in $exports) {
+        if ($export[0].Count -gt 0) {
+            $export[0] | Export-Csv -LiteralPath (Join-Path $OutDir $export[1]) -NoTypeInformation -Encoding UTF8
         }
     }
 
