@@ -10,7 +10,7 @@ The operational stock model remains authoritative in [`../SPEC/MODEL_STOCK.md`](
 
 ## Visual reference
 
-The concept image under `../UI_CONCEPTS/` is an informative visual reference for the minimum page. It is not normative. Navigation, menus, branding, account controls, decorative layout details and example values shown in concept artwork are not implementation requirements.
+The concept image under `../UI_CONCEPTS/AdminUI-PartAdd.png` is an informative visual reference for the minimum page. It is not normative. Navigation, menus, branding, account controls, decorative layout details and example values shown in concept artwork are not implementation requirements.
 
 The implementation should prefer the simplest page that completes the workflows below.
 
