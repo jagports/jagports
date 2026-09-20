@@ -464,6 +464,77 @@ $vinBoundarySummary = @($vinBoundaries | Group-Object Model,Category,BoundaryTyp
     }
 } | Sort-Object Model,Category,Value,BoundaryType)
 
+$descriptionFilterRows = @(
+    foreach ($occurrence in $occurrences) {
+        if ([string]::IsNullOrWhiteSpace($occurrence.DescriptionPath)) { continue }
+
+        foreach ($description in @($occurrence.DescriptionPath.Split(">") | ForEach-Object { $_.Trim() })) {
+            if ([string]::IsNullOrWhiteSpace($description)) { continue }
+
+            $vin = @(Parse-VinDescription $description)
+            $isVin = ($vin.Count -gt 0)
+
+            [pscustomobject]@{
+                Description = $description
+                IsVin = $isVin
+                Model = $occurrence.Model
+                Category = $occurrence.Category
+                Item = $occurrence.Item
+                PartNumber = $occurrence.PartNumber
+                ApplicationId = $occurrence.ApplicationId
+            }
+        }
+    }
+)
+
+$descriptionFilterSummary = @(
+    $descriptionFilterRows |
+        Group-Object Description,IsVin |
+        ForEach-Object {
+            $first = $_.Group[0]
+            [pscustomobject]@{
+                Description = $first.Description
+                IsVin = $first.IsVin
+                OccurrenceCount = $_.Count
+                PartCount = @($_.Group | Select-Object -ExpandProperty PartNumber -Unique).Count
+            }
+        } |
+        Sort-Object IsVin,Description
+)
+
+$vinRangeRows = @(
+    foreach ($row in $descriptionFilterRows | Where-Object { $_.IsVin }) {
+        foreach ($vin in @(Parse-VinDescription $row.Description)) {
+            [pscustomobject]@{
+                Description = $row.Description
+                From = $vin.From
+                To = $vin.To
+                Model = $row.Model
+                Category = $row.Category
+                Item = $row.Item
+                PartNumber = $row.PartNumber
+                ApplicationId = $row.ApplicationId
+            }
+        }
+    }
+)
+
+$vinRangeSummary = @(
+    $vinRangeRows |
+        Group-Object Description,From,To |
+        ForEach-Object {
+            $first = $_.Group[0]
+            [pscustomobject]@{
+                Description = $first.Description
+                From = $first.From
+                To = $first.To
+                OccurrenceCount = $_.Count
+                PartCount = @($_.Group | Select-Object -ExpandProperty PartNumber -Unique).Count
+            }
+        } |
+        Sort-Object From,To,Description
+)
+
 $summaryLines = New-Object System.Collections.Generic.List[string]
 $summaryLines.Add("============================================================")
 $summaryLines.Add("JEPC X100 SEARCH FINDINGS")
@@ -473,6 +544,35 @@ elseif ($ModelId -and $CategoryId) { $summaryLines.Add("Search: M$($ModelId) / C
 $summaryLines.Add("Occurrences: $($occurrences.Count)")
 $summaryLines.Add("Raw rules:   $($ruleRows.Count)")
 $summaryLines.Add("Predicates:  $($predicateRows.Count)")
+$summaryLines.Add("Descriptions/filter candidates: $($descriptionFilterSummary.Count)")
+$summaryLines.Add("VIN description ranges:         $($vinRangeSummary.Count)")
+$summaryLines.Add("")
+
+$summaryLines.Add("Descriptions / filter candidates:")
+foreach ($filter in @($descriptionFilterSummary | Where-Object { -not $_.IsVin })) {
+    $summaryLines.Add("  $($filter.Description)  [occurrences=$($filter.OccurrenceCount); parts=$($filter.PartCount)]")
+}
+$summaryLines.Add("")
+
+$summaryLines.Add("VIN descriptions / ranges:")
+if ($vinRangeSummary.Count -eq 0) {
+    $summaryLines.Add("  (none)")
+}
+else {
+    foreach ($range in $vinRangeSummary) {
+        $normalized = ""
+        if ($range.From -and $range.To) { $normalized = "$($range.From)..$($range.To)" }
+        elseif ($range.From) { $normalized = "$($range.From).." }
+        elseif ($range.To) { $normalized = "..$($range.To)" }
+
+        if ($normalized) {
+            $summaryLines.Add("  $($range.Description)  => $normalized  [occurrences=$($range.OccurrenceCount); parts=$($range.PartCount)]")
+        }
+        else {
+            $summaryLines.Add("  $($range.Description)  [occurrences=$($range.OccurrenceCount); parts=$($range.PartCount)]")
+        }
+    }
+}
 $summaryLines.Add("")
 
 if ($PartNumber) {
@@ -548,8 +648,10 @@ if ($Inventory) {
         @($categoryRows,       "$($prefix)_category.csv"),
         @($occurrences,        "$($prefix)_occurrences.csv"),
         @($ruleRows,           "$($prefix)_applicability_rules.csv"),
-        @($predicateRows,      "$($prefix)_predicates.csv"),
-        @($vinBoundarySummary, "$($prefix)_vin_boundaries.csv")
+        @($predicateRows,             "$($prefix)_predicates.csv"),
+        @($descriptionFilterSummary,  "$($prefix)_descriptions.csv"),
+        @($vinRangeSummary,           "$($prefix)_vin_ranges.csv"),
+        @($vinBoundarySummary,        "$($prefix)_vin_boundaries.csv")
     )
 
     foreach ($export in $exports) {
@@ -571,5 +673,7 @@ if ($Inventory) {
     Write-Host ("  $($prefix)_occurrences.csv")
     Write-Host ("  $($prefix)_applicability_rules.csv")
     Write-Host ("  $($prefix)_predicates.csv")
+    Write-Host ("  $($prefix)_descriptions.csv")
+    Write-Host ("  $($prefix)_vin_ranges.csv")
     Write-Host ("  $($prefix)_vin_boundaries.csv")
 }
