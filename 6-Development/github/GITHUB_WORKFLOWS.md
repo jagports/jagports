@@ -88,6 +88,26 @@ The supported automatic-open prioritization path is **interactive ChatGPT `@open
 
 ---
 
+## Pre-PR Owning-Issue Gate
+
+Before any material repository modification begins, the executor must resolve and verify at least one valid owning GitHub Issue for the work. The owning Issue must exist before the implementation branch is created and before repository files are modified.
+
+Before invoking any Pull Request creation operation, the executor must verify again that the PR has at least one valid same-repository owning Issue and must include a GitHub-native closing relationship in the PR description, using canonical syntax such as `Closes #123`, `Fixes #123`, or `Resolves #123`.
+
+Required sequence:
+
+`resolve/reuse owning Issue → classify/prioritize as required → create/reuse dedicated branch → modify repository → create PR with closing relationship`
+
+If no suitable Issue exists, create the Issue first through the normal `@open` flow. Do not create an implementation PR first and add an Issue afterward.
+
+Do not infer PR ownership from arbitrary Issue mentions, title text, branch names, labels, repository paths, or semantic similarity.
+
+There is no normal mergeable exemption for repository changes targeting `main`. A controlled negative-test fixture may intentionally omit the closing relationship only when an already-existing owning test Issue explicitly requires validation of the failure path; such a fixture is expected to fail **Validate PR Issue Traceability** and must not be merged.
+
+The repository workflow `.github/workflows/validate-pr-issue-traceability.yml` independently enforces this relationship at PR validation time. Repository/ruleset configuration should require its **Validate PR Issue Traceability** check before merge to `main`.
+
+---
+
 ## Repository Change Gate
 
 Every GitHub repository modification follows the controlled path:
