@@ -223,7 +223,7 @@ The importer must:
 - Preserve every raw `A` and `C` tuple and its source flags.
 - Join item-tree leaves to sidecar rows by the source application identifier.
 - Preserve the complete item-tree ancestry as evidence; do not keep only a flattened description.
-- Keep catalogue installation side (`LH/RH`) distinct from vehicle steering (`LHD/RHD`).
+- Preserve `LH/RH` tree labels independently from `LHD/RHD` steering mappings. The current source proves they are separate path nodes, but the semantic role and applicability encoding of `LH/RH` remain to be established.
 - Preserve repeated application/tree paths. Do not infer that repeated paths are duplicates or merge them into one conjunction.
 - Interpret alternative records and within-record conjunctions according to the original JEPC filtering behavior.
 - Retain unknown attribute groups/values unchanged rather than guessing their meanings.
@@ -391,5 +391,5 @@ and the sidecar contains:
 142207,[A155,2932,0,0][A23,154,0,0]
 ```
 
-The importer must preserve all of these facts. In particular, `RH` is physical part position while `LHD` is vehicle steering applicability; they are not interchangeable.
+The importer must preserve all of these facts. `LHD` correlates with `A23=154` here. `RH` comes directly from an `Itm_*_L0.xml` ancestor node; do not classify it as presentation-only, physical-position-only, or non-applicability data until its relationship to the remaining JEPC source structures has been traced.
 
