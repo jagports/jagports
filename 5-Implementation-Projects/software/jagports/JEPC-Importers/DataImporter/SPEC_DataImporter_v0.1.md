@@ -517,3 +517,11 @@ The importer v0.1/MVP should demonstrate that:
 - PR #621 — JEPC source Region/breadcrumb semantics used by configurable importer source selection.
 
 This specification does not authorize a parallel Parts Data Model. Importer-discovered normalized-schema changes must be reconciled with the approved model and project workflow before becoming production schema. Staging/discovery extensions may be used to preserve and accelerate analysis of source structures without silently redefining normalized VIEPS domain semantics.
+
+## Fixture-to-imported catalogue transition
+
+Fixture or manually entered catalogue-context evidence may be used by VIEPS before the corresponding JEPC data has been imported.
+
+When authoritative imported JEPC evidence becomes available for the same catalogue context, the importer/publication flow must allow that imported evidence to replace or validate the temporary fixture/manual catalogue-side evidence without changing canonical PART identity or operational STOCK records.
+
+Temporary fixture/manual evidence must remain distinguishable from imported Jaguar/JEPC evidence and must never be presented as independently verified source data.
