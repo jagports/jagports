@@ -77,18 +77,13 @@ The short `@priorize <numbers>` form is the canonical user/agent command **when 
 
 ### Automatic prioritization on open
 
-There are two valid execution paths:
+The supported automatic-open prioritization path is **interactive ChatGPT `@open`**. When ChatGPT creates the Issue or Pull Request in the current execution, that same ChatGPT execution immediately performs the canonical initial prioritization pass, emits the bounded synchronization record, and independently verifies the result before claiming prioritization success.
 
-1. **Interactive ChatGPT `@open` path** — when ChatGPT creates the Issue or Pull Request in the current execution, that same ChatGPT execution immediately performs the canonical initial prioritization pass, emits the bounded synchronization record, and independently verifies the result before claiming prioritization success.
-2. **Unattended/external GitHub-open path** — when a record is opened outside an active ChatGPT execution, repository/agent automation must invoke or enqueue work for a real reasoning executor.
-
-- Issue open must invoke or enqueue work for a real reasoning executor that performs the same initial prioritization behavior as `@priorize <Issue-number>`.
-- Pull Request open must invoke or enqueue work for a real reasoning executor that performs the same initial prioritization behavior as `@priorize <PR-number>`.
 - Interactive `@open` must not stop after record creation when ChatGPT itself is already the available reasoning executor.
-- Repository lifecycle workflows must not create inert `@priorize` comments when no executor consumes them.
-- Both automatic paths are bounded to the newly opened record and do not bulk-score the existing backlog.
-- The automatic paths must ultimately synchronize and verify the same fields used by explicit `@priorize`; they are triggers into the executor, not separate prioritization models.
-- Missing/unavailable reasoning runtime is an execution dependency failure. The system may retain internal retry state, but it must not claim Priority/Band/Rank/Workstream were assessed or synchronized.
+- Repository lifecycle workflows must not create inert `@priorize` comments as substitutes for ChatGPT reasoning.
+- No unattended/external GitHub-open reasoning executor is currently used or required.
+- Interactive automatic prioritization is bounded to the newly opened record and does not bulk-score the existing backlog.
+- The `@open` path must synchronize and verify the same fields used by explicit `@priorize`; it is not a separate prioritization model.
 
 
 ---
