@@ -76,12 +76,16 @@ Range
        |
        +-- JEPC pl_id model
              |
-             +-- Catalogue
+             +-- catalogue/category ancestry
                    |
-                   +-- Item
+                   +-- top-level item description
                          |
-                         +-- Part
+                         +-- item-tree description nodes
+                               |
+                               +-- PART occurrence leaf
 ```
+
+The catalogue/category ancestry, top-level item description and item-tree description nodes form one user-visible occurrence path. Preserve the source boundary between these scopes for provenance even when a UI presents them as one continuous tree. A flattened path string is diagnostic/presentation output, not structural identity.
 
 ## Catalogue files
 
@@ -113,32 +117,38 @@ Purpose:
 - part references
 - item decision trees
 
-## Applicability model
+## Occurrence and applicability model
 
-Applicability is not only a VIN range. JEPC samples show reusable condition groups.
+Applicability is not only a VIN range, and the source PART leaf must not be detached from the exact tree occurrence in which it appears.
 
-General model:
+General source model:
 
-```
-Part
+```text
+PART
  |
- +-- ApplicabilityRule
+ +-- Occurrence
        |
-       +-- ConditionGroup
+       +-- catalogue/category ancestry
+       +-- top-level item description
+       +-- ordered item-tree descriptions
+       +-- applicationId
+       +-- ApplicabilityRule
              |
-             +-- Condition
-                    |
-                    +-- AttributeCode
-                    +-- Value
-                    +-- StartFlag
-                    +-- EndFlag
+             +-- ConditionSet
+                   |
+                   +-- raw predicate tuple(s)
 ```
 
 Rules:
 
-- Store raw JEPC attribute codes and values.
-- Do not hard-code meanings of attribute codes until verified.
-- Keep applicability separate from part identity.
+- A canonical PART may have many occurrences.
+- Preserve the complete ordered source path for each occurrence.
+- Preserve source node IDs/parent IDs/order where available; do not use concatenated description text as the node identity.
+- Store raw JEPC attribute codes, values and flags.
+- Preserve the application identifier linking the PART leaf to applicability sidecars.
+- Do not hard-code or invent meanings of attribute codes until verified.
+- Do not require code-to-description decoding in order to import the human-readable occurrence tree: the JEPC tree already carries source-visible descriptions.
+- Keep applicability separate from canonical PART identity while binding it to the exact occurrence/source context.
 
 ## JEPC file inventory snapshot
 
@@ -381,3 +391,58 @@ Within one applicability record, predicates combine as one condition set. Repeat
 
 Serial breakpoint interpretation and attribute include/exclude semantics must follow the original JEPC filtering implementation. Preserve the raw tuple and flags alongside any normalized interpretation so the mapping can be revalidated.
 
+
+
+## Human-readable descriptions and filter candidates
+
+The JEPC item tree itself supplies the source-visible descriptions used to present catalogue decisions and breakpoints. These descriptions are part of the imported occurrence context.
+
+For a source occurrence, VIEPS must be able to reconstruct:
+
+```text
+catalogue/category ancestry
+> top-level item description
+> item-tree description
+> item-tree description
+> ...
+> PART
+```
+
+The descriptions can later be exposed as filter candidates. VIN descriptions such as `To VIN (...)`, `From VIN (...)` and bounded `From ... To ...` forms may additionally be parsed into normalized convenience ranges, but the exact source text remains preserved.
+
+Description-to-domain mappings are a separate enrichment layer. A source description may map to one or more normalized facets, and the mapping may be context-sensitive. Such mappings must not overwrite the source description or raw applicability evidence.
+
+Raw applicability tuples remain mandatory even when a readable description exists. They provide provenance, source-equivalence evidence and a basis for later vehicle/VIN applicability evaluation.
+
+## Browse and reverse-search behavior implied by the source model
+
+The same imported occurrence model supports both catalogue browsing and PART-number reverse lookup.
+
+Browse:
+
+```text
+selected catalogue branch
+    -> all occurrences below that branch
+    -> optional mapped-description / VIN / applicability filters
+    -> surviving occurrences
+    -> distinct PART numbers
+```
+
+Reverse lookup:
+
+```text
+PART number
+    -> every imported occurrence
+    -> full source path for each occurrence
+    -> applicationId + raw rules/predicates + source evidence
+```
+
+Filtering removes occurrences first. A PART disappears from a filtered result only when no occurrence for that PART survives the selected conditions.
+
+## Multilingual tree structure
+
+Language must not be modeled as a simple translation table over one assumed universal tree unless source evidence proves that structure.
+
+JEPC may provide structurally different trees for different languages or models. The importer must therefore preserve each language-specific source tree independently, including node IDs, parentage, order and descriptions. Canonical PART identity can remain shared.
+
+Cross-language node or occurrence equivalence is derived data and may be added only when deterministic correspondence is established. Do not duplicate canonical PART identities merely because the same PART appears in several language trees, and do not collapse distinct language trees merely because descriptions appear equivalent.
