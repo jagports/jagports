@@ -387,29 +387,15 @@ function Find-AttributeEvidenceInModel {
         }
     }
 
-    $exactLabels = @($evidence | Where-Object {
-        $_.JoinStatus -eq "EXACT_SOURCE_JOIN" -and
-        -not [string]::IsNullOrWhiteSpace($_.CandidateLabel)
-    } | Select-Object -ExpandProperty CandidateLabel -Unique)
-
-    $label = ""
-    $status = "UNRESOLVED"
-
-    if ($exactLabels.Count -eq 1) {
-        $label = $exactLabels[0]
-        $status = "DISCOVERED_MODEL_SOURCE_JOIN"
-    }
-    elseif ($exactLabels.Count -gt 1) {
-        $status = "AMBIGUOUS"
-    }
-
+    # Model-wide token matches are useful provenance, but without an explicit
+    # deterministic code-to-description source they do not resolve a label.
     $result = [pscustomobject]@{
-        Label=$label
-        Status=$status
-        Source="MODEL_SOURCE_SEARCH"
+        Label=""
+        Status="UNRESOLVED"
+        Source="MODEL_SOURCE_CONTEXT"
         HitCount=$hits.Count
-        ExactJoinCount=@($evidence | Where-Object { $_.JoinStatus -eq "EXACT_SOURCE_JOIN" }).Count
-        CandidateLabels=($exactLabels -join " | ")
+        ExactJoinCount=0
+        CandidateLabels=""
         MatchFiles=(@($matchedFiles | Sort-Object -Unique) -join " | ")
     }
 
@@ -611,54 +597,25 @@ $filters = New-Object System.Collections.Generic.List[object]
 foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) {
     $first = $g.Group[0]
 
-    $localLabels = @($localDecodeEvidence | Where-Object {
-        $_.Model -eq $first.Model -and
-        $_.Category -eq $first.Category -and
-        $_.Group -eq $first.Group -and
-        $_.Value -eq $first.Value -and
-        $_.ResolutionStatus -eq "EXACT_SOURCE_JOIN" -and
-        -not [string]::IsNullOrWhiteSpace($_.CandidateLabel)
-    } | Select-Object -ExpandProperty CandidateLabel -Unique)
-
     $label = ""
     $status = "UNRESOLVED"
-    $resolutionSource = "LOCAL_CATEGORY"
-    $candidateLabels = @($localLabels)
+    $resolutionSource = "LOCAL_CATEGORY_CONTEXT"
+    $candidateLabels = @()
     $discoveryHits = 0
     $discoveryExactJoins = 0
     $matchFiles = @($g.Group | Select-Object -ExpandProperty SourceFile -Unique | Where-Object { $_ } | Sort-Object)
 
-    if ($localLabels.Count -eq 1) {
-        $label = $localLabels[0]
-        $status = "EXACT_LOCAL_JOIN"
-    }
-    elseif ($localLabels.Count -gt 1) {
-        $status = "AMBIGUOUS"
-    }
-    else {
-        $modelNumber = [int]($first.Model -replace '^M','')
-        $discovered = Find-AttributeEvidenceInModel $modelNumber $first.Group $first.Value
+    $modelNumber = [int]($first.Model -replace '^M','')
+    $discovered = Find-AttributeEvidenceInModel $modelNumber $first.Group $first.Value
 
-        $discoveryHits = $discovered.HitCount
-        $discoveryExactJoins = $discovered.ExactJoinCount
-        $resolutionSource = $discovered.Source
-        if ($discovered.CandidateLabels) {
-            $candidateLabels = @($discovered.CandidateLabels -split '\\s+\\|\\s+')
-        }
-        if ($discovered.MatchFiles) {
-            $matchFiles = @(
-                $matchFiles
-                @($discovered.MatchFiles -split '\s+\|\s+')
-            ) | Where-Object { $_ } | Sort-Object -Unique
-        }
-
-        if ($discovered.Status -eq "DISCOVERED_MODEL_SOURCE_JOIN") {
-            $label = $discovered.Label
-            $status = $discovered.Status
-        }
-        elseif ($discovered.Status -eq "AMBIGUOUS") {
-            $status = "AMBIGUOUS"
-        }
+    $discoveryHits = $discovered.HitCount
+    $discoveryExactJoins = 0
+    $resolutionSource = $discovered.Source
+    if ($discovered.MatchFiles) {
+        $matchFiles = @(
+            $matchFiles
+            @($discovered.MatchFiles -split '\s+\|\s+')
+        ) | Where-Object { $_ } | Sort-Object -Unique
     }
 
     $scopes = @($g.Group | Select-Object -ExpandProperty Scope -Unique | Sort-Object)
