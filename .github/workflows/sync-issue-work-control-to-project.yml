@@ -401,7 +401,7 @@ jobs:
       - name: Synchronize and verify one Pull Request
         env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
-          COMMENT_TOKEN: ${{ github.token }}
+          COMMENT_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.issue.number }}
           COMMENT_BODY: ${{ github.event.comment.body }}
