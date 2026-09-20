@@ -105,6 +105,7 @@ function Get-Rules {
             Scope=$Scope
             RuleIndex=$ruleIndex
             RawRule=$line.Substring($comma + 1).Trim()
+            SourceFile=[IO.Path]::GetFileName($Path)
         })
     }
 
@@ -256,6 +257,7 @@ function Find-AttributeEvidenceInModel {
     if ($files.Count -eq 0) {
         $result = [pscustomobject]@{
             Label=""; Status="UNRESOLVED"; Source="MODEL_SOURCE_SEARCH"; HitCount=0; ExactJoinCount=0
+            MatchFiles=""
         }
         $script:AttributeDiscoveryCache[$cacheKey] = $result
         return $result
@@ -270,6 +272,7 @@ function Find-AttributeEvidenceInModel {
     Write-Host "    Select-String hits: $($hits.Count)"
 
     $evidence = New-Object System.Collections.Generic.List[object]
+    $matchedFiles = New-Object System.Collections.Generic.List[string]
 
     foreach ($hit in $hits) {
         $line = $hit.Line.Trim()
@@ -284,6 +287,7 @@ function Find-AttributeEvidenceInModel {
         if ($target.Count -eq 0) { continue }
 
         $fileName = [IO.Path]::GetFileName($hit.Path)
+        if (-not $matchedFiles.Contains($fileName)) { $matchedFiles.Add($fileName) }
         if ($fileName -notmatch '(?i)^Itm_M(\d+)_C(\d+)_I(\d+)_attributes\.xml$') { continue }
 
         $dm = [int]$Matches[1]
@@ -353,6 +357,7 @@ function Find-AttributeEvidenceInModel {
         Source="MODEL_SOURCE_SEARCH"
         HitCount=$hits.Count
         ExactJoinCount=@($evidence | Where-Object { $_.JoinStatus -eq "EXACT_SOURCE_JOIN" }).Count
+        MatchFiles=(@($matchedFiles | Sort-Object -Unique) -join " | ")
     }
 
     $script:AttributeDiscoveryCache[$cacheKey] = $result
@@ -505,7 +510,7 @@ foreach ($m in $modelIds) {
             foreach ($rule in $allRules) {
                 $rawRules.Add([pscustomobject]@{
                     Model="M$tm"; Category="C$tc"; Item="I$ti"; PartNumber=$pn; ApplicationId=$applicationId
-                    Scope=$rule.Scope; RuleIndex=$rule.RuleIndex; RawRule=$rule.RawRule
+                    Scope=$rule.Scope; RuleIndex=$rule.RuleIndex; RawRule=$rule.RawRule; SourceFile=$rule.SourceFile
                 })
 
                 $tuples = @(Parse-RuleTuples $rule.RawRule $rule.Scope $rule.RuleIndex)
@@ -530,7 +535,7 @@ foreach ($m in $modelIds) {
                     $rawFilters.Add([pscustomobject]@{
                         Model="M$tm"; Category="C$tc"; Group=$tuple.Group; Value=$tuple.Value
                         Effect=(Get-Effect $tuple); Scope=$tuple.Scope; Item="I$ti"
-                        ApplicationId=$applicationId; RuleIndex=$tuple.RuleIndex
+                        ApplicationId=$applicationId; RuleIndex=$tuple.RuleIndex; SourceFile=$rule.SourceFile
                     })
 
                     $nonVinLabels = @($pathLabels | Where-Object {
@@ -547,7 +552,7 @@ foreach ($m in $modelIds) {
 
                     $localDecodeEvidence.Add([pscustomobject]@{
                         Model="M$tm"; Category="C$tc"; Group=$tuple.Group; Value=$tuple.Value
-                        CandidateLabel=$candidate; ResolutionStatus=$status
+                        CandidateLabel=$candidate; ResolutionStatus=$status; SourceFile=$rule.SourceFile
                     })
                 }
             }
@@ -574,6 +579,7 @@ foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) 
     $resolutionSource = "LOCAL_CATEGORY"
     $discoveryHits = 0
     $discoveryExactJoins = 0
+    $matchFiles = @($g.Group | Select-Object -ExpandProperty SourceFile -Unique | Where-Object { $_ } | Sort-Object)
 
     if ($localLabels.Count -eq 1) {
         $label = $localLabels[0]
@@ -589,6 +595,12 @@ foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) 
         $discoveryHits = $discovered.HitCount
         $discoveryExactJoins = $discovered.ExactJoinCount
         $resolutionSource = $discovered.Source
+        if ($discovered.MatchFiles) {
+            $matchFiles = @(
+                $matchFiles
+                @($discovered.MatchFiles -split '\s+\|\s+')
+            ) | Where-Object { $_ } | Sort-Object -Unique
+        }
 
         if ($discovered.Status -eq "DISCOVERED_MODEL_SOURCE_JOIN") {
             $label = $discovered.Label
@@ -614,6 +626,7 @@ foreach ($g in @($rawFilters | Group-Object Model,Category,Group,Value,Effect)) 
         EvidenceCount=$g.Count
         DiscoveryHits=$discoveryHits
         DiscoveryExactJoins=$discoveryExactJoins
+        MatchFiles=($matchFiles -join " | ")
     })
 }
 
@@ -654,7 +667,10 @@ if ($filters.Count -gt 0) {
         $labelText = ""
         if ($filter.Label) { $labelText = " -> $($filter.Label)" }
 
-        Write-Host ("  " + $filter.Group + "=" + $filter.Value + " " + $filter.Effect + $labelText + " [" + $filter.ResolutionStatus + "]")
+        $filesText = ""
+        if ($filter.MatchFiles) { $filesText = " {" + $filter.MatchFiles + "}" }
+
+        Write-Host ("  " + $filter.Group + "=" + $filter.Value + " " + $filter.Effect + $labelText + " [" + $filter.ResolutionStatus + "]" + $filesText)
     }
 }
 
