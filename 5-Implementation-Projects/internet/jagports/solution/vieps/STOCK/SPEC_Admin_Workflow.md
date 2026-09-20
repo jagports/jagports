@@ -60,14 +60,14 @@ Mutable stock test records must remain separate from immutable catalogue/referen
 Stock Admin supports these stock-record paths:
 
 1. resolved stock linked to an existing canonical `PART`;
-2. reusable Jagports-owned canonical `PART` created through the applicable product workflow before stock linkage when no suitable Jaguar/JEPC PART exists;
+2. reusable **Jagports specified PART** created through the canonical third-party PART workflow when a vendor product has no verified 1:1 Jaguar PART;
 3. explicitly unresolved/non-catalogue stock where no canonical identity is yet established.
 
-A canonical `PART` must not be fabricated merely to satisfy a stock relationship. A known reusable non-JEPC product should normally receive a Jagports-owned canonical PART rather than remain permanently unresolved. `stock_item.part_id = NULL` is reserved for items whose reusable product identity is genuinely not yet established.
+A canonical `PART` must not be fabricated merely to satisfy a stock relationship. A known reusable third-party product must follow `MODEL_PART_THIRD_PARTY.md`: a verified 1:1 vendor product uses the existing Jaguar canonical PART, while a non-1:1 product uses a Jagports specified PART with its mandatory Jaguar parent and retained category/item/occurrence/PART context. `stock_item.part_id = NULL` is reserved for items whose reusable product identity is genuinely not yet established.
 
-Jagports-owned PART identity and vendor identity remain separate. A vendor part number may be recorded as source/reference evidence, but it must not replace the canonical Jagports PART identity. Jagports-owned identifiers must remain explicitly namespaced/sourced and must never be presented as Jaguar-issued part numbers.
+Canonical PART identity and vendor identity remain separate. A vendor part number is stored as third-party/vendor reference evidence and must not replace the canonical PART identity. A Jagports specified identifier is not Jaguar-issued and must not be presented as such.
 
-For service products such as third-party/NSS repair components, the canonical product workflow may record typed relationships such as `service_scope_extension_of`, `service_subpart_of`, or `component_of`. Such a relationship does not by itself prove vehicle suitability. MVP applicability may be supported by explicit fixture/manual evidence; suitability must not be silently inherited from every occurrence of a related Jaguar PART.
+Third-party PART relationship semantics are owned by `MODEL_PART_THIRD_PARTY.md`. Stock Admin must not reinterpret `parent_part`, `component_of`, `equivalent_to`, or Jaguar supersession. Suitability follows the referenced Jaguar PART/context defined by the third-party PART model.
 
 ## Stock management UI
 
@@ -76,9 +76,10 @@ The authorized Stock Admin UI must support, where the current data contract expo
 - create a stock record;
 - edit approved mutable stock fields;
 - select a canonical PART reference where resolved;
-- when no suitable Jaguar/JEPC PART exists for a known reusable product, create/select a Jagports-owned canonical PART before creating stock;
+- for a verified 1:1 vendor product, select the existing Jaguar canonical PART and retain the vendor reference;
+- for a non-1:1 reusable vendor product, create/select the Jagports specified PART defined by `MODEL_PART_THIRD_PARTY.md` before creating stock;
 - retain an explicit unresolved path only where reusable product identity is genuinely not yet established;
-- keep vendor part-number/reference data distinct from the canonical Jagports PART identity;
+- keep vendor part-number/reference data distinct from canonical PART identity;
 - capture integer quantity;
 - select normalized stock quality `A` through `E` using the meanings in `MODEL_STOCK.md` when quality is classified;
 - retain an explicit unclassified quality state when no A-E classification has yet been assigned;
@@ -97,7 +98,7 @@ Public unauthenticated users must not gain stock mutation capability through the
 ```text
 admin opens Stock Admin
   -> verifies stock database/environment
-  -> selects an existing canonical PART, creates a Jagports-owned canonical PART, or explicitly leaves genuinely unidentified stock unresolved
+  -> selects an existing canonical PART, creates/selects a Jagports specified PART for a non-1:1 reusable vendor product, or explicitly leaves genuinely unidentified stock unresolved
   -> captures mutable stock facts
   -> classifies stock quality with A-E when known or leaves it explicitly unclassified
   -> validates quantity, location, source and availability rules
@@ -166,8 +167,9 @@ A validation or acceptance record must identify the environment being exercised 
 At minimum, validation should establish that:
 
 - a known catalogue or fixture-backed PART can be resolved when that is the chosen stock identity path;
-- a known reusable non-JEPC product can be given a Jagports-owned canonical PART and stock can be persisted against it;
-- an unidentified item can remain explicitly unresolved without fabricating either Jaguar or Jagports identity;
+- a verified 1:1 vendor product can use the existing Jaguar canonical PART while retaining its vendor reference;
+- a non-1:1 reusable vendor product can use a Jagports specified PART with the required Jaguar parent/context and stock can be persisted against it;
+- an unidentified item can remain explicitly unresolved without fabricating Jaguar or Jagports specified identity;
 - permitted stock information can be read for known stock records;
 - an authorized operator can create or update approved mutable stock fields;
 - the persisted result can be read back through the approved application/database path;
@@ -182,7 +184,6 @@ A local or preview result is evidence only for that environment. It must not be 
 This workflow does not define:
 
 - catalogue PART identity or JEPC import;
-- the Post-MVP JEPC-assisted manual PART context selector (Model/Range -> category -> item/service item -> occurrence/context); MVP uses limited explicit fixture/manual applicability evidence instead;
 - warehouse transaction/history ledger;
 - reservations, checkout or sales workflow;
 - individual physical-unit identity;
