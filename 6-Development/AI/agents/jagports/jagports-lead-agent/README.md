@@ -8,6 +8,34 @@ The implementation is a working deterministic event-processing and specialist-ro
 
 The current unattended Codex-API-dependent Agent Infrastructure roadmap is suspended until a suitable unattended execution capability is available and explicitly re-evaluated. This repository implementation remains useful as a prototype, testable architecture, and future integration starting point.
 
+## Open-record prioritization executor
+
+Initial Issue/PR prioritization on GitHub open events is now a separate bounded repository automation concern from this Raspberry Pi Lead Agent prototype.
+
+The canonical unattended path is:
+
+```text
+Issue / PR opened
+      ↓
+.github/workflows/prioritize-open-record.yml
+      ↓
+.github/scripts/prioritize_open_record.py
+      ↓
+OpenAI semantic prioritization
+      ↓
+dated structured work-control comment
+      ↓
+existing bounded GitHub synchronizer
+      ↓
+managed verified work-control snapshot
+```
+
+This separation is intentional. The Lead Agent prototype remains the longer-term coordinator/agent-team runtime, while open-event prioritization has a narrow event-specific executor so new records do not depend on the hourly local polling loop.
+
+The executor requires `OPENAI_API_KEY` and `PROJECTS_TOKEN` in GitHub Actions. It defaults to `gpt-5.6-luna` unless `PRIORITIZATION_OPENAI_MODEL` is configured.
+
+Exact numeric Rank is not generated from prose. Until a verified queue-ordering capability is available, automatic open-event prioritization uses `Rank: none` / `PR Rank: none` rather than inventing queue position.
+
 ## Current architecture
 
 ```text
