@@ -82,6 +82,7 @@
     "error": "OSAA ei voitu ratkaista.",
     "input_aria": "Jaguar-osanumero tai testitunniste",
     "input_placeholder": "esim. MJB7703AA, MNA7691AA, firtree1",
+    "no_stock_match": "Yhtään vastaavaa osaa ei ole tällä hetkellä varastossa.",
     "not_found": "Osaa ei löytynyt.",
     "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
     "prompt_with_action": "Syötä Jaguar-osanumero tai testitunniste ja paina Etsi.",
@@ -91,6 +92,8 @@
   "stock": {
     "condition": "Kunto",
     "evidence": "Näyttö",
+    "filter_on_stock": "Näytä vain varastossa olevat osat",
+    "filter_on_stock_note": "Suodattaa tunnistehaun tulokset OSIIN, joilla on saatavilla olevaa operatiivista varastoa ja positiivinen määrä.",
     "filter_unavailable": "Varaston kuntosuodatin ei ole käytettävissä",
     "filter_unavailable_note": "Varaston A–E-kuntosuodatus edellyttää hyväksyttyä varaston selaussopimusta.",
     "fixture_evidence": "testi",

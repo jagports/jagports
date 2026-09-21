@@ -35,7 +35,11 @@ function candidatePayload(part) {
 
 async function findPartCandidates(env, query, normalized) {
   const result = await env.DB.prepare(
-    `SELECT id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status
+    `SELECT id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status,
+            EXISTS (
+              SELECT 1 FROM stock_item s
+              WHERE s.part_id = part.id AND s.available = 1 AND s.quantity > 0
+            ) AS has_available_stock
      FROM part
      WHERE part_number_normalized = ?
         OR UPPER(part_number_raw) = UPPER(?)
@@ -79,8 +83,25 @@ export async function handleViepsPart(request, env) {
   const normalized = normalizePartNumber(query);
   if (!normalized) return json({ error: "invalid part-number query", query }, 400);
 
-  const candidates = await findPartCandidates(env, query, normalized);
-  if (!candidates.length) return json({ error: "part not found", query }, 404);
+  const stockOnlyParam = text(url.searchParams.get("stock_only"));
+  if (stockOnlyParam && stockOnlyParam !== "0" && stockOnlyParam !== "1") {
+    return json({ error: "invalid stock-only filter", error_code: "stock_filter_invalid" }, 400);
+  }
+  const stockOnly = stockOnlyParam === "1";
+
+  const allCandidates = await findPartCandidates(env, query, normalized);
+  if (!allCandidates.length) return json({ error: "part not found", query }, 404);
+
+  const candidates = stockOnly
+    ? allCandidates.filter((part) => Number(part.has_available_stock) === 1)
+    : allCandidates;
+  if (!candidates.length) {
+    return json({
+      error: "no stocked part match",
+      error_code: "stock_filter_no_match",
+      query,
+    }, 404);
+  }
 
   const exactCandidates = candidates.filter((part) => isExactCandidate(part, query, normalized));
   if (exactCandidates.length > 1 || (!exactCandidates.length && candidates.length > 1)) {
@@ -92,7 +113,7 @@ export async function handleViepsPart(request, env) {
     });
   }
 
-  const part = exactCandidates[0] || candidates[0];
+  const part = candidatePayload(exactCandidates[0] || candidates[0]);
 
   const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult] = await Promise.all([
     env.DB.prepare(

@@ -208,6 +208,60 @@ test("partial part-number input with multiple candidates returns a multiple-matc
   assert.equal(data.part, undefined);
 });
 
+test("stock-only filter is explicit and preserves canonical PART identity", async () => {
+  const stocked = {
+    id: 12,
+    part_number_raw: "ABC-123",
+    part_number_normalized: "ABC123",
+    description: "Stocked fixture",
+    source: "fixture",
+    source_ref: "fixture:stocked",
+    verification_status: "fixture",
+    has_available_stock: 1,
+  };
+  const unavailable = {
+    ...stocked,
+    id: 13,
+    part_number_raw: "ABC-124",
+    part_number_normalized: "ABC124",
+    description: "Unavailable fixture",
+    source_ref: "fixture:unavailable",
+    has_available_stock: 0,
+  };
+
+  const stockedResponse = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=ABC123&stock_only=1"),
+    { DB: makeDb({ parts: [stocked] }) },
+  );
+  assert.equal(stockedResponse.status, 200);
+  const stockedData = await stockedResponse.json();
+  assert.equal(stockedData.part.id, 12);
+  assert.equal(stockedData.part.has_available_stock, undefined);
+
+  const filteredResponse = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=ABC124&stock_only=1"),
+    { DB: makeDb({ parts: [unavailable] }) },
+  );
+  assert.equal(filteredResponse.status, 404);
+  assert.equal((await filteredResponse.json()).error_code, "stock_filter_no_match");
+
+  const unfilteredResponse = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=ABC124"),
+    { DB: makeDb({ parts: [unavailable] }) },
+  );
+  assert.equal(unfilteredResponse.status, 200);
+  assert.equal((await unfilteredResponse.json()).part.id, 13);
+});
+
+test("invalid stock-only filter is rejected explicitly", async () => {
+  const response = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=ABC123&stock_only=yes"),
+    { DB: makeDb() },
+  );
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error_code, "stock_filter_invalid");
+});
+
 test("resolved PART stock query preserves DB-specified stock columns", async () => {
   const preparedSql = [];
   const part = {
@@ -226,7 +280,7 @@ test("resolved PART stock query preserves DB-specified stock columns", async () 
   );
 
   assert.equal(response.status, 200);
-  const stockSql = preparedSql.find((sql) => /FROM stock_item/i.test(sql));
+  const stockSql = preparedSql.find((sql) => /SELECT id, part_number, quantity[\s\S]*FROM stock_item/i.test(sql));
   assert.ok(stockSql);
   for (const column of ["condition", "condition_code", "price", "currency", "notes"]) {
     assert.equal(new RegExp(`\\b${column}\\b`, "i").test(stockSql), true, column);

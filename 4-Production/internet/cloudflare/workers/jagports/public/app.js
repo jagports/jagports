@@ -51,10 +51,15 @@ function partDisplayLabel(part) {
   return part.description && part.description !== identity ? `${identity} — ${part.description}` : identity;
 }
 
-async function resolvePart(partNumber) {
-  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
+async function resolvePart(partNumber, stockOnly = false) {
+  const stockFilter = stockOnly ? "&stock_only=1" : "";
+  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}`);
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || `${response.status} ${response.statusText}`);
+  if (!response.ok) {
+    const error = new Error(data.error || `${response.status} ${response.statusText}`);
+    error.code = data.error_code;
+    throw error;
+  }
   return data;
 }
 
@@ -231,6 +236,7 @@ function resetContext(messageKey = "part.no_part_selected") {
 }
 
 function localizeError(error) {
+  if (error?.code === "stock_filter_no_match") return t("search.no_stock_match");
   return String(error?.message || "") === "part not found" ? t("search.not_found") : t("search.error");
 }
 
@@ -266,7 +272,7 @@ function setupViepsUi() {
     $("searchStatus").className = "muted status-line";
     $("searchStatus").textContent = t("search.prompt_with_action");
   });
-  $("partSearch").addEventListener("submit", async (event) => {
+  const submitSearch = async (event) => {
     event.preventDefault();
     const version = ++requestVersion;
     const partNumber = $("partNumber").value.trim();
@@ -280,7 +286,7 @@ function setupViepsUi() {
     $("searchStatus").textContent = t("search.resolving");
     $("result").setAttribute("aria-busy", "true");
     try {
-      const data = await resolvePart(partNumber);
+      const data = await resolvePart(partNumber, Boolean($("availabilitySelect").checked));
       if (version !== requestVersion) return;
       if (data.state === "multiple_match") {
         renderPartCandidates(data.matches || []);
@@ -297,6 +303,10 @@ function setupViepsUi() {
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }
+  };
+  $("partSearch").addEventListener("submit", submitSearch);
+  $("availabilitySelect").addEventListener("change", () => {
+    if ($("partNumber").value.trim()) submitSearch({ preventDefault() {} });
   });
 }
 
