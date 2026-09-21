@@ -82,6 +82,7 @@
     "error": "The PART could not be resolved.",
     "input_aria": "Jaguar part number or fixture identifier",
     "input_placeholder": "e.g. MJB7703AA, MNA7691AA, firtree1",
+    "no_stock_match": "No matching part is currently on stock.",
     "not_found": "Part not found.",
     "prompt": "Enter a Jaguar part number or fixture identifier to begin.",
     "prompt_with_action": "Enter a Jaguar part number or fixture identifier and press Find.",
@@ -91,6 +92,8 @@
   "stock": {
     "condition": "Condition",
     "evidence": "Evidence",
+    "filter_on_stock": "Show only parts on stock",
+    "filter_on_stock_note": "Filters identifier-search results to PARTs with available operational stock and positive quantity.",
     "filter_unavailable": "Stock quality filter unavailable",
     "filter_unavailable_note": "Stock quality A–E filtering requires the approved stock browsing contract.",
     "fixture_evidence": "fixture",
