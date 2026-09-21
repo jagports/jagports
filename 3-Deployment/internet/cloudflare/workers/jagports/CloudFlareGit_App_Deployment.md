@@ -13,7 +13,7 @@ Pre-production Worker: vieps
 Production Worker:     jagports — reserved for a later production phase
 ```
 
-The existing Deployment-1 MVP `jagports.parts-5ec.workers.dev` deployment is superseded and discarded. It is not the pre-production Worker and is not preserved by this procedure.
+The reduced-MVP/pre-production Worker endpoint is `https://vieps.parts-5ec.workers.dev/`.
 
 ## Pre-production representation
 
@@ -347,13 +347,11 @@ A successful Worker deployment does not prove that the required D1 migrations ha
 
 ## Production endpoint dependency
 
-The discarded Deployment-1 MVP endpoint was:
+The reduced-MVP/pre-production endpoint is:
 
 ```text
-https://jagports.parts-5ec.workers.dev
+https://vieps.parts-5ec.workers.dev/
 ```
-
-It must not be treated as the current pre-production endpoint.
 
 The intended public VIEPS production hostname remains a separate DNS/production concern:
 
@@ -416,7 +414,7 @@ Deployment verification must establish:
 - when `preview_branches` is empty, no preview trigger exists;
 - an unlisted PR branch produces no Cloudflare Workers Build or deployment-status/comment noise;
 - if an explicit preview branch is temporarily configured, that branch can trigger the preview path and removing it disables future preview builds;
-- the discarded `jagports.parts-5ec.workers.dev` Deployment-1 MVP is not being treated as the pre-production environment.
+- the verified reduced-MVP/pre-production endpoint is `https://vieps.parts-5ec.workers.dev/`.
 
 Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
 
