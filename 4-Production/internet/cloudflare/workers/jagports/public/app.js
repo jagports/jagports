@@ -42,6 +42,15 @@ function formatStockQuality(item) {
   return t("stock.quality.unclassified.label");
 }
 
+function partSearchValue(part) {
+  return part.part_number_normalized || part.part_number_raw || part.description || "";
+}
+
+function partDisplayLabel(part) {
+  const identity = part.part_number_normalized || part.part_number_raw || part.description || `#${part.id}`;
+  return part.description && part.description !== identity ? `${identity} — ${part.description}` : identity;
+}
+
 async function resolvePart(partNumber) {
   const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
   const data = await response.json().catch(() => ({}));
@@ -86,6 +95,23 @@ function renderPart(part, occurrences = [], stock = []) {
       <dt>${escapeHtml(t("stock.location"))}</dt><dd>${escapeHtml(formatStockLocationSummary(stock))}</dd>
     </dl>
     ${renderStockRows(stock)}`;
+}
+
+function renderPartCandidates(matches = []) {
+  const candidates = matches.filter((part) => partSearchValue(part));
+  $("partCard").innerHTML = candidates.length ? `
+    <strong>${escapeHtml(t("search.multiple_heading"))}</strong>
+    <p>${escapeHtml(t("search.multiple_help", { count: candidates.length }))}</p>
+    <ul class="candidate-list">${candidates.map((part) => `
+      <li><button type="button" data-part-query="${escapeHtml(partSearchValue(part))}">${escapeHtml(partDisplayLabel(part))}</button></li>`).join("")}</ul>`
+    : empty(t("search.not_found"));
+
+  $("partCard").querySelectorAll?.("[data-part-query]").forEach((button) => {
+    button.addEventListener("click", () => {
+      $("partNumber").value = button.dataset.partQuery;
+      $("partSearch").dispatchEvent?.(new Event("submit", { cancelable: true }));
+    });
+  });
 }
 
 function renderTree(paths) {
@@ -256,6 +282,11 @@ function setupViepsUi() {
     try {
       const data = await resolvePart(partNumber);
       if (version !== requestVersion) return;
+      if (data.state === "multiple_match") {
+        renderPartCandidates(data.matches || []);
+        $("searchStatus").textContent = t("search.multiple_matches", { count: data.matches?.length || 0 });
+        return;
+      }
       renderResolvedData(data);
       $("searchStatus").textContent = t("search.resolved");
     } catch (error) {

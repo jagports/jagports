@@ -2,18 +2,20 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { handleViepsPart } from "../src/vieps.js";
 
-function makeDb({ part = null, occurrences = [], tree = [], images = [], diagrams = [], fitment = [], stock = [], onPrepare = () => {} } = {}) {
+function makeDb({ part = null, parts = null, occurrences = [], tree = [], images = [], diagrams = [], fitment = [], stock = [], onPrepare = () => {}, onBind = () => {} } = {}) {
+  const partRows = parts ?? (part ? [part] : []);
   return {
     prepare(sql) {
       onPrepare(sql);
       return {
-        bind() {
+        bind(...args) {
+          onBind(sql, args);
           return {
             async first() {
-              if (/FROM part\b/i.test(sql)) return part;
               return null;
             },
             async all() {
+              if (/FROM part\b/i.test(sql)) return { results: partRows };
               if (/FROM part_occurrence/i.test(sql)) return { results: occurrences };
               if (/part_tree_node/i.test(sql)) return { results: tree };
               if (/FROM part_image/i.test(sql)) return { results: images };
@@ -55,6 +57,41 @@ test("unknown part is an explicit not-found response", async () => {
   assert.equal(response.status, 404);
   const data = await response.json();
   assert.equal(data.error, "part not found");
+});
+
+test("part search SQL supports case-insensitive exact and partial part-number matching", async () => {
+  const preparedSql = [];
+  const boundArgs = [];
+  const part = {
+    id: 7,
+    part_number_raw: "MJB-7703-AA",
+    part_number_normalized: "MJB7703AA",
+    description: "Representative part",
+    source: "fixture",
+    source_ref: "fixture:part-7",
+    verification_status: "verified",
+  };
+
+  const response = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=mjb 7703-aa"),
+    {
+      DB: makeDb({
+        part,
+        onPrepare: (sql) => preparedSql.push(sql),
+        onBind: (sql, args) => {
+          if (/FROM part\b/i.test(sql)) boundArgs.push(args);
+        },
+      }),
+    },
+  );
+
+  assert.equal(response.status, 200);
+  const partSql = preparedSql.find((sql) => /FROM part\b/i.test(sql));
+  assert.ok(partSql);
+  assert.match(partSql, /UPPER\(part_number_raw\) = UPPER\(\?\)/i);
+  assert.match(partSql, /part_number_normalized LIKE '%' \|\| \? \|\| '%'/i);
+  assert.match(partSql, /UPPER\(part_number_raw\) LIKE '%' \|\| UPPER\(\?\) \|\| '%'/i);
+  assert.deepEqual(boundArgs[0].slice(0, 2), ["MJB7703AA", "mjb 7703-aa"]);
 });
 
 test("resolved PART returns canonical identity and occurrence context without duplication", async () => {
@@ -112,6 +149,63 @@ test("resolved PART returns canonical identity and occurrence context without du
   assert.ok(Array.isArray(data.diagrams));
   assert.ok(Array.isArray(data.fitment));
   assert.ok(Array.isArray(data.stock));
+});
+
+test("partial part-number input with one candidate resolves the canonical PART", async () => {
+  const part = {
+    id: 8,
+    part_number_raw: "MNA 7691-AA",
+    part_number_normalized: "MNA7691AA",
+    description: "Fan warning label",
+    source: "fixture",
+    source_ref: "fixture:part-8",
+    verification_status: "fixture",
+  };
+
+  const response = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=7691"),
+    { DB: makeDb({ parts: [part] }) },
+  );
+
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.part.id, 8);
+  assert.equal(data.part.part_number_normalized, "MNA7691AA");
+});
+
+test("partial part-number input with multiple candidates returns a multiple-match state", async () => {
+  const parts = [
+    {
+      id: 8,
+      part_number_raw: "MNA 7691-AA",
+      part_number_normalized: "MNA7691AA",
+      description: "Fan warning label",
+      source: "fixture",
+      source_ref: "fixture:part-8",
+      verification_status: "fixture",
+    },
+    {
+      id: 9,
+      part_number_raw: "MNA 7691-AB",
+      part_number_normalized: "MNA7691AB",
+      description: "Related fixture label",
+      source: "fixture",
+      source_ref: "fixture:part-9",
+      verification_status: "fixture",
+    },
+  ];
+
+  const response = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=mna7691"),
+    { DB: makeDb({ parts }) },
+  );
+
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.state, "multiple_match");
+  assert.equal(data.normalized_query, "MNA7691");
+  assert.deepEqual(data.matches.map((part) => part.part_number_normalized), ["MNA7691AA", "MNA7691AB"]);
+  assert.equal(data.part, undefined);
 });
 
 test("resolved PART stock query preserves DB-specified stock columns", async () => {
