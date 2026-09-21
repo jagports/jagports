@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { database, d1, root } from './helpers/model-db.mjs';
+import { DatabaseSync } from 'node:sqlite';
+import { database, d1, migrate, migrations, root } from './helpers/model-db.mjs';
 import { handleViepsPart } from '../src/vieps.js';
 
 const fixturePartNumbers = ['MJB7703AA', 'MNA7691AA', 'XR847031', 'FIX538C'];
@@ -108,4 +109,33 @@ test('visible UI guidance lists numbered and non-numbered fixture probes separat
   assert.match(html, /data-i18n="fixture\.descriptive_heading"/);
   assert.match(html, /data-i18n="fixture\.descriptive_note"/);
   for (const identifier of fixtureDescriptiveIdentifiers) assert.match(html, new RegExp(identifier));
+});
+
+
+test('0018 repairs lost fixture stock and restores stock-only resolution', async (t) => {
+  const repair = migrations.indexOf('0018_restore_mvp_fixture_stock.sql');
+  assert.ok(repair > 0);
+  const db = new DatabaseSync(':memory:');
+  t.after(() => db.close());
+  db.exec('PRAGMA foreign_keys = ON');
+  migrate(db, migrations.slice(0, repair));
+
+  db.prepare("DELETE FROM stock_item WHERE id=60740").run();
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM stock_item WHERE id=60740").get().n, 0);
+
+  migrate(db, ['0018_restore_mvp_fixture_stock.sql']);
+  const restored = db.prepare("SELECT quantity, available, part_id, location FROM stock_item WHERE id=60740").get();
+  assert.equal(restored.quantity, 2);
+  assert.equal(restored.available, 1);
+  assert.ok(restored.part_id > 0);
+  assert.equal(restored.location, 'Fixture Shelf XK / Box A14');
+
+  const response = await handleViepsPart(
+    new Request('https://example.test/api/vieps/part?q=MJB7703AA&stock_only=1'),
+    { DB: d1(db) },
+  );
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.part.part_number_normalized, 'MJB7703AA');
+  assert.ok(data.stock.some((item) => item.id === 60740 && item.available === 1 && item.quantity === 2));
 });
