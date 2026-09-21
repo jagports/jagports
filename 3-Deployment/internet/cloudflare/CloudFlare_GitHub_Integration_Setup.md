@@ -34,7 +34,7 @@ Pre-production Worker: vieps
 Production Worker:     jagports — reserved for a later production phase
 ```
 
-The existing Deployment-1 MVP `jagports.parts-5ec.workers.dev` deployment is superseded and discarded. It is not the pre-production Worker and must not be preserved or repurposed as part of this configuration.
+The reduced-MVP/pre-production Worker endpoint is `https://vieps.parts-5ec.workers.dev/`.
 
 Common repository settings:
 
@@ -131,7 +131,7 @@ Verify in Cloudflare:
 - repository is exactly `jagports/jagports`;
 - production branch is `main`;
 - pre-production Worker is `vieps`;
-- the discarded Deployment-1 MVP `jagports` deployment is not treated as the pre-production environment;
+- the VIEPS endpoint is `https://vieps.parts-5ec.workers.dev/`;
 - root/build/deploy commands are correct;
 - preview branch builds are configured as intended;
 - watch paths are configured as intended.
