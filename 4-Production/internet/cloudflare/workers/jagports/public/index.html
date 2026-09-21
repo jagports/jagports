@@ -27,11 +27,12 @@
             </form>
           </div>
           <div class="availability-block">
-            <label for="availabilitySelect" data-i18n="common.availability"></label>
-            <select id="availabilitySelect" disabled aria-describedby="availabilityStatus">
-              <option value="" data-i18n="stock.filter_unavailable"></option>
-            </select>
-            <p id="availabilityStatus" class="muted compact-note" data-i18n="stock.filter_unavailable_note"></p>
+            <span data-i18n="common.availability"></span>
+            <label for="availabilitySelect">
+              <input id="availabilitySelect" type="checkbox" aria-describedby="availabilityStatus">
+              <span data-i18n="stock.filter_on_stock"></span>
+            </label>
+            <p id="availabilityStatus" class="muted compact-note" data-i18n="stock.filter_on_stock_note"></p>
           </div>
         </div>
         <p id="searchStatus" class="muted status-line" role="status"></p>
