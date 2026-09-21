@@ -38,29 +38,27 @@ Repeatable migration review, source selection, preview/local testing, production
 
 ## Reduced-MVP runtime status
 
-Issue #496, **VIEPS / Deployment-1 — Establish the First Real End-to-End VIEPS Runtime**, is completed and records that the repository/runtime foundation for an end-to-end VIEPS deployment was established.
-
-The current reduced-MVP acceptance target is the **pre-production Cloudflare Worker named `vieps`**, built from reviewed `main` using the Worker representation under:
+The reduced-MVP acceptance runtime may use a non-production Cloudflare Workers endpoint. The current pre-production Worker identity is `vieps`, built from reviewed `main` using:
 
 `4-Production/internet/cloudflare/workers/jagports/`
 
-Repository configuration alone is not runtime evidence. A concrete acceptance run must record the exact deployed endpoint and revision under test, then execute the applicable runtime probes against that endpoint. Use:
+Repository configuration alone is not runtime evidence. A concrete acceptance run must record the exact deployed endpoint and revision under test, then execute the applicable runtime probes against that endpoint:
 
 `VIEPS_BASE_URL=https://<verified-vieps-endpoint> npm run test:runtime`
 
-and the deployed-asset verification defined by the Worker deployment procedure.
+Also execute the deployed-asset verification defined by the Worker deployment procedure.
 
-The existing MVP endpoint `jagports.parts-5ec.workers.dev` remains a valid reduced-MVP runtime endpoint because the MVP is not the production deployment. It may be used for #546 acceptance when the execution record confirms the tested revision and runtime state.
+The existing MVP endpoint `jagports.parts-5ec.workers.dev` remains valid for reduced-MVP acceptance because the MVP is not the production deployment.
 
-The repository also references `vieps.parts-5ec.workers.dev` in verification tooling and migration examples. Either endpoint must be treated as acceptance evidence only when an actual #546 execution record identifies the endpoint used and confirms the deployed revision/runtime state.
+The repository also references `vieps.parts-5ec.workers.dev` in verification tooling and migration examples. Either workers.dev endpoint is acceptable only when the execution evidence identifies which endpoint was tested and confirms the deployed revision/runtime state.
 
-Reduced-MVP closure does **not** require the later production hostname `vieps.jagports.fi`, production Worker identity `jagports`, or unrelated DNS/deployment-policy work. Those remain separate deployment concerns.
+Reduced-MVP closure does **not** require the later production hostname `vieps.jagports.fi`, production Worker identity `jagports`, or unrelated DNS/deployment-policy work.
 
-For #546, the execution evidence must identify at minimum:
+Acceptance execution evidence must identify at minimum:
 
 - exact runtime URL;
 - tested Git revision / deployed Worker version where available;
-- that the environment is the pre-production `vieps` Worker;
+- environment/Worker identity;
 - successful UI/API runtime probes for the fixture-backed PART path;
 - retained STOCK behavior exercised through the accepted public path;
 - any unavailable runtime evidence explicitly as NOT RUN/BLOCKED rather than inferred success.
