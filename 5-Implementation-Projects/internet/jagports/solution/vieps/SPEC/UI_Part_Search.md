@@ -18,10 +18,14 @@ Concept-11 places Search + Availability in the top workspace to the right of the
 ```text
 BRANDING / LANGUAGE | SEARCH + AVAILABILITY
                     | Search: [ identifier ] [Search]
-                    | Availability: [ stock quality A…E ▼ ]
+                    | Availability: [ ] Show only parts on stock
 ```
 
-Availability remains operational stock state, separate from catalogue identity. When unsupported by the approved stock browse contract it must remain disabled/unavailable rather than simulated.
+Availability remains operational stock state, separate from catalogue identity.
+
+For the reduced MVP, the public Availability control is a boolean **Show only parts on stock** filter applied to identifier-search candidates. A PART satisfies this public stock-backed filter only when at least one operational `stock_item` linked to that canonical PART has `available = 1` and `quantity > 0`.
+
+The boolean filter exposes only the eligibility fact needed to narrow public PART results. It does not authorize stock mutation and must not expose administrator-only operational data. Normalized A–E stock-quality filtering remains governed by the stock-quality contract below and is not required to be silently simulated when a richer browse/filter contract is unavailable.
 
 ## Stock-quality filter and presentation contract
 
@@ -158,6 +162,7 @@ When stock-quality filtering is supported, filter identity is the normalized `A`
 ```text
 PartSearchRequest
   query
+  stock_only?               # reduced-MVP public boolean availability constraint
   stock_quality_codes[]?   # normalized A-E identities when supported
   include_unclassified_quality? # explicit NULL-state filter when supported
 
@@ -191,6 +196,8 @@ Cover at least:
 - identifier miss with free-text fallback when that capability is available;
 - explicit unsupported state when requested free-text/stock filtering is unavailable;
 - stock-filtered-empty distinct from total search no-match;
+- reduced-MVP `stock_only` success when an identifier candidate has `available = 1` and `quantity > 0`;
+- reduced-MVP `stock_only` filtered-empty when identifier candidates exist but none satisfy that operational STOCK condition;
 - invalid/empty input;
 - unavailable EPC context;
 - tree context;
@@ -229,6 +236,7 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - [x] Catalogue-data language may select structurally different imported source trees without conflating them with UI i18n.
 - [x] Non-numbered fixture identifiers are not presented as Jaguar part numbers.
 - [x] Search/Availability placement follows merged Concept-11.
+- [x] Reduced-MVP public `stock_only` filtering is defined over canonical PART candidates using operational STOCK availability plus positive quantity without redefining catalogue identity.
 - [x] Result distribution follows the corrected Model Ranges / Location / Suitability / PART geometry.
 - [x] Unsupported stock-driven empty-search behavior is not fabricated.
 - [x] UI-vs-Parts language separation is preserved.
