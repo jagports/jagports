@@ -73,7 +73,10 @@ Authorization-safe result states include at least:
 Restricted stock details must not leak through filter labels, result snippets, help text, API-derived presentation, or alternate result paths.
 
 ## Search input
-- Primary entry point is Jaguar part-number search.
+- The search area uses one primary query field for a Jaguar part number / approved identifier or free text; it must not expose competing identifier and free-text fields.
+- Search resolution is identifier-first: attempt the approved part-number / identifier lookup first; only when it produces no identifier match may the same query fall back to an available approved free-text search capability.
+- Full multilingual free-text indexing/search remains owned by post-MVP #622. If that capability is unavailable in the current runtime, the fallback must report an explicit unsupported/unavailable state rather than silently ignore or simulate free-text search.
+- Primary deterministic MVP behavior remains Jaguar part-number / approved-identifier search.
 - Approved deterministic non-numbered identifiers may also be accepted where the current read contract supports them.
 - Current main-branch fixtures `firtree1` and `firtree2` are descriptive fixture identifiers, **not Jaguar part numbers**.
 - Leading/trailing whitespace is ignored.
@@ -122,7 +125,10 @@ Language-specific JEPC tree structure may differ. Catalogue-data language select
 |---|---|
 | `empty` | No search submitted; permanent Concept-11 shell remains visible |
 | `invalid` | Identifier fails validation |
-| `not_found` | Valid search has no supported match |
+| `not_found` | Valid search has no supported identifier or available free-text match |
+| `stock_filtered_empty` | Search matches exist, but the selected supported stock constraint removes all visible results |
+| `multiple_matches` | Identifier or available free-text search produces multiple canonical candidates; the UI must present candidates rather than invent a selected PART |
+| `unsupported` | Requested free-text or stock-filter capability is unavailable in the current runtime and must not be silently ignored |
 | `resolved` | Identity/context resolved |
 | `context_unavailable` | Identity resolved but secondary EPC context unavailable |
 | `error` | Processing/API failure |
@@ -157,6 +163,9 @@ PartSearchRequest
 
 PartSearchResult
   state
+  search_path?                    # identifier | free_text when the distinction is applicable
+  match_type?                     # exact_identifier | partial_identifier | free_text when known
+  candidates[]?                   # multiple canonical candidates remain selectable, never guessed
   canonical_part? / approved non-numbered identity?
   occurrences[]                  # all matching source occurrences
   selected_occurrence/context
@@ -178,6 +187,10 @@ Cover at least:
 - valid Jaguar part number;
 - multiple EPC occurrences;
 - valid no-match;
+- multiple identifier candidates without guessed selection;
+- identifier miss with free-text fallback when that capability is available;
+- explicit unsupported state when requested free-text/stock filtering is unavailable;
+- stock-filtered-empty distinct from total search no-match;
 - invalid/empty input;
 - unavailable EPC context;
 - tree context;
@@ -200,9 +213,16 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Missing stock-quality classification is explicit unclassified quality, not unavailable stock.
 - Missing or restricted stock-quality information is not a confirmed A–E classification.
 - Search failures do not fall back to guessed identities.
+- Identifier miss may fall back only to an approved available free-text capability; absence of that capability is explicit, not simulated.
+- A stock-filtered-empty result is distinct from a total search no-match.
 
 ## Acceptance criteria
 - [x] Search/result states and canonical identity boundaries are documented.
+- [x] One primary query field supports identifier-first resolution with free-text fallback only after identifier miss.
+- [x] Full multilingual free-text indexing/search remains post-MVP under #622 and unavailable runtime capability is explicit.
+- [x] Multiple canonical search candidates remain selectable rather than being guessed into one PART.
+- [x] `stock_filtered_empty` is distinct from a total `not_found` result.
+- [x] Search-path/match provenance may cross the API boundary without redefining canonical PART identity.
 - [x] Multiple EPC occurrences remain distinct from canonical PART identity.
 - [x] Part-number search can return every occurrence with its complete source tree path.
 - [x] Catalogue/filter narrowing is occurrence-first; a PART remains while any occurrence survives.
