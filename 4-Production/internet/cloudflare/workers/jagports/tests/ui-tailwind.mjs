@@ -58,7 +58,7 @@ test('Tailwind source follows the merged Concept-11 geometry', async () => {
 test('static shell keeps merged Concept-11 semantic regions without inventing unsupported behavior', async () => {
   const html = await readFile(indexUrl, 'utf8');
   assert.match(html, /class="search-availability-strip"/);
-  assert.match(html, /id="availabilitySelect" disabled/);
+  assert.match(html, /id="availabilitySelect" type="checkbox"/);
   assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
   assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
   assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
