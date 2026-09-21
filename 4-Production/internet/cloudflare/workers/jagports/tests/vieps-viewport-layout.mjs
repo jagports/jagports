@@ -44,7 +44,7 @@ test("merged Concept-11 desktop geometry is preserved", () => {
 test("Concept-11 search and availability share the top strip", () => {
   assert.match(html, /class="search-availability-strip"/);
   assert.match(html, /id="partSearch"/);
-  assert.match(html, /id="availabilitySelect" disabled/);
+  assert.match(html, /id="availabilitySelect" type="checkbox"/);
   assert.match(css, /\.search-availability-strip\s*\{/);
 });
 
