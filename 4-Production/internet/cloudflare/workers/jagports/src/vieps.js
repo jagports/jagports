@@ -11,6 +11,64 @@ function text(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function candidateIdentity(part) {
+  return part.part_number_normalized || part.part_number_raw || part.description || `#${part.id}`;
+}
+
+function isExactCandidate(part, query, normalized) {
+  return part.part_number_normalized === normalized
+    || normalizePartNumber(part.part_number_raw) === normalized
+    || part.description === query;
+}
+
+function candidatePayload(part) {
+  return {
+    id: part.id,
+    part_number_raw: part.part_number_raw,
+    part_number_normalized: part.part_number_normalized,
+    description: part.description,
+    source: part.source,
+    source_ref: part.source_ref,
+    verification_status: part.verification_status,
+  };
+}
+
+async function findPartCandidates(env, query, normalized) {
+  const result = await env.DB.prepare(
+    `SELECT id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status
+     FROM part
+     WHERE part_number_normalized = ?
+        OR UPPER(part_number_raw) = UPPER(?)
+        OR description = ?
+        OR part_number_normalized LIKE '%' || ? || '%'
+        OR UPPER(part_number_raw) LIKE '%' || UPPER(?) || '%'
+     ORDER BY CASE
+        WHEN part_number_normalized = ? THEN 0
+        WHEN UPPER(part_number_raw) = UPPER(?) THEN 1
+        WHEN description = ? THEN 2
+        WHEN part_number_normalized LIKE ? || '%' THEN 3
+        WHEN UPPER(part_number_raw) LIKE UPPER(?) || '%' THEN 4
+        ELSE 5
+      END,
+      part_number_normalized,
+      part_number_raw,
+      id
+     LIMIT 25`
+  ).bind(
+    normalized,
+    query,
+    query,
+    normalized,
+    query,
+    normalized,
+    query,
+    query,
+    normalized,
+    query,
+  ).all();
+  return result.results || [];
+}
+
 export async function handleViepsPart(request, env) {
   if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
 
@@ -21,17 +79,20 @@ export async function handleViepsPart(request, env) {
   const normalized = normalizePartNumber(query);
   if (!normalized) return json({ error: "invalid part-number query", query }, 400);
 
-  const part = await env.DB.prepare(
-    `SELECT id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status
-     FROM part
-     WHERE part_number_normalized = ?
-        OR part_number_raw = ?
-        OR description = ?
-     ORDER BY CASE WHEN part_number_normalized = ? THEN 0 WHEN part_number_raw = ? THEN 1 ELSE 2 END
-     LIMIT 1`
-  ).bind(normalized, query, query, normalized, query).first();
+  const candidates = await findPartCandidates(env, query, normalized);
+  if (!candidates.length) return json({ error: "part not found", query }, 404);
 
-  if (!part) return json({ error: "part not found", query }, 404);
+  const exactCandidates = candidates.filter((part) => isExactCandidate(part, query, normalized));
+  if (exactCandidates.length > 1 || (!exactCandidates.length && candidates.length > 1)) {
+    return json({
+      state: "multiple_match",
+      query,
+      normalized_query: normalized,
+      matches: candidates.map(candidatePayload),
+    });
+  }
+
+  const part = exactCandidates[0] || candidates[0];
 
   const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult] = await Promise.all([
     env.DB.prepare(
