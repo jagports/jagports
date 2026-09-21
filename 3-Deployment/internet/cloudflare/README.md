@@ -50,9 +50,9 @@ Repository configuration alone is not runtime evidence. A concrete acceptance ru
 
 and the deployed-asset verification defined by the Worker deployment procedure.
 
-The historical Deployment-1 endpoint `jagports.parts-5ec.workers.dev` is superseded and must not be used as the current pre-production acceptance endpoint.
+The existing MVP endpoint `jagports.parts-5ec.workers.dev` remains a valid reduced-MVP runtime endpoint because the MVP is not the production deployment. It may be used for #546 acceptance when the execution record confirms the tested revision and runtime state.
 
-The repository currently references `vieps.parts-5ec.workers.dev` in verification tooling and migration examples, but #546 acceptance must still treat the endpoint as verified only when an actual execution record confirms that this is the active deployed `vieps` Worker for the accepted revision.
+The repository also references `vieps.parts-5ec.workers.dev` in verification tooling and migration examples. Either endpoint must be treated as acceptance evidence only when an actual #546 execution record identifies the endpoint used and confirms the deployed revision/runtime state.
 
 Reduced-MVP closure does **not** require the later production hostname `vieps.jagports.fi`, production Worker identity `jagports`, or unrelated DNS/deployment-policy work. Those remain separate deployment concerns.
 
