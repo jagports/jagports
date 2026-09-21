@@ -36,6 +36,35 @@ D1 resource existence check, creation, Worker binding, and verification.
 
 Repeatable migration review, source selection, preview/local testing, production application, and verification.
 
+## Reduced-MVP runtime status
+
+Issue #496, **VIEPS / Deployment-1 — Establish the First Real End-to-End VIEPS Runtime**, is completed and records that the repository/runtime foundation for an end-to-end VIEPS deployment was established.
+
+The current reduced-MVP acceptance target is the **pre-production Cloudflare Worker named `vieps`**, built from reviewed `main` using the Worker representation under:
+
+`4-Production/internet/cloudflare/workers/jagports/`
+
+Repository configuration alone is not runtime evidence. A concrete acceptance run must record the exact deployed endpoint and revision under test, then execute the applicable runtime probes against that endpoint. Use:
+
+`VIEPS_BASE_URL=https://<verified-vieps-endpoint> npm run test:runtime`
+
+and the deployed-asset verification defined by the Worker deployment procedure.
+
+The historical Deployment-1 endpoint `jagports.parts-5ec.workers.dev` is superseded and must not be used as the current pre-production acceptance endpoint.
+
+The repository currently references `vieps.parts-5ec.workers.dev` in verification tooling and migration examples, but #546 acceptance must still treat the endpoint as verified only when an actual execution record confirms that this is the active deployed `vieps` Worker for the accepted revision.
+
+Reduced-MVP closure does **not** require the later production hostname `vieps.jagports.fi`, production Worker identity `jagports`, or unrelated DNS/deployment-policy work. Those remain separate deployment concerns.
+
+For #546, the execution evidence must identify at minimum:
+
+- exact runtime URL;
+- tested Git revision / deployed Worker version where available;
+- that the environment is the pre-production `vieps` Worker;
+- successful UI/API runtime probes for the fixture-backed PART path;
+- retained STOCK behavior exercised through the accepted public path;
+- any unavailable runtime evidence explicitly as NOT RUN/BLOCKED rather than inferred success.
+
 ## VIEPS execution
 
 End-to-end VIEPS deployment orchestration is maintained separately:
