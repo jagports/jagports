@@ -280,7 +280,7 @@ test("resolved PART stock query preserves DB-specified stock columns", async () 
   );
 
   assert.equal(response.status, 200);
-  const stockSql = preparedSql.find((sql) => /FROM stock_item/i.test(sql));
+  const stockSql = preparedSql.find((sql) => /SELECT id, part_number, quantity[\s\S]*FROM stock_item/i.test(sql));
   assert.ok(stockSql);
   for (const column of ["condition", "condition_code", "price", "currency", "notes"]) {
     assert.equal(new RegExp(`\\b${column}\\b`, "i").test(stockSql), true, column);
