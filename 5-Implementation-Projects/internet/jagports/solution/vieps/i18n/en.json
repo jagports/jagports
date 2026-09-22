@@ -81,6 +81,7 @@
   },
   "ranges": {
     "applicable_help": "Search to show applicable model ranges. Stock-based browsing is unavailable.",
+    "error": "Applicable Models could not be loaded.",
     "heading": "Suitability Model Ranges",
     "label": "Model range / fit",
     "no_match": "No suitable vehicle range matches this PART/context.",
