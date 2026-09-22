@@ -19,7 +19,7 @@ The #875 layout separates controls while preserving the approved deterministic-f
 LEFT   Availability: supported stock/quality constraints above the Parts Tree
 CENTRE VIN and normalized Suitability / Variations filter
 RIGHT  one PN / deterministic identifier / free-text Search field
-       scrollable Search Results PART List with independent bookmarks
+       scrollable Search Results PART List with disabled bookmark placeholders
        independently scrollable Applicable Models panel
 ```
 
@@ -390,7 +390,7 @@ Cover at least:
 
 Fixture values are test data, not verified Jaguar catalogue facts.
 
-The #875 fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is a browse/test vocabulary, NOT evidence of per-PART fitment. Additional fixtures cover synchronized selection, de-duplication across occurrences, independent bookmarks and all results-panel states.
+The #875 fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is a browse/test vocabulary, NOT evidence of per-PART fitment. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled current-phase bookmark placeholders and all results-panel states. Later activation/storage needs its own interaction tests.
 
 ## Viewport and language
 The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search remains post-MVP #622.
