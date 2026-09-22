@@ -380,7 +380,7 @@ function setupViepsUi() {
     if ($("partNumber").value.trim()) submitSearch({ preventDefault() {} });
   });
 
-  const initialParams = typeof globalThis.location?.search === "string"
+  const initialParams = typeof URLSearchParams === "function" && typeof globalThis.location?.search === "string"
     ? new URLSearchParams(globalThis.location.search)
     : null;
   const initialPart = initialParams?.get("part")?.trim();
