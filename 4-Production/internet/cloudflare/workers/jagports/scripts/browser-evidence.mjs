@@ -12,6 +12,21 @@ const evidenceDir = fileURLToPath(new URL("../browser-evidence/", import.meta.ur
 const mime = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml" };
 const extension = (name) => name.slice(name.lastIndexOf("."));
 
+// Browser-only PART responses exercise existing search/selection UI, not new APIs.
+const browserParts = [
+  { id: 101, part_number_normalized: "BRTEST1", description: "Left fixture PART" },
+  { id: 102, part_number_normalized: "BRTEST2", description: "Right fixture PART" },
+];
+const browserRoots = [{ node_id: 1, label: "XK Range (browser fixture)", sort_order: 1 }];
+const browserPaths = [
+  { part_id: 101, node_id: 2, nodes: [
+    { node_id: 1, label: "XK Range (browser fixture)" }, { node_id: 2, label: "Front" },
+  ] },
+  { part_id: 102, node_id: 3, nodes: [
+    { node_id: 1, label: "XK Range (browser fixture)" }, { node_id: 3, label: "Rear" },
+  ] },
+];
+
 async function localServer() {
   const server = createServer(async (request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
@@ -22,6 +37,28 @@ async function localServer() {
         stock_browse_state: "unsupported",
       }));
       return;
+    }
+    if (pathname === "/api/vieps/part") {
+      const params = new URL(request.url, "http://localhost").searchParams;
+      if (params.get("q") === "BRTEST") {
+        const id = params.get("candidate_id");
+        const part = browserParts.find((item) => String(item.id) === id);
+        const payload = !id ? {
+          state: "multiple_match", query: "BRTEST",
+          matches: [...browserParts, { ...browserParts[0] }],
+          parts_tree: browserPaths, tree_roots: browserRoots,
+        } : part ? {
+          state: "resolved", part, tree_roots: browserRoots,
+          parts_tree: browserPaths.filter((entry) => entry.part_id === part.id),
+          occurrences: [], stock: [], images: [], diagrams: [],
+          fitment: [{ range_code: "XK", range_name: "XK Range",
+            variation: "Browser-confirmed fixture", applicability_state: "applicable",
+            verification_status: "fixture" }],
+        } : { error: "candidate not found" };
+        response.writeHead(id && !part ? 404 : 200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(payload));
+        return;
+      }
     }
     if (pathname.startsWith("/api/")) {
       response.writeHead(503, { "Content-Type": "application/json" });
