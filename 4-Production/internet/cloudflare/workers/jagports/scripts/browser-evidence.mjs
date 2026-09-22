@@ -87,6 +87,41 @@ try {
   const desktopTree = await page.locator(".tree-panel").boundingBox();
   const desktopSearch = await page.locator(".search-block").boundingBox();
   assert.ok(desktopTree.x < desktopSearch.x, "desktop tree remains left of Find");
+  // #875: verify all three workspace positions and native independent scroll
+  // affordances without replacing the original #893 mobile assertions.
+  const desktopAreas = await page.evaluate(() => {
+    const bounds = (selector) => {
+      const el = document.querySelector(selector);
+      const rect = el.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+        height: rect.height, overflowY: getComputedStyle(el).overflowY };
+    };
+    return {
+      availability: bounds(".availability-block"), tree: bounds(".tree-panel"),
+      treeScroll: bounds("#tree"), vin: bounds(".vin-panel"),
+      location: bounds(".location-panel"), selectedPart: bounds(".visual-panel"),
+      find: bounds(".search-block"), results: bounds(".results-panel"),
+      resultsScroll: bounds("#searchResults"), models: bounds(".ranges-panel"),
+      modelsScroll: bounds(".ranges-scroll"),
+      pageScroll: document.documentElement.scrollHeight - innerHeight,
+    };
+  });
+  assert.ok(desktopAreas.availability.bottom <= desktopAreas.tree.top + 2, "Availability must precede the tree");
+  assert.ok(desktopAreas.tree.right <= desktopAreas.vin.left + 2, "tree and VIN must be separate columns");
+  assert.ok(desktopAreas.vin.right <= desktopAreas.find.left + 2, "Find must occupy the right column");
+  assert.ok(desktopAreas.vin.bottom <= desktopAreas.location.top + 2, "VIN and variations must precede Location");
+  assert.ok(Math.abs(desktopAreas.location.top - desktopAreas.selectedPart.top) <= 2,
+    "Location and selected PART must share a row");
+  assert.ok(desktopAreas.location.right <= desktopAreas.selectedPart.left + 2,
+    "Location must be left of selected PART");
+  assert.ok(desktopAreas.find.bottom <= desktopAreas.results.top + 2 &&
+    desktopAreas.results.bottom <= desktopAreas.models.top + 2,
+    "Find, Search Results and Applicable Models must stack in order");
+  for (const key of ["treeScroll", "resultsScroll", "modelsScroll"]) {
+    assert.equal(desktopAreas[key].overflowY, "auto", key + " must scroll independently");
+    assert.ok(desktopAreas[key].height > 30, key + " has no usable allocated height");
+  }
+  assert.ok(desktopAreas.pageScroll <= 1, "normal desktop shell must not require page scrolling");
   await page.screenshot({ path: evidenceDir + "desktop.png", fullPage: true });
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
