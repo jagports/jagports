@@ -75,7 +75,7 @@ search / browse constraints
         ↓
 resolve canonical PART or constrained catalogue/stock context
         ↓
-retain Parts Tree main-level index + expand relevant descendant path(s)
+retain one Parts Tree root index + expand the complete selected root-to-leaf path
         ↓
 show / constrain verified Model Ranges
         ↓
@@ -183,9 +183,13 @@ JEPC catalogue-data language is distinct from VIEPS UI locale. If imported langu
 ## 2. Parts Tree
 
 - Parts Tree is a scrolling persistent left-side region.
-- The merged SVG visibly retains many main-level catalogue categories while expanding the relevant descendant branch.
-- A resolved context therefore keeps the main-level category index where supplied by the read contract and expands/emphasizes only relevant descendant path(s).
-- Ancestors and selected occurrence/context must remain clear.
+- The merged SVG visibly retains many first-level/root catalogue categories while expanding the relevant descendant branch.
+- The visible tree is **one shared hierarchy**, not a stack of independent root-to-leaf path fragments. Common ancestors are merged by stable tree-node identity and a branch is rendered only once at its correct depth.
+- With no selection, show available first-level/root branches. With a category or PART selected, keep that root index visible and expand the complete root-to-latest-selected-leaf ancestry in the same tree.
+- Selecting a category reveals its available immediate children; unrelated deeper descendants remain collapsed unless required by the active selected path or active search result.
+- Canonical PART identities/names are selectable **terminal leaves** under their evidenced catalogue branch. Multiple matching PARTs remain leaves in this tree rather than becoming a second result list elsewhere.
+- Hierarchy must be visually legible: each deeper level receives modest additional indentation, typography is strongest near the root and progressively lighter toward deeper branches/PART leaves, and only the active category or PART text is underlined as the selection indicator.
+- Ancestors and selected occurrence/context must remain clear after normal clicks and direct tree links.
 - Expand/collapse is UI state over the catalogue model, not a new data model.
 - Stable Parts Tree nodes are rendered as real hyperlinks using tree-node identity, not label text.
 - Opening a tree-node link enters catalogue browse context for that node/subtree and may present canonical PART candidates through the approved browse relationship.
@@ -225,7 +229,9 @@ The concept illustrates Models, ModelYear, VINRanges, features and example facts
 
 ## 6. PART / Image / Status
 
-The full lower centre/right region groups:
+The full lower centre/right region represents **one selected canonical PART only**. It is not a candidate/search-result list. When several PARTs are available from Parts Tree browsing or search, selection occurs through terminal PART leaves in the Parts Tree; until one leaf is selected this region remains in its explicit no-selected-PART/context state.
+
+It groups:
 
 - warning/status when supported;
 - canonical PART identity and selected item/callout identity;
@@ -278,7 +284,7 @@ A conforming implementation preserves:
 
 - the merged Concept-11 geometry above;
 - canonical PART identity vs occurrence/context separation;
-- persistent Parts Tree main-level context with relevant descendants expanded/emphasized;
+- one persistent Parts Tree root index with shared ancestors rendered once, the complete selected root-to-leaf path expanded, depth indentation/root-weight typography applied, and PARTs represented as terminal leaves;
 - Model Ranges as a separate centre/right row;
 - Location and Suitability side-by-side on desktop;
 - one vehicle-location canvas;
