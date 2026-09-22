@@ -493,6 +493,18 @@ test('result rows deduplicate PART identity, synchronize selection with the tree
   assert.match(results.innerHTML, /TEST1 — First part/);
   assert.match(results.innerHTML, /TEST2 — Second part/);
   assert.match(results.innerHTML, /type="checkbox" disabled/);
+  assert.equal((results.innerHTML.match(/class="bookmark-label"/g) || []).length, 2,
+    'one separate disabled bookmark label per distinct canonical PART');
+  assert.match(results.innerHTML, /aria-label="Bookmark \(not yet available\): TEST1 — First part"/);
+  assert.match(results.innerHTML, /aria-label="Bookmark \(not yet available\): TEST2 — Second part"/);
+  assert.equal((results.innerHTML.match(/class="bookmark-caption"/g) || []).length, 2);
+  assert.equal((results.innerHTML.match(/<input type="checkbox" disabled/g) || []).length, 2);
+  assert.doesNotMatch(results.innerHTML, /<input[^>]*\schecked(?:\s|>|=)/);
+  const beforeSelection = ui.requests.length;
+  // The checkbox is disabled and is not wired as a PART selection action.
+  // Only the result link has the selectable PART click handler.
+  assert.equal(results.links.length, 2);
+  assert.equal(ui.requests.length, beforeSelection);
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1|TEST2/);
   const link = results.links.find(node => node.dataset.resultPartId === '11');
   link.listeners.click({ preventDefault() {} });
@@ -508,6 +520,41 @@ test('result rows deduplicate PART identity, synchronize selection with the tree
   assert.doesNotMatch(ui.get('searchResults').innerHTML, /data-result-part-id=/);
   assert.doesNotMatch(ui.get('tree').innerHTML, /data-part-query=/);
   assert.equal(ui.get('availabilitySelect').checked, true);
+});
+
+test('#875 future VIN/variations are disabled and explain unsupported state in both UI locales', () => {
+  const ui = harness(() => { throw Error('unsupported controls must not fetch'); });
+  for (const id of ['vinInput', 'variationsSelect']) {
+    const input = ui.get(id);
+    assert.equal(input.disabled, true, id + ' must remain disabled');
+    assert.match(html, new RegExp('id="' + id + '"[^>]*disabled[^>]*aria-describedby="unsupportedControlsNote"'));
+    assert.match(html, new RegExp('id="' + id + '"[^>]*data-i18n-title="header\\.not_yet_supported"'));
+  }
+  assert.match(html, /id="unsupportedControlsNote"[^>]*data-i18n="header\\.not_yet_supported"/);
+  assert.equal(ui.get('rangeSelect').disabled, true);
+  assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
+  assert.ok(en.header.not_yet_supported && fi.header.not_yet_supported);
+});
+
+test('#875 disabled bookmarks remain separate from row selection across English/Finnish', async () => {
+  const part = { id: 42, part_number_normalized: 'TEST42', description: 'Fixture description' };
+  const data = { state: 'multiple_match', query: 'TEST', matches: [part],
+    tree_roots: [{ node_id: 1, label: 'Parent' }],
+    parts_tree: [{ part_id: 42, nodes: [{ node_id: 1, label: 'Parent' }] }] };
+  const ui = harness(async () => response(data));
+  await ui.search('TEST');
+  const before = ui.requests.length;
+  const enHtml = ui.get('searchResults').innerHTML;
+  assert.match(enHtml, /<a[^>]*data-result-part-id="42"/);
+  assert.match(enHtml, /<label class="bookmark-label"><input type="checkbox" disabled/);
+  assert.match(enHtml, /Bookmark \(not yet available\): TEST42 — Fixture description/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST42/);
+  ui.setLanguage('fi');
+  const fiHtml = ui.get('searchResults').innerHTML;
+  assert.match(fiHtml, /Kirjanmerkki \(ei vielä käytettävissä\): TEST42 — Fixture description/);
+  assert.match(fiHtml, /<input type="checkbox" disabled/);
+  assert.equal(ui.requests.length, before, 'changing UI language never selects a PART or invokes persistence');
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST42/);
 });
 
 test('switching language retains multiple-candidate leaves and avoids another search', async () => {
