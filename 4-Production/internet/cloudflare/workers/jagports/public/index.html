@@ -76,10 +76,11 @@
         <section class="panel vin-panel" aria-labelledby="vin-heading">
           <h2 id="vin-heading" data-i18n="header.vin"></h2>
           <label class="visually-hidden" for="vinInput" data-i18n="header.vin"></label>
-          <input id="vinInput" type="text" disabled data-i18n-placeholder="header.vin_pending" data-i18n-title="header.not_yet_supported">
+          <input id="vinInput" type="text" disabled aria-describedby="unsupportedControlsNote" data-i18n-placeholder="header.vin_pending" data-i18n-title="header.not_yet_supported">
           <h2 data-i18n="header.variations_filter"></h2>
           <label class="visually-hidden" for="variationsSelect" data-i18n="header.variations_filter"></label>
-          <select id="variationsSelect" disabled data-i18n-title="header.not_yet_supported"><option data-i18n="header.filter_pending"></option></select>
+          <select id="variationsSelect" disabled aria-describedby="unsupportedControlsNote" data-i18n-title="header.not_yet_supported"><option data-i18n="header.filter_pending"></option></select>
+          <p id="unsupportedControlsNote" class="muted compact-note" data-i18n="header.not_yet_supported"></p>
         </section>
         <div class="centre-detail">
           <section class="panel location-panel" aria-labelledby="location-heading">
