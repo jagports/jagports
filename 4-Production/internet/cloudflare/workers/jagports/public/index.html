@@ -8,63 +8,67 @@
 </head>
 <body>
   <main class="app-shell">
-    <header class="app-header">
-      <div class="brand-block">
-        <div><p class="eyebrow" data-i18n="header.product_name"></p><h1>VIEPS</h1></div>
-        <div class="locale-control" role="group" data-i18n-aria-label="locale.label">
-          <button type="button" class="locale-button" data-language="fi" aria-label="fi-FI" title="fi-FI">🇫🇮 <span>[fi-FI]</span></button>
-          <button type="button" class="locale-button" data-language="en" aria-label="en-GB" title="en-GB">🇬🇧 <span>[en-GB]</span></button>
-          <span class="muted" data-i18n="header.parts_language_pending"></span>
+    <div class="mobile-top">
+      <header class="app-header">
+        <div class="brand-block">
+          <div><p class="eyebrow" data-i18n="header.product_name"></p><h1>VIEPS</h1></div>
+          <div class="locale-control" role="group" data-i18n-aria-label="locale.label">
+            <button type="button" class="locale-button" data-language="fi" aria-label="fi-FI" title="fi-FI">🇫🇮 <span>[fi-FI]</span></button>
+            <button type="button" class="locale-button" data-language="en" aria-label="en-GB" title="en-GB">🇬🇧 <span>[en-GB]</span></button>
+          </div>
         </div>
-      </div>
-      <div class="banner-block" aria-label="VIEPS instructions">
-        <p class="banner-title" data-i18n="header.banner"></p>
-        <p class="banner-instructions" data-i18n="header.instructions"></p>
-      </div>
-      <div class="header-spacer" aria-hidden="true"></div>
-    </header>
-    <section class="panel search-panel" aria-labelledby="search-heading">
-      <h2 id="search-heading" data-i18n="common.search"></h2>
-      <form id="partSearch" class="search-form">
-        <label for="partNumber" class="visually-hidden" data-i18n="search.input_aria"></label>
-        <input id="partNumber" name="partNumber" autocomplete="off" data-i18n-placeholder="search.input_placeholder" data-i18n-aria-label="search.input_aria">
-        <button type="submit" data-i18n="common.search"></button>
-      </form>
-      <p id="searchStatus" class="muted status-line" role="status"></p>
-    </section>
-
+        <div class="banner-block" role="group" data-i18n-aria-label="header.instructions">
+          <details class="fixture-guide" data-i18n-aria-label="fixture.test_guidance_aria"><summary data-i18n="header.instructions"></summary>
+                    <p class="eyebrow" data-i18n="fixture.tester_data"></p>
+                    <h3 data-i18n="fixture.heading"></h3>
+                    <p class="muted compact-note" data-i18n="fixture.randomized_note"></p>
+                    <ul>
+                      <li><code>MJB7703AA</code> — <span data-i18n="fixture.mjb7703aa_description"></span></li>
+                      <li><code>MNA7691AA</code> — <span data-i18n="fixture.mna7691aa_description"></span></li>
+                      <li><code>XR847031</code> — <span data-i18n="fixture.xr847031_description"></span></li>
+                      <li><code>FIX538C</code> — <span data-i18n="fixture.fix538c_description"></span></li>
+                    </ul>
+                    <h3 data-i18n="fixture.descriptive_heading"></h3>
+                    <p class="muted compact-note" data-i18n="fixture.descriptive_note"></p>
+                    <ul>
+                      <li><code>firtree1</code> — <span data-i18n="fixture.firtree1_description"></span></li>
+                      <li><code>firtree2</code> — <span data-i18n="fixture.firtree2_description"></span></li>
+                    </ul>
+                  </details>
+        </div>
+      </header>
+      <section class="panel search-panel" aria-labelledby="search-heading">
+          <div class="search-availability-strip">
+            <div class="search-block">
+              <h2 id="search-heading" data-i18n="common.search"></h2>
+              <form id="partSearch" class="search-form">
+                <label for="partNumber" class="visually-hidden" data-i18n="search.input_aria"></label>
+                <input id="partNumber" name="partNumber" autocomplete="off" data-i18n-placeholder="search.input_placeholder" data-i18n-aria-label="search.input_aria">
+                <button type="submit" data-i18n="common.search"></button>
+              </form>
+            </div>
+            <div class="availability-block">
+              <span data-i18n="common.availability"></span>
+              <div class="stock-help-row">
+                <label for="availabilitySelect">
+                <input id="availabilitySelect" type="checkbox" aria-describedby="availabilityStatus">
+                <span data-i18n="stock.filter_on_stock"></span>
+              </label>
+                <div class="stock-help">
+                  <button id="stockHelpButton" type="button" class="stock-help-button" aria-expanded="false" aria-controls="stockHelpPopover" data-i18n-aria-label="stock.filter_on_stock_about" title="About Stock only">ⓘ</button>
+                  <div id="stockHelpPopover" class="stock-help-popover" role="tooltip" hidden data-i18n="stock.filter_on_stock_note"></div>
+                </div>
+              </div>
+              <p id="availabilityStatus" class="visually-hidden" data-i18n="stock.filter_on_stock_note"></p>
+            </div>
+          </div>
+          <p id="searchStatus" class="muted status-line" role="status"></p>
+        </section>
+    </div>
     <div id="result" class="concept-grid">
       <div class="left-workspace">
-        <section class="panel availability-panel" aria-labelledby="availability-heading">
-          <h2 id="availability-heading" data-i18n="common.availability"></h2>
-          <div class="availability-block">
-            <label for="availabilitySelect">
-              <input id="availabilitySelect" type="checkbox" aria-describedby="availabilityStatus">
-              <span data-i18n="stock.filter_on_stock"></span>
-            </label>
-            <p id="availabilityStatus" class="muted compact-note" data-i18n="stock.filter_on_stock_note"></p>
-            <p class="muted compact-note" data-i18n="stock.quality_unsupported"></p>
-          </div>
-        </section>
         <section class="panel tree-panel" aria-labelledby="tree-heading">
           <div class="section-heading"><p class="eyebrow" data-i18n="tree.catalogue_context"></p><h2 id="tree-heading" data-i18n="tree.heading"></h2></div>
-          <details class="fixture-guide" data-i18n-aria-label="fixture.test_guidance_aria"><summary data-i18n="fixture.heading"></summary>
-          <p class="eyebrow" data-i18n="fixture.tester_data"></p>
-          <h3 data-i18n="fixture.heading"></h3>
-          <p class="muted compact-note" data-i18n="fixture.randomized_note"></p>
-          <ul>
-            <li><code>MJB7703AA</code> — <span data-i18n="fixture.mjb7703aa_description"></span></li>
-            <li><code>MNA7691AA</code> — <span data-i18n="fixture.mna7691aa_description"></span></li>
-            <li><code>XR847031</code> — <span data-i18n="fixture.xr847031_description"></span></li>
-            <li><code>FIX538C</code> — <span data-i18n="fixture.fix538c_description"></span></li>
-          </ul>
-          <h3 data-i18n="fixture.descriptive_heading"></h3>
-          <p class="muted compact-note" data-i18n="fixture.descriptive_note"></p>
-          <ul>
-            <li><code>firtree1</code> — <span data-i18n="fixture.firtree1_description"></span></li>
-            <li><code>firtree2</code> — <span data-i18n="fixture.firtree2_description"></span></li>
-          </ul>
-        </details>
           <nav id="tree" aria-label="Parts Tree" tabindex="0"></nav>
         </section>
       </div>
