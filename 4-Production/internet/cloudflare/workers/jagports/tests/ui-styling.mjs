@@ -301,3 +301,65 @@ test('root failure is distinguished from resolved PART and releases busy state',
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
   assert.equal(ui.get('result').attrs['aria-busy'], 'false');
 });
+
+
+test('late initial root response cannot replace a subsequently resolved PART tree', async () => {
+  let finishRoot;
+  const ui = harness(async () => response(fixture), {
+    rootFetch: () => new Promise(resolve => { finishRoot = resolve; }),
+  });
+  await ui.search('TEST1');
+  finishRoot(response({ state: 'root', roots: [{ node_id: 99, label: 'Outdated root' }] }));
+  await flush();
+  assert.match(ui.get('tree').innerHTML, /Parent/);
+  assert.doesNotMatch(ui.get('tree').innerHTML, /Outdated root/);
+  assert.match(ui.get('partCard').innerHTML, /TEST1/);
+});
+
+test('multiple free-text PART candidates appear under a single evidenced ancestor, not in PART details', async () => {
+  const candidates = {
+    state: 'multiple_match',
+    tree_roots: [{ node_id: 1, label: 'Suspension', sort_order: 1 }],
+    matches: [
+      { id: 10, part_number_normalized: 'TEST1', description: 'Left' },
+      { id: 11, part_number_normalized: 'TEST2', description: 'Right' },
+    ],
+    parts_tree: [
+      { part_id: 10, node_id: 2, nodes: [
+        { node_id: 1, label: 'Suspension' }, { node_id: 2, label: 'Front' },
+        { kind: 'part', part_id: 10, label: 'Left — TEST1', part_query: 'TEST1' },
+      ] },
+      { part_id: 11, node_id: 2, nodes: [
+        { node_id: 1, label: 'Suspension' }, { node_id: 2, label: 'Front' },
+        { kind: 'part', part_id: 11, label: 'Right — TEST2', part_query: 'TEST2' },
+      ] },
+    ],
+  };
+  const ui = harness(async () => response(candidates));
+  await ui.search('TEST');
+  const tree = ui.get('tree').innerHTML;
+  assert.equal((tree.match(/href="\?tree=1"/g) || []).length, 1);
+  assert.equal((tree.match(/href="\?tree=2"/g) || []).length, 1);
+  assert.equal((tree.match(/data-part-query=/g) || []).length, 2);
+  assert.match(tree, /href="\?part=TEST1&tree=2"/);
+  assert.match(tree, /href="\?part=TEST2&tree=2"/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1|TEST2|Left|Right/);
+  assert.equal(ui.get('rangeSelect').disabled, true);
+});
+
+test('switching language retains multiple-candidate leaves and avoids another search', async () => {
+  const data = {
+    state: 'multiple_match',
+    tree_roots: [{ node_id: 1, label: 'Suspension' }],
+    matches: [{ id: 10, part_number_normalized: 'TEST1', description: 'Left',
+      tree_paths: [{ nodes: [{ node_id: 1, label: 'Suspension' }] }] }],
+  };
+  const ui = harness(async () => response(data));
+  await ui.search('TEST');
+  const before = ui.requests.length;
+  ui.setLanguage('fi');
+  assert.equal(ui.document.documentElement.lang, 'fi');
+  assert.match(ui.get('tree').innerHTML, /TEST1/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+  assert.equal(ui.requests.length, before);
+});
