@@ -187,6 +187,10 @@ JEPC catalogue-data language is distinct from VIEPS UI locale. If imported langu
 - A resolved context therefore keeps the main-level category index where supplied by the read contract and expands/emphasizes only relevant descendant path(s).
 - Ancestors and selected occurrence/context must remain clear.
 - Expand/collapse is UI state over the catalogue model, not a new data model.
+- Stable Parts Tree nodes are rendered as real hyperlinks using tree-node identity, not label text.
+- Opening a tree-node link enters catalogue browse context for that node/subtree and may present canonical PART candidates through the approved browse relationship.
+- Tree-originated PART selection converges on the same canonical PART-resolution and downstream presentation flow as identifier search.
+- A node without stable identity remains non-clickable; the UI must not fabricate a link target.
 - Missing tree context is `unavailable`, not `not_found`.
 
 ## 3. Suitability Model Ranges

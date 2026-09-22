@@ -194,6 +194,11 @@
     "unresolved_source_required": "Unresolved stock requires source evidence or a source party."
   },
   "tree": {
+    "browse_empty": "No PARTs are linked below this Parts Tree context.",
+    "browse_error": "The Parts Tree context could not be opened.",
+    "browse_loading": "Opening Parts Tree context…",
+    "browse_parts_one": "{{count}} PART in this Parts Tree context",
+    "browse_parts_other": "{{count}} PARTs in this Parts Tree context",
     "catalogue_context": "Catalogue context",
     "empty": "No Parts Tree context is available.",
     "heading": "Parts Tree",
