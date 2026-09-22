@@ -85,7 +85,7 @@ try {
   let g = await geometry(page);
   assert.ok(g.pageWidth <= g.viewport.width + 1, "desktop horizontal overflow");
   const desktopTree = await page.locator(".tree-panel").boundingBox();
-  const desktopSearch = await page.locator(".search-panel").boundingBox();
+  const desktopSearch = await page.locator(".search-block").boundingBox();
   assert.ok(desktopTree.x < desktopSearch.x, "desktop tree remains left of Find");
   await page.screenshot({ path: evidenceDir + "desktop.png", fullPage: true });
   const stock = page.locator("#availabilitySelect");
