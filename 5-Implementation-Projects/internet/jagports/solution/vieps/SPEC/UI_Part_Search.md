@@ -17,13 +17,13 @@ Concept-11 places Search + Availability in the top workspace to the right of the
 
 ```text
 BRANDING / LANGUAGE | SEARCH + AVAILABILITY
-                    | Search: [ identifier or free text ] [Search]
+                    | Search: [ part number, deterministic identifier, or free text ] [Search]
                     | Availability: [ ] Show only parts on stock
 ```
 
 Availability remains operational stock state, separate from catalogue identity.
 
-For the reduced MVP, the public Availability control is a boolean **Show only parts on stock** filter applied after a supported identifier or free-text candidate set exists. A PART satisfies this public stock-backed filter only when at least one operational `stock_item` linked to that canonical PART has `available = 1` and `quantity > 0`.
+For the reduced MVP, the public Availability control is a boolean **Show only parts on stock** filter applied after a supported part-number, deterministic-identifier or free-text candidate set exists. A PART satisfies this public stock-backed filter only when at least one operational `stock_item` linked to that canonical PART has `available = 1` and `quantity > 0`.
 
 The boolean filter exposes the stock-backed eligibility needed to narrow visible PART results. It does not authorize stock add, edit or delete operations. The #448 authorization boundary is a mutation boundary unless another specification explicitly defines a read/display restriction for a specific field.
 
@@ -79,12 +79,14 @@ Stock-quality result states include at least:
 - quality not included in the current result presentation.
 
 ## Search input
-- The search area uses one primary query field for a Jaguar part number / approved identifier or free text; it must not expose competing identifier and free-text fields.
-- Search resolution is identifier-first: attempt the approved part-number / identifier lookup first; only when it produces no identifier match may the same query fall back to an available approved free-text search capability.
+- The search area uses one primary query field for a Jaguar part number, deterministic identifier or free text; it must not expose competing part-number and free-text fields.
+- Deterministic identifiers mean exact/normalized lookup values that are intended to resolve deterministically before generic free-text matching, including Jaguar part numbers, raw part-number strings, normalized part-number strings, and approved deterministic non-numbered identifiers where the current read contract supports them.
+- Deterministic identifiers are not excluded from search. They are handled first because their behavior is stricter than free-text matching: they should resolve the intended identity before the same query is allowed to fall back to general text matching.
+- Search resolution is part-number / deterministic-identifier first: attempt the approved part-number / deterministic-identifier lookup first; only when it produces no match may the same query fall back to an available approved free-text search capability.
 - Hybrid reduced-MVP free-text search is required before #280 closure. It is limited to the implemented searchable fields and result presentation in this document.
 - Full multilingual/global free-text indexing/search remains owned by post-MVP #622. The reduced-MVP free-text path does not need to implement the complete #622 corpus, ranking, multilingual indexing, cross-Range search, or search architecture.
 - If reduced-MVP free-text capability is unavailable in a runtime that exposes the general `Find` control, the runtime must not silently ignore the query and return ordinary `not_found` for descriptive text.
-- Primary deterministic MVP behavior remains Jaguar part-number / approved-identifier search plus the limited free-text fallback defined here.
+- Primary deterministic MVP behavior remains Jaguar part-number / deterministic-identifier search plus the limited free-text fallback defined here.
 - Approved deterministic non-numbered identifiers may also be accepted where the current read contract supports them.
 - Current main-branch fixtures `firtree1` and `firtree2` are descriptive fixture identifiers, **not Jaguar part numbers**.
 - Leading/trailing whitespace is ignored.
@@ -97,7 +99,7 @@ Stock-quality result states include at least:
 
 Reduced-MVP free-text search is a pragmatic, current-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without waiting for the full post-MVP #622 multilingual/global search architecture.
 
-Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and approved identifiers remain the exception because identifier-first search behavior is specified separately above.
+Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and deterministic identifiers are not excluded from search; they are resolved first by deterministic lookup. Generic free-text fallback runs only when that deterministic lookup produces no match.
 
 The reduced-MVP free-text corpus includes matching text available through the approved current read path, including at least:
 
@@ -118,10 +120,10 @@ Searchable stock text does not make stock the catalogue identity. When a stock-t
 
 A free-text match fragment must be highlighted where the matched text is visible in an existing UI region. Highlighting is fragment-level, meaning the matched substring inside the visible value is highlighted, not merely the whole row.
 
-Do not create a separate search-result page, modal, explanation view, or independent row/table view only to explain free-text results. Free-text results must be distributed through the existing Concept-11 VIEPS regions.
+Do not create a separate search-result page, modal, explanation view, independent row/table view, or any other multi-PART content element to explain free-text results. Multiple matching PARTs are represented as clickable leaf nodes in the Parts Tree. The PART / Image / Status region shows exactly one selected PART at a time.
 
 ## Canonical PART and occurrence resolution
-A successful Jaguar part-number lookup resolves one canonical `PART` identity. A non-numbered supported identifier resolves the approved non-numbered item/context without fabricating a Jaguar number.
+A successful Jaguar part-number lookup resolves one canonical `PART` identity. A non-numbered supported deterministic identifier resolves the approved non-numbered item/context without fabricating a Jaguar number.
 
 A canonical PART may occur in multiple EPC contexts:
 
@@ -146,7 +148,7 @@ selected Parts Tree branch
     -> all source occurrences below the branch
     -> optional description / VIN / applicability filters
     -> surviving occurrences
-    -> distinct visible PARTs
+    -> distinct visible PARTs as last leaf nodes
 ```
 
 A PART remains visible while at least one occurrence survives. The UI must not merge all occurrence paths into one synthetic applicability path.
@@ -159,29 +161,31 @@ Language-specific JEPC tree structure may differ. Catalogue-data language select
 
 Free-text results use the existing VIEPS regions. The UI must not create a separate result list or explanation view to show free-text matches.
 
-### Identifier match exists
+### Deterministic part-number / identifier match exists
 
-Exact or partial identifier matches are resolved first.
+Exact or partial part-number / deterministic-identifier matches are resolved first.
 
-If an identifier match exists, show the identifier result through the existing identifier search contract. If the same query also matches visible descriptive text, the matching identifier and visible text fragments may both be highlighted, but free-text fallback must not replace the identifier result.
+If a deterministic match exists, show the result through the existing deterministic search contract. If the same query also matches visible descriptive text, the matching part number / deterministic identifier and visible text fragments may both be highlighted, but free-text fallback must not replace the deterministic result.
 
-If **Show only parts on stock** removes all identifier-matched PARTs, return `stock_filtered_empty`; do not rerun free-text fallback merely because the stock filter removed identifier candidates.
+If **Show only parts on stock** removes all deterministic-matched PARTs, return `stock_filtered_empty`; do not rerun free-text fallback merely because the stock filter removed deterministic candidates.
 
 ### One free-text PART match
 
-When no identifier match exists and free-text resolves to exactly one canonical PART, populate the existing Concept-11 regions for that PART.
+When no deterministic match exists and free-text resolves to exactly one canonical PART, populate the existing Concept-11 regions for that PART.
 
-The PART / Image / Status region shows the PART result. Visible matched fragments are highlighted in the existing fields where they appear.
+The PART / Image / Status region shows the one resolved PART. Visible matched fragments are highlighted in the existing fields where they appear.
 
-Parts Tree shows all matching tree branches where the matching PART occurs. Matching fragments are highlighted where visible. Tree rendering must not expand unrelated non-matching child leaves merely because their parent branch matched.
+Parts Tree shows all matching tree branches where the matching PART occurs, with the PART shown as the last leaf node on each matching branch. Matching fragments are highlighted where visible. Tree rendering must not expand unrelated non-matching child leaves merely because their parent branch matched.
 
 Model Ranges shows matching model/range/body-style evidence where available.
 
 ### Multiple free-text PART matches
 
-When no identifier match exists and free-text resolves to multiple canonical PART candidates, show the candidates in the existing PART / Image / Status region or other existing Concept-11 result region that already presents PART choices. Do not create a new independent row/table view solely for search results.
+When no deterministic match exists and free-text resolves to multiple canonical PART candidates, the matching PARTs must be shown as clickable last leaf nodes in the existing Parts Tree.
 
-The Parts Tree must show all matching tree branches where matching PARTs occur. Non-matching child leaves are not expanded merely because their parent branch matched.
+No content element should present many PARTs. In particular, PART / Image / Status must not become a multi-result list, row view, table, candidate list or search-results container. It shows exactly one selected PART after a user selects a PART leaf from the tree. Until a PART leaf is selected, it remains in an explicit no-selected-PART or context state.
+
+The Parts Tree must show all matching tree branches where matching PARTs occur, with only the matching branch path, required ancestors and matching PART leaf nodes visible/expanded. Non-matching child leaves are not expanded merely because their parent branch matched.
 
 Model Ranges must reflect matched model/range/body-style contexts when those contexts are part of the matched result evidence.
 
@@ -206,7 +210,7 @@ Matching fragments are highlighted in the existing region where visible.
 
 When free text matches vehicle/range/model/suitability text, show the match through existing Model Ranges and related Concept-11 regions where the current data path supports it.
 
-If the match resolves to PART candidates through the current search/read contract, show those PART candidates in the existing PART result region and all matching Parts Tree branches.
+If the match resolves to PART candidates through the current search/read contract, show those PART candidates as clickable last leaf nodes in the existing Parts Tree and show all matching Parts Tree branches.
 
 If the match does not resolve to PART candidates, do not fabricate a selected PART.
 
@@ -214,7 +218,7 @@ If the match does not resolve to PART candidates, do not fabricate a selected PA
 
 When free text matches operational stock text in the current searchable read path, the result must still preserve catalogue/reference versus operational-stock separation.
 
-If stock text links to a canonical PART, show the linked PART through the existing PART result regions, with matched visible text fragments highlighted where they appear.
+If stock text links to one or more canonical PARTs, show the linked PARTs as clickable last leaf nodes in the existing Parts Tree. Selecting a PART leaf populates PART / Image / Status for that one selected PART only. Matched visible text fragments are highlighted where they appear.
 
 If stock text does not link to a canonical PART, do not create a fake PART. Show only the existing supported unresolved/no-result behavior for that data path.
 
@@ -228,9 +232,9 @@ No matching parts currently on stock.
 
 Do not show ordinary `Part not found.` for this case.
 
-### No identifier match and no free-text match
+### No deterministic match and no free-text match
 
-Only after identifier search and all applicable active free-text search modes have been evaluated may the UI show `Part not found.` / `not_found`.
+Only after deterministic part-number / identifier search and all applicable active free-text search modes have been evaluated may the UI show `Part not found.` / `not_found`.
 
 ### Free-text search error
 
@@ -241,9 +245,9 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 |---|---|
 | `empty` | No search submitted; permanent Concept-11 shell remains visible |
 | `invalid` | Query fails supported validation |
-| `not_found` | Valid search has no supported identifier match and no available free-text match after all active search modes have been evaluated |
+| `not_found` | Valid search has no supported deterministic match and no available free-text match after all active search modes have been evaluated |
 | `stock_filtered_empty` | Search matches exist, but the selected supported stock constraint removes all visible results; display `No matching parts currently on stock.` |
-| `multiple_matches` | Identifier or available free-text search produces multiple canonical candidates; the UI must present candidates in existing Concept-11 regions rather than invent a selected PART |
+| `multiple_matches` | Deterministic or available free-text search produces multiple canonical PART candidates; matching PARTs are presented as clickable Parts Tree leaf nodes, not as a multi-PART content element and not as a guessed selected PART |
 | `unsupported` | Requested search/filter capability is unavailable in the current runtime and must not be silently ignored |
 | `resolved` | Identity/context resolved |
 | `context_only` | Free text matched a browse/tree/range/model/context value and is shown through the existing region that owns that context; no PART is selected unless the match resolves to a PART candidate |
@@ -255,16 +259,18 @@ Stock-quality presentation may additionally distinguish explicit stock-detail st
 ## Result distribution into merged Concept-11
 ```text
 resolved identity/context or candidate set
-   ├── Parts Tree main-level index + matching branch/path ancestors; no unrelated child leaves expanded
+   ├── Parts Tree main-level index + matching branch/path ancestors + clickable matching PART leaf nodes
    ├── Suitability Model Ranges row + matched range/model/body-style context when available
    ├── Location at car (left-middle)
    ├── Suitability / Filter or facts (right-middle)
-   └── PART / Image / Status (full lower centre/right)
+   └── PART / Image / Status (full lower centre/right; exactly one selected PART only)
 ```
 
 Missing secondary data stays as an explicit unavailable state in its permanent region.
 
 Matched query fragments are highlighted where visible in existing regions. Highlighting is applied to the fragment, not merely to the whole row/field.
+
+The Parts Tree is the only multi-PART selection surface. No other content element should present many PARTs. PART / Image / Status shows one selected PART after a tree leaf selection and must not act as a search-results list.
 
 ## Empty-search stock browsing
 The merged SVG states that when Search is empty, a supported Availability/quality constraint may update both the Parts Tree and Model Ranges to contexts represented by matching stock.
@@ -283,14 +289,15 @@ PartSearchRequest
 
 PartSearchResult
   state
-  search_path?                    # identifier | free_text when the distinction is applicable
-  match_type?                     # exact_identifier | partial_identifier | part_description | model_range | body_style | tree_context | stock_text | manufacturer | selected_language_i18n | mixed
+  search_path?                    # deterministic | free_text when the distinction is applicable
+  match_type?                     # exact_part_number | partial_part_number | deterministic_identifier | part_description | model_range | body_style | tree_context | stock_text | manufacturer | selected_language_i18n | mixed
   matched_fragments[]?            # fragment/value/source locations that may be highlighted where visible
-  candidates[]?                   # multiple canonical candidates remain selectable, never guessed
+  candidates[]?                   # multiple canonical PART candidates remain selectable as Parts Tree leaf nodes, never guessed and never shown as a separate multi-PART content list
   canonical_part? / approved non-numbered identity?
   occurrences[]                  # all matching source occurrences
   selected_occurrence/context
   tree context                    # complete source path, language-qualified where relevant
+  tree_part_leafs[]?              # clickable matching PART leaves under their matching branch/path ancestors
   diagram/item context when available
   fitment/suitability context when available
   model_range/body-style context when available
@@ -308,10 +315,11 @@ The API/UI boundary must preserve catalogue/reference versus operational-stock s
 ## Deterministic fixtures
 Cover at least:
 - valid Jaguar part number;
+- valid deterministic non-numbered identifier where supported;
 - multiple EPC occurrences;
-- valid no-match after identifier and active free-text modes both fail;
-- multiple identifier candidates without guessed selection;
-- identifier miss with reduced-MVP free-text fallback;
+- valid no-match after deterministic and active free-text modes both fail;
+- multiple deterministic candidates without guessed selection;
+- deterministic miss with reduced-MVP free-text fallback;
 - fragment highlighting in visible matched text;
 - generic free-text query matching model, range, body-style or catalogue/context text;
 - query matching PART description text;
@@ -319,11 +327,13 @@ Cover at least:
 - query matching searchable stock text including availability, quantity, quality, storage location, source/vendor/person, donor vehicle and notes where those fields exist;
 - selected-language i18n text match where available;
 - context-only match shown through the existing owning region without fabricating PART selection;
-- all matching Parts Tree branches where matching PARTs occur, without expanding unrelated child leaves;
+- all matching Parts Tree branches where matching PARTs occur, with matching PARTs presented as clickable last leaf nodes and without expanding unrelated child leaves;
+- no multi-PART presentation in PART / Image / Status or any other content element;
+- PART / Image / Status showing exactly one selected PART after a tree leaf is selected;
 - Model Ranges reflecting matched model/range/body-style context where available without special Coupe/Convertible behavior;
 - explicit unsupported state when requested free-text/stock filtering is unavailable;
 - stock-filtered-empty distinct from total search no-match, with `No matching parts currently on stock.` wording;
-- reduced-MVP `stock_only` success when an identifier or free-text candidate has `available = 1` and `quantity > 0`;
+- reduced-MVP `stock_only` success when a deterministic or free-text candidate has `available = 1` and `quantity > 0`;
 - reduced-MVP `stock_only` filtered-empty when candidates exist but none satisfy that operational STOCK condition;
 - invalid/empty input;
 - unavailable EPC context;
@@ -347,18 +357,21 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Missing stock-quality classification is explicit unclassified quality, not unavailable stock.
 - Missing stock-quality presentation is not a confirmed A–E classification.
 - Search failures do not fall back to guessed identities.
-- Identifier miss falls back to the reduced-MVP free-text capability when that capability is active.
+- Deterministic miss falls back to the reduced-MVP free-text capability when that capability is active.
 - Absence of free-text capability in a runtime exposing descriptive search must be explicit, not simulated.
 - A stock-filtered-empty result is distinct from a total search no-match.
 - A context-only free-text match is shown through the existing region that owns that context and must not fabricate a selected PART.
+- Multiple PART matches are selectable as Parts Tree leaf nodes only; no content element should present many PARTs.
 
 ## Acceptance criteria
 - [x] Search/result states and canonical identity boundaries are documented.
-- [x] One primary query field supports identifier-first resolution with free-text fallback only after identifier miss.
+- [x] One primary query field supports deterministic part-number / identifier-first resolution with free-text fallback only after deterministic miss.
+- [x] Deterministic identifiers are defined and are not excluded from search; they are resolved first because their behavior is stricter than generic free-text matching.
 - [x] Reduced-MVP limited free-text search is required before #280 closure.
 - [x] Full multilingual/global free-text indexing/search remains post-MVP under #622.
-- [x] Multiple canonical search candidates remain selectable rather than being guessed into one PART.
-- [x] Free-text candidates are shown in existing Concept-11 regions, not in a separate result page/table/view.
+- [x] Multiple canonical search candidates remain selectable as Parts Tree leaf nodes rather than being guessed into one PART or shown as a separate multi-PART content list.
+- [x] Free-text candidates are shown in existing Concept-11 regions, with multiple PARTs selectable only through clickable Parts Tree leaves.
+- [x] PART / Image / Status shows exactly one selected PART and must not present many PARTs.
 - [x] Matching text fragments are highlighted where visible.
 - [x] `stock_filtered_empty` is distinct from a total `not_found` result and uses `No matching parts currently on stock.` wording.
 - [x] Search-path/match provenance may cross the API boundary without redefining canonical PART identity.
