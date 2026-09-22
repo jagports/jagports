@@ -160,11 +160,27 @@
     overflow: auto;
   }
 
-  .tree-branch { @apply my-1 list-none pl-3 text-sm; }
-  #tree > .tree-branch { @apply pl-0; }
+  /* One root index; nested groups are indented and share their ancestors. */
+  .tree-branch { @apply my-1 list-none pl-0 text-sm; }
   .tree-branch li { @apply list-none break-words; }
-  .tree-branch span { @apply my-0.5 block rounded-md border-l-2 border-transparent bg-slate-100 px-2 py-1.5; }
-  .selected-path { @apply border-jagports-teal bg-jagports-teal-soft font-semibold text-jagports-teal-dark; }
+  .tree-children {
+    margin-left: .35rem;
+    padding-left: .75rem;
+    border-left: 1px solid #cbd5e1;
+    @apply list-none;
+  }
+  .tree-node-row, .tree-part-row {
+    @apply my-0.5 rounded-md border-l-2 border-transparent bg-slate-100 px-2 py-1.5;
+  }
+  .tree-node-row a, .tree-part-row a { @apply block text-inherit no-underline; }
+  .tree-node-row a:hover, .tree-part-row a:hover { @apply underline; }
+  .tree-depth-0 { @apply font-bold text-slate-900; }
+  .tree-depth-1 { @apply font-semibold text-slate-800; }
+  .tree-depth-2 { @apply font-medium text-slate-800; }
+  .tree-depth-3 { @apply font-normal text-slate-700; }
+  .tree-part-row { @apply bg-slate-50 font-normal text-slate-700; }
+  .selected-path { @apply border-jagports-teal bg-jagports-teal-soft text-jagports-teal-dark; }
+  .selected-path a { @apply font-semibold underline underline-offset-2; }
 
   .range-list { @apply pl-5 text-sm; }
   .range-list li { @apply my-1.5 break-words; }
