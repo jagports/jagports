@@ -81,6 +81,26 @@ try {
   await page.locator(".fixture-guide summary").waitFor();
   if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
 
+  if (!base) {
+    // #875 browse-only vocabulary; no selected PART and no fabricated fitment.
+    const expectedBrowseLabels = [
+      "Jaguar Accessories", "Daimler Limousine", "E-Pace", "E-Type",
+      "F-Pace", "F-Type", "S-Type", "X-Type", "XE Range", "XF Range",
+      "XJ Range", "XJS", "XK Range",
+    ];
+    const browseRows = page.locator("#ranges .browse-range-list li");
+    await browseRows.first().waitFor();
+    assert.deepEqual((await browseRows.allTextContents()).map((s) => s.trim()), expectedBrowseLabels,
+      "the right Applicable Models index must show exactly 13 browse labels in order");
+    assert.equal(await page.locator("#ranges .browse-range-list input:disabled").count(), 13,
+      "all synthetic browse filter checkboxes must remain disabled");
+    assert.ok(await page.locator("#rangeSelect").isDisabled(),
+      "without PART context, model detail selection cannot masquerade as a working filter");
+    assert.equal(await page.locator("#partCard").textContent().then((text) =>
+      expectedBrowseLabels.some((label) => text.includes(label))), false,
+    "fixture labels must not become selected-PART fitment");
+  }
+
   // Desktop Concept-11 layout and image evidence.
   let g = await geometry(page);
   assert.ok(g.pageWidth <= g.viewport.width + 1, "desktop horizontal overflow");
