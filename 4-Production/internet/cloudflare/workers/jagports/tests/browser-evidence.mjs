@@ -7,7 +7,7 @@ import { resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
-const publicDir = fileURLToPath(new URL("../public/", import.meta.url));
+const publicDir = resolve(fileURLToPath(new URL("../public/", import.meta.url)));
 const evidenceDir = fileURLToPath(new URL("../browser-evidence/", import.meta.url));
 const mime = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml" };
 const extension = (name) => name.slice(name.lastIndexOf("."));
