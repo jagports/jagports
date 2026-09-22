@@ -26,24 +26,24 @@ The following ASCII map is the complete **target** three-column desktop arrangem
 ~~~text
 +--------------------------+----------------------------------------------------------+----------------------------+
 | BRANDING / INSTRUCTIONS  | BANNER / MAIN HEADER                                     | HEADER SPACE / ALIGNMENT   |
-| Jagports logo            | Main information or supported banner content            |                            |
+| Jagports logo            | Main information or supported banner content            |                             |
 | Brief usage instructions |                                                          |                            |
 | Language: UI / Parts     |                                                          |                            |
 +--------------------------+----------------------------------------------------------+----------------------------+
 | AVAILABILITY             | VIN: [Enter VIN]                                         | SEARCH                     |
-| Supported stock filters  |      [Verified VIN-range choices if supported]          | [PN / supported free text] |
-| Quality A-E, descriptions| FILTER: [Normalized Suitability / Variations]           | [Search]                   |
-| Unavailable if unsupported                                                       |                            |
+| Supported stock filters  |      [Verified VIN-range choices if supported]          | [PN / supported free text]  |
+| Quality A-E, descriptions| FILTER: [Normalized Suitability / Variations]           | [Search]                    |
+| Unsupported: unavailable |                                                          |                            |
 |                          |                                                          +----------------------------+
 | PARTS TREE               |                                                          | SEARCH RESULTS PART LIST   |
 | [independent scrolling]  +-----------------------------+----------------------------+ [independent scrolling]    |
 |                          | LOCATION AT CAR             | SELECTED PART / IMAGE      | [ ] PN1 - PART name        |
 | First-level root index   | [one verified vehicle       | / STATUS                   | [ ] PN2 - PART name        |
-|   Branch                 |  location canvas]          | [one selected PART only]   | [ ] PN3 - PART name        |
+|   Branch                 |  location canvas]          | [one selected PART only]   | [ ] PN3 - PART name         |
 |     Sub-branch           |                             | PN and verified part name  |                            |
 |       PART leaf          | [verified position/zone]    | Verified warnings/status   | Row click: select PART     |
-|                          |                             | Classic/supersession only  | Checkbox: bookmark        |
-| Persistent root index    | [unavailable if no mapping] | when evidence exists       | CURRENT: disabled         |
+|                          |                             | Classic/supersession only  | Checkbox: bookmark         |
+| Persistent root index    | [unavailable if no mapping] | when evidence exists       | CURRENT: disabled          |
 | Expand root to active    |                             | Part photo or exploded     +----------------------------+
 | selected leaf; preserve  |                             | diagram if available       | APPLICABLE MODELS          |
 | relevant matching paths; |                             |                            | [independent scrolling]    |
