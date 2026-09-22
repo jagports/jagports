@@ -70,7 +70,7 @@ Search or supported browse/VIN/variation/stock constraints
         ↓
 Resolve verified canonical PART candidates and occurrence contexts
         ├─ left Parts Tree: retain root index, show relevant paths and clickable PART leaves
-        └─ right Search Results: show distinct canonical PART rows + independent bookmarks
+        └─ right Search Results: show distinct canonical PART rows + disabled bookmark placeholders
         ↓
 Select ONE PART from either surface (same shared selection)
         ↓
@@ -161,7 +161,7 @@ shared search / browse / fitment state
   ├─ centre VIN / variation Filter → supported normalized facets only
   ├─ centre Location at car → verified single vehicle location or unavailable
   ├─ centre PART / Image / Status → exactly ONE selected canonical PART
-  ├─ right Search Results PART List → distinct selectable PN/name rows + independent bookmarks
+  ├─ right Search Results PART List → distinct selectable PN/name rows + disabled bookmark placeholders
   └─ right Applicable Models → verified ranges/fit, or browsing fixture index without fit claims
 ~~~
 
