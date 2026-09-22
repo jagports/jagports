@@ -193,3 +193,22 @@ test("missing root-to-selected ancestry is unavailable, not silently inferred fr
   assert.equal(response.status, 200);
   assert.equal((await response.json()).ancestry_state, "unavailable");
 });
+
+
+test("disconnected ancestor chain is unavailable even if the first node is root and last node is selected", async () => {
+  const response = await handleViepsTree(new Request("https://example.test/api/vieps/tree?node_id=4"), {
+    DB: makeDb({
+      selected: { id: 4, parent_id: 3, label: "Bracket", sort_order: 1 },
+      roots: [{ node_id: 1, label: "Body", sort_order: 1 }],
+      path: [
+        { node_id: 1, parent_id: null, label: "Body", depth: 2 },
+        { node_id: 2, parent_id: 99, label: "Front", depth: 1 },
+        { node_id: 4, parent_id: 3, label: "Bracket", depth: 0 },
+      ],
+    }),
+  });
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.ancestry_state, "unavailable");
+  assert.deepEqual(data.roots.map((root) => root.node_id), [1]);
+});
