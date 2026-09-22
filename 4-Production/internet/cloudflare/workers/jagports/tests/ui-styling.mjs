@@ -45,6 +45,8 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
   }));
   const document = {
     documentElement: { lang: 'en' },
+    listeners: {},
+    addEventListener(event, fn) { this.listeners[event] = fn; },
     getElementById: id => nodes.get(id),
     querySelectorAll: selector => selector === '[data-language]' ? languageControls : [],
   };
@@ -88,12 +90,43 @@ test('complete Concept-11 shell exists before search, with no automatic part loo
   assert.match(html, /data-i18n="common\.search"/);
   assert.match(html, /id="vehicleLocation"/);
   assert.doesNotMatch(html, /Top view|Side view/);
-  assert.match(css, /"tree search search"\s*"tree ranges ranges"\s*"tree location suitability"\s*"tree details details"/);
+  assert.match(css, /\.mobile-top, \.concept-grid\s*\{\s*display:\s*contents/);
+  assert.match(css, /\.tree-children/);
+  assert.match(html, /class="mobile-top"/);
+  assert.ok(html.indexOf('id="partSearch"') < html.indexOf('id="result"'));
   assert.match(css, /max-width:\s*1100px/);
   assert.match(css, /max-width:\s*760px/);
   assert.match(css, /\.locale-control/);
   assert.match(html, /href="vieps-tailwind\.css"/);
   assert.doesNotMatch(html, /picocss|cdn\.tailwindcss\.com/i);
+});
+
+test('Stock information toggles independently of stock filtering and supports dismissal', () => {
+  const ui = harness(() => { throw Error('Stock help must not fetch'); });
+  const help = ui.get('stockHelpButton');
+  const popup = ui.get('stockHelpPopover');
+  popup.hidden = true;
+  ui.get('availabilitySelect').checked = true;
+  help.listeners.mouseenter();
+  assert.equal(popup.hidden, false, 'desktop hover opens help');
+  help.listeners.mouseleave();
+  assert.equal(popup.hidden, true, 'desktop hover closes help');
+  help.listeners.focus();
+  assert.equal(popup.hidden, false, 'keyboard focus opens help');
+  help.listeners.click({ stopPropagation() {} });
+  assert.equal(popup.hidden, false, 'click pins help for mobile/touch');
+  assert.equal(help.attrs['aria-expanded'], 'true');
+  assert.equal(ui.get('availabilitySelect').checked, true, 'filter is unchanged');
+  ui.document.listeners.keydown({ key: 'Escape' });
+  assert.equal(popup.hidden, true, 'Escape dismisses');
+  help.listeners.click({ stopPropagation() {} });
+  ui.document.listeners.pointerdown({ target: null });
+  assert.equal(popup.hidden, true, 'outside touch dismisses');
+  assert.equal(ui.get('availabilitySelect').checked, true);
+  assert.equal(ui.requests.filter(url => url.includes('/api/vieps/part')).length, 0);
+  assert.equal(en.stock.filter_on_stock_note,
+    'Filters identifier-search results to PARTs with available operational stock and positive quantity.');
+  assert.equal(typeof fi.stock.filter_on_stock_about, 'string');
 });
 
 test('search renders escaped identity, nested paths and range-specific variations', async () => {
