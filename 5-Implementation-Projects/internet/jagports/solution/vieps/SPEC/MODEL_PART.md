@@ -363,6 +363,10 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
 | occurrence applicability | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
+| source-qualified suitability descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. The unique source identity and revision pair also have SQLite-managed autoindexes. |
+| set-membership predicates (`0019`) | `idx_applicability_membership_lookup` for dimension/value/operator lookup; occurrence-scoped FK is via the condition-set relationship. |
+
+The `0019` mapping relation preserves immutable source-qualified description text and append-only mapping revisions. A current-mapping view resolves the highest revision per source identity; the original `0016` scalar predicate tables are retained, while set-membership records support independently evidenced simultaneous seat equipment. These are persistence contracts only: fixture verification does not establish imported JEPC applicability or a completed production evaluator.
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID.
 
