@@ -381,7 +381,10 @@ export async function handleViepsTree(request, env) {
       label: selectedNode.label,
     },
     path: pathResult.results || [],
-    ancestry_state: (pathResult.results || [])[0]?.parent_id == null ? "complete" : "unavailable",
+    ancestry_state: (pathResult.results || []).length > 0
+      && (pathResult.results || [])[0].parent_id == null
+      && String((pathResult.results || []).at(-1).node_id) === String(nodeId)
+      ? "complete" : "unavailable",
     children: childrenResult.results || [],
     parts,
     part_nodes: partNodes,
