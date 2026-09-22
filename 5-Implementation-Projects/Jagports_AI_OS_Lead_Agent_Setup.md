@@ -8,6 +8,26 @@ This implementation record documents the initial Raspberry Pi Lead Agent prototy
 
 Source: the implementation conversation “Build Automated Agent Team”, dated 12 September 2026, and the completed setup recorded in issue #594. This is a record of that session, not a fresh inspection of the Raspberry Pi or a production-readiness claim. Evidence refreshed through the later modular-runtime work and the attached report generated at 2026-09-12T15:30:04.279643 (host timestamp). Recorded runs demonstrate closure/reopening detection and specialist results. A complete regression suite and live OpenAI analysis are not established.
 
+## Verified standalone OpenAI API smoke test
+
+The Raspberry Pi operator subsequently ran a one-shot **direct OpenAI Responses API test** as `codex` from `~/jagports-lead-agent` with the existing virtual environment activated:
+
+```bash
+cd ~/jagports-lead-agent
+source venv/bin/activate
+python -c 'from dotenv import load_dotenv; from openai import OpenAI; load_dotenv(); r=OpenAI().responses.create(model="gpt-5.6", input="Reply with exactly: JAGPORTS API TEST OK"); print(r.output_text)'
+```
+
+The provided terminal transcript reported:
+
+```text
+JAGPORTS API TEST OK
+```
+
+**Evidence boundary:** The exact result confirms that a direct billable OpenAI API request worked from the configured Raspberry Pi environment at the time of this operator test. It does **not** verify that `main.py`, `LeadAgent`, specialist agents, or the future OpenAI Agents SDK are wired to the API; the modular `main.py` currently runs deterministic specialists and does not invoke `services/openai_service.py`. It also does not prove systemd timer activation or unattended execution.
+
+The intended unattended Lead Agent interval discussed with the operator is **9 hours 45 minutes**. The repository's original proposed hourly timer and 60-minute `config.yaml` remain historical/configuration artifacts until a live timer is inspected and the actual scheduling implementation is separately reconciled. No timer configuration change or timer-run verification is claimed by this documentation update.
+
 ## Environment and setup
 
 The prototype workspace is `~/jagports-lead-agent` on a Raspberry Pi running Debian. It uses a Python 3.11 virtual environment, leaving the Debian system Python unchanged.
