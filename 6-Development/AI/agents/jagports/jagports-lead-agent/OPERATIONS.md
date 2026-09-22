@@ -46,6 +46,16 @@ python -c 'from dotenv import load_dotenv; load_dotenv(); from services.openai_s
 
 This command is a proposed test, **not operator-verified evidence**. A success verifies the wrapper, not OpenAI Agents SDK orchestration, GitHub semantics or production autonomy.
 
+## Telegram smoke test — send saved Issue status changes
+
+Run this **single command as `admin` on `mynode-sby`** after the Lead Agent has run at least once. It loads the local Telegram credentials, reads the latest `new`, `closed`, and `reopened` lists from `state/agent_state.json`, and sends exactly one message using the existing `services.telegram_service.notify()` function:
+
+```bash
+sudo -u codex bash -c 'cd /home/codex/jagports-lead-agent && ./venv/bin/python -c '"'"'import json; from dotenv import load_dotenv; load_dotenv(".env"); from services.telegram_service import notify; changes=json.load(open("state/agent_state.json"))["changes"]; message=f"Jagports Issue changes:\\n{changes}"; notify(message); print(message, "\\nTelegram sent")'"'"''
+```
+
+**Pass:** `Telegram sent` is printed and the configured chat receives the saved change summary. The command **does not refetch GitHub, rerun specialists or call OpenAI**. If the preceding agent run recorded no changes, the message legitimately contains empty lists; for a current GitHub snapshot and specialist results, use the longer one-shot communication test below. Keep the local `.env` private.
+
 ## One-shot GitHub → specialists → Telegram communication test
 
 Run this **as `admin` over SSH to MyNode**, including from Windows Git Bash. It invokes the installed `codex` Python environment, reads the local `.env` explicitly, fetches the current GitHub snapshot, displays a few open records and the full title/body of one current open **Issue**, invokes all three deterministic specialists, saves the standard report, and sends a concise test summary through the existing `telegram_service.notify()` function. It sends **one real Telegram message**; rerunning sends another. It does **not** make an OpenAI API call.
