@@ -369,7 +369,15 @@ export async function handleViepsTree(request, env) {
 
   const partRows = partsResult.results || [];
   const parts = [...new Map(partRows.map((part) => [part.id, candidatePayload(part)])).values()];
+  // Keep every evidenced part-to-tree occurrence, even when several source
+  // placements resolve to the same canonical PART identity.
   const partNodes = partRows.map((part) => ({ part_id: part.id, node_id: part.tree_node_id }));
+  const pathRows = pathResult.results || [];
+  const ancestryComplete = pathRows.length > 0
+    && pathRows[0].parent_id == null
+    && String(pathRows.at(-1).node_id) === String(nodeId)
+    && pathRows.every((node, index) => index === 0
+      || String(node.parent_id) === String(pathRows[index - 1].node_id));
   const partsTree = await buildPartLeafPaths(env, parts);
   return json({
     state: parts.length || (childrenResult.results || []).length ? "resolved" : "empty",
@@ -380,11 +388,8 @@ export async function handleViepsTree(request, env) {
       parent_id: selectedNode.parent_id,
       label: selectedNode.label,
     },
-    path: pathResult.results || [],
-    ancestry_state: (pathResult.results || []).length > 0
-      && (pathResult.results || [])[0].parent_id == null
-      && String((pathResult.results || []).at(-1).node_id) === String(nodeId)
-      ? "complete" : "unavailable",
+    path: pathRows,
+    ancestry_state: ancestryComplete ? "complete" : "unavailable",
     children: childrenResult.results || [],
     parts,
     part_nodes: partNodes,
