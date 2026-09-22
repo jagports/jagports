@@ -35,8 +35,24 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
       set innerHTML(value) { this.markup = value; if (id.endsWith('Select')) this.value = value.match(/value="([^"]*)"/)?.[1] || ''; },
       get innerHTML() { return this.markup || ''; },
       addEventListener(event, fn) { this.listeners[event] = fn; },
+      dispatchEvent(event) { return this.listeners[event.type]?.(event); },
       setAttribute(key, value) { this.attrs[key] = value; },
       querySelector() { return null; },
+      querySelectorAll(selector) {
+        const attr = selector === '[data-result-part-id]' ? 'data-result-part-id'
+          : selector === '[data-part-query]' ? 'data-part-query' : null;
+        if (!attr) return [];
+        this.links = [...this.innerHTML.matchAll(/<a\\b([^>]*)>/g)]
+          .map(([, attrs]) => attrs).filter((attrs) => attrs.includes(attr + '='))
+          .map((attrs) => {
+            const dataset = {};
+            for (const [, key, value] of attrs.matchAll(/data-([\\w-]+)="([^"]*)"/g)) {
+              dataset[key.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = value;
+            }
+            return { dataset, listeners: {}, addEventListener(event, fn) { this.listeners[event] = fn; } };
+          });
+        return this.links;
+      },
     });
   }
   const languageControls = [...html.matchAll(/data-language="([^"]+)"/g)].map(([, language]) => ({
@@ -50,7 +66,8 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
     getElementById: id => nodes.get(id),
     querySelectorAll: selector => selector === '[data-language]' ? languageControls : [],
   };
-  const context = { document, fetch: routedFetch, Intl, URLSearchParams, location, history, VIEPS_I18N_RESOURCES: { en, fi } };
+  class FakeEvent { constructor(type) { this.type = type; } preventDefault() {} }
+  const context = { document, fetch: routedFetch, Event: FakeEvent, Intl, URLSearchParams, location, history, VIEPS_I18N_RESOURCES: { en, fi } };
   vm.runInNewContext(i18nCode, context);
   vm.runInNewContext(code, context);
   const get = id => nodes.get(id);
@@ -376,7 +393,7 @@ test('multiple free-text PART candidates appear under a single evidenced ancesto
   };
   const ui = harness(async () => response(candidates));
   await ui.search('TEST');
-  assert.equal(ui.get('searchStatus').textContent, '2 matching PARTs. Select one from the Parts Tree.');
+  assert.equal(ui.get('searchStatus').textContent, '2 matching PARTs. Select one from the Parts Tree or Search Results.');
   const tree = ui.get('tree').innerHTML;
   assert.equal((tree.match(/href="\?tree=1"/g) || []).length, 1);
   assert.equal((tree.match(/href="\?tree=2"/g) || []).length, 1);
@@ -385,6 +402,42 @@ test('multiple free-text PART candidates appear under a single evidenced ancesto
   assert.match(tree, /href="\?part=TEST2&tree=2"/);
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1|TEST2|Left|Right/);
   assert.equal(ui.get('rangeSelect').disabled, true);
+});
+
+test('result rows deduplicate PART identity, synchronize selection with the tree and preserve stock and clear behavior', async () => {
+  const partA = { id: 10, part_number_normalized: 'TEST1', description: 'First part' };
+  const partB = { id: 11, part_number_normalized: 'TEST2', description: 'Second part' };
+  const nodes = [{ node_id: 1, label: 'Suspension' }, { node_id: 2, label: 'Front' }];
+  const candidates = {
+    state: 'multiple_match', query: 'TEST', tree_roots: [{ node_id: 1, label: 'Suspension' }],
+    matches: [partA, { ...partA }, partB],
+    parts_tree: [10, 11].map(id => ({ part_id: id, node_id: 2, nodes })),
+  };
+  const ui = harness(async url => url.includes('candidate_id=11')
+    ? response({ ...fixture, part: partB, parts_tree: [candidates.parts_tree[1]], fitment: [], stock: [] })
+    : response(candidates));
+  ui.get('availabilitySelect').checked = true;
+  await ui.search('TEST');
+  const results = ui.get('searchResults');
+  assert.equal((results.innerHTML.match(/data-result-part-id=/g) || []).length, 2);
+  assert.match(results.innerHTML, /TEST1 — First part/);
+  assert.match(results.innerHTML, /TEST2 — Second part/);
+  assert.match(results.innerHTML, /type="checkbox" disabled/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1|TEST2/);
+  const link = results.links.find(node => node.dataset.resultPartId === '11');
+  link.listeners.click({ preventDefault() {} });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(ui.requests.some(url => url.includes('q=TEST&stock_only=1&candidate_id=11')));
+  assert.match(ui.get('partCard').innerHTML, /TEST2/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+  assert.match(ui.get('searchResults').innerHTML, /selected-result[\\s\\S]*data-result-part-id="11"/);
+  assert.match(ui.get('tree').innerHTML, /data-part-query="TEST2"/);
+  assert.match(ui.get('tree').innerHTML, /aria-current="page"/);
+  assert.equal(ui.get('availabilitySelect').checked, true);
+  await ui.search('');
+  assert.doesNotMatch(ui.get('searchResults').innerHTML, /data-result-part-id=/);
+  assert.doesNotMatch(ui.get('tree').innerHTML, /data-part-query=/);
+  assert.equal(ui.get('availabilitySelect').checked, true);
 });
 
 test('switching language retains multiple-candidate leaves and avoids another search', async () => {
@@ -396,11 +449,11 @@ test('switching language retains multiple-candidate leaves and avoids another se
   };
   const ui = harness(async () => response(data));
   await ui.search('TEST');
-  assert.equal(ui.get('searchStatus').textContent, '1 matching PART. Select it from the Parts Tree.');
+  assert.equal(ui.get('searchStatus').textContent, '1 matching PART. Select it from the Parts Tree or Search Results.');
   const before = ui.requests.length;
   ui.setLanguage('fi');
   assert.equal(ui.document.documentElement.lang, 'fi');
-  assert.equal(ui.get('searchStatus').textContent, '1 vastaava OSA. Valitse se osapuusta.');
+  assert.equal(ui.get('searchStatus').textContent, '1 vastaava OSA. Valitse se osapuusta tai hakutuloksista.');
   assert.match(ui.get('tree').innerHTML, /TEST1/);
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
   assert.equal(ui.requests.length, before);
