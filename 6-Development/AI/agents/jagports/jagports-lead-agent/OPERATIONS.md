@@ -65,7 +65,11 @@ sudo -u codex bash -c 'cd /home/codex/jagports-lead-agent && ./venv/bin/python -
 
 **Edge cases and boundaries:** an empty change set `{'new': [], 'closed': [], 'reopened': []}` is a valid delivery test; it does not prove GitHub change detection. A missing state file, invalid bot token, invalid chat ID, blocked bot or network error is a failed/precondition-blocked test, not a pass. Repeating this manual command sends another message; do not mistake it for automatic delivery from `main.py`.
 
-**Evidence to capture:** command exit status, redacted terminal output, a human confirmation or screenshot of the received message, the matching saved change values, and test date/time. Do not claim TG-001 passed until the Raspberry Pi operator supplies execution output and confirms receipt. For a separate current-GitHub collection → specialists → Telegram diagnostic, use the longer test below.
+**Evidence to capture:** command exit status, redacted terminal output, a human confirmation or screenshot of the received message, the matching saved change values, and test date/time. For future executions, do not claim success without the terminal output and recipient confirmation. For a separate current-GitHub collection → specialists → Telegram diagnostic, use the longer test below.
+
+**Operator-reported result, 23 September 2026 — TG-001 PASS:** The command completed and printed `Telegram sent: Jagports Issue changes: {'new': [], 'closed': [], 'reopened': []}`; the operator independently confirmed that the Telegram message arrived. This verifies manual delivery of a valid empty saved change set, **not** automatic service-triggered notifications or delivery of a nonempty change set. Record later end-to-end nonempty/automatic delivery as separate tests.
+
+
 
 ## One-shot GitHub → specialists → Telegram communication test
 
