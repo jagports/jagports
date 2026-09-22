@@ -44,17 +44,28 @@ source venv/bin/activate
 python -c 'from dotenv import load_dotenv; load_dotenv(); from services.openai_service import analyse; print(analyse("Reply with exactly: JAGPORTS AGENT API OK"))'
 ```
 
-This command is a proposed test, **not operator-verified evidence**. A success verifies the wrapper, not OpenAI Agents SDK orchestration, GitHub semantics or production autonomy.
+The operator reported `JAGPORTS AGENT API OK` from the existing wrapper using an **explicit** `.env` path. For Python executed via standard input, bare `load_dotenv()` can fail during path discovery; pass `load_dotenv("/home/codex/jagports-lead-agent/.env")` instead. A successful wrapper call does not verify OpenAI Agents SDK orchestration, GitHub semantics or production autonomy.
 
-## Telegram smoke test — send saved Issue status changes
+## Telegram message-delivery acceptance test — saved Issue changes
 
-Run this **single command as `admin` on `mynode-sby`** after the Lead Agent has run at least once. It loads the local Telegram credentials, reads the latest `new`, `closed`, and `reopened` lists from `state/agent_state.json`, and sends exactly one message using the existing `services.telegram_service.notify()` function:
+**Test ID:** TG-001. **Scope:** the existing `services.telegram_service.notify()` delivery path, using real saved lifecycle results. This test does **not** fetch GitHub again, invoke specialists, or consume OpenAI API credits.
+
+**Preconditions:** the Raspberry Pi agent workspace exists under `/home/codex/jagports-lead-agent`; the virtual environment includes `python-dotenv` and the Telegram client; local `.env` has `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; `state/agent_state.json` was written by a preceding agent run. Do not print tokens or chat IDs.
+
+**Execution:** from an `admin@mynode-sby` SSH session, execute this single, self-contained command:
 
 ```bash
-sudo -u codex bash -c 'cd /home/codex/jagports-lead-agent && ./venv/bin/python -c '"'"'import json; from dotenv import load_dotenv; load_dotenv(".env"); from services.telegram_service import notify; changes=json.load(open("state/agent_state.json"))["changes"]; message=f"Jagports Issue changes:\\n{changes}"; notify(message); print(message, "\\nTelegram sent")'"'"''
+sudo -u codex bash -c 'cd /home/codex/jagports-lead-agent && ./venv/bin/python -c '"'"'import json; from dotenv import load_dotenv; load_dotenv(".env"); from services.telegram_service import notify; changes=json.load(open("state/agent_state.json"))["changes"]; message="Jagports Issue changes:\\n"+str(changes); notify(message); print(message, "\\nTelegram sent")'"'"''
 ```
 
-**Pass:** `Telegram sent` is printed and the configured chat receives the saved change summary. The command **does not refetch GitHub, rerun specialists or call OpenAI**. If the preceding agent run recorded no changes, the message legitimately contains empty lists; for a current GitHub snapshot and specialist results, use the longer one-shot communication test below. Keep the local `.env` private.
+**Acceptance criteria (both required):**
+
+1. The command exits successfully and prints `Telegram sent`, with the exact saved `new`, `closed`, and `reopened` values (compare with `state/agent_state.json`). On an exception, record the error without exposing credentials.
+2. The configured recipient actually receives **one** Telegram message containing those same saved values. An API call returning successfully is insufficient if the recipient has not confirmed delivery.
+
+**Edge cases and boundaries:** an empty change set `{'new': [], 'closed': [], 'reopened': []}` is a valid delivery test; it does not prove GitHub change detection. A missing state file, invalid bot token, invalid chat ID, blocked bot or network error is a failed/precondition-blocked test, not a pass. Repeating this manual command sends another message; do not mistake it for automatic delivery from `main.py`.
+
+**Evidence to capture:** command exit status, redacted terminal output, a human confirmation or screenshot of the received message, the matching saved change values, and test date/time. Do not claim TG-001 passed until the Raspberry Pi operator supplies execution output and confirms receipt. For a separate current-GitHub collection → specialists → Telegram diagnostic, use the longer test below.
 
 ## One-shot GitHub → specialists → Telegram communication test
 
