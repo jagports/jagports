@@ -143,9 +143,13 @@ A part-number search returns all matching occurrences and their complete source 
 
 The Parts Tree is the only multi-PART selection surface.
 
-By default, with no branch selected, the Parts Tree shows first-level branches only.
+By default, with no branch selected, the Parts Tree shows first-level/root branches only.
 
-When a branch is selected, the Parts Tree shows all available next-level branches under that selected branch.
+When a branch is selected, the first-level/root index stays visible, the complete ancestry from its root to that selected branch remains expanded, and the selected branch shows all available immediate next-level branches.
+
+The visible result is one identity-keyed hierarchy: shared ancestors are rendered once by stable node identity rather than repeated once for every matching path. Equal labels do not justify merging distinct source-qualified nodes.
+
+Each deeper level is modestly indented. Root/upper-level branches use stronger typography than deeper branches, and the single active category or PART leaf is indicated by underlining its text.
 
 This progressive tree navigation is separate from search-result filtering. Search may filter/highlight branches and PART leaf nodes, but it must not turn PART / Image / Status or any other content region into a multi-PART result list.
 
@@ -206,7 +210,7 @@ No PART is selected by default when a search returns multiple PARTs.
 
 No content element should present many PARTs. In particular, PART / Image / Status must not become a multi-result list, row view, table, candidate list or search-results container. It shows exactly one selected PART after a user selects a PART leaf from the tree. Until a PART leaf is selected, it remains in an explicit no-selected-PART or context state.
 
-The Parts Tree must show all matching tree branches where matching PARTs occur, with only the matching branch path, required ancestors and matching PART leaf nodes visible/expanded. Non-matching child leaves are not expanded merely because their parent branch matched.
+The Parts Tree must show all matching tree branches where matching PARTs occur inside one deduplicated hierarchy. Required shared ancestors appear once, the root index remains visible, and matching PARTs are terminal leaves under their evidenced branches. Non-matching child leaves are not expanded merely because their parent branch matched.
 
 Model Ranges must reflect matched model/range/body-style contexts when those contexts are part of the matched result evidence.
 
@@ -341,8 +345,10 @@ Cover at least:
 - valid no-match after deterministic and active free-text modes both fail;
 - multiple deterministic candidates without guessed selection;
 - deterministic miss with reduced-MVP free-text fallback;
-- default Parts Tree view showing first-level branches only;
-- selecting a Parts Tree branch showing all available next-level branches under that branch;
+- default Parts Tree view showing first-level/root branches only;
+- selecting a Parts Tree branch retaining the root index, expanding its complete ancestry, and showing all available immediate next-level branches;
+- shared path ancestors rendered once per stable tree identity, with distinct source-qualified nodes retained;
+- depth indentation, stronger typography nearer the root, and underlined single active node;
 - fragment highlighting in visible matched text;
 - generic free-text query matching model, range, body-style or catalogue/context text;
 - query matching PART description text;
@@ -395,7 +401,9 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - [x] Reduced-MVP limited free-text search is required before #280 closure.
 - [x] Full multilingual/global free-text indexing/search remains post-MVP under #622.
 - [x] Default Parts Tree view shows first-level branches only.
-- [x] Selecting a Parts Tree branch shows all available next-level branches under that branch.
+- [x] Selecting a Parts Tree branch keeps the root index visible, expands the complete root-to-selected ancestry, and shows all available immediate next-level branches.
+- [x] Shared Parts Tree ancestors are rendered once per stable tree identity, with distinct source-qualified nodes preserved.
+- [x] Parts Tree hierarchy uses depth indentation, stronger typography nearer the root, and underlines only the active category or PART leaf.
 - [x] Multiple canonical search candidates remain selectable as Parts Tree leaf nodes rather than being guessed into one PART or shown as a separate multi-PART content list.
 - [x] Multiple-PART search results do not select any PART by default.
 - [x] Free-text candidates are shown in existing Concept-11 regions, with multiple PARTs selectable only through clickable Parts Tree leaves.
