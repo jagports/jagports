@@ -15,6 +15,7 @@ function makeDb({ part = null, parts = null, occurrences = [], tree = [], images
               return null;
             },
             async all() {
+              if (/WITH base\(part_id, tree_node_id\)/i.test(sql)) return { results: [] };
               if (/FROM part\b/i.test(sql)) return { results: partRows };
               if (/FROM part_occurrence/i.test(sql)) return { results: occurrences };
               if (/part_tree_node/i.test(sql)) return { results: tree };
@@ -25,6 +26,10 @@ function makeDb({ part = null, parts = null, occurrences = [], tree = [], images
               return { results: [] };
             },
           };
+        },
+        async all() {
+          if (/parent_id IS NULL/i.test(sql)) return { results: tree };
+          return { results: [] };
         },
       };
     },
@@ -40,13 +45,13 @@ test("empty part-number query is explicit", async () => {
   assert.deepEqual(await response.json(), { error: "part-number query is required" });
 });
 
-test("invalid normalized part-number query is explicit", async () => {
+test("punctuation-only query is treated as searchable text and may return not-found", async () => {
   const response = await handleViepsPart(
     new Request("https://example.test/api/vieps/part?q=---"),
     { DB: makeDb() },
   );
-  assert.equal(response.status, 400);
-  assert.equal((await response.json()).error, "invalid part-number query");
+  assert.equal(response.status, 404);
+  assert.equal((await response.json()).error, "part not found");
 });
 
 test("unknown part is an explicit not-found response", async () => {
@@ -204,6 +209,7 @@ test("partial part-number input with multiple candidates returns a multiple-matc
   const data = await response.json();
   assert.equal(data.state, "multiple_match");
   assert.equal(data.normalized_query, "MNA7691");
+  assert.equal(data.selected_part, null);
   assert.deepEqual(data.matches.map((part) => part.part_number_normalized), ["MNA7691AA", "MNA7691AB"]);
   assert.equal(data.part, undefined);
 });
