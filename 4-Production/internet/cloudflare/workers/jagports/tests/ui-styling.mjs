@@ -193,3 +193,111 @@ test('locale flag switching rerenders presentation without changing canonical da
   assert.equal(ui.document.documentElement.lang, 'en');
   assert.equal(ui.get('searchStatus').textContent, 'PART resolved.');
 });
+
+
+const flush = () => new Promise(resolve => setImmediate(resolve));
+const browseFixture = {
+  state: 'resolved', ancestry_state: 'complete',
+  roots: [{ node_id: 1, label: 'Suspension', sort_order: 1 }, { node_id: 8, label: 'Body', sort_order: 2 }],
+  selected_node: { node_id: 2, parent_id: 1, label: 'Front' },
+  path: [
+    { node_id: 1, parent_id: null, label: 'Suspension', sort_order: 1 },
+    { node_id: 2, parent_id: 1, label: 'Front', sort_order: 1 },
+  ],
+  children: [{ node_id: 3, label: 'Bushings', sort_order: 1 }],
+  parts: [{ id: 10, part_number_normalized: 'TEST1', description: 'Test part' }],
+  part_nodes: [{ part_id: 10, node_id: 2 }],
+};
+
+test('empty submission restores collapsed roots, clearing selected PART and dependent panels', async () => {
+  const ui = harness(async () => response(fixture));
+  await ui.search('TEST1');
+  await ui.search('');
+  assert.match(ui.get('tree').innerHTML, /Suspension/);
+  assert.match(ui.get('tree').innerHTML, /Body/);
+  assert.doesNotMatch(ui.get('tree').innerHTML, /Child|data-part-query/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+  assert.equal(ui.get('rangeSelect').disabled, true);
+  assert.equal(ui.get('result').attrs['aria-busy'], 'false');
+  assert.ok(ui.requests.some(url => url === '/api/vieps/tree?root=1'));
+});
+
+test('clear while PART request is pending invalidates stale result and restores roots', async () => {
+  let finishPart;
+  const ui = harness(() => new Promise(resolve => { finishPart = resolve; }));
+  const pending = ui.search('TEST1');
+  ui.get('partNumber').value = '';
+  ui.get('partNumber').listeners.input();
+  await flush();
+  finishPart(response(fixture));
+  await pending;
+  assert.match(ui.get('tree').innerHTML, /Suspension/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+  assert.equal(ui.get('result').attrs['aria-busy'], 'false');
+});
+
+test('clear while tree request is pending prevents stale browse restoration', async () => {
+  let finishBrowse;
+  const ui = harness(url => url.includes('node_id=2')
+    ? new Promise(resolve => { finishBrowse = resolve; })
+    : Promise.reject(Error('unexpected request')), { initialSearch: '?tree=2' });
+  assert.ok(ui.requests.some(url => url.includes('node_id=2')));
+  ui.get('partNumber').value = '';
+  ui.get('partNumber').listeners.input();
+  await flush();
+  finishBrowse(response(browseFixture));
+  await flush();
+  assert.match(ui.get('tree').innerHTML, /Suspension/);
+  assert.doesNotMatch(ui.get('tree').innerHTML, /Bushings|Test part/);
+  assert.equal(ui.get('result').attrs['aria-busy'], 'false');
+});
+
+test('clearing deep link removes part and tree parameters, retaining unrelated URL state', async () => {
+  const ui = harness(async () => response(fixture), { initialSearch: '?part=TEST1&tree=2&lang=fi' });
+  await flush();
+  ui.get('partNumber').value = '';
+  ui.get('partNumber').listeners.input();
+  await flush();
+  assert.equal(ui.location.search, '?lang=fi');
+  assert.equal(ui.location.hash, '#browse');
+  assert.match(ui.get('tree').innerHTML, /Suspension/);
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+});
+
+test('blank search retains stock filter on root read without claiming stock-filtered roots', async () => {
+  const ui = harness(async () => response(fixture));
+  ui.get('availabilitySelect').checked = true;
+  await ui.search('');
+  assert.equal(ui.get('availabilitySelect').checked, true);
+  assert.ok(ui.requests.includes('/api/vieps/tree?root=1&stock_only=1'));
+});
+
+test('UI locale change retains selected browse tree without an extra API read', async () => {
+  const ui = harness(async url => {
+    assert.match(url, /node_id=2/);
+    return response(browseFixture);
+  }, { initialSearch: '?tree=2' });
+  await flush();
+  const before = ui.requests.length;
+  assert.match(ui.get('tree').innerHTML, /Bushings/);
+  ui.setLanguage('fi');
+  assert.equal(ui.document.documentElement.lang, 'fi');
+  assert.match(ui.get('tree').innerHTML, /Suspension|Front/);
+  assert.match(ui.get('tree').innerHTML, /Bushings/);
+  assert.equal(ui.requests.length, before);
+});
+
+test('root failure is distinguished from resolved PART and releases busy state', async () => {
+  let fail = false;
+  const ui = harness(async () => response(fixture), {
+    rootFetch: () => fail
+      ? Promise.reject(Error('root unavailable'))
+      : Promise.resolve(response({ state: 'root', roots: [{ node_id: 1, label: 'Suspension' }] })),
+  });
+  await ui.search('TEST1');
+  fail = true;
+  await ui.search('');
+  assert.equal(ui.get('searchStatus').className, 'error status-line');
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+  assert.equal(ui.get('result').attrs['aria-busy'], 'false');
+});
