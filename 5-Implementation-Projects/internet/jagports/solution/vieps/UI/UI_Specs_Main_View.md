@@ -56,7 +56,19 @@ The SVG examples such as `Fan warning label`, `MJB7703AA`, an item number, Class
 
 Tree selection and diagram-item selection refer to the same occurrence/item context. Selection never mutates canonical PART identity.
 
+PART selection is performed through the Parts Tree's terminal PART leaves when browsing/search yields multiple candidates. **PART / Image / Status must never render a multi-PART candidate list.** Until one PART leaf is selected, this region stays in an explicit no-selected-PART/context state. Once selected, it shows exactly that one canonical PART and its resolved occurrence/item context.
+
+The Parts Tree itself retains the root index and complete selected ancestry; Main View must not require or encourage a duplicate flat PART list to compensate for tree presentation.
+
 Missing image, diagram, hotspot or vehicle-location data is an explicit `unavailable` state. No geometry or relationship may be fabricated.
+
+## Clearing selected context
+
+Apply the [Part Search clear transition](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition) before loading roots. Remove the previous canonical PART selection, occurrence/item, warning/status, Classic/supersession presentation, image/diagram and visual choice, selected range, suitability facts and vehicle-location marker/context. The permanent regions remain visible in their no-selected-PART/browse state.
+
+A root browse response must not select a PART automatically or restore the cleared PART's contextual facts. Supported stock-derived Model Ranges may be shown as fresh browse/filter context only. Missing tree data or a root-load error does not retain old PART details as a fallback.
+
+Late success, failure and completion callbacks from superseded PART/tree/context reads cannot repopulate these regions, change the current status or end a newer request's loading state. UI language switching with no selected PART re-localizes the current browse/no-selection state without losing its tree context or restoring old PART data.
 
 ## MVP Part Image behaviour
 - Show the resolved PART image when verified image data exists, otherwise an explicit unavailable state.
@@ -86,7 +98,8 @@ MainViewResult
 ```
 
 ## State and synchronization
-- `resolved`: selected part/context is available for presentation.
+- `resolved`: one selected part/context is available for presentation.
+- `no_selected_part`: browse/search context exists but no PART leaf is selected; no candidate list is rendered in Main View.
 - `unavailable`: requested secondary visual/context data is absent.
 - `error`: processing/API failure.
 - Tree and diagram selection refer to the same item/occurrence identity.
@@ -94,7 +107,9 @@ MainViewResult
 - Missing Part Image or vehicle-location data does not change PART identity or applicability.
 
 ## Deterministic fixtures
-Cover vehicle-location available/unavailable, Part Image available/unavailable, diagram available/unavailable, numbered items, hotspot unavailable, supported status/Classic/supersession examples and synchronized tree/diagram selection. Preserve current main-branch non-numbered fixture identifiers without presenting them as Jaguar part numbers.
+Cover vehicle-location available/unavailable, Part Image available/unavailable, diagram available/unavailable, numbered items, hotspot unavailable, supported status/Classic/supersession examples, synchronized tree/diagram selection, multiple PART candidates with no Main View selection, and one PART selected through a terminal Parts Tree leaf. Preserve current main-branch non-numbered fixture identifiers without presenting them as Jaguar part numbers.
+
+Clear/reset fixtures must additionally verify every affected region immediately after clear and after delayed PART/tree responses, root success/empty/unavailable/error, and EN↔FI switching in browse mode. Use the [clear/browse regression matrix](../SPEC/UI_Part_Search.md#clearbrowse-regression-acceptance) as the cross-region acceptance contract; specification coverage is not executed runtime-test evidence.
 
 ## Viewport and language
 On desktop, Model Ranges is above the middle row, Location/Suitability are side-by-side, and PART/Image/Status spans the lower centre/right workspace. Long content scrolls inside permanent regions under #616.
@@ -111,6 +126,10 @@ Follows Part Search and Parts Tree contracts. #352 owns hotspot coordinate conve
 - [ ] PART / Image / Status spans the lower centre/right workspace.
 - [ ] Part Image and diagram available/unavailable behaviour is defined.
 - [ ] Tree/diagram selection synchronization is defined.
+- [ ] PART / Image / Status never becomes a multi-PART result list; multiple candidates are selected through terminal Parts Tree leaves.
+- [ ] Explicit no-selected-PART/context state is defined for multi-candidate browse/search.
 - [ ] Warning/status, Classic and supersession remain evidence-backed concerns.
 - [ ] Missing media/location states remain explicit.
 - [ ] Viewport-fit and UI-vs-Parts language boundaries are preserved.
+- [ ] Clear immediately removes selected PART/occurrence and all dependent presentation while retaining permanent regions and fresh browse-only context.
+- [ ] Superseded responses and browse-mode language changes cannot resurrect cleared PART facts or visuals; cross-region regression cases are defined.
