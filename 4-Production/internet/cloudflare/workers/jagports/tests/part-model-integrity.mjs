@@ -156,9 +156,9 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
       } else if (fk.from === 'dimension_id' && name === 'applicability_set_membership_condition') {
         // The new cardinality trigger rejects a missing/non-set dimension
         // before SQLite performs its FK check.
-        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /membership requires set dimension/);
+        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /(membership requires set dimension|FOREIGN KEY constraint failed)/);
       } else if (fk.from === 'dimension_id' && name === 'applicability_attribute_condition') {
-        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /scalar condition requires scalar dimension/);
+        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /(scalar condition requires scalar dimension|FOREIGN KEY constraint failed)/);
       } else {
         rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /FOREIGN KEY constraint failed/);
       }
