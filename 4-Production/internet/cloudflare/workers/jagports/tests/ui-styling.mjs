@@ -522,6 +522,70 @@ test('result rows deduplicate PART identity, synchronize selection with the tree
   assert.equal(ui.get('availabilitySelect').checked, true);
 });
 
+test('#875 tree-origin selection synchronizes one canonical PART across distinct evidenced occurrence paths', async () => {
+  const part = { id: 10, part_number_normalized: 'TEST1', description: 'Shared canonical PART' };
+  const paths = [
+    { part_id: 10, node_id: 2, nodes: [
+      { node_id: 1, label: 'Suspension' }, { node_id: 2, label: 'Front' },
+    ] },
+    { part_id: 10, node_id: 4, nodes: [
+      { node_id: 1, label: 'Suspension' }, { node_id: 4, label: 'Rear' },
+    ] },
+  ];
+  const matches = { state: 'multiple_match', query: 'TEST',
+    tree_roots: [{ node_id: 1, label: 'Suspension' }],
+    matches: [part, { ...part }], parts_tree: paths };
+  const ui = harness(async url => url.includes('candidate_id=10')
+    ? response({ ...fixture, part, parts_tree: paths, occurrences: [], fitment: [], stock: [] })
+    : response(matches));
+  await ui.search('TEST');
+  const tree = ui.get('tree');
+  assert.equal((tree.innerHTML.match(/data-part-query="TEST1"/g) || []).length, 2,
+    'the same canonical PART remains selectable under two genuine source paths');
+  assert.equal((ui.get('searchResults').innerHTML.match(/data-result-part-id="10"/g) || []).length, 1,
+    'result list deduplicates identity even when the tree has multiple occurrences');
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+  assert.doesNotMatch(tree.innerHTML, /aria-current="page"/);
+  const rearLeaf = tree.links.find(link =>
+    link.dataset.partId === '10' && link.dataset.partContext === '4');
+  assert.ok(rearLeaf, 'the Rear source-qualified occurrence must remain selectable');
+  rearLeaf.listeners.click({ preventDefault() {} });
+  await flush();
+  assert.ok(ui.requests.some(url => url.includes('q=TEST&candidate_id=10')));
+  assert.match(ui.get('partCard').innerHTML, /TEST1/);
+  assert.match(ui.get('searchResults').innerHTML,
+    /selected-result[\s\S]*data-result-part-id="10" aria-current="page"/);
+  const selectedTree = ui.get('tree').innerHTML;
+  assert.equal((selectedTree.match(/aria-current="page"/g) || []).length, 1,
+    'one selected leaf and one central PART, never both occurrence paths selected');
+  assert.match(selectedTree, /data-part-context="4"[^>]*aria-current="page"/);
+  assert.equal((selectedTree.match(/data-part-query="TEST1"/g) || []).length, 2);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /Jaguar Accessories/);
+});
+
+test('#875 direct candidate/tree link is selected once and search clear preserves Stock-only', async () => {
+  const part = { id: 10, part_number_normalized: 'TEST1', description: 'Linked PART' };
+  const ui = harness(async url => {
+    assert.match(url, /q=TEST1/);
+    assert.match(url, /candidate_id=10/);
+    return response({ ...fixture, part, fitment: [], tree_roots: browseFixture.roots,
+      parts_tree: [{ part_id: 10, node_id: 2, nodes: browseFixture.path }],
+      occurrences: [], stock: [] });
+  }, { initialSearch: '?part=TEST1&tree=2&candidate_id=10&lang=fi' });
+  await flush();
+  assert.match(ui.get('partCard').innerHTML, /TEST1/);
+  assert.equal((ui.get('tree').innerHTML.match(/aria-current="page"/g) || []).length, 1);
+  assert.match(ui.get('searchResults').innerHTML, /data-result-part-id="10" aria-current="page"/);
+  ui.get('availabilitySelect').checked = true;
+  await ui.search('');
+  assert.equal(ui.location.search, '?lang=fi');
+  assert.equal(ui.get('availabilitySelect').checked, true);
+  assert.ok(ui.requests.includes('/api/vieps/tree?root=1&stock_only=1'));
+  assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
+  assert.doesNotMatch(ui.get('searchResults').innerHTML, /data-result-part-id=/);
+  assert.match(ui.get('tree').innerHTML, /Suspension/);
+});
+
 test('#875 future VIN/variations are disabled and explain unsupported state in both UI locales', () => {
   const ui = harness(() => { throw Error('unsupported controls must not fetch'); });
   for (const id of ['vinInput', 'variationsSelect']) {
