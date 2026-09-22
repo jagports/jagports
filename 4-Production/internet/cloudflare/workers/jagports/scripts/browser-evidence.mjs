@@ -15,9 +15,17 @@ const extension = (name) => name.slice(name.lastIndexOf("."));
 async function localServer() {
   const server = createServer(async (request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+    if (pathname === "/api/vieps/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({
+        roots: [{ node_id: 1, label: "XK Range (browser fixture)", sort_order: 1 }],
+        stock_browse_state: "unsupported",
+      }));
+      return;
+    }
     if (pathname.startsWith("/api/")) {
       response.writeHead(503, { "Content-Type": "application/json" });
-      response.end('{"error":"Browser layout fixture: catalogue API not supplied"}');
+      response.end('{"error":"Other catalogue API operations are outside the layout fixture"}');
       return;
     }
     const target = resolve(publicDir, "." + (pathname === "/" ? "/index.html" : pathname));
@@ -71,6 +79,7 @@ try {
   const page = await context.newPage();
   await page.goto(base || local.url, { waitUntil: "load" });
   await page.locator(".fixture-guide summary").waitFor();
+  if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
 
   // Desktop Concept-11 layout and image evidence.
   let g = await geometry(page);
@@ -99,6 +108,7 @@ try {
   for (const width of [220, 320]) {
     await page.setViewportSize({ width, height: 780 });
     await page.goto(base || local.url, { waitUntil: "load" });
+    if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
     g = await geometry(page);
     assert.ok(g.pageWidth <= width + 1 && g.bodyWidth <= width + 1, width + "px horizontal overflow");
     assert.ok(g.contentScrollable, width + "px lower content must be independently scrollable");
