@@ -41,6 +41,9 @@
 
 @layer components {
   .app-shell {
+    /* Shared header/body columns and consistent workspace spacing. */
+    --vieps-columns: minmax(14rem, 0.9fr) minmax(0, 2fr) minmax(18rem, 1.1fr);
+    --vieps-gap: 0.55rem;
     width: 100%;
     max-width: 1720px;
     height: 100dvh;
@@ -51,30 +54,24 @@
     gap: 0.5rem;
     overflow: hidden;
   }
-  .app-header { @apply flex flex-none items-end justify-start gap-3 border-b border-jagports-line pb-2; margin: 0; }
-  .app-header h1 { @apply text-[1.65rem] leading-none; }
-  .locale-control { @apply flex flex-none items-center gap-1 self-start; }
-  .locale-button {
-    @apply rounded-md border border-jagports-line bg-white px-2 py-1 text-[0.7rem] font-semibold leading-none text-jagports-muted transition hover:border-jagports-teal hover:text-jagports-teal-dark focus:outline-none focus:ring-2 focus:ring-jagports-teal/20;
-  }
-  .locale-button span { @apply ml-0.5; }
-  .eyebrow { @apply mb-1 text-[0.65rem] font-bold uppercase tracking-[0.11em] text-jagports-muted; }
-  .muted, .compact-note { @apply text-jagports-muted; }
-
   /* #875: fixed desktop shell; each long list owns its scrolling region. */
+  .app-header, .concept-grid {
+    display: grid;
+    grid-template-columns: var(--vieps-columns);
+    gap: var(--vieps-gap);
+    min-width: 0;
+  }
+  .app-header {
+    flex: 0 0 auto;
+    align-items: end;
+    margin: 0;
+    @apply border-b border-jagports-line pb-2;
+  }
   .concept-grid {
     flex: 1 1 auto;
     min-height: 0;
-    display: grid;
-    gap: 0.55rem;
     overflow: hidden;
     align-items: stretch;
-    grid-template-columns: minmax(14rem, 0.9fr) minmax(0, 2fr) minmax(18rem, 1.1fr);
-  }
-  .app-header {
-    display: grid;
-    grid-template-columns: minmax(14rem, 0.9fr) minmax(0, 2fr) minmax(18rem, 1.1fr);
-    align-items: end;
   }
   .brand-block { @apply flex min-w-0 flex-col gap-1; }
   .brand-block h1 { @apply text-[1.65rem] leading-none; }
@@ -92,13 +89,13 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: var(--vieps-gap);
   }
   .centre-detail {
     flex: 1 1 auto;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    gap: 0.55rem;
+    gap: var(--vieps-gap);
     min-height: 0;
   }
   .panel {
@@ -265,15 +262,17 @@
 
 @media (max-width: 1100px) {
   html, body { height: auto; overflow: auto; }
-  .app-shell { height: auto; min-height: 100dvh; overflow: visible; padding: 0.75rem; }
-  .app-header { grid-template-columns: minmax(13rem, 1fr) minmax(0, 2fr); }
-  .app-header .header-spacer { display: none; }
-  .concept-grid {
+  .app-shell {
+    --vieps-columns: minmax(13rem, 0.9fr) minmax(0, 2fr);
+    height: auto;
+    min-height: 100dvh;
     overflow: visible;
-    grid-template-columns: minmax(13rem, 0.9fr) minmax(0, 2fr);
+    padding: 0.75rem;
   }
+  .app-header .header-spacer { display: none; }
+  .concept-grid { overflow: visible; }
   .right-workspace { grid-column: 1 / -1; }
-  .panel { overflow: visible; }
+  .concept-grid .panel { overflow: visible; }
   .tree-panel #tree, .results-panel .results-scroll, .ranges-panel .ranges-scroll,
   .visual-panel #visuals, .fitment-panel #fitment, .fixture-guide, .stock-section {
     overflow: auto;
