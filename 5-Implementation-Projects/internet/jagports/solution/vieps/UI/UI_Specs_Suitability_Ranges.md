@@ -47,7 +47,9 @@ These are fixture/browse vocabulary, **not** a claim that every displayed model 
 
 ## Filter controls and coordinated state
 
-The panel's model/range checkboxes constrain candidates only when the approved read contract supports that filtering operation. Single- versus multi-selection and combination semantics remain an explicit #875 Product Owner decision; an illustration of checkboxes alone does not authorize unsupported multi-select behavior.
+**Approved #875 interaction:** select multiple normalized model/range identities with **ANY (OR)** semantics. A canonical PART qualifies when **at least one surviving verified source occurrence** is positively applicable to **at least one selected range**, while satisfying all other active supported constraints. Multiple chosen ranges widen this one dimension; they do not negate VIN, stock or normalized variation constraints. When no ranges are checked, the range filter imposes no constraint. Explicit exclusions and unresolved/unavailable evaluation are never positive matches.
+
+**Phase split:** the current increment installs the right-hand Applicable Models layout, a 13-label browse fixture/index and verified selected-PART presentation where supported. Advanced multi-range filtering requires its approved read adapter and tests and is deferred. A visible filter that cannot yet work must be disabled with an accessible explanation; it must not silently pretend to apply the OR rule.
 
 The centre-top Suitability / Variations filter consumes the normalized #641 categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
 
@@ -60,7 +62,7 @@ ApplicableModelsRequest
   canonical_part_id?         # absent means browse/index mode
   occurrence_context_id?
   vehicle_context?
-  selected_range_ids[]?     # only where filter operation is approved
+  selected_range_ids[]?     # future enabled filter: several normalized IDs; ANY/OR; [] = unconstrained
   approved_variation_filters?
   stock_constraint?         # only where stock/catalogue browse is supported
 
@@ -68,7 +70,7 @@ ApplicableModelsResult
   state                     # browse | applicable | no_match | unavailable | error
   browse_ranges[]?          # available fixture/source-backed index, not fitment
   applicable_ranges[]?      # verified selected-PART/context matches only
-  selected_range_ids[]?     # only where read/filter contract supports it
+  selected_range_ids[]?     # future enabled filter; do not expose an effective filter before support
   qualifiers[]?
   exclusions[]?
   evidence/provenance?
@@ -79,7 +81,7 @@ The public read adapter must preserve #354/#666 distinctions between stored appl
 
 ## Deterministic fixtures and tests
 
-Cover all 13 exact browse labels and stable identities; one PART applicable to only a subset of the browse index; several genuine occurrences of one canonical PART; one verified qualifier; one explicit exclusion; no match; unavailable/incomplete evidence; error; and coordination with Parts Tree, Search Results selection and centre normalized variations. Verify bookmarks never change filter, selection or fitment state. Fixtures are test inputs, not Jaguar source facts.
+Cover all 13 exact browse labels and stable identities; one PART applicable to only a subset of the browse index; several genuine occurrences of one canonical PART; one verified qualifier; one explicit exclusion; no match; unavailable/incomplete evidence; error; and coordination with Parts Tree, Search Results selection and centre normalized variations. Verify current visible **disabled** bookmark checkboxes cannot change selection or fitment. For the deferred model filter, test two selected ranges matching either range (OR), no selection (unconstrained), an excluded range, unavailable evidence and conjunction with other active supported filters. Fixtures are test inputs, not Jaguar source facts.
 
 ## Viewport and accessibility
 
@@ -96,8 +98,9 @@ VIN evaluation and VIN-range reconstruction are governed by #478 and approved so
 - [ ] A selected PART/context shows only verified applicable ranges; explicit exclusions do not appear as suitable.
 - [ ] Multi-occurrence results preserve separate context/evidence rather than inventing combined positive fitment.
 - [ ] Browse filters and verified fitment indicators remain semantically distinct.
-- [ ] Model-filter checkbox combination semantics receive explicit approval before implementation.
+- [x] Product Owner approved multiple model-range selection with ANY/OR combination and no constraint when none is selected.
+- [ ] Advanced ANY/OR filtering remains deferred until the approved occurrence-level read path and tests are implemented; unsupported controls are visibly disabled.
 - [ ] `no_match`, `unavailable` and `error` remain distinct.
-- [ ] Search Results bookmarks do not mutate range filtering, PART selection, availability or fitment.
+- [ ] Visible current-phase bookmark checkboxes are disabled; later saved bookmarks remain independent of range filtering, PART selection, availability and fitment.
 - [ ] Deterministic fixture, accessibility, language and internal scrolling tests are specified.
 - [ ] Independent #875 specification review is completed.
