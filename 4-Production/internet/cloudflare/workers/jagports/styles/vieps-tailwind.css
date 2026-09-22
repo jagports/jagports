@@ -338,7 +338,15 @@
   .search-form button { padding: .35rem .5rem; }
   .availability-block { display: flex; align-items: center; flex-wrap: wrap; gap: .2rem; }
   .availability-block > span { font-size: .72rem; }
-  .stock-help-popover { right: 0; max-height: min(30dvh, 9rem); }
+  /* Anchor the popover to the full Find panel, not the narrow help icon. */
+  .stock-help { position: static; }
+  .stock-help-popover {
+    top: calc(100% + .2rem);
+    left: .35rem;
+    right: .35rem;
+    width: auto;
+    max-height: min(30dvh, 9rem);
+  }
   .search-panel .status-line { margin-top: .2rem; min-height: 0; }
   .concept-grid {
     display: flex;
