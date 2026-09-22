@@ -217,6 +217,36 @@ try {
     assert.ok(independent.pageScroll <= 1, "overflowing panels must not scroll the desktop page");
   }
   await page.screenshot({ path: evidenceDir + "desktop.png", fullPage: true });
+  if (!base) {
+    // Required #875 visual: multiple canonical results, then synchronized selection.
+    await page.locator("#partNumber").fill("BRTEST");
+    await page.locator("#partSearch").press("Enter");
+    const resultLinks = page.locator("#searchResults [data-result-part-id]");
+    await resultLinks.first().waitFor();
+    assert.equal(await resultLinks.count(), 2, "duplicate occurrence must not duplicate canonical Search Results");
+    assert.equal(await page.locator("#searchResults .selected-result").count(), 0,
+      "multiple candidates must have no default PART selection");
+    assert.equal(await page.locator("#searchResults .bookmark-label input:disabled").count(), 2,
+      "each result keeps a separate disabled bookmark");
+    await resultLinks.nth(1).focus();
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset?.resultPartId), "102",
+      "result row must expose keyboard focus on the selectable PART link");
+    await page.screenshot({ path: evidenceDir + "desktop-multiple-results.png", fullPage: true });
+
+    await resultLinks.nth(1).click();
+    await page.locator("#partCard").filter({ hasText: "BRTEST2" }).waitFor();
+    assert.equal(await page.locator("#searchResults .selected-result [data-result-part-id='102'][aria-current='page']").count(), 1,
+      "right-hand selected state must identify the canonical PART once");
+    assert.equal(await page.locator("#tree [data-part-id='102'][aria-current='page']").count(), 1,
+      "Parts Tree and Search Results must share one canonical selected PART");
+    assert.equal(await page.locator("#tree [aria-current='page']").count(), 1,
+      "only one tree occurrence may be active");
+    assert.equal(await page.locator("#partCard").textContent().then((v) => (v.match(/BRTEST2/g) || []).length), 1,
+      "central detail panel must contain one selected canonical PART identity");
+    assert.match(await page.locator("#ranges").textContent(), /XK Range/,
+      "selected-PART Applicable Models must come from positive fixture evidence");
+    await page.screenshot({ path: evidenceDir + "desktop-synchronized-selection.png", fullPage: true });
+  }
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
   const popover = page.locator("#stockHelpPopover");
@@ -228,10 +258,38 @@ try {
   assert.equal(await stock.isChecked(), initialStock, "help must not toggle Stock-only");
   await page.keyboard.press("Escape");
   assert.ok(!(await popover.isVisible()), "Escape dismisses help after restoring focus");
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "stockHelpButton",
+    "Escape restores keyboard focus to the Stock help trigger");
   await button.press("Space");
   assert.ok(await popover.isVisible(), "Space opens help");
   await button.press("Enter");
   assert.ok(!(await popover.isVisible()), "Enter closes pinned help");
+
+  // Tablet regression uses the same #893 browser mechanism and no separate workflow.
+  await page.setViewportSize({ width: 900, height: 800 });
+  await page.goto(base || local.url, { waitUntil: "load" });
+  if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
+  g = await geometry(page);
+  assert.ok(g.pageWidth <= 901 && g.bodyWidth <= 901, "tablet horizontal overflow");
+  const tabletAreas = await page.evaluate(() => {
+    const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+    const left = rect(".left-workspace");
+    const centre = rect(".centre-workspace");
+    const right = rect(".right-workspace");
+    return { left: { left: left.left, right: left.right, top: left.top },
+      centre: { left: centre.left, right: centre.right, top: centre.top },
+      right: { left: right.left, right: right.right, top: right.top } };
+  });
+  assert.ok(tabletAreas.left.right <= tabletAreas.centre.left + 2,
+    "tablet keeps left and centre workspaces side by side");
+  assert.ok(tabletAreas.right.top >= Math.min(tabletAreas.left.top, tabletAreas.centre.top),
+    "tablet right workspace remains reachable after reflow");
+  await page.locator("#partNumber").focus();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "partNumber",
+    "Find must remain keyboard focusable on tablet");
+  assert.ok(await page.locator("#vinInput").isDisabled() && await page.locator("#variationsSelect").isDisabled(),
+    "unsupported VIN and advanced variation controls stay explicitly disabled");
+  await page.screenshot({ path: evidenceDir + "tablet-900.png", fullPage: true });
 
   // Mobile snapshots prove the upper controls stay put while lower panels scroll.
   for (const width of [220, 320]) {
@@ -275,7 +333,7 @@ try {
   assert.ok(g.pageWidth <= g.viewport.width + 1, "landscape horizontal overflow");
   assert.ok(g.content.height >= 40, "landscape content became inaccessible");
   await page.screenshot({ path: evidenceDir + "mobile-landscape.png" });
-  console.log("PASS: browser geometry, independent scrolling, Stock help, translation controls and screenshots");
+  console.log("PASS: #875 desktop/tablet/mobile geometry, synchronized PART selection, independent scrolling, accessibility and screenshots");
   console.log("Evidence directory: " + evidenceDir);
   if (!base) console.log("Scope: built local UI, not a verified deployed Worker or real device soft keyboard");
 } finally {
