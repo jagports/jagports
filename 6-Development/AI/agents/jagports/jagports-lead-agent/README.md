@@ -413,6 +413,40 @@ The operator reported this exact output from the `codex` account on the Raspberr
 
 The intended timer interval is every **9 hours and 45 minutes**, but this API test does not verify that the Raspberry Pi timer has been activated or that a scheduled agent run succeeded. Verify live scheduler state and service logs separately; do not confuse a successful manual request with scheduled execution.
 
+
+## Lead Agent scheduling — intended 9h45min cadence
+
+The **intended host schedule** is one Lead Agent coordinator run every **9 hours and 45 minutes** (585 minutes), using a `systemd --user` timer on the Raspberry Pi. Its service invokes `main.py`, which in turn invokes the registered deterministic Documentation, Deployment, and Knowledge specialists. The specialists have no separate cron schedules.
+
+The host's **systemd timer is the actual schedule authority**. The repository's `config.yaml` value `polling.interval_minutes: 585` records intended cadence, but the current `main.py` does not read that polling value or create a scheduler. Changing YAML alone does not activate or change a timer. An existing `crontab` entry or another systemd timer must not launch a duplicate agent process.
+
+Recommended user timer at `~/.config/systemd/user/jagports-lead-agent.timer`:
+
+```ini
+[Unit]
+Description=Run Jagports Lead Agent every 9 hours 45 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=9h45min
+Unit=jagports-lead-agent.service
+
+[Install]
+WantedBy=timers.target
+```
+
+`OnUnitActiveSec` is a **monotonic interval measured from the previous activation of the service**, not fixed clock times such as 09:45 or every day at 09:45. `OnBootSec=5min` provides an initial activation after boot/user-manager startup; the first actual fire depends on the user manager starting. User-level timers may require an administrator to enable lingering to survive user logout or run after boot without login.
+
+The user service should be a `Type=oneshot` unit with `WorkingDirectory=/home/codex/jagports-lead-agent` and `ExecStart=/home/codex/jagports-lead-agent/venv/bin/python /home/codex/jagports-lead-agent/main.py`. Using the virtual environment interpreter directly avoids a stale `run-agent.sh` wrapper still executing legacy `agent.py`. Confirm the installed user service and any wrapper before replacing an existing working configuration.
+
+**Operator verification:** `systemctl --user cat jagports-lead-agent.timer jagports-lead-agent.service`; `systemctl --user is-enabled jagports-lead-agent.timer`; `systemctl --user is-active jagports-lead-agent.timer`; `systemctl --user list-timers --all`; one-shot `systemctl --user start jagports-lead-agent.service`; `systemctl --user show jagports-lead-agent.service -p Result -p ExecMainStatus`; and `journalctl --user -u jagports-lead-agent.service -n 60 --no-pager`. Also check the generated `reports/lead_report.md` and `state/agent_state.json` after the service completes. Do not expose local `.env` or tokens in test evidence.
+
+The operator reported a successful manual `python main.py` run after approximately a week between executions, yielding a large batch of new/closed records. That gap plausibly accounts for the large delta; it is **not** evidence of an active unattended timer or a state-persistence defect. A second immediate run with little GitHub activity should produce few or no changes.
+
+The standalone OpenAI API test and this scheduler test prove different capabilities. As currently implemented, the coordinator does not invoke `openai_service.py` or the planned OpenAI Agents SDK. No paid reasoning call should be inferred from a successful scheduled `main.py` run.
+
+Full Raspberry Pi installation and verification instructions are maintained in [Jagports AI OS Lead Agent Setup](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
+
 ## Governance boundary
 
 GitHub remains the durable system of record. Repository workflow, review, testing, approval, and merge rules remain authoritative regardless of which model provider may later be connected.
