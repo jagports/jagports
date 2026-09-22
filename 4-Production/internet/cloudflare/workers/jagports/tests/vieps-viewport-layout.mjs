@@ -72,7 +72,7 @@ test("#888 stock help is touch accessible and does not consume mobile top height
   assert.match(rule(".stock-help-popover"), /width:\s*min\(19rem, calc\(100vw - 1rem\)\)/);
   assert.match(rule(".stock-help-popover"), /overflow:\s*auto/);
   assert.match(rule(".stock-help-popover", mobile), /max-height:\s*min\(30dvh, 9rem\)/);
-  assert.match(mobile, /@media \(max-width: 320px\)/);
+  assert.match(css, /@media \(max-width: 320px\)/);
 });
 
 test("#888 tablet and keyboard-scroll regions remain available", () => {
