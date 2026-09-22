@@ -157,6 +157,20 @@ Imported JEPC descriptions may be presented as filter candidates. Normalized sem
 
 Language-specific JEPC tree structure may differ. Catalogue-data language selection therefore chooses among imported source-language tree contexts rather than assuming that UI translation resources translate one fixed source tree.
 
+## Parts Tree default and selection behavior
+
+The Parts Tree is the hierarchical catalogue navigation surface and the only multi-PART selection surface.
+
+Default unfiltered behavior:
+
+- show first-level branches only;
+- do not preload or expand deeper branches by default;
+- do not show PART leaves until the user has navigated to the branch level that contains them or a search/filter state explicitly narrows the tree to matching PART leaves.
+
+When a branch is selected, the Parts Tree shows all available next-level branches under that selected branch. This branch-selection rule applies step by step through the hierarchy until the available next level is PART leaves.
+
+When search or filtering is active, the tree may narrow to matching branches, required ancestors and matching PART leaf nodes as specified below. Search/filter narrowing does not change the default branch-navigation contract.
+
 ## Free-text result display cases
 
 Free-text results use the existing VIEPS regions. The UI must not create a separate result list or explanation view to show free-text matches.
@@ -243,7 +257,7 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 ## Result states
 | State | Meaning |
 |---|---|
-| `empty` | No search submitted; permanent Concept-11 shell remains visible |
+| `empty` | No search submitted; permanent Concept-11 shell remains visible; Parts Tree shows first-level branches only |
 | `invalid` | Query fails supported validation |
 | `not_found` | Valid search has no supported deterministic match and no available free-text match after all active search modes have been evaluated |
 | `stock_filtered_empty` | Search matches exist, but the selected supported stock constraint removes all visible results; display `No matching parts currently on stock.` |
@@ -259,7 +273,7 @@ Stock-quality presentation may additionally distinguish explicit stock-detail st
 ## Result distribution into merged Concept-11
 ```text
 resolved identity/context or candidate set
-   ├── Parts Tree main-level index + matching branch/path ancestors + clickable matching PART leaf nodes
+   ├── Parts Tree main-level index + first-level default branches, selected-branch next levels, or matching branch/path ancestors + clickable matching PART leaf nodes when search/filtering is active
    ├── Suitability Model Ranges row + matched range/model/body-style context when available
    ├── Location at car (left-middle)
    ├── Suitability / Filter or facts (right-middle)
@@ -297,7 +311,9 @@ PartSearchResult
   occurrences[]                  # all matching source occurrences
   selected_occurrence/context
   tree context                    # complete source path, language-qualified where relevant
-  tree_part_leafs[]?              # clickable matching PART leaves under their matching branch/path ancestors
+  tree_default_branches[]?        # first-level branches for default/unfiltered tree state
+  tree_next_branches[]?           # all available next-level branches under the selected branch
+  tree_part_leafs[]?              # clickable matching or navigated PART leaves under their branch/path ancestors
   diagram/item context when available
   fitment/suitability context when available
   model_range/body-style context when available
@@ -316,6 +332,8 @@ The API/UI boundary must preserve catalogue/reference versus operational-stock s
 Cover at least:
 - valid Jaguar part number;
 - valid deterministic non-numbered identifier where supported;
+- default Parts Tree state showing first-level branches only;
+- selecting a Parts Tree branch showing all available next-level branches under that selected branch;
 - multiple EPC occurrences;
 - valid no-match after deterministic and active free-text modes both fail;
 - multiple deterministic candidates without guessed selection;
@@ -362,6 +380,7 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - A stock-filtered-empty result is distinct from a total search no-match.
 - A context-only free-text match is shown through the existing region that owns that context and must not fabricate a selected PART.
 - Multiple PART matches are selectable as Parts Tree leaf nodes only; no content element should present many PARTs.
+- Default Parts Tree navigation starts at first-level branches and reveals all available next-level branches when a branch is selected.
 
 ## Acceptance criteria
 - [x] Search/result states and canonical identity boundaries are documented.
@@ -372,6 +391,8 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - [x] Multiple canonical search candidates remain selectable as Parts Tree leaf nodes rather than being guessed into one PART or shown as a separate multi-PART content list.
 - [x] Free-text candidates are shown in existing Concept-11 regions, with multiple PARTs selectable only through clickable Parts Tree leaves.
 - [x] PART / Image / Status shows exactly one selected PART and must not present many PARTs.
+- [x] Parts Tree default state shows first-level branches only.
+- [x] Selecting a Parts Tree branch shows all available next-level branches under that selected branch.
 - [x] Matching text fragments are highlighted where visible.
 - [x] `stock_filtered_empty` is distinct from a total `not_found` result and uses `No matching parts currently on stock.` wording.
 - [x] Search-path/match provenance may cross the API boundary without redefining canonical PART identity.
