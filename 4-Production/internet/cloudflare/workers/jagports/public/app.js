@@ -21,6 +21,26 @@ let cachedCandidatesData = null;
 let pendingCandidateId = null;
 let viewMode = "empty";
 
+const BROWSE_RANGE_LABELS = Object.freeze([
+  "Jaguar Accessories", "Daimler Limousine", "E-Pace", "E-Type", "F-Pace",
+  "F-Type", "S-Type", "X-Type", "XE Range", "XF Range", "XJ Range",
+  "XJS", "XK Range",
+]); // #875 browse-only labels, never evidence of PART fitment.
+function renderBrowseRangeIndex() {
+  const note = escapeHtml(t("header.filter_pending"));
+  $("ranges").innerHTML = `<p id="rangeBrowseNote" class="muted compact-note">${note}</p>
+    <ul class="range-list browse-range-list">${BROWSE_RANGE_LABELS.map((label, index) =>
+      `<li><label><input type="checkbox" disabled aria-describedby="rangeBrowseNote"
+        data-browse-range-index="${index}"> ${escapeHtml(label)}</label></li>`).join("")}</ul>`;
+}
+function renderApplicableState(state) {
+  const message = state === "error" ? t("ranges.error")
+    : state === "no_match" ? t("ranges.no_match")
+    : t("ranges.unavailable");
+  $("ranges").innerHTML = empty(message);
+}
+
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"]/g, (ch) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;",
@@ -388,27 +408,34 @@ function renderSelectedRange() {
     </table></div>` : empty(t(variationStateKey));
 }
 
-function renderFitment(fitment) {
-  fitmentRows = fitment;
-  const applicable = fitment.filter((item) => item.applicability_state === "applicable");
+function renderFitment(fitment, declaredState = null) {
+  // Consume only positive assertions returned by the approved PART read path.
+  // The 13 synthetic browse labels never enter this selected-PART result.
+  fitmentRows = Array.isArray(fitment) ? fitment : [];
+  const applicable = fitmentRows.filter((item) =>
+    item.applicability_state === "applicable" && item.range_code && item.range_name);
   const ranges = [...new Map(applicable.map((item) => [item.range_code, item])).values()];
-  const unavailable = fitment.some((item) => item.applicability_state === "unavailable");
-  const confirmedNoMatch = fitment.length > 0 && fitment.every((item) => item.applicability_state === "excluded");
+  const error = declaredState === "error" || fitmentRows.some((item) => item.applicability_state === "error");
+  const unavailable = !fitmentRows.length || declaredState === "unavailable"
+    || fitmentRows.some((item) => item.applicability_state === "unavailable");
+  const confirmedNoMatch = declaredState === "no_match"
+    || (fitmentRows.length > 0 && fitmentRows.every((item) =>
+      ["excluded", "no_match"].includes(item.applicability_state)));
 
-  let emptyLabel = t("ranges.no_suitable");
-  if (unavailable && !ranges.length) emptyLabel = t("ranges.unavailable");
-  else if (confirmedNoMatch) emptyLabel = t("ranges.no_match");
-
+  const emptyState = error ? "error" : confirmedNoMatch ? "no_match" : "unavailable";
+  const emptyLabel = t(emptyState === "error" ? "ranges.error"
+    : emptyState === "no_match" ? "ranges.no_match" : "ranges.unavailable");
   $("rangeSelect").innerHTML = ranges.length ? ranges.map((item) =>
     `<option value="${escapeHtml(item.range_code)}">${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</option>`).join("")
     : `<option value="">${escapeHtml(emptyLabel)}</option>`;
   $("rangeSelect").disabled = !ranges.length;
   $("ranges").innerHTML = ranges.length ? `<ul class="range-list">${ranges.map((item) =>
-    `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>` : empty(emptyLabel);
+    `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>`
+    : empty(emptyLabel);
   renderSelectedRange();
   if (!ranges.length) {
-    const variationStateKey = unavailable ? "fitment.unavailable" : confirmedNoMatch ? "fitment.no_match" : "fitment.no_confirmed";
-    $("fitment").innerHTML = empty(t(variationStateKey));
+    $("fitment").innerHTML = empty(t(error ? "fitment.unavailable"
+      : confirmedNoMatch ? "fitment.no_match" : "fitment.unavailable"));
   }
 }
 
@@ -424,7 +451,7 @@ function renderResolvedData(data) {
   });
   renderSearchResults(cachedCandidatesData?.matches || [data.part], data.part?.id);
   renderVisuals(data.images || [], data.diagrams || []);
-  renderFitment(data.fitment || []);
+  renderFitment(data.fitment, data.fitment_state);
 }
 
 function resetContext(messageKey = "part.no_part_selected") {
@@ -440,7 +467,7 @@ function resetContext(messageKey = "part.no_part_selected") {
   $("visualSelect").innerHTML = "";
   $("rangeSelect").innerHTML = `<option value="">${escapeHtml(t("ranges.no_part_selected"))}</option>`;
   $("rangeSelect").disabled = true;
-  $("ranges").innerHTML = empty(t("ranges.applicable_help"));
+  renderBrowseRangeIndex();
   $("selectedRange").textContent = t("fitment.selected_none");
   $("fitment").innerHTML = empty(t("fitment.browse_help"));
   $("vehicleLocation").innerHTML = empty(t("location.unavailable"));
@@ -645,6 +672,7 @@ function setupViepsUi() {
       if (version !== requestVersion) return;
       resetContext("part.no_part_resolved");
       renderTree([], { roots: cachedRootData?.roots || [] });
+      if (String(error?.message || "") !== "part not found") renderApplicableState("error");
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
     } finally {
