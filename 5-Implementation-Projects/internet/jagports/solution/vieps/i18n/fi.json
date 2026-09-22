@@ -34,8 +34,17 @@
     "xr847031_description": "#354 korvaavuuden korvaavan osan testitieto"
   },
   "header": {
+    "applicable_models": "Sopivat mallit",
+    "banner": "VIEPS-osahaku",
+    "filter_pending": "Suodatin ei ole vielä käytettävissä",
     "instructions": "Ohjeet ja testiaineisto",
-    "product_name": "Jagports Vehicle Information and EPC System"
+    "not_yet_supported": "Tämä toiminto ei ole vielä käytettävissä",
+    "parts_language_pending": "Osien kuvaukset näytetään käytettävissä olevilla lähdekielillä",
+    "product_name": "Jagports Vehicle Information and EPC System",
+    "results_heading": "Osahaun tulokset",
+    "variations_filter": "Sopivuus / muunnelmat",
+    "vin": "VIN",
+    "vin_pending": "VIN-haku ei ole vielä käytettävissä"
   },
   "locale": {
     "english": "Englanti",
@@ -72,6 +81,7 @@
   },
   "ranges": {
     "applicable_help": "Hae osa nähdäksesi sopivat mallisarjat. Varastopohjainen selaus ei ole käytettävissä.",
+    "error": "Sopivien mallien tietoja ei voitu ladata.",
     "heading": "Sopivat mallisarjat",
     "label": "Mallisarja / sopivuus",
     "no_match": "Mikään sopiva mallisarja ei vastaa tätä OSA-/kontekstiyhdistelmää.",
@@ -80,11 +90,12 @@
     "unavailable": "Ajoneuvosopivuustietoja ei ole saatavilla."
   },
   "search": {
+    "bookmark_pending": "Kirjanmerkki (ei vielä käytettävissä)",
     "error": "OSAA ei voitu ratkaista.",
     "input_aria": "Jaguar-osanumero tai testitunniste",
     "input_placeholder": "esim. MJB7703AA, MNA7691AA, firtree1",
-    "multiple_matches_one": "{{count}} vastaava OSA. Valitse se osapuusta.",
-    "multiple_matches_other": "{{count}} vastaavaa OSAA. Valitse yksi osapuusta.",
+    "multiple_matches_one": "{{count}} vastaava OSA. Valitse se osapuusta tai hakutuloksista.",
+    "multiple_matches_other": "{{count}} vastaavaa OSAA. Valitse yksi osapuusta tai hakutuloksista.",
     "no_stock_match": "Yhtään vastaavaa osaa ei ole tällä hetkellä varastossa.",
     "not_found": "Osaa ei löytynyt.",
     "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
@@ -138,6 +149,7 @@
         "short_description": "Varasto-osan kuntoa ei ole vielä luokiteltu."
       }
     },
+    "quality_unsupported": "Laatuluokkien A–E suodatus ei ole vielä käytettävissä.",
     "status": "Tila"
   },
   "stock_admin": {

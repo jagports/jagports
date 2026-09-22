@@ -214,6 +214,52 @@ test("partial part-number input with multiple candidates returns a multiple-matc
   assert.equal(data.part, undefined);
 });
 
+test("explicit candidate selection stays within current search candidates and does not invent context", async () => {
+  const parts = [
+    { id: 8, part_number_raw: "MNA 7691-AA", part_number_normalized: "MNA7691AA",
+      description: "Fan warning label", source: "fixture", verification_status: "fixture" },
+    { id: 9, part_number_raw: "MNA 7691-AB", part_number_normalized: "MNA7691AB",
+      description: "Related fixture label", source: "fixture", verification_status: "fixture" },
+  ];
+  const db = { DB: makeDb({ parts }) };
+  const initial = await handleViepsPart(new Request("https://example.test/api/vieps/part?q=mna7691"), db);
+  assert.equal((await initial.json()).state, "multiple_match");
+
+  const selected = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=mna7691&candidate_id=9"), db);
+  assert.equal(selected.status, 200);
+  const resolved = await selected.json();
+  assert.equal(resolved.state, "resolved");
+  assert.equal(resolved.part.id, 9);
+  assert.deepEqual(resolved.occurrences, []);
+  assert.deepEqual(resolved.fitment, []);
+  assert.deepEqual(resolved.parts_tree, []);
+
+  const notCandidate = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=mna7691&candidate_id=10"), db);
+  assert.equal(notCandidate.status, 404);
+  assert.equal((await notCandidate.json()).error_code, "candidate_not_found");
+
+  const invalid = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=mna7691&candidate_id=9%20OR%201"), db);
+  assert.equal(invalid.status, 400);
+  assert.equal((await invalid.json()).error_code, "candidate_id_invalid");
+});
+
+test("candidate selection cannot bypass the existing positive-quantity stock eligibility", async () => {
+  const parts = [
+    { id: 12, part_number_raw: "ABC-123", part_number_normalized: "ABC123",
+      description: "Stocked", source: "fixture", verification_status: "fixture", has_available_stock: 1 },
+    { id: 13, part_number_raw: "ABC-124", part_number_normalized: "ABC124",
+      description: "Unavailable", source: "fixture", verification_status: "fixture", has_available_stock: 0 },
+  ];
+  const response = await handleViepsPart(
+    new Request("https://example.test/api/vieps/part?q=abc&stock_only=1&candidate_id=13"),
+    { DB: makeDb({ parts }) });
+  assert.equal(response.status, 404);
+  assert.equal((await response.json()).error_code, "candidate_not_found");
+});
+
 test("stock-only filter is explicit and preserves canonical PART identity", async () => {
   const stocked = {
     id: 12,

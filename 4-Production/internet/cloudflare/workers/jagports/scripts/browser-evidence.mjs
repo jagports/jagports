@@ -12,6 +12,21 @@ const evidenceDir = fileURLToPath(new URL("../browser-evidence/", import.meta.ur
 const mime = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml" };
 const extension = (name) => name.slice(name.lastIndexOf("."));
 
+// Browser-only PART responses exercise existing search/selection UI, not new APIs.
+const browserParts = [
+  { id: 101, part_number_normalized: "BRTEST1", description: "Left fixture PART" },
+  { id: 102, part_number_normalized: "BRTEST2", description: "Right fixture PART" },
+];
+const browserRoots = [{ node_id: 1, label: "XK Range (browser fixture)", sort_order: 1 }];
+const browserPaths = [
+  { part_id: 101, node_id: 2, nodes: [
+    { node_id: 1, label: "XK Range (browser fixture)" }, { node_id: 2, label: "Front" },
+  ] },
+  { part_id: 102, node_id: 3, nodes: [
+    { node_id: 1, label: "XK Range (browser fixture)" }, { node_id: 3, label: "Rear" },
+  ] },
+];
+
 async function localServer() {
   const server = createServer(async (request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
@@ -22,6 +37,28 @@ async function localServer() {
         stock_browse_state: "unsupported",
       }));
       return;
+    }
+    if (pathname === "/api/vieps/part") {
+      const params = new URL(request.url, "http://localhost").searchParams;
+      if (params.get("q") === "BRTEST") {
+        const id = params.get("candidate_id");
+        const part = browserParts.find((item) => String(item.id) === id);
+        const payload = !id ? {
+          state: "multiple_match", query: "BRTEST",
+          matches: [...browserParts, { ...browserParts[0] }],
+          parts_tree: browserPaths, tree_roots: browserRoots,
+        } : part ? {
+          state: "resolved", part, tree_roots: browserRoots,
+          parts_tree: browserPaths.filter((entry) => entry.part_id === part.id),
+          occurrences: [], stock: [], images: [], diagrams: [],
+          fitment: [{ range_code: "XK", range_name: "XK Range",
+            variation: "Browser-confirmed fixture", applicability_state: "applicable",
+            verification_status: "fixture" }],
+        } : { error: "candidate not found" };
+        response.writeHead(id && !part ? 404 : 200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(payload));
+        return;
+      }
     }
     if (pathname.startsWith("/api/")) {
       response.writeHead(503, { "Content-Type": "application/json" });
@@ -81,13 +118,135 @@ try {
   await page.locator(".fixture-guide summary").waitFor();
   if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
 
+  if (!base) {
+    // #875 browse-only vocabulary; no selected PART and no fabricated fitment.
+    const expectedBrowseLabels = [
+      "Jaguar Accessories", "Daimler Limousine", "E-Pace", "E-Type",
+      "F-Pace", "F-Type", "S-Type", "X-Type", "XE Range", "XF Range",
+      "XJ Range", "XJS", "XK Range",
+    ];
+    const browseRows = page.locator("#ranges .browse-range-list li");
+    await browseRows.first().waitFor();
+    assert.deepEqual((await browseRows.allTextContents()).map((s) => s.trim()), expectedBrowseLabels,
+      "the right Applicable Models index must show exactly 13 browse labels in order");
+    assert.equal(await page.locator("#ranges .browse-range-list input:disabled").count(), 13,
+      "all synthetic browse filter checkboxes must remain disabled");
+    assert.ok(await page.locator("#rangeSelect").isDisabled(),
+      "without PART context, model detail selection cannot masquerade as a working filter");
+    assert.equal(await page.locator("#partCard").textContent().then((text) =>
+      expectedBrowseLabels.some((label) => text.includes(label))), false,
+    "fixture labels must not become selected-PART fitment");
+  }
+
   // Desktop Concept-11 layout and image evidence.
   let g = await geometry(page);
   assert.ok(g.pageWidth <= g.viewport.width + 1, "desktop horizontal overflow");
   const desktopTree = await page.locator(".tree-panel").boundingBox();
-  const desktopSearch = await page.locator(".search-panel").boundingBox();
+  const desktopSearch = await page.locator(".search-block").boundingBox();
   assert.ok(desktopTree.x < desktopSearch.x, "desktop tree remains left of Find");
+  // #875: verify all three workspace positions and native independent scroll
+  // affordances without replacing the original #893 mobile assertions.
+  const desktopAreas = await page.evaluate(() => {
+    const bounds = (selector) => {
+      const el = document.querySelector(selector);
+      const rect = el.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+        height: rect.height, overflowY: getComputedStyle(el).overflowY };
+    };
+    return {
+      availability: bounds(".availability-block"), tree: bounds(".tree-panel"),
+      treeScroll: bounds("#tree"), vin: bounds(".vin-panel"),
+      location: bounds(".location-panel"), selectedPart: bounds(".visual-panel"),
+      find: bounds(".search-block"), results: bounds(".results-panel"),
+      resultsScroll: bounds("#searchResults"), models: bounds(".ranges-panel"),
+      modelsScroll: bounds(".ranges-scroll"),
+      pageScroll: document.documentElement.scrollHeight - innerHeight,
+    };
+  });
+  assert.ok(desktopAreas.availability.bottom <= desktopAreas.tree.top + 2, "Availability must precede the tree");
+  assert.ok(desktopAreas.tree.right <= desktopAreas.vin.left + 2, "tree and VIN must be separate columns");
+  assert.ok(desktopAreas.vin.right <= desktopAreas.find.left + 2, "Find must occupy the right column");
+  assert.ok(desktopAreas.vin.bottom <= desktopAreas.location.top + 2, "VIN and variations must precede Location");
+  assert.ok(Math.abs(desktopAreas.location.top - desktopAreas.selectedPart.top) <= 2,
+    "Location and selected PART must share a row");
+  assert.ok(desktopAreas.location.right <= desktopAreas.selectedPart.left + 2,
+    "Location must be left of selected PART");
+  assert.ok(desktopAreas.find.bottom <= desktopAreas.results.top + 2 &&
+    desktopAreas.results.bottom <= desktopAreas.models.top + 2,
+    "Find, Search Results and Applicable Models must stack in order");
+  for (const key of ["treeScroll", "resultsScroll", "modelsScroll"]) {
+    assert.equal(desktopAreas[key].overflowY, "auto", key + " must scroll independently");
+    assert.ok(desktopAreas[key].height > 30, key + " has no usable allocated height");
+  }
+  assert.ok(desktopAreas.pageScroll <= 1, "normal desktop shell must not require page scrolling");
+  assert.ok(desktopAreas.location.height > 80 && desktopAreas.selectedPart.height > 80,
+    "desktop must retain sizeable Location and selected PART reservations");
+  if (!base) {
+    // Genuine independent scrolling under forced overflow; restore fixture DOM
+    // before screenshots and #893 mobile/Stock-help interaction checks.
+    const independent = await page.evaluate(() => {
+      const selectors = ["#tree", "#searchResults", ".ranges-scroll"];
+      const nodes = selectors.map((selector) => document.querySelector(selector));
+      const original = nodes.map((node) => ({ node, html: node.innerHTML, top: node.scrollTop }));
+      try {
+        for (const node of nodes) {
+          const filler = document.createElement("div");
+          filler.style.height = "1400px";
+          filler.textContent = "Scroll regression fixture";
+          node.appendChild(filler);
+          node.scrollTop = 0;
+        }
+        const overflow = nodes.map((node) => node.scrollHeight > node.clientHeight + 100);
+        const isolated = [];
+        for (let i = 0; i < nodes.length; i++) {
+          for (const node of nodes) node.scrollTop = 0;
+          nodes[i].scrollTop = 120;
+          isolated.push(nodes[i].scrollTop > 0 &&
+            nodes.every((node, j) => j === i || node.scrollTop === 0));
+        }
+        return { overflow, isolated, pageScroll: document.documentElement.scrollHeight - innerHeight };
+      } finally {
+        for (const { node, html, top } of original) {
+          node.innerHTML = html;
+          node.scrollTop = top;
+        }
+      }
+    });
+    assert.ok(independent.overflow.every(Boolean), "tree/results/models must independently overflow");
+    assert.ok(independent.isolated.every(Boolean), "scrolling one panel must not scroll another");
+    assert.ok(independent.pageScroll <= 1, "overflowing panels must not scroll the desktop page");
+  }
   await page.screenshot({ path: evidenceDir + "desktop.png", fullPage: true });
+  if (!base) {
+    // Required #875 visual: multiple canonical results, then synchronized selection.
+    await page.locator("#partNumber").fill("BRTEST");
+    await page.locator("#partSearch").press("Enter");
+    const resultLinks = page.locator("#searchResults [data-result-part-id]");
+    await resultLinks.first().waitFor();
+    assert.equal(await resultLinks.count(), 2, "duplicate occurrence must not duplicate canonical Search Results");
+    assert.equal(await page.locator("#searchResults .selected-result").count(), 0,
+      "multiple candidates must have no default PART selection");
+    assert.equal(await page.locator("#searchResults .bookmark-label input:disabled").count(), 2,
+      "each result keeps a separate disabled bookmark");
+    await resultLinks.nth(1).focus();
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset?.resultPartId), "102",
+      "result row must expose keyboard focus on the selectable PART link");
+    await page.screenshot({ path: evidenceDir + "desktop-multiple-results.png", fullPage: true });
+
+    await resultLinks.nth(1).click();
+    await page.locator("#partCard").filter({ hasText: "BRTEST2" }).waitFor();
+    assert.equal(await page.locator("#searchResults .selected-result [data-result-part-id='102'][aria-current='page']").count(), 1,
+      "right-hand selected state must identify the canonical PART once");
+    assert.equal(await page.locator("#tree [data-part-id='102'][aria-current='page']").count(), 1,
+      "Parts Tree and Search Results must share one canonical selected PART");
+    assert.equal(await page.locator("#tree [aria-current='page']").count(), 1,
+      "only one tree occurrence may be active");
+    assert.equal(await page.locator("#partCard").textContent().then((v) => (v.match(/BRTEST2/g) || []).length), 1,
+      "central detail panel must contain one selected canonical PART identity");
+    assert.match(await page.locator("#ranges").textContent(), /XK Range/,
+      "selected-PART Applicable Models must come from positive fixture evidence");
+    await page.screenshot({ path: evidenceDir + "desktop-synchronized-selection.png", fullPage: true });
+  }
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
   const popover = page.locator("#stockHelpPopover");
@@ -99,10 +258,38 @@ try {
   assert.equal(await stock.isChecked(), initialStock, "help must not toggle Stock-only");
   await page.keyboard.press("Escape");
   assert.ok(!(await popover.isVisible()), "Escape dismisses help after restoring focus");
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "stockHelpButton",
+    "Escape restores keyboard focus to the Stock help trigger");
   await button.press("Space");
   assert.ok(await popover.isVisible(), "Space opens help");
   await button.press("Enter");
   assert.ok(!(await popover.isVisible()), "Enter closes pinned help");
+
+  // Tablet regression uses the same #893 browser mechanism and no separate workflow.
+  await page.setViewportSize({ width: 900, height: 800 });
+  await page.goto(base || local.url, { waitUntil: "load" });
+  if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
+  g = await geometry(page);
+  assert.ok(g.pageWidth <= 901 && g.bodyWidth <= 901, "tablet horizontal overflow");
+  const tabletAreas = await page.evaluate(() => {
+    const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+    const left = rect(".left-workspace");
+    const centre = rect(".centre-workspace");
+    const right = rect(".right-workspace");
+    return { left: { left: left.left, right: left.right, top: left.top },
+      centre: { left: centre.left, right: centre.right, top: centre.top },
+      right: { left: right.left, right: right.right, top: right.top } };
+  });
+  assert.ok(tabletAreas.left.right <= tabletAreas.centre.left + 2,
+    "tablet keeps left and centre workspaces side by side");
+  assert.ok(tabletAreas.right.top >= Math.min(tabletAreas.left.top, tabletAreas.centre.top),
+    "tablet right workspace remains reachable after reflow");
+  await page.locator("#partNumber").focus();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "partNumber",
+    "Find must remain keyboard focusable on tablet");
+  assert.ok(await page.locator("#vinInput").isDisabled() && await page.locator("#variationsSelect").isDisabled(),
+    "unsupported VIN and advanced variation controls stay explicitly disabled");
+  await page.screenshot({ path: evidenceDir + "tablet-900.png", fullPage: true });
 
   // Mobile snapshots prove the upper controls stay put while lower panels scroll.
   for (const width of [220, 320]) {
@@ -146,7 +333,7 @@ try {
   assert.ok(g.pageWidth <= g.viewport.width + 1, "landscape horizontal overflow");
   assert.ok(g.content.height >= 40, "landscape content became inaccessible");
   await page.screenshot({ path: evidenceDir + "mobile-landscape.png" });
-  console.log("PASS: browser geometry, independent scrolling, Stock help, translation controls and screenshots");
+  console.log("PASS: #875 desktop/tablet/mobile geometry, synchronized PART selection, independent scrolling, accessibility and screenshots");
   console.log("Evidence directory: " + evidenceDir);
   if (!base) console.log("Scope: built local UI, not a verified deployed Worker or real device soft keyboard");
 } finally {
