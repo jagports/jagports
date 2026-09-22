@@ -46,6 +46,77 @@ python -c 'from dotenv import load_dotenv; load_dotenv(); from services.openai_s
 
 This command is a proposed test, **not operator-verified evidence**. A success verifies the wrapper, not OpenAI Agents SDK orchestration, GitHub semantics or production autonomy.
 
+## One-shot GitHub → specialists → Telegram communication test
+
+Run this **as `admin` over SSH to MyNode**, including from Windows Git Bash. It invokes the installed `codex` Python environment, reads the local `.env` explicitly, fetches the current GitHub snapshot, displays a few open records and the full title/body of one current open **Issue**, invokes all three deterministic specialists, saves the standard report, and sends a concise test summary through the existing `telegram_service.notify()` function. It sends **one real Telegram message**; rerunning sends another. It does **not** make an OpenAI API call.
+
+```bash
+sudo -u codex bash <<'EOF'
+set -e
+cd /home/codex/jagports-lead-agent
+./venv/bin/python - <<'PY'
+import os
+from dotenv import load_dotenv
+
+load_dotenv("/home/codex/jagports-lead-agent/.env")
+from services.github_service import GitHubService
+from services.telegram_service import notify
+from agents.lead_agent import LeadAgent
+from services.report_service import create_report, save_report
+
+github = GitHubService(os.environ["GITHUB_TOKEN"], "jagports/jagports")
+issues, event, results = LeadAgent(github).run()
+save_report(create_report(issues, event.data, results, event.context))
+
+opened = sorted(
+    (item for item in issues if item["state"] == "open"),
+    key=lambda item: item["number"],
+    reverse=True,
+)
+print("LATEST OPEN GITHUB RECORDS (Issues and possibly PRs):")
+for item in opened[:5]:
+    print("#{} {}".format(item["number"], item["title"]))
+print("CHANGES:", event.data)
+print("SPECIALIST RESULTS:")
+for result in results:
+    print(result.to_dict())
+
+# Diagnostic detail lookup: the current collector does not pass Issue bodies to specialists.
+sample = None
+for item in opened[:20]:
+    full = github.repo.get_issue(item["number"])
+    if full.pull_request is None:
+        sample = full
+        break
+if sample:
+    print("SAMPLE ISSUE DETAIL: #{} {}".format(sample.number, sample.title))
+    print((sample.body or "(no body)")[:1200])
+else:
+    print("No open Issue found among the newest 20 records.")
+
+message = (
+    "JAGPORTS COMMUNICATION TEST\n"
+    "Open GitHub records: {}\n".format(len(opened))
+    + "Sample Issue: {}\n".format(
+        "#{} {}".format(sample.number, sample.title[:100]) if sample else "none in sample"
+    )
+    + "Specialists: {}\n".format(", ".join(
+        "{}={}".format(item.to_dict().get("agent", item.to_dict().get("agent_name", "specialist")),
+                         item.to_dict().get("status", "result"))
+        for item in results
+    ))
+    + "Manual test only; report saved locally."
+)
+notify(message)
+print("TELEGRAM: send completed")
+PY
+EOF
+```
+
+**Pass criteria:** the terminal displays collected open records, an actual Issue's title/body, three structured specialist results, and `TELEGRAM: send completed`; the configured Telegram chat receives the message. The saved report is `~/jagports-lead-agent/reports/lead_report.md`. If Telegram credentials are missing or delivery fails, the test exits with an error rather than silently reporting success. This diagnostic execution updates the normal local lifecycle state, so a later scheduled run will not re-report those same changes.
+
+**Important limitations:** `GitHubService.get_issues()` currently collects only number/title/state/updated_at and can include PRs. The sample Issue's body above is fetched **separately for inspection**, **not** passed into the specialist `Event`. `AgentRegistry` passes lifecycle changes and snapshot metadata to three rule-based specialists; `main.py` imports Telegram's `notify` but does not call it. This one-shot diagnostic calls `notify` explicitly. A direct OpenAI wrapper test is separate; there is no SDK-backed semantic specialist or automatic Telegram delivery in the current modular pipeline.
+
 ## Portable user-systemd inspection from an administrative SSH shell
 
 On a Linux host with systemd, if the service owner has an active user manager but the administrative shell belongs to another account, target the service user's own bus. Substitute the service user when not `codex`:
