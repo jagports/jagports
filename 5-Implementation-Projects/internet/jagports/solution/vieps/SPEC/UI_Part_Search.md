@@ -155,15 +155,21 @@ When multiple PARTs match, no PART is selected by default. Matching PARTs appear
 
 When exactly one PART is resolved deterministically or by free text, that PART may populate PART / Image / Status according to the single-result contract.
 
+## #875 implementation phase split
+
+**Current implementation target:** retain deterministic-first/free-text fallback and existing stock-only contracts; render the right-hand independently scrolling PN/name result list and synchronize its selected canonical PART with the left #873 Parts Tree and one centre detail panel. Show separate **disabled** bookmark checkboxes. Preserve explicit result states and occurrence context, rather than changing search resolution.
+
+**Deferred implementation:** bookmark activation/storage and full **multiple-model-range ANY (OR)** filtering. For supported future range filtering, selected normalized range IDs constrain occurrence-first candidate resolution: retain a canonical PART if at least one surviving occurrence has verified applicable evidence for **one or more** selected ranges and meets all other active approved filters. An empty selected-range set imposes no range filter. Unsupported future controls may be visually present but must be disabled and clearly explained.
+
 ## Right-hand Search Results and bookmarks (#875)
 
 - One independently scrollable PN/name result row appears per distinct canonical PART in the current candidate set. Use stable canonical identity, not label text, as the result key. Preserve each real EPC occurrence in the Parts Tree without duplicating one canonical PART as separate result rows.
 - A result row and a tree PART leaf update the **same** selected PART and visible selection. A tree leaf can additionally carry its verified source occurrence. If a selected result has multiple source occurrences, retain all paths and require explicit context before showing occurrence-specific location, diagram-item or VIN applicability.
 - Rows are real keyboard-accessible PART links/actions and highlight matching text fragments where visible. A supported non-numbered identifier does not acquire an invented Jaguar PN.
-- Each result row's separate **bookmark checkbox** changes bookmark membership only, never the selected PART, stock filtering or fitment. Storage scope (page/session, browser-local or authenticated account), authorization and saved-list behaviour require an explicit #875 product decision before implementation.
+- **Current layout increment:** show a separate, properly labelled bookmark checkbox beside each result row, but leave it **disabled** with an accessible future-feature explanation. Do not simulate saving, a checked persistence state or account authorization. **Later increment:** activate bookmarking only after storage scope, authorization and saved-list behavior are separately specified; a bookmark toggle must never select a PART or alter stock filtering, model filtering or fitment.
 - Stock-only, VIN and normalized #641 suitability/variation inputs constrain supported candidate occurrences; a canonical PART remains while at least one verified occurrence survives.
 - Context-only matches remain in the owning tree/range region. The results panel has explicit empty, no-match, stock-filtered-empty, unsupported, unavailable and error states and never fabricates a PART row.
-- The distinct right-hand Applicable Models panel offers a fixture/index browse state when no PART is selected; with one selected PART/context it shows only evidence-backed applicable ranges, not every browse fixture. Excluded/no-match, unavailable and error remain distinct. Multi-select model-filter semantics depend on a separately approved contract.
+- The distinct right-hand Applicable Models panel offers a fixture/index browse state when no PART is selected; with one selected PART/context it shows only evidence-backed applicable ranges, not every browse fixture. Excluded/no-match, unavailable and error remain distinct. **Approved future model filtering:** select multiple normalized model ranges; match **ANY (OR)** selected range through at least one positively evidenced surviving occurrence, in conjunction with other supported constraints. Until the required read path is implemented, show the filter as disabled rather than falsely filtering.
 
 ## Occurrence-first tree filtering
 
@@ -330,7 +336,7 @@ PartSearchResult
   tree context                    # complete source path, language-qualified where relevant
   tree_part_leafs[]?              # clickable matching PART leaves under genuine branch/path ancestors
   result_list[]?                  # UI-derived canonical candidates, NOT new PART entities
-  bookmark_state?                 # independent UI-only state; persistence/auth requires #875 decision
+  bookmark_state?                 # deferred: no active bookmark state in current layout phase
   diagram/item context when available
   fitment/suitability context when available
   model_range/body-style context when available
@@ -365,7 +371,7 @@ Cover at least:
 - all matching Parts Tree branches where matching PARTs occur, with matching PARTs presented as clickable last leaf nodes and without expanding unrelated child leaves;
 - multiple-PART search results with no default selected PART;
 - synchronized tree leaves and right-hand deduplicated PN/name result rows;
-- independent bookmark toggling without selecting a PART;
+- current-phase visible but disabled bookmark checkboxes that neither select a PART nor claim saved state; later-phase independent bookmark toggling when approved;
 - no multi-PART presentation inside the centre PART / Image / Status region;
 - PART / Image / Status showing one selected PART after either surface is used;
 - Model Ranges reflecting matched model/range/body-style context where available without special Coupe/Convertible behavior;
