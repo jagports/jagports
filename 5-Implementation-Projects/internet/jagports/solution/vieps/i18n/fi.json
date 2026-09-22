@@ -194,6 +194,11 @@
     "unresolved_source_required": "Ratkaisematon varasto tarvitsee lähdetiedon tai lähdeosapuolen."
   },
   "tree": {
+    "browse_empty": "Tähän Parts Tree -kontekstiin ei ole liitetty OSIA.",
+    "browse_error": "Parts Tree -kontekstia ei voitu avata.",
+    "browse_loading": "Avataan Parts Tree -kontekstia…",
+    "browse_parts_one": "{{count}} OSA tässä Parts Tree -kontekstissa",
+    "browse_parts_other": "{{count}} OSAA tässä Parts Tree -kontekstissa",
     "catalogue_context": "Luettelokonteksti",
     "empty": "Parts Tree -kontekstia ei ole saatavilla.",
     "heading": "Parts Tree",
