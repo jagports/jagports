@@ -252,10 +252,19 @@ function renderTree(paths = [], options = {}) {
 
 function renderPartCandidates(data) {
   const candidates = (data.matches || []).filter((part) => partSearchValue(part));
+  const serverPaths = Array.isArray(data.parts_tree) ? data.parts_tree : [];
   $("partCard").innerHTML = empty(t("part.no_part_selected"));
   renderTree([], {
-    roots: data.tree_roots || [],
-    partLeaves: candidates.map((part) => ({ part, paths: part.tree_paths || [] })),
+    roots: data.tree_roots || cachedRootData?.roots || [],
+    // Current-main free-text searches supply parts_tree; older browse payloads
+    // supply matches[].tree_paths. Both must use evidenced node IDs only.
+    partLeaves: candidates.map((part) => ({
+      part,
+      paths: (part.tree_paths?.length ? part.tree_paths : serverPaths
+        .filter((path) => String(path.part_id) === String(part.id))
+        .map((path) => ({ nodes: (path.nodes || []).filter((node) => node.kind !== "part") })))
+        .filter((path) => path.nodes?.length && path.nodes.every((node) => node.node_id != null)),
+    })),
   });
 }
 
@@ -267,9 +276,16 @@ function renderTreeBrowse(data) {
   const childrenPaths = children.map((child) => ({
     nodes: [...selectedPath.nodes, { node_id: child.node_id, label: child.label, sort_order: child.sort_order }],
   }));
+  const evidencedLinks = Array.isArray(data.part_nodes) ? data.part_nodes : [];
+  // Compatibility with main's existing parts_tree API: use its terminal
+  // stable catalogue node when explicit part_nodes is unavailable. Do not
+  // expose descendants under unrelated collapsed branches.
   const linkedParts = (data.parts || []).filter((part) =>
-    (data.part_nodes || []).some((link) =>
-      String(link.part_id) === String(part.id) && String(link.node_id) === String(selectedNodeId)));
+    evidencedLinks.some((link) =>
+      String(link.part_id) === String(part.id) && String(link.node_id) === String(selectedNodeId))
+    || (data.parts_tree || []).some((entry) => String(entry.part_id) === String(part.id)
+      && String(entry.node_id) === String(selectedNodeId)
+      && entry.nodes?.some((node) => String(node.node_id) === String(selectedNodeId))));
   renderTree([...(path.length ? [selectedPath] : []), ...childrenPaths], {
     roots: data.roots || [],
     selectedNodeId,
@@ -437,11 +453,13 @@ function setupViepsUi() {
       const data = await resolveTreeRoots(Boolean($("availabilitySelect").checked));
       if (version !== requestVersion) return;
       cachedRootData = data;
+      selectedTreeNodeId = null;
       cachedBrowseData = null;
       cachedCandidatesData = null;
       viewMode = "empty";
       renderTree([], { roots: data.roots || [] });
-      $("searchStatus").textContent = t("search.prompt");
+      $("searchStatus").textContent = data.stock_browse_state === "unsupported"
+        ? t("tree.no_selection", { message: t("search.prompt") }) : t("search.prompt");
     } catch (error) {
       if (version !== requestVersion) return;
       cachedRootData = null;
