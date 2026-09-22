@@ -370,6 +370,7 @@ test('multiple free-text PART candidates appear under a single evidenced ancesto
   };
   const ui = harness(async () => response(candidates));
   await ui.search('TEST');
+  assert.equal(ui.get('searchStatus').textContent, '2 matching PARTs. Select one from the Parts Tree.');
   const tree = ui.get('tree').innerHTML;
   assert.equal((tree.match(/href="\?tree=1"/g) || []).length, 1);
   assert.equal((tree.match(/href="\?tree=2"/g) || []).length, 1);
@@ -389,9 +390,11 @@ test('switching language retains multiple-candidate leaves and avoids another se
   };
   const ui = harness(async () => response(data));
   await ui.search('TEST');
+  assert.equal(ui.get('searchStatus').textContent, '1 matching PART. Select it from the Parts Tree.');
   const before = ui.requests.length;
   ui.setLanguage('fi');
   assert.equal(ui.document.documentElement.lang, 'fi');
+  assert.equal(ui.get('searchStatus').textContent, '1 vastaava OSA. Valitse se osapuusta.');
   assert.match(ui.get('tree').innerHTML, /TEST1/);
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
   assert.equal(ui.requests.length, before);
