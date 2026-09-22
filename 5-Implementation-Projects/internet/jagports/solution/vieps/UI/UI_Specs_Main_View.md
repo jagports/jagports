@@ -45,7 +45,7 @@ The centre-right panel groups **one canonical PART** and approved evidence for i
 - Show the resolved PART image when verified image data exists, otherwise an explicit unavailable state.
 - Keep the visual associated with the selected canonical PART and occurrence/context.
 - Do not substitute unrelated media.
-- Preserve the full lower PART / Image / Status region so diagram/hotspot support can be integrated later without changing information architecture.
+- Keep the centre-right single-PART / Image / Status panel available for later diagram/hotspot integration without changing its one-selected-PART role or duplicating Search Results.
 
 ## UI/API contract
 ```text
