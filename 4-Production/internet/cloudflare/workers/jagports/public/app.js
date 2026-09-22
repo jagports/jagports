@@ -14,6 +14,7 @@ let currentData = null;
 let fitmentRows = [];
 let visualItems = [];
 let requestVersion = 0;
+let selectedTreeNodeId = null;
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"]/g, (ch) => ({
@@ -61,6 +62,12 @@ async function resolvePart(partNumber, stockOnly = false) {
     throw error;
   }
   return data;
+}
+
+async function resolveTreeRoots() {
+  const response = await fetch("/api/vieps/tree?root=1");
+  if (!response.ok) throw new Error("tree roots unavailable");
+  return response.json();
 }
 
 async function resolveTreeNode(nodeId, stockOnly = false) {
@@ -114,67 +121,137 @@ function renderPart(part, occurrences = [], stock = []) {
     ${renderStockRows(stock)}`;
 }
 
-function renderPartCandidates(matches = []) {
-  const candidates = matches.filter((part) => partSearchValue(part));
-  $("partCard").innerHTML = candidates.length ? `
-    <strong>${escapeHtml(t("search.multiple_heading"))}</strong>
-    <p>${escapeHtml(t("search.multiple_help", { count: candidates.length }))}</p>
-    <ul class="candidate-list">${candidates.map((part) => `
-      <li><button type="button" data-part-query="${escapeHtml(partSearchValue(part))}">${escapeHtml(partDisplayLabel(part))}</button></li>`).join("")}</ul>`
-    : empty(t("search.not_found"));
-
-  $("partCard").querySelectorAll?.("[data-part-query]").forEach((button) => {
-    button.addEventListener("click", () => {
-      $("partNumber").value = button.dataset.partQuery;
-      $("partSearch").dispatchEvent?.(new Event("submit", { cancelable: true }));
-    });
-  });
+function partTreeLeafLabel(part) {
+  const identity = part.part_number_normalized || part.part_number_raw || "";
+  const description = part.description || "";
+  if (description && identity && description !== identity) return `${description} — ${identity}`;
+  return description || identity || `#${part.id}`;
 }
 
-function renderTree(paths) {
-  const branches = paths.filter((entry) => entry.path?.length);
-  $("tree").innerHTML = branches.map((entry) => {
-    const nodes = Array.isArray(entry.nodes) ? entry.nodes : [];
-    const selectedNodeId = entry.selected_node_id ?? entry.node_id;
-    return entry.path.reduceRight((child, label, index) => {
-      const nodeId = nodes[index]?.node_id;
-      const selected = nodeId !== undefined && nodeId !== null
-        ? nodeId === selectedNodeId
-        : index === entry.path.length - 1;
-      const content = nodeId !== undefined && nodeId !== null
-        ? `<span${selected ? ' class="selected-path"' : ''}><a href="?tree=${encodeURIComponent(nodeId)}" data-tree-node-id="${escapeHtml(nodeId)}">${escapeHtml(label)}</a></span>`
-        : `<span${selected ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>`;
-      return `<ul${index === 0 ? ' class="tree-branch"' : ''}><li>${content}${child}</li></ul>`;
-    }, "");
-  }).join("") || empty(t("tree.empty"));
+function renderTree(paths = [], options = {}) {
+  // Merge by stable node identity *within the parent*, not by presentation label.
+  // The same canonical PART may legitimately appear beneath different EPC paths.
+  const roots = new Map();
+  const looseParts = new Map();
+  const keyFor = (node) => node.node_id !== undefined && node.node_id !== null
+    ? `id:${node.node_id}`
+    : `label:${node.label}`;
+
+  const insertNode = (node, parent = null) => {
+    const collection = parent ? parent.children : roots;
+    const key = keyFor(node);
+    if (!collection.has(key)) {
+      collection.set(key, {
+        key,
+        nodeId: node.node_id ?? null,
+        label: String(node.label ?? ""),
+        order: Number.isFinite(Number(node.sort_order)) ? Number(node.sort_order) : Number.MAX_SAFE_INTEGER,
+        children: new Map(),
+        parts: new Map(),
+      });
+    }
+    return collection.get(key);
+  };
+
+  const normalizePath = (entry) => {
+    if (Array.isArray(entry.nodes) && entry.nodes.length) return entry.nodes;
+    return (entry.path || []).map((label) => ({ label }));
+  };
+
+  const appendPath = (entry) => {
+    let last = null;
+    for (const item of normalizePath(entry)) last = insertNode(item, last);
+    return last;
+  };
+
+  for (const root of options.roots || []) insertNode(root);
+  for (const entry of paths) appendPath(entry);
+
+  for (const leaf of options.partLeaves || []) {
+    const part = leaf.part;
+    if (!part || !partSearchValue(part)) continue;
+    const key = `part:${part.id ?? partSearchValue(part)}`;
+    const targets = leaf.paths || [];
+    if (!targets.length && options.allowLooseParts) {
+      looseParts.set(key, part);
+      continue;
+    }
+    for (const path of targets) {
+      const parent = appendPath(path);
+      if (parent) parent.parts.set(key, part);
+    }
+  }
+
+  const selectedNodeId = options.selectedNodeId === null || options.selectedNodeId === undefined
+    ? null : String(options.selectedNodeId);
+  const selectedPartId = options.selectedPartId === null || options.selectedPartId === undefined
+    ? null : String(options.selectedPartId);
+  const sortNodes = (items) => [...items].sort((a, b) =>
+    a.order - b.order || a.label.localeCompare(b.label) || String(a.nodeId).localeCompare(String(b.nodeId)));
+  const partHref = (part, contextNodeId) => {
+    const query = encodeURIComponent(partSearchValue(part));
+    const context = contextNodeId !== null && contextNodeId !== undefined
+      ? `&tree=${encodeURIComponent(contextNodeId)}` : "";
+    return `?part=${query}${context}`;
+  };
+  const renderPartLeaf = (part, depth, contextNodeId) => {
+    const selected = selectedPartId !== null && String(part.id) === selectedPartId;
+    return `<li class="tree-part-leaf" role="treeitem"><div class="tree-part-row${selected ? ' selected-path' : ''}">
+      <a href="${partHref(part, contextNodeId)}" data-part-query="${escapeHtml(partSearchValue(part))}"
+         ${selected ? 'aria-current="page"' : ''}>${escapeHtml(partTreeLeafLabel(part))}</a>
+    </div></li>`;
+  };
+  const renderNode = (node, depth) => {
+    const selected = selectedPartId === null && selectedNodeId !== null &&
+      node.nodeId !== null && String(node.nodeId) === selectedNodeId;
+    const label = node.nodeId !== null
+      ? `<a href="?tree=${encodeURIComponent(node.nodeId)}" data-tree-node-id="${escapeHtml(node.nodeId)}"
+            ${selected ? 'aria-current="location"' : ''}>${escapeHtml(node.label)}</a>`
+      : `<span>${escapeHtml(node.label)}</span>`;
+    const children = sortNodes(node.children.values());
+    const parts = [...node.parts.values()].sort((a, b) => partTreeLeafLabel(a).localeCompare(partTreeLeafLabel(b)));
+    const descendants = [
+      ...children.map((child) => renderNode(child, depth + 1)),
+      ...parts.map((part) => renderPartLeaf(part, depth + 1, node.nodeId)),
+    ];
+    return `<li role="treeitem"${descendants.length ? ' aria-expanded="true"' : ''}>
+       <div class="tree-node-row tree-depth-${Math.min(depth, 3)}${selected ? ' selected-path' : ''}">${label}</div>
+       ${descendants.length ? `<ul class="tree-children" role="group">${descendants.join("")}</ul>` : ""}
+     </li>`;
+  };
+  const rows = sortNodes(roots.values()).map((root) => renderNode(root, 0));
+  rows.push(...[...looseParts.values()].map((part) => renderPartLeaf(part, 0, null)));
+  $("tree").innerHTML = rows.length
+    ? `<ul class="tree-branch" role="tree">${rows.join("")}</ul>`
+    : empty(t("tree.empty"));
+}
+
+function renderPartCandidates(data) {
+  const candidates = (data.matches || []).filter((part) => partSearchValue(part));
+  $("partCard").innerHTML = empty(t("part.no_part_selected"));
+  renderTree([], {
+    roots: data.tree_roots || [],
+    partLeaves: candidates.map((part) => ({ part, paths: part.tree_paths || [] })),
+    allowLooseParts: true,
+  });
 }
 
 function renderTreeBrowse(data) {
   const path = Array.isArray(data.path) ? data.path : [];
   const children = Array.isArray(data.children) ? data.children : [];
   const selectedNodeId = data.selected_node?.node_id;
-  const branches = children.length
-    ? children.map((child) => ({
-        node_id: child.node_id,
-        selected_node_id: selectedNodeId,
-        path: [...path.map((node) => node.label), child.label],
-        nodes: [...path.map((node) => ({ node_id: node.node_id, label: node.label })), child],
-      }))
-    : [{
-        node_id: selectedNodeId,
-        selected_node_id: selectedNodeId,
-        path: path.map((node) => node.label),
-        nodes: path.map((node) => ({ node_id: node.node_id, label: node.label })),
-      }];
-  renderTree(branches);
-
-  const parts = (data.parts || []).filter((part) => partSearchValue(part));
-  $("partCard").innerHTML = parts.length
-    ? `<strong>${escapeHtml(t("tree.browse_parts", { count: parts.length }))}</strong>
-       <ul class="candidate-list">${parts.map((part) =>
-         `<li><a href="?part=${encodeURIComponent(partSearchValue(part))}" data-part-query="${escapeHtml(partSearchValue(part))}">${escapeHtml(partDisplayLabel(part))}</a></li>`
-       ).join("")}</ul>`
-    : empty(t("tree.browse_empty"));
+  const selectedPath = { nodes: path.map((node) => ({ node_id: node.node_id, label: node.label })) };
+  const childrenPaths = children.map((child) => ({
+    nodes: [...selectedPath.nodes, { node_id: child.node_id, label: child.label, sort_order: child.sort_order }],
+  }));
+  const linkedParts = (data.parts || []).filter((part) =>
+    (data.part_nodes || []).some((link) =>
+      String(link.part_id) === String(part.id) && String(link.node_id) === String(selectedNodeId)));
+  renderTree([selectedPath, ...childrenPaths], {
+    roots: data.roots || [],
+    selectedNodeId,
+    partLeaves: linkedParts.map((part) => ({ part, paths: [selectedPath] })),
+  });
 }
 
 function renderSelectedVisual() {
@@ -261,7 +338,12 @@ function renderFitment(fitment) {
 function renderResolvedData(data) {
   currentData = data;
   renderPart(data.part, data.occurrences || [], data.stock || []);
-  renderTree(data.parts_tree || []);
+  renderTree(data.parts_tree || [], {
+    roots: data.tree_roots || [],
+    selectedPartId: data.part?.id,
+    selectedNodeId: selectedTreeNodeId,
+    partLeaves: [{ part: data.part, paths: data.parts_tree || [] }],
+  });
   renderVisuals(data.images || [], data.diagrams || []);
   renderFitment(data.fitment || []);
 }
@@ -317,6 +399,7 @@ function setupViepsUi() {
   $("visualSelect").addEventListener("change", renderSelectedVisual);
   $("partNumber").addEventListener("input", () => {
     requestVersion++;
+    selectedTreeNodeId = null;
     resetContext();
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
@@ -331,6 +414,7 @@ function setupViepsUi() {
     try {
       const data = await resolveTreeNode(nodeId, Boolean($("availabilitySelect").checked));
       if (version !== requestVersion) return;
+      selectedTreeNodeId = data.selected_node?.node_id ?? null;
       renderTreeBrowse(data);
       $("searchStatus").textContent = t("tree.browse_parts", { count: data.parts?.length || 0 });
     } catch (error) {
@@ -360,7 +444,7 @@ function setupViepsUi() {
       const data = await resolvePart(partNumber, Boolean($("availabilitySelect").checked));
       if (version !== requestVersion) return;
       if (data.state === "multiple_match") {
-        renderPartCandidates(data.matches || []);
+        renderPartCandidates(data);
         $("searchStatus").textContent = t("search.multiple_matches", { count: data.matches?.length || 0 });
         return;
       }
@@ -386,10 +470,18 @@ function setupViepsUi() {
   const initialPart = initialParams?.get("part")?.trim();
   const initialTree = initialParams?.get("tree")?.trim();
   if (initialPart) {
+    selectedTreeNodeId = initialTree || null;
     $("partNumber").value = initialPart;
     submitSearch({ preventDefault() {} });
   } else if (initialTree) {
     browseTree(initialTree);
+  } else if (initialParams) {
+    const version = requestVersion;
+    resolveTreeRoots().then((data) => {
+      if (version === requestVersion && !currentData) renderTree([], { roots: data.roots || [] });
+    }).catch(() => {
+      // The static shell remains usable when catalogue roots are unavailable.
+    });
   }
 }
 
