@@ -1,0 +1,53 @@
+name: VIEPS browser acceptance evidence
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/vieps-browser-evidence.yml"
+      - "4-Production/internet/cloudflare/workers/jagports/public/**"
+      - "4-Production/internet/cloudflare/workers/jagports/styles/**"
+      - "4-Production/internet/cloudflare/workers/jagports/tests/browser-evidence.mjs"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/vieps-browser-evidence.yml"
+      - "4-Production/internet/cloudflare/workers/jagports/public/**"
+      - "4-Production/internet/cloudflare/workers/jagports/styles/**"
+      - "4-Production/internet/cloudflare/workers/jagports/tests/browser-evidence.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: 4-Production/internet/cloudflare/workers/jagports/package-lock.json
+      - name: Build the UI and verify generated assets
+        run: |
+          npm ci
+          npm run build
+      - name: Install isolated browser runner
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Exercise desktop and 220px/320px mobile UI and capture screenshots
+        run: node tests/browser-evidence.mjs
+      - name: Preserve browser screenshots even if an assertion fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vieps-browser-evidence
+          path: 4-Production/internet/cloudflare/workers/jagports/browser-evidence/
+          if-no-files-found: warn
+          retention-days: 14
