@@ -79,9 +79,15 @@ test('complete Concept-11 shell exists before search, with no automatic part loo
   assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
   assert.doesNotMatch(html, /id="result"[^>]*hidden/);
-  for (const region of ['tree', 'location', 'visual', 'ranges', 'fitment']) {
+  for (const region of ['tree', 'location', 'visual', 'ranges']) {
     assert.match(html, new RegExp(`class="panel ${region}-panel"`));
   }
+  // #875 nests suitability inside the single selected-PART panel.
+  assert.match(html, /class="fitment-panel"/);
+  assert.match(html, /id="searchResults"/);
+  assert.match(html, /class="left-workspace"/);
+  assert.match(html, /class="centre-workspace"/);
+  assert.match(html, /class="right-workspace"/);
   assert.match(html, /data-language="fi"/);
   assert.match(html, /🇫🇮\s*<span>\[fi-FI\]<\/span>/);
   assert.match(html, /data-language="en"/);
