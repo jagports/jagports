@@ -73,10 +73,71 @@ async function findPartCandidates(env, query, normalized) {
   return result.results || [];
 }
 
+
+async function loadTreeRoots(env) {
+  const result = await env.DB.prepare(
+    `SELECT id AS node_id, label, sort_order
+     FROM part_tree_node
+     WHERE parent_id IS NULL
+     ORDER BY sort_order, id`
+  ).bind().all();
+  return result.results || [];
+}
+
+async function loadCandidateTreePaths(env, candidates) {
+  if (!candidates.length) return new Map();
+  const placeholders = candidates.map(() => "?").join(", ");
+  const result = await env.DB.prepare(
+    `WITH RECURSIVE candidate_paths(part_id, terminal_id, id, parent_id, label, sort_order) AS (
+       SELECT tp.part_id, tp.tree_node_id, n.id, n.parent_id, n.label, n.sort_order
+       FROM part_tree_part tp
+       INNER JOIN part_tree_node n ON n.id = tp.tree_node_id
+       WHERE tp.part_id IN (${placeholders})
+       UNION ALL
+       SELECT child.part_id, child.terminal_id, parent.id, parent.parent_id, parent.label, parent.sort_order
+       FROM part_tree_node parent
+       INNER JOIN candidate_paths child ON child.parent_id = parent.id
+     )
+     SELECT DISTINCT part_id, terminal_id, id, parent_id, label, sort_order
+     FROM candidate_paths
+     ORDER BY part_id, terminal_id, sort_order, id`
+  ).bind(...candidates.map((candidate) => candidate.id)).all();
+  const pathsByPart = new Map();
+  const grouped = new Map();
+  for (const row of result.results || []) {
+    if (row.terminal_id === undefined || row.part_id === undefined) continue;
+    const key = `${row.part_id}:${row.terminal_id}`;
+    if (!grouped.has(key)) grouped.set(key, { partId: row.part_id, terminalId: row.terminal_id, nodes: [] });
+    grouped.get(key).nodes.push(row);
+  }
+  for (const entry of grouped.values()) {
+    const byId = new Map(entry.nodes.map((node) => [node.id, node]));
+    const pathNodes = [];
+    const seen = new Set();
+    let current = byId.get(entry.terminalId);
+    while (current && !seen.has(current.id)) {
+      seen.add(current.id);
+      pathNodes.unshift({ node_id: current.id, label: current.label });
+      current = byId.get(current.parent_id);
+    }
+    if (!pathNodes.length) continue;
+    if (!pathsByPart.has(entry.partId)) pathsByPart.set(entry.partId, []);
+    pathsByPart.get(entry.partId).push({
+      node_id: entry.terminalId,
+      path: pathNodes.map((node) => node.label),
+      nodes: pathNodes,
+    });
+  }
+  return pathsByPart;
+}
+
 export async function handleViepsTree(request, env) {
   if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
 
   const url = new URL(request.url);
+  if (url.searchParams.get("root") === "1") {
+    return json({ state: "root", roots: await loadTreeRoots(env) });
+  }
   const rawNodeId = text(url.searchParams.get("node_id"));
   const nodeId = Number(rawNodeId);
   if (!rawNodeId || !Number.isInteger(nodeId) || nodeId <= 0) {
@@ -106,7 +167,8 @@ export async function handleViepsTree(request, env) {
        )`
     : "";
 
-  const [pathResult, childrenResult, partsResult] = await Promise.all([
+  const [roots, pathResult, childrenResult, partsResult] = await Promise.all([
+    loadTreeRoots(env),
     env.DB.prepare(
       `WITH RECURSIVE ancestors(id, parent_id, label, sort_order, depth) AS (
          SELECT id, parent_id, label, sort_order, 0
@@ -136,7 +198,7 @@ export async function handleViepsTree(request, env) {
          INNER JOIN subtree parent ON child.parent_id = parent.id
        )
        SELECT DISTINCT p.id, p.part_number_raw, p.part_number_normalized, p.description,
-              p.source, p.source_ref, p.verification_status
+              p.source, p.source_ref, p.verification_status, tp.tree_node_id
        FROM subtree
        INNER JOIN part_tree_part tp ON tp.tree_node_id = subtree.id
        INNER JOIN part p ON p.id = tp.part_id
@@ -147,9 +209,12 @@ export async function handleViepsTree(request, env) {
     ).bind(nodeId).all(),
   ]);
 
-  const parts = (partsResult.results || []).map(candidatePayload);
+  const partRows = partsResult.results || [];
+  const parts = [...new Map(partRows.map((part) => [part.id, candidatePayload(part)])).values()];
+  const partNodes = partRows.map((part) => ({ part_id: part.id, node_id: part.tree_node_id }));
   return json({
-    state: parts.length ? "resolved" : "empty",
+    state: parts.length || (childrenResult.results || []).length ? "resolved" : "empty",
+    roots,
     selected_node: {
       node_id: selectedNode.id,
       parent_id: selectedNode.parent_id,
@@ -158,6 +223,7 @@ export async function handleViepsTree(request, env) {
     path: pathResult.results || [],
     children: childrenResult.results || [],
     parts,
+    part_nodes: partNodes,
   });
 }
 
@@ -193,17 +259,25 @@ export async function handleViepsPart(request, env) {
 
   const exactCandidates = candidates.filter((part) => isExactCandidate(part, query, normalized));
   if (exactCandidates.length > 1 || (!exactCandidates.length && candidates.length > 1)) {
+    const [roots, pathsByPart] = await Promise.all([
+      loadTreeRoots(env),
+      loadCandidateTreePaths(env, candidates),
+    ]);
     return json({
       state: "multiple_match",
       query,
       normalized_query: normalized,
-      matches: candidates.map(candidatePayload),
+      tree_roots: roots,
+      matches: candidates.map((candidate) => ({
+        ...candidatePayload(candidate),
+        tree_paths: pathsByPart.get(candidate.id) || [],
+      })),
     });
   }
 
   const part = candidatePayload(exactCandidates[0] || candidates[0]);
 
-  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult] = await Promise.all([
+  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult, roots] = await Promise.all([
     env.DB.prepare(
       `SELECT id, source, source_ref, context_type, context_ref, category_ref,
               item_number, diagram_ref, diagram_item_number, verification_status
@@ -249,6 +323,7 @@ export async function handleViepsPart(request, env) {
        WHERE part_id = ?
        ORDER BY available DESC, status, location, id`
     ).bind(part.id).all(),
+    loadTreeRoots(env),
   ]);
 
   const nodes = treeResult.results || [];
@@ -274,6 +349,7 @@ export async function handleViepsPart(request, env) {
     part,
     occurrences: occurrenceResult.results || [],
     parts_tree: paths,
+    tree_roots: roots,
     images: imageResult.results || [],
     diagrams: diagramResult.results || [],
     fitment: fitmentResult.results || [],
