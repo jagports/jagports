@@ -45,9 +45,17 @@ CREATE TABLE applicability_description_mapping_revision (
     REFERENCES applicability_dimension_value(dimension_id, value_code),
   UNIQUE (source_description_id, revision)
 );
-CREATE UNIQUE INDEX idx_applicability_mapping_effective_source
-  ON applicability_description_mapping_revision(source_description_id)
-  WHERE status IN ('verified', 'fixture');
+-- Current interpretation is the latest revision per source, including retired.
+-- Historical verified/fixture rows remain immutable when a later revision
+-- retires or replaces a mapping; do not add a uniqueness rule across history.
+CREATE VIEW applicability_description_mapping_current AS
+SELECT r.*
+FROM applicability_description_mapping_revision r
+WHERE r.revision = (
+  SELECT MAX(next_revision.revision)
+  FROM applicability_description_mapping_revision next_revision
+  WHERE next_revision.source_description_id = r.source_description_id
+);
 CREATE INDEX idx_applicability_mapping_dimension
   ON applicability_description_mapping_revision(dimension_id, value_code, status);
 
