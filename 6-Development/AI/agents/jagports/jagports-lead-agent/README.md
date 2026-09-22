@@ -391,6 +391,28 @@ After v0.1-mvp demonstrates useful reasoning at acceptable cost and reliability:
 - evaluate whether the self-hosted coordinator remains simpler than moving long-running/resumable orchestration to a managed agent runtime;
 - progress toward an automated multi-agent team only where each additional autonomous action has an explicit permission boundary, verification path, and human-governed decision/merge/deploy gate.
 
+## Standalone OpenAI API smoke test
+
+The Raspberry Pi operator has confirmed that a **direct OpenAI Responses API call succeeded** in the existing Python virtual environment. To repeat this minimal API test without starting the full agent:
+
+```bash
+cd ~/jagports-lead-agent
+source venv/bin/activate
+python -c 'from dotenv import load_dotenv; from openai import OpenAI; load_dotenv(); r=OpenAI().responses.create(model="gpt-5.6", input="Reply with exactly: JAGPORTS API TEST OK"); print(r.output_text)'
+```
+
+Expected output:
+
+```text
+JAGPORTS API TEST OK
+```
+
+The operator reported this exact output from the `codex` account on the Raspberry Pi. It verifies that the local virtual environment, `python-dotenv` loading of the configured API key, OpenAI Python client, selected model access and a billable Responses API request worked together **at test time**. Run this only with authorized API usage/billing; do not echo or commit the API key.
+
+**Scope of evidence:** This is a standalone direct API test, **not** an end-to-end `LeadAgent`, OpenAI Agents SDK, specialist reasoning, GitHub integration, notification, or unattended timer test. The current `main.py` does not invoke `services/openai_service.py`, and `openai.enabled: false` remains the repository configuration. The planned v0.1-mvp SDK integration requires a separately implemented and tested reasoning service and one model-backed specialist.
+
+The intended timer interval is every **9 hours and 45 minutes**, but this API test does not verify that the Raspberry Pi timer has been activated or that a scheduled agent run succeeded. Verify live scheduler state and service logs separately; do not confuse a successful manual request with scheduled execution.
+
 ## Governance boundary
 
 GitHub remains the durable system of record. Repository workflow, review, testing, approval, and merge rules remain authoritative regardless of which model provider may later be connected.
