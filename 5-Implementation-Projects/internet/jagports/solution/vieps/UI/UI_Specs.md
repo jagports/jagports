@@ -279,6 +279,18 @@ Operational stock remains separate from catalogue/reference information. Quantit
 
 All major #875 regions retain their allocated space during loading, empty, unavailable and error states. On the default desktop layout, preserve #616's viewport-fit shell: the page itself fits the viewport, with **separate internal scrolling for the Parts Tree, Search Results list and Applicable Models panel**. Avoid nested scroll traps; preserve keyboard scrolling, visible focus, accessible region headings, row links and separately labelled bookmark/filter checkboxes. Narrower layouts may reflow and use normal page scrolling while preserving selected PART/tree context.
 
+## Merged #888 presentation baseline carried into #875
+
+The completed compact-spacing and mobile-header enhancement from #888 is the presentation baseline for this three-column layout. The #875 desktop geometry replaces only the desktop region arrangement; it must not revert #886 Parts Tree and search clearing, #888 mobile controls or the later #893 browser checks.
+
+- Use compact panel gaps/padding and Parts Tree row spacing/indentation, including 220–320 CSS px. Preserve stable ancestry connectors, complete selected paths, highlighted PART leaves and the intentional reserved space for Location, Suitability and the single selected PART/Image/Status panel.
+- The branded banner exclusively owns existing fixture instructions, explanatory content and relevant links, with expandable translated keyboard-accessible instructions on narrow screens; do not duplicate them below Parts Tree.
+- On mobile, one persistent non-scrolling top region contains branding, language controls, banner/instructions, the primary Find field/button and Availability/Stock-only checkbox plus its separate help button. Only the remaining content scrolls beneath it. Avoid stacking independently sticky controls or fixed offsets; retain usability with translated/wrapped labels, expanded instructions, orientation and the on-screen keyboard without trapping content or horizontal overflow.
+- The Stock-only help button is distinct from its checkbox label. Desktop hover/focus/click and mobile tap expose the localized explanation; repeated activation, outside interaction and Escape dismiss it without toggling the checkbox. The in-viewport overlay must not cover Find or permanently grow the mobile top region. The canonical wording and details belong in [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md).
+- Preserve existing search resolution/clearing, PART identity, STOCK eligibility, fitment and deep links. The separate `search.multiple_matches` EN/FI translation fix is covered by merged #894; do not reintroduce raw keys.
+
+**Verification:** retain existing #886/#888 regressions, current i18n assets and #893 browser screenshot checks; extend the same browser mechanism for the three-column desktop and synchronized Search Results without duplicating workflows.
+
 ## Approved #875 Product Owner decisions — 2026-09-22
 
 1. **Bookmarks:** show a separate checkbox beside each PART result now, **disabled and labelled for a future release**. Do not implement session/browser/account persistence, saved lists, or a misleading local-only bookmark toggle in this increment. Future bookmarking remains independent of shared PART selection, fitment and stock.

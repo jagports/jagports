@@ -33,6 +33,17 @@ Do not invent a `public-safe`, hidden-stock-detail or admin-only-result taxonomy
 
 Normalized A–E stock-quality filtering remains governed by the stock-quality contract below and is not required to be silently simulated when a richer browse/filter contract is unavailable.
 
+### Stock-only information control (#888)
+
+Present a small, separately focusable information button beside—not inside the label of—the operational **Show only parts on stock** checkbox, including at the top of #875's left desktop workspace and in the persistent mobile banner/Find region. The button explains the existing `available = 1 AND quantity > 0` eligibility without changing selection, stock-only state, search resolution or API behavior. Exact English help text:
+
+> Filters identifier-search results to PARTs with available operational stock and positive quantity.
+
+- Translate the help body and accessible button name **About Stock only** through existing UI EN/FI resources. This must not undo merged #894's count-aware translations for `search.multiple_matches`.
+- Desktop hover/focus reveals help, and click/Enter/Space toggles it; mobile tap toggles it. Outside activation and Escape dismiss the popover without toggling the checkbox or trapping keyboard focus.
+- Position the explanation as an in-viewport overlay, not a permanently expanded header. At 220–320px and with longer translations, expanded banner, orientation or on-screen keyboard, it must not cover or disable Find; keep the popup reachable inside the viewport.
+- The same mobile banner/Find/Stock help region from #888 persists when #875's three-column desktop geometry is introduced. Desktop Availability remains separately above the left Parts Tree, while Search/Results/Applicable Models occupy the right workspace.
+
 ## Stock-quality filter and presentation contract
 
 Stock-quality filtering and available-part presentation consume the normalized operational-stock contract from [`MODEL_STOCK.md`](MODEL_STOCK.md).
