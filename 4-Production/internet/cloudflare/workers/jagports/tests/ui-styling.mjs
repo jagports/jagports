@@ -54,24 +54,27 @@ const fixture = {
   ],
 };
 
-test('complete Concept-11 shell exists before search, with no automatic part lookup', () => {
+test('complete #875 shell exists before search, with no automatic part lookup', () => {
   let requests = 0;
   const ui = harness(() => { requests++; });
   assert.equal(requests, 0);
   assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
   assert.doesNotMatch(html, /id="result"[^>]*hidden/);
-  for (const region of ['tree', 'location', 'visual', 'ranges', 'fitment']) {
-    assert.match(html, new RegExp(`class="panel ${region}-panel"`));
+  for (const region of ['availability', 'tree', 'vin', 'location', 'visual', 'search', 'results', 'ranges']) {
+    assert.ok(html.includes('class="panel ' + region + '-panel"'), region);
+  }
+  assert.match(html, /class="fitment-panel"/);
+  for (const id of ['tree', 'searchResults', 'ranges']) {
+    assert.ok(html.includes('id="' + id + '"'), id);
   }
   assert.match(html, /data-language="fi"/);
-  assert.match(html, /🇫🇮\s*<span>\[fi-FI\]<\/span>/);
   assert.match(html, /data-language="en"/);
-  assert.match(html, /🇬🇧\s*<span>\[en-GB\]<\/span>/);
   assert.doesNotMatch(html, /id="languageSelect"/);
   assert.match(html, /data-i18n="common\.search"/);
   assert.match(html, /id="vehicleLocation"/);
   assert.doesNotMatch(html, /Top view|Side view/);
-  assert.match(css, /"tree search search"\s*"tree ranges ranges"\s*"tree location suitability"\s*"tree details details"/);
+  assert.match(css, /--vieps-columns:\s*minmax\(14rem/);
+  assert.match(css, /grid-template-columns:\s*var\(--vieps-columns\)/);
   assert.match(css, /max-width:\s*1100px/);
   assert.match(css, /max-width:\s*760px/);
   assert.match(css, /\.locale-control/);
