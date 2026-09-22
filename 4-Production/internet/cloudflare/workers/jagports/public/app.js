@@ -547,6 +547,15 @@ function setupViepsUi() {
       refreshForLanguageChange();
     });
   });
+  // The heading returns to the first-level catalogue index, without changing
+  // the independently selected Stock filter.
+  $("treeRootLink")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    $("partNumber").value = "";
+    pendingCandidateId = null;
+    clearSelectionUrl();
+    void browseTree(null);
+  });
   $("rangeSelect").addEventListener("change", renderSelectedRange);
   $("visualSelect").addEventListener("change", renderSelectedVisual);
   const loadRootBrowse = async (version, options = {}) => {
