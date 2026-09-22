@@ -48,16 +48,17 @@ test('Tailwind source follows the merged Concept-11 geometry', async () => {
   assert.match(css, /--color-jagports-teal:/);
   // #888 preserves the #886 Concept-11 grid slots while moving Find into
   // the single persistent mobile top region; no legacy area strings required.
-  assert.match(css, /grid-template-rows:\\s*auto auto auto minmax\\(0, 1fr\\) minmax\\(0, 1\\.05fr\\)/);
+  assert.ok(css.includes("grid-template-rows: auto auto auto minmax(0, 1fr) minmax(0, 1.05fr)"));
   for (const [panel, column, row] of [
     ["search", "2 / -1", "2"], ["tree", "1", "2 / 6"],
     ["ranges", "2 / -1", "3"], ["location", "2", "4"],
     ["fitment", "3", "4"], ["visual", "2 / -1", "5"],
   ]) {
-    const block = css.match(new RegExp("\\\\." + panel + "-panel\\\\s*\\\\{([^}]*)\\\\}"));
-    assert.ok(block, panel + " panel must retain a desktop grid slot");
-    assert.ok(block[1].includes("grid-column: " + column), panel + " column");
-    assert.ok(block[1].includes("grid-row: " + row), panel + " row");
+    const start = css.indexOf("." + panel + "-panel {");
+    assert.ok(start >= 0, panel + " panel must retain a desktop grid slot");
+    const block = css.slice(start, css.indexOf("}", start));
+    assert.ok(block.includes("grid-column: " + column), panel + " column");
+    assert.ok(block.includes("grid-row: " + row), panel + " row");
   }
   assert.match(css, /\.selected-path/);
   assert.match(css, /CSS-Kit-2ndRound-Tailwind-CSS\.jpg/);
