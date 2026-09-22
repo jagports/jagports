@@ -32,7 +32,22 @@ Required presentation:
 `show only relevant path(s)` in the SVG means relevant descendant paths are the ones expanded/emphasized. It does **not** mean replacing the main-level index with one isolated path.
 
 ## Empty-search / browse state
-Concept-11 says an empty search plus supported stock constraint may update which Parts Tree main levels are shown. This is permitted only when an approved stock/catalogue browse contract resolves stock through canonical PART/catalogue relationships. Until then, keep the tree visible and show unsupported stock browsing as unavailable.
+Initial load without a deep link, explicit search clearing and empty/whitespace-only submission enter the same root browse state: available first-level/root categories remain visible, descendants are collapsed, and no category, occurrence or PART is selected or underlined. Clear removes previous query candidates, match highlights and selected-path expansion; it must not leave the permanent tree at a no-selection placeholder when roots are available.
+
+The complete event, URL, stock-filter and request-invalidation contract is defined in [Part Search](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition). An empty input while browsing a selected category does not alone mean the user has cleared that category; an explicit clear or empty submit does.
+
+Root reads may be fetched or restored from valid data for the current stock constraint and source language. Only the latest state may update the tree, contextual regions, status, URL and loading indicators. Initial load, clear, empty submit and empty-search Availability refresh share these observable outcomes:
+
+- **Loading:** clear obsolete selection/context immediately and show current root loading without collapsing the permanent shell.
+- **Roots available:** display the evidenced first-level/root index collapsed, with no active selection; never auto-select a PART from root candidates.
+- **Verified empty:** communicate an empty browse result without inventing roots or calling it a failed PART search.
+- **Stock-filtered empty:** where supported filtering removes otherwise available candidates, use the established `stock_filtered_empty` semantics; do not claim the catalogue itself is empty.
+- **Unavailable/unsupported:** missing root evidence or unsupported stock browsing remains explicit; it is not no PART, zero stock or a confirmed empty catalogue.
+- **Error:** show the current browse failure distinctly from unavailable/empty and finish current loading; an obsolete request must not overwrite a newer state.
+
+Concept-11v1 permits a supported stock constraint to narrow roots and Applicable Models only through approved canonical PART/catalogue/fitment relationships. Preserve the current stock setting through clear; do not silently disable it or simulate quality filtering. Valid browse-derived Applicable Models are filter context, not residual selected-PART facts.
+
+UI locale changes preserve root/category browse state, expansion, stable selection and stock setting even when no PART is selected. Parts/catalogue-language changes use the selected source tree and preserve context only through evidenced identity/mapping; see [Part Search language switching](../SPEC/UI_Part_Search.md#language-switching-in-browse-mode).
 
 ## Selection and expansion
 - Resolved occurrence/item is visibly selected.
@@ -140,3 +155,6 @@ Long tree content scrolls internally in the fitted #616 desktop shell. Catalogue
 - [ ] Empty-search stock browsing is conditional on an approved contract.
 - [ ] Main-branch deterministic fixtures remain semantically intact.
 - [ ] Viewport and UI-vs-Parts language boundaries are preserved.
+- [ ] Clear/empty submit restores evidenced collapsed roots with no active selection and preserves the supported stock constraint.
+- [ ] Root loading/empty/stock-filtered-empty/unavailable/error outcomes and stale-response protection satisfy the Part Search regression matrix.
+- [ ] UI-language switching preserves browse state without a selected PART; source-language changes preserve only evidenced mapped context.

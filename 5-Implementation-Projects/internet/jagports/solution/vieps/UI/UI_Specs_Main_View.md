@@ -41,6 +41,14 @@ The right-bottom Applicable Models panel consumes the selected PART and, when av
 ### PART / Image / Status
 The centre-right panel groups **one canonical PART** and approved evidence for its selected source occurrence/item, warnings/status, Jaguar Classic, supersession, PN/name, and one part image or exploded diagram. When several PARTs match, no PART is selected by default. Tree leaves and results rows share canonical PART selection; bookmark checkboxes never select a PART. When one result row represents several genuine occurrences, present only verified PART-level details until the occurrence is chosen. Missing diagram, hotspot, media or location remains explicitly unavailable.
 
+## Clearing selected context
+
+Apply the [Part Search clear transition](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition) before loading roots. Remove the previous canonical PART selection, occurrence/item, warning/status, Classic/supersession presentation, image/diagram and visual choice, selected range, suitability facts and vehicle-location marker/context. The permanent regions remain visible in their no-selected-PART/browse state.
+
+A root browse response must not select a PART automatically or restore the cleared PART's contextual facts. Supported stock-derived Applicable Models may be shown as fresh browse/filter context only. Missing tree data or a root-load error does not retain old PART details as a fallback.
+
+Late success, failure and completion callbacks from superseded PART/tree/context reads cannot repopulate these regions, change the current status or end a newer request's loading state. UI language switching with no selected PART re-localizes the current browse/no-selection state without losing its tree context or restoring old PART data.
+
 ## MVP Part Image behaviour
 - Show the resolved PART image when verified image data exists, otherwise an explicit unavailable state.
 - Keep the visual associated with the selected canonical PART and occurrence/context.
@@ -79,6 +87,8 @@ MainViewResult
 ## Deterministic fixtures
 Cover vehicle-location available/unavailable, Part Image available/unavailable, diagram available/unavailable, numbered items, hotspot unavailable, supported status/Classic/supersession examples and synchronized tree/diagram selection. Preserve current main-branch non-numbered fixture identifiers without presenting them as Jaguar part numbers.
 
+Clear/reset fixtures must additionally verify every affected region immediately after clear and after delayed PART/tree responses, root success/empty/unavailable/error, and EN↔FI switching in browse mode. Use the [clear/browse regression matrix](../SPEC/UI_Part_Search.md#clearbrowse-regression-acceptance) as the cross-region acceptance contract; specification coverage is not executed runtime-test evidence.
+
 ## Viewport and language
 The #875 desktop shell retains left Availability and Parts Tree, centre VIN/Variations above side-by-side Location and one selected PART, and right Search/Results/Applicable Models. Preserve #616's fitted desktop layout: long tree, results and models lists scroll internally, while narrow layouts may reflow. UI-locale versus catalogue-language controls remain distinct under #554/#620; no unimplemented control pretends to work.
 
@@ -94,3 +104,5 @@ Follows Part Search and Parts Tree contracts. #352 owns hotspot coordinate conve
 - [ ] Image, diagram, callout, warnings, Classic and supersession require approved source evidence.
 - [ ] No-selected-PART, context-required, unavailable and error states remain distinct.
 - [ ] Viewport-fit, language separation, fixtures and independent #875 specification review are covered.
+- [ ] Clear immediately removes selected PART/occurrence and all dependent presentation while retaining permanent regions and fresh browse-only context.
+- [ ] Superseded responses and browse-mode language changes cannot resurrect cleared PART facts or visuals; cross-region regression cases are defined.

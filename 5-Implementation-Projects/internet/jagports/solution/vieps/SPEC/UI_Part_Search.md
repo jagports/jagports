@@ -97,6 +97,53 @@ Stock-quality result states include at least:
 - Do not silently invent or normalize unsupported punctuation/characters.
 - Empty/clearly invalid input produces an explicit state, not a guessed identity.
 
+## Empty search and clear transition
+
+This transition applies when editing makes the trimmed query empty, when an empty/whitespace-only query is submitted, and when an explicit Clear action is invoked if that control is provided. Keyboard deletion and native input clearing must work without requiring a dedicated Clear button. An empty field during selected-category browsing is not by itself a new clear event.
+
+1. Immediately invalidate outstanding PART/search, tree-browse and dependent context requests from the previous state. Late success, failure and completion callbacks must not restore old data, selection, URL, status text or loading state. Cancellation alone is insufficient if an already-completed callback can still update the UI.
+2. Clear the selected canonical PART, occurrence/item, category/tree path, query-result candidates and match highlights. Clear previous PART details/status, image/diagram, range selection, suitability facts and vehicle-location context. Keep every permanent Concept-11 region visible in its appropriate no-selection/browse state.
+3. Remove all stale `part` and `tree` query parameters from the current URL, including duplicate values, before a reload can re-enter the cleared selection. Replace the current history entry rather than adding a clear-only navigation entry. Preserve unrelated URL parameters and supported stock/language state. This does not erase older intentional browser-history entries or define the wider #583 deep-link scheme.
+4. Enter root browse with no active category, occurrence or PART selection. Restore available first-level/root categories, collapsed, with no selected-node underline or previous search-result expansion. Use the same observable root-loading contract as initial load without a deep link and empty-search Availability changes.
+5. Preserve the user's current supported Availability/stock-filter setting; clear is not a filter reset. Root browse uses that setting only through the approved browse contract. PART / Image / Status stays unselected even if the browse result contains exactly one PART.
+
+Every input edit also invalidates previous requests and clears obsolete selected PART/context. Editing to a non-empty unsubmitted value does not trigger empty-query PART resolution or restore an earlier selection.
+
+The latest user action owns the visible state. A root load started by clear must not overwrite a subsequent query, selected tree node, stock-filter change or language change. Current root loading, empty, unavailable and error outcomes follow [Parts Tree](../UI/UI_Specs_Parts_Tree.md#empty-search--browse-state); an empty search never invokes deterministic or free-text PART lookup and never produces `Part not found` merely for being empty.
+
+### Stock-filter invariants
+
+The boolean **Show only parts on stock** retains its approved eligibility rule: at least one linked operational `stock_item` has `available = 1` and `quantity > 0`. Clearing, empty submit and language changes do not toggle the setting or change canonical identity, occurrence-first filtering, or deterministic-first/free-text-fallback precedence.
+
+With an empty query and no selection, changing Availability refreshes the root browse context under the new filter. For the same filter and source language, initial root load, clear, empty submit and empty-search Availability refresh must produce equivalent roots and evidence-state semantics. Verified stock-constrained browse results may repopulate Model Ranges as browse/filter context; they must not retain the cleared PART's selected range or present its old fitment as current facts.
+
+Unsupported stock browsing remains explicit; do not silently ignore the filter, invent stock-derived roots/ranges, simulate A–E filtering or treat unavailable stock data as zero stock. A supported filter that removes otherwise existing candidates uses `stock_filtered_empty` and the established localized stock-empty wording. A verified empty catalogue/browse result, unavailable evidence and a request failure remain distinct.
+
+### Language switching in browse mode
+
+UI locale and Parts/catalogue-data language are independent. Changing UI language in root browse, selected-category browse or a multi-candidate browse state re-localizes controls and status while preserving the stock setting, stable selected tree/occurrence identity, candidate context and expansion. It must not require a selected PART, reset the tree to a no-selection placeholder, select a candidate automatically, or translate source labels through UI resources.
+
+After clear, UI language switching preserves the collapsed root state and clean URL. If rendering requires asynchronous reads, apply the same latest-action protection; an earlier response cannot restore old-language presentation or a cleared selection.
+
+When supported Parts/catalogue-data language changes, load that language's evidenced source tree. Preserve a selected context only where an explicit stable identity/mapping supports it; never match nodes by label or assume identical source-tree structure. Otherwise remove the invalid tree/occurrence selection and stale selection URL state, return to that language's available collapsed roots, and expose unavailable mapping/context explicitly. Do not resurrect a previously cleared PART. Preserve the stock constraint and canonical identity boundary.
+
+## Clear/browse regression acceptance
+
+These are required implementation regression cases under #873, not claims that tests have been added or passed by a specification change. Use controlled deferred responses and distinguish immediate reset from the eventual root result.
+
+| Case | Action / controlled order | Required result |
+|---|---|---|
+| Clear a resolved PART | Delete the query through an input event; repeat with whitespace-only submit and any provided Clear control. | Selected PART/occurrence, details/status, image/diagram, range selection, suitability facts, location, candidates and match highlights disappear immediately; permanent regions remain; eventual roots are collapsed with no selection. No empty PART/free-text request occurs. |
+| Pending PART/search | Start PART resolution (including free-text fallback), clear, complete root loading, then deliver the old success; repeat with failure and finalization. | Neither old data nor old error/status/loading state replaces the clear/root state. |
+| Pending tree browse | Start a category request, clear, then deliver the old category response or failure after the root result. | No selected branch/PART or old expansion reappears; roots remain collapsed. |
+| Root response superseded | Clear, then start a new non-empty search or select a tree node before the root response completes; deliver responses out of order. | The latest action wins; the obsolete root result/error/finalization cannot erase the new search/selection or its loading state. |
+| Direct-link clearing | Enter through `?part=<id>`, through `?tree=<id>` with an empty query, and with both/duplicate selection parameters; explicitly clear or empty-submit, then reload the resulting URL. | All `part`/`tree` parameters are removed from the current entry; unrelated parameters survive; reload cannot restore the cleared selection. Intentional fresh deep links still restore supported selection normally. |
+| Stock-filter preservation and parity | Run initial root load, clear, empty/whitespace submit and empty-search Availability refresh with stock-only on and off; delay a response from the previous filter. | Equivalent root states for the same filter/language; current filter preserved and applied only where supported; old-filter results ignored; approved positive-quantity/available eligibility and stock-empty semantics unchanged. |
+| Root evidence outcomes | Supply roots, a verified empty browse result, supported stock-filtered-empty, unavailable root evidence, unsupported filtering and a processing failure. | Each outcome has its own appropriate localized state; no fabricated roots, zero-stock inference, stale PART or ordinary search `not_found`; current loading completes. |
+| UI language in browse | Switch EN↔FI in collapsed roots, selected-category browse and multi-candidate browse, without a selected PART. | Browse mode, stable selected path/expansion and stock filter survive; no guessed PART; UI text updates while source-language labels remain separate. |
+| Language after clear / pending read | Clear a direct-linked selection, switch UI language while root loading is pending, then complete old and current reads out of order. | Cleared PART and selection URL stay cleared; current-language status and collapsed roots win, including error/loading presentation. |
+| Catalogue-language structure | Switch supported catalogue language with an evidenced mapping, then without one; include equal labels with distinct source identities. | Preserve only verified mapped context; otherwise clear invalid context/URL and show target-language roots plus explicit unavailable context. No label-based identity or fitment inference. |
+
 ## Reduced-MVP limited free-text search
 
 Reduced-MVP free-text search is a pragmatic, current-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without waiting for the full post-MVP #622 multilingual/global search architecture.
@@ -280,7 +327,7 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 ## Result states
 | State | Meaning |
 |---|---|
-| `empty` | No search submitted; permanent Concept-11 shell remains visible |
+| `empty` | No non-empty search is active, including after clear/empty submit; permanent shell remains visible, no PART is selected, and root browse has its own loading/evidence state |
 | `invalid` | Query fails supported validation |
 | `not_found` | Valid search has no supported deterministic match and no available free-text match after all active search modes have been evaluated |
 | `stock_filtered_empty` | Search matches exist, but the selected supported stock constraint removes all visible results; display `No matching parts currently on stock.` |

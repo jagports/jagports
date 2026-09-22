@@ -159,6 +159,16 @@ empty Search + supported stock constraints
 
 Without a supporting browse contract, preserve the permanent regions and display unavailable/unsupported state; do not infer catalogue fitment or fabricate stock-backed ranges. Normalized A–E quality meanings are defined in `../SPEC/MODEL_STOCK.md`, not in the artwork.
 
+### Empty search, clear and browse continuity
+
+Clearing Search or submitting an empty/whitespace-only query invalidates earlier requests, clears selected PART/occurrence and dependent context, removes stale `?part`/`?tree` state from the current URL, and restores the available collapsed root index with no active selection. Preserve the supported stock filter and permanent Concept-11v1 regions. Empty search is a browse/prompt state, not a failed PART lookup.
+
+Initial root load, clear, empty submit and empty-search Availability refresh use the same root/evidence-state contract. A late PART/tree/root response must not replace a newer user action. Root unavailable/error states do not fabricate categories or revive old PART details.
+
+UI language changes preserve browse state even without a selected PART. Catalogue-language changes respect source-qualified identity and structural differences rather than mapping by label.
+
+The normative transition, stock and URL rules and regression acceptance matrix are in [Part Search](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition). [Parts Tree](UI_Specs_Parts_Tree.md#empty-search--browse-state) owns root presentation and [Main View](UI_Specs_Main_View.md#clearing-selected-context) owns cleared contextual-region presentation.
+
 ## Search-result distribution
 
 ~~~text
@@ -282,6 +292,8 @@ The current implementation acceptance is limited to page regions/scrolling/acces
 
 A conforming #875 implementation preserves:
 
+- clear/empty-submit behavior, preserved stock-filter state, clean selection URLs and race-safe root restoration under the Part Search contract;
+- browse-mode language continuity without fabricated source-tree identity or a selected PART;
 - the three-column target layout, including distinct left Availability/Parts Tree, centre VIN/Variations and one Location/PART pair, and right Search/Results/Applicable Models;
 - one canonical PART identity shared by the Parts Tree and right-hand Search Results, with genuine source-qualified occurrences and no guessed default PART for multi-match;
 - persistent tree root index, stable links, no repeated shared ancestors, expanded path to selected PART, clear indentation and underlined selection as specified under #873;
