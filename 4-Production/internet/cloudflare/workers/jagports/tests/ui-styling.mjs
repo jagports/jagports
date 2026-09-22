@@ -430,7 +430,7 @@ test('result rows deduplicate PART identity, synchronize selection with the tree
   assert.ok(ui.requests.some(url => url.includes('q=TEST&stock_only=1&candidate_id=11')));
   assert.match(ui.get('partCard').innerHTML, /TEST2/);
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
-  assert.match(ui.get('searchResults').innerHTML, /selected-result[\\s\\S]*data-result-part-id="11"/);
+  assert.match(ui.get('searchResults').innerHTML, /selected-result[\s\S]*data-result-part-id="11"/);
   assert.match(ui.get('tree').innerHTML, /data-part-query="TEST2"/);
   assert.match(ui.get('tree').innerHTML, /aria-current="page"/);
   assert.equal(ui.get('availabilitySelect').checked, true);
