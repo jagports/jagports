@@ -449,7 +449,7 @@ Full Raspberry Pi installation and verification instructions are maintained in [
 
 ## Current specialist and Telegram communication test
 
-For the reusable **one-shot GitHub collection → specialist results → Telegram delivery** command and pass criteria, use [Development OPERATIONS.md](OPERATIONS.md#one-shot-github--specialists--telegram-communication-test). The diagnostic fetches one Issue body separately to display real detail; the existing specialist Event still carries only the collected snapshot metadata and lifecycle delta. `main.py` currently generates a report but does **not** invoke Telegram or model-backed reasoning. Automatic specialist notifications and Issue-body-aware reasoning require later implementation.
+For the short saved-status Telegram delivery smoke test and its two-part acceptance criteria, see [TG-001 in Development OPERATIONS.md](OPERATIONS.md#telegram-message-delivery-acceptance-test--saved-issue-changes). For the separate **one-shot GitHub collection → specialist results → Telegram delivery** diagnostic, see [the integration test](OPERATIONS.md#one-shot-github--specialists--telegram-communication-test). The diagnostic fetches one Issue body separately to display real detail; the existing specialist Event still carries only the collected snapshot metadata and lifecycle delta. `main.py` currently generates a report but does **not** invoke Telegram or model-backed reasoning. Automatic specialist notifications and Issue-body-aware reasoning require later implementation.
 
 ## Governance boundary
 
