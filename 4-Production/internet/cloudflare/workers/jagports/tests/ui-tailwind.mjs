@@ -43,30 +43,35 @@ test('versioned Tailwind source and documentation mirror is present locally', as
   assert.equal(JSON.parse(cliPackage).version, '4.1.13');
 });
 
-test('Tailwind source follows the approved #875 three-column geometry', async () => {
+test('Tailwind source follows the merged Concept-11 geometry', async () => {
   const css = await readFile(sourceCssUrl, 'utf8');
   assert.match(css, /--color-jagports-teal:/);
-  assert.match(css, /--vieps-columns:/);
-  assert.match(css, /grid-template-columns:\s*var\(--vieps-columns\)/);
-  assert.match(css, /\.search-panel\s*\{\s*grid-column:\s*3;\s*grid-row:\s*2/);
-  assert.match(css, /\.left-workspace\s*\{\s*grid-column:\s*1;\s*grid-row:\s*2 \/ 4/);
-  assert.match(css, /\.right-workspace\s*\{\s*grid-column:\s*3;\s*grid-row:\s*3/);
+  // #888 preserves the #886 Concept-11 grid slots while moving Find into
+  // the single persistent mobile top region; no legacy area strings required.
+  assert.ok(css.includes("grid-template-rows: auto auto auto minmax(0, 1fr) minmax(0, 1.05fr)"));
+  for (const [panel, column, row] of [
+    ["search", "2 / -1", "2"], ["tree", "1", "2 / 6"],
+    ["ranges", "2 / -1", "3"], ["location", "2", "4"],
+    ["fitment", "3", "4"], ["visual", "2 / -1", "5"],
+  ]) {
+    const start = css.indexOf("." + panel + "-panel {");
+    assert.ok(start >= 0, panel + " panel must retain a desktop grid slot");
+    const block = css.slice(start, css.indexOf("}", start));
+    assert.ok(block.includes("grid-column: " + column), panel + " column");
+    assert.ok(block.includes("grid-row: " + row), panel + " row");
+  }
   assert.match(css, /\.selected-path/);
   assert.match(css, /CSS-Kit-2ndRound-Tailwind-CSS\.jpg/);
 });
 
-test('static #875 shell separates fixed banner and Find from scrolling content', async () => {
-  const [html, css] = await Promise.all([readFile(indexUrl, 'utf8'), readFile(sourceCssUrl, 'utf8')]);
-  assert.match(html, /class="banner-block"[^>]*>[\s\S]*data-i18n="header\.instructions"/);
+test('static shell keeps merged Concept-11 semantic regions without inventing unsupported behavior', async () => {
+  const html = await readFile(indexUrl, 'utf8');
+  assert.match(html, /class="search-availability-strip"/);
   assert.match(html, /id="availabilitySelect" type="checkbox"/);
   assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
-  assert.match(html, /<h2 id="ranges-heading" data-i18n="header\.applicable_models"><\/h2>/);
+  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
   assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
   assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
-  assert.ok(html.indexOf('class="panel search-panel"') > html.indexOf('</header>'));
-  assert.ok(html.indexOf('class="panel search-panel"') < html.indexOf('id="result"'));
-  const mobile = css.slice(css.indexOf('@media (max-width: 760px)'));
-  assert.match(mobile, /\.concept-grid\s*\{[^}]*overflow-y:\s*auto/);
-  assert.match(mobile, /\.search-panel\s*\{[^}]*grid-row:\s*2/);
-  assert.doesNotMatch(html, />Top view|>Side view/);
+  assert.doesNotMatch(html, />Top view</);
+  assert.doesNotMatch(html, />Side view</);
 });
