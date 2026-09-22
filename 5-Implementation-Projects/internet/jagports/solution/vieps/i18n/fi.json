@@ -34,13 +34,13 @@
     "xr847031_description": "#354 korvaavuuden korvaavan osan testitieto"
   },
   "header": {
+    "instructions": "Ohjeet ja testiaineisto",
+    "product_name": "Jagports Vehicle Information and EPC System",
     "applicable_models": "Sopivat mallit",
     "banner": "VIEPS-osahaku",
     "filter_pending": "Suodatin ei ole vielä käytettävissä",
-    "instructions": "Syötä osanumero tai kuvaus ja valitse hakutulos nähdäksesi vahvistetut tiedot.",
     "not_yet_supported": "Tämä toiminto ei ole vielä käytettävissä",
     "parts_language_pending": "Osien kuvaukset näytetään käytettävissä olevilla lähdekielillä",
-    "product_name": "Jagports Vehicle Information and EPC System",
     "results_heading": "Osahaun tulokset",
     "variations_filter": "Sopivuus / muunnelmat",
     "vin": "VIN",
@@ -92,6 +92,8 @@
     "error": "OSAA ei voitu ratkaista.",
     "input_aria": "Jaguar-osanumero tai testitunniste",
     "input_placeholder": "esim. MJB7703AA, MNA7691AA, firtree1",
+    "multiple_matches_one": "{{count}} vastaava OSA. Valitse se osapuusta.",
+    "multiple_matches_other": "{{count}} vastaavaa OSAA. Valitse yksi osapuusta.",
     "no_stock_match": "Yhtään vastaavaa osaa ei ole tällä hetkellä varastossa.",
     "not_found": "Osaa ei löytynyt.",
     "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
@@ -103,6 +105,7 @@
     "condition": "Kunto",
     "evidence": "Näyttö",
     "filter_on_stock": "Näytä vain varastossa olevat osat",
+    "filter_on_stock_about": "Tietoa varastorajauksesta",
     "filter_on_stock_note": "Suodattaa tunnistehaun tulokset OSIIN, joilla on saatavilla olevaa operatiivista varastoa ja positiivinen määrä.",
     "filter_unavailable": "Varaston kuntosuodatin ei ole käytettävissä",
     "filter_unavailable_note": "Varaston A–E-kuntosuodatus edellyttää hyväksyttyä varaston selaussopimusta.",
@@ -144,8 +147,8 @@
         "short_description": "Varasto-osan kuntoa ei ole vielä luokiteltu."
       }
     },
-    "quality_unsupported": "Laatuluokkien A–E suodatus ei ole vielä käytettävissä.",
-    "status": "Tila"
+    "status": "Tila",
+    "quality_unsupported": "Laatuluokkien A–E suodatus ei ole vielä käytettävissä."
   },
   "stock_admin": {
     "access_heading": "Ylläpitäjän tunnistautuminen",
