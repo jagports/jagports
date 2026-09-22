@@ -1,87 +1,61 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const workerRoot = join(__dirname, "..");
-const css = readFileSync(join(workerRoot, "styles", "vieps-tailwind.css"), "utf8");
-const html = readFileSync(join(workerRoot, "public", "index.html"), "utf8");
+const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
+const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
 
-function expectRule(selector, declarations) {
-  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const rule = new RegExp(`${escapedSelector}\\s*\\{(?<body>[^}]*)\\}`, "s").exec(css);
-  assert.ok(rule, `${selector} rule should exist`);
-  for (const declaration of declarations) assert.match(rule.groups.body, declaration);
+function rule(selector) {
+  const start = css.indexOf(selector + " {");
+  assert.notEqual(start, -1, "Expected CSS rule: " + selector);
+  const end = css.indexOf("}", start);
+  return css.slice(start, end);
 }
 
-test("desktop Tailwind VIEPS shell fits the viewport without page-level scrolling", () => {
-  expectRule("html", [/height:\s*100%;/, /overflow:\s*hidden;/]);
-  expectRule("body", [/height:\s*100%;/, /min-height:\s*100dvh;/, /overflow:\s*hidden;/]);
-  expectRule(".app-shell", [/height:\s*100dvh;/, /display:\s*flex;/, /overflow:\s*hidden;/]);
-  expectRule(".concept-grid", [/flex:\s*1 1 auto;/, /min-height:\s*0;/, /overflow:\s*hidden;/]);
-  expectRule(".panel", [/min-height:\s*0;/, /display:\s*flex;/, /overflow:\s*hidden;/]);
+test("#875 header and body share desktop layout columns", () => {
+  assert.match(rule(".app-shell"), /--vieps-columns:\s*minmax\(14rem, 0\.9fr\) minmax\(0, 2fr\) minmax\(18rem, 1\.1fr\)/);
+  assert.match(rule(".app-header, .concept-grid"), /grid-template-columns:\s*var\(--vieps-columns\)/);
+  assert.match(rule(".centre-detail"), /grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1\.05fr\)/);
+  for (const region of ["left", "centre", "right"]) assert.ok(html.includes('class="' + region + '-workspace"'));
 });
 
-test("long default content scrolls inside permanent Concept-11 regions", () => {
-  assert.match(css, /\.tree-panel #tree,\s*\.ranges-panel #ranges,\s*\.fitment-panel #fitment,\s*\.visual-panel #visuals\s*\{[^}]*overflow:\s*auto;/s);
-  expectRule(".stock-section", [/overflow:\s*auto;/]);
-  expectRule(".fixture-guide", [/overflow:\s*auto;/]);
-});
-
-test("merged Concept-11 desktop geometry is preserved", () => {
-  expectRule(".concept-grid", [
-    /"tree search search"/,
-    /"tree ranges ranges"/,
-    /"tree location suitability"/,
-    /"tree details details"/
-  ]);
-  assert.ok(css.indexOf('"tree ranges ranges"') < css.indexOf('"tree location suitability"'));
-  assert.ok(css.indexOf('"tree location suitability"') < css.indexOf('"tree details details"'));
-});
-
-test("Concept-11 search and availability share the top strip", () => {
-  assert.match(html, /class="search-availability-strip"/);
-  assert.match(html, /id="partSearch"/);
-  assert.match(html, /id="availabilitySelect" type="checkbox"/);
-  assert.match(css, /\.search-availability-strip\s*\{/);
-});
-
-test("Concept-11 uses one vehicle-location canvas and a separate suitability panel", () => {
-  assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
-  assert.doesNotMatch(html, />Top view</);
-  assert.doesNotMatch(html, />Side view</);
-  assert.doesNotMatch(html, /class="vehicle-views"|class="vehicle-view"/);
-  expectRule(".vehicle-location-canvas", [/flex:\s*1 1 auto;/, /min-height:\s*0;/]);
-  assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
-});
-
-test("Concept-11 ranges and lower PART region span the centre/right workspace", () => {
-  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
-  assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
-  assert.match(css, /"tree ranges ranges"/);
-  assert.match(css, /"tree details details"/);
-});
-
-test("narrow responsive layouts remain scrollable instead of clipped", () => {
-  const responsiveRules = css.slice(css.indexOf("@media (max-width: 1100px)"));
-  assert.match(responsiveRules, /html,\s*body\s*\{[^}]*height:\s*auto;[^}]*overflow:\s*auto;/s);
-  assert.match(responsiveRules, /\.app-shell\s*\{[^}]*height:\s*auto;[^}]*min-height:\s*100dvh;[^}]*overflow:\s*visible;/s);
-  assert.match(responsiveRules, /\.concept-grid\s*\{[^}]*overflow:\s*visible;/s);
-  assert.match(responsiveRules, /"search search"/);
-  assert.match(responsiveRules, /"ranges ranges"/);
-  assert.match(responsiveRules, /"tree location"/);
-  assert.match(responsiveRules, /"tree suitability"/);
-  assert.match(responsiveRules, /"details details"/);
-});
-
-test("Concept-11 permanent regions remain present in the static shell", () => {
-  for (const id of ["partSearch", "availabilitySelect", "tree", "vehicleLocation", "locationStatus", "partCard", "visuals", "ranges", "fitment"]) {
-    assert.match(html, new RegExp(`id="${id}"`));
+test("#875 retains fitted desktop and independent tree, results and model scrolling", () => {
+  for (const selector of ["html", "body", ".app-shell", ".concept-grid", ".panel"]) {
+    assert.ok(rule(selector).includes("overflow: hidden"), selector);
   }
-  assert.match(html, /class="panel tree-panel"/);
-  assert.match(html, /class="panel visual-panel"/);
-  assert.match(html, /class="panel ranges-panel"/);
-  assert.match(html, /class="panel fitment-panel"/);
+  assert.match(rule(".app-shell"), /height:\s*100dvh/);
+  assert.match(css, /\.tree-panel #tree, \.results-panel \.results-scroll, \.ranges-panel \.ranges-scroll,[\s\S]*?overflow:\s*auto/);
+  for (const id of ["tree", "searchResults", "ranges"]) {
+    const region = new RegExp('id="' + id + '"[^>]*tabindex="0"');
+    assert.match(html, region, id + " must be a keyboard-scrollable region");
+  }
+});
+
+test("#875 aligns the header and workspace at tablet width and stacks on mobile", () => {
+  const tablet = css.slice(css.indexOf("@media (max-width: 1100px)"), css.indexOf("@media (max-width: 760px)"));
+  const mobile = css.slice(css.indexOf("@media (max-width: 760px)"));
+  assert.match(tablet, /--vieps-columns:\s*minmax\(13rem, 0\.9fr\) minmax\(0, 2fr\)/);
+  assert.match(tablet, /\.right-workspace\s*\{\s*grid-column:\s*1 \/ -1/);
+  assert.match(tablet, /\.concept-grid\s*\{\s*overflow:\s*visible/);
+  assert.match(mobile, /\.app-header, \.concept-grid\s*\{\s*display:\s*block/);
+  assert.match(mobile, /\.centre-detail/);
+});
+
+test("#875 CSS has one shared source for header and locale styles", () => {
+  const desktop = css.slice(0, css.indexOf("@media (max-width: 1100px)"));
+  for (const selector of [".app-header {", ".locale-button {", ".locale-control {", ".eyebrow {"]) {
+    assert.equal(desktop.split(selector).length - 1, 1, selector);
+  }
+  assert.ok(css.includes(".stock-admin-document,"), "Stock Admin remains separately scoped");
+  assert.ok(!css.includes("search-availability-strip"), "Legacy search strip must not return");
+  assert.ok(!css.includes('"tree search search"'), "Legacy grid placement must not return");
+});
+
+test("#875 semantic permanent regions remain in the static shell", () => {
+  for (const id of ["partSearch", "availabilitySelect", "tree", "searchResults", "ranges", "vehicleLocation", "partCard", "visuals", "fitment"]) {
+    assert.ok(html.includes('id="' + id + '"'), "Missing region " + id);
+  }
+  for (const panel of ["availability", "tree", "vin", "location", "visual", "search", "results", "ranges"]) {
+    assert.ok(html.includes('class="panel ' + panel + '-panel"'), "Missing panel " + panel);
+  }
 });
