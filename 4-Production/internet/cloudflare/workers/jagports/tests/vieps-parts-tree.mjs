@@ -120,3 +120,27 @@ test("Source labels alone never become navigable tree links", () => {
   assert.doesNotMatch(elements.tree.innerHTML, /data-tree-node-id/);
   assert.doesNotMatch(elements.tree.innerHTML, /href="\?tree=/);
 });
+
+test("Root reset renders only first-level branches after a deeper path", () => {
+  const { renderTree, elements } = loadTreeRenderer();
+  const roots = [
+    { node_id: 10, label: "Suspension" },
+    { node_id: 20, label: "Body" },
+  ];
+  renderTree([{ nodes: [
+    roots[0],
+    { node_id: 11, label: "Front" },
+  ] }], { roots, selectedNodeId: 11 });
+  assert.match(elements.tree.innerHTML, /Front/);
+  renderTree([], { roots });
+  const markup = elements.tree.innerHTML;
+  assert.match(markup, /Suspension/);
+  assert.match(markup, /Body/);
+  assert.doesNotMatch(markup, /Front|tree-depth-1|selected-path|aria-expanded/);
+});
+
+test("Parts Tree heading is a keyboard-accessible root reset link", () => {
+  const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+  assert.match(html, /<a id="treeRootLink" href="\\?" data-i18n="tree.heading"><\\/a>/);
+  assert.match(source, /\\$\\("treeRootLink"\\)\\?\\.addEventListener\\("click"/);
+});
