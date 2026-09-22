@@ -21,42 +21,27 @@ The #875 SVG and Product Owner's annotated screenshot establish region placement
 
 ## Normative Concept-11v1 complete desktop page map (#875)
 
-The following ASCII map is the complete **target** three-column desktop arrangement from the #875 annotated concept and Concept-11v1 assets. It replaces the earlier abbreviated map rather than creating a second competing layout. Concept-11 remains the deployed baseline until the enhancement is reviewed and implemented.
+The following **Product Owner-supplied ASCII map** is the normative target desktop arrangement for #875. Preserve these region positions and relative relationships when implementing the Concept-11v1 enhancement; the accompanying geometry rules govern interaction and responsive behavior. It replaces the earlier expanded ASCII approximation rather than creating a competing layout. Concept-11 remains the deployed baseline until the enhancement is reviewed and implemented.
 
 ~~~text
-+--------------------------+----------------------------------------------------------+----------------------------+
-| BRANDING / INSTRUCTIONS  | BANNER / MAIN HEADER                                     | HEADER SPACE / ALIGNMENT   |
-| Jagports logo            | Main information or supported banner content            |                             |
-| Brief usage instructions |                                                          |                            |
-| Language: UI / Parts     |                                                          |                            |
-+--------------------------+----------------------------------------------------------+----------------------------+
-| AVAILABILITY             | VIN: [Enter VIN]                                         | SEARCH                     |
-| Supported stock filters  |      [Verified VIN-range choices if supported]          | [PN / supported free text]  |
-| Quality A-E, descriptions| FILTER: [Normalized Suitability / Variations]           | [Search]                    |
-| Unsupported: unavailable |                                                          |                            |
-|                          |                                                          +----------------------------+
-| PARTS TREE               |                                                          | SEARCH RESULTS PART LIST   |
-| [independent scrolling]  +-----------------------------+----------------------------+ [independent scrolling]    |
-|                          | LOCATION AT CAR             | SELECTED PART / IMAGE      | [ ] PN1 - PART name        |
-| First-level root index   | [one verified vehicle       | / STATUS                   | [ ] PN2 - PART name        |
-|   Branch                 |  location canvas]          | [one selected PART only]   | [ ] PN3 - PART name         |
-|     Sub-branch           |                             | PN and verified part name  |                            |
-|       PART leaf          | [verified position/zone]    | Verified warnings/status   | Row click: select PART     |
-|                          |                             | Classic/supersession only  | Checkbox: bookmark         |
-| Persistent root index    | [unavailable if no mapping] | when evidence exists       | CURRENT: disabled          |
-| Expand root to active    |                             | Part photo or exploded     +----------------------------+
-| selected leaf; preserve  |                             | diagram if available       | APPLICABLE MODELS          |
-| relevant matching paths; |                             |                            | [independent scrolling]    |
-| no duplicate ancestors   |                             | [context required /        | [browse model-range index] |
-| Indent by depth; strong  |                             |  unavailable if needed]    | [ ] Jaguar Accessories     |
-| root text; underline     |                             |                            | [ ] Daimler Limousine      |
-| only active node         |                             |                            | [ ] E-Pace ... XK Range    |
-|                          |                             |                            |                            |
-| PART name leaves are     |                             |                            | With selected PART: only   |
-| links to one shared      |                             |                            | VERIFIED applicable ranges |
-| selected canonical PART  |                             |                            | with supported qualifiers  |
-|                          |                             |                            | Future: multi-range ANY/OR |
-+--------------------------+-----------------------------+----------------------------+----------------------------+
+┌────────────────────────┬──────────────────────────────────────────────────┬────────────────────────┐
+│ Logo / instructions    │ Banner / header                                  │                        │
+│ UI + Parts languages   │                                                  │                        │
+├────────────────────────┼──────────────────────────────────────────────────┼────────────────────────┤
+│ Availability           │ VIN                                               │ Search                 │
+│ stock quality list     │ [input / range picker]                            │ [PN / free text]       │
+│                        │ Filter                                            │                        │
+│ Parts Tree             │ [suitability / variations]                        │ Search Results PART    │
+│ scrollable             ├───────────────────────┬──────────────────────────┤ List                   │
+│ root → branch → leaf   │ Location at car       │ Selected PART            │ scrollable             │
+│ expanded path only     │                       │ status / part name       │ row = select PART      │
+│ PART leafs selectable  │                       │ exploded diagram/image   │ checkbox = bookmark    │
+│                        │                       │                          ├────────────────────────┤
+│                        │                       │                          │ Applicable Models      │
+│                        │                       │                          │ fixture list / fit     │
+│                        │                       │                          │ filter checkboxes      │
+│                        │                       │                          │ scrollable             │
+└────────────────────────┴───────────────────────┴──────────────────────────┴────────────────────────┘
 ~~~
 
 **Reading the map:** the centre-top VIN and normalized variations controls span the centre workspace. Directly below them, Location at car occupies centre-left and the single selected PART/Image/Status panel occupies centre-right. The permanent right column is split vertically into Search, Search Results and Applicable Models. The left Availability block remains above the persistent Parts Tree. Branding/instructions and the banner occupy the header. The illustration does not assert working language, stock, VIN or fitment controls where their read contracts are not implemented.
