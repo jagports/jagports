@@ -42,11 +42,11 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
         const attr = selector === '[data-result-part-id]' ? 'data-result-part-id'
           : selector === '[data-part-query]' ? 'data-part-query' : null;
         if (!attr) return [];
-        this.links = [...this.innerHTML.matchAll(/<a\\b([^>]*)>/g)]
+        this.links = [...this.innerHTML.matchAll(/<a\b([^>]*)>/g)]
           .map(([, attrs]) => attrs).filter((attrs) => attrs.includes(attr + '='))
           .map((attrs) => {
             const dataset = {};
-            for (const [, key, value] of attrs.matchAll(/data-([\\w-]+)="([^"]*)"/g)) {
+            for (const [, key, value] of attrs.matchAll(/data-([\w-]+)="([^"]*)"/g)) {
               dataset[key.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = value;
             }
             return { dataset, listeners: {}, addEventListener(event, fn) { this.listeners[event] = fn; } };
