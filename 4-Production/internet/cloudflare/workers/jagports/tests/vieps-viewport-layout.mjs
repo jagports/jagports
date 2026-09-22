@@ -6,7 +6,7 @@ const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url
 const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
 const desktop = css.slice(0, css.indexOf("@media (max-width: 1100px)"));
 const tablet = css.slice(css.indexOf("@media (max-width: 1100px)"), css.indexOf("@media (max-width: 760px)"));
-const mobile = css.slice(css.indexOf("@media (max-width: 760px)"));
+const mobile = css.slice(css.indexOf("@media (max-width: 760px)"), css.indexOf("@media (max-width: 320px)"));
 
 function rule(selector, source = desktop) {
   // Match the complete CSS selector, never a prefix of a longer selector.
