@@ -34,6 +34,7 @@
     "xr847031_description": "#354 supersession fixture replacement part"
   },
   "header": {
+    "instructions": "Instructions and test fixtures",
     "product_name": "Jagports Vehicle Information and EPC System"
   },
   "locale": {
@@ -82,6 +83,8 @@
     "error": "The PART could not be resolved.",
     "input_aria": "Jaguar part number or fixture identifier",
     "input_placeholder": "e.g. MJB7703AA, MNA7691AA, firtree1",
+    "multiple_matches_one": "{{count}} matching PART. Select it from the Parts Tree.",
+    "multiple_matches_other": "{{count}} matching PARTs. Select one from the Parts Tree.",
     "no_stock_match": "No matching part is currently on stock.",
     "not_found": "Part not found.",
     "prompt": "Enter a Jaguar part number or fixture identifier to begin.",
@@ -93,6 +96,7 @@
     "condition": "Condition",
     "evidence": "Evidence",
     "filter_on_stock": "Show only parts on stock",
+    "filter_on_stock_about": "About Stock only",
     "filter_on_stock_note": "Filters identifier-search results to PARTs with available operational stock and positive quantity.",
     "filter_unavailable": "Stock quality filter unavailable",
     "filter_unavailable_note": "Stock quality A–E filtering requires the approved stock browsing contract.",

@@ -1,87 +1,94 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const workerRoot = join(__dirname, "..");
-const css = readFileSync(join(workerRoot, "styles", "vieps-tailwind.css"), "utf8");
-const html = readFileSync(join(workerRoot, "public", "index.html"), "utf8");
+const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
+const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+const app = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
+const desktop = css.slice(0, css.indexOf("@media (max-width: 1100px)"));
+const tablet = css.slice(css.indexOf("@media (max-width: 1100px)"), css.indexOf("@media (max-width: 760px)"));
+const mobile = css.slice(css.indexOf("@media (max-width: 760px)"), css.indexOf("@media (max-width: 320px)"));
 
-function expectRule(selector, declarations) {
-  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const rule = new RegExp(`${escapedSelector}\\s*\\{(?<body>[^}]*)\\}`, "s").exec(css);
-  assert.ok(rule, `${selector} rule should exist`);
-  for (const declaration of declarations) assert.match(rule.groups.body, declaration);
+function rule(selector, source = desktop) {
+  // Match the complete CSS selector, never a prefix of a longer selector.
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matches = [...source.matchAll(new RegExp("(?:^|\\n)\\s*" + escaped + "\\s*\\{([^}]*)\\}", "g"))];
+  assert.ok(matches.length, "Missing CSS rule " + selector);
+  return matches.at(-1)[1];
 }
 
-test("desktop Tailwind VIEPS shell fits the viewport without page-level scrolling", () => {
-  expectRule("html", [/height:\s*100%;/, /overflow:\s*hidden;/]);
-  expectRule("body", [/height:\s*100%;/, /min-height:\s*100dvh;/, /overflow:\s*hidden;/]);
-  expectRule(".app-shell", [/height:\s*100dvh;/, /display:\s*flex;/, /overflow:\s*hidden;/]);
-  expectRule(".concept-grid", [/flex:\s*1 1 auto;/, /min-height:\s*0;/, /overflow:\s*hidden;/]);
-  expectRule(".panel", [/min-height:\s*0;/, /display:\s*flex;/, /overflow:\s*hidden;/]);
-});
-
-test("long default content scrolls inside permanent Concept-11 regions", () => {
-  assert.match(css, /\.tree-panel #tree,\s*\.ranges-panel #ranges,\s*\.fitment-panel #fitment,\s*\.visual-panel #visuals\s*\{[^}]*overflow:\s*auto;/s);
-  expectRule(".stock-section", [/overflow:\s*auto;/]);
-  expectRule(".fixture-guide", [/overflow:\s*auto;/]);
-});
-
-test("merged Concept-11 desktop geometry is preserved", () => {
-  expectRule(".concept-grid", [
-    /"tree search search"/,
-    /"tree ranges ranges"/,
-    /"tree location suitability"/,
-    /"tree details details"/
-  ]);
-  assert.ok(css.indexOf('"tree ranges ranges"') < css.indexOf('"tree location suitability"'));
-  assert.ok(css.indexOf('"tree location suitability"') < css.indexOf('"tree details details"'));
-});
-
-test("Concept-11 search and availability share the top strip", () => {
-  assert.match(html, /class="search-availability-strip"/);
-  assert.match(html, /id="partSearch"/);
-  assert.match(html, /id="availabilitySelect" type="checkbox"/);
-  assert.match(css, /\.search-availability-strip\s*\{/);
-});
-
-test("Concept-11 uses one vehicle-location canvas and a separate suitability panel", () => {
-  assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
-  assert.doesNotMatch(html, />Top view</);
-  assert.doesNotMatch(html, />Side view</);
-  assert.doesNotMatch(html, /class="vehicle-views"|class="vehicle-view"/);
-  expectRule(".vehicle-location-canvas", [/flex:\s*1 1 auto;/, /min-height:\s*0;/]);
-  assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
-});
-
-test("Concept-11 ranges and lower PART region span the centre/right workspace", () => {
-  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
-  assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
-  assert.match(css, /"tree ranges ranges"/);
-  assert.match(css, /"tree details details"/);
-});
-
-test("narrow responsive layouts remain scrollable instead of clipped", () => {
-  const responsiveRules = css.slice(css.indexOf("@media (max-width: 1100px)"));
-  assert.match(responsiveRules, /html,\s*body\s*\{[^}]*height:\s*auto;[^}]*overflow:\s*auto;/s);
-  assert.match(responsiveRules, /\.app-shell\s*\{[^}]*height:\s*auto;[^}]*min-height:\s*100dvh;[^}]*overflow:\s*visible;/s);
-  assert.match(responsiveRules, /\.concept-grid\s*\{[^}]*overflow:\s*visible;/s);
-  assert.match(responsiveRules, /"search search"/);
-  assert.match(responsiveRules, /"ranges ranges"/);
-  assert.match(responsiveRules, /"tree location"/);
-  assert.match(responsiveRules, /"tree suitability"/);
-  assert.match(responsiveRules, /"details details"/);
-});
-
-test("Concept-11 permanent regions remain present in the static shell", () => {
-  for (const id of ["partSearch", "availabilitySelect", "tree", "vehicleLocation", "locationStatus", "partCard", "visuals", "ranges", "fitment"]) {
-    assert.match(html, new RegExp(`id="${id}"`));
+test("#888 desktop retains #886 Concept-11 arrangement and viewport-fit", () => {
+  assert.match(rule("html"), /overflow:\s*hidden/);
+  assert.match(rule("body"), /overflow:\s*hidden/);
+  assert.match(rule(".app-shell"), /height:\s*100dvh/);
+  assert.match(rule(".app-shell"), /grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) minmax\(0, 1\.05fr\)/);
+  assert.match(rule(".mobile-top, .concept-grid"), /display:\s*contents/);
+  for (const [selector, col, row] of [
+    [".search-panel", "2 / -1", "2"], [".tree-panel", "1", "2 / 6"],
+    [".ranges-panel", "2 / -1", "3"], [".location-panel", "2", "4"],
+    [".fitment-panel", "3", "4"], [".visual-panel", "2 / -1", "5"],
+  ]) {
+    assert.ok(rule(selector).includes("grid-column: " + col), selector + " column");
+    assert.ok(rule(selector).includes("grid-row: " + row), selector + " row");
   }
-  assert.match(html, /class="panel tree-panel"/);
-  assert.match(html, /class="panel visual-panel"/);
-  assert.match(html, /class="panel ranges-panel"/);
-  assert.match(html, /class="panel fitment-panel"/);
+});
+
+test("#888 reduces panel spacing and #886 tree indentation without shrinking reserved panels", () => {
+  assert.match(rule(".app-shell"), /--vieps-gap:\s*\.5rem/);
+  assert.match(rule(".panel"), /bg-jagports-panel p-2/);
+  assert.match(rule(".tree-children"), /margin-left:\s*\.2rem;\s*padding-left:\s*\.4rem/);
+  assert.match(rule(".tree-node-row, .tree-part-row"), /py-1/);
+  assert.match(rule(".tree-children"), /border-left:\s*1px/);
+  assert.match(rule(".selected-path a"), /underline/);
+  assert.match(rule(".location-panel", mobile), /min-height:\s*12rem/);
+  assert.match(rule(".fitment-panel", mobile), /min-height:\s*12rem/);
+  assert.match(rule(".visual-panel", mobile), /min-height:\s*22rem/);
+});
+
+test("#888 moves one expandable fixture guide into the branded banner", () => {
+  assert.equal((html.match(/class="fixture-guide"/g) || []).length, 1);
+  assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf("</header>"));
+  assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf('class="panel tree-panel"'));
+  assert.match(html, /<details class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
+  assert.match(html, /data-i18n="fixture\.randomized_note"/);
+  assert.match(rule(".banner-block .fixture-guide"), /overflow:\s*auto/);
+});
+
+test("#888 mobile keeps one fixed banner/Find/Stock region above sole content scroller", () => {
+  assert.match(rule("html, body", mobile), /height:\s*100%;\s*overflow:\s*hidden/);
+  assert.match(rule(".app-shell", mobile), /grid-template-rows:\s*minmax\(0, auto\) minmax\(0, 1fr\)/);
+  assert.match(rule(".mobile-top", mobile), /grid-row:\s*1/);
+  assert.match(rule(".mobile-top", mobile), /max-height:\s*53dvh/);
+  assert.match(rule(".concept-grid", mobile), /grid-row:\s*2/);
+  assert.match(rule(".concept-grid", mobile), /overflow-y:\s*auto/);
+  assert.match(rule(".concept-grid", mobile), /overscroll-behavior:\s*contain/);
+  assert.ok(html.indexOf('id="partSearch"') < html.indexOf('id="result"'));
+  assert.ok(html.indexOf('id="availabilitySelect"') < html.indexOf('id="result"'));
+});
+
+test("#888 stock help is touch accessible and does not consume mobile top height", () => {
+  assert.match(html, /id="stockHelpButton"[^>]*aria-expanded="false"[^>]*aria-controls="stockHelpPopover"/);
+  assert.match(html, /id="stockHelpPopover"[^>]*role="tooltip" hidden/);
+  assert.match(rule(".stock-help-popover"), /position:\s*absolute/);
+  assert.match(rule(".stock-help-popover"), /width:\s*min\(19rem, calc\(100vw - 1rem\)\)/);
+  assert.match(rule(".stock-help-popover"), /overflow:\s*auto/);
+  assert.match(rule(".stock-help-popover", mobile), /max-height:\s*min\(30dvh, 9rem\)/);
+  assert.match(rule(".stock-help", mobile), /position:\s*static/);
+  for (const declaration of ["left: .35rem", "right: .35rem", "width: auto", "top: calc(100% + .2rem)"]) {
+    assert.ok(rule(".stock-help-popover", mobile).includes(declaration), "mobile help: " + declaration);
+  }
+  assert.match(rule(".search-panel", mobile), /position:\s*relative/);
+  assert.match(app, /event\.key === "Escape"[\s\S]*button\.focus\?\.\(\);[\s\S]*show\(false\)/);
+  assert.match(css, /@media \(max-width: 320px\)/);
+});
+
+test("#888 tablet and keyboard-scroll regions remain available", () => {
+  assert.match(rule(".concept-grid", tablet), /display:\s*grid/);
+  assert.match(rule(".tree-panel", tablet), /grid-area:\s*tree/);
+  assert.match(rule(".ranges-panel", tablet), /grid-area:\s*ranges/);
+  assert.match(desktop, /\.tree-panel #tree, \.ranges-panel #ranges, \.fitment-panel #fitment, \.visual-panel #visuals\s*\{[^}]*overflow:\s*auto/s);
+  assert.match(html, /id="tree" tabindex="0"/);
+  for (const id of ["partSearch", "availabilitySelect", "tree", "ranges", "vehicleLocation", "fitment", "partCard", "visuals"]) {
+    assert.equal((html.match(new RegExp('id="' + id + '"', "g")) || []).length, 1, id);
+  }
 });
