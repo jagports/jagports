@@ -17,9 +17,22 @@
           <span class="muted" data-i18n="header.parts_language_pending"></span>
         </div>
       </div>
-      <div class="banner-block" data-i18n="header.banner"></div>
+      <div class="banner-block" aria-label="VIEPS instructions">
+        <p class="banner-title" data-i18n="header.banner"></p>
+        <p class="banner-instructions" data-i18n="header.instructions"></p>
+      </div>
       <div class="header-spacer" aria-hidden="true"></div>
     </header>
+    <section class="panel search-panel" aria-labelledby="search-heading">
+      <h2 id="search-heading" data-i18n="common.search"></h2>
+      <form id="partSearch" class="search-form">
+        <label for="partNumber" class="visually-hidden" data-i18n="search.input_aria"></label>
+        <input id="partNumber" name="partNumber" autocomplete="off" data-i18n-placeholder="search.input_placeholder" data-i18n-aria-label="search.input_aria">
+        <button type="submit" data-i18n="common.search"></button>
+      </form>
+      <p id="searchStatus" class="muted status-line" role="status"></p>
+    </section>
+
     <div id="result" class="concept-grid">
       <div class="left-workspace">
         <section class="panel availability-panel" aria-labelledby="availability-heading">
@@ -84,15 +97,6 @@
         </div>
       </div>
       <div class="right-workspace">
-        <section class="panel search-panel" aria-labelledby="search-heading">
-          <h2 id="search-heading" data-i18n="common.search"></h2>
-          <form id="partSearch" class="search-form">
-            <label for="partNumber" class="visually-hidden" data-i18n="search.input_aria"></label>
-            <input id="partNumber" name="partNumber" autocomplete="off" data-i18n-placeholder="search.input_placeholder" data-i18n-aria-label="search.input_aria">
-            <button type="submit" data-i18n="common.search"></button>
-          </form>
-          <p id="searchStatus" class="muted status-line" role="status"></p>
-        </section>
         <section class="panel results-panel" aria-labelledby="results-heading">
           <h2 id="results-heading" data-i18n="header.results_heading"></h2>
           <div id="searchResults" class="results-scroll" role="region" tabindex="0" data-i18n-aria-label="header.results_heading"></div>
