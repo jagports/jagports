@@ -196,6 +196,75 @@ test('confirmed no-match and unavailable applicability are distinct UI states', 
   assert.doesNotMatch(ui.get('ranges').innerHTML, /matches this PART\/context/);
 });
 
+test('#875 browse index displays precisely 13 vocabulary labels and no implied PART fitment', async () => {
+  const expected = [
+    'Jaguar Accessories', 'Daimler Limousine', 'E-Pace', 'E-Type',
+    'F-Pace', 'F-Type', 'S-Type', 'X-Type', 'XE Range', 'XF Range',
+    'XJ Range', 'XJS', 'XK Range',
+  ];
+  const ui = harness(() => { throw Error('browse index must not request PART fitment'); });
+  const markup = ui.get('ranges').innerHTML;
+  const labels = [...markup.matchAll(/data-browse-range-index="\\d+">\\s*([^<]+)<\\/g)]
+    .map(([, text]) => text.trim());
+  assert.deepEqual(labels, expected, 'the index is fixed browse vocabulary only');
+  assert.equal((markup.match(/type="checkbox" disabled/g) || []).length, 13);
+  assert.match(markup, /rangeBrowseNote/);
+  assert.doesNotMatch(markup, /data-applicable|aria-checked="true"/);
+  assert.equal(ui.get('rangeSelect').disabled, true);
+  assert.equal(ui.get('variationsSelect').disabled, true);
+  assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
+  assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
+  ui.setLanguage('fi');
+  assert.match(ui.get('ranges').innerHTML, /E-Pace/);
+  assert.match(ui.get('ranges').innerHTML, /Suodatin ei ole vielä käytettävissä/);
+});
+
+test('#875 selected PART never promotes browse vocabulary, excluded or unavailable rows into fitment', async () => {
+  const ui = harness(async () => response({
+    ...fixture,
+    fitment: [
+      { range_code: 'XK', range_name: 'XK Range', applicability_state: 'applicable',
+        qualifier: 'Verified qualifier', verification_status: 'fixture' },
+      { range_code: 'EX', range_name: 'E-Pace', applicability_state: 'excluded' },
+      { range_code: 'N', range_name: 'F-Pace', applicability_state: 'no_match' },
+      { range_code: 'U', range_name: 'XJS', applicability_state: 'unavailable' },
+      { range_code: 'P', range_name: 'Daimler Limousine', applicability_state: 'applicable' },
+    ],
+  }));
+  await ui.search('TEST1');
+  const markup = ui.get('ranges').innerHTML;
+  assert.match(markup, /XK Range/);
+  assert.match(markup, /Daimler Limousine/);
+  assert.doesNotMatch(markup, /E-Pace|F-Pace|XJS|data-browse-range-index/);
+  assert.equal((markup.match(/<li>/g) || []).length, 2);
+  assert.equal(ui.get('rangeSelect').disabled, false, 'supported ranges may select verified detail, not filter');
+  assert.equal(ui.get('variationsSelect').disabled, true, 'normalized #641 filter remains separate');
+  assert.match(ui.get('fitment').innerHTML, /Verified qualifier/);
+  assert.match(ui.get('partCard').innerHTML, /TEST1/);
+});
+
+test('#875 selected-PART applicability preserves missing evidence, explicit exclusion and service errors', async () => {
+  let data = { ...fixture, fitment: [] };
+  const ui = harness(async () => response(data));
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /data is unavailable/);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /XK Range|data-browse-range-index/);
+
+  data = { ...fixture, fitment: [
+    { range_code: 'E', range_name: 'E-Type', applicability_state: 'excluded' },
+  ] };
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /No suitable vehicle range matches/);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /E-Type/);
+
+  data = { ...fixture, fitment_state: 'error', fitment: [] };
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /Applicable Models could not be loaded/);
+  assert.equal(ui.get('rangeSelect').disabled, true);
+  ui.setLanguage('fi');
+  assert.match(ui.get('ranges').innerHTML, /Sopivien mallien tietoja ei voitu ladata/);
+});
+
 test('empty and failed searches clear old results without hiding the page', async () => {
   let fail = false;
   const ui = harness(async () => response(fail ? { error: 'part not found' } : fixture, !fail));
