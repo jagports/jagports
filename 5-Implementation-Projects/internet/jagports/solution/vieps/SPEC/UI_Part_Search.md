@@ -10,15 +10,17 @@ Durable specification authorities:
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — operational stock model and normalized stock-quality contract.
 - [`../i18n/README.md`](../i18n/README.md) — VIEPS UI translation-resource contract and canonical resource path.
 
-The placement authority is the Concept-11 SVG under `../UI_CONCEPTS/` together with the normative map in `../UI/UI_Specs.md`.
+The #875 target layout authority is `../UI_CONCEPTS/Concept-11v1.svg` together with the three-column normative map in `../UI/UI_Specs.md`. The merged Concept-11 remains the runtime baseline until this enhanced layout is reviewed and implemented.
 
 ## Search / Availability placement
-Concept-11 places Search + Availability in the top workspace to the right of the branding/instructions/language block.
+The #875 layout separates controls while preserving the approved deterministic-first/free-text and stock-filter contracts:
 
 ```text
-BRANDING / LANGUAGE | SEARCH + AVAILABILITY
-                    | Search: [ part number, deterministic identifier, or free text ] [Search]
-                    | Availability: [ ] Show only parts on stock
+LEFT   Availability: supported stock/quality constraints above the Parts Tree
+CENTRE VIN and normalized Suitability / Variations filter
+RIGHT  one PN / deterministic identifier / free-text Search field
+       scrollable Search Results PART List with disabled bookmark placeholders
+       independently scrollable Applicable Models panel
 ```
 
 Availability remains operational stock state, separate from catalogue identity.
@@ -33,16 +35,14 @@ Normalized A–E stock-quality filtering remains governed by the stock-quality c
 
 ### Stock-only information control (#888)
 
-Present a small, separately focusable information button immediately beside the existing **Show only parts on stock** checkbox. The button describes the filter but does not change its checked state. Exact English help text:
+Present a small, separately focusable information button beside—not inside the label of—the operational **Show only parts on stock** checkbox, including at the top of #875's left desktop workspace and in the persistent mobile banner/Find region. The button explains the existing `available = 1 AND quantity > 0` eligibility without changing selection, stock-only state, search resolution or API behavior. Exact English help text:
 
 > Filters identifier-search results to PARTs with available operational stock and positive quantity.
 
-The wording explains the already approved `available = 1 AND quantity > 0` qualification; the help UI does not change deterministic-first/free-text search, tree browsing, PART eligibility, error handling or any other API/filter contract.
-
-- The visible icon/button is accessible by keyboard and screen reader, with the translated accessible name **About Stock only** (EN) and equivalent FI name; translate the help body through the existing UI i18n resources.
-- Desktop: hover/focus can reveal help, and click/Enter/Space toggles the same content. Mobile: tap toggles the explanation; no hover-only behavior. Outside click/tap and Escape dismiss the popover; keyboard focus remains usable and the checkbox is never activated by help interactions.
-- Use an overlay positioned within the visual viewport rather than permanently expanding the persistent mobile banner/Find height. At 220px, 320px, expanded instructions, translated/wrapped labels and when the soft keyboard opens, the explanation must remain reachable without covering or disabling the Find input/button; scroll or flip help within available viewport space if required.
-- Keep the Stock-only control itself part of the single persistent mobile banner/Find region described in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). At desktop widths preserve the existing search/Availability panel arrangement. No change to stock quantities, permissions, persistence or result filtering.
+- Translate the help body and accessible button name **About Stock only** through existing UI EN/FI resources. This must not undo merged #894's count-aware translations for `search.multiple_matches`.
+- Desktop hover/focus reveals help, and click/Enter/Space toggles it; mobile tap toggles it. Outside activation and Escape dismiss the popover without toggling the checkbox or trapping keyboard focus.
+- Position the explanation as an in-viewport overlay, not a permanently expanded header. At 220–320px and with longer translations, expanded banner, orientation or on-screen keyboard, it must not cover or disable Find; keep the popup reachable inside the viewport.
+- The same mobile banner/Find/Stock help region from #888 persists when #875's three-column desktop geometry is introduced. Desktop Availability remains separately above the left Parts Tree, while Search/Results/Applicable Models occupy the right workspace.
 
 ## Stock-quality filter and presentation contract
 
@@ -180,7 +180,7 @@ Searchable stock text does not make stock the catalogue identity. When a stock-t
 
 A free-text match fragment must be highlighted where the matched text is visible in an existing UI region. Highlighting is fragment-level, meaning the matched substring inside the visible value is highlighted, not merely the whole row.
 
-Do not create a separate search-result page, modal, explanation view, independent row/table view, or any other multi-PART content element to explain free-text results. Multiple matching PARTs are represented as clickable leaf nodes in the Parts Tree. The PART / Image / Status region shows exactly one selected PART at a time.
+Do not create an additional search-results page, modal or explanation view. The dedicated #875 right-hand Search Results PART List and clickable Parts Tree leaves represent the same canonical PART candidates. The centre PART / Image / Status region shows exactly one selected PART at a time.
 
 ## Canonical PART and occurrence resolution
 A successful Jaguar part-number lookup resolves one canonical `PART` identity. A non-numbered supported deterministic identifier resolves the approved non-numbered item/context without fabricating a Jaguar number.
@@ -201,23 +201,33 @@ A part-number search returns all matching occurrences and their complete source 
 
 ## Parts Tree default navigation and selection
 
-The Parts Tree is the only multi-PART selection surface.
+The Parts Tree and dedicated right-hand Search Results PART List are two coordinated selection surfaces over the same canonical PART candidates.
 
-By default, with no branch selected, the Parts Tree shows first-level/root branches only.
+By default the Parts Tree shows its persistent first-level/root index. A selected branch or PART preserves that index, expands the root-to-selected path and shows immediate children of the active branch. Shared stable ancestors appear only once; unrelated descendants remain collapsed (#873).
 
-When a branch is selected, the first-level/root index stays visible, the complete ancestry from its root to that selected branch remains expanded, and the selected branch shows all available immediate next-level branches.
-
-The visible result is one identity-keyed hierarchy: shared ancestors are rendered once by stable node identity rather than repeated once for every matching path. Equal labels do not justify merging distinct source-qualified nodes.
-
-Each deeper level is modestly indented. Root/upper-level branches use stronger typography than deeper branches, and the single active category or PART leaf is indicated by underlining its text.
-
-This progressive tree navigation is separate from search-result filtering. Search may filter/highlight branches and PART leaf nodes, but it must not turn PART / Image / Status or any other content region into a multi-PART result list.
+Progressive tree navigation remains distinct from search-result filtering. Search may filter/highlight branches and PART leaf nodes, and the designated right-hand Search Results PART List shows the same candidates. The centre PART / Image / Status region never becomes a multi-PART list.
 
 PARTs are shown as last leaf nodes of the tree when the current tree/search context reaches PART-level results.
 
-When a search returns multiple PARTs, no PART is selected by default. The matching PARTs are visible as clickable PART leaf nodes in the Parts Tree. PART / Image / Status remains in an explicit no-selected-PART or context state until the user selects one PART leaf.
+When multiple PARTs match, no PART is selected by default. Matching PARTs appear as clickable terminal Parts Tree leaves **and** distinct right-hand PN/name rows. The centre selected-PART panel stays in explicit no-selected-PART/context state until a result row or tree leaf is selected.
 
 When exactly one PART is resolved deterministically or by free text, that PART may populate PART / Image / Status according to the single-result contract.
+
+## #875 implementation phase split
+
+**Current implementation target:** retain deterministic-first/free-text fallback and existing stock-only contracts; render the right-hand independently scrolling PN/name result list and synchronize its selected canonical PART with the left #873 Parts Tree and one centre detail panel. Show separate **disabled** bookmark checkboxes. Preserve explicit result states and occurrence context, rather than changing search resolution.
+
+**Deferred implementation:** bookmark activation/storage and full **multiple-model-range ANY (OR)** filtering. For supported future range filtering, selected normalized range IDs constrain occurrence-first candidate resolution: retain a canonical PART if at least one surviving occurrence has verified applicable evidence for **one or more** selected ranges and meets all other active approved filters. An empty selected-range set imposes no range filter. Unsupported future controls may be visually present but must be disabled and clearly explained.
+
+## Right-hand Search Results and bookmarks (#875)
+
+- One independently scrollable PN/name result row appears per distinct canonical PART in the current candidate set. Use stable canonical identity, not label text, as the result key. Preserve each real EPC occurrence in the Parts Tree without duplicating one canonical PART as separate result rows.
+- A result row and a tree PART leaf update the **same** selected PART and visible selection. A tree leaf can additionally carry its verified source occurrence. If a selected result has multiple source occurrences, retain all paths and require explicit context before showing occurrence-specific location, diagram-item or VIN applicability.
+- Rows are real keyboard-accessible PART links/actions and highlight matching text fragments where visible. A supported non-numbered identifier does not acquire an invented Jaguar PN.
+- **Current layout increment:** show a separate, properly labelled bookmark checkbox beside each result row, but leave it **disabled** with an accessible future-feature explanation. Do not simulate saving, a checked persistence state or account authorization. **Later increment:** activate bookmarking only after storage scope, authorization and saved-list behavior are separately specified; a bookmark toggle must never select a PART or alter stock filtering, model filtering or fitment.
+- Stock-only, VIN and normalized #641 suitability/variation inputs constrain supported candidate occurrences; a canonical PART remains while at least one verified occurrence survives.
+- Context-only matches remain in the owning tree/range region. The results panel has explicit empty, no-match, stock-filtered-empty, unsupported, unavailable and error states and never fabricates a PART row.
+- The distinct right-hand Applicable Models panel offers a fixture/index browse state when no PART is selected; with one selected PART/context it shows only evidence-backed applicable ranges, not every browse fixture. Excluded/no-match, unavailable and error remain distinct. **Approved future model filtering:** select multiple normalized model ranges; match **ANY (OR)** selected range through at least one positively evidenced surviving occurrence, in conjunction with other supported constraints. Until the required read path is implemented, show the filter as disabled rather than falsely filtering.
 
 ## Occurrence-first tree filtering
 
@@ -242,7 +252,7 @@ Language-specific JEPC tree structure may differ. Catalogue-data language select
 
 ## Free-text result display cases
 
-Free-text results use the existing VIEPS regions. The UI must not create a separate result list or explanation view to show free-text matches.
+Free-text PART candidates appear in clickable Parts Tree leaves and the permanent dedicated right-hand Search Results PART List. Do not create any additional results page, modal or explanation view.
 
 ### Deterministic part-number / identifier match exists
 
@@ -264,13 +274,13 @@ Model Ranges shows matching model/range/body-style evidence where available.
 
 ### Multiple free-text PART matches
 
-When no deterministic match exists and free-text resolves to multiple canonical PART candidates, the matching PARTs must be shown as clickable last leaf nodes in the existing Parts Tree.
+When no deterministic match exists and free-text resolves to multiple canonical PART candidates, show the matching PARTs as clickable terminal tree leaves **and** distinct PN/name rows in the dedicated right-hand Search Results PART List.
 
 No PART is selected by default when a search returns multiple PARTs.
 
-No content element should present many PARTs. In particular, PART / Image / Status must not become a multi-result list, row view, table, candidate list or search-results container. It shows exactly one selected PART after a user selects a PART leaf from the tree. Until a PART leaf is selected, it remains in an explicit no-selected-PART or context state.
+The right-hand Search Results PART List is the only multi-PART content panel outside the tree. PART / Image / Status is never a candidate list: it shows exactly one selected PART after a tree leaf or result row is selected; otherwise it remains in explicit no-selected-PART/context state.
 
-The Parts Tree must show all matching tree branches where matching PARTs occur inside one deduplicated hierarchy. Required shared ancestors appear once, the root index remains visible, and matching PARTs are terminal leaves under their evidenced branches. Non-matching child leaves are not expanded merely because their parent branch matched.
+The Parts Tree must show all matching tree branches where matching PARTs occur, with only the matching branch path, required ancestors and matching PART leaf nodes visible/expanded. Non-matching child leaves are not expanded merely because their parent branch matched.
 
 Model Ranges must reflect matched model/range/body-style contexts when those contexts are part of the matched result evidence.
 
@@ -332,7 +342,7 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 | `invalid` | Query fails supported validation |
 | `not_found` | Valid search has no supported deterministic match and no available free-text match after all active search modes have been evaluated |
 | `stock_filtered_empty` | Search matches exist, but the selected supported stock constraint removes all visible results; display `No matching parts currently on stock.` |
-| `multiple_matches` | Deterministic or available free-text search produces multiple canonical PART candidates; matching PARTs are presented as clickable Parts Tree leaf nodes, no PART is selected by default, and results are not shown as a multi-PART content element |
+| `multiple_matches` | Multiple canonical PART candidates are presented as clickable tree leaves and deduplicated right-hand PN/name result rows; no PART is selected by default |
 | `unsupported` | Requested search/filter capability is unavailable in the current runtime and must not be silently ignored |
 | `resolved` | Identity/context resolved |
 | `context_only` | Free text matched a browse/tree/range/model/context value and is shown through the existing region that owns that context; no PART is selected unless the match resolves to a PART candidate |
@@ -342,20 +352,20 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 Stock-quality presentation may additionally distinguish explicit stock-detail states such as classified, unclassified, unavailable/unresolved, and not included in current result presentation without changing canonical PART result identity.
 
 ## Result distribution into merged Concept-11
+The #875 target distribution changes presentation while preserving search resolution, canonical identity and stock/catalogue boundaries.
+
 ```text
 resolved identity/context or candidate set
-   ├── Parts Tree main-level index + matching branch/path ancestors + clickable matching PART leaf nodes
-   ├── Suitability Model Ranges row + matched range/model/body-style context when available
-   ├── Location at car (left-middle)
-   ├── Suitability / Filter or facts (right-middle)
-   └── PART / Image / Status (full lower centre/right; exactly one selected PART only)
+  ├── left Availability: supported stock filters
+  ├── left Parts Tree: persistent root index + verified source paths + PART leaves
+  ├── centre VIN and normalized Suitability / Variations filter
+  ├── centre Location at car: verified single canvas or unavailable
+  ├── centre PART / Image / Status: exactly one selected PART or none
+  ├── right Search Results PART List: deduplicated canonical PN/name rows + bookmarks
+  └── right Applicable Models: verified selected-PART fit OR fixture browse index
 ```
 
-Missing secondary data stays as an explicit unavailable state in its permanent region.
-
-Matched query fragments are highlighted where visible in existing regions. Highlighting is applied to the fragment, not merely to the whole row/field.
-
-The Parts Tree is the only multi-PART selection surface. No other content element should present many PARTs. PART / Image / Status shows one selected PART after a tree leaf selection and must not act as a search-results list. When multiple PARTs match, it remains in a no-selected-PART/context state until a PART leaf is selected.
+Both selection surfaces share canonical PART selection. Tree leaves may additionally select a verified source occurrence; result rows must not guess an occurrence for a multi-occurrence PART. Bookmark state never changes selection, stock, fitment or filters. Match fragments are highlighted where visible and missing secondary evidence remains explicitly unavailable.
 
 ## Empty-search stock browsing
 The merged SVG states that when Search is empty, a supported Availability/quality constraint may update both the Parts Tree and Model Ranges to contexts represented by matching stock.
@@ -377,12 +387,14 @@ PartSearchResult
   search_path?                    # deterministic | free_text when the distinction is applicable
   match_type?                     # exact_part_number | partial_part_number | deterministic_identifier | part_description | model_range | body_style | tree_context | stock_text | manufacturer | selected_language_i18n | mixed
   matched_fragments[]?            # fragment/value/source locations that may be highlighted where visible
-  candidates[]?                   # multiple canonical PART candidates remain selectable as Parts Tree leaf nodes, never guessed and never shown as a separate multi-PART content list
+  candidates[]?                   # canonical candidates drive both real tree leaves and one deduplicated right-hand PN/name list
   canonical_part? / approved non-numbered identity?
   occurrences[]                  # all matching source occurrences
   selected_occurrence/context
   tree context                    # complete source path, language-qualified where relevant
-  tree_part_leafs[]?              # clickable matching PART leaves under their matching branch/path ancestors
+  tree_part_leafs[]?              # clickable matching PART leaves under genuine branch/path ancestors
+  result_list[]?                  # UI-derived canonical candidates, NOT new PART entities
+  bookmark_state?                 # deferred: no active bookmark state in current layout phase
   diagram/item context when available
   fitment/suitability context when available
   model_range/body-style context when available
@@ -405,10 +417,8 @@ Cover at least:
 - valid no-match after deterministic and active free-text modes both fail;
 - multiple deterministic candidates without guessed selection;
 - deterministic miss with reduced-MVP free-text fallback;
-- default Parts Tree view showing first-level/root branches only;
-- selecting a Parts Tree branch retaining the root index, expanding its complete ancestry, and showing all available immediate next-level branches;
-- shared path ancestors rendered once per stable tree identity, with distinct source-qualified nodes retained;
-- depth indentation, stronger typography nearer the root, and underlined single active node;
+- default Parts Tree view showing first-level branches only;
+- selecting a Parts Tree branch showing all available next-level branches under that branch;
 - fragment highlighting in visible matched text;
 - generic free-text query matching model, range, body-style or catalogue/context text;
 - query matching PART description text;
@@ -417,9 +427,11 @@ Cover at least:
 - selected-language i18n text match where available;
 - context-only match shown through the existing owning region without fabricating PART selection;
 - all matching Parts Tree branches where matching PARTs occur, with matching PARTs presented as clickable last leaf nodes and without expanding unrelated child leaves;
-- multiple-PART search result with no default selected PART;
-- no multi-PART presentation in PART / Image / Status or any other content element;
-- PART / Image / Status showing exactly one selected PART after a tree leaf is selected;
+- multiple-PART search results with no default selected PART;
+- synchronized tree leaves and right-hand deduplicated PN/name result rows;
+- current-phase visible but disabled bookmark checkboxes that neither select a PART nor claim saved state; later-phase independent bookmark toggling when approved;
+- no multi-PART presentation inside the centre PART / Image / Status region;
+- PART / Image / Status showing one selected PART after either surface is used;
 - Model Ranges reflecting matched model/range/body-style context where available without special Coupe/Convertible behavior;
 - explicit unsupported state when requested free-text/stock filtering is unavailable;
 - stock-filtered-empty distinct from total search no-match, with `No matching parts currently on stock.` wording;
@@ -436,6 +448,8 @@ Cover at least:
 
 Fixture values are test data, not verified Jaguar catalogue facts.
 
+The #875 fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is a browse/test vocabulary, NOT evidence of per-PART fitment. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled current-phase bookmark placeholders and all results-panel states. Later activation/storage needs its own interaction tests.
+
 ## Viewport and language
 The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search remains post-MVP #622.
 
@@ -451,7 +465,7 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Absence of free-text capability in a runtime exposing descriptive search must be explicit, not simulated.
 - A stock-filtered-empty result is distinct from a total search no-match.
 - A context-only free-text match is shown through the existing region that owns that context and must not fabricate a selected PART.
-- Multiple PART matches are selectable as Parts Tree leaf nodes only; no content element should present many PARTs.
+- Multiple PART matches are selectable as tree leaves and right-hand results rows. The centre selected-PART panel never presents multiple PARTs.
 - Multiple-PART search results do not select any PART by default.
 
 ## Acceptance criteria
@@ -461,12 +475,10 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - [x] Reduced-MVP limited free-text search is required before #280 closure.
 - [x] Full multilingual/global free-text indexing/search remains post-MVP under #622.
 - [x] Default Parts Tree view shows first-level branches only.
-- [x] Selecting a Parts Tree branch keeps the root index visible, expands the complete root-to-selected ancestry, and shows all available immediate next-level branches.
-- [x] Shared Parts Tree ancestors are rendered once per stable tree identity, with distinct source-qualified nodes preserved.
-- [x] Parts Tree hierarchy uses depth indentation, stronger typography nearer the root, and underlines only the active category or PART leaf.
-- [x] Multiple canonical search candidates remain selectable as Parts Tree leaf nodes rather than being guessed into one PART or shown as a separate multi-PART content list.
+- [x] Selecting a Parts Tree branch shows all available next-level branches under that branch.
+- [ ] Multiple canonical search candidates are selectable as tree leaves and distinct right-hand results rows, without guessed selection.
 - [x] Multiple-PART search results do not select any PART by default.
-- [x] Free-text candidates are shown in existing Concept-11 regions, with multiple PARTs selectable only through clickable Parts Tree leaves.
+- [ ] Free-text candidates appear in #875 right-hand Search Results and clickable tree leaves over one shared selection state.
 - [x] PART / Image / Status shows exactly one selected PART and must not present many PARTs.
 - [x] Matching text fragments are highlighted where visible.
 - [x] `stock_filtered_empty` is distinct from a total `not_found` result and uses `No matching parts currently on stock.` wording.
@@ -479,9 +491,9 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - [x] Catalogue-data language may select structurally different imported source trees without conflating them with UI i18n.
 - [x] Reduced-MVP free-text may search selected-language i18n text where it is part of the current searchable read path.
 - [x] Non-numbered fixture identifiers are not presented as Jaguar part numbers.
-- [x] Search/Availability placement follows merged Concept-11.
+- [ ] Search/Availability placement follows #875: right Search, left Availability, centre VIN/normalized variations.
 - [x] Reduced-MVP public `stock_only` filtering is defined over canonical PART candidates using operational STOCK availability plus positive quantity without redefining catalogue identity.
-- [x] Result distribution follows the corrected Model Ranges / Location / Suitability / PART geometry.
+- [ ] Result distribution follows #875: right Applicable Models, centre Location and one selected PART.
 - [x] Generic model/range/body-style free-text matches are reflected in Model Ranges where available, without special Coupe/Convertible behavior.
 - [x] Searchable stock text includes the current data-path stock fields specified for reduced-MVP free-text, without inventing an unspecified admin-only field taxonomy.
 - [x] Unsupported stock-driven empty-search behavior is not fabricated.
