@@ -45,7 +45,7 @@ test("#875 mobile keeps banner and Find fixed and scrolls only the remaining wor
   assert.match(rule(".concept-grid", mobile), /grid-row:\s*3/);
   assert.match(rule(".concept-grid", mobile), /overflow-y:\s*auto/);
   assert.match(rule(".concept-grid", mobile), /overscroll-behavior:\s*contain/);
-  assert.match(mobile, /\\.tree-panel #tree,[\\s\\S]*?\\.stock-section\\s*\\{\\s*overflow:\\s*visible/);
+  assert.match(mobile, /\.tree-panel #tree,[\s\S]*?\.stock-section\s*\{\s*overflow:\s*visible/);
   assert.match(rule(".search-form", mobile), /grid-template-columns:\s*minmax\(0, 1fr\) auto/);
 });
 
