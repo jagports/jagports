@@ -43,26 +43,30 @@ test('versioned Tailwind source and documentation mirror is present locally', as
   assert.equal(JSON.parse(cliPackage).version, '4.1.13');
 });
 
-test('Tailwind source follows the merged Concept-11 geometry', async () => {
+test('Tailwind source follows the approved #875 three-column geometry', async () => {
   const css = await readFile(sourceCssUrl, 'utf8');
   assert.match(css, /--color-jagports-teal:/);
-  assert.match(css, /grid-template-areas:/);
-  assert.match(css, /"tree search search"/);
-  assert.match(css, /"tree ranges ranges"/);
-  assert.match(css, /"tree location suitability"/);
-  assert.match(css, /"tree details details"/);
+  assert.match(css, /--vieps-columns:/);
+  assert.match(css, /grid-template-columns:\s*var\(--vieps-columns\)/);
+  assert.match(css, /\.search-panel\s*\{\s*grid-column:\s*3;\s*grid-row:\s*2/);
+  assert.match(css, /\.left-workspace\s*\{\s*grid-column:\s*1;\s*grid-row:\s*2 \/ 4/);
+  assert.match(css, /\.right-workspace\s*\{\s*grid-column:\s*3;\s*grid-row:\s*3/);
   assert.match(css, /\.selected-path/);
   assert.match(css, /CSS-Kit-2ndRound-Tailwind-CSS\.jpg/);
 });
 
-test('static shell keeps merged Concept-11 semantic regions without inventing unsupported behavior', async () => {
-  const html = await readFile(indexUrl, 'utf8');
-  assert.match(html, /class="search-availability-strip"/);
+test('static #875 shell separates fixed banner and Find from scrolling content', async () => {
+  const [html, css] = await Promise.all([readFile(indexUrl, 'utf8'), readFile(sourceCssUrl, 'utf8')]);
+  assert.match(html, /class="banner-block"[^>]*>[\s\S]*data-i18n="header\.instructions"/);
   assert.match(html, /id="availabilitySelect" type="checkbox"/);
   assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
-  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
+  assert.match(html, /<h2 id="ranges-heading" data-i18n="header\.applicable_models"><\/h2>/);
   assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
   assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
-  assert.doesNotMatch(html, />Top view</);
-  assert.doesNotMatch(html, />Side view</);
+  assert.ok(html.indexOf('class="panel search-panel"') > html.indexOf('</header>'));
+  assert.ok(html.indexOf('class="panel search-panel"') < html.indexOf('id="result"'));
+  const mobile = css.slice(css.indexOf('@media (max-width: 760px)'));
+  assert.match(mobile, /\.concept-grid\s*\{[^}]*overflow-y:\s*auto/);
+  assert.match(mobile, /\.search-panel\s*\{[^}]*grid-row:\s*2/);
+  assert.doesNotMatch(html, />Top view|>Side view/);
 });
