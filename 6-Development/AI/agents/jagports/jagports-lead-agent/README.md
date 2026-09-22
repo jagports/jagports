@@ -447,6 +447,10 @@ The standalone OpenAI API test and this scheduler test prove different capabilit
 
 Full Raspberry Pi installation and verification instructions are maintained in [Jagports AI OS Lead Agent Setup](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
 
+## Current specialist and Telegram communication test
+
+For the reusable **one-shot GitHub collection → specialist results → Telegram delivery** command and pass criteria, use [Development OPERATIONS.md](OPERATIONS.md#one-shot-github--specialists--telegram-communication-test). The diagnostic fetches one Issue body separately to display real detail; the existing specialist Event still carries only the collected snapshot metadata and lifecycle delta. `main.py` currently generates a report but does **not** invoke Telegram or model-backed reasoning. Automatic specialist notifications and Issue-body-aware reasoning require later implementation.
+
 ## Governance boundary
 
 GitHub remains the durable system of record. Repository workflow, review, testing, approval, and merge rules remain authoritative regardless of which model provider may later be connected.
