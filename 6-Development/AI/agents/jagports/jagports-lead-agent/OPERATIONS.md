@@ -1,0 +1,318 @@
+# Jagports Lead Agent — Development Command Reference
+
+## Scope
+
+Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure or the AI OS business case. Current module architecture is in [README.md](README.md); the Raspberry Pi installation belongs to [Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md); business context belongs to [the implementation project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
+
+**Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
+
+## Reusable runtime checks
+
+From the non-privileged runtime user's shell when the Lead Agent is already installed:
+
+```bash
+set -e
+cd ~/jagports-lead-agent
+source venv/bin/activate
+python main.py
+python main.py
+```
+
+The second run should normally report empty lifecycle changes unless GitHub changed between runs. An initial large delta is expected after a long polling gap and does not itself prove a state failure. Review `reports/lead_report.md` and `state/agent_state.json`; no model-backed specialist call occurs in the present modular runtime.
+
+## Direct OpenAI Responses API smoke test
+
+Requires the installed project virtual environment, a local `.env` containing `OPENAI_API_KEY`, API access and authorized usage billing. This **does not test** model-backed specialist integration or systemd scheduling.
+
+```bash
+set -e
+cd ~/jagports-lead-agent
+source venv/bin/activate
+python -c 'from dotenv import load_dotenv; from openai import OpenAI; load_dotenv(); r=OpenAI().responses.create(model="gpt-5.6", input="Reply with exactly: JAGPORTS API TEST OK"); print(r.output_text)'
+```
+
+Expected output: `JAGPORTS API TEST OK`. This exact result was reported by the Raspberry Pi operator. Model availability and cost are operational inputs; recheck before repeating a paid test.
+
+## Direct wrapper test — separate from the coordinator
+
+`services/openai_service.py` implements `analyse(text)`, but the current `main.py` does not invoke it. Testing it incurs an API call:
+
+```bash
+set -e
+cd ~/jagports-lead-agent
+source venv/bin/activate
+python -c 'from dotenv import load_dotenv; load_dotenv(); from services.openai_service import analyse; print(analyse("Reply with exactly: JAGPORTS AGENT API OK"))'
+```
+
+This command is a proposed test, **not operator-verified evidence**. A success verifies the wrapper, not OpenAI Agents SDK orchestration, GitHub semantics or production autonomy.
+
+## Portable user-systemd inspection from an administrative SSH shell
+
+On a Linux host with systemd, if the service owner has an active user manager but the administrative shell belongs to another account, target the service user's own bus. Substitute the service user when not `codex`:
+
+```bash
+set -e
+CUID=$(id -u codex)
+sudo systemctl is-active "user@${CUID}.service"
+sudo ls -l "/run/user/${CUID}/bus"
+sudo -u codex env XDG_RUNTIME_DIR="/run/user/${CUID}" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${CUID}/bus" systemctl --user list-timers --all
+```
+
+`Failed to connect to bus: No medium found` means the selected shell has no reachable user bus, not that Windows Git Bash lacks systemd. The service user's account must not be granted sudo solely to work around this. Host-specific installation, lingering and bus recovery are in the Deployment document.
+
+## Verification vocabulary
+
+- **Direct API PASS:** the exact direct model response was returned.
+- **Manual pipeline PASS:** `main.py` exits normally and expected lifecycle changes/report are inspected.
+- **User service PASS:** the systemd service reports `Result=success`, `ExecMainStatus=0`.
+- **Timer configured:** the timer is enabled/active and a next activation exists.
+- **Unattended timer PASS:** a *subsequent actual timer-triggered* service run is confirmed by journal/report timestamps; a manual `systemctl start` is not sufficient.
+- **Reasoning specialist PASS:** a changed, relevant Issue yields a model-derived structured `AgentResult` via the integrated SDK service, with usage tracking. This is a future implementation criterion.
+
+## Historical engineering commands (reference only)
+
+The following material preserves the original prototype's command variants, investigations and unverified alternatives. **It is not a single copy-paste installer.** Some paths, Python environments, original `agent.py` entry points and timer intervals are superseded. Use the canonical Deployment procedure for the live MyNode host and this file's tested commands for current checks.
+
+## Appendix: Linux setup commands and variations from the original conversation
+
+This appendix reconstructs the setup sequence from “Build Automated Agent Team” on 12 September 2026. Commands are grouped by stage and alternative; they are not one script to run from top to bottom. Shell prompts and chat escaping have been removed. Configuration and program files must contain the implementation described above before execution commands will work.
+
+### What was observed versus proposed
+
+- The user reported Debian 12.15 and Python 3.8.9 while a virtual environment was active. That output does not establish the version of the operating system's default interpreter.
+- `which python3.11` returned `/usr/bin/python3.11`; `python3.11 --version` returned Python 3.11.2. A new project environment then used Python 3.11.
+- The Python 3.8 installation attempt failed resolving `jiter>=0.10.0,<1`. The successful path used the already-installed Python 3.11, upgraded pip, and installed the dependencies.
+- The recorded pip upgrade completed at 26.2.1. The conversation reported openai 3.13.0, PyGithub 2.10.0, and PyYAML 6.0.3 in the prepared environment. These are historical observations, not a dependency lock or recommended current versions.
+- The chosen workspace was the existing Linux user `codex`'s home directory. The user could not run sudo. The `/opt` and dedicated-service-account alternatives require an administrator and were not the chosen setup.
+- The systemd user service/timer instructions were proposed. The presence of `run-agent.sh` was shown later, but successful timer activation and unattended operation were not established in the retrieved evidence.
+
+### Command reference
+
+All `pip` commands below belong inside the activated project virtual environment. Choose the relevant alternative, and stop if a preceding setup command fails.
+
+```bash
+# 1. Inspect the host and available interpreter (as the runtime user).
+python3 --version
+cat /etc/debian_version
+which python3.11
+python3.11 --version
+
+# 2A. Chosen workspace: home directory, no sudo required.
+mkdir -p ~/jagports-lead-agent
+cd ~/jagports-lead-agent
+
+# 2B. Alternative only: administrator prepares an /opt workspace for codex.
+sudo mkdir -p /opt/jagports-lead-agent
+sudo chown -R codex:codex /opt/jagports-lead-agent
+sudo -u codex bash
+# In that user's shell, use /opt/jagports-lead-agent consistently.
+# The remaining home-directory commands describe the chosen 2A path.
+
+# 2C. Alternative only: administrator creates a dedicated service account.
+sudo useradd --system --create-home --shell /usr/sbin/nologin jagports-agent
+sudo mkdir /opt/jagports-lead-agent
+sudo chown -R jagports-agent:jagports-agent /opt/jagports-lead-agent
+# This account has a nologin shell; it is intended for a configured service.
+
+# 3A. Original generic prerequisite proposal (administrator only).
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip git
+python3 --version
+pip3 --version
+
+# 3B. Conditional alternative if Python 3.11 is absent (administrator only).
+# This was unnecessary on the recorded host: Python 3.11 already existed.
+sudo apt update
+sudo apt install python3.11 python3.11-venv
+
+# 4A. Initial generic venv command from the conversation.
+# Use only when python3 resolves to the intended interpreter.
+cd ~/jagports-lead-agent
+python3 -m venv venv
+source venv/bin/activate
+
+# 4B. Chosen Python 3.11 replacement path, instead of 4A.
+# Exit an active environment before replacing the project venv.
+deactivate
+cd ~/jagports-lead-agent
+# Original conversation: rm -rf venv
+# Safer variation here: retain the old directory under an unused backup name.
+mv venv venv-python38-backup
+python3.11 -m venv venv
+source venv/bin/activate
+python --version
+
+# 4C. Equivalent creation form proposed in the conversation, for a fresh path.
+python3.11 -m venv ~/jagports-lead-agent/venv
+
+# 5. Upgrade pip and install dependencies in the Python 3.11 environment.
+python -m pip install --upgrade pip
+pip --version
+pip install openai PyGithub pyyaml
+pip install python-dotenv
+pip install python-telegram-bot
+pip list
+
+# Earlier equivalent package-by-package installation variation:
+# pip install openai
+# pip install PyGithub
+# pip install pyyaml
+
+# Dependency capture was proposed; a resulting lock was not verified.
+pip freeze > requirements.txt
+
+# Import check: the original used an interactive Python prompt.
+python3
+# At the Python prompt:
+# import openai
+# import github
+# import yaml
+# print("OK")
+# exit()
+
+# 6. Create the initial configuration and runtime directories.
+mkdir -p ~/jagports-lead-agent/prompts
+nano ~/jagports-lead-agent/config.yaml
+cat ~/jagports-lead-agent/config.yaml
+nano ~/jagports-lead-agent/.env
+chmod 600 ~/jagports-lead-agent/.env
+mkdir -p ~/jagports-lead-agent/reports
+mkdir -p ~/jagports-lead-agent/state
+cd ~/jagports-lead-agent
+mkdir -p notifications
+
+# 7. Conditional nano history-directory repair from the session.
+mkdir -p ~/.local/share/nano
+# If permission denied, first inspect ownership.
+ls -ld ~/.local ~/.local/share
+# Only an administrator, after confirming the incorrect root ownership
+# of /home/codex/.local observed in that session:
+sudo chown -R codex:codex /home/codex/.local
+ls -ld /home/codex/.local
+# Back as codex:
+mkdir -p ~/.local/share/nano
+nano ~/jagports-lead-agent/config.yaml
+
+# 8. Original prototype execution and output checks.
+cd ~/jagports-lead-agent
+source venv/bin/activate
+python agent.py
+cat reports/lead_report.md
+cat state/agent_state.json
+
+# 9. Telegram setup/test variations; scripts must first be populated.
+nano telegram_test.py
+python telegram_test.py
+# telegram_test.py used get_me(): bot identity/token check, not chat-ID discovery.
+nano telegram_get_updates.py
+python telegram_get_updates.py
+# Send /start or /test to the bot first; get_updates reveals the chat ID.
+nano telegram_test_send.py
+python telegram_test_send.py
+# The test sender sends a real message to the configured recipient.
+nano telegram_notify.py
+# Only when deliberately testing with no real pending notification:
+echo "Jagports Lead Agent test notification" > notifications/pending_notification.txt
+python telegram_notify.py
+
+# 10. Modular migration and current execution.
+mkdir -p core agents services
+# Preserve agent.py as the working reference while populating the modules.
+nano main.py
+python main.py
+python main.py && cat reports/lead_report.md
+
+# 11. Checkpoint example from the conversation.
+# Archive includes the workspace, potentially .env and other local credentials.
+# Keep it private. Use a new filename for a new checkpoint.
+cd ~
+tar -czf jagports-lead-agent-three-agents-working.tar.gz jagports-lead-agent
+ls -lh ~/jagports-lead-agent-three-agents-working.tar.gz
+
+# 12. Proposed user-systemd setup; populate files with the examples below.
+nano ~/jagports-lead-agent/run-agent.sh
+chmod +x ~/jagports-lead-agent/run-agent.sh
+~/jagports-lead-agent/run-agent.sh
+mkdir -p ~/.config/systemd/user
+nano ~/.config/systemd/user/jagports-lead-agent.service
+nano ~/.config/systemd/user/jagports-lead-agent.timer
+systemctl --user daemon-reload
+systemctl --user enable --now jagports-lead-agent.timer
+systemctl --user list-timers
+systemctl --user start jagports-lead-agent.service
+journalctl --user -u jagports-lead-agent.service -n 50
+systemctl --user status jagports-lead-agent.service
+```
+
+The old environment in the first failure was shown under `/home/codex/venv`. Replacing `~/jagports-lead-agent/venv` does not replace that separate directory. Confirm the active environment and target path before migration. The backup variation above requires the destination name to be unused; it is an explicit documentation improvement over the destructive reset command in the original conversation.
+
+An early suggestion included `python3.11-pip`; the later proposal used only `python3.11 python3.11-venv`. No successful installation of a `python3.11-pip` package was shown. Likewise, pyenv was mentioned as a user-local fallback, but no pyenv commands or completed setup were supplied. Neither should be presented as the path used on this host. The instruction throughout was to leave `/usr/bin/python3` and system services unchanged rather than switch the system interpreter.
+
+### Configuration and credential variations
+
+The initial `config.yaml` example was:
+
+```yaml
+agent:
+  name: Jagports Lead
+
+github:
+  repository: jagports/jagports
+
+polling:
+  interval_minutes: 60
+```
+
+This setting alone does not establish a running scheduler. Later prototype code also used `openai.enabled` for analysis-mode selection.
+
+The initial plan proposed shell environment exports; the implemented setup moved to `python-dotenv` and a protected local `.env`. The recorded variable names were `OPENAI_API_KEY`, `GITHUB_TOKEN`, `TELEGRAM_BOT_TOKEN`, and `TELEGRAM_CHAT_ID`. The earliest planning name `TELEGRAM_TOKEN` was superseded by `TELEGRAM_BOT_TOKEN` in the sender code. Populate actual credentials locally; no values are reproduced here.
+
+The credential check printed only whether each environment variable was present. A true result confirms loading, not API authentication. The nano ownership repair requires an administrator when `codex` cannot use sudo; the history warning could also be ignored while continuing to edit the project.
+
+### Proposed wrapper and systemd files
+
+The original `run-agent.sh` content was:
+
+```bash
+#!/bin/bash
+cd /home/codex/jagports-lead-agent
+source venv/bin/activate
+python agent.py
+```
+
+For the modular implementation, the corresponding adaptation is to run `python main.py` instead. This is an adaptation for the documented current entry point, not evidence that the installed wrapper was changed. For a different user or the `/opt` alternative, adapt the wrapper and service paths consistently.
+
+The proposed user service at `~/.config/systemd/user/jagports-lead-agent.service` was:
+
+```ini
+[Unit]
+Description=Jagports Lead Agent
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/codex/jagports-lead-agent
+ExecStart=/home/codex/jagports-lead-agent/run-agent.sh
+```
+
+The proposed timer at `~/.config/systemd/user/jagports-lead-agent.timer` was:
+
+```ini
+[Unit]
+Description=Run Jagports Lead Agent hourly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target
+```
+
+The earlier system-wide service alternatives named `/etc/systemd/system/jagports-lead.service` and later `/etc/systemd/system/jagports-lead-agent.service`; neither had a complete verified installation. User-service startup across logout/reboot was not demonstrated. Manual execution alongside a timer was identified as a possible cause of overlapping runs, so verify timer state before interpreting duplicate notifications.
+
+### Backup variations and scope
+
+The same tar command was used with checkpoint suffixes `split-working`, `event-working`, `agentresult-working`, `registry-working`, `multi-agent-working`, and `three-agents-working`. Those names record successive implementation stages, not interchangeable versions of the final runtime.
+
+The modular migration also proposed `git checkout -b refactor/split-lead-agent` and, later, `mv agent.py legacy_agent.py`. These were alternatives conditional on a Git checkout and a tested migration; the later directory listing still showed `agent.py`. This appendix does not claim either operation was completed or provide a full source-code installer.
+
