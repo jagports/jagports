@@ -30,7 +30,7 @@ Applicability is evaluated from approved PART occurrence/application/attribute r
 - **No PART selected:** the right-hand Applicable Models panel shows an index of available model/range browse choices and supported filter controls. Its deterministic fixture display labels, in this order, are Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These are browse/test labels, NOT positive per-PART applicability claims.
 - **One selected PART/context:** show all and only approved `applicable` ranges for that PART and supported selected occurrence/vehicle context. Preserve evidence and verified qualifiers; exclude confirmed `excluded` / not-applicable ranges from the suitable list. Distinguish no confirmed match, unavailable fitment evidence and processing failure.
 - When a right-hand result row identifies one PART with several valid source occurrences, require explicit occurrence/context selection before occurrence-dependent VIN applicability is shown. Selecting another range/context must not mutate canonical PART identity.
-- A model/range filter constrains candidates only when supported by the approved read contract. Whether checkbox selection is single or multiple and how combined filters operate remains an explicit #875 product decision; the SVG alone does not authorize a multi-select implementation.
+- **Product Owner decision:** choose several model/range filters and match **ANY** selected range. Retain a candidate canonical PART when one or more verified surviving occurrences positively satisfy at least one selected normalized range ID plus every other active approved filter. No selection leaves ranges unconstrained. Never convert incomplete/unavailable evaluation or an exclusion into positive fitment. The advanced multi-range read/filter implementation is **deferred**: show unsupported checkboxes disabled until correctly backed by the approved read contract.
 - Empty-query stock-backed model browsing is permitted only when the approved stock/catalogue and applicability contracts provide verified candidates; otherwise indicate unavailable/unsupported rather than fabricating ranges.
 
 ### Suitability / Filter dual mode
@@ -39,7 +39,7 @@ The centre-top Suitability / Variations filter (#641) and right-bottom Applicabl
 1. **Browse or multiple candidates:** show only verified fitting normalized variation options derived from currently surviving occurrence contexts. Selecting one narrows candidates consistently in left Parts Tree, right Search Results and right Applicable Models. Preserve exclusions and unknown/unavailable states; raw imported descriptions are not automatically typed normalized facets.
 2. **Single selected PART/context:** show evidence-backed qualifier/fact values where supported by the selected context (body, steering, engine, supercharger, market, transmission, equipment and VIN boundary). Missing values remain unknown; they never become default assumptions.
 
-VIN applicability uses approved source VIN ranges, not inferred model years or KOVuosi. A result row's bookmark checkbox does not select a model, apply a filter or assert fitment.
+VIN applicability uses approved source VIN ranges, not inferred model years or KOVuosi. Result-row bookmark checkboxes are **visible but disabled** in the current layout increment; later bookmarking cannot select a model, apply a filter or assert fitment.
 
 ### Information document link
 The `(i)` control may link to verified **Model Family & Year Introduction** documentation when a valid source/document relationship exists.
@@ -56,7 +56,7 @@ FitmentRequest
   vehicle_context?
   approved_browse_filters?
   normalized_variation_filters[]?    # when supported
-  model_range_filters[]?              # only when selection semantics are approved
+  model_range_filters[]?              # deferred multi-range filter: normalized IDs, ANY/OR, [] = unconstrained
 
 FitmentResult
   state                               # applicable / no_match / unavailable / error as defined
@@ -74,7 +74,7 @@ FitmentResult
 Do not add a second domain taxonomy for the 13 fixture labels. Use normalized existing IDs where verified, or clearly isolated fixture IDs until imported/source-mapped evidence exists. Preserve `part_fitment.applicability_state` and the #666 positive/negative/unavailable distinctions across UI and API.
 
 ## Deterministic fixtures
-Cover all 13 exact browse/index fixture display labels independently of selected-PART fitment, a single PART applicable to only some Ranges, an excluded Range not presented as suitable, verified source qualifiers, VIN-range match/exclusion, model filter plus normalized variation filter, selected row with multiple source occurrences, unavailable evidence, context-only search and API error. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
+Cover all 13 exact browse/index fixture display labels independently of selected-PART fitment, a single PART applicable to only some Ranges, an excluded Range not presented as suitable, verified source qualifiers, VIN-range match/exclusion, selected row with multiple source occurrences, unavailable evidence, context-only search and API error. The later multi-range filter test matrix must include **ANY/OR** across two or more ranges, empty-selection pass-through, exclusions/unknowns and conjunction with an approved normalized variation filter. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
 
 ## Viewport and language
 Applicable Models is independently scrollable in the persistent right column below the separate Search Results list; centre VIN/Variations remain above Location and one selected PART. Keep #616 fitted desktop behavior with inner scroll and accessible links/labelled checkboxes. On narrow layouts reflow without mixing bookmark, model filter and verified fit indicators. UI text and source Parts-language remain independently governed by #554 and #620.
@@ -88,7 +88,8 @@ VIN decoding and VIN-range reconstruction are separate enabling work. Do not inv
 - [ ] Selected-PART/context view displays only verified applicable Ranges and excludes confirmed nonmatching/excluded Ranges.
 - [ ] `no_match`, `unavailable`, `error` and unresolved qualifiers are distinguished and never guessed into positive fitment.
 - [ ] Right model filter and centre normalized variation filter semantics are distinct and consume the approved #641/#354/#666 contract.
-- [ ] Proposed model checkbox single/multi-select semantics are approved before their implementation.
+- [x] Multiple normalized range selections with ANY/OR semantics approved by the Product Owner.
+- [ ] Advanced multiple-range filtering deferred until its read contract and fixtures are implemented; unsupported checkboxes remain disabled.
 - [ ] VIN applicability preserves source evidence and excludes KOVuosi-based guessing.
 - [ ] Shared PART selection, multi-occurrence handling, fixture tests, viewport fit and language boundaries are covered.
 - [ ] Independent #875 specification review is complete.
