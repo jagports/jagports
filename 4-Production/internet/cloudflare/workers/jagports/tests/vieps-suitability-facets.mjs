@@ -97,7 +97,7 @@ test('exclusions, incomplete coverage and genuine no-match stay distinct', async
   assert.equal(unknown.unavailable_occurrences[0].occurrence_id, 87715);
   assert.deepEqual(unknown.matches, []);
   const noMatch = (await request(['body:convertible', 'engine_aspiration:supercharged'])).body;
-  assert.equal(noMatch.state, 'unavailable'); // O-E has incomplete engine evidence; cannot assert global exclusion.
+  assert.equal(noMatch.state, 'no_match'); // O-E is known Coupe and cannot match selected Convertible.
   assert.deepEqual(noMatch.matches, []);
   const missing = (await request([], { q: 'DOES-NOT-EXIST' })).body;
   assert.equal(missing.state, 'no_match');
