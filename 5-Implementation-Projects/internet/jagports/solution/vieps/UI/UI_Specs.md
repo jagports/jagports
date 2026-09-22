@@ -167,7 +167,7 @@ shared search / browse / fitment state
 
 Filter occurrence contexts first, then derive distinct canonical PART candidates. Keep all legitimate source paths in the Parts Tree, but deduplicate right result rows by stable canonical PART identity. A row and a tree leaf share selected PART state; choosing an occurrence-specific tree leaf additionally selects that exact occurrence. If a row maps to more than one occurrence, require an explicit occurrence/context choice before showing context-specific location or fitment.
 
-Search result bookmark checkboxes do **not** select a PART or alter filters, availability, applicability or catalogue state. Persistence and account scope require the #875 product decision before runtime implementation.
+Search-result bookmark checkboxes are visible in the current layout increment but **disabled and labelled as coming later**: no bookmark storage, saved-list UI, account requirement or simulated working toggle is introduced now. When implemented in a later approved phase, bookmark state is independent of PART selection, filtering, availability, applicability and catalogue state.
 
 ## 1. Search + Availability
 
@@ -202,7 +202,7 @@ The #875 **Applicable Models** panel occupies the right column below Search Resu
 
 The required deterministic **browse fixture display labels**, in order, are: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These labels test the index, not any PART's per-range applicability; use verified existing normalized IDs when available and fixture-only IDs otherwise.
 
-Whether model-filter checkboxes allow single or multiple selection, and their multi-select combination semantics, requires the #875 product decision plus a supported read contract. The checkbox artwork alone does not authorize arbitrary multi-select applicability.
+**Approved model-range filter rule:** users may select multiple ranges, with **ANY (OR)** matching: a canonical PART qualifies when at least one surviving evidenced occurrence is positively applicable to at least one selected range, subject to all other active supported constraints. Deselecting every range removes the range constraint. Never treat unavailable/unknown fitment as a positive match or apply filters using labels as identities. The advanced multi-range filtering backend is deferred; until a supported read contract exists, controls may appear in the approved layout but remain disabled rather than silently filtering incorrectly.
 
 ## 4. Location at car
 
@@ -244,15 +244,13 @@ Operational stock remains separate from catalogue/reference information. Quantit
 
 All major #875 regions retain their allocated space during loading, empty, unavailable and error states. On the default desktop layout, preserve #616's viewport-fit shell: the page itself fits the viewport, with **separate internal scrolling for the Parts Tree, Search Results list and Applicable Models panel**. Avoid nested scroll traps; preserve keyboard scrolling, visible focus, accessible region headings, row links and separately labelled bookmark/filter checkboxes. Narrower layouts may reflow and use normal page scrolling while preserving selected PART/tree context.
 
-## Implementation decisions for #875
+## Approved #875 Product Owner decisions — 2026-09-22
 
-The target placement and shared-selection rule follow the Product Owner's annotated concept. Three interaction decisions require explicit approval **before** their corresponding runtime behavior is implemented:
+1. **Bookmarks:** show a separate checkbox beside each PART result now, **disabled and labelled for a future release**. Do not implement session/browser/account persistence, saved lists, or a misleading local-only bookmark toggle in this increment. Future bookmarking remains independent of shared PART selection, fitment and stock.
+2. **Model range filtering:** support selecting several ranges with **ANY (logical OR)** semantics in the later supported filtering increment. A PART survives when at least one of its evidenced surviving occurrences is positively applicable to at least one chosen range, together with all other active approved constraints; zero ranges selected means no range constraint. Missing/unavailable evidence is not a match. Checkboxes may be shown disabled until the read contract supports this correctly; do not simulate an effective filter.
+3. **Phase split:** implement the approved three-column **layout and synchronized Parts Tree / right-hand Search Results PART selection now**, without changing #280's existing reduced-MVP closure gate by itself. Defer bookmark activation/persistence and advanced model-range filtering to later, separately governed implementation work. The 13-label fixture browse index and verified selected-PART applicability presentation remain in the layout increment where existing supported data permits.
 
-- **Bookmark persistence:** page/session-only (no storage), browser-local persistence, or authenticated account persistence. Do not silently equate a checked bookmark with selected PART state or choose storage/authentication on the user's behalf.
-- **Model-filter selection:** single selection or multi-selection; if multi-selection is approved, specify combination semantics and the normalized query/read contract. Checked *fit* indicators are never votes or independent positive claims.
-- **Product phase:** #875 does not change #280's reduced-MVP closure requirements. Coordinate phase placement with #670/#668 before broad implementation.
-
-A reviewed specification PR may authorize this target layout; runtime changes and their test/merge gates remain separate from the planning decision.
+The current implementation acceptance is limited to page regions/scrolling/accessibility, distinct PN/name rows and shared selection with one centre PART, retained #873 tree semantics, visible disabled bookmark controls, and non-fabricated Applicable Models browse/fact states. Later increments require their own API, storage, authorization and integration tests; these are **not** acceptance blockers for the layout increment.
 
 ## Implementation boundaries
 
@@ -280,7 +278,7 @@ A conforming #875 implementation preserves:
 - the three-column target layout, including distinct left Availability/Parts Tree, centre VIN/Variations and one Location/PART pair, and right Search/Results/Applicable Models;
 - one canonical PART identity shared by the Parts Tree and right-hand Search Results, with genuine source-qualified occurrences and no guessed default PART for multi-match;
 - persistent tree root index, stable links, no repeated shared ancestors, expanded path to selected PART, clear indentation and underlined selection as specified under #873;
-- independently selectable PN/name result rows and separately controlled bookmarks after their persistence semantics are approved;
+- independently selectable PN/name result rows, with separately labelled **disabled** bookmark checkboxes until later activation/storage is approved;
 - the exact 13-label fixture browse index without treating every label as evidence of fitment;
 - right Applicable Models showing only verified fitting ranges for a selected PART/context; unavailable, no-match, excluded and error remain separate;
 - normalized centre variation filters from #641 rather than a second presentation-only taxonomy;
@@ -288,4 +286,4 @@ A conforming #875 implementation preserves:
 - UI-vs-Parts language independence, internal scrolling, keyboard/screen-reader support and #616 viewport-fit behavior;
 - existing deterministic-first/free-text-fallback, stock-only semantics, canonical PART vs occurrence boundaries and explicit missing-data states.
 
-The three #875 implementation decisions above must be resolved before their corresponding controls are treated as complete.
+The three Product Owner decisions are recorded above. Layout/shared-selection acceptance is separate from deferred bookmark activation and advanced ANY-range filtering.
