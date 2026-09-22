@@ -76,7 +76,7 @@ export async function handleViepsSuitability(request, env) {
   // descriptions by equal visible labels. Unmapped/proposed source records
   // do not publish an additional normalized vocabulary entry.
   const dimensions = (await db.prepare(
-    \`SELECT DISTINCT d.id, d.code, d.cardinality, v.value_code
+    `SELECT DISTINCT d.id, d.code, d.cardinality, v.value_code
        FROM applicability_dimension d
        JOIN applicability_dimension_value v ON v.dimension_id = d.id
        JOIN applicability_description_mapping_current m
@@ -84,7 +84,7 @@ export async function handleViepsSuitability(request, env) {
        JOIN applicability_source_description sd ON sd.id = m.source_description_id
        WHERE sd.source_namespace = ? AND sd.provenance_kind = 'fixture'
          AND m.status = 'fixture'
-       ORDER BY d.code, v.value_code\`
+       ORDER BY d.code, v.value_code`
   ).bind(FIXTURE_SOURCE).all()).results || [];
   const published = new Set(dimensions.map((row) => key(row.code, row.value_code)));
   for (const [dimension, values] of selected) {
@@ -101,7 +101,7 @@ export async function handleViepsSuitability(request, env) {
   }
 
   const assertions = (await db.prepare(
-    \`SELECT a.id, a.part_occurrence_id, a.model_context_id, a.effect,
+    `SELECT a.id, a.part_occurrence_id, a.model_context_id, a.effect,
           a.verification, a.coverage, s.coverage AS snapshot_coverage,
           p.id AS part_id, p.part_number_normalized AS part_number,
           p.description AS part_description, o.source_ref AS occurrence_key,
@@ -117,7 +117,7 @@ export async function handleViepsSuitability(request, env) {
          OR instr(upper(coalesce(p.description, '')), upper(?)) > 0)
          AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item stock
            WHERE stock.part_id = p.id AND stock.available = 1 AND stock.quantity > 0))
-       ORDER BY p.id, o.id, a.id\`
+       ORDER BY p.id, o.id, a.id`
   ).bind(FIXTURE_SOURCE, FIXTURE_SOURCE, FIXTURE_SOURCE, q, q, q, only).all()).results || [];
 
   if (!assertions.length) {
@@ -131,8 +131,8 @@ export async function handleViepsSuitability(request, env) {
   const ids = assertions.map((row) => row.id);
   const placeholders = ids.map(() => '?').join(',');
   const sets = (await db.prepare(
-    \`SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
-       FROM applicability_condition_set WHERE assertion_id IN (\${placeholders})\`
+    `SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
+       FROM applicability_condition_set WHERE assertion_id IN (${placeholders})`
   ).bind(...ids).all()).results || [];
   const setIds = sets.map((row) => row.id);
   const conditionsBySet = new Map();
@@ -140,16 +140,16 @@ export async function handleViepsSuitability(request, env) {
   if (setIds.length) {
     const binds = setIds.map(() => '?').join(',');
     const conditions = (await db.prepare(
-      \`SELECT ac.set_id, d.code AS dimension, ac.operator, ac.value_code
+      `SELECT ac.set_id, d.code AS dimension, ac.operator, ac.value_code
          FROM applicability_attribute_condition ac
          JOIN applicability_dimension d ON d.id = ac.dimension_id
-         WHERE ac.set_id IN (\${binds})\`
+         WHERE ac.set_id IN (${binds})`
     ).bind(...setIds).all()).results || [];
     const memberships = (await db.prepare(
-      \`SELECT mc.set_id, d.code AS dimension, mc.operator, mc.value_code
+      `SELECT mc.set_id, d.code AS dimension, mc.operator, mc.value_code
          FROM applicability_set_membership_condition mc
          JOIN applicability_dimension d ON d.id = mc.dimension_id
-         WHERE mc.set_id IN (\${binds})\`
+         WHERE mc.set_id IN (${binds})`
     ).bind(...setIds).all()).results || [];
     for (const row of conditions) add(conditionsBySet, row.set_id, row);
     for (const row of memberships) add(membersBySet, row.set_id, row);
