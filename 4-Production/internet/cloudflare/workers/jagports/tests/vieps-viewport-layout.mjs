@@ -5,14 +5,13 @@ import { readFileSync } from "node:fs";
 const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
 
-function rule(selector, text = css) {
-  // Prefer the final matching declaration: grouped tablet defaults may precede an override.
-  const start = text.lastIndexOf(selector);
-  assert.notEqual(start, -1, "Expected CSS rule: " + selector);
-  const openingBrace = text.indexOf("{", start);
-  assert.notEqual(openingBrace, -1, "Expected declaration body: " + selector);
-  const end = text.indexOf("}", openingBrace);
-  return text.slice(start, end);
+function rule(selector, text = css.slice(0, css.indexOf("@media (max-width: 1100px)"))) {
+  // Match a complete selector, not a substring of a grouped declaration.
+  // Tablet intentionally overrides grouped defaults with later explicit rules.
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matches = [...text.matchAll(new RegExp("(?:^|\\n)\\s*" + escaped + "\\s*\\{([^}]*)\\}", "g"))];
+  assert.ok(matches.length, "Expected CSS rule: " + selector);
+  return matches.at(-1)[1];
 }
 function mobileRules() { return css.slice(css.indexOf("@media (max-width: 760px)")); }
 
@@ -46,7 +45,7 @@ test("#875 mobile keeps banner and Find fixed and scrolls only the remaining wor
   assert.match(rule(".concept-grid", mobile), /grid-row:\s*3/);
   assert.match(rule(".concept-grid", mobile), /overflow-y:\s*auto/);
   assert.match(rule(".concept-grid", mobile), /overscroll-behavior:\s*contain/);
-  assert.match(rule(".tree-panel #tree, .results-panel .results-scroll, .ranges-panel .ranges-scroll,", mobile), /overflow:\s*visible/);
+  assert.match(mobile, /\\.tree-panel #tree,[\\s\\S]*?\\.stock-section\\s*\\{\\s*overflow:\\s*visible/);
   assert.match(rule(".search-form", mobile), /grid-template-columns:\s*minmax\(0, 1fr\) auto/);
 });
 
