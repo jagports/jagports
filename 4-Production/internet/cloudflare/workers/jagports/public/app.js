@@ -301,7 +301,7 @@ function renderSearchResults(parts = [], selectedId = null) {
     return `<li class="result-row${selected ? " selected-result" : ""}">
       <a href="?part=${encodeURIComponent(partSearchValue(part))}&candidate_id=${encodeURIComponent(part.id)}"
          data-result-part-id="${escapeHtml(part.id)}" ${selected ? 'aria-current="page"' : ""}>${escapeHtml(partDisplayLabel(part))}</a>
-      <label><input type="checkbox" disabled aria-label="${escapeHtml(t("search.bookmark_pending"))}" title="${escapeHtml(t("search.bookmark_pending"))}"></label>
+      <label class="bookmark-label"><input type="checkbox" disabled aria-label="${escapeHtml(`${t("search.bookmark_pending")}: ${partDisplayLabel(part)}`)}" title="${escapeHtml(t("search.bookmark_pending"))}"><span class="bookmark-caption">${escapeHtml(t("search.bookmark_pending"))}</span></label>
     </li>`;
   }).join("")}</ul>` : empty(t("part.no_part_selected"));
   panel.querySelectorAll?.("[data-result-part-id]").forEach((link) => {
