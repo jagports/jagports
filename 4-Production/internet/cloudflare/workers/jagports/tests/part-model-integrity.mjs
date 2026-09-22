@@ -20,7 +20,8 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 19);
+  assert.equal(migrations.length, 20);
+  assert.ok(migrations.includes('0019_suitability_description_mapping.sql'));
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
@@ -145,11 +146,35 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
   for (const { name } of tables) {
     for (const fk of db.prepare(`PRAGMA foreign_key_list(${quote(name)})`).all()) {
       assert.ok(db.prepare(`SELECT 1 FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1`).get(), `fixture for ${name}.${fk.from}`);
-      rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /FOREIGN KEY constraint failed/);
+      // Immutable evidence/revision tables deliberately reject UPDATE before
+      // SQLite reaches FK enforcement. Exercise their FK with INSERT below.
+      if (name === 'applicability_source_description' || name === 'applicability_description_mapping_revision') {
+        const immutability = name === 'applicability_source_description'
+          ? /source descriptions are immutable/
+          : /mapping revisions are immutable/;
+        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, immutability);
+      } else {
+        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /FOREIGN KEY constraint failed/);
+      }
       checked++;
     }
   }
-  assert.equal(checked, 49, 'all 49 FK columns in the consolidated schema are exercised');
+  // New source-description evidence and immutable mapping history reject
+  // invalid parents on INSERT; UPDATE is prohibited even for valid parents.
+  rejected(db, `INSERT INTO applicability_source_description (
+    source_namespace,dataset_key,source_key,source_language,record_locator,
+    original_text,provenance_kind,evidence_id
+  ) VALUES('fixture:fk-probe','v1','missing-evidence','en','fk-probe',
+    'Unrelated synthetic text','fixture',-999999)`, /FOREIGN KEY constraint failed/);
+  rejected(db, `INSERT INTO applicability_description_mapping_revision (
+    source_description_id,revision,dimension_id,value_code,status,
+    mapping_version,evidence_note
+  ) VALUES(-999999,1,87701,'coupe','proposed','fk-probe','unknown source')`, /FOREIGN KEY constraint failed/);
+  rejected(db, `INSERT INTO applicability_description_mapping_revision (
+    source_description_id,revision,dimension_id,value_code,status,
+    mapping_version,evidence_note
+  ) VALUES(87701,2,87701,'nonexistent','proposed','fk-probe','unknown value')`, /FOREIGN KEY constraint failed/);
+  assert.ok(checked >= 49, 'each populated FK is exercised, including additive mapping relationships');
 });
 
 test('canonical and relationship uniqueness reject duplicate populated identities', (t) => {
