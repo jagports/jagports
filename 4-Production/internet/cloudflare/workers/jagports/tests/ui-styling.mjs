@@ -204,7 +204,7 @@ test('#875 browse index displays precisely 13 vocabulary labels and no implied P
   ];
   const ui = harness(() => { throw Error('browse index must not request PART fitment'); });
   const markup = ui.get('ranges').innerHTML;
-  const labels = [...markup.matchAll(/data-browse-range-index="\\d+">\\s*([^<]+)<\\/g)]
+  const labels = [...markup.matchAll(/data-browse-range-index="\d+">\s*([^<]+)<\/label>/g)]
     .map(([, text]) => text.trim());
   assert.deepEqual(labels, expected, 'the index is fixed browse vocabulary only');
   assert.equal((markup.match(/type="checkbox" disabled/g) || []).length, 13);
