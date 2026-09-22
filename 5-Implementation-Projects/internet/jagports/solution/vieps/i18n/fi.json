@@ -144,8 +144,8 @@
         "short_description": "Varasto-osan kuntoa ei ole vielä luokiteltu."
       }
     },
-    "status": "Tila",
-    "quality_unsupported": "Laatuluokkien A–E suodatus ei ole vielä käytettävissä."
+    "quality_unsupported": "Laatuluokkien A–E suodatus ei ole vielä käytettävissä.",
+    "status": "Tila"
   },
   "stock_admin": {
     "access_heading": "Ylläpitäjän tunnistautuminen",
