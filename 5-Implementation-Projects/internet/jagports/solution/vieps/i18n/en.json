@@ -144,8 +144,8 @@
         "short_description": "Stock quality has not yet been classified."
       }
     },
-    "status": "Status",
-    "quality_unsupported": "Quality A–E filtering is not yet available."
+    "quality_unsupported": "Quality A–E filtering is not yet available.",
+    "status": "Status"
   },
   "stock_admin": {
     "access_heading": "Administrator access",
