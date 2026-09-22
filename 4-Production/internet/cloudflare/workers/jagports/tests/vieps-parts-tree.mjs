@@ -37,13 +37,24 @@ test("Parts Tree preserves hierarchy and highlights selected path", () => {
   const { renderTree, elements } = loadTreeRenderer();
 
   renderTree([
-    { path: ["Suspension", "Front", "Vertical Link"] },
+    {
+      node_id: 103,
+      path: ["Suspension", "Front", "Vertical Link"],
+      nodes: [
+        { node_id: 101, label: "Suspension" },
+        { node_id: 102, label: "Front" },
+        { node_id: 103, label: "Vertical Link" },
+      ],
+    },
   ]);
 
   assert.match(elements.tree.innerHTML, /Suspension/);
   assert.match(elements.tree.innerHTML, /Front/);
   assert.match(elements.tree.innerHTML, /Vertical Link/);
   assert.match(elements.tree.innerHTML, /selected-path/);
+  assert.match(elements.tree.innerHTML, /href="\?tree=101"/);
+  assert.match(elements.tree.innerHTML, /href="\?tree=102"/);
+  assert.match(elements.tree.innerHTML, /href="\?tree=103"/);
 });
 
 test("Parts Tree renders multiple valid occurrence paths without changing canonical identity", () => {
@@ -69,4 +80,15 @@ test("Missing Parts Tree context produces explicit unavailable state", () => {
   renderTree([]);
 
   assert.match(elements.tree.innerHTML, /No Parts Tree context is available/);
+});
+
+
+test("Parts Tree does not invent links when stable node identity is unavailable", () => {
+  const { renderTree, elements } = loadTreeRenderer();
+
+  renderTree([{ path: ["Legacy", "Context"] }]);
+
+  assert.match(elements.tree.innerHTML, /Legacy/);
+  assert.doesNotMatch(elements.tree.innerHTML, /data-tree-node-id/);
+  assert.doesNotMatch(elements.tree.innerHTML, /href="\?tree=/);
 });
