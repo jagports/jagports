@@ -1,30 +1,28 @@
 # VIEPS UI — Main part and diagram view synchronization contract
 
-**Status:** Specification ready for implementation review  
-**Controlling issue:** #468  
+**Status:** #875 target geometry proposed for review; merged Concept-11 remains the runtime baseline  
+**Layout enhancement issue:** #875 (follows #468's merged Concept-11)  
 **Priority issue:** #475  
 **Implementation parent:** #368  
 **Domain owner:** #354
 
 ## Objective
-Define the Main View contract from the Concept-11 SVG merged by PR #645 while preserving canonical PART, EPC occurrence/context and item synchronization.
+Specify the #875 selected-PART and Location at car workspace using existing canonical PART, verified occurrence and item synchronization. Search Results is a separate right-hand multi-PART panel; the centre Main View displays only one selected PART.
 
 ## Merged Concept-11 geometry
+The #875 target places one Location canvas beside one selected-PART panel in the centre. Search and Applicable Models occupy the separate right column, replacing the old full-width Model Ranges row and full-width lower PART layout.
 
 ```text
-centre/right workspace
-┌──────────────────────────────────────────────────────────────────┐
-│ SUITABILITY MODEL RANGES                                         │
-├──────────────────────────────┬───────────────────────────────────┤
-│ LOCATION AT CAR              │ SUITABILITY / FILTER              │
-│ one location canvas          │ filters or verified facts         │
-├──────────────────────────────┴───────────────────────────────────┤
-│ PART / IMAGE / STATUS                                            │
-│ identity/status + one selected image/diagram                     │
-└──────────────────────────────────────────────────────────────────┘
+LEFT                      CENTRE                                   RIGHT
+Availability              VIN / normalized Variations             Search
+Parts Tree                +----------------+-------------------+   Search Results PART List
+(root/selected path)      | Location at car| Selected PART /   |   (many candidates)
+                          | verified canvas| Image / Status    |   Applicable Models
+                          | or unavailable | one PART only     |   (verified fit or browse)
+                          +----------------+-------------------+
 ```
 
-The important correction from the earlier interpretation is that **Location and Suitability are side-by-side**, not vertically stacked. PART / Image / Status spans the full lower centre/right workspace. Model Ranges is a separate row above them.
+Selecting a right-hand row or a PART leaf in the left tree updates the same canonical PART selection. A tree leaf can also select its verified occurrence; choosing a row with multiple occurrences must not guess one. Responsive layout may reflow without changing these roles.
 
 ## Contract
 The Main View receives canonical PART, selected EPC occurrence/context and selected item identity. It does not create a new part identity.
@@ -38,25 +36,10 @@ The Main View receives canonical PART, selected EPC occurrence/context and selec
 - Catalogue vehicle location is distinct from physical stock/storage location.
 
 ### Coordination with Suitability
-- The adjacent right-middle Suitability region uses the same selected PART/context and vehicle/range applicability state.
-- Location and Suitability remain semantically separate: absence of vehicle-location mapping does not mean absence of fitment, and vice versa.
+The right-bottom Applicable Models panel consumes the selected PART and, when available, selected occurrence and vehicle context. It shows only verified `applicable` ranges for a selected PART/context; without PART selection it may show the fixture browse index without implying fitment. Its model filtering is separate from centre-top normalized Suitability / Variations search filters. Missing Location mapping does not establish missing or negative fitment.
 
 ### PART / Image / Status
-The full lower centre/right region groups, where supported by approved data:
-
-- warning/status;
-- canonical PART number/identity;
-- selected EPC item/callout identity;
-- Jaguar Classic indication;
-- supersession relationship;
-- verified part name/details;
-- one selected part image or exploded diagram.
-
-The SVG examples such as `Fan warning label`, `MJB7703AA`, an item number, Classic and superseded text are illustrative only. They become runtime facts only when current result data supplies them.
-
-Tree selection and diagram-item selection refer to the same occurrence/item context. Selection never mutates canonical PART identity.
-
-Missing image, diagram, hotspot or vehicle-location data is an explicit `unavailable` state. No geometry or relationship may be fabricated.
+The centre-right panel groups **one canonical PART** and approved evidence for its selected source occurrence/item, warnings/status, Jaguar Classic, supersession, PN/name, and one part image or exploded diagram. When several PARTs match, no PART is selected by default. Tree leaves and results rows share canonical PART selection; bookmark checkboxes never select a PART. When one result row represents several genuine occurrences, present only verified PART-level details until the occurrence is chosen. Missing diagram, hotspot, media or location remains explicitly unavailable.
 
 ## MVP Part Image behaviour
 - Show the resolved PART image when verified image data exists, otherwise an explicit unavailable state.
@@ -86,31 +69,28 @@ MainViewResult
 ```
 
 ## State and synchronization
-- `resolved`: selected part/context is available for presentation.
-- `unavailable`: requested secondary visual/context data is absent.
+- `resolved`: a selected canonical PART and any explicitly selected occurrence is available.
+- `no_selected_part`: multiple candidates exist but none has been selected.
+- `context_required`: a PART is known, but its occurrence-dependent facts await explicit context selection.
+- `unavailable`: secondary visual/context data is missing; it does not invalidate the PART.
 - `error`: processing/API failure.
-- Tree and diagram selection refer to the same item/occurrence identity.
-- Missing geometry may still allow item identity to be shown without a hotspot.
-- Missing Part Image or vehicle-location data does not change PART identity or applicability.
+- Tree leaves and Search Results rows share one canonical PART selection. Tree occurrence, diagram item and PART identities remain distinct. Missing hotspot geometry can coexist with verified item identity.
 
 ## Deterministic fixtures
 Cover vehicle-location available/unavailable, Part Image available/unavailable, diagram available/unavailable, numbered items, hotspot unavailable, supported status/Classic/supersession examples and synchronized tree/diagram selection. Preserve current main-branch non-numbered fixture identifiers without presenting them as Jaguar part numbers.
 
 ## Viewport and language
-On desktop, Model Ranges is above the middle row, Location/Suitability are side-by-side, and PART/Image/Status spans the lower centre/right workspace. Long content scrolls inside permanent regions under #616.
-
-UI text must be compatible with #554 localization. Parts/catalogue-data language remains independently selectable under #620. This specification does not implement either language selector by itself.
+The #875 desktop shell retains left Availability and Parts Tree, centre VIN/Variations above side-by-side Location and one selected PART, and right Search/Results/Applicable Models. Preserve #616's fitted desktop layout: long tree, results and models lists scroll internally, while narrow layouts may reflow. UI-locale versus catalogue-language controls remain distinct under #554/#620; no unimplemented control pretends to work.
 
 ## Dependencies and boundaries
 Follows Part Search and Parts Tree contracts. #352 owns hotspot coordinate conversion. Vehicle mapping, fitment, supersession/Classic, stock and import remain governed by their own specifications. This document consumes #354 semantics and does not redefine the domain model.
 
 ## Acceptance criteria
-- [ ] Model Ranges / Location / Suitability / PART-region geometry matches merged Concept-11.
-- [ ] Location and Suitability are side-by-side on the desktop information architecture.
-- [ ] Single vehicle-location canvas is defined; permanent Top/Side boxes are superseded.
-- [ ] PART / Image / Status spans the lower centre/right workspace.
-- [ ] Part Image and diagram available/unavailable behaviour is defined.
-- [ ] Tree/diagram selection synchronization is defined.
-- [ ] Warning/status, Classic and supersession remain evidence-backed concerns.
-- [ ] Missing media/location states remain explicit.
-- [ ] Viewport-fit and UI-vs-Parts language boundaries are preserved.
+- [ ] #875 centre side-by-side Location canvas and one selected PART panel replace the prior full-width selected-PART row.
+- [ ] Right Search Results rows and left PART tree leaves update the same canonical PART selection while preserving genuine source occurrences.
+- [ ] Multiple matching PARTs have no default selected PART; the centre panel is never a candidate list.
+- [ ] Occurrence-dependent facts are not guessed when the selected PART has several genuine contexts.
+- [ ] One verified Location canvas is retained, without fabricated permanent Top/Side panels.
+- [ ] Image, diagram, callout, warnings, Classic and supersession require approved source evidence.
+- [ ] No-selected-PART, context-required, unavailable and error states remain distinct.
+- [ ] Viewport-fit, language separation, fixtures and independent #875 specification review are covered.
