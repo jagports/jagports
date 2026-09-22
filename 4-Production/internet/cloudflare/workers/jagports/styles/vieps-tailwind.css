@@ -141,7 +141,9 @@
     @apply rounded-lg border border-jagports-line bg-jagports-panel p-2 shadow-sm;
   }
   .section-heading { @apply mb-1 flex-none border-b border-jagports-line pb-1; }
-  .search-availability-strip { display: contents; }
+  /* .panel is declared above: keep its later display:flex from overriding the
+     desktop grid flattening. Mobile/tablet restore the actual Find panel below. */
+  .search-panel, .search-availability-strip { display: contents; }
   .search-block, .availability-block { @apply min-w-0; }
   .search-block h2 { @apply mb-1; }
   .availability-block > span { @apply text-xs font-semibold; }
