@@ -431,9 +431,44 @@ function refreshForLanguageChange() {
   }
 }
 
+// The Stock help button is informational: its state never changes stock filtering.
+function setupStockHelp() {
+  const button = $("stockHelpButton");
+  const popover = $("stockHelpPopover");
+  if (!button || !popover) return;
+  let pinned = false;
+  const show = (open) => {
+    popover.hidden = !open;
+    button.setAttribute?.("aria-expanded", String(open));
+  };
+  button.addEventListener("mouseenter", () => { if (!pinned) show(true); });
+  button.addEventListener("mouseleave", () => { if (!pinned) show(false); });
+  button.addEventListener("focus", () => show(true));
+  button.addEventListener("blur", () => { if (!pinned) show(false); });
+  button.addEventListener("click", (event) => {
+    event.stopPropagation?.();
+    pinned = !pinned;
+    show(pinned);
+  });
+  document.addEventListener?.("pointerdown", (event) => {
+    if (pinned && !button.contains?.(event.target) && !popover.contains?.(event.target)) {
+      pinned = false;
+      show(false);
+    }
+  });
+  document.addEventListener?.("keydown", (event) => {
+    if (event.key === "Escape" && !popover.hidden) {
+      pinned = false;
+      show(false);
+      button.focus?.();
+    }
+  });
+}
+
 function setupViepsUi() {
   if (!$("partSearch")) return;
   i18n?.init();
+  setupStockHelp();
   resetContext();
   $("searchStatus").textContent = t("search.prompt");
 
