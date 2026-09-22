@@ -19,29 +19,51 @@ Domain/data semantics remain governed by the approved search, fitment, PART and 
 
 The #875 SVG and Product Owner's annotated screenshot establish region placement, not verified runtime sample PART/status/fitment data. Existing data/API specifications continue to control behaviour.
 
-## Normative Concept-11 map
+## Normative Concept-11v1 complete desktop page map (#875)
 
-The target desktop layout for #875 occupies three columns: left Availability and Parts Tree, centre VIN/variation controls above Location and one selected PART, and right Search/Results above Applicable Models. The top banner/branding regions remain separate.
+The following ASCII map is the complete **target** three-column desktop arrangement from the #875 annotated concept and Concept-11v1 assets. It replaces the earlier abbreviated map rather than creating a second competing layout. Concept-11 remains the deployed baseline until the enhancement is reviewed and implemented.
 
 ~~~text
-+-------------------------+------------------------------------------------------+--------------------------+
-| BRANDING / INSTRUCTIONS | BANNER / HEADER                                      |                          |
-| logo; UI/Parts languages|                                                      |                          |
-+-------------------------+------------------------------------------------------+--------------------------+
-| AVAILABILITY            | VIN [input / verified VIN-range browse, if supported] | SEARCH [PN / free text]  |
-| supported stock filters | FILTER [normalized fitting variations / descriptors] |                          |
-|                         |                                                      | SEARCH RESULTS PART LIST |
-| PARTS TREE              +--------------------------+---------------------------+ independently scrolling  |
-| independent scroll      | LOCATION AT CAR          | SELECTED PART / IMAGE     | [ ] PN1 — Part name      |
-| persistent root index   | single verified canvas   | one PART at a time       | [ ] PN2 — Part name      |
-| root → active path      | or unavailable           | verified status, item,   | bookmark independently   |
-| indented branch/leaf    |                          | diagram or unavailable   +--------------------------+
-| selected underlined     |                          |                           | APPLICABLE MODELS        |
-| shared nodes shown once |                          |                           | browse/filter + verified |
-| PART names as leaves    |                          |                           | per-PART fit indicators  |
-|                         |                          |                           | independently scrolling  |
-+-------------------------+--------------------------+---------------------------+--------------------------+
++--------------------------+----------------------------------------------------------+----------------------------+
+| BRANDING / INSTRUCTIONS  | BANNER / MAIN HEADER                                     | HEADER SPACE / ALIGNMENT   |
+| Jagports logo            | Main information or supported banner content            |                            |
+| Brief usage instructions |                                                          |                            |
+| Language: UI / Parts     |                                                          |                            |
++--------------------------+----------------------------------------------------------+----------------------------+
+| AVAILABILITY             | VIN: [Enter VIN]                                         | SEARCH                     |
+| Supported stock filters  |      [Verified VIN-range choices if supported]          | [PN / supported free text] |
+| Quality A-E, descriptions| FILTER: [Normalized Suitability / Variations]           | [Search]                   |
+| Unavailable if unsupported                                                       |                            |
+|                          |                                                          +----------------------------+
+| PARTS TREE               |                                                          | SEARCH RESULTS PART LIST   |
+| [independent scrolling]  +-----------------------------+----------------------------+ [independent scrolling]    |
+|                          | LOCATION AT CAR             | SELECTED PART / IMAGE      | [ ] PN1 - PART name        |
+| First-level root index   | [one verified vehicle       | / STATUS                   | [ ] PN2 - PART name        |
+|   Branch                 |  location canvas]          | [one selected PART only]   | [ ] PN3 - PART name        |
+|     Sub-branch           |                             | PN and verified part name  |                            |
+|       PART leaf          | [verified position/zone]    | Verified warnings/status   | Row click: select PART     |
+|                          |                             | Classic/supersession only  | Checkbox: bookmark        |
+| Persistent root index    | [unavailable if no mapping] | when evidence exists       | CURRENT: disabled         |
+| Expand root to active    |                             | Part photo or exploded     +----------------------------+
+| selected leaf; preserve  |                             | diagram if available       | APPLICABLE MODELS          |
+| relevant matching paths; |                             |                            | [independent scrolling]    |
+| no duplicate ancestors   |                             | [context required /        | [browse model-range index] |
+| Indent by depth; strong  |                             |  unavailable if needed]    | [ ] Jaguar Accessories     |
+| root text; underline     |                             |                            | [ ] Daimler Limousine      |
+| only active node         |                             |                            | [ ] E-Pace ... XK Range    |
+|                          |                             |                            |                            |
+| PART name leaves are     |                             |                            | With selected PART: only   |
+| links to one shared      |                             |                            | VERIFIED applicable ranges |
+| selected canonical PART  |                             |                            | with supported qualifiers  |
+|                          |                             |                            | Future: multi-range ANY/OR |
++--------------------------+-----------------------------+----------------------------+----------------------------+
 ~~~
+
+**Reading the map:** the centre-top VIN and normalized variations controls span the centre workspace. Directly below them, Location at car occupies centre-left and the single selected PART/Image/Status panel occupies centre-right. The permanent right column is split vertically into Search, Search Results and Applicable Models. The left Availability block remains above the persistent Parts Tree. Branding/instructions and the banner occupy the header. The illustration does not assert working language, stock, VIN or fitment controls where their read contracts are not implemented.
+
+**Exact browse fixture index:** Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These are model-range browse/test labels, not a declaration of fitment to the selected PART.
+
+**Current increment:** implement this shell, separately scrolling Parts Tree / Search Results / Applicable Models, accessible selectable PN/name rows and **one shared PART selection** across tree, result rows and centre detail. Bookmark checkboxes are visible but **disabled**, with no saving. Advanced model-range checkbox filtering is also deferred; its approved future semantics are **multiple selections matching ANY (OR)** with only positively evidenced surviving occurrences. The initial layout may display the 13-entry browse index and verified selected-PART applicability where an approved read contract exists, but must not invent fitment, VIN evidence or data-driven filters.
 
 ### Geometry rules
 
