@@ -42,6 +42,7 @@ The operator later supplied three distinct September 2026 results:
 | Immediate subsequent `main.py` run | `{'new': [], 'closed': [], 'reopened': []}` | Supports state reuse in those runs, not full regression coverage |
 | systemd service test | `Result=success`, `ExecMainStatus=0` | Manual service success is not a timer-triggered execution |
 | 9h45min timer status | Enabled, active, next elapse 23 September 2026 at 12:03:20 EEST | Subsequent unattended execution not verified in provided evidence |
+| Manual Telegram smoke test (TG-001) | Operator confirmed delivery of saved empty lifecycle changes on 23 September 2026 | Verifies manual Telegram delivery only; scheduled/AI-generated notifications and nonempty-delta delivery remain unverified |
 
 A week between polls can account for a large apparent new/closed delta. Snapshot comparison cannot detect a record closing and reopening *between* polls, and saved `updated_at` alone does not imply title/comment-change detection.
 
