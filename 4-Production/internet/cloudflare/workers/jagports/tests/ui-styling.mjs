@@ -10,7 +10,24 @@ const css = readFileSync(new URL('../styles/vieps-tailwind.css', import.meta.url
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
-function harness(fetch) {
+function harness(fetch, { initialSearch = '', rootFetch } = {}) {
+  const requests = [];
+  const location = { pathname: '/vieps', search: initialSearch, hash: '#browse' };
+  const history = { replaceState(_state, _title, path) {
+    location.pathname = path.split(/[?#]/)[0];
+    location.search = path.includes('?') ? '?' + path.split('?')[1].split('#')[0] : '';
+    location.hash = path.includes('#') ? '#' + path.split('#')[1] : '';
+  } };
+  const routedFetch = (url) => {
+    requests.push(url);
+    if (url.startsWith('/api/vieps/tree?root=1')) return rootFetch
+      ? rootFetch(url)
+      : Promise.resolve(response({ state: 'root', roots: [
+        { node_id: 1, label: 'Suspension', sort_order: 1 },
+        { node_id: 8, label: 'Body', sort_order: 2 },
+      ] }));
+    return fetch(url);
+  };
   const nodes = new Map();
   for (const [, id] of html.matchAll(/id="([^"]+)"/g)) {
     nodes.set(id, {
@@ -31,12 +48,12 @@ function harness(fetch) {
     getElementById: id => nodes.get(id),
     querySelectorAll: selector => selector === '[data-language]' ? languageControls : [],
   };
-  const context = { document, fetch, Intl, VIEPS_I18N_RESOURCES: { en, fi } };
+  const context = { document, fetch: routedFetch, Intl, URLSearchParams, location, history, VIEPS_I18N_RESOURCES: { en, fi } };
   vm.runInNewContext(i18nCode, context);
   vm.runInNewContext(code, context);
   const get = id => nodes.get(id);
   return {
-    document,
+    document, location, requests,
     get,
     async search(query) { get('partNumber').value = query; await get('partSearch').listeners.submit({ preventDefault() {} }); },
     setLanguage(language) { languageControls.find(control => control.dataset.language === language).listeners.click(); },
@@ -45,8 +62,9 @@ function harness(fetch) {
 
 const response = (data, ok = true) => ({ ok, json: async () => data });
 const fixture = {
-  part: { part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
-  parts_tree: [{ path: ['Parent', 'Child'] }], images: [], diagrams: [],
+  part: { id: 10, part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
+  tree_roots: [{ node_id: 1, label: 'Parent', sort_order: 1 }, { node_id: 8, label: 'Body', sort_order: 2 }],
+  parts_tree: [{ nodes: [{ node_id: 1, label: 'Parent' }, { node_id: 2, label: 'Child' }] }], images: [], diagrams: [],
   fitment: [
     { range_code: 'A', range_name: 'Range A', variation: 'Alpha', applicability_state: 'applicable' },
     { range_code: 'A', range_name: 'Range A', variation: 'Alpha 2', applicability_state: 'applicable' },
@@ -55,9 +73,8 @@ const fixture = {
 };
 
 test('complete Concept-11 shell exists before search, with no automatic part lookup', () => {
-  let requests = 0;
-  const ui = harness(() => { requests++; });
-  assert.equal(requests, 0);
+  const ui = harness(() => { throw Error('unexpected part lookup'); });
+  assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
   assert.doesNotMatch(html, /id="result"[^>]*hidden/);
   for (const region of ['tree', 'location', 'visual', 'ranges', 'fitment']) {
