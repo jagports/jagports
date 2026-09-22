@@ -6,9 +6,12 @@ const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url
 const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
 
 function rule(selector, text = css) {
-  const start = text.indexOf(selector + " {");
+  // Prefer the final matching declaration: grouped tablet defaults may precede an override.
+  const start = text.lastIndexOf(selector);
   assert.notEqual(start, -1, "Expected CSS rule: " + selector);
-  const end = text.indexOf("}", start);
+  const openingBrace = text.indexOf("{", start);
+  assert.notEqual(openingBrace, -1, "Expected declaration body: " + selector);
+  const end = text.indexOf("}", openingBrace);
   return text.slice(start, end);
 }
 function mobileRules() { return css.slice(css.indexOf("@media (max-width: 760px)")); }
