@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+const app = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
 const desktop = css.slice(0, css.indexOf("@media (max-width: 1100px)"));
 const tablet = css.slice(css.indexOf("@media (max-width: 1100px)"), css.indexOf("@media (max-width: 760px)"));
 const mobile = css.slice(css.indexOf("@media (max-width: 760px)"), css.indexOf("@media (max-width: 320px)"));
@@ -72,6 +73,12 @@ test("#888 stock help is touch accessible and does not consume mobile top height
   assert.match(rule(".stock-help-popover"), /width:\s*min\(19rem, calc\(100vw - 1rem\)\)/);
   assert.match(rule(".stock-help-popover"), /overflow:\s*auto/);
   assert.match(rule(".stock-help-popover", mobile), /max-height:\s*min\(30dvh, 9rem\)/);
+  assert.match(rule(".stock-help", mobile), /position:\s*static/);
+  for (const declaration of ["left: .35rem", "right: .35rem", "width: auto", "top: calc(100% + .2rem)"]) {
+    assert.ok(rule(".stock-help-popover", mobile).includes(declaration), "mobile help: " + declaration);
+  }
+  assert.match(rule(".search-panel", mobile), /position:\s*relative/);
+  assert.match(app, /event\.key === "Escape"[\s\S]*button\.focus\?\.\(\);[\s\S]*show\(false\)/);
   assert.match(css, /@media \(max-width: 320px\)/);
 });
 
