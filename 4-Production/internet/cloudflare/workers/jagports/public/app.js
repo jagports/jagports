@@ -459,8 +459,9 @@ function setupStockHelp() {
   document.addEventListener?.("keydown", (event) => {
     if (event.key === "Escape" && !popover.hidden) {
       pinned = false;
-      show(false);
       button.focus?.();
+      // Focusing the trigger may fire its show-on-focus handler: close last.
+      show(false);
     }
   });
 }
