@@ -142,6 +142,43 @@ try {
     assert.ok(desktopAreas[key].height > 30, key + " has no usable allocated height");
   }
   assert.ok(desktopAreas.pageScroll <= 1, "normal desktop shell must not require page scrolling");
+  assert.ok(desktopAreas.location.height > 80 && desktopAreas.selectedPart.height > 80,
+    "desktop must retain sizeable Location and selected PART reservations");
+  if (!base) {
+    // Genuine independent scrolling under forced overflow; restore fixture DOM
+    // before screenshots and #893 mobile/Stock-help interaction checks.
+    const independent = await page.evaluate(() => {
+      const selectors = ["#tree", "#searchResults", ".ranges-scroll"];
+      const nodes = selectors.map((selector) => document.querySelector(selector));
+      const original = nodes.map((node) => ({ node, html: node.innerHTML, top: node.scrollTop }));
+      try {
+        for (const node of nodes) {
+          const filler = document.createElement("div");
+          filler.style.height = "1400px";
+          filler.textContent = "Scroll regression fixture";
+          node.appendChild(filler);
+          node.scrollTop = 0;
+        }
+        const overflow = nodes.map((node) => node.scrollHeight > node.clientHeight + 100);
+        const isolated = [];
+        for (let i = 0; i < nodes.length; i++) {
+          for (const node of nodes) node.scrollTop = 0;
+          nodes[i].scrollTop = 120;
+          isolated.push(nodes[i].scrollTop > 0 &&
+            nodes.every((node, j) => j === i || node.scrollTop === 0));
+        }
+        return { overflow, isolated, pageScroll: document.documentElement.scrollHeight - innerHeight };
+      } finally {
+        for (const { node, html, top } of original) {
+          node.innerHTML = html;
+          node.scrollTop = top;
+        }
+      }
+    });
+    assert.ok(independent.overflow.every(Boolean), "tree/results/models must independently overflow");
+    assert.ok(independent.isolated.every(Boolean), "scrolling one panel must not scroll another");
+    assert.ok(independent.pageScroll <= 1, "overflowing panels must not scroll the desktop page");
+  }
   await page.screenshot({ path: evidenceDir + "desktop.png", fullPage: true });
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
