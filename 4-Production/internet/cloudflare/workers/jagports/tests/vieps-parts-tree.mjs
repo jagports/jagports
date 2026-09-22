@@ -141,6 +141,6 @@ test("Root reset renders only first-level branches after a deeper path", () => {
 
 test("Parts Tree heading is a keyboard-accessible root reset link", () => {
   const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
-  assert.match(html, /<a id="treeRootLink" href="\\?" data-i18n="tree.heading"><\\/a>/);
-  assert.match(source, /\\$\\("treeRootLink"\\)\\?\\.addEventListener\\("click"/);
+  assert.ok(html.includes('<a id="treeRootLink" href="?" data-i18n="tree.heading"></a>'));
+  assert.ok(source.includes('$("treeRootLink")?.addEventListener("click"'));
 });
