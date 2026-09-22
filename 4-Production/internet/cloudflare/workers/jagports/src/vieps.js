@@ -15,9 +15,18 @@ function candidateIdentity(part) {
   return part.part_number_normalized || part.part_number_raw || part.description || `#${part.id}`;
 }
 
+function partLeafLabel(part) {
+  const identity = candidateIdentity(part);
+  return part.description && part.description !== identity ? `${identity} — ${part.description}` : identity;
+}
+
+function partLeafQuery(part) {
+  return part.part_number_normalized || part.part_number_raw || part.description || String(part.id);
+}
+
 function isExactCandidate(part, query, normalized) {
-  return part.part_number_normalized === normalized
-    || normalizePartNumber(part.part_number_raw) === normalized
+  return (normalized && part.part_number_normalized === normalized)
+    || (normalized && normalizePartNumber(part.part_number_raw) === normalized)
     || part.description === query;
 }
 
@@ -33,12 +42,17 @@ function candidatePayload(part) {
   };
 }
 
-async function findPartCandidates(env, query, normalized) {
+function stockAvailableClause(alias = "s") {
+  return `${alias}.part_id = part.id AND ${alias}.available = 1 AND ${alias}.quantity > 0`;
+}
+
+async function findDeterministicPartCandidates(env, query, normalized) {
+  const normalizedQuery = normalized || "\u0000NO_NORMALIZED_QUERY\u0000";
   const result = await env.DB.prepare(
     `SELECT id, part_number_raw, part_number_normalized, description, source, source_ref, verification_status,
             EXISTS (
               SELECT 1 FROM stock_item s
-              WHERE s.part_id = part.id AND s.available = 1 AND s.quantity > 0
+              WHERE ${stockAvailableClause("s")}
             ) AS has_available_stock
      FROM part
      WHERE part_number_normalized = ?
@@ -59,20 +73,193 @@ async function findPartCandidates(env, query, normalized) {
       id
      LIMIT 25`
   ).bind(
-    normalized,
+    normalizedQuery,
     query,
     query,
-    normalized,
+    normalizedQuery,
     query,
-    normalized,
+    normalizedQuery,
     query,
     query,
-    normalized,
+    normalizedQuery,
     query,
   ).all();
   return result.results || [];
 }
 
+async function findFreeTextPartCandidates(env, query) {
+  const like = `%${query}%`;
+  const result = await env.DB.prepare(
+    `SELECT DISTINCT part.id, part.part_number_raw, part.part_number_normalized, part.description,
+            part.source, part.source_ref, part.verification_status,
+            EXISTS (
+              SELECT 1 FROM stock_item s
+              WHERE ${stockAvailableClause("s")}
+            ) AS has_available_stock
+     FROM part
+     WHERE UPPER(COALESCE(part.description, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(part.source, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(part.source_ref, '')) LIKE UPPER(?)
+        OR EXISTS (
+          SELECT 1
+          FROM part_tree_part tp
+          INNER JOIN part_tree_node n ON n.id = tp.tree_node_id
+          WHERE tp.part_id = part.id
+            AND UPPER(COALESCE(n.label, '')) LIKE UPPER(?)
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM part_occurrence o
+          WHERE o.part_id = part.id
+            AND (
+              UPPER(COALESCE(o.source, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(o.source_ref, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(o.context_type, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(o.context_ref, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(o.category_ref, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(o.item_number, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(o.diagram_ref, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(o.diagram_item_number, '')) LIKE UPPER(?)
+            )
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM stock_item s
+          WHERE s.part_id = part.id
+            AND (
+              UPPER(COALESCE(s.part_number, '')) LIKE UPPER(?)
+              OR CAST(COALESCE(s.quantity, '') AS TEXT) LIKE ?
+              OR UPPER(COALESCE(s.condition, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(s.condition_code, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(s.status, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(s.location, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(s.source, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(s.source_ref, '')) LIKE UPPER(?)
+              OR UPPER(COALESCE(s.notes, '')) LIKE UPPER(?)
+              OR CASE WHEN s.available = 1 THEN 'available' ELSE 'unavailable' END LIKE LOWER(?)
+            )
+        )
+     ORDER BY CASE
+        WHEN UPPER(COALESCE(part.description, '')) LIKE UPPER(?) THEN 0
+        WHEN UPPER(COALESCE(part.part_number_raw, '')) LIKE UPPER(?) THEN 1
+        WHEN UPPER(COALESCE(part.source_ref, '')) LIKE UPPER(?) THEN 2
+        ELSE 3
+      END,
+      part.part_number_normalized,
+      part.part_number_raw,
+      part.description,
+      part.id
+     LIMIT 25`
+  ).bind(
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like,
+    like.toLowerCase(),
+    like,
+    like,
+    like,
+  ).all();
+  return result.results || [];
+}
+
+async function findPartCandidates(env, query, normalized) {
+  const deterministic = await findDeterministicPartCandidates(env, query, normalized);
+  if (deterministic.length) return { searchPath: "deterministic", candidates: deterministic };
+  const freeText = await findFreeTextPartCandidates(env, query);
+  return { searchPath: "free_text", candidates: freeText };
+}
+
+async function buildPartLeafPaths(env, parts) {
+  const candidates = parts.map(candidatePayload).filter((part) => part.id !== undefined && part.id !== null);
+  if (!candidates.length) return [];
+  const placeholders = candidates.map(() => "?").join(", ");
+  const result = await env.DB.prepare(
+    `WITH base(part_id, tree_node_id) AS (
+       SELECT p.id, tp.tree_node_id
+       FROM part p
+       INNER JOIN part_tree_part tp ON tp.part_id = p.id
+       WHERE p.id IN (${placeholders})
+     ),
+     tree(part_id, leaf_node_id, id, parent_id, label, sort_order, depth) AS (
+       SELECT base.part_id, n.id, n.id, n.parent_id, n.label, n.sort_order, 0
+       FROM base
+       INNER JOIN part_tree_node n ON n.id = base.tree_node_id
+       UNION ALL
+       SELECT tree.part_id, tree.leaf_node_id, parent.id, parent.parent_id, parent.label, parent.sort_order, tree.depth + 1
+       FROM part_tree_node parent
+       INNER JOIN tree ON tree.parent_id = parent.id
+     )
+     SELECT part_id, leaf_node_id, id AS node_id, parent_id, label, sort_order, depth
+     FROM tree
+     ORDER BY part_id, leaf_node_id, depth DESC, sort_order, id`
+  ).bind(...candidates.map((part) => part.id)).all();
+
+  const byPartId = new Map(candidates.map((part) => [part.id, part]));
+  const groups = new Map();
+  for (const row of result.results || []) {
+    const key = `${row.part_id}:${row.leaf_node_id}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
+  }
+
+  const paths = [];
+  const partsWithTree = new Set();
+  for (const rows of groups.values()) {
+    const part = byPartId.get(rows[0]?.part_id);
+    if (!part) continue;
+    partsWithTree.add(part.id);
+    const branchNodes = rows.map((row) => ({ node_id: row.node_id, label: row.label }));
+    const partNode = {
+      kind: "part",
+      part_id: part.id,
+      label: partLeafLabel(part),
+      part_query: partLeafQuery(part),
+    };
+    paths.push({
+      node_id: rows[rows.length - 1]?.leaf_node_id,
+      part_id: part.id,
+      path: [...branchNodes.map((node) => node.label), partNode.label],
+      nodes: [...branchNodes, partNode],
+      part,
+    });
+  }
+
+  for (const part of candidates) {
+    if (partsWithTree.has(part.id)) continue;
+    const partNode = {
+      kind: "part",
+      part_id: part.id,
+      label: partLeafLabel(part),
+      part_query: partLeafQuery(part),
+    };
+    paths.push({
+      part_id: part.id,
+      path: [partNode.label],
+      nodes: [partNode],
+      part,
+    });
+  }
+
+  return paths;
+}
 
 async function loadTreeRoots(env) {
   const result = await env.DB.prepare(
@@ -84,63 +271,18 @@ async function loadTreeRoots(env) {
   return result.results || [];
 }
 
-async function loadCandidateTreePaths(env, candidates) {
-  if (!candidates.length) return new Map();
-  const placeholders = candidates.map(() => "?").join(", ");
-  const result = await env.DB.prepare(
-    `WITH RECURSIVE candidate_paths(part_id, terminal_id, id, parent_id, label, sort_order) AS (
-       SELECT tp.part_id, tp.tree_node_id, n.id, n.parent_id, n.label, n.sort_order
-       FROM part_tree_part tp
-       INNER JOIN part_tree_node n ON n.id = tp.tree_node_id
-       WHERE tp.part_id IN (${placeholders})
-       UNION ALL
-       SELECT child.part_id, child.terminal_id, parent.id, parent.parent_id, parent.label, parent.sort_order
-       FROM part_tree_node parent
-       INNER JOIN candidate_paths child ON child.parent_id = parent.id
-     )
-     SELECT DISTINCT part_id, terminal_id, id, parent_id, label, sort_order
-     FROM candidate_paths
-     ORDER BY part_id, terminal_id, sort_order, id`
-  ).bind(...candidates.map((candidate) => candidate.id)).all();
-  const pathsByPart = new Map();
-  const grouped = new Map();
-  for (const row of result.results || []) {
-    if (row.terminal_id === undefined || row.part_id === undefined) continue;
-    const key = `${row.part_id}:${row.terminal_id}`;
-    if (!grouped.has(key)) grouped.set(key, { partId: row.part_id, terminalId: row.terminal_id, nodes: [] });
-    grouped.get(key).nodes.push(row);
-  }
-  for (const entry of grouped.values()) {
-    const byId = new Map(entry.nodes.map((node) => [node.id, node]));
-    const pathNodes = [];
-    const seen = new Set();
-    let current = byId.get(entry.terminalId);
-    while (current && !seen.has(current.id)) {
-      seen.add(current.id);
-      pathNodes.unshift({ node_id: current.id, label: current.label });
-      current = byId.get(current.parent_id);
-    }
-    if (!pathNodes.length) continue;
-    if (!pathsByPart.has(entry.partId)) pathsByPart.set(entry.partId, []);
-    pathsByPart.get(entry.partId).push({
-      node_id: entry.terminalId,
-      path: pathNodes.map((node) => node.label),
-      nodes: pathNodes,
-    });
-  }
-  return pathsByPart;
-}
-
 export async function handleViepsTree(request, env) {
   if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
 
   const url = new URL(request.url);
+  // The same authoritative root index is available both on initial load and
+  // after a deep selection; never infer ancestors from display labels.
   if (url.searchParams.get("root") === "1") {
     return json({ state: "root", roots: await loadTreeRoots(env) });
   }
   const rawNodeId = text(url.searchParams.get("node_id"));
-  const nodeId = Number(rawNodeId);
-  if (!rawNodeId || !Number.isInteger(nodeId) || nodeId <= 0) {
+  const nodeId = rawNodeId ? Number(rawNodeId) : null;
+  if (rawNodeId && (!Number.isInteger(nodeId) || nodeId <= 0)) {
     return json({ error: "valid tree node id is required", error_code: "tree_node_invalid" }, 400);
   }
 
@@ -149,6 +291,24 @@ export async function handleViepsTree(request, env) {
     return json({ error: "invalid stock-only filter", error_code: "stock_filter_invalid" }, 400);
   }
   const stockOnly = stockOnlyParam === "1";
+
+  if (nodeId === null) {
+    const rootChildren = await env.DB.prepare(
+      `SELECT id AS node_id, label, sort_order
+       FROM part_tree_node
+       WHERE parent_id IS NULL
+       ORDER BY sort_order, id`
+    ).all();
+    return json({
+      state: "empty",
+      selected_node: null,
+      path: [],
+      children: rootChildren.results || [],
+      roots: rootChildren.results || [],
+      parts: [],
+      parts_tree: [],
+    });
+  }
 
   const selectedNode = await env.DB.prepare(
     `SELECT id, parent_id, label, sort_order
@@ -167,8 +327,7 @@ export async function handleViepsTree(request, env) {
        )`
     : "";
 
-  const [roots, pathResult, childrenResult, partsResult] = await Promise.all([
-    loadTreeRoots(env),
+  const [pathResult, childrenResult, partsResult, roots] = await Promise.all([
     env.DB.prepare(
       `WITH RECURSIVE ancestors(id, parent_id, label, sort_order, depth) AS (
          SELECT id, parent_id, label, sort_order, 0
@@ -207,11 +366,13 @@ export async function handleViepsTree(request, env) {
        ORDER BY p.part_number_normalized, p.part_number_raw, p.description, p.id
        LIMIT 100`
     ).bind(nodeId).all(),
+    loadTreeRoots(env),
   ]);
 
   const partRows = partsResult.results || [];
   const parts = [...new Map(partRows.map((part) => [part.id, candidatePayload(part)])).values()];
   const partNodes = partRows.map((part) => ({ part_id: part.id, node_id: part.tree_node_id }));
+  const partsTree = await buildPartLeafPaths(env, parts);
   return json({
     state: parts.length || (childrenResult.results || []).length ? "resolved" : "empty",
     roots,
@@ -224,6 +385,7 @@ export async function handleViepsTree(request, env) {
     children: childrenResult.results || [],
     parts,
     part_nodes: partNodes,
+    parts_tree: partsTree,
   });
 }
 
@@ -235,7 +397,6 @@ export async function handleViepsPart(request, env) {
   if (!query) return json({ error: "part-number query is required" }, 400);
 
   const normalized = normalizePartNumber(query);
-  if (!normalized) return json({ error: "invalid part-number query", query }, 400);
 
   const stockOnlyParam = text(url.searchParams.get("stock_only"));
   if (stockOnlyParam && stockOnlyParam !== "0" && stockOnlyParam !== "1") {
@@ -243,8 +404,8 @@ export async function handleViepsPart(request, env) {
   }
   const stockOnly = stockOnlyParam === "1";
 
-  const allCandidates = await findPartCandidates(env, query, normalized);
-  if (!allCandidates.length) return json({ error: "part not found", query }, 404);
+  const { searchPath, candidates: allCandidates } = await findPartCandidates(env, query, normalized);
+  if (!allCandidates.length) return json({ error: "part not found", query, state: "not_found", search_path: searchPath }, 404);
 
   const candidates = stockOnly
     ? allCandidates.filter((part) => Number(part.has_available_stock) === 1)
@@ -253,31 +414,45 @@ export async function handleViepsPart(request, env) {
     return json({
       error: "no stocked part match",
       error_code: "stock_filter_no_match",
+      state: "stock_filtered_empty",
       query,
+      search_path: searchPath,
     }, 404);
   }
 
-  const exactCandidates = candidates.filter((part) => isExactCandidate(part, query, normalized));
+  const exactCandidates = searchPath === "deterministic"
+    ? candidates.filter((part) => isExactCandidate(part, query, normalized))
+    : [];
   if (exactCandidates.length > 1 || (!exactCandidates.length && candidates.length > 1)) {
-    const [roots, pathsByPart] = await Promise.all([
-      loadTreeRoots(env),
-      loadCandidateTreePaths(env, candidates),
+    const matches = candidates.map(candidatePayload);
+    const [partsTree, treeRoots] = await Promise.all([
+      buildPartLeafPaths(env, matches), loadTreeRoots(env),
     ]);
+    const pathsByPart = new Map();
+    for (const entry of partsTree) {
+      if (!pathsByPart.has(entry.part_id)) pathsByPart.set(entry.part_id, []);
+      if (entry.node_id !== undefined) {
+        pathsByPart.get(entry.part_id).push({
+          node_id: entry.node_id,
+          nodes: entry.nodes.filter((node) => node.kind !== "part"),
+        });
+      }
+    }
     return json({
       state: "multiple_match",
       query,
       normalized_query: normalized,
-      tree_roots: roots,
-      matches: candidates.map((candidate) => ({
-        ...candidatePayload(candidate),
-        tree_paths: pathsByPart.get(candidate.id) || [],
-      })),
+      search_path: searchPath,
+      matches: matches.map((part) => ({ ...part, tree_paths: pathsByPart.get(part.id) || [] })),
+      tree_roots: treeRoots,
+      parts_tree: partsTree,
+      selected_part: null,
     });
   }
 
   const part = candidatePayload(exactCandidates[0] || candidates[0]);
 
-  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult, roots] = await Promise.all([
+  const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult, treeRoots] = await Promise.all([
     env.DB.prepare(
       `SELECT id, source, source_ref, context_type, context_ref, category_ref,
               item_number, diagram_ref, diagram_item_number, verification_status
@@ -346,10 +521,12 @@ export async function handleViepsPart(request, env) {
   });
 
   return json({
+    state: "resolved",
+    search_path: searchPath,
     part,
+    tree_roots: treeRoots,
     occurrences: occurrenceResult.results || [],
     parts_tree: paths,
-    tree_roots: roots,
     images: imageResult.results || [],
     diagrams: diagramResult.results || [],
     fitment: fitmentResult.results || [],
