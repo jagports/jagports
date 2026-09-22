@@ -15,6 +15,10 @@ let fitmentRows = [];
 let visualItems = [];
 let requestVersion = 0;
 let selectedTreeNodeId = null;
+let cachedRootData = null;
+let cachedBrowseData = null;
+let cachedCandidatesData = null;
+let viewMode = "empty";
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"]/g, (ch) => ({
@@ -64,10 +68,21 @@ async function resolvePart(partNumber, stockOnly = false) {
   return data;
 }
 
-async function resolveTreeRoots() {
-  const response = await fetch("/api/vieps/tree?root=1");
+async function resolveTreeRoots(stockOnly = false) {
+  const response = await fetch(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`);
   if (!response.ok) throw new Error("tree roots unavailable");
   return response.json();
+}
+
+function clearSelectionUrl() {
+  if (!globalThis.location || typeof URLSearchParams !== "function") return;
+  const params = new URLSearchParams(globalThis.location.search || "");
+  if (!params.has("part") && !params.has("tree")) return;
+  params.delete("part");
+  params.delete("tree");
+  const query = params.toString();
+  globalThis.history?.replaceState?.(null, "",
+    `${globalThis.location.pathname || "/"}${query ? `?${query}` : ""}${globalThis.location.hash || ""}`);
 }
 
 async function resolveTreeNode(nodeId, stockOnly = false) {
@@ -132,10 +147,9 @@ function renderTree(paths = [], options = {}) {
   // Merge by stable node identity *within the parent*, not by presentation label.
   // The same canonical PART may legitimately appear beneath different EPC paths.
   const roots = new Map();
-  const looseParts = new Map();
+  let unlinkedIndex = 0;
   const keyFor = (node) => node.node_id !== undefined && node.node_id !== null
-    ? `id:${node.node_id}`
-    : `label:${node.label}`;
+    ? `id:${node.node_id}` : `unlinked:${++unlinkedIndex}`;
 
   const insertNode = (node, parent = null) => {
     const collection = parent ? parent.children : roots;
@@ -154,7 +168,9 @@ function renderTree(paths = [], options = {}) {
   };
 
   const normalizePath = (entry) => {
-    if (Array.isArray(entry.nodes) && entry.nodes.length) return entry.nodes;
+    if (Array.isArray(entry.nodes) && entry.nodes.length) {
+      return entry.nodes.filter((node) => node.kind !== "part");
+    }
     return (entry.path || []).map((label) => ({ label }));
   };
 
@@ -172,10 +188,7 @@ function renderTree(paths = [], options = {}) {
     if (!part || !partSearchValue(part)) continue;
     const key = `part:${part.id ?? partSearchValue(part)}`;
     const targets = leaf.paths || [];
-    if (!targets.length && options.allowLooseParts) {
-      looseParts.set(key, part);
-      continue;
-    }
+    if (!targets.length) continue; // No invented catalogue parent.
     for (const path of targets) {
       const parent = appendPath(path);
       if (parent) parent.parts.set(key, part);
@@ -194,10 +207,14 @@ function renderTree(paths = [], options = {}) {
       ? `&tree=${encodeURIComponent(contextNodeId)}` : "";
     return `?part=${query}${context}`;
   };
+  let markedPartLeaf = false;
   const renderPartLeaf = (part, depth, contextNodeId) => {
-    const selected = selectedPartId !== null && String(part.id) === selectedPartId;
+    const selected = !markedPartLeaf && selectedPartId !== null
+      && (selectedNodeId === null || String(contextNodeId) === selectedNodeId)
+      && String(part.id) === selectedPartId;
+    if (selected) markedPartLeaf = true;
     return `<li class="tree-part-leaf" role="treeitem"><div class="tree-part-row${selected ? ' selected-path' : ''}">
-      <a href="${partHref(part, contextNodeId)}" data-part-query="${escapeHtml(partSearchValue(part))}"
+      <a href="${partHref(part, contextNodeId)}" data-part-query="${escapeHtml(partSearchValue(part))}" data-part-context="${escapeHtml(contextNodeId ?? "")}"
          ${selected ? 'aria-current="page"' : ''}>${escapeHtml(partTreeLeafLabel(part))}</a>
     </div></li>`;
   };
@@ -220,10 +237,17 @@ function renderTree(paths = [], options = {}) {
      </li>`;
   };
   const rows = sortNodes(roots.values()).map((root) => renderNode(root, 0));
-  rows.push(...[...looseParts.values()].map((part) => renderPartLeaf(part, 0, null)));
   $("tree").innerHTML = rows.length
     ? `<ul class="tree-branch" role="tree">${rows.join("")}</ul>`
     : empty(t("tree.empty"));
+  $("tree").querySelectorAll?.("[data-part-query]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      selectedTreeNodeId = link.dataset.partContext || null;
+      $("partNumber").value = link.dataset.partQuery;
+      $("partSearch").dispatchEvent?.(new Event("submit", { cancelable: true }));
+    });
+  });
 }
 
 function renderPartCandidates(data) {
@@ -232,7 +256,6 @@ function renderPartCandidates(data) {
   renderTree([], {
     roots: data.tree_roots || [],
     partLeaves: candidates.map((part) => ({ part, paths: part.tree_paths || [] })),
-    allowLooseParts: true,
   });
 }
 
@@ -240,14 +263,14 @@ function renderTreeBrowse(data) {
   const path = Array.isArray(data.path) ? data.path : [];
   const children = Array.isArray(data.children) ? data.children : [];
   const selectedNodeId = data.selected_node?.node_id;
-  const selectedPath = { nodes: path.map((node) => ({ node_id: node.node_id, label: node.label })) };
+  const selectedPath = { nodes: path.map((node) => ({ node_id: node.node_id, label: node.label, parent_id: node.parent_id, sort_order: node.sort_order })) };
   const childrenPaths = children.map((child) => ({
     nodes: [...selectedPath.nodes, { node_id: child.node_id, label: child.label, sort_order: child.sort_order }],
   }));
   const linkedParts = (data.parts || []).filter((part) =>
     (data.part_nodes || []).some((link) =>
       String(link.part_id) === String(part.id) && String(link.node_id) === String(selectedNodeId)));
-  renderTree([selectedPath, ...childrenPaths], {
+  renderTree([...(path.length ? [selectedPath] : []), ...childrenPaths], {
     roots: data.roots || [],
     selectedNodeId,
     partLeaves: linkedParts.map((part) => ({ part, paths: [selectedPath] })),
@@ -339,10 +362,10 @@ function renderResolvedData(data) {
   currentData = data;
   renderPart(data.part, data.occurrences || [], data.stock || []);
   renderTree(data.parts_tree || [], {
-    roots: data.tree_roots || [],
+    roots: data.tree_roots || cachedRootData?.roots || [],
     selectedPartId: data.part?.id,
     selectedNodeId: selectedTreeNodeId,
-    partLeaves: [{ part: data.part, paths: data.parts_tree || [] }],
+    partLeaves: [{ part: data.part, paths: (data.parts_tree || []).filter((path) => path.nodes?.some((node) => node.node_id != null)) }],
   });
   renderVisuals(data.images || [], data.diagrams || []);
   renderFitment(data.fitment || []);
@@ -377,6 +400,15 @@ function refreshForLanguageChange() {
   if (currentData) {
     renderResolvedData(currentData);
     $("searchStatus").textContent = t("search.resolved");
+  } else if (viewMode === "candidates" && cachedCandidatesData) {
+    renderPartCandidates(cachedCandidatesData);
+    $("searchStatus").textContent = t("search.multiple_matches", { count: cachedCandidatesData.matches?.length || 0 });
+  } else if (viewMode === "browse" && cachedBrowseData) {
+    renderTreeBrowse(cachedBrowseData);
+    $("searchStatus").textContent = t("tree.browse_parts", { count: cachedBrowseData.parts?.length || 0 });
+  } else if (cachedRootData) {
+    renderTree([], { roots: cachedRootData.roots || [] });
+    $("searchStatus").textContent = t("search.prompt");
   } else {
     resetContext();
     $("searchStatus").textContent = t("search.prompt");
@@ -397,29 +429,79 @@ function setupViepsUi() {
   });
   $("rangeSelect").addEventListener("change", renderSelectedRange);
   $("visualSelect").addEventListener("change", renderSelectedVisual);
+  const loadRootBrowse = async (version, options = {}) => {
+    $("searchStatus").className = "muted status-line";
+    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
+    $("result").setAttribute("aria-busy", "true");
+    try {
+      const data = await resolveTreeRoots(Boolean($("availabilitySelect").checked));
+      if (version !== requestVersion) return;
+      cachedRootData = data;
+      cachedBrowseData = null;
+      cachedCandidatesData = null;
+      viewMode = "empty";
+      renderTree([], { roots: data.roots || [] });
+      $("searchStatus").textContent = t("search.prompt");
+    } catch (error) {
+      if (version !== requestVersion) return;
+      cachedRootData = null;
+      $("tree").innerHTML = empty(t("tree.browse_error"));
+      $("searchStatus").textContent = t("tree.browse_error");
+      $("searchStatus").className = "error status-line";
+    } finally {
+      if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
+    }
+  };
+
   $("partNumber").addEventListener("input", () => {
-    requestVersion++;
+    const version = ++requestVersion;
     selectedTreeNodeId = null;
+    cachedBrowseData = null;
+    cachedCandidatesData = null;
+    viewMode = "empty";
     resetContext();
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = t("search.prompt_with_action");
+    if (!$("partNumber").value.trim()) {
+      clearSelectionUrl();
+      void loadRootBrowse(version);
+    } else {
+      renderTree([], { roots: cachedRootData?.roots || [] });
+      $("searchStatus").textContent = t("search.prompt_with_action");
+    }
   });
-  const browseTree = async (nodeId) => {
+
+  const browseTree = async (nodeId = null, options = {}) => {
     const version = ++requestVersion;
     resetContext();
+    viewMode = "empty";
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = t("tree.browse_loading");
+    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
     $("result").setAttribute("aria-busy", "true");
     try {
+      if (nodeId === null || nodeId === undefined || nodeId === "") {
+        await loadRootBrowse(version, options);
+        return;
+      }
       const data = await resolveTreeNode(nodeId, Boolean($("availabilitySelect").checked));
       if (version !== requestVersion) return;
+      if (data.ancestry_state === "unavailable") {
+        cachedRootData = { roots: data.roots || [] };
+        renderTree([], { roots: data.roots || [] });
+        $("searchStatus").textContent = t("tree.browse_error");
+        return;
+      }
       selectedTreeNodeId = data.selected_node?.node_id ?? null;
+      cachedRootData = { roots: data.roots || [] };
+      cachedBrowseData = data;
+      cachedCandidatesData = null;
+      viewMode = "browse";
       renderTreeBrowse(data);
       $("searchStatus").textContent = t("tree.browse_parts", { count: data.parts?.length || 0 });
     } catch (error) {
       if (version !== requestVersion) return;
       resetContext();
+      renderTree([], { roots: cachedRootData?.roots || [] });
       $("searchStatus").textContent = t("tree.browse_error");
       $("searchStatus").className = "error status-line";
     } finally {
@@ -432,27 +514,38 @@ function setupViepsUi() {
     const version = ++requestVersion;
     const partNumber = $("partNumber").value.trim();
     resetContext();
+    cachedBrowseData = null;
+    cachedCandidatesData = null;
+    viewMode = "empty";
     $("searchStatus").className = "muted status-line";
-    $("result").setAttribute("aria-busy", "false");
     if (!partNumber) {
-      $("searchStatus").textContent = t("search.prompt");
+      selectedTreeNodeId = null;
+      clearSelectionUrl();
+      await loadRootBrowse(version);
       return;
     }
+    renderTree([], { roots: cachedRootData?.roots || [] });
     $("searchStatus").textContent = t("search.resolving");
     $("result").setAttribute("aria-busy", "true");
     try {
       const data = await resolvePart(partNumber, Boolean($("availabilitySelect").checked));
       if (version !== requestVersion) return;
       if (data.state === "multiple_match") {
+        cachedCandidatesData = data;
+        cachedRootData = { roots: data.tree_roots || cachedRootData?.roots || [] };
+        viewMode = "candidates";
         renderPartCandidates(data);
         $("searchStatus").textContent = t("search.multiple_matches", { count: data.matches?.length || 0 });
         return;
       }
+      cachedRootData = { roots: data.tree_roots || cachedRootData?.roots || [] };
+      viewMode = "resolved";
       renderResolvedData(data);
       $("searchStatus").textContent = t("search.resolved");
     } catch (error) {
       if (version !== requestVersion) return;
       resetContext("part.no_part_resolved");
+      renderTree([], { roots: cachedRootData?.roots || [] });
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
     } finally {
@@ -461,7 +554,8 @@ function setupViepsUi() {
   };
   $("partSearch").addEventListener("submit", submitSearch);
   $("availabilitySelect").addEventListener("change", () => {
-    if ($("partNumber").value.trim()) submitSearch({ preventDefault() {} });
+    if ($("partNumber").value.trim()) void submitSearch({ preventDefault() {} });
+    else void browseTree(null, { defaultLoad: true });
   });
 
   const initialParams = typeof URLSearchParams === "function" && typeof globalThis.location?.search === "string"
@@ -472,16 +566,11 @@ function setupViepsUi() {
   if (initialPart) {
     selectedTreeNodeId = initialTree || null;
     $("partNumber").value = initialPart;
-    submitSearch({ preventDefault() {} });
+    void submitSearch({ preventDefault() {} });
   } else if (initialTree) {
-    browseTree(initialTree);
-  } else if (initialParams) {
-    const version = requestVersion;
-    resolveTreeRoots().then((data) => {
-      if (version === requestVersion && !currentData) renderTree([], { roots: data.roots || [] });
-    }).catch(() => {
-      // The static shell remains usable when catalogue roots are unavailable.
-    });
+    void browseTree(initialTree);
+  } else {
+    void browseTree(null, { defaultLoad: true });
   }
 }
 
