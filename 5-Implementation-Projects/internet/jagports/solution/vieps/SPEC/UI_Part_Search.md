@@ -31,6 +31,19 @@ Do not invent a `public-safe`, hidden-stock-detail or admin-only-result taxonomy
 
 Normalized A–E stock-quality filtering remains governed by the stock-quality contract below and is not required to be silently simulated when a richer browse/filter contract is unavailable.
 
+### Stock-only information control (#888)
+
+Present a small, separately focusable information button immediately beside the existing **Show only parts on stock** checkbox. The button describes the filter but does not change its checked state. Exact English help text:
+
+> Filters identifier-search results to PARTs with available operational stock and positive quantity.
+
+The wording explains the already approved `available = 1 AND quantity > 0` qualification; the help UI does not change deterministic-first/free-text search, tree browsing, PART eligibility, error handling or any other API/filter contract.
+
+- The visible icon/button is accessible by keyboard and screen reader, with the translated accessible name **About Stock only** (EN) and equivalent FI name; translate the help body through the existing UI i18n resources.
+- Desktop: hover/focus can reveal help, and click/Enter/Space toggles the same content. Mobile: tap toggles the explanation; no hover-only behavior. Outside click/tap and Escape dismiss the popover; keyboard focus remains usable and the checkbox is never activated by help interactions.
+- Use an overlay positioned within the visual viewport rather than permanently expanding the persistent mobile banner/Find height. At 220px, 320px, expanded instructions, translated/wrapped labels and when the soft keyboard opens, the explanation must remain reachable without covering or disabling the Find input/button; scroll or flip help within available viewport space if required.
+- Keep the Stock-only control itself part of the single persistent mobile banner/Find region described in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). At desktop widths preserve the existing search/Availability panel arrangement. No change to stock quantities, permissions, persistence or result filtering.
+
 ## Stock-quality filter and presentation contract
 
 Stock-quality filtering and available-part presentation consume the normalized operational-stock contract from [`MODEL_STOCK.md`](MODEL_STOCK.md).

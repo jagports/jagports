@@ -269,6 +269,18 @@ All major Concept-11 regions remain permanent through loading, empty, unavailabl
 
 On the default desktop layout, preserve PR #616 behaviour: the page itself fits the viewport and long content scrolls inside permanent regions. Narrower layouts may reflow and use normal page scrolling.
 
+## #888 compact spacing, banner help and persistent mobile Find
+
+This presentation-only enhancement starts from the #886 merged Parts Tree runtime on `main`; it does not adopt unfinished #887 geometry or alter the #886 tree/search API contracts.
+
+- Reduce unnecessary panel gaps/padding and Parts Tree vertical row spacing/indentation, especially at 220–320 CSS px. Preserve the independent ancestry connectors, real stable node links, active-leaf styling and all intentionally reserved blank height for Location, Suitability and PART / Image / Status.
+- The branded banner owns the existing instructions, fixture explanations and relevant links. Do not duplicate them inside Parts Tree. On narrow screens, expose long instructions through an expandable, translated, keyboard-accessible control.
+- On mobile, one non-scrolling top region contains branding, language controls, banner/instructions, the primary Find input/button and the operational Availability/Stock-only checkbox and its help button. The single remaining content region scrolls beneath it; avoid independently sticky elements or fixed offsets. Handle longer translations, expanded instructions, on-screen keyboard and orientation changes without obscuring or trapping content; no horizontal viewport overflow. The default desktop arrangement and its independent tree scroll are unchanged.
+- The small Stock help button sits next to—not inside—the Stock-only label and opens an explanation without toggling the filter. Hover is an additional desktop affordance; click, keyboard and mobile tap must work. The popover is dismissible by repeated activation, outside interaction and Escape; it must fit the viewport without covering Find controls or permanently increasing top-region height. Use the canonical search/i18n text defined in [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md).
+- The raw `search.multiple_matches` status is a separate i18n defect. This layout enhancement must not change search resolution, clearing, PART selection, stock qualification, fitment or deep links.
+
+**Verification:** responsive tests at 220px/320px/mobile/desktop, including expanded help and narrow tree depth; existing Parts Tree and clearing regressions; build and asset checks; before/after desktop and 220px mobile screenshots including scrolled content. Independent review is required after those gates.
+
 ## Implementation boundaries
 
 - Use deterministic fixtures where production/imported data is not yet available.
