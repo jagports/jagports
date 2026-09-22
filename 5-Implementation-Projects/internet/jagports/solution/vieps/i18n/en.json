@@ -34,17 +34,17 @@
     "xr847031_description": "#354 supersession fixture replacement part"
   },
   "header": {
-    "product_name": "Jagports Vehicle Information and EPC System",
+    "applicable_models": "Applicable Models",
     "banner": "VIEPS parts search",
-    "instructions": "Enter a part number or description, then choose a result to view verified details.",
-    "parts_language_pending": "Parts descriptions follow available source languages",
-    "vin": "VIN",
-    "vin_pending": "VIN lookup not available yet",
-    "not_yet_supported": "This control is not yet supported",
-    "variations_filter": "Suitability / variations",
     "filter_pending": "Filter not yet available",
+    "instructions": "Enter a part number or description, then choose a result to view verified details.",
+    "not_yet_supported": "This control is not yet supported",
+    "parts_language_pending": "Parts descriptions follow available source languages",
+    "product_name": "Jagports Vehicle Information and EPC System",
     "results_heading": "Search Results PART List",
-    "applicable_models": "Applicable Models"
+    "variations_filter": "Suitability / variations",
+    "vin": "VIN",
+    "vin_pending": "VIN lookup not available yet"
   },
   "locale": {
     "english": "English",
