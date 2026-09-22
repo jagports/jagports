@@ -168,7 +168,28 @@ export async function handleViepsSuitability(request, env) {
       && row.context_verification === 'verified' && alternatives.length > 0;
     if (!complete || alternatives.some((set) => set.coverage !== 'complete'
       || set.serial_range_id != null || set.effective_serial_range_id != null)) {
-      unavailable.push({ part_id: row.part_id, occurrence_id: row.part_occurrence_id,
+      // A known, positive scalar contradiction can eliminate an incomplete
+      // alternative from THIS search. Missing dimensions cannot, however,
+      // be interpreted as negative evidence or as a positive match.
+      const couldMatch = alternatives.some((set) => {
+        const attrs = conditionsBySet.get(set.id) || [];
+        const members = membersBySet.get(set.id) || [];
+        return [...selected].every(([dimension, values]) => {
+          const known = attrs.filter((item) => item.dimension === dimension);
+          const setKnown = members.filter((item) => item.dimension === dimension);
+          if (known.some((item) => item.operator === 'equals')
+            && !known.some((item) => item.operator === 'equals' && values.has(item.value_code))) {
+            return false;
+          }
+          if ([...values].some((value) =>
+            known.some((item) => item.operator === 'not_equals' && item.value_code === value)
+            || setKnown.some((item) => item.operator === 'not_contains' && item.value_code === value))) {
+            return false;
+          }
+          return true;
+        });
+      });
+      if (couldMatch) unavailable.push({ part_id: row.part_id, occurrence_id: row.part_occurrence_id,
         reason: 'incomplete_or_unsupported_fixture_evidence' });
       continue;
     }
