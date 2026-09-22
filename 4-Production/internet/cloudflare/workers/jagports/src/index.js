@@ -1,5 +1,6 @@
 import { normalizePartNumber } from "./part.js";
 import { handleViepsPart, handleViepsTree } from "./vieps.js";
+import { handleViepsSuitability } from "./suitability.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -178,6 +179,7 @@ async function handleApi(request, env) {
 
   if (path === "/api/vieps/part") return handleViepsPart(request, env);
   if (path === "/api/vieps/tree") return handleViepsTree(request, env);
+  if (path === "/api/vieps/suitability") return handleViepsSuitability(request, env);
 
   if (path === "/api/health" && request.method === "GET") {
     try {
