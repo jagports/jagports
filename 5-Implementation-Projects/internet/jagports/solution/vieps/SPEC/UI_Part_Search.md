@@ -97,10 +97,12 @@ Stock-quality result states include at least:
 
 Reduced-MVP free-text search is a pragmatic, current-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without waiting for the full post-MVP #622 multilingual/global search architecture.
 
+Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and approved identifiers remain the exception because identifier-first search behavior is specified separately above.
+
 The reduced-MVP free-text corpus includes matching text available through the approved current read path, including at least:
 
 - PART descriptions;
-- convertible / body-style / model-range text such as `Convertible`;
+- model, range, body-style, vehicle, tree, category, path and other catalogue/context text where present;
 - manufacturer text where present;
 - stock existence/availability text;
 - quantity/availability text;
@@ -114,7 +116,7 @@ The reduced-MVP free-text corpus includes matching text available through the ap
 
 Searchable stock text does not make stock the catalogue identity. When a stock-text match resolves to a stocked item that is linked to a canonical PART, the visible result object remains the canonical PART or existing PART result region.
 
-A free-text match fragment must be highlighted where the matched text is visible in an existing UI region. Highlighting is fragment-level, for example `**Conv**ertible`, not merely whole-row highlighting.
+A free-text match fragment must be highlighted where the matched text is visible in an existing UI region. Highlighting is fragment-level, meaning the matched substring inside the visible value is highlighted, not merely the whole row.
 
 Do not create a separate search-result page, modal, explanation view, or independent row/table view only to explain free-text results. Free-text results must be distributed through the existing Concept-11 VIEPS regions.
 
@@ -171,28 +173,25 @@ When no identifier match exists and free-text resolves to exactly one canonical 
 
 The PART / Image / Status region shows the PART result. Visible matched fragments are highlighted in the existing fields where they appear.
 
-Parts Tree shows all tree branches where the matching PART occurs. Matching fragments are highlighted where visible.
+Parts Tree shows all matching tree branches where the matching PART occurs. Matching fragments are highlighted where visible. Tree rendering must not expand unrelated non-matching child leaves merely because their parent branch matched.
 
-Model Ranges shows matching model/body/range evidence where available.
+Model Ranges shows matching model/range/body-style evidence where available.
 
 ### Multiple free-text PART matches
 
 When no identifier match exists and free-text resolves to multiple canonical PART candidates, show the candidates in the existing PART / Image / Status region or other existing Concept-11 result region that already presents PART choices. Do not create a new independent row/table view solely for search results.
 
-The Parts Tree must show all tree branches where matching PARTs occur.
+The Parts Tree must show all matching tree branches where matching PARTs occur. Non-matching child leaves are not expanded merely because their parent branch matched.
 
-Model Ranges must reflect matched ranges and body-style contexts immediately rather than waiting for a PART selection.
+Model Ranges must reflect matched model/range/body-style contexts when those contexts are part of the matched result evidence.
 
-For `Conv`-style convertible matches:
-
-- Convertible-related model/range/body-style matches are shown and highlighted.
-- Convertible may be selected/filtered/highlighted as the matched range/context.
-- If Coupe and Convertible both have matching PARTs, both remain visible.
-- The UI must not wait for a PART candidate selection before reflecting the matched model-range/body-style context.
+No model, range, body-style or example query has special hard-coded behavior. Coupe, Convertible and similar values are ordinary searchable text values under the same rules as any other text.
 
 ### Context-only free-text match
 
-When free text matches a category, tree node, path, group, context or other browse context without directly resolving a PART, only navigate/filter the existing Parts Tree.
+When free text matches a category, tree node, path, group, model/range/body-style label, suitability label, context or other browse/context value without directly resolving a PART, show the match only through the existing VIEPS region that owns that context.
+
+For Parts Tree context, navigate/filter the existing Parts Tree to the matching branches and their required ancestors. Do not expand unrelated child leaves unless those leaves also match or are required to show the matched path.
 
 The UI must not:
 
@@ -201,13 +200,13 @@ The UI must not:
 - fabricate a selected PART;
 - show `Part not found` merely because the match is context-only.
 
-Matching fragments are highlighted in the existing Parts Tree where visible.
+Matching fragments are highlighted in the existing region where visible.
 
 ### Vehicle/range/model/suitability text match
 
-When free text matches vehicle/range/model/suitability text, show the match through existing Model Ranges and related Concept-11 regions.
+When free text matches vehicle/range/model/suitability text, show the match through existing Model Ranges and related Concept-11 regions where the current data path supports it.
 
-If the match resolves to PART candidates through the current search/read contract, show those PART candidates in the existing PART result region and all relevant Parts Tree branches.
+If the match resolves to PART candidates through the current search/read contract, show those PART candidates in the existing PART result region and all matching Parts Tree branches.
 
 If the match does not resolve to PART candidates, do not fabricate a selected PART.
 
@@ -247,7 +246,7 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 | `multiple_matches` | Identifier or available free-text search produces multiple canonical candidates; the UI must present candidates in existing Concept-11 regions rather than invent a selected PART |
 | `unsupported` | Requested search/filter capability is unavailable in the current runtime and must not be silently ignored |
 | `resolved` | Identity/context resolved |
-| `context_only` | Free text matched a browse/tree/context value and only the existing Parts Tree is navigated/filtered; no PART is selected |
+| `context_only` | Free text matched a browse/tree/range/model/context value and is shown through the existing region that owns that context; no PART is selected unless the match resolves to a PART candidate |
 | `context_unavailable` | Identity resolved but secondary EPC context unavailable |
 | `error` | Processing/API/search failure |
 
@@ -256,8 +255,8 @@ Stock-quality presentation may additionally distinguish explicit stock-detail st
 ## Result distribution into merged Concept-11
 ```text
 resolved identity/context or candidate set
-   ├── Parts Tree main-level index + all relevant matching path(s)
-   ├── Suitability Model Ranges row + matched range/body-style context
+   ├── Parts Tree main-level index + matching branch/path ancestors; no unrelated child leaves expanded
+   ├── Suitability Model Ranges row + matched range/model/body-style context when available
    ├── Location at car (left-middle)
    ├── Suitability / Filter or facts (right-middle)
    └── PART / Image / Status (full lower centre/right)
@@ -314,14 +313,14 @@ Cover at least:
 - multiple identifier candidates without guessed selection;
 - identifier miss with reduced-MVP free-text fallback;
 - fragment highlighting in visible matched text;
-- `Conv` or equivalent query matching Convertible model/body-style text;
+- generic free-text query matching model, range, body-style or catalogue/context text;
 - query matching PART description text;
 - query matching manufacturer text where available;
 - query matching searchable stock text including availability, quantity, quality, storage location, source/vendor/person, donor vehicle and notes where those fields exist;
 - selected-language i18n text match where available;
-- context-only match that only navigates/filters the existing Parts Tree;
-- all Parts Tree branches where matching PARTs occur;
-- Model Ranges reflecting matched convertible/body-style context before PART selection;
+- context-only match shown through the existing owning region without fabricating PART selection;
+- all matching Parts Tree branches where matching PARTs occur, without expanding unrelated child leaves;
+- Model Ranges reflecting matched model/range/body-style context where available without special Coupe/Convertible behavior;
 - explicit unsupported state when requested free-text/stock filtering is unavailable;
 - stock-filtered-empty distinct from total search no-match, with `No matching parts currently on stock.` wording;
 - reduced-MVP `stock_only` success when an identifier or free-text candidate has `available = 1` and `quantity > 0`;
@@ -351,7 +350,7 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Identifier miss falls back to the reduced-MVP free-text capability when that capability is active.
 - Absence of free-text capability in a runtime exposing descriptive search must be explicit, not simulated.
 - A stock-filtered-empty result is distinct from a total search no-match.
-- A context-only free-text match navigates/filters the existing Parts Tree and must not fabricate a selected PART.
+- A context-only free-text match is shown through the existing region that owns that context and must not fabricate a selected PART.
 
 ## Acceptance criteria
 - [x] Search/result states and canonical identity boundaries are documented.
@@ -365,8 +364,8 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - [x] Search-path/match provenance may cross the API boundary without redefining canonical PART identity.
 - [x] Multiple EPC occurrences remain distinct from canonical PART identity.
 - [x] Part-number search can return every occurrence with its complete source tree path.
-- [x] Free-text PART matches show all Parts Tree branches where matching PARTs occur.
-- [x] Context-only free-text matches navigate/filter only the existing Parts Tree and do not fabricate PART selection.
+- [x] Free-text PART matches show all matching Parts Tree branches where matching PARTs occur without expanding unrelated child leaves.
+- [x] Context-only free-text matches are shown through existing owning regions and do not fabricate PART selection.
 - [x] Catalogue/filter narrowing is occurrence-first; a PART remains while any occurrence survives.
 - [x] Catalogue-data language may select structurally different imported source trees without conflating them with UI i18n.
 - [x] Reduced-MVP free-text may search selected-language i18n text where it is part of the current searchable read path.
@@ -374,7 +373,7 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - [x] Search/Availability placement follows merged Concept-11.
 - [x] Reduced-MVP public `stock_only` filtering is defined over canonical PART candidates using operational STOCK availability plus positive quantity without redefining catalogue identity.
 - [x] Result distribution follows the corrected Model Ranges / Location / Suitability / PART geometry.
-- [x] Convertible/model/body-style free-text matches are reflected in Model Ranges immediately and do not wait for PART selection.
+- [x] Generic model/range/body-style free-text matches are reflected in Model Ranges where available, without special Coupe/Convertible behavior.
 - [x] Searchable stock text includes the current data-path stock fields specified for reduced-MVP free-text, without inventing an unspecified admin-only field taxonomy.
 - [x] Unsupported stock-driven empty-search behavior is not fabricated.
 - [x] UI-vs-Parts language separation is preserved.
