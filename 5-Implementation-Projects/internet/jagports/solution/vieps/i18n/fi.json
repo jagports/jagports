@@ -34,7 +34,17 @@
     "xr847031_description": "#354 korvaavuuden korvaavan osan testitieto"
   },
   "header": {
-    "product_name": "Jagports Vehicle Information and EPC System"
+    "product_name": "Jagports Vehicle Information and EPC System",
+    "banner": "VIEPS-osahaku",
+    "instructions": "Syötä osanumero tai kuvaus ja valitse hakutulos nähdäksesi vahvistetut tiedot.",
+    "parts_language_pending": "Osien kuvaukset näytetään käytettävissä olevilla lähdekielillä",
+    "vin": "VIN",
+    "vin_pending": "VIN-haku ei ole vielä käytettävissä",
+    "not_yet_supported": "Tämä toiminto ei ole vielä käytettävissä",
+    "variations_filter": "Sopivuus / muunnelmat",
+    "filter_pending": "Suodatin ei ole vielä käytettävissä",
+    "results_heading": "Osahaun tulokset",
+    "applicable_models": "Sopivat mallit"
   },
   "locale": {
     "english": "Englanti",
@@ -134,7 +144,8 @@
         "short_description": "Varasto-osan kuntoa ei ole vielä luokiteltu."
       }
     },
-    "status": "Tila"
+    "status": "Tila",
+    "quality_unsupported": "Laatuluokkien A–E suodatus ei ole vielä käytettävissä."
   },
   "stock_admin": {
     "access_heading": "Ylläpitäjän tunnistautuminen",
