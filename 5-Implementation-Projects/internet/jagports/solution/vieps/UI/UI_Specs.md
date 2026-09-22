@@ -151,6 +151,16 @@ empty search + supported stock constraint
 
 The SVG illustrates stock qualities `A…E with descriptions`. The meanings of A–E must come from the approved stock contract. Until the stock/catalogue browse contract exists, Availability remains disabled/unavailable and no stock-derived hierarchy or fitment is invented.
 
+### Empty search, clear and browse continuity
+
+Clearing Search or submitting an empty/whitespace-only query invalidates earlier requests, clears selected PART/occurrence and dependent context, removes stale `?part`/`?tree` state from the current URL, and restores the available collapsed root index with no active selection. Preserve the supported stock filter and permanent Concept-11 regions. Empty search is a browse/prompt state, not a failed PART lookup.
+
+Initial root load, clear, empty submit and empty-search Availability refresh use the same root/evidence-state contract. A late PART/tree/root response must not replace a newer user action. Root unavailable/error states do not fabricate categories or revive old PART details.
+
+UI language changes preserve browse state even without a selected PART. Catalogue-language changes respect source-qualified identity and structural differences rather than mapping by label.
+
+The normative transition, stock and URL rules and regression acceptance matrix are in [Part Search](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition). [Parts Tree](UI_Specs_Parts_Tree.md#empty-search--browse-state) owns root presentation and [Main View](UI_Specs_Main_View.md#clearing-selected-context) owns cleared contextual-region presentation.
+
 ## Search-result distribution
 
 ```text
@@ -282,6 +292,8 @@ On the default desktop layout, preserve PR #616 behaviour: the page itself fits 
 
 A conforming implementation preserves:
 
+- clear/empty-submit behavior, preserved stock-filter state, clean selection URLs and race-safe root restoration under the Part Search contract;
+- browse-mode language continuity without fabricated source-tree identity or a selected PART;
 - the merged Concept-11 geometry above;
 - canonical PART identity vs occurrence/context separation;
 - one persistent Parts Tree root index with shared ancestors rendered once, the complete selected root-to-leaf path expanded, depth indentation/root-weight typography applied, and PARTs represented as terminal leaves;
