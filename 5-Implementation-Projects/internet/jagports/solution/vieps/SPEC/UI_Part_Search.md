@@ -120,6 +120,9 @@ selected Parts Tree branch
 
 A PART remains visible while at least one occurrence survives. The UI must not merge all occurrence paths into one synthetic applicability path.
 
+
+Parts Tree browsing is an alternative entry path into this same resolution model. A stable tree-node link selects a `part_tree_node.id`, resolves the canonical PART candidates related to that node/subtree through `part_tree_part`, and presents those candidates without guessing one PART. Choosing a candidate then uses the normal canonical PART-resolution flow above. Tree labels are never used as identity, and tree navigation itself does not decide fitment/applicability.
+
 Imported JEPC descriptions may be presented as filter candidates. Normalized semantic facets derived from those descriptions are a separate enrichment layer; the UI/API must not treat the facet label as the source-tree identity.
 
 Language-specific JEPC tree structure may differ. Catalogue-data language selection therefore chooses among imported source-language tree contexts rather than assuming that UI translation resources translate one fixed source tree.

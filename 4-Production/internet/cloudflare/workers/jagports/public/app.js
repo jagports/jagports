@@ -63,6 +63,18 @@ async function resolvePart(partNumber, stockOnly = false) {
   return data;
 }
 
+async function resolveTreeNode(nodeId, stockOnly = false) {
+  const stockFilter = stockOnly ? "&stock_only=1" : "";
+  const response = await fetch(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || `${response.status} ${response.statusText}`);
+    error.code = data.error_code;
+    throw error;
+  }
+  return data;
+}
+
 function renderStockRows(stock) {
   if (!stock.length) return "";
   return `<div class="stock-section">
@@ -122,9 +134,47 @@ function renderPartCandidates(matches = []) {
 function renderTree(paths) {
   const branches = paths.filter((entry) => entry.path?.length);
   $("tree").innerHTML = branches.map((entry) => {
-    return entry.path.reduceRight((child, label, index) =>
-      `<ul${index === 0 ? ' class="tree-branch"' : ''}><li><span${index === entry.path.length - 1 ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>${child}</li></ul>`, "");
+    const nodes = Array.isArray(entry.nodes) ? entry.nodes : [];
+    const selectedNodeId = entry.selected_node_id ?? entry.node_id;
+    return entry.path.reduceRight((child, label, index) => {
+      const nodeId = nodes[index]?.node_id;
+      const selected = nodeId !== undefined && nodeId !== null
+        ? nodeId === selectedNodeId
+        : index === entry.path.length - 1;
+      const content = nodeId !== undefined && nodeId !== null
+        ? `<span${selected ? ' class="selected-path"' : ''}><a href="?tree=${encodeURIComponent(nodeId)}" data-tree-node-id="${escapeHtml(nodeId)}">${escapeHtml(label)}</a></span>`
+        : `<span${selected ? ' class="selected-path"' : ''}>${escapeHtml(label)}</span>`;
+      return `<ul${index === 0 ? ' class="tree-branch"' : ''}><li>${content}${child}</li></ul>`;
+    }, "");
   }).join("") || empty(t("tree.empty"));
+}
+
+function renderTreeBrowse(data) {
+  const path = Array.isArray(data.path) ? data.path : [];
+  const children = Array.isArray(data.children) ? data.children : [];
+  const selectedNodeId = data.selected_node?.node_id;
+  const branches = children.length
+    ? children.map((child) => ({
+        node_id: child.node_id,
+        selected_node_id: selectedNodeId,
+        path: [...path.map((node) => node.label), child.label],
+        nodes: [...path.map((node) => ({ node_id: node.node_id, label: node.label })), child],
+      }))
+    : [{
+        node_id: selectedNodeId,
+        selected_node_id: selectedNodeId,
+        path: path.map((node) => node.label),
+        nodes: path.map((node) => ({ node_id: node.node_id, label: node.label })),
+      }];
+  renderTree(branches);
+
+  const parts = (data.parts || []).filter((part) => partSearchValue(part));
+  $("partCard").innerHTML = parts.length
+    ? `<strong>${escapeHtml(t("tree.browse_parts", { count: parts.length }))}</strong>
+       <ul class="candidate-list">${parts.map((part) =>
+         `<li><a href="?part=${encodeURIComponent(partSearchValue(part))}" data-part-query="${escapeHtml(partSearchValue(part))}">${escapeHtml(partDisplayLabel(part))}</a></li>`
+       ).join("")}</ul>`
+    : empty(t("tree.browse_empty"));
 }
 
 function renderSelectedVisual() {
@@ -272,6 +322,27 @@ function setupViepsUi() {
     $("searchStatus").className = "muted status-line";
     $("searchStatus").textContent = t("search.prompt_with_action");
   });
+  const browseTree = async (nodeId) => {
+    const version = ++requestVersion;
+    resetContext();
+    $("searchStatus").className = "muted status-line";
+    $("searchStatus").textContent = t("tree.browse_loading");
+    $("result").setAttribute("aria-busy", "true");
+    try {
+      const data = await resolveTreeNode(nodeId, Boolean($("availabilitySelect").checked));
+      if (version !== requestVersion) return;
+      renderTreeBrowse(data);
+      $("searchStatus").textContent = t("tree.browse_parts", { count: data.parts?.length || 0 });
+    } catch (error) {
+      if (version !== requestVersion) return;
+      resetContext();
+      $("searchStatus").textContent = t("tree.browse_error");
+      $("searchStatus").className = "error status-line";
+    } finally {
+      if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
+    }
+  };
+
   const submitSearch = async (event) => {
     event.preventDefault();
     const version = ++requestVersion;
@@ -308,6 +379,18 @@ function setupViepsUi() {
   $("availabilitySelect").addEventListener("change", () => {
     if ($("partNumber").value.trim()) submitSearch({ preventDefault() {} });
   });
+
+  const initialParams = typeof URLSearchParams === "function" && typeof globalThis.location?.search === "string"
+    ? new URLSearchParams(globalThis.location.search)
+    : null;
+  const initialPart = initialParams?.get("part")?.trim();
+  const initialTree = initialParams?.get("tree")?.trim();
+  if (initialPart) {
+    $("partNumber").value = initialPart;
+    submitSearch({ preventDefault() {} });
+  } else if (initialTree) {
+    browseTree(initialTree);
+  }
 }
 
 if (typeof document !== "undefined" && typeof document.getElementById === "function") {

@@ -73,6 +73,94 @@ async function findPartCandidates(env, query, normalized) {
   return result.results || [];
 }
 
+export async function handleViepsTree(request, env) {
+  if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
+
+  const url = new URL(request.url);
+  const rawNodeId = text(url.searchParams.get("node_id"));
+  const nodeId = Number(rawNodeId);
+  if (!rawNodeId || !Number.isInteger(nodeId) || nodeId <= 0) {
+    return json({ error: "valid tree node id is required", error_code: "tree_node_invalid" }, 400);
+  }
+
+  const stockOnlyParam = text(url.searchParams.get("stock_only"));
+  if (stockOnlyParam && stockOnlyParam !== "0" && stockOnlyParam !== "1") {
+    return json({ error: "invalid stock-only filter", error_code: "stock_filter_invalid" }, 400);
+  }
+  const stockOnly = stockOnlyParam === "1";
+
+  const selectedNode = await env.DB.prepare(
+    `SELECT id, parent_id, label, sort_order
+     FROM part_tree_node
+     WHERE id = ?`
+  ).bind(nodeId).first();
+
+  if (!selectedNode) {
+    return json({ error: "tree node not found", error_code: "tree_node_not_found", node_id: nodeId }, 404);
+  }
+
+  const stockClause = stockOnly
+    ? `AND EXISTS (
+         SELECT 1 FROM stock_item s
+         WHERE s.part_id = p.id AND s.available = 1 AND s.quantity > 0
+       )`
+    : "";
+
+  const [pathResult, childrenResult, partsResult] = await Promise.all([
+    env.DB.prepare(
+      `WITH RECURSIVE ancestors(id, parent_id, label, sort_order, depth) AS (
+         SELECT id, parent_id, label, sort_order, 0
+         FROM part_tree_node
+         WHERE id = ?
+         UNION ALL
+         SELECT parent.id, parent.parent_id, parent.label, parent.sort_order, child.depth + 1
+         FROM part_tree_node parent
+         INNER JOIN ancestors child ON child.parent_id = parent.id
+       )
+       SELECT id AS node_id, label, depth
+       FROM ancestors
+       ORDER BY depth DESC`
+    ).bind(nodeId).all(),
+    env.DB.prepare(
+      `SELECT id AS node_id, label, sort_order
+       FROM part_tree_node
+       WHERE parent_id = ?
+       ORDER BY sort_order, id`
+    ).bind(nodeId).all(),
+    env.DB.prepare(
+      `WITH RECURSIVE subtree(id) AS (
+         SELECT id FROM part_tree_node WHERE id = ?
+         UNION ALL
+         SELECT child.id
+         FROM part_tree_node child
+         INNER JOIN subtree parent ON child.parent_id = parent.id
+       )
+       SELECT DISTINCT p.id, p.part_number_raw, p.part_number_normalized, p.description,
+              p.source, p.source_ref, p.verification_status
+       FROM subtree
+       INNER JOIN part_tree_part tp ON tp.tree_node_id = subtree.id
+       INNER JOIN part p ON p.id = tp.part_id
+       WHERE 1 = 1
+       ${stockClause}
+       ORDER BY p.part_number_normalized, p.part_number_raw, p.description, p.id
+       LIMIT 100`
+    ).bind(nodeId).all(),
+  ]);
+
+  const parts = (partsResult.results || []).map(candidatePayload);
+  return json({
+    state: parts.length ? "resolved" : "empty",
+    selected_node: {
+      node_id: selectedNode.id,
+      parent_id: selectedNode.parent_id,
+      label: selectedNode.label,
+    },
+    path: pathResult.results || [],
+    children: childrenResult.results || [],
+    parts,
+  });
+}
+
 export async function handleViepsPart(request, env) {
   if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
 
@@ -167,15 +255,19 @@ export async function handleViepsPart(request, env) {
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const leafNodes = nodes.filter((node) => !nodes.some((candidate) => candidate.parent_id === node.id));
   const paths = leafNodes.map((node) => {
-    const labels = [];
+    const pathNodes = [];
     let current = node;
     const seen = new Set();
     while (current && !seen.has(current.id)) {
       seen.add(current.id);
-      labels.unshift(current.label);
+      pathNodes.unshift(current);
       current = byId.get(current.parent_id);
     }
-    return { node_id: node.id, path: labels };
+    return {
+      node_id: node.id,
+      path: pathNodes.map((item) => item.label),
+      nodes: pathNodes.map((item) => ({ node_id: item.id, label: item.label })),
+    };
   });
 
   return json({
