@@ -29,9 +29,10 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
     return fetch(url);
   };
   const nodes = new Map();
-  for (const [, id] of html.matchAll(/id="([^"]+)"/g)) {
+  for (const [, tag, id] of html.matchAll(/(<[^>]*\bid="([^"]+)"[^>]*>)/g)) {
     nodes.set(id, {
-      value: '', hidden: false, disabled: false, textContent: '', listeners: {}, attrs: {},
+      value: '', hidden: false, disabled: /\sdisabled(?:\s|>|=)/.test(tag),
+      textContent: '', listeners: {}, attrs: {},
       set innerHTML(value) { this.markup = value; if (id.endsWith('Select')) this.value = value.match(/value="([^"]*)"/)?.[1] || ''; },
       get innerHTML() { return this.markup || ''; },
       addEventListener(event, fn) { this.listeners[event] = fn; },
