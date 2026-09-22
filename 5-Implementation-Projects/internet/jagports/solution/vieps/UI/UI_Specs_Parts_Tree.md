@@ -64,7 +64,7 @@ The tree and right-hand Search Results PN/name list are **two views of the same 
 - Selecting a **tree PART leaf** sets the active canonical PART **and its specific verified source occurrence/path**, when present. It updates the centre PART detail, Location, right-hand result-row selected state and evidence-backed Applicable Models.
 - Selecting a **right-hand result row** sets the same canonical PART selection and updates relevant tree paths; if several verified occurrences exist, do not guess which leaf/path is active or show occurrence-specific location, diagram-item or VIN fitment until that context is chosen.
 - The Parts Tree keeps the root index visible throughout, combines shared ancestors once by stable node identity and expands the latest genuinely selected leaf path. Search hits with several source paths remain visible without underlining several different leaves as one active occurrence.
-- A result-row **bookmark checkbox** is separate from row/leaf selection. It never changes selected PART, tree expansion, stock constraints or fitment. Persistence and authorization of bookmarks remain an explicit #875 decision before runtime implementation.
+- A result-row **bookmark checkbox** is visible but **disabled** in the current layout/shared-selection increment; no storage or simulated save behavior is implemented. A later activated bookmark must remain separate from row/leaf selection and never change selected PART, tree expansion, stock constraints or fitment.
 - A result row or tree leaf that lacks a verified source relationship must not acquire invented ancestry or positive applicability. Show missing context as `unavailable`, distinct from search `no_match`.
 
 ## Clickable node navigation and tree entry path
@@ -130,7 +130,7 @@ Long tree content scrolls internally in the fitted #616 desktop shell. Catalogue
 - [ ] Depth indentation, stronger root typography, and underlined single active selection are defined.
 - [ ] Resolved and multiple matching PARTs occupy selectable terminal leaves under evidenced paths; the separate proposed #875 right-hand Search Results panel deduplicates by canonical PART, and the centre Main View never presents multiple PARTs.
 - [ ] Tree-leaf and result-row selection synchronize one canonical PART without guessing a multi-occurrence row's active path.
-- [ ] Search-result bookmark checkboxes do not alter tree selection, filters, stock or applicability.
+- [ ] Current layout shows labelled disabled bookmark checkboxes, with no effect on tree selection, filters, stock or applicability; bookmark activation remains a later increment.
 - [ ] Tree identity and PART vs occurrence/context semantics remain separate.
 - [ ] Selected-item and expand/collapse behavior are defined.
 - [ ] Stable tree nodes are real hyperlinks and direct-load tree context is defined.
