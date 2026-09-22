@@ -28,6 +28,57 @@ JAGPORTS API TEST OK
 
 The intended unattended Lead Agent interval discussed with the operator is **9 hours 45 minutes**. The repository's original proposed hourly timer and 60-minute `config.yaml` remain historical/configuration artifacts until a live timer is inspected and the actual scheduling implementation is separately reconciled. No timer configuration change or timer-run verification is claimed by this documentation update.
 
+
+## Target schedule and Raspberry Pi operator verification
+
+**Requested target:** the Lead Agent's **systemd user timer** should activate the coordinator every **9 hours and 45 minutes**, not hourly and not at the clock time 09:45. This is **585 minutes** from the previous service activation. The initial boot trigger remains five minutes. The original one-hour example in the historical appendix below is retained solely as a record of the earlier proposal and is superseded for new setup by this section.
+
+The latest operator-supplied manual `python main.py` transcript completed successfully and reported a large group of new and closed Issue/PR numbers after approximately **one week without a run**. This is consistent with a stale-but-valid saved state, but it does not prove a timer has been activated, that state comparison has been tested on an immediate second run, or that a systemd service has executed.
+
+### Recommended user service
+
+Use the existing Python virtual environment as the execution interpreter. The `Type=oneshot` service does not attempt to make `main.py` a daemon:
+
+```ini
+# ~/.config/systemd/user/jagports-lead-agent.service
+[Unit]
+Description=Jagports Lead Agent
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/codex/jagports-lead-agent
+ExecStart=/home/codex/jagports-lead-agent/venv/bin/python /home/codex/jagports-lead-agent/main.py
+```
+
+The user service inherits the user-manager environment. Existing `main.py` calls `load_dotenv()` from its configured working directory, so `~/jagports-lead-agent/.env` can remain local and protected. Never place API tokens in the service, timer, shell command history, GitHub, or test transcript.
+
+### Recommended 9h45min timer
+
+```ini
+# ~/.config/systemd/user/jagports-lead-agent.timer
+[Unit]
+Description=Run Jagports Lead Agent every 9 hours 45 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=9h45min
+Unit=jagports-lead-agent.service
+
+[Install]
+WantedBy=timers.target
+```
+
+Use `systemctl --user daemon-reload` after installing or changing the files; `systemctl --user enable --now jagports-lead-agent.timer` enables and starts the timer. Inspect an existing timer/service and back up its contents **before** overwriting it. Avoid installing another cron entry for the same job. The timer is the execution authority: `config.yaml` now records `polling.interval_minutes: 585`, but current `main.py` does not use this field to schedule runs. Enabling user lingering may require a system administrator if execution must continue after logout/reboot without a user session.
+
+### Verification gates
+
+1. **Timer configuration and activation:** `systemctl --user cat jagports-lead-agent.timer jagports-lead-agent.service`; `systemctl --user is-enabled jagports-lead-agent.timer`; `systemctl --user is-active jagports-lead-agent.timer`; `systemctl --user list-timers --all`. Expect an installed 9h45min timer enabled and active; check the listed next elapse **after** a completed service run.
+2. **One-shot service test:** `systemctl --user start jagports-lead-agent.service` once. It starts the same service the timer will invoke; no separate direct `python main.py` invocation is needed.
+3. **Result and evidence:** `systemctl --user show jagports-lead-agent.service -p Result -p ExecMainStatus`, `journalctl --user -u jagports-lead-agent.service -n 60 --no-pager`, and inspection of the local generated report/state files. A successful direct OpenAI API test is *not* a successful agent-service or timer test.
+4. **Unattended test:** after an actual timer elapse, check the timer journal, service journal and report timestamp. Only this confirms unattended timer activation; manual `systemctl start` confirms service integration, not that the timer triggered it.
+
+A large first lifecycle delta can be expected after a long gap. For persistence verification, repeat a manual or service run after a short quiet interval and compare changed records. Do not enable paid reasoning over an unfiltered backlog. Do not claim success of any host verification until the operator provides actual terminal evidence.
+
 ## Environment and setup
 
 The prototype workspace is `~/jagports-lead-agent` on a Raspberry Pi running Debian. It uses a Python 3.11 virtual environment, leaving the Debian system Python unchanged.
