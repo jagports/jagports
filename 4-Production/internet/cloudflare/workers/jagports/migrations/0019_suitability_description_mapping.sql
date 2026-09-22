@@ -135,3 +135,38 @@ WHEN NEW.cardinality <> OLD.cardinality AND (
   OR EXISTS (SELECT 1 FROM applicability_set_membership_condition WHERE dimension_id = OLD.id)
 )
 BEGIN SELECT RAISE(ABORT, 'cannot change cardinality with active conditions'); END;
+
+-- Source descriptions and mapping revisions are append-only evidence.
+-- Corrections use a new source dataset/version or a new mapping revision.
+CREATE TRIGGER applicability_source_description_no_update
+BEFORE UPDATE ON applicability_source_description
+BEGIN SELECT RAISE(ABORT, 'source descriptions are immutable'); END;
+CREATE TRIGGER applicability_source_description_no_delete
+BEFORE DELETE ON applicability_source_description
+BEGIN SELECT RAISE(ABORT, 'source descriptions are immutable'); END;
+CREATE TRIGGER applicability_mapping_revision_no_update
+BEFORE UPDATE ON applicability_description_mapping_revision
+BEGIN SELECT RAISE(ABORT, 'mapping revisions are immutable'); END;
+CREATE TRIGGER applicability_mapping_revision_no_delete
+BEFORE DELETE ON applicability_description_mapping_revision
+BEGIN SELECT RAISE(ABORT, 'mapping revisions are immutable'); END;
+CREATE TRIGGER applicability_mapping_revision_review_gate
+BEFORE INSERT ON applicability_description_mapping_revision
+WHEN (NEW.status = 'verified' AND (
+  NEW.reviewer_ref IS NULL OR TRIM(NEW.reviewer_ref) = ''
+  OR EXISTS (
+    SELECT 1 FROM applicability_source_description
+    WHERE id = NEW.source_description_id AND provenance_kind = 'fixture'
+  )
+)) OR (NEW.status = 'fixture' AND EXISTS (
+  SELECT 1 FROM applicability_source_description
+  WHERE id = NEW.source_description_id AND provenance_kind <> 'fixture'
+))
+BEGIN SELECT RAISE(ABORT, 'mapping status requires compatible source evidence and reviewer'); END;
+CREATE TRIGGER applicability_mapping_revision_monotonic
+BEFORE INSERT ON applicability_description_mapping_revision
+WHEN NEW.revision <> 1 + COALESCE((
+  SELECT MAX(revision) FROM applicability_description_mapping_revision
+  WHERE source_description_id = NEW.source_description_id
+), 0)
+BEGIN SELECT RAISE(ABORT, 'mapping revisions must be sequential'); END;
