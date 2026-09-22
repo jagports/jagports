@@ -6,14 +6,14 @@ on:
       - ".github/workflows/vieps-browser-evidence.yml"
       - "4-Production/internet/cloudflare/workers/jagports/public/**"
       - "4-Production/internet/cloudflare/workers/jagports/styles/**"
-      - "4-Production/internet/cloudflare/workers/jagports/tests/browser-evidence.mjs"
+      - "4-Production/internet/cloudflare/workers/jagports/scripts/browser-evidence.mjs"
   push:
     branches: [main]
     paths:
       - ".github/workflows/vieps-browser-evidence.yml"
       - "4-Production/internet/cloudflare/workers/jagports/public/**"
       - "4-Production/internet/cloudflare/workers/jagports/styles/**"
-      - "4-Production/internet/cloudflare/workers/jagports/tests/browser-evidence.mjs"
+      - "4-Production/internet/cloudflare/workers/jagports/scripts/browser-evidence.mjs"
   workflow_dispatch:
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.55.1
           npx playwright install --with-deps chromium
       - name: Exercise desktop and 220px/320px mobile UI and capture screenshots
-        run: node tests/browser-evidence.mjs
+        run: node scripts/browser-evidence.mjs
       - name: Preserve browser screenshots even if an assertion fails
         if: always()
         uses: actions/upload-artifact@v4
