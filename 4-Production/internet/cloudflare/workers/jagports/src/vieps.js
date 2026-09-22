@@ -226,7 +226,7 @@ async function buildPartLeafPaths(env, parts) {
     const part = byPartId.get(rows[0]?.part_id);
     if (!part) continue;
     partsWithTree.add(part.id);
-    const branchNodes = rows.map((row) => ({ node_id: row.node_id, label: row.label }));
+    const branchNodes = rows.map((row) => ({ node_id: row.node_id, label: row.label, sort_order: row.sort_order, parent_id: row.parent_id }));
     const partNode = {
       kind: "part",
       part_id: part.id,
@@ -275,40 +275,38 @@ export async function handleViepsTree(request, env) {
   if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
 
   const url = new URL(request.url);
-  // The same authoritative root index is available both on initial load and
-  // after a deep selection; never infer ancestors from display labels.
-  if (url.searchParams.get("root") === "1") {
-    return json({ state: "root", roots: await loadTreeRoots(env) });
-  }
-  const rawNodeId = text(url.searchParams.get("node_id"));
-  const nodeId = rawNodeId ? Number(rawNodeId) : null;
-  if (rawNodeId && (!Number.isInteger(nodeId) || nodeId <= 0)) {
-    return json({ error: "valid tree node id is required", error_code: "tree_node_invalid" }, 400);
-  }
-
   const stockOnlyParam = text(url.searchParams.get("stock_only"));
   if (stockOnlyParam && stockOnlyParam !== "0" && stockOnlyParam !== "1") {
     return json({ error: "invalid stock-only filter", error_code: "stock_filter_invalid" }, 400);
   }
   const stockOnly = stockOnlyParam === "1";
+  const rootMode = url.searchParams.get("root") === "1";
+  const rawNodeId = text(url.searchParams.get("node_id"));
+  if (rootMode && rawNodeId) {
+    return json({ error: "root browse and selected node cannot be combined", error_code: "tree_request_invalid" }, 400);
+  }
+  const nodeId = rawNodeId ? Number(rawNodeId) : null;
+  if (rawNodeId && (!Number.isInteger(nodeId) || nodeId <= 0)) {
+    return json({ error: "valid tree node id is required", error_code: "tree_node_invalid" }, 400);
+  }
 
-  if (nodeId === null) {
-    const rootChildren = await env.DB.prepare(
-      `SELECT id AS node_id, label, sort_order
-       FROM part_tree_node
-       WHERE parent_id IS NULL
-       ORDER BY sort_order, id`
-    ).all();
+  // The first-level index is authoritative. Root-level stock browsing is not
+  // filtered by the current catalogue contract, so describe that explicitly.
+  if (rootMode || nodeId === null) {
+    const roots = await loadTreeRoots(env);
     return json({
-      state: "empty",
+      state: rootMode ? "root" : "empty",
+      root_index_state: roots.length ? "available" : "empty",
+      stock_browse_state: stockOnly ? "unsupported" : "not_requested",
       selected_node: null,
       path: [],
-      children: rootChildren.results || [],
-      roots: rootChildren.results || [],
+      roots,
+      children: roots,
       parts: [],
       parts_tree: [],
     });
   }
+
 
   const selectedNode = await env.DB.prepare(
     `SELECT id, parent_id, label, sort_order
@@ -338,7 +336,7 @@ export async function handleViepsTree(request, env) {
          FROM part_tree_node parent
          INNER JOIN ancestors child ON child.parent_id = parent.id
        )
-       SELECT id AS node_id, label, depth
+       SELECT id AS node_id, parent_id, label, sort_order, depth
        FROM ancestors
        ORDER BY depth DESC`
     ).bind(nodeId).all(),
@@ -375,6 +373,7 @@ export async function handleViepsTree(request, env) {
   const partsTree = await buildPartLeafPaths(env, parts);
   return json({
     state: parts.length || (childrenResult.results || []).length ? "resolved" : "empty",
+    root_index_state: roots.length ? "available" : "empty",
     roots,
     selected_node: {
       node_id: selectedNode.id,
@@ -382,6 +381,7 @@ export async function handleViepsTree(request, env) {
       label: selectedNode.label,
     },
     path: pathResult.results || [],
+    ancestry_state: (pathResult.results || [])[0]?.parent_id == null ? "complete" : "unavailable",
     children: childrenResult.results || [],
     parts,
     part_nodes: partNodes,
