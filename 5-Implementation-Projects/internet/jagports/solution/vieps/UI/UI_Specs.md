@@ -50,6 +50,21 @@ The following **Product Owner-supplied ASCII map** is the normative target deskt
 
 **Current increment:** implement this shell, separately scrolling Parts Tree / Search Results / Applicable Models, accessible selectable PN/name rows and **one shared PART selection** across tree, result rows and centre detail. Bookmark checkboxes are visible but **disabled**, with no saving. Advanced model-range checkbox filtering is also deferred; its approved future semantics are **multiple selections matching ANY (OR)** with only positively evidenced surviving occurrences. The initial layout may display the 13-entry browse index and verified selected-PART applicability where an approved read contract exists, but must not invent fitment, VIN evidence or data-driven filters.
 
+## Region ownership and current implementation
+
+| Position | Region | Behavior |
+|---|---|---|
+| Header left | Logo / instructions; UI + Parts languages | Reserve the region; activate language controls only through approved #554/#620 contracts. |
+| Header centre | Banner / header | Preserve the full-width centre header slot shown in the map. |
+| Left top | Availability | Approved operational stock-quality controls; unsupported choices remain unavailable, never simulated. |
+| Left below | Parts Tree | Independent scrolling, persistent root index, complete expanded root-to-selected-leaf ancestry, stable links, deduplicated shared ancestors, selectable PART leaves (#873). |
+| Centre top | VIN; Filter | VIN input/supported range picker and normalized suitability/variations (#641), only when backed by approved data. |
+| Centre lower left | Location at car | One evidence-backed location canvas or explicit unavailable state. |
+| Centre lower right | Selected PART | One canonical PART with verified name/status and image/diagram where available; never a candidate list. |
+| Right top | Search | Part-number/deterministic-identifier-first search with reduced-MVP free-text fallback. |
+| Right middle | Search Results PART List | Independent scrolling; one selectable PN/name row per distinct canonical PART, synchronized with tree selection. |
+| Right bottom | Applicable Models | Independent scrolling; unselected browse index of 13 exact requested fixture labels or verified fit for selected PART/context. |
+
 ### Geometry rules
 
 - The left column shows Availability above the persistent root-index Parts Tree. The latter scrolls internally and preserves the root-to-selected-node/PART context, stable identities and path de-duplication required by #873.
@@ -160,6 +175,9 @@ empty Search + supported stock constraints
 Without a supporting browse contract, preserve the permanent regions and display unavailable/unsupported state; do not infer catalogue fitment or fabricate stock-backed ranges. Normalized A–E quality meanings are defined in `../SPEC/MODEL_STOCK.md`, not in the artwork.
 
 ### Empty search, clear and browse continuity
+
+Clearing Search preserves the stock-filter setting, invalidates stale requests, clears selected PART/occurrence and old Search Results selection, removes stale `part`/`tree` URL parameters and restores evidenced collapsed roots. The right results panel returns to its empty/browse state; Applicable Models returns to an available browse index, not stale selected-PART fitment.
+
 
 Clearing Search or submitting an empty/whitespace-only query invalidates earlier requests, clears selected PART/occurrence and dependent context, removes stale `?part`/`?tree` state from the current URL, and restores the available collapsed root index with no active selection. Preserve the supported stock filter and permanent Concept-11v1 regions. Empty search is a browse/prompt state, not a failed PART lookup.
 
