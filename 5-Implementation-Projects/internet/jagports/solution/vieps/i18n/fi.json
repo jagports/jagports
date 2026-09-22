@@ -81,6 +81,7 @@
   },
   "ranges": {
     "applicable_help": "Hae osa nähdäksesi sopivat mallisarjat. Varastopohjainen selaus ei ole käytettävissä.",
+    "error": "Sopivien mallien tietoja ei voitu ladata.",
     "heading": "Sopivat mallisarjat",
     "label": "Mallisarja / sopivuus",
     "no_match": "Mikään sopiva mallisarja ei vastaa tätä OSA-/kontekstiyhdistelmää.",
