@@ -70,6 +70,49 @@ WantedBy=timers.target
 
 Use `systemctl --user daemon-reload` after installing or changing the files; `systemctl --user enable --now jagports-lead-agent.timer` enables and starts the timer. Inspect an existing timer/service and back up its contents **before** overwriting it. Avoid installing another cron entry for the same job. The timer is the execution authority: `config.yaml` now records `polling.interval_minutes: 585`, but current `main.py` does not use this field to schedule runs. Enabling user lingering may require a system administrator if execution must continue after logout/reboot without a user session.
 
+### MyNode SSH: repair the `codex` user bus from `admin`
+
+**Observed:** The operator connects to the Raspberry Pi through Windows Git Bash over SSH. Windows Git Bash is the terminal, not the machine executing `systemctl`. The `codex` account is UID `1008` on the observed host and has no usable sudo password. `sudo -iu codex` switched identity but `systemctl --user` reported `Failed to connect to bus: No medium found`; commands run as `admin` instead searched `/home/admin/.config/systemd/user` and found no Lead Agent timer. `crontab -l` for `codex` reported no crontab.
+
+**Use one complete block while logged in as `admin@mynode-sby`.** Do not run `sudo` as `codex`, or start another SSH session as `codex` unless separately configured authentication is available. Commands with `user@…service` below are literal shell commands, not email links.
+
+First verify and start the `codex` user manager without modifying its timer:
+
+```bash
+set -e
+test "$(whoami)" = admin || { echo "Log in as admin on the Raspberry Pi first"; exit 1; }
+CUID=$(id -u codex)
+sudo loginctl enable-linger codex
+sudo systemctl start "user@${CUID}.service"
+echo "USER MANAGER:"
+sudo systemctl is-active "user@${CUID}.service"
+echo "CODEX USER BUS:"
+sudo ls -l "/run/user/${CUID}/bus"
+echo "EXISTING TIMER:"
+sudo ls -l /home/codex/.config/systemd/user/jagports-lead-agent.timer
+```
+
+The most recent pasted terminal output confirms `whoami=admin` and shows `sudo loginctl enable-linger codex` being entered, but its pasted command stream became interleaved and includes **no interpretable output** for the `user@` service, bus, or timer-file checks. Therefore **neither a running user manager nor successful timer activation is verified**.
+
+When the bus file exists and the user manager reports `active`, access the **`codex` manager** from the `admin` SSH session by explicitly passing its runtime environment:
+
+```bash
+set -e
+CUID=$(id -u codex)
+cctl() {
+    sudo -u codex env \
+        XDG_RUNTIME_DIR="/run/user/${CUID}" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${CUID}/bus" \
+        systemctl --user "$@"
+}
+cctl daemon-reload
+cctl cat jagports-lead-agent.timer
+cctl cat jagports-lead-agent.service
+cctl list-timers --all
+```
+
+If the files exist and match the service/timer definitions above, test the service using `cctl start jagports-lead-agent.service`, verify `Result=success` and `ExecMainStatus=0`, and only then enable with `cctl enable --now jagports-lead-agent.timer`. Check `cctl list-timers --all` and the service journal. If the manager or bus is missing, stop and diagnose that condition rather than repeating `systemctl --user` under the wrong user. A pasted group of commands without corresponding results is not acceptance evidence.
+
 ### Verification gates
 
 1. **Timer configuration and activation:** `systemctl --user cat jagports-lead-agent.timer jagports-lead-agent.service`; `systemctl --user is-enabled jagports-lead-agent.timer`; `systemctl --user is-active jagports-lead-agent.timer`; `systemctl --user list-timers --all`. Expect an installed 9h45min timer enabled and active; check the listed next elapse **after** a completed service run.
