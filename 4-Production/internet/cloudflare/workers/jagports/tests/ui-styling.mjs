@@ -530,7 +530,7 @@ test('#875 future VIN/variations are disabled and explain unsupported state in b
     assert.match(html, new RegExp('id="' + id + '"[^>]*disabled[^>]*aria-describedby="unsupportedControlsNote"'));
     assert.match(html, new RegExp('id="' + id + '"[^>]*data-i18n-title="header\\.not_yet_supported"'));
   }
-  assert.match(html, /id="unsupportedControlsNote"[^>]*data-i18n="header\\.not_yet_supported"/);
+  assert.match(html, /id="unsupportedControlsNote"[^>]*data-i18n="header\.not_yet_supported"/);
   assert.equal(ui.get('rangeSelect').disabled, true);
   assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   assert.ok(en.header.not_yet_supported && fi.header.not_yet_supported);
