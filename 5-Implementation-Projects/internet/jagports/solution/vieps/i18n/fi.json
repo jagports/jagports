@@ -89,11 +89,12 @@
     "unavailable": "Ajoneuvosopivuustietoja ei ole saatavilla."
   },
   "search": {
+    "bookmark_pending": "Kirjanmerkki (ei vielä käytettävissä)",
     "error": "OSAA ei voitu ratkaista.",
     "input_aria": "Jaguar-osanumero tai testitunniste",
     "input_placeholder": "esim. MJB7703AA, MNA7691AA, firtree1",
-    "multiple_matches_one": "{{count}} vastaava OSA. Valitse se osapuusta.",
-    "multiple_matches_other": "{{count}} vastaavaa OSAA. Valitse yksi osapuusta.",
+    "multiple_matches_one": "{{count}} vastaava OSA. Valitse se osapuusta tai hakutuloksista.",
+    "multiple_matches_other": "{{count}} vastaavaa OSAA. Valitse yksi osapuusta tai hakutuloksista.",
     "no_stock_match": "Yhtään vastaavaa osaa ei ole tällä hetkellä varastossa.",
     "not_found": "Osaa ei löytynyt.",
     "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
