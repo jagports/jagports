@@ -69,8 +69,10 @@ def main(config_file="config.yaml"):
         config = yaml.safe_load(handle)
     if not isinstance(config, dict):
         raise ValueError("Agent configuration must be a mapping.")
-    github = GitHubService(os.getenv("GITHUB_TOKEN"),
-                           config["github"]["repository"])
+    github_config = config["github"]
+    github = GitHubService(
+        os.getenv("GITHUB_TOKEN"), github_config["repository"],
+        max_requests_per_run=github_config.get("max_requests_per_run", 12))
     agent = build_agent(config, github)
     issues, event, analysis = agent.run()
     report = report_service.create_report(
