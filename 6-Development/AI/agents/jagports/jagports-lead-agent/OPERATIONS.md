@@ -6,10 +6,24 @@ Reusable engineering and diagnostic commands for the Jagports Lead Agent. These 
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
+## GitHub credentials — separate operator token and Lead Agent read-only token
+
+**Issue [#927](https://github.com/jagports/jagports/issues/927): guided operator setup.** The existing `GITHUB_TOKEN` is the original credential and may carry write permissions. Do not revoke it, paste it into GitHub/chat, overwrite it, or test its write permissions. The **new, independent token** is named `GITHUB_TOKEN_RO` in the local private `.env`; it is specifically for repository-scoped read-only agent execution. The OpenAI API subscription and `OPENAI_API_KEY` are separate and do not authorize GitHub writes.
+
+### GitHub UI — create `GITHUB_TOKEN_RO` (one verified step at a time)
+
+1. Sign in to the intended GitHub token-owning account. Open [Personal access tokens — Fine-grained](https://github.com/settings/personal-access-tokens), choose **Generate new token**, and ensure this is **Fine-grained**, not **Tokens (classic)**. Confirm the creation form is available before continuing.
+2. Choose a descriptive token name (suggested `jagports-lead-agent-readonly`), an appropriate short expiration and **Resource owner: `jagports`**. Under Repository access select **Only select repositories** and choose **`jagports/jagports` only**. If organization approval is required, await approval before interpreting failed reads as permissions.
+3. Repository permissions must be **Metadata: Read** (automatically required), **Issues: Read** and **Contents: Read**. Leave all other repository permissions at **No access**, especially Issues Write, Pull requests, Actions and Administration; all organization permissions must be **No access**. Inspect the entire permission summary before generating.
+4. Generate the token and capture it **only in the private Raspberry Pi `.env` file**, as `GITHUB_TOKEN_RO=...` owned by `codex` and readable only by that user (mode `0600`). Never place the token in a command argument, shell history, GitHub Issue/PR, screenshot, report or chat. Keep the original `GITHUB_TOKEN` and all existing secrets unchanged.
+5. Perform the **one-shot** read/write-denial verifier below using `GITHUB_TOKEN_RO`, inspect redacted results and separately confirm repository/organization permissions in the GitHub UI. The existing verifier's Python input variable and actual `main.py` token selection must be changed and offline-tested under #927 before asserting that a paid pilot is using the new token. **A passing verifier alone must not authorize the paid pilot while runtime still reads `GITHUB_TOKEN`.**
+
+**Guided setup evidence:** Mark individual operator steps completed only after the Product Owner confirms them. Record only successful stage and non-secret verification in #927 and subsequent documentation commits. Token creation, Pi installation and the verifier have **not yet** been reported as completed.
+
 ## P7 Batch 16.3 — dedicated GitHub read-only credential evidence
 
 This is a **Raspberry Pi operator test**, not a GitHub connector test. The
-dedicated `JAGPORTS_READONLY_GITHUB_TOKEN` must be different from any
+dedicated `GITHUB_TOKEN_RO` must be different from any
 write-capable personal/operator token. In its fine-grained token settings,
 restrict repository access to **`jagports/jagports` only**, with Issues: Read
 and Contents: Read (Metadata: Read is mandatory); all other writable
@@ -31,7 +45,7 @@ must separately inspect all fine-grained permission settings.
    by `codex`; do not update/restart the installed service or timer to
    perform this test. Store the dedicated token in the private
    `/home/codex/jagports-lead-agent/.env` as
-   `JAGPORTS_READONLY_GITHUB_TOKEN=...`, owned by `codex` with mode 0600.
+   `GITHUB_TOKEN_RO=...`, owned by `codex` with mode 0600.
    Do not display the token, set it in command arguments or include it in
    GitHub Issues.
 2. Run the verifier as `codex` from that workspace; this command reads
