@@ -79,6 +79,22 @@ def main(config_file="config.yaml"):
         issues, event.data, analysis, event.context
     )
     report_service.save_report(report)
+    # The #904 outbox is acknowledged only AFTER the completed two-role
+    # checkpoint and durable local report exist. An interrupted report leaves
+    # the pending event for a no-charge checkpoint replay on the next run.
+    p7 = event.context.get("p7")
+    pending = event.context.get("ghd", {}).get("pending_event")
+    if (isinstance(p7, dict) and p7.get("mode") == "advisory" and
+            isinstance(pending, dict) and
+            [result.agent for result in analysis] ==
+            ["research", "product_vehicle", "team_lead"] and
+            all(result.severity != "blocked" for result in analysis) and
+            agent.p7_pilot.completed_event_key() == pending["event_key"] and
+            all(result.data.get("source_revision") ==
+                pending["changed_event"]["source_revision"]
+                for result in analysis)):
+        agent.ghd_store.acknowledge(pending["event_key"])
+        p7["pending_acknowledged"] = True
     print("Changes:", event.data)
     # No automatic Telegram delivery, GitHub writes, or new timer.
     return issues, event, analysis
