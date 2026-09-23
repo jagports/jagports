@@ -77,6 +77,30 @@ class P7Pilot:
              "requires_human_review": True, "approved": False},
         )
 
+    @staticmethod
+    def _role_accepted(result, role, revision, research_id=None):
+        if (getattr(result, "agent", None) != role or
+                not isinstance(result.data, dict)):
+            return False
+        data = result.data
+        usage = data.get("usage", {})
+        if (data.get("status") != "complete" or
+                data.get("request_outcome") != "complete" or
+                data.get("source_revision") != revision or
+                not isinstance(data.get("role_run_id"), str) or
+                not data["role_run_id"] or
+                not isinstance(data.get("model"), str) or
+                not data["model"] or
+                not isinstance(usage, dict) or
+                any(type(usage.get(k)) is not int or usage[k] < 1
+                    for k in ("input_tokens", "output_tokens"))):
+            return False
+        if research_id is not None and (
+                data.get("research_role_run_id") != research_id or
+                data["role_run_id"] == research_id):
+            return False
+        return True
+
     def _acquire_lock(self):
         """Fail closed on competing/stale runs; stale locks need manual review."""
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -305,9 +329,7 @@ class P7Pilot:
 
         if saved.get("research"):
             research = _result_from_dict(saved["research"])
-            if (research.data.get("status") != "complete" or
-                    research.data.get("source_revision") != revision or
-                    research.data.get("request_outcome") != "complete"):
+            if not self._role_accepted(research, "research", revision):
                 return self._blocked("Stored Research result is not an accepted checkpoint.",
                                      {"status": "needs_operator_review"})
         else:
@@ -322,7 +344,7 @@ class P7Pilot:
                 research = self.research.analyse(event)
             except Exception as exc:
                 return self._uncertain(saved, exc, results)
-            if research.data.get("status") != "complete":
+            if not self._role_accepted(research, "research", revision):
                 saved["stage"] = "needs_operator_review"
                 self._save(saved)
                 return [research] + self._blocked("Research attempt needs review.",
@@ -335,9 +357,8 @@ class P7Pilot:
 
         if saved.get("product_vehicle"):
             product = _result_from_dict(saved["product_vehicle"])
-            if (product.data.get("status") != "complete" or
-                    product.data.get("source_revision") != revision or
-                    product.data.get("research_role_run_id") != research.data.get("role_run_id")):
+            if not self._role_accepted(product, "product_vehicle", revision,
+                                       research.data["role_run_id"]):
                 return results + self._blocked(
                     "Product checkpoint is inconsistent with Research.",
                     {"status": "needs_operator_review"})
@@ -354,7 +375,8 @@ class P7Pilot:
                 product = self.product_vehicle.analyse(event)
             except Exception as exc:
                 return self._uncertain(saved, exc, results)
-            if product.data.get("status") != "complete":
+            if not self._role_accepted(product, "product_vehicle", revision,
+                                       research.data["role_run_id"]):
                 saved["stage"] = "needs_operator_review"
                 self._save(saved)
                 return results + [product] + self._blocked(
@@ -366,8 +388,11 @@ class P7Pilot:
         return self._complete(saved, research, product)
 
     def _complete(self, saved, research, product):
-        if (research.data.get("role_run_id") == product.data.get("role_run_id") or
-                product.data.get("research_role_run_id") != research.data.get("role_run_id")):
+        if (not self._role_accepted(research, "research",
+                                    saved["source_revision"]) or
+                not self._role_accepted(product, "product_vehicle",
+                                        saved["source_revision"],
+                                        research.data["role_run_id"])):
             return self._blocked("Role independence or identity could not be verified.",
                                  {"status": "needs_operator_review"})
         route = self._route(research, product)
