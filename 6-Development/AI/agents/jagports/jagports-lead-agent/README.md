@@ -6,7 +6,7 @@ This directory contains the current Jagports Lead Agent prototype implementation
 
 The implementation is a working deterministic event-processing and specialist-routing framework. It is not currently a production autonomous development agent system and it does not currently perform LLM-backed reasoning in the modular execution path.
 
-The current unattended Codex-API-dependent Agent Infrastructure roadmap is suspended until a suitable unattended execution capability is available and explicitly re-evaluated. This repository implementation remains useful as a prototype, testable architecture, and future integration starting point.
+Operator-tested OpenAI API access now supports the staged, budget-controlled advisory-agent development path. The current modular coordinator still runs deterministic specialists; model-backed hand-offs and an actual unattended end-to-end run require their own implementation and acceptance. Production autonomy and recurring expenditure remain subject to explicit authorization and existing review gates.
 
 ## Current architecture
 
@@ -390,6 +390,51 @@ After v0.1-mvp demonstrates useful reasoning at acceptable cost and reliability:
 - introduce controlled code-edit/test execution only after tool permissions and human review boundaries are proven;
 - evaluate whether the self-hosted coordinator remains simpler than moving long-running/resumable orchestration to a managed agent runtime;
 - progress toward an automated multi-agent team only where each additional autonomous action has an explicit permission boundary, verification path, and human-governed decision/merge/deploy gate.
+
+## Standalone OpenAI API smoke test
+
+The Raspberry Pi operator has confirmed that a **direct OpenAI Responses API call succeeded** in the existing Python virtual environment. To repeat this minimal API test without starting the full agent:
+
+```bash
+cd ~/jagports-lead-agent
+source venv/bin/activate
+python -c 'from dotenv import load_dotenv; from openai import OpenAI; load_dotenv(); r=OpenAI().responses.create(model="gpt-5.6", input="Reply with exactly: JAGPORTS API TEST OK"); print(r.output_text)'
+```
+
+Expected output:
+
+```text
+JAGPORTS API TEST OK
+```
+
+The operator reported this exact output from the `codex` account on the Raspberry Pi. It verifies that the local virtual environment, `python-dotenv` loading of the configured API key, OpenAI Python client, selected model access and a billable Responses API request worked together **at test time**. Run this only with authorized API usage/billing; do not echo or commit the API key.
+
+**Scope of evidence:** This is a standalone direct API test, **not** an end-to-end `LeadAgent`, OpenAI Agents SDK, specialist reasoning, GitHub integration, notification, or unattended timer test. The current `main.py` does not invoke `services/openai_service.py`, and `openai.enabled: false` remains the repository configuration. The planned v0.1-mvp SDK integration requires a separately implemented and tested reasoning service and one model-backed specialist.
+
+The intended timer interval is every **9 hours and 45 minutes**, but this API test does not verify that the Raspberry Pi timer has been activated or that a scheduled agent run succeeded. Verify live scheduler state and service logs separately; do not confuse a successful manual request with scheduled execution.
+
+
+## Lead Agent scheduling — intended 9h45min cadence
+
+The **intended host schedule** is one Lead Agent coordinator run every **9 hours and 45 minutes** (585 minutes), using a `systemd --user` timer on the Raspberry Pi. Its service invokes `main.py`, which in turn invokes the registered deterministic Documentation, Deployment, and Knowledge specialists. The specialists have no separate cron schedules.
+
+The host's **systemd timer is the actual schedule authority**. The repository's `config.yaml` value `polling.interval_minutes: 585` records intended cadence, but the current `main.py` does not read that polling value or create a scheduler. Changing YAML alone does not activate or change a timer. An existing `crontab` entry or another systemd timer must not launch a duplicate agent process.
+
+The canonical installed timer configuration and repair procedure are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Its first execution after starting or restarting the timer uses `OnActiveSec=1s` (near-immediate), then `OnUnitActiveSec=9h45min` schedules subsequent executions from service activation. There is no five-minute boot-relative trigger. Timer activation after a system restart can also initiate the first run. Verify the effective installed timer and any drop-ins on the host rather than assuming the repository snippet is already deployed.
+
+The user service should be a `Type=oneshot` unit with `WorkingDirectory=/home/codex/jagports-lead-agent` and `ExecStart=/home/codex/jagports-lead-agent/venv/bin/python /home/codex/jagports-lead-agent/main.py`. Using the virtual environment interpreter directly avoids a stale `run-agent.sh` wrapper still executing legacy `agent.py`. Confirm the installed user service and any wrapper before replacing an existing working configuration.
+
+**Operator verification:** `systemctl --user cat jagports-lead-agent.timer jagports-lead-agent.service`; `systemctl --user is-enabled jagports-lead-agent.timer`; `systemctl --user is-active jagports-lead-agent.timer`; `systemctl --user list-timers --all`; one-shot `systemctl --user start jagports-lead-agent.service`; `systemctl --user show jagports-lead-agent.service -p Result -p ExecMainStatus`; and `journalctl --user -u jagports-lead-agent.service -n 60 --no-pager`. Also check the generated `reports/lead_report.md` and `state/agent_state.json` after the service completes. Do not expose local `.env` or tokens in test evidence.
+
+The operator reported a successful manual `python main.py` run after approximately a week between executions, yielding a large batch of new/closed records. That gap plausibly accounts for the large delta; it is **not** evidence of an active unattended timer or a state-persistence defect. A second immediate run with little GitHub activity should produce few or no changes.
+
+The standalone OpenAI API test and this scheduler test prove different capabilities. As currently implemented, the coordinator does not invoke `openai_service.py` or the planned OpenAI Agents SDK. No paid reasoning call should be inferred from a successful scheduled `main.py` run.
+
+Full Raspberry Pi installation and verification instructions are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md).
+
+## Current specialist and Telegram communication test
+
+For the short saved-status Telegram delivery smoke test and its two-part acceptance criteria, see [TG-001 in Development OPERATIONS.md](OPERATIONS.md#telegram-message-delivery-acceptance-test--saved-issue-changes). For the separate **one-shot GitHub collection → specialist results → Telegram delivery** diagnostic, see [the integration test](OPERATIONS.md#one-shot-github--specialists--telegram-communication-test). The diagnostic fetches one Issue body separately to display real detail; the existing specialist Event still carries only the collected snapshot metadata and lifecycle delta. `main.py` currently generates a report but does **not** invoke Telegram or model-backed reasoning. Automatic specialist notifications and Issue-body-aware reasoning require later implementation.
 
 ## Governance boundary
 
