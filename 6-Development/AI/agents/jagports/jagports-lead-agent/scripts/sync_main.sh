@@ -58,7 +58,7 @@ STOPPED=0
 WAS_ACTIVE=0
 
 sync_code() {
-  rsync -a --delete \
+  rsync -a --no-times --omit-dir-times --delete \
     --exclude='/.env' --exclude='/venv/' --exclude='/state/' \
     --exclude='/reports/' --exclude='/notifications/' \
     --exclude='/config.yaml' --exclude='/.git/' \
@@ -171,7 +171,8 @@ test -s "$APP/reports/lead_report.md" && test -s "$APP/state/agent_state.json"
 test "$(stat -c %U "$APP/reports/lead_report.md")" = codex
 test "$(stat -c %U "$APP/state/agent_state.json")" = codex
 
-find "$SRC" -type f -printf '%P\n' | sort > "$STATE/installed_app_files.txt"
+find "$SRC" -type f ! -name '*.pyc' ! -path '*/__pycache__/*' \
+  -printf '%P\n' | sort > "$STATE/installed_app_files.txt"
 printf '%s\n' "$NEW_TREE" > "$STATE/installed_app_tree"
 printf '%s\n' "$NEW_SHA" > "$STATE/installed_main_commit"
 CHANGED=0
