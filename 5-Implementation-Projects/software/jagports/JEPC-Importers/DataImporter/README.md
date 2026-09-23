@@ -1,6 +1,6 @@
 # JEPC Data Importer runtime skeleton
 
-Implements the first runtime slice of issue #355 and [importer specification v0.1](SPEC_DataImporter_v0.1.md). Run this application **locally on Windows**, beside the installed JEPC files, using **Node.js 24 or later**. It uses Node's built-in SQLite module; no package installation, server, cloud deployment or browser is required. Node may print an experimental SQLite warning on stderr.
+Implements the first runtime slice of issue #355 and [DataImporter specification](SPEC_DataImporter.md). Run this application **locally on Windows**, beside the installed JEPC files, using **Node.js 24 or later**. It uses Node's built-in SQLite module; no package installation, server, cloud deployment or browser is required. Node may print an experimental SQLite warning on stderr.
 
 This version performs real, bounded **source inspection**, not catalogue import. It reads eight expected paths for one explicitly selected model/category/item/language bundle, records SHA-256 evidence in its own SQLite ledger, and reports missing files. It does not enumerate the million-file installation. This path template is the initial XK inspection recipe, not a claim that every JEPC bundle has exactly these eight files. Missing sidecars are evidence to investigate, not an inferred absence of conditions.
 
@@ -14,6 +14,7 @@ node src/DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applicatio
 node src/DataImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
 node src/DataImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
 node src/DataImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --full
+node src/DataImporter.CLI.mjs select-xk --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --seed "xk-pilot-1"
 npm test
 ```
 
@@ -28,6 +29,7 @@ The source directory is read-only to this application. Put state outside the ins
 | `status` | Read-only latest persisted snapshot; `--json` returns its machine representation. |
 | `report` | Read-only JSON with latest run and ordered detailed events, including paths/checksums. Redirect stdout to save a report. |
 | `doctor` | Read-only `quick_check` and `foreign_key_check`; `--full` selects `integrity_check`. Requires an existing ledger. |
+| `select-xk` | Selects 40 complete XK category bundles using `--seed`, with one from each source model before filling the remaining places by hash rank. Stores a manifest with model/category identities, candidate counts, menu checksums and selected file checksums. This is source selection only. |
 
 Exit codes: `0` successful inspection/read command, `1` invalid invocation or failure, `2` completed inspection with missing paths, `130` user stop/emergency exit. `COMPLETED` means the inspection recipe finished; it never means parts were imported. Unknown options and commands fail, including an unimplemented `run`/`migrate` command.
 
@@ -45,7 +47,9 @@ The screen explicitly states that catalogue import, content/translation counts a
 
 Repeating the same command rehashes just these eight paths, identifies unchanged bytes using source root + relative path + SHA-256 + inspector version, and refreshes evidence. It does not trust mtime as identity. This is restartable inspection, not yet incremental parsing or source-to-destination publication. The ledger is the continuously updated development record; `report` exports the latest run at any checkpoint. Nothing is written to VIEPS or to the source installation.
 
-Next slices: bounded bundle discovery, lossless parsing/raw preservation and unknown-structure reports, atomic whole-bundle transformations with occurrence-level applicability and grouped conditions, destination staging/publication, content/translation counters, and incremental MediaImporter with hotspot provenance. MediaImporter can share these operating conventions but has no executable implementation here. The separate applicability proposal PR #659 is not a runtime dependency.
+Next slices: lossless category/item parsing with unknown-structure reports, atomic whole-bundle transformation with occurrence-level applicability and grouped conditions, idempotent D1 publication, content/translation counters, and incremental MediaImporter with hotspot provenance. MediaImporter can share these operating conventions but has no executable implementation here. The separate applicability work in PR #659 is already merged into the destination model.
+
+The `select-xk` pilot recognizes the five XK source Model_IDs documented in `xk_range_ids.tsv`: 3187, 3183, 3178, 3173 and 7420. It reads the model menu and the five corresponding category menus, then scans only those five model `L0` folders for category, top-level and item files. A candidate needs a leaf-category menu row plus category, top-level and at least one item file. The selection manifest is keyed by seed and language; the same seed must reproduce identical bytes or the command stops, prompting investigation of source changes. A new seed writes a separate manifest. A manifest is a selection/evidence record, not a claim that its item records were parsed or imported to D1.
 
 ## Verification
 
