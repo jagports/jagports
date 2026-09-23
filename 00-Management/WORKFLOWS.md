@@ -382,10 +382,6 @@ If the required GitHub operation is unavailable, report:
 
 `*** !!! ALERT - GitHub functions unavailable !!! ***`
 
-For the current ChatGPT/GitHub Project capability boundary, use:
-
-`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
-
 ---
 
 ## 9. Traceability
