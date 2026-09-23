@@ -171,9 +171,10 @@ class GHDPendingStore:
         current_revision = current["source_revision"] if current else None
         next_snapshot = pending["next_snapshot"]
         if current_revision == next_snapshot["source_revision"]:
-            if current != next_snapshot:
-                # Same content revision but different timestamp is valid only
-                # when this precise checkpoint already reached disk.
+            # While pending, only the exact checkpoint may be present. After
+            # acknowledgement an unchanged subsequent poll can legitimately
+            # update last_observed_at without changing the source revision.
+            if current != next_snapshot and pending["status"] == "pending":
                 raise PendingStoreError("GHD cursor differs from pending checkpoint.")
             return
         if current_revision != pending["previous_revision"]:
