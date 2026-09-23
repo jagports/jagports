@@ -154,7 +154,9 @@ class P7Pilot:
             return "The canonical approved Issue URL does not match."
         if issue.get("truncated") or not isinstance(issue.get("body"), str) or not isinstance(issue.get("title"), str):
             return "Bounded Issue context is incomplete or truncated."
-        if not isinstance(issue.get("labels"), list) or not isinstance(issue.get("comments"), list):
+        if (not isinstance(issue.get("fetched_at"), str) or not issue["fetched_at"] or
+                not isinstance(issue.get("labels"), list) or
+                not isinstance(issue.get("comments"), list)):
             return "The accepted IssueContext fields are incomplete."
         if any(not isinstance(comment, dict) or
                not all(field in comment for field in
@@ -276,8 +278,11 @@ class P7Pilot:
             return self._blocked("Research and domain evidence must be complete and distinct.",
                                  {"status": "insufficient_evidence"})
         research_sources, domain_sources = pair
+        source_identity = [[{key: item.get(key) for key in
+                             ("id", "url", "path", "text", "truncated", "kind")}
+                            for item in group] for group in pair]
         source_fingerprint = hashlib.sha256(json.dumps(
-            pair, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+            source_identity, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
         if saved.get("evidence_fingerprint") and saved["evidence_fingerprint"] != source_fingerprint:
             return self._blocked("Evidence changed between role checkpoints; review required.",
                                  {"status": "needs_operator_review"})
