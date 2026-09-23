@@ -265,6 +265,95 @@ python -c 'from dotenv import load_dotenv; load_dotenv(); from services.openai_s
 
 The operator reported `JAGPORTS AGENT API OK` from the existing wrapper using an **explicit** `.env` path. For Python executed via standard input, bare `load_dotenv()` can fail during path discovery; pass `load_dotenv("/home/codex/jagports-lead-agent/.env")` instead. A successful wrapper call does not verify OpenAI Agents SDK orchestration, GitHub semantics or production autonomy.
 
+## ReasoningService tests as codex
+
+These commands are for a shell **already logged in as `codex`** on `mynode-sby`. They require **no `sudo` and no `codex` password**. Never grant `codex` sudo or run Python as `admin`: that can create incorrectly owned `__pycache__` and state files. If starting from an authorized `admin` SSH session, `admin` may invoke `sudo -u codex -H bash` once and then run the commands *inside* that `codex` shell; this uses `admin`'s sudo permissions, not any permission assigned to `codex`.
+
+The successful direct Responses API and existing `openai_service.analyse()` smoke tests establish **connection and wrapper access only**. The two tests below exercise the *separate* budgeted `services.reasoning_service.ReasoningService`. Neither launches `main.py`, changes `config.yaml`, selects a pilot Issue, runs the Research/Product pipeline or changes the systemd timer. Keep `openai.enabled: false`, `p7.enabled: false` and `p7.reasoning.enabled: false` in the **scheduled** configuration until a separately approved live pilot is ready.
+
+### RT-001 — Offline reasoning regressions; zero API calls
+
+```bash
+test "$(id -un)" = codex || { echo "Open a codex shell first"; exit 1; }
+cd /home/codex/jagports-lead-agent
+./venv/bin/python -m unittest discover \
+  -s tests -p 'test_reasoning_service.py' -v
+```
+
+**PASS:** the installed `ReasoningService` tests finish successfully. They exercise mocked request, cost reservation/replay, failed-provider and overrun cases. No `OPENAI_API_KEY` is required for these mocked tests; the result is **not** proof of a live provider call. A missing test file or module is a failed installation precondition: install reviewed `main` using the Agent Update section above.
+
+### RT-002 — One capped, live ReasoningService request
+
+**Prerequisites:** the offline test passed; the `codex`-owned private `.env` includes a working `OPENAI_API_KEY`; the operator explicitly authorizes **one more billable request** and checks current model availability, current per-million-token pricing and remaining *project-wide* API credit independently. The per-run/day/cumulative ledger is `state/model_usage.json`; it includes previous reserved and uncertain requests **recorded by this service**, not previous standalone wrapper/API calls or other clients. Do not reset or edit the ledger to obtain extra credit. Use the installed model confirmed by the operator (for example `gpt-5.6-sol`); model name and pricing can change.
+
+Set the verified input and output token prices when prompted; do **not** copy assumed historical pricing from an earlier chat. The preflight checks that the conservative maximum reservation fits a **$0.05 run cap**, a **$0.10 day cap** and the existing **$4.00 local cumulative ceiling**. A real charge can differ from this estimate; account for earlier standalone API tests and other clients within the separately approved $5 project pool. The fixed request key makes repeated executions return the stored complete result **without another billable call**; an uncertain attempt must be reconciled, not repeated with a fresh key.
+
+```bash
+test "$(id -un)" = codex || { echo "Open a codex shell first"; exit 1; }
+cd /home/codex/jagports-lead-agent
+
+read -r -p 'Current approved input USD / 1M tokens: ' INPUT_RATE
+read -r -p 'Current approved output USD / 1M tokens: ' OUTPUT_RATE
+read -r -p 'Authorize ONE paid ReasoningService test (type YES): ' CONFIRM
+test "$CONFIRM" = YES || { echo "Paid test cancelled"; exit 1; }
+export INPUT_RATE OUTPUT_RATE
+
+./venv/bin/python - <<'PY'
+import json
+import os
+from dotenv import load_dotenv
+from services.reasoning_service import ReasoningService
+
+assert load_dotenv("/home/codex/jagports-lead-agent/.env")
+assert os.getenv("OPENAI_API_KEY"), "API key missing"
+
+input_rate = float(os.environ["INPUT_RATE"])
+output_rate = float(os.environ["OUTPUT_RATE"])
+assert 0 < input_rate < 1000 and 0 < output_rate < 1000
+maximum = (1600 * input_rate + 800 * output_rate) / 1_000_000
+assert maximum <= 0.05, "Maximum reservation exceeds $0.05 test cap"
+
+service = ReasoningService({
+    "enabled": True,                # This object only; not config.yaml
+    "model": "gpt-5.6-sol",
+    "max_calls_per_run": 2,         # Service contract; make ONE call here
+    "max_input_tokens": 1600,
+    "max_output_tokens": 800,
+    "max_run_cost_usd": 0.05,
+    "max_daily_cost_usd": 0.10,
+    "max_total_cost_usd": 4.00,
+    "input_usd_per_million_tokens": input_rate,
+    "output_usd_per_million_tokens": output_rate,
+    "ledger_path": "state/model_usage.json",
+    "timeout_seconds": 60,
+})
+
+result = service.analyse_json(
+    role="research",
+    instructions=(
+        "Apply ONLY the rule supplied as user data. Return exactly "
+        "one valid JSON object with the fields decision and reason; "
+        "decision must be yes or no. No Markdown."
+    ),
+    context={
+        "rule": "Only an applicable part can be shown as suitable.",
+        "part": {"applicability_state": "excluded",
+                 "stock_quantity": 5},
+        "question": "Can this part be shown as suitable?"
+    },
+    request_key="manual-operations-reasoning-v1:research",
+)
+
+print(json.dumps(result, indent=2))
+assert result["output"]["decision"] == "no", \
+    "The model returned a JSON answer that does not satisfy the test rule"
+PY
+```
+
+**PASS:** the output is a JSON object explaining that an `excluded` part cannot be shown as suitable even when stock quantity is five. The returned envelope includes the model, provider-measured token usage, estimated cost and a provider response ID. Inspect `state/model_usage.json` privately for a `complete` reservation. **Do not share credentials, full ledgers or provider request headers.** A model refusal, invalid JSON, timeout, price/usage overrun or other ambiguous response may leave a billable **uncertain** reservation. Inspect it before any further paid call; do not use a new request key merely to evade fail-closed recovery.
+
+This verifies a single provider-backed `ReasoningService` call, **not** the approved source retrieval, independent Product/Vehicle role, full two-call pilot or later timer-triggered unattended acceptance governed by the existing Research-to-Decision specification and work item. No automatic Telegram delivery or GitHub mutation occurs in this test.
+
 ## Telegram message-delivery acceptance test — saved Issue changes
 
 **Test ID:** TG-001. **Scope:** the existing `services.telegram_service.notify()` delivery path, using real saved lifecycle results. This test does **not** fetch GitHub again, invoke specialists, or consume OpenAI API credits.
