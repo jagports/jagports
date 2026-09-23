@@ -170,18 +170,30 @@ class P7PilotTests(unittest.TestCase):
         self.assertEqual(result[-1].data["route"], "human_decision_needed")
 
     def test_research_complete_resumes_only_product(self):
-        from services.p7_pilot import _result_from_dict
-        saved_research = result_for("research").to_dict()
-        Path(self.config["checkpoint_file"]).write_text(json.dumps({
-            "event_key": str(NUMBER) + ":" + REVISION,
-            "issue_number": NUMBER, "source_revision": REVISION,
-            "stage": "research_complete", "model_calls_started": 1,
-            "research": saved_research,
-        }))
+        self.run_pilot()
+        state = self.checkpoint()
+        state.pop("product_vehicle")
+        state.pop("decision_route")
+        state["stage"] = "research_complete"
+        state["model_calls_started"] = 1
+        Path(self.config["checkpoint_file"]).write_text(json.dumps(state))
+        self.pilot.research.analyse.reset_mock()
+        self.pilot.product_vehicle.analyse.reset_mock()
         result = self.run_pilot()
         self.assertEqual(result[-1].data["route"], "human_decision_needed")
         self.pilot.research.analyse.assert_not_called()
         self.pilot.product_vehicle.analyse.assert_called_once()
+
+    def test_legacy_research_checkpoint_needs_source_reconciliation(self):
+        Path(self.config["checkpoint_file"]).write_text(json.dumps({
+            "event_key": str(NUMBER) + ":" + REVISION,
+            "issue_number": NUMBER, "source_revision": REVISION,
+            "stage": "research_complete", "model_calls_started": 1,
+            "research": result_for("research").to_dict(),
+        }))
+        result = self.run_pilot()
+        self.assertEqual(result[0].data["status"], "needs_operator_review")
+        self.pilot.product_vehicle.analyse.assert_not_called()
 
     def test_changed_revision_cannot_supersede_pending_work(self):
         self.pilot.product_vehicle.analyse.side_effect = RuntimeError("Possibly billed")
@@ -200,6 +212,16 @@ class P7PilotTests(unittest.TestCase):
         self.assertTrue(lock.exists())
         self.pilot.research.analyse.assert_not_called()
 
+    def test_parallel_attempt_cannot_enter_while_lock_held(self):
+        def nested(_event):
+            blocked = self.pilot.process(change(), issue())
+            self.assertEqual(blocked[0].data["status"], "locked")
+            return result_for("research")
+        self.pilot.research.analyse.side_effect = nested
+        result = self.run_pilot()
+        self.assertEqual(result[-1].data["route"], "human_decision_needed")
+        self.assertEqual(self.pilot.research.analyse.call_count, 1)
+
     def test_incomplete_research_requires_reconciliation_not_retry(self):
         self.pilot.research.analyse.return_value = result_for(
             "research", status="insufficient_evidence", confidence="insufficient")
@@ -209,6 +231,15 @@ class P7PilotTests(unittest.TestCase):
         self.assertEqual(self.run_pilot()[0].data["status"], "needs_operator_review")
         self.pilot.research.analyse.assert_called_once()
         self.pilot.product_vehicle.analyse.assert_not_called()
+
+    def test_incomplete_product_attempt_requires_reconciliation(self):
+        self.pilot.product_vehicle.analyse.return_value = result_for(
+            "product_vehicle", status="insufficient_evidence")
+        result = self.run_pilot()
+        self.assertEqual(result[-1].data["status"], "needs_operator_review")
+        self.assertEqual(self.checkpoint()["model_calls_started"], 2)
+        self.assertEqual(self.run_pilot()[0].data["status"], "needs_operator_review")
+        self.pilot.product_vehicle.analyse.assert_called_once()
 
     def test_malformed_completed_research_cannot_start_product_call(self):
         self.pilot.research.analyse.return_value = result_for(
