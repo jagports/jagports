@@ -68,8 +68,9 @@ class FakeGithub:
 
 
 class FakeReasoning:
-    config = {"enabled": True, "max_calls_per_run": 2}
-    calls = 0
+    def __init__(self):
+        self.config = {"enabled": True, "max_calls_per_run": 2}
+        self.calls = 0
 
 
 class P7PilotTests(unittest.TestCase):
