@@ -34,7 +34,7 @@ class MainSyncShellTests(unittest.TestCase):
             'git clone --quiet --depth 1',
             'git -C "$WORK/repo" sparse-checkout set "$SUB"',
             'STAGED_OFFLINE_TESTS_PASS',
-            'check_disabled',
+            'safe_config',
             'OPENAI_API_KEY',
             'UNMANAGED_FILE',
             'ROLLBACK_UNVERIFIED',
