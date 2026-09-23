@@ -143,6 +143,33 @@ class WiringTests(unittest.TestCase):
         event, context = entry.load_ghd_pending_event(file)
         self.assertEqual(event["source_revision"], context["source_revision"])
 
+    def test_repository_default_config_keeps_p7_and_spending_disabled(self):
+        """The committed installation defaults must never authorize P7."""
+        config_path = Path(__file__).resolve().parents[1] / "config.yaml"
+        config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+        self.assertIs(config["openai"]["enabled"], False)
+        self.assertIs(config["p7"]["enabled"], False)
+        self.assertEqual(config["p7"]["allowed_issue_numbers"], [])
+        self.assertEqual(config["p7"]["approved_source_revision"], "")
+        self.assertIs(config["p7"]["read_only_credential_confirmed"], False)
+        self.assertEqual(config["p7"]["pending_event_file"], "")
+        self.assertEqual(config["p7"]["approved_research_paths"], [])
+        self.assertEqual(config["p7"]["approved_domain_paths"], [])
+        self.assertIs(config["p7"]["reasoning"]["enabled"], False)
+        self.assertEqual(config["polling"]["interval_minutes"], 585)
+
+        # Run with the checked-in configuration. Both paid services must
+        # remain unconstructed and the deterministic specialists still run.
+        with patch("services.reasoning_service.ReasoningService") as paid_model:
+            with patch("services.p7_pilot.P7Pilot") as pilot:
+                agent = entry.build_agent(config, self.github)
+                self.assertIsNone(agent.p7_pilot)
+                _issues, _event, results = agent.run()
+                paid_model.assert_not_called()
+                pilot.assert_not_called()
+        self.assertEqual([result.agent for result in results],
+                         ["documentation", "deployment", "knowledge"])
+
     def test_disabled_main_uses_original_report_path_and_no_provider(self):
         config_file = Path("config.yaml")
         config_file.write_text(yaml.safe_dump({
