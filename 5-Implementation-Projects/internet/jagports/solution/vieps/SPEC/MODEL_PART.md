@@ -194,6 +194,16 @@ Source coordinates are retained as source evidence; no normalized VIEPS geometry
 
 A hotspot without a verified occurrence mapping remains representable.
 
+Neither a diagram hotspot nor a visual dashed enclosure establishes kit composition. A diagram may provide evidence that separately numbered component callouts appear inside an apparent kit boundary, but the relationship remains unverified until the image evidence, hotspot/item mapping, component occurrences and source-qualified kit-part context agree.
+
+### Kit-composition evidence
+
+Where a source has a kit PN but no explicit component list, the system may retain a source-qualified `kit_composition_evidence` observation. It is additive evidence, not a canonical PART relationship and not stock/BOM truth.
+
+Before a verified kit-content link can be published, the Parts Data Model owner must approve an additive representation that records: kit part occurrence or part identity; component occurrence or part identity; diagram and exact image checksum; dashed-enclosure/callout observation; source hotspot or item mapping; detector/OCR and coordinate-conversion versions; provenance; verification status; and a reason for unsupported or conflicting cases. Repeated item numbers and multiple rectangles remain separate observations until their component mapping is verified.
+
+The model must distinguish `candidate`, `verified`, `unsupported` and `conflicting` evidence. It must not infer a kit PN from a dashed line, infer all enclosed components as kit contents, or collapse this catalogue evidence into operational stock or a manufacturing bill of materials.
+
 ## Catalogue vehicle location
 
 `part_vehicle_location` represents a catalogue-side vehicle-location mapping scoped to a PART occurrence and, where applicable, a `model_range`.
@@ -413,3 +423,4 @@ The `0016` persistence extension resolves storage of occurrence/context pairing,
 | JEPC source/release/snapshot identity | `0016` adds bundle/snapshot/evidence identity for occurrence applicability; broader importer/source-release policy remains governed by the importer contract. |
 | Stock status, quantities and price | PART model documents only the stock relationship boundary; detailed stock semantics are in `MODEL_STOCK.md`. |
 | Canonical normalization and raw agreement | Import/application responsibility; SQL accepts independently supplied values. Universal Unicode normalization and collision policy require explicit approval before broadening existing ASCII catalogue behavior. |
+
