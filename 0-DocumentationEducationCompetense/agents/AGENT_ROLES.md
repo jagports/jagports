@@ -10,11 +10,11 @@ current requirement.
 
 Repository: `jagports/jagports`
 
-## Distinction between logical work roles and executable agent teams
+## Distinction between logical work roles and executable agents
 
-These six roles describe Jagports-wide work and human decision responsibilities. They are **not** the Python `AgentRegistry` of one deployed agent service. Under the [two-team architecture proposal](../../6-Development/AI/agents/jagports/SHARED_AGENT_SERVICES_SPEC.md), the original [AI OS development runtime](../../6-Development/AI/agents/jagports/jagports-lead-agent/SPEC_Agent_Lead.md#target-ownership--ai-os-application-development-agent-team-924) retains its existing Lead, Documentation, Deployment and Knowledge agents, focused exclusively on AI OS application development. A **separate** [Jaguar vehicle-domain runtime](../../6-Development/AI/agents/jagports/jagports-vehicle-agent/SPEC_Vehicle_Agent_Team.md) owns vehicle Research and Product/Vehicle execution.
+These six roles describe Jagports-wide project work, collaboration and human decision responsibilities. They are **not** the Python `AgentRegistry` of one deployed service. Under [#924](https://github.com/jagports/jagports/issues/924), the **only active AI OS development runtime** consists of the original `LeadAgent`, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`; the obsolete mixed two-role Vehicle pilot is to be removed, **not** extracted into a new Vehicle agent team. See the [Lead Agent SPEC](../../6-Development/AI/agents/jagports/jagports-lead-agent/SPEC_Agent_Lead.md) and [shared service specification](../../6-Development/AI/agents/jagports/SHARED_AGENT_SERVICES_SPEC.md).
 
-The existing logical Research, Product / Vehicle and other project-work roles below remain valid for human/AI collaboration. They do not authorize the AI OS runtime to instantiate Jaguar-specific agents or silently consume vehicle-domain tasks. Both executable teams follow the same existing Management workflow, without sharing one specialist registry or changing the human Product Owner's authority.
+Existing logical Research, Product / Vehicle and other project-work duties remain governed by the normal human/AI Management workflow; these names do not themselves instantiate Python agents or authorize paid runtime execution. Vehicle research *project knowledge* and historical human research-to-decision work are not deleted when retiring the Vehicle **agent implementation**.
 
 ## Authority and workflow sources
 
