@@ -32,6 +32,8 @@ Reusable engineering and diagnostic commands for the Jagports Lead Agent. These 
 
 **Response-size clarification:** The verifier's `MAX_GET_RESPONSE_BYTES = 1024 * 1024` limits the JSON downloaded for an individual GitHub API response, not the size of files linked from Issue Markdown. Attached images normally appear as Markdown URLs in an Issue response, not as embedded image bytes, and are not downloaded by this verifier. An Issue response exceeding 1 MiB fails closed **before** the write-denial probe. The verifier is a credential test, not the agent's general source/attachment importer; any future approved attachment fetching needs separate size/type/source policies.
 
+**Credential-name correction (Product Owner):** The former long-named `JAGPORTS_READONLY_GITHUB_TOKEN` and the new canonical `GITHUB_TOKEN_RO` environment variable refer to **the same underlying read-only token value**, not separate credentials. The owner-confirmed successful verifier run explicitly loaded `GITHUB_TOKEN_RO`; the original `GITHUB_TOKEN` was **not** used for that test. The long-named variable is obsolete and may be removed from the private Pi `.env` only after verifying that both names hold the same value without printing it; keep `GITHUB_TOKEN_RO` and preserve the unrelated original `GITHUB_TOKEN`. The current deployed `main.py` still selects `GITHUB_TOKEN` for its `GitHubService`; changing the verifier alone does not switch actual agent runtime credentials. Update and offline-test runtime selection before turning on the paid pilot. Never infer token identity from the environment variable name alone.
+
 ## P7 Batch 16.3 — dedicated GitHub read-only credential evidence
 
 This is a **Raspberry Pi operator test**, not a GitHub connector test. The
