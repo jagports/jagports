@@ -5,6 +5,7 @@ import path from 'node:path';
 
 const sourcePath = (...parts) => parts.join('/');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+export const CATEGORY_LIMIT = 40;
 const within = (root, child) => {
   const relative = path.relative(root, child);
   return relative === '' || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
@@ -93,11 +94,12 @@ async function fingerprint(root, relative) {
   return { path: relative, size: after.size, sha256: digest.digest('hex') };
 }
 
-export async function selectModelBundles({ pattern, source, stateDir, language = '0', onProgress }) {
+export async function selectModelBundles({ pattern, source, stateDir, language = '0', seed = 'default', onProgress }) {
   if (typeof pattern !== 'string' || pattern.trim().length < 2 || !source || !stateDir) {
     throw new Error('Require a model-name pattern, --source and --state-dir.');
   }
   if (!/^\d{1,2}$/.test(String(language))) throw new Error('Language must be a numeric ID.');
+  if (typeof seed !== 'string' || !seed.trim() || seed.length > 100) throw new Error('Seed must contain 1–100 characters.');
   const modelPattern = pattern.trim().toLocaleUpperCase('en');
   const root = await realpath(path.resolve(source));
   const state = path.resolve(stateDir);
@@ -141,13 +143,24 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
   for (const model of modelIds) {
     if (!candidates.some(bundle => bundle.model === model)) throw new Error(`No complete category bundle in model ${model}.`);
   }
-  candidates.sort((a, b) => identity(a).localeCompare(identity(b)));
+  const ranked = candidates.map(bundle => ({ bundle,
+    rank: hash(Buffer.from(`category-sample-v1:${seed}:${modelPattern}:${identity(bundle)}`)) }))
+    .sort((a, b) => a.rank.localeCompare(b.rank) || identity(a.bundle).localeCompare(identity(b.bundle)));
+  const firstByModel = new Map();
+  for (const entry of ranked) if (!firstByModel.has(entry.bundle.model)) firstByModel.set(entry.bundle.model, entry);
+  const chosen = [...firstByModel.values()].slice(0, CATEGORY_LIMIT);
+  const selected = new Set(chosen.map(entry => identity(entry.bundle)));
+  for (const entry of ranked) {
+    if (chosen.length === CATEGORY_LIMIT) break;
+    if (!selected.has(identity(entry.bundle))) { chosen.push(entry); selected.add(identity(entry.bundle)); }
+  }
+  const sampled = chosen.map(entry => entry.bundle).sort((a, b) => identity(a).localeCompare(identity(b)));
   const bundles = [];
-  for (const candidate of candidates) {
+  for (const candidate of sampled) {
     const { paths, ...details } = candidate;
     bundles.push({ ...details, files: await Promise.all(paths.map(relative => fingerprint(root, relative))) });
-    onProgress?.({ phase: 'selection', completed: bundles.length, total: candidates.length, model: candidate.model });
+    onProgress?.({ phase: 'selection', completed: bundles.length, total: sampled.length, model: candidate.model });
   }
-  return { schemaVersion: 1, modelPattern, source: root, language: String(language), modelIds,
-    menuChecksums, incompleteCategories, bundles };
+  return { schemaVersion: 1, modelPattern, sampleSeed: seed, source: root, language: String(language), modelIds,
+    menuChecksums, incompleteCategories, eligibleCategories: candidates.length, categoryLimit: CATEGORY_LIMIT, bundles };
 }

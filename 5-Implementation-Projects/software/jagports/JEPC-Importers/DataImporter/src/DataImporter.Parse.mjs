@@ -130,8 +130,7 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
   if (selection.schemaVersion !== 1 || typeof modelPattern !== 'string' || modelPattern.trim().length < 2
       || !Array.isArray(modelIds) || !modelIds.length || new Set(modelIds).size !== modelIds.length
       || !Array.isArray(bundles) || !bundles.length
-      || bundles.some(bundle => !modelIds.includes(bundle.model))
-      || modelIds.some(model => !bundles.some(bundle => bundle.model === model))) {
+      || bundles.some(bundle => !modelIds.includes(bundle.model))) {
     throw new Error('Invalid selected source scope.');
   }
   const identities = bundles.map(bundle => `${bundle.model}/${bundle.category}/L${bundle.language}`);

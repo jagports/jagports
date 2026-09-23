@@ -13,7 +13,7 @@ Jagports JEPC Data Importer v0.1 — source inspection skeleton
 (C)2026 by tlindi and ChatGPT
 
 Node.js 24+; run locally on the computer that can read the source files.
-  --parse <model-name-fragment> [--source <JEPC root>] [--state-dir <outside source>] [--language 0] [--estimate] [--json]
+  --parse <model-name-fragment> [--source <JEPC root>] [--state-dir <outside source>] [--language 0] [--seed text] [--estimate] [--json]
   inspect --source <JEPC root> --state-dir <outside source> --model <id> --category <id> --item <id> [--language 0] [--json]
   status  --state-dir <directory> [--json]
   report  --state-dir <directory>
@@ -27,7 +27,7 @@ Node.js 24+; run locally on the computer that can read the source files.
 
 inspect checks eight expected source paths. It does not import catalogue data.
 estimate-range inventories the selected Range source and samples files; it never starts import.
---parse matches source XML model names by case-insensitive literal substring and stages every complete category bundle in matching leaf models. For example, X3 matches X300 and X308; XJ also matches XJS.
+--parse matches source XML model names by case-insensitive literal substring and stages up to 40 complete category bundles per run. For example, X3 matches X300 and X308; XJ also matches XJS.
 Repeat inspect with the same arguments to recheck/reuse persisted checksums.
 Q or first Ctrl+C stops after the current file checkpoint; second Ctrl+C exits.
 report emits the latest run and its detailed persistent events as JSON.
@@ -62,8 +62,8 @@ async function main() {
   } });
   if (values.help) { console.log(help); return; }
   if (values.parse !== undefined) {
-    if (positionals.length || Object.keys(values).some(key => !['parse', 'source', 'state-dir', 'language', 'estimate', 'json'].includes(key))) {
-      throw new Error('--parse accepts only source, state-dir, language, estimate and json options.');
+    if (positionals.length || Object.keys(values).some(key => !['parse', 'source', 'state-dir', 'language', 'seed', 'estimate', 'json'].includes(key))) {
+      throw new Error('--parse accepts only source, state-dir, language, seed, estimate and json options.');
     }
     const source = values.source ?? process.env.JEPC_SOURCE ?? 'C:\\Program Files\\JEPC\\applications\\JEPC';
     const stateDir = values['state-dir'] ?? path.join(process.env.LOCALAPPDATA ?? path.join(homedir(), '.local', 'state'),
@@ -76,19 +76,20 @@ async function main() {
       process.stderr.write(`${current.phase}: ${current.completed}/${current.total} bundles (Model_ID ${current.model}).\n`);
     };
     const selection = await selectModelBundles({ pattern: values.parse, source, stateDir,
-      language: values.language ?? '0', onProgress });
-    const summary = { modelPattern: selection.modelPattern, modelIds: selection.modelIds,
+      language: values.language ?? '0', seed: values.seed ?? 'default', onProgress });
+    const summary = { modelPattern: selection.modelPattern, modelIds: selection.modelIds, sampleSeed: selection.sampleSeed,
+      eligible: selection.eligibleCategories, limit: selection.categoryLimit,
       selected: selection.bundles.length, incompleteCategories: selection.incompleteCategories.length };
     if (values.estimate) {
       try {
         const estimate = await estimateRange({ source, stateDir, modelPattern: summary.modelPattern,
-          models: summary.modelIds, seed: values.parse.trim().toLocaleLowerCase('en'), sampleSize: 100 });
+          models: summary.modelIds, seed: values.seed ?? values.parse.trim().toLocaleLowerCase('en'), sampleSize: 100 });
         summary.estimate = { state: estimate.result.state, report: estimate.filename };
       } catch (error) { summary.estimate = { state: 'FAILED', error: safe(error.message) }; }
     }
     summary.staging = await parseSelection({ selection, stateDir, onProgress });
     console.log(values.json ? JSON.stringify(summary, null, 2)
-      : `Matched ${summary.modelIds.length} source models; staged ${summary.staging.bundles} category bundles.\nStaging: ${summary.staging.outputDir}\nD1 publication: not started.`);
+      : `Matched ${summary.modelIds.length} source models; staged ${summary.staging.bundles} of ${summary.eligible} complete category bundles (limit ${summary.limit}).\nStaging: ${summary.staging.outputDir}\nD1 publication: not started.`);
     return;
   }
   if (!positionals.length) { console.log(help); return; }

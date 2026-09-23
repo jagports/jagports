@@ -48,17 +48,26 @@ test('model pattern selects XML leaves and matching parent descendants without f
   assert.throws(() => matchingLeafModels(source, 'F-Type'), /No leaf source models/);
 });
 
-test('selection reads all complete categories and records incomplete ones without a saved selection file', async t => {
+test('selection caps complete categories at forty, covers matched models and records incomplete ones', async t => {
   const options = await fixture(t);
   const first = await selectModelBundles({ ...options, pattern: 'XK' });
   assert.equal(first.modelPattern, 'XK');
   assert.deepEqual(first.modelIds, TEST_MODEL_IDS);
-  assert.equal(first.bundles.length, 45);
+  assert.equal(first.eligibleCategories, 45);
+  assert.equal(first.categoryLimit, 40);
+  assert.equal(first.bundles.length, 40);
+  assert.deepEqual(new Set(first.bundles.map(bundle => bundle.model)), new Set(TEST_MODEL_IDS));
+  assert.deepEqual((await selectModelBundles({ ...options, pattern: 'xk' })).bundles, first.bundles);
+  const other = await selectModelBundles({ ...options, pattern: 'XK', seed: 'another-sample' });
+  assert.equal(other.bundles.length, 40);
+  assert.notDeepEqual(other.bundles.map(bundle => `${bundle.model}/${bundle.category}`),
+    first.bundles.map(bundle => `${bundle.model}/${bundle.category}`));
   assert.equal(first.incompleteCategories.length, 0);
   await assert.rejects(readdir(options.stateDir), /ENOENT/);
   await rm(path.join(options.source, 'drilldown/pl_id_3187/L0/tl_M3187_C318701_L0.xml'));
   const changed = await selectModelBundles({ ...options, pattern: 'xk' });
-  assert.equal(changed.bundles.length, 44);
+  assert.equal(changed.eligibleCategories, 44);
+  assert.equal(changed.bundles.length, 40);
   assert.deepEqual(changed.incompleteCategories[0].missing, ['top-level']);
 });
 
@@ -69,7 +78,7 @@ test('unknown menu structures and state inside the source are rejected', async t
   await assert.rejects(selectModelBundles({ ...options, pattern: 'XK', stateDir: path.join(options.source, 'state') }), /outside/);
 });
 
-test('--parse stages all matched bundles and reuses evidence without saving a selection file', async t => {
+test('--parse stages forty matched bundles and reuses evidence without saving a selection file', async t => {
   const options = await fixture(t);
   const cli = path.resolve('src/DataImporter.CLI.mjs');
   const run = (pattern, extra = []) => spawnSync(process.execPath, [cli, '--parse', pattern,
@@ -77,14 +86,16 @@ test('--parse stages all matched bundles and reuses evidence without saving a se
   const first = run('XK');
   assert.equal(first.status, 0, first.stderr);
   const summary = JSON.parse(first.stdout);
-  assert.equal(summary.selected, 45);
+  assert.equal(summary.eligible, 45);
+  assert.equal(summary.limit, 40);
+  assert.equal(summary.selected, 40);
   assert.deepEqual(summary.modelIds, TEST_MODEL_IDS);
-  assert.equal(summary.staging.bundles, 45);
+  assert.equal(summary.staging.bundles, 40);
   assert.equal(summary.staging.reused, 0);
   assert.equal((await readdir(options.stateDir)).some(name => name.includes('selection')), false);
   const second = run('xk');
   assert.equal(second.status, 0, second.stderr);
-  assert.equal(JSON.parse(second.stdout).staging.reused, 45);
+  assert.equal(JSON.parse(second.stdout).staging.reused, 40);
   const estimated = run('XK', ['--estimate']);
   assert.equal(estimated.status, 0, estimated.stderr);
   const estimateReport = JSON.parse(await readFile(JSON.parse(estimated.stdout).estimate.report, 'utf8'));
