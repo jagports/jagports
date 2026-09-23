@@ -23,6 +23,7 @@ def configuration(ledger_path, **updates):
         "max_calls_per_run": 2, "max_input_tokens": 5000,
         "max_output_tokens": 100, "max_run_cost_usd": 0.02,
         "max_daily_cost_usd": 0.02,
+        "max_total_cost_usd": 0.02,
         "input_usd_per_million_tokens": 1.0,
         "output_usd_per_million_tokens": 1.0,
         "ledger_path": str(ledger_path),
@@ -141,6 +142,45 @@ class ReasoningBudgetTests(unittest.TestCase):
                     "product_vehicle", "Domain validation.",
                     {"question": "Is it supported?"}, "issue:42:product_vehicle")
             self.assertEqual(len(client.calls), 1)
+
+    def test_cumulative_budget_counts_prior_days_without_live_requests(self):
+        # No network, no large-volume load: two mocked attempts prove the cap.
+        cfg = configuration(self.ledger, max_total_cost_usd=0.006)
+        initial = OfflineClient()
+        self.run_one(ReasoningService(cfg, client=initial))
+        entries = json.loads(self.ledger.read_text(encoding="utf-8"))
+        entries["attempts"]["issue:42:research"]["day"] = "2020-01-01"
+        self.ledger.write_text(json.dumps(entries), encoding="utf-8")
+        next_day = OfflineClient()
+        with self.assertRaisesRegex(BudgetExceeded, "cumulative"):
+            self.run_one(ReasoningService(cfg, client=next_day),
+                         request="issue:43:research")
+        self.assertEqual(len(initial.calls), 1)
+        self.assertEqual(next_day.calls, [])
+        self.assertEqual(len(json.loads(self.ledger.read_text())["attempts"]), 1)
+
+    def test_uncertain_prior_day_reservation_remains_in_total(self):
+        cfg = configuration(self.ledger, max_total_cost_usd=0.006)
+        failed = OfflineClient(error=RuntimeError("offline provider failure"))
+        with self.assertRaises(ReasoningError):
+            self.run_one(ReasoningService(cfg, client=failed))
+        entries = json.loads(self.ledger.read_text(encoding="utf-8"))
+        entries["attempts"]["issue:42:research"]["day"] = "2020-01-01"
+        self.ledger.write_text(json.dumps(entries), encoding="utf-8")
+        next_attempt = OfflineClient()
+        with self.assertRaisesRegex(BudgetExceeded, "cumulative"):
+            self.run_one(ReasoningService(cfg, client=next_attempt),
+                         request="issue:44:research")
+        self.assertEqual(next_attempt.calls, [])
+
+    def test_no_cumulative_budget_blocks_paid_calls(self):
+        client = OfflineClient()
+        cfg = configuration(self.ledger)
+        cfg.pop("max_total_cost_usd")
+        with self.assertRaisesRegex(ReasoningError, "required"):
+            self.run_one(ReasoningService(cfg, client=client))
+        self.assertEqual(client.calls, [])
+        self.assertFalse(self.ledger.exists())
 
     def test_invalid_json_is_uncertain_and_not_silently_retried(self):
         client = OfflineClient(response=mock_response(output="not-json"))
