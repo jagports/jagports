@@ -2,6 +2,7 @@
 import io
 import json
 import unittest
+from unittest.mock import patch
 from urllib.error import HTTPError
 
 from scripts import verify_readonly_github as checker
@@ -44,6 +45,22 @@ ISSUE = (200, {"number": 904})
 
 
 class ReadonlyCredentialTests(unittest.TestCase):
+    def test_main_uses_only_new_readonly_token_variable(self):
+        with patch.dict("os.environ", {"GITHUB_TOKEN_RO": TOKEN,
+                                    "JAGPORTS_READONLY_GITHUB_TOKEN": "LEGACY_UNUSED"}, clear=True):
+            with patch.object(checker, "verify", return_value={"result": "verified"}) as verify_mock:
+                with patch("sys.stdout", new_callable=io.StringIO):
+                    self.assertEqual(checker.main(), 0)
+                verify_mock.assert_called_once_with(TOKEN)
+
+    def test_main_does_not_fallback_to_legacy_or_operator_token(self):
+        with patch.dict("os.environ", {"GITHUB_TOKEN": TOKEN,
+                                    "JAGPORTS_READONLY_GITHUB_TOKEN": TOKEN}, clear=True):
+            with patch.object(checker, "verify", return_value={"result": "blocked"}) as verify_mock:
+                with patch("sys.stdout", new_callable=io.StringIO):
+                    self.assertEqual(checker.main(), 2)
+                verify_mock.assert_called_once_with("")
+
     def test_permission_denial_produces_redacted_evidence(self):
         opener = SequenceOpener([
             IDENTITY, ISSUE, (403, {
