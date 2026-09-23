@@ -65,6 +65,13 @@ class FakePilot:
         self.calls.append((changed_event, issue_context))
         return self.output
 
+    def completed_event_key(self):
+        if not self.calls:
+            return None
+        changed_event = self.calls[-1][0]
+        return (str(changed_event["issue_number"]) + ":" +
+                changed_event["source_revision"])
+
 
 def write_real_ghd_pending(path="state/pending.json"):
     """Generate the versioned, integrity-checked #904 handoff in a temp dir."""
@@ -236,6 +243,57 @@ class WiringTests(unittest.TestCase):
         self.assertEqual(pilot.calls[0][1]["source_revision"], revision)
         self.assertIn("P7 advisory pilot", save.call_args.args[0])
         self.assertNotIn("Sensitive untrusted evidence", save.call_args.args[0])
+        # An in-memory test can observe the outbox transition, but does not
+        # substitute for Pi filesystem evidence or an actual paid run.
+        self.assertIsNone(entry._ghd_store("state/pending.json").replay_pending())
+
+
+
+    def test_p7_report_failure_leaves_exact_pending_event_for_restart(self):
+        pending = write_real_ghd_pending()
+        revision = pending["changed_event"]["source_revision"]
+        config_file = Path("config.yaml")
+        config_file.write_text(yaml.safe_dump({
+            "github": {"repository": "jagports/jagports"},
+            "openai": {"enabled": True},
+            "p7": {"enabled": True, "approved_source_revision": revision,
+                   "pending_event_file": "state/pending.json",
+                   "reasoning": {"enabled": True}},
+        }))
+        pilot = FakePilot()
+        with patch.object(entry, "GitHubService", FakeGitHub):
+            with patch("services.reasoning_service.ReasoningService"):
+                with patch("services.p7_pilot.P7Pilot", return_value=pilot):
+                    with patch.object(entry.report_service, "save_report",
+                                      side_effect=OSError("report disk full")):
+                        with self.assertRaisesRegex(OSError, "disk full"):
+                            entry.main(config_file)
+        durable = entry._ghd_store("state/pending.json").replay_pending()
+        self.assertEqual(durable["event_key"], pending["event_key"])
+
+    def test_p7_success_durably_reports_before_acknowledging_outbox(self):
+        pending = write_real_ghd_pending()
+        revision = pending["changed_event"]["source_revision"]
+        config_file = Path("config.yaml")
+        config_file.write_text(yaml.safe_dump({
+            "github": {"repository": "jagports/jagports"},
+            "openai": {"enabled": True},
+            "p7": {"enabled": True, "approved_source_revision": revision,
+                   "pending_event_file": "state/pending.json",
+                   "reasoning": {"enabled": True}},
+        }))
+        pilot = FakePilot()
+        with patch.object(entry, "GitHubService", FakeGitHub):
+            with patch("services.reasoning_service.ReasoningService"):
+                with patch("services.p7_pilot.P7Pilot", return_value=pilot):
+                    _issues, event, results = entry.main(config_file)
+        self.assertEqual(len(results), 3)
+        self.assertTrue(event.context["p7"]["pending_acknowledged"])
+        report = Path("reports/lead_report.md")
+        self.assertTrue(report.is_file())
+        self.assertIn("P7 advisory pilot", report.read_text())
+        self.assertIsNone(entry._ghd_store("state/pending.json").replay_pending())
+
 
 
 if __name__ == "__main__":
