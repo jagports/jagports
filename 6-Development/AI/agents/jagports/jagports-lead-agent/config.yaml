@@ -3,6 +3,7 @@ agent:
 
 github:
   repository: jagports/jagports
+  max_requests_per_run: 12  # verified low-level GET attempts incl. pagination
 
 polling:
   interval_minutes: 585
@@ -10,7 +11,9 @@ polling:
 openai:
   enabled: false
 
-# The paid two-role pilot requires separate Product Owner authorization.
+# The paid two-role pilot stays disabled until exact Issue/source settings are configured.
+# Product Owner has authorized reasonable capped tests within a total $5 API pool;
+# this does not authorize uncontrolled recurring spending.
 # Leave the allowlist and source approval empty on all installations by default.
 p7:
   enabled: false
