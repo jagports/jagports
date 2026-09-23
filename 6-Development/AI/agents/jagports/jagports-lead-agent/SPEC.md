@@ -114,7 +114,7 @@ Automated tests use mocked GitHub, model and Telegram adapters and fixture Issue
 
 | Batch | Deliverable | Gate |
 |---|---|---|
-| 1 | Meaningful Issue delta, lazy details and comment bounds | GHD-001–003; unchanged baseline still works |
+| 1 | [#904 — Read-only Issue enrichment](https://github.com/jagports/jagports/issues/904): PR exclusion, meaningful Issue delta, lazy details and comment bounds | GHD-001–003; unchanged baseline still works; zero model calls |
 | 2 | Model-neutral adapter, Documentation specialist, structured evidence and budget | RSN-001–004; no-change = zero paid calls |
 | 3 | Optional Knowledge and Deployment specialist enablement with relevance tests | Each specialist has targeted fixtures; deterministic routing precedes model calls |
 | 4 | Automatic Telegram digest, outbox, retry and dedup | TG-002–003; TG-001 remains available |
