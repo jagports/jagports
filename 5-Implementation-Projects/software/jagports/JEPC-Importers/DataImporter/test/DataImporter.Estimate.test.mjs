@@ -68,13 +68,15 @@ test('model-pattern estimate measures source scope without inventing a destinati
   assert.equal(result.range, null);
   assert.equal(result.inventory.files, 5);
   assert.equal(result.projection.d1Bytes, null);
+  assert.match(result.projection.basis, /destination Ranges are resolved/);
   await assert.rejects(estimateRange({ ...options, range: undefined, modelPattern: 'XK',
     calibrationPath: path.join(options.stateDir, 'calibration.json') }), /resolved destination Range/);
 });
 
 test('CLI accepts explicit model scope and rejects invalid invocations', async t => {
   const options = await fixture(t);
-  assert.deepEqual(modelsForRange('xk'), ['3187', '3183', '3178', '3173', '7420']);
+  assert.deepEqual(modelsForRange('xk', '3187,3183'), ['3187', '3183']);
+  assert.throws(() => modelsForRange('xk'), /explicit/);
   assert.throws(() => modelsForRange('xe'), /explicit/);
   const cli = path.resolve('src/DataImporter.CLI.mjs');
   const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });

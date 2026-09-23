@@ -99,63 +99,9 @@ The VIEPS `diagram` record represents the catalogue diagram and its source ident
 
 The importer must not merge logical illustrations solely because their filenames, dimensions or pixels look similar.
 
-## DataImporter hand-off contract
+## DataImporter coordination
 
-DataImporter owns interpretation of catalogue files and discovery of logical illustration references. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and publication.
-
-The applications must not share a writable SQLite ledger. DataImporter publishes an immutable, versioned media-work manifest; MediaImporter reads the manifest and imports each work item into its own ledger.
-
-The first transport is UTF-8 JSON Lines so it can be streamed without materializing all work in memory. The file is written to a temporary sibling path, closed, checksummed and atomically renamed to its final immutable name. A published manifest is never edited in place.
-
-The first line is a header with at least:
-
-```json
-{
-  "recordType": "manifest",
-  "contract": "jagports.jepc.media-work",
-  "version": 1,
-  "manifestId": "stable run/export identifier",
-  "createdAt": "ISO-8601 timestamp",
-  "sourceNamespace": "JEPC",
-  "sourceRelease": "known release or explicit unknown",
-  "sourceRootFingerprint": "non-secret installation fingerprint",
-  "producerVersion": "DataImporter version"
-}
-```
-
-Each following line is one source reference and contains at least:
-
-```json
-{
-  "recordType": "mediaReference",
-  "referenceId": "stable source-reference identifier",
-  "logicalMediaId": "JEPC illustration identifier",
-  "mediaRole": "diagram",
-  "modelId": "3187",
-  "categoryId": "11096",
-  "itemId": null,
-  "languageId": "0",
-  "referringPath": "source-relative catalogue path",
-  "referringRecord": "lossless record/path evidence",
-  "sourceProvenance": "source-qualified provenance"
-}
-```
-
-Required contract rules:
-
-- IDs are strings in the interchange contract even when source values are numeric.
-- Optional context is `null`; it is not invented.
-- `referenceId` is stable across identical DataImporter reruns.
-- repeated references are retained even when they resolve to one illustration.
-- paths are source-relative and must not escape the configured source root.
-- the manifest contains references, not source media bytes and not public URLs.
-- MediaImporter records the manifest checksum and producer version.
-- replaying an unchanged manifest is idempotent.
-- a later manifest may add or withdraw references without deleting historical evidence.
-
-`referenceId` is computed as `jepc-media-ref-v1:` plus lowercase SHA-256 hexadecimal over UTF-8 RFC 8785 canonical JSON containing exactly: contract version, source namespace, source release (including explicit `unknown`), logical media ID, model/category/item/language IDs, referring relative path and the lossless referring-record locator. This makes identity independent of manifest order and local absolute paths. The producer and consumer must include shared contract fixtures proving identical IDs.
-
-For bounded development before DataImporter exports manifests, MediaImporter may accept an explicit logical illustration identifier and source context through its CLI. This bootstrap path must create the same internal work record as a manifest import and must not become a second semantic contract.
+DataImporter owns interpretation of catalogue files and discovery of logical illustration IDs. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and eventual publication. The applications keep separate writable SQLite ledgers. The current MediaImporter accepts an explicit `--media-id` for bounded local work; any future automated hand-off requires a separately specified, reviewed contract.
 
 ## Source resolution
 
@@ -243,7 +189,7 @@ The normal loop processes one logical illustration work item at a time:
 1. Open the independent MediaImporter ledger.
 2. run startup `quick_check` and `foreign_key_check`;
 3. recover a stranded `PROCESSING` item only after the configured owner is proven dead and a full integrity check succeeds;
-4. import or resume a versioned work manifest;
+4. accept an explicit logical illustration ID or resume a locally queued item;
 5. select the next `NEEDS_REPROCESS` item that the current resolver/converter can improve, otherwise the next `DISCOVERED` item in deterministic order;
 6. mark the item `PROCESSING` and persist the attempt;
 7. resolve only its bounded candidate paths;
@@ -256,14 +202,13 @@ The normal loop processes one logical illustration work item at a time:
 14. honor a safe-stop request;
 15. continue with the next item.
 
-The application must not build a complete in-memory installation inventory. It may stream manifest records and use indexed ledger queries.
+The application must not build a complete in-memory installation inventory. It uses indexed ledger queries.
 
 ## Ledger requirements
 
 MediaImporter owns a local SQLite ledger separate from DataImporter. At minimum it records:
 
 - run ID, state, owner PID, timestamps and application version;
-- manifest ID/checksum/version and import status;
 - source root and non-secret source fingerprint;
 - source references and logical illustration identities;
 - candidate relative paths;
@@ -305,7 +250,7 @@ jepc/evidence/sha256/<first-two-hex>/<sha256>.xml
 
 The exact bucket name, account identifier, endpoint and public hostname are deployment configuration, not committed source semantics.
 
-Upload success is not inferred from a client request completing. The adapter verifies the stored object using provider metadata or a read/head operation sufficient to compare key, size and checksum evidence. Credentials never appear in manifests, ledger events, reports or repository content.
+Upload success is not inferred from a client request completing. The adapter verifies the stored object using provider metadata or a read/head operation sufficient to compare key, size and checksum evidence. Credentials never appear in ledger events, reports or repository content.
 
 If an upload succeeds but the local checkpoint fails, the next run checks the deterministic object key, verifies the existing bytes and continues without creating another object. If catalogue publication fails after object publication, the object remains preserved and publication is retried.
 
@@ -431,7 +376,6 @@ Backup and restore must include both object bytes and the catalogue/ledger metad
 The first executable should align with DataImporter where semantics match:
 
 ```text
-MediaImporter import-manifest --manifest <file> --source <root> --state-dir <dir>
 MediaImporter inspect --media-id <id> --source <root> --state-dir <dir> [source context]
 MediaImporter run --state-dir <dir> --destination <configured-adapter>
 MediaImporter status --state-dir <dir> [--json]
@@ -442,7 +386,7 @@ MediaImporter reconcile --state-dir <dir> --destination <configured-adapter>
 
 `inspect` is bounded source inspection and does not publish. `run` processes queued work. `reconcile` verifies known ledger objects/references incrementally; it does not list an entire bucket or source installation by default.
 
-Interactive output is a stable, non-scrolling aggregate screen. It shows selected profile/manifest, current logical illustration, phase, run state and counters for references, images found/preserved/published, hotspots parsed/blocked, unchanged items, missing/corrupt/unknown items and errors. Deep paths and filenames belong in detailed events/report rather than scrolling output.
+Interactive output is a stable, non-scrolling aggregate screen. It shows selected profile, current logical illustration, phase, run state and counters for references, images found/preserved/published, hotspots parsed/blocked, unchanged items, missing/corrupt/unknown items and errors. Deep paths and filenames belong in detailed events/report rather than scrolling output.
 
 `Q` and the first Ctrl+C request a safe stop after the current work-item transaction/checkpoint. A second Ctrl+C is an emergency exit. JSON mode emits one final machine-readable snapshot and no terminal control sequences.
 
@@ -476,7 +420,6 @@ Only one writer may own a state directory. Read-only `status`, `report` and `doc
 
 Track independently:
 
-- manifest contract version;
 - source resolver version;
 - image validator version;
 - hotspot parser version;
@@ -492,7 +435,7 @@ A change increments only the affected component version and selects prior record
 ### Slice 1 — bounded local preservation
 
 - scaffold the sibling Node.js application and independent SQLite ledger;
-- import a synthetic/versioned manifest and explicit XK media ID;
+- inspect an explicit XK media ID;
 - resolve the three bounded candidate paths;
 - hash and decode existing images;
 - parse hotspot XML losslessly;
@@ -524,7 +467,7 @@ jepc/evidence/sha256/<first-two-lowercase-hex>/<sha256>.xml
 
 The object key is derived from checksum and verified type, never from a source path, media ID, public URL or user input. JPEG and PNG bytes remain distinct representations even where they share a logical illustration. Raw hotspot XML is evidence, not a browser-delivery asset.
 
-The destination adapter exposes `health`, `head`, conditional `put`, verification and delivery-reference derivation. A successful `put` is insufficient: verification compares the expected key, SHA-256, byte size and verified media type. The adapter does not list an entire bucket during normal processing. It must reject unsafe keys and must not expose credentials in events, reports or manifests.
+The destination adapter exposes `health`, `head`, conditional `put`, verification and delivery-reference derivation. A successful `put` is insufficient: verification compares the expected key, SHA-256, byte size and verified media type. The adapter does not list an entire bucket during normal processing. It must reject unsafe keys and must not expose credentials in events or reports.
 
 The filesystem adapter is the required physical-test destination. Its configured root is outside the JEPC source installation and acts as a deterministic object store: keys map to files below that root, with adjacent or equivalent non-secret metadata sufficient to verify the object. Its tests prove the same conditional and verification semantics required from R2.
 
@@ -552,7 +495,7 @@ The initial physical smoke test uses one explicit XK media ID such as `tu6333`, 
 
 ### Slice 5 — bounded XK operational validation
 
-- process model `3187` incrementally from DataImporter manifests;
+- process model `3187` incrementally after a separate hand-off contract is approved;
 - compare counts and exceptions with the existing source audit;
 - exercise stop/restart, changed bytes, missing/corrupt inputs and destination failures;
 - produce an operator report suitable for review before expanding to all XK profiles.
@@ -561,7 +504,7 @@ The initial physical smoke test uses one explicit XK media ID such as `tu6333`, 
 
 Automated tests use temporary synthetic fixtures and fake destination/catalogue adapters. They cover at least:
 
-- manifest validation, atomic/repeated import and stable reference IDs;
+- repeated explicit work inspection and stable logical media IDs;
 - source-root escape rejection;
 - bounded candidate resolution without recursive installation enumeration;
 - JPEG/PNG detection from bytes, dimensions and corrupt input;
@@ -588,8 +531,8 @@ Real installed XK data is a bounded smoke/evidence test. It is not committed as 
 
 ## Acceptance criteria
 
-- [ ] One selected XK work manifest can be processed without enumerating the full JEPC installation.
-- [ ] DataImporter and MediaImporter use a versioned, replay-safe hand-off and separate writable ledgers.
+- [ ] One selected XK illustration can be processed without enumerating the full JEPC installation.
+- [ ] DataImporter and MediaImporter use separate writable ledgers; their future hand-off contract is specified before automated integration.
 - [ ] All found media candidates retain source path, checksum, size, verified type, dimensions and provenance.
 - [ ] Multiple references and representations do not create uncontrolled duplicate bytes or catalogue identities.
 - [ ] Original bytes and raw hotspot evidence survive conversion/parser changes.
@@ -611,4 +554,3 @@ Real installed XK data is a bounded smoke/evidence test. It is not committed as 
 - Issue #664 owns broader JEPC source reverse engineering.
 - Issue #354 and `MODEL_PART.md` own the normalized Parts Data Model.
 - Issue #672 owns the separate InvenTree StockProvider proof of concept.
-

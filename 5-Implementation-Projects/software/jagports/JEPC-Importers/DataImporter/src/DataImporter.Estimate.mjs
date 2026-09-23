@@ -4,7 +4,6 @@ import { mkdir, opendir, readFile, realpath, rename, stat, writeFile } from 'nod
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { createInterface } from 'node:readline';
-import { XK_MODEL_IDS } from './DataImporter.Selection.mjs';
 
 const within = (root, child) => {
   const relative = path.relative(root, child);
@@ -78,7 +77,9 @@ export async function estimateRange({ source, stateDir, range, modelPattern, mod
     coverage: 'Explicit Model_ID directories and their model menus; shared media is excluded.',
     inventory: { files: 0, bytes: 0, directories: 0, byExtension: {}, byFamily: {}, byModel: {}, errorCount: 0, errors: [], skippedLinks: 0 },
     sample: { seed, requested: sampleSize, eligibleFiles: 0, eligibleBytes: 0, files: [], readBytes: 0, readSeconds: 0, lines: 0, recordLikeLines: 0, byFamily: {} },
-    projection: { d1Bytes: null, importSeconds: null, basis: 'Unavailable until measured D1/import calibration is provided.' },
+    projection: { d1Bytes: null, importSeconds: null, basis: modelPattern === undefined
+      ? 'Unavailable until measured D1/import calibration is provided.'
+      : 'Unavailable until destination Ranges are resolved and measured D1/import calibration is provided.' },
   };
   const sample = { seed, limit: sampleSize, files: [] };
   const seenDirectories = new Set();
@@ -231,6 +232,5 @@ export async function estimateRange({ source, stateDir, range, modelPattern, mod
 
 export function modelsForRange(range, explicitModels) {
   if (explicitModels) return explicitModels.split(',').map(value => value.trim());
-  if (range === 'xk') return [...XK_MODEL_IDS];
-  throw new Error('A non-XK Range requires an explicit comma-separated --models list.');
+  throw new Error(`Range ${range} requires an explicit comma-separated --models list; Model_IDs are not hardcoded.`);
 }

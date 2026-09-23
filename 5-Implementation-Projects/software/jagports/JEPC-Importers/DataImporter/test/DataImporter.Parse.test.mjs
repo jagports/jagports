@@ -54,23 +54,19 @@ test('stages forty bundles, reuses identical evidence and rejects source drift',
         bundles.push({ model, category, language: '0', files });
       }
     }
-    const manifestPath = path.join(temp, 'selection.json');
-    await writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, phase: 'SELECTION_ONLY', range: 'xj', source, bundles }));
-    await assert.rejects(parseSelection({ manifestPath, stateDir }), /Unsupported Range/);
-    await writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, phase: 'SELECTION_ONLY', range: 'xk', source, bundles }));
-    const first = await parseSelection({ manifestPath, stateDir });
-    assert.equal(first.range, 'xk');
+    const selection = { schemaVersion: 1, modelPattern: 'XK', modelIds: ['3187', '3183', '3178', '3173', '7420'], source, bundles };
+    await assert.rejects(parseSelection({ selection: { ...selection, modelIds: ['3187'] }, stateDir }), /Invalid selected source scope/);
+    const first = await parseSelection({ selection, stateDir });
+    assert.equal(first.modelPattern, 'XK');
     assert.equal(first.bundles, 40);
     assert.equal(first.files, 121);
     assert.equal(first.unknown, 0);
     assert.equal(first.reused, 0);
-    const second = await parseSelection({ manifestPath, stateDir });
+    const second = await parseSelection({ selection, stateDir });
     assert.equal(second.reused, 40);
     const staged = JSON.parse(await readFile(path.join(first.outputDir, 'M3187_C1_L0.json')));
     assert.equal(staged.files.find(file => file.kind === 'attributes').records[0].key, '142207');
-    await writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, phase: 'SELECTION_ONLY', source, bundles }));
-    assert.equal((await parseSelection({ manifestPath, stateDir })).range, 'xk');
     await writeFile(path.join(source, 'drilldown', 'pl_id_3187', 'L0', 'cat_M3187_C1_L0.xml'), 'changed');
-    await assert.rejects(parseSelection({ manifestPath, stateDir }), /checksum changed/);
+    await assert.rejects(parseSelection({ selection, stateDir }), /checksum changed/);
   } finally { await rm(temp, { recursive: true, force: true }); }
 });

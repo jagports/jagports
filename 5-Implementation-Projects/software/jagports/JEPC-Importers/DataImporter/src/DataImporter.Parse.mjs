@@ -1,9 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile, realpath, stat, mkdir, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
-import { XK_MODEL_IDS } from './DataImporter.Selection.mjs';
 
-export const PARSER_VERSION = 3;
+export const PARSER_VERSION = 4;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const within = (root, child) => {
   const rel = path.relative(root, child);
@@ -108,7 +107,7 @@ function fileKind(relative) {
 
 function sidecarFor(relative, language) {
   const match = /^(drilldown\/pl_id_\d+)\/L\d+\/(cat|tl|Itm)_M\d+_C\d+(?:_I\d+)?_L\d+\.xml$/.exec(relative);
-  if (!match || !relative.includes(`/L${language}/`)) throw new Error(`Selected file path disagrees with manifest: ${relative}`);
+  if (!match || !relative.includes(`/L${language}/`)) throw new Error(`Selected file path disagrees with source selection: ${relative}`);
   return relative.replace(`/L${language}/`, '/').replace(new RegExp(`_L${language}\\.xml$`), '_attributes.xml');
 }
 
@@ -125,33 +124,20 @@ async function persistExact(filename, value) {
   return false;
 }
 
-export async function parseSelection({ manifestPath, stateDir, onProgress }) {
-  if (!manifestPath || !stateDir) throw new Error('Require --manifest and --state-dir.');
-  const manifestBytes = await readFile(manifestPath);
-  const manifest = JSON.parse(manifestBytes.toString('utf8'));
-  const fragment = manifest.modelFragment;
-  const range = fragment === undefined ? (manifest.range ?? 'xk') : undefined;
-  if (manifest.schemaVersion !== 1 || manifest.phase !== 'SELECTION_ONLY' || !Array.isArray(manifest.bundles)
-      || !manifest.bundles.length) throw new Error('Expected a nonempty selection manifest.');
-  if (fragment !== undefined) {
-    if (typeof fragment !== 'string' || fragment.trim().length < 2 || manifest.range !== undefined
-        || !Array.isArray(manifest.selection?.modelIds) || !manifest.selection.modelIds.length
-        || new Set(manifest.selection.modelIds).size !== manifest.selection.modelIds.length
-        || manifest.selection.count !== manifest.bundles.length
-        || manifest.bundles.some(bundle => !manifest.selection.modelIds.includes(bundle.model))
-        || manifest.selection.modelIds.some(model => !manifest.bundles.some(bundle => bundle.model === model))) {
-      throw new Error('Invalid model-fragment selection manifest.');
-    }
-  } else {
-    if (range !== 'xk') throw new Error(`Unsupported Range in selection manifest: ${range}`);
-    if (manifest.bundles.length !== 40 || manifest.bundles.some(bundle => !XK_MODEL_IDS.includes(bundle.model))
-        || XK_MODEL_IDS.some(model => !manifest.bundles.some(bundle => bundle.model === model))) {
-      throw new Error('Selection manifest must cover all five XK models.');
-    }
+export async function parseSelection({ selection, stateDir, onProgress }) {
+  if (!selection || !stateDir) throw new Error('Require a selected source scope and --state-dir.');
+  const { modelPattern, modelIds, bundles } = selection;
+  if (selection.schemaVersion !== 1 || typeof modelPattern !== 'string' || modelPattern.trim().length < 2
+      || !Array.isArray(modelIds) || !modelIds.length || new Set(modelIds).size !== modelIds.length
+      || !Array.isArray(bundles) || !bundles.length
+      || bundles.some(bundle => !modelIds.includes(bundle.model))
+      || modelIds.some(model => !bundles.some(bundle => bundle.model === model))) {
+    throw new Error('Invalid selected source scope.');
   }
-  const identities = manifest.bundles.map(bundle => `${bundle.model}/${bundle.category}/L${bundle.language}`);
-  if (new Set(identities).size !== identities.length) throw new Error('Duplicate bundle identity in selection manifest.');
-  const root = await realpath(manifest.source);
+  const identities = bundles.map(bundle => `${bundle.model}/${bundle.category}/L${bundle.language}`);
+  if (new Set(identities).size !== identities.length) throw new Error('Duplicate bundle identity in source selection.');
+  const selectionSha256 = hash(Buffer.from(`${JSON.stringify(selection, null, 2)}\n`));
+  const root = await realpath(selection.source);
   const state = path.resolve(stateDir);
   let ancestor = state;
   while (true) {
@@ -159,13 +145,12 @@ export async function parseSelection({ manifestPath, stateDir, onProgress }) {
     catch (error) { if (error.code !== 'ENOENT') throw error; ancestor = path.dirname(ancestor); }
   }
   if (within(root, state) || within(root, ancestor)) throw new Error('State directory must be outside source installation.');
-  const outputDir = path.join(state, fragment === undefined ? 'xk-staging' : 'model-staging',
-    hash(manifestBytes).slice(0,20), `parser-v${PARSER_VERSION}`);
+  const outputDir = path.join(state, 'model-staging', selectionSha256.slice(0,20), `parser-v${PARSER_VERSION}`);
   await mkdir(outputDir, { recursive: true });
-  const scope = fragment === undefined ? { range } : { modelFragment: fragment, modelIds: manifest.selection.modelIds };
-  const summary = { parserVersion: PARSER_VERSION, ...scope, manifestSha256: hash(manifestBytes), phase: 'LOCAL_STAGING_ONLY',
+  const scope = { modelPattern, modelIds };
+  const summary = { parserVersion: PARSER_VERSION, ...scope, selectionSha256, phase: 'LOCAL_STAGING_ONLY',
     bundles: 0, reused: 0, files: 0, records: 0, unknown: 0, missingOptionalSidecars: 0, statuses: {}, outputDir };
-  for (const bundle of manifest.bundles) {
+  for (const bundle of bundles) {
     if (!/^\d+$/.test(bundle.model) || !/^\d+$/.test(bundle.category) || !/^\d{1,2}$/.test(bundle.language)
         || !Array.isArray(bundle.files) || bundle.files.length < 3) throw new Error('Invalid bundle identity or file list.');
     const names = bundle.files.map(entry => path.posix.basename(entry.path));
@@ -193,9 +178,10 @@ export async function parseSelection({ manifestPath, stateDir, onProgress }) {
     const unknown = files.flatMap(file => file.unknown.map(item => ({ path: file.path, ...item })));
     const status = unknown.length ? 'UNKNOWN_STRUCTURE' : 'PARSED';
     const staged = { schemaVersion: 1, parserVersion: PARSER_VERSION, phase: 'LOCAL_STAGING_ONLY', ...scope,
-      manifestSha256: hash(manifestBytes), identity: { model: bundle.model, category: bundle.category, language: bundle.language },
+      selectionSha256, identity: { model: bundle.model, category: bundle.category, language: bundle.language },
       source: { modelLabel: bundle.modelLabel, categoryLabel: bundle.categoryLabel,
-        parentModel: bundle.parentModel, categoryParent: bundle.categoryParent },
+        parentModel: bundle.parentModel, parentModelLabel: bundle.parentModelLabel,
+        categoryParent: bundle.categoryParent },
       status, files, missingOptionalSidecars: missingSidecars, unknown };
     const filename = path.join(outputDir, `M${bundle.model}_C${bundle.category}_L${bundle.language}.json`);
     if (await persistExact(filename, staged)) summary.reused++;
@@ -204,7 +190,7 @@ export async function parseSelection({ manifestPath, stateDir, onProgress }) {
     summary.unknown += unknown.length;
     summary.missingOptionalSidecars += missingSidecars.length;
     summary.statuses[status] = (summary.statuses[status] ?? 0) + 1;
-    onProgress?.({ phase: 'parsing', completed: summary.bundles, total: manifest.bundles.length,
+    onProgress?.({ phase: 'parsing', completed: summary.bundles, total: bundles.length,
       model: bundle.model });
   }
   return summary;
