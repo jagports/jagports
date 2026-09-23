@@ -2,7 +2,7 @@
 
 This local Windows/Node.js 24 application implements bounded media preservation for one JEPC illustration at a time. It is the first executable slice of the approved [MediaImporter specification](SPEC_MediaImporter.md).
 
-It creates a separate local SQLite ledger named `media-ledger.sqlite`. It never shares DataImporter's ledger, changes a JEPC source file, scans the complete installation, publishes to R2/D1, creates public URLs or converts hotspot geometry.
+It creates a separate local SQLite ledger named `media-ledger.sqlite`. The `preserve` command copies one validated illustration to a local filesystem object store under checksum-derived keys. It never shares DataImporter's ledger, changes a JEPC source file, scans the complete installation, publishes to R2/D1, creates public URLs or converts hotspot geometry.
 
 ## Run locally
 
@@ -11,6 +11,7 @@ Run from this directory on the computer where JEPC is installed:
 ```powershell
 node src/MediaImporter.CLI.mjs --help
 node src/MediaImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-MediaImporter" --media-id tu6333 --json
+node src/MediaImporter.CLI.mjs preserve --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-MediaImporter" --destination-dir "$env:LOCALAPPDATA\Jagports\JEPC-MediaObjects" --media-id tu6333 --json
 node src/MediaImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-MediaImporter"
 node src/MediaImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-MediaImporter"
 node src/MediaImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-MediaImporter" --full
