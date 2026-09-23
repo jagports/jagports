@@ -10,6 +10,12 @@ current requirement.
 
 Repository: `jagports/jagports`
 
+## Distinction between logical work roles and executable agent teams
+
+These six roles describe Jagports-wide work and human decision responsibilities. They are **not** the Python `AgentRegistry` of one deployed agent service. Under the [two-team architecture proposal](../../6-Development/AI/agents/jagports/SHARED_AGENT_SERVICES_SPEC.md), the original [AI OS development runtime](../../6-Development/AI/agents/jagports/jagports-lead-agent/SPEC_Agent_Lead.md#target-ownership--ai-os-application-development-agent-team-924) retains its existing Lead, Documentation, Deployment and Knowledge agents, focused exclusively on AI OS application development. A **separate** [Jaguar vehicle-domain runtime](../../6-Development/AI/agents/jagports/jagports-vehicle-agent/SPEC_Vehicle_Agent_Team.md) owns vehicle Research and Product/Vehicle execution.
+
+The existing logical Research, Product / Vehicle and other project-work roles below remain valid for human/AI collaboration. They do not authorize the AI OS runtime to instantiate Jaguar-specific agents or silently consume vehicle-domain tasks. Both executable teams follow the same existing Management workflow, without sharing one specialist registry or changing the human Product Owner's authority.
+
 ## Authority and workflow sources
 
 This file defines division of labour only. It does not create workflow states,
