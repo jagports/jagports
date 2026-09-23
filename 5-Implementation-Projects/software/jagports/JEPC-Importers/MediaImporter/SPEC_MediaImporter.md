@@ -364,6 +364,16 @@ Raw values must not be labelled pixels unless verified. No normalized or clickab
 
 When #352 is unresolved, MediaImporter may publish the image and textual item association while reporting `BLOCKED_UNVERIFIED` for geometry. Later converter knowledge increments the converter version and marks affected items `NEEDS_REPROCESS`; the preserved source evidence is reprocessed without repeating catalogue discovery.
 
+## Visual kit-group evidence
+
+Some JEPC exploded diagrams appear to use dashed enclosures to group callouts for components supplied by a kit. A kit part number may be present in the catalogue context while an explicit, machine-readable kit-content list is absent. This is a research signal, not a source-of-truth composition relationship.
+
+The future importer may detect a dashed enclosure and numbered callouts such as `1` or `12` from the selected image representation. It must preserve each result as a **candidate kit-group observation**, tied to the exact image checksum, representation, detector/OCR version and evidence location. It must retain the source callout text, the corresponding raw hotspot records where available, and the separate source-qualified part occurrences that those callouts resolve to.
+
+A candidate becomes a verified kit-content relationship only when all required evidence agrees: the enclosure/callout observation, a validated mapping from the visual callout to a hotspot or catalogue item, the distinct component occurrence/part identity where one exists, and a source-qualified kit part-number context. A component with its own PN remains its own PART and occurrence while also participating in a verified kit-content relationship; kit membership must not replace its individual identity or availability.
+
+Some diagrams may show component shapes inside a verified kit enclosure that have no independent hotspot, callout or PN in the available source. These are retained as kit-only component evidence with no invented canonical PART, PN or standalone availability. Unclear boundaries, unreadable callouts, unconverted hotspot geometry, multiple plausible kit PNs, and conflicting catalogue mappings remain `UNVERIFIED` or `UNSUPPORTED`; they must not be emitted as kit composition. #352 must establish how a detector's image-space evidence relates to the exact target asset and how its bounds map to source hotspot evidence before a clickable or persisted geometric assertion is made.
+
 ## Image validation and transformation
 
 Each existing image candidate is decoded with a bounded, maintained image library. Validation records the format detected from bytes, dimensions, decode success and reasonable configured size/dimension limits. Filename extension alone is not proof of format.
@@ -511,6 +521,7 @@ A change increments only the affected component version and selects prior record
 - persist conversion version and target asset checksum;
 - publish normalized/clickable geometry only for verified cases;
 - retain blocked/unsupported cases explicitly.
+- consume approved dashed-enclosure/callout evidence only as source-qualified kit-composition evidence after its separate #352 validation.
 
 ### Slice 5 — bounded XK operational validation
 
@@ -533,6 +544,8 @@ Automated tests use temporary synthetic fixtures and fake destination/catalogue 
 - hotspot XML parsing, repeated item regions, missing file and malformed XML;
 - raw coordinate preservation without pixel claims;
 - blocked geometry before #352 approval;
+- candidate dashed-enclosure/callout observations, including a negative case that must not create kit composition;
+- evidence-gated mapping from a candidate kit group to a source-qualified kit PN, including individually numbered components that retain their own PART identity and kit-only components without an invented standalone PN;
 - checksum/object-key idempotency;
 - crash after upload but before local checkpoint;
 - crash after object verification but before catalogue publication;
