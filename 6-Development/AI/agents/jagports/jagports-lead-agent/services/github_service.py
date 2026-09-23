@@ -9,13 +9,17 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import quote
 
 from github import Github, Auth
+from services.github_request_guard import GitHubRequestGuard
 
 
 class GitHubService:
-    def __init__(self, token, repository):
+    def __init__(self, token, repository, *, max_requests_per_run=12):
         if repository != "jagports/jagports":
             raise ValueError("P7 pilot is restricted to jagports/jagports.")
-        self.github = Github(auth=Auth.Token(token))
+        self.github = Github(auth=Auth.Token(token), retry=0)
+        self.http_guard = GitHubRequestGuard(
+            self.github.requester, max_requests=max_requests_per_run,
+            repository=repository)
         self.repo = self.github.get_repo(repository)
         self.filtered_prs = 0
         self.filtered_pr_numbers = set()
@@ -39,7 +43,11 @@ class GitHubService:
         """A copy; these logical counts are not an enforced HTTP request cap."""
         if not hasattr(self, "_metrics"):
             self._metrics = self._new_metrics()
-        return dict(self._metrics)
+        metrics = dict(self._metrics)
+        guard = getattr(self, "http_guard", None)
+        if guard is not None:
+            metrics.update(guard.metrics())
+        return metrics
 
     @staticmethod
     def _is_pull_request(issue):
