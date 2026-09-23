@@ -6,73 +6,11 @@ Reusable engineering and diagnostic commands for the Jagports Lead Agent. These 
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
-## P7 Batch 16.3 — dedicated GitHub read-only credential evidence
+## GitHub access and operation verification
 
-This is a **Raspberry Pi operator test**, not a GitHub connector test. The
-dedicated `JAGPORTS_READONLY_GITHUB_TOKEN` must be different from any
-write-capable personal/operator token. In its fine-grained token settings,
-restrict repository access to **`jagports/jagports` only**, with Issues: Read
-and Contents: Read (Metadata: Read is mandatory); all other writable
-repository/organization permissions must be No access. Confirm the assigned
-permissions in the GitHub UI independently. Do not infer them from the agent's
-GET-only Python adapter or from the ChatGPT-connected GitHub account.
+All active agents request GitHub reads and authorized writes through shared GitHubAgent/GitHubService, using the canonical `GITHUB_TOKEN`. The prior dedicated read-only-token verifier, its instructions and its credential-confirmation gate are obsolete under [#924](https://github.com/jagports/jagports/issues/924) and [the shared service specification](../SHARED_AGENT_SERVICES_SPEC.md). No standalone read-only token, creation walkthrough or live empty-comment test is needed. Do not copy earlier RO-token walkthrough commands into new runbooks.
 
-Use the approved PR #919 `scripts/verify_readonly_github.py` on the
-`codex` workspace. This script does **two authenticated GETs** (identity and
-Issue #904), then submits a deliberately invalid empty comment to test actual
-Issue-comment write denial. No valid comment content is supplied. An
-explicit permission-related 403 counts as write denial; 422, 201, 401, an
-unrelated 403 or another ambiguous response **blocks** acceptance. A denial
-of this endpoint proves that specific write prohibition only: the operator
-must separately inspect all fine-grained permission settings.
-
-1. As `admin` over SSH, verify that the approved verifier script has been
-   copied into `/home/codex/jagports-lead-agent/scripts/` and is readable
-   by `codex`; do not update/restart the installed service or timer to
-   perform this test. Store the dedicated token in the private
-   `/home/codex/jagports-lead-agent/.env` as
-   `JAGPORTS_READONLY_GITHUB_TOKEN=...`, owned by `codex` with mode 0600.
-   Do not display the token, set it in command arguments or include it in
-   GitHub Issues.
-2. Run the verifier as `codex` from that workspace; this command reads
-   the private `.env`, saves only redacted fixed-field evidence, and exits
-   nonzero on any ambiguous result:
-
-   ```bash
-   sudo -u codex bash -c '
-   set -eu
-   cd /home/codex/jagports-lead-agent
-   umask 077
-   test -f scripts/verify_readonly_github.py
-   mkdir -p state
-   ./venv/bin/python -c '"'"'
-   from dotenv import load_dotenv
-   load_dotenv(".env")
-   from scripts.verify_readonly_github import main
-   raise SystemExit(main())
-   '"'"' > state/p7_readonly_credential_evidence.json
-   '
-   ```
-
-3. Inspect only the redacted JSON and its `result`. Record its UTC
-   timestamp, the verifier's PR commit and the separately inspected
-   fine-grained permissions in Issue #909. Report `verified` only if
-   identity and Issue reads succeeded, the empty-comment request received
-   an explicit permission denial, and repository permissions match the
-   read-only policy. Never attach `.env`, response headers, raw HTTP
-   payloads, an access token or an identity dump.
-4. Only after independently checking the actual Pi token and storing
-   evidence may the operator change the local **pilot-specific**
-   `read_only_credential_confirmed` setting to `true`. Keep
-   `p7.enabled: false`, `openai.enabled: false`, the Issue allowlist
-   empty and the 585-minute timer unchanged until a separately configured,
-   capped manual pilot is ready.
-
-Repository CI mocks this network sequence and confirms fail-closed behavior;
-it **cannot** prove the Raspberry Pi's current token permissions. If the
-script is not yet installed or the dedicated token is missing, record
-`Batch 16.3: host blocked`, not `verified`. Do not substitute an
-operator's write-capable GitHub token or attempt an actual valid write.
+New implementation must cover central GitHub boundary behavior with **mocked offline** regressions: read dispatch; rejection of an unapproved specialist write; approved work-item change within the Management gate; idempotency; verified read-after-write; bounded requests; and secret-free audit records. Preserve the original `GITHUB_TOKEN` and existing timer. The obsolete `GITHUB_TOKEN_RO` entry can be removed from the private Pi `.env` only after the installed running code and startup environment have been checked for dependencies; do not display credential strings. No extra credential is required for specialist modules.
 
 ## Reusable runtime checks
 
