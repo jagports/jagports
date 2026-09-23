@@ -2,7 +2,7 @@
 
 Install on the actual Requester *before* resolving a Repository. Intercept the
 lowest PyGithub request boundary, not a logical repo method: pagination,
-lazy-loads, redirects and retries all traverse this boundary. Restrict outgoing
+lazy-loads and explicit PyGithub 202 retries traverse this boundary. Restrict outgoing
 requests to GET on the expected GitHub API host and the configured repository.
 This is defense in depth; an independently read-only token is still mandatory.
 """
@@ -37,14 +37,21 @@ class GitHubRequestGuard:
     def _guarded_request(self, cnx, verb, url, requestHeaders, input,
                          stream=False, follow_302_redirect=False):
         # No credential, request body, URL query or provider exception is logged.
+        # PyGithub's __requestEncode strips the scheme and host before it
+        # invokes __requestRaw. Require the exact relative API path here;
+        # absolute URLs at this boundary indicate an unsupported client.
         parsed = urlsplit(url)
         allowed_path = "/repos/" + self.repository + "/"
+        connection_allowed = (cnx is None or (
+            getattr(cnx, "host", None) == "api.github.com" and
+            getattr(cnx, "protocol", None) == "https" and
+            getattr(cnx, "port", None) == 443))
         if (verb != "GET" or input is not None or stream or
-                follow_302_redirect or parsed.scheme != "https" or
-                parsed.netloc != "api.github.com" or
+                follow_302_redirect or parsed.scheme or parsed.netloc or
+                not url.startswith("/") or
                 not (parsed.path == allowed_path[:-1] or
                      parsed.path.startswith(allowed_path)) or
-                parsed.username is not None or parsed.password is not None):
+                not connection_allowed):
             with self._lock:
                 self.denied += 1
             raise GitHubRequestDenied("GitHub read-only endpoint policy rejected the request.")
