@@ -420,22 +420,7 @@ The **intended host schedule** is one Lead Agent coordinator run every **9 hours
 
 The host's **systemd timer is the actual schedule authority**. The repository's `config.yaml` value `polling.interval_minutes: 585` records intended cadence, but the current `main.py` does not read that polling value or create a scheduler. Changing YAML alone does not activate or change a timer. An existing `crontab` entry or another systemd timer must not launch a duplicate agent process.
 
-Recommended user timer at `~/.config/systemd/user/jagports-lead-agent.timer`:
-
-```ini
-[Unit]
-Description=Run Jagports Lead Agent every 9 hours 45 minutes
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=9h45min
-Unit=jagports-lead-agent.service
-
-[Install]
-WantedBy=timers.target
-```
-
-`OnUnitActiveSec` is a **monotonic interval measured from the previous activation of the service**, not fixed clock times such as 09:45 or every day at 09:45. `OnBootSec=5min` provides an initial activation after boot/user-manager startup; the first actual fire depends on the user manager starting. User-level timers may require an administrator to enable lingering to survive user logout or run after boot without login.
+The canonical installed timer configuration and repair procedure are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Its initial activation uses `OnActiveSec=9h45min`; subsequent activations use `OnUnitActiveSec=9h45min`. Both are monotonic 9h45min intervals; no short startup trigger is part of the current configuration. Verify the effective installed timer and any drop-ins on the host rather than assuming the repository snippet is already deployed.
 
 The user service should be a `Type=oneshot` unit with `WorkingDirectory=/home/codex/jagports-lead-agent` and `ExecStart=/home/codex/jagports-lead-agent/venv/bin/python /home/codex/jagports-lead-agent/main.py`. Using the virtual environment interpreter directly avoids a stale `run-agent.sh` wrapper still executing legacy `agent.py`. Confirm the installed user service and any wrapper before replacing an existing working configuration.
 
@@ -445,7 +430,7 @@ The operator reported a successful manual `python main.py` run after approximate
 
 The standalone OpenAI API test and this scheduler test prove different capabilities. As currently implemented, the coordinator does not invoke `openai_service.py` or the planned OpenAI Agents SDK. No paid reasoning call should be inferred from a successful scheduled `main.py` run.
 
-Full Raspberry Pi installation and verification instructions are maintained in [Jagports AI OS Lead Agent Setup](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
+Full Raspberry Pi installation and verification instructions are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md).
 
 ## Current specialist and Telegram communication test
 
