@@ -44,6 +44,14 @@ Reuse shared generic GET-only transport, event/revision schema, budget reservati
 
 The current research-to-decision pilot specification and mixed-team code are **transitional source material** until the reviewed migration is complete. Remove all **active** P7 names across specifications, runtime, tests, configuration and workflows during that implementation. Preserve only immutable historical Issue/PR links and genuine migration evidence, not duplicate governing instructions in permanent SPECs. The proposed separation is tracked by [#924](https://github.com/jagports/jagports/issues/924), after prerequisite PR #919 merged.
 
+## Central GitHub operations — original runtime and separate agent teams
+
+The existing `GitHubAgent`/`GitHubService` is the **single GitHub API execution boundary** for the original AI OS team, with a reusable, domain-neutral contract also available to the independent Jaguar vehicle team. It performs authorized **reads and writes** using the existing `GITHUB_TOKEN`. No Documentation, Deployment, Knowledge, Lead, Research or Product/Vehicle specialist maintains a duplicate authenticated GitHub client or reads credentials directly. The original three AI OS specialists, their registry and decision ownership remain intact; sharing a GitHub service does **not** merge the two teams.
+
+Agents submit structured operations (requesting team/role, repository, work item, operation and payload, source revision, authorization/approval evidence where needed, idempotency key) through the common interface; simple internal method calls need not generate extra Issue messages. The GitHub boundary validates the applicable Management workflow and explicit per-operation authorization, applies scope and rate limits, executes permitted mutations, independently reads back changed state, and records a redacted auditable result. Significant work, decisions and hand-offs stay in their normal persistent Issue/PR records. Untrusted Issue/model text never grants write authority. Only the central GitHub boundary accesses the canonical `GITHUB_TOKEN`; keeping multiple agents as Python modules in one process does not itself enforce secret isolation.
+
+The standalone `GITHUB_TOKEN_RO`/`JAGPORTS_READONLY_GITHUB_TOKEN` credential requirement, separate RO verifier and credential-confirmation gate are **retired**. Retain generic read operation validation, GET-only behavior for read-designated workflows, authorization tests, existing durable recovery and paid-model safety gates. This SPEC amendment does not itself enable autonomous Issue edits, repository changes, merge, deployment or paid model calls: each action remains subject to the established change/review/human-decision rules and separately accepted execution stage. The shared [service contract](../SHARED_AGENT_SERVICES_SPEC.md) governs cross-team API behavior.
+
 ## Current architecture
 
 ```text
