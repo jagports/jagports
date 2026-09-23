@@ -364,6 +364,16 @@ Raw values must not be labelled pixels unless verified. No normalized or clickab
 
 When #352 is unresolved, MediaImporter may publish the image and textual item association while reporting `BLOCKED_UNVERIFIED` for geometry. Later converter knowledge increments the converter version and marks affected items `NEEDS_REPROCESS`; the preserved source evidence is reprocessed without repeating catalogue discovery.
 
+## Visual kit-group evidence
+
+Some JEPC exploded diagrams appear to use dashed enclosures to group callouts for components supplied by a kit. A kit part number may be present in the catalogue context while an explicit, machine-readable kit-content list is absent. This is a research signal, not a source-of-truth composition relationship.
+
+The future importer may detect a dashed enclosure and numbered callouts such as `1` or `12` from the selected image representation. It must preserve each result as a **candidate kit-group observation**, tied to the exact image checksum, representation, detector/OCR version and evidence location. It must retain the source callout text, the corresponding raw hotspot records where available, and the separate source-qualified part occurrences that those callouts resolve to.
+
+A candidate becomes a verified kit-content relationship only when all required evidence agrees: the enclosure/callout observation, a validated mapping from the visual callout to a hotspot or catalogue item, the distinct component occurrence/part identity where one exists, and a source-qualified kit part-number context. A component with its own PN remains its own PART and occurrence while also participating in a verified kit-content relationship; kit membership must not replace its individual identity or availability.
+
+Some diagrams may show component shapes inside a verified kit enclosure that have no independent hotspot, callout or PN in the available source. These are retained as kit-only component evidence with no invented canonical PART, PN or standalone availability. Unclear boundaries, unreadable callouts, unconverted hotspot geometry, multiple plausible kit PNs, and conflicting catalogue mappings remain `UNVERIFIED` or `UNSUPPORTED`; they must not be emitted as kit composition. #352 must establish how a detector's image-space evidence relates to the exact target asset and how its bounds map to source hotspot evidence before a clickable or persisted geometric assertion is made.
+
 ## Image validation and transformation
 
 Each existing image candidate is decoded with a bounded, maintained image library. Validation records the format detected from bytes, dimensions, decode success and reasonable configured size/dimension limits. Filename extension alone is not proof of format.
@@ -491,11 +501,38 @@ A change increments only the affected component version and selects prior record
 
 ### Slice 2 — destination adapter and object preservation
 
-- implement an in-memory/filesystem test adapter;
-- define the R2 adapter configuration and health contract;
+- implement the approved filesystem test adapter and its contract tests;
+- define and implement the R2 adapter configuration and health contract without repository credentials;
 - publish content-addressed objects conditionally;
 - verify upload recovery and unchanged reruns;
-- preserve raw hotspot XML under private evidence policy.
+- preserve raw hotspot XML under private evidence policy;
+- do not publish catalogue metadata to D1 in this slice.
+
+#### Slice 2 object-preservation contract
+
+Slice 2 preserves only source assets already validated by the local ledger. For a verified JPEG or PNG, its immutable presentation-object key is:
+
+```text
+jepc/assets/sha256/<first-two-lowercase-hex>/<sha256>.<verified-extension>
+```
+
+For verified hotspot XML, its private evidence-object key is:
+
+```text
+jepc/evidence/sha256/<first-two-lowercase-hex>/<sha256>.xml
+```
+
+The object key is derived from checksum and verified type, never from a source path, media ID, public URL or user input. JPEG and PNG bytes remain distinct representations even where they share a logical illustration. Raw hotspot XML is evidence, not a browser-delivery asset.
+
+The destination adapter exposes `health`, `head`, conditional `put`, verification and delivery-reference derivation. A successful `put` is insufficient: verification compares the expected key, SHA-256, byte size and verified media type. The adapter does not list an entire bucket during normal processing. It must reject unsafe keys and must not expose credentials in events, reports or manifests.
+
+The filesystem adapter is the required physical-test destination. Its configured root is outside the JEPC source installation and acts as a deterministic object store: keys map to files below that root, with adjacent or equivalent non-secret metadata sufficient to verify the object. Its tests prove the same conditional and verification semantics required from R2.
+
+The R2 adapter has the same contract. Endpoint, bucket, account/credential material and any delivery host are runtime configuration, not committed semantics. A delivery reference is derived only after storage verification; it is not the canonical media identity and Slice 2 does not publish it to D1.
+
+For each object, the durable checkpoint order is: persist preservation intent and expected identity in the MediaImporter ledger; `head` the deterministic key; conditionally upload only when no verified matching object exists; verify the stored result; then persist the verified object result in the ledger. A restart repeats `head` and verification before any upload. A matching verified object is reused; a mismatched or unverifiable object fails explicitly and is never silently accepted. A crash after upload and before the local checkpoint therefore resumes safely without duplicate bytes.
+
+The initial physical smoke test uses one explicit XK media ID such as `tu6333`, performs no recursive source enumeration, and compares source hashes before and after. It proves the filesystem adapter receives the selected verified image representation and hotspot XML in their separate namespaces, then repeats the run to prove object reuse. D1 publication, public serving, conversion of hotspot coordinates, and deletion are outside Slice 2.
 
 ### Slice 3 — catalogue metadata publication
 
@@ -511,6 +548,7 @@ A change increments only the affected component version and selects prior record
 - persist conversion version and target asset checksum;
 - publish normalized/clickable geometry only for verified cases;
 - retain blocked/unsupported cases explicitly.
+- consume approved dashed-enclosure/callout evidence only as source-qualified kit-composition evidence after its separate #352 validation.
 
 ### Slice 5 — bounded XK operational validation
 
@@ -533,6 +571,8 @@ Automated tests use temporary synthetic fixtures and fake destination/catalogue 
 - hotspot XML parsing, repeated item regions, missing file and malformed XML;
 - raw coordinate preservation without pixel claims;
 - blocked geometry before #352 approval;
+- candidate dashed-enclosure/callout observations, including a negative case that must not create kit composition;
+- evidence-gated mapping from a candidate kit group to a source-qualified kit PN, including individually numbered components that retain their own PART identity and kit-only components without an invented standalone PN;
 - checksum/object-key idempotency;
 - crash after upload but before local checkpoint;
 - crash after object verification but before catalogue publication;
