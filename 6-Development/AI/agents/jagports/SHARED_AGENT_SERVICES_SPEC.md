@@ -2,7 +2,7 @@
 
 **Status:** Proposed under [#924](https://github.com/jagports/jagports/issues/924); specification only. The previously proposed separate Vehicle team is obsolete. This document specifies reusable domain-neutral libraries **inside the original AI OS development-agent runtime**, not a second coordinator, specialist registry, vehicle-domain runtime or authority to execute paid/model-backed or GitHub write operations.
 
-The executable roles remain `LeadAgent`, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`. See [Lead Agent SPEC](jagports-lead-agent/SPEC_Agent_Lead.md) for routing and [0-DEC Agent Roles](../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) for the separate six **logical project-work** roles.
+The executable roles remain `LeadAgent`, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`. See [Lead Agent SPEC](jagports-lead-agent/SPEC_Agent_Lead.md) for routing and [0-DEC Agent Roles](../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) for the separate six **logical project-work** roles.
 
 ## Contracts to retain and adapt
 
