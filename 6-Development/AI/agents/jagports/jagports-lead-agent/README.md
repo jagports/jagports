@@ -355,6 +355,20 @@ Automated tests use mocked GitHub, model and Telegram adapters and fixture Issue
 
 Documentation ownership: this existing **Development README** owns the shared architecture, functional contracts and acceptance. [OPERATIONS.md](OPERATIONS.md) owns reusable test commands; [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) owns live host installation and systemd verification; [Implementation Project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md) owns rationale and verified prototype evidence. Research findings and source/evidence files belong under the established `7-Research/` semantic root, not next to the Development runtime. A separately reviewed research-to-decision specification may extend these shared contracts without duplicating them.
 
+#### Documentation consolidation and separation
+
+| Existing or proposed Markdown | Disposition | Process reason |
+|---|---|---|
+| The proposed standalone shared `SPEC.md` and this `README.md` | **Merge into this existing README**; do not add a second shared specification. | Both described the same coordinator evolution, cost controls and first reasoning specialist; one owner prevents divergent contracts and duplicate review obligations. |
+| Long API smoke-test and systemd examples previously repeated in this README | **Keep concise links here**; retain actual commands in `OPERATIONS.md` and the host-specific Deployment installation document. | A reader of the architecture should not unknowingly execute duplicated commands that drift from the current operator/host procedure. |
+| `OPERATIONS.md` and the MyNode Deployment installation document | **Keep separate.** | Portable engineering diagnostics and historical command variants have different scope from the authoritative live-host unit configuration and recovery procedure. Do not merge a historical alternative into an executable installation runbook. |
+| The implementation-project setup record and Development/Deployment documents | **Keep separate with cross-links.** | Business rationale, investment evidence and observed prototype history must not compete with normative engineering contracts or live operational instructions. |
+| Research evidence under `7-Research/` and these engineering specifications | **Keep separate.** | Sources, unresolved findings and evidence belong to Research; interfaces, acceptance tests and runtime implementation belong to Development. |
+| The separately governed Research-to-Decision specification and this shared README | **Keep separate but reference common interfaces here.** | The multi-role, source-evidence and human-decision pilot has its own acceptance and review scope; copying shared Issue/reasoning contracts would create conflicting definitions. |
+| Management workflows and agent role documents | **Reference only; never merge into this runtime document.** | Those files own project-wide authority and responsibilities; a runtime README cannot create a parallel governance source. |
+
+The historical engineering-command appendix in `OPERATIONS.md` should be treated as **reference only**: host-specific commands that are still current belong canonically in Deployment, while obsolete variants should not be presented as alternate live setup instructions. Perform any further cleanup under the affected operational-document review rather than silently rewriting operator evidence within this specification change.
+
 ## Standalone OpenAI API smoke test
 
 Reusable direct Responses API and wrapper smoke-test commands, their expected outputs, and the distinction between standalone connectivity and integrated reasoning are maintained in [Development OPERATIONS.md](OPERATIONS.md#direct-openai-responses-api-smoke-test). Historical operator-observed outcomes belong in the [implementation project record](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md). Successful connectivity does not prove model-backed specialist operation or an unattended service run.
