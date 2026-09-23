@@ -6,6 +6,44 @@
 
 This specification extends the current runtime; its approval alone does not enable paid model calls, automated Telegram delivery, autonomous GitHub writes, independent-review substitution, merge or deployment authority.
 
+## Target ownership — AI OS application-development agent team (#924)
+
+**Proposed specification; migration not yet implemented.** The original Lead Agent owns **only the AI OS software/application development workstream** and retains the original executable roles: `LeadAgent` coordinator, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`. The three specialists' existing names and responsibilities are restored, not replaced or repurposed as vehicle Research or Product/Vehicle agents. The separate six-role human/AI operating model in [Agent Roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) is not the runtime registry.
+
+The [standalone Jaguar vehicle-domain team SPEC](../jagports-vehicle-agent/SPEC_Vehicle_Agent_Team.md) owns its own Vehicle Lead, domain Research and Product/Vehicle validation, Jaguar VIN/Range/fitment/JEPC skills and domain evidence. Its registry, source permissions, event cursor, paid-model activation, checkpoint files and report are separate. **No car-related domain agent, prompt or implicit vehicle Issue routing is part of the AI OS agent runtime.**
+
+The original architecture map below remains the baseline for Team A. The target retains that exact runtime ownership but adds selectively authorized semantic understanding and application-development skills:
+
+```text
+TEAM A — AI OS application-development agents
+===============================================
+existing Raspberry Pi systemd user timer / explicit manual run
+  |
+  v
+main.py --> GitHubService --> GitHubAgent (AI OS Issue selection)
+  |            |
+  |            +--> scoped IssueContext / approved AI OS guidance
+  |
+  v
+LeadAgent --> StateService --> compact Event / verified source revision
+  |
+  +--> AgentRegistry
+  |      +--> DocumentationAgent --> documentation-analysis skills
+  |      +--> DeploymentAgent -----> deployment/configuration skills
+  |      +--> KnowledgeAgent ------> knowledge/research-for-development skills
+  |
+  +--> optional model-neutral ReasoningService for approved
+  |    application-development semantic tasks (no car-domain prompts)
+  |
+  +--> AgentResult[] --> durable AI OS report / governed hand-off
+```
+
+Team A may call approved **application-development** tools (Issues, repository guidance, plans, tests, architecture and deployment analysis) only under existing permissions and Management workflow. The vehicle team is **not** one of its callable specialists or a default skill fallback.
+
+Reuse shared generic GET-only transport, event/revision schema, budget reservations, atomic checkpoints, replay and report primitives under the [Shared Agent Services SPEC](../SHARED_AGENT_SERVICES_SPEC.md), but instantiate them in **team-owned** namespaces. Preserve PR #919's security/cost/recovery progress without carrying its temporary mixed-team P7 wiring forward. Existing checked-in `openai.enabled: false` is a safe runtime default despite the available $5 paid API test pool; explicitly approved local testing is a separate switch, not a reason to automatically enable recurring costs.
+
+The current research-to-decision pilot specification and mixed-team code are **transitional source material** until the reviewed migration is complete. Remove all **active** P7 names across specifications, runtime, tests, configuration and workflows during that implementation. Preserve only immutable historical Issue/PR links and genuine migration evidence, not duplicate governing instructions in permanent SPECs. The proposed separation is tracked by [#924](https://github.com/jagports/jagports/issues/924), after prerequisite PR #919 merged.
+
 ## Current architecture
 
 ```text
