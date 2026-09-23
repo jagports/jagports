@@ -85,7 +85,6 @@ class P7PilotTests(unittest.TestCase):
             "approved_research_paths": ["7-Research/research.md"],
             "approved_domain_paths": ["7-Research/domain.md"],
             "checkpoint_file": str(Path(self.temp.name) / "p7.json"),
-            "read_only_credential_confirmed": True,
         }
         self.pilot = P7Pilot(self.github, self.reasoning, self.config)
         self.pilot.research.analyse = Mock(return_value=result_for("research"))
