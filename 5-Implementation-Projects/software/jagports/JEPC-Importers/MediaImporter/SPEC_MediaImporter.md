@@ -370,9 +370,9 @@ Some JEPC exploded diagrams appear to use dashed enclosures to group callouts fo
 
 The future importer may detect a dashed enclosure and numbered callouts such as `1` or `12` from the selected image representation. It must preserve each result as a **candidate kit-group observation**, tied to the exact image checksum, representation, detector/OCR version and evidence location. It must retain the source callout text, the corresponding raw hotspot records where available, and the separate source-qualified part occurrences that those callouts resolve to.
 
-A candidate becomes a verified kit-content relationship only when all required evidence agrees: the enclosure/callout observation, a validated mapping from the visual callout to a hotspot or catalogue item, the distinct component occurrence/part identity, and a source-qualified kit part-number context. The image alone must never invent a kit PN, merge repeated callouts, or establish that every part inside an enclosure is included in a kit.
+A candidate becomes a verified kit-content relationship only when all required evidence agrees: the enclosure/callout observation, a validated mapping from the visual callout to a hotspot or catalogue item, the distinct component occurrence/part identity where one exists, and a source-qualified kit part-number context. A component with its own PN remains its own PART and occurrence while also participating in a verified kit-content relationship; kit membership must not replace its individual identity or availability.
 
-Unclear boundaries, unreadable callouts, unconverted hotspot geometry, multiple plausible kit PNs, and conflicting catalogue mappings remain `UNVERIFIED` or `UNSUPPORTED`; they must not be emitted as kit composition. #352 must establish how a detector's image-space evidence relates to the exact target asset and how its bounds map to source hotspot evidence before a clickable or persisted geometric assertion is made.
+Some diagrams may show component shapes inside a verified kit enclosure that have no independent hotspot, callout or PN in the available source. These are retained as kit-only component evidence with no invented canonical PART, PN or standalone availability. Unclear boundaries, unreadable callouts, unconverted hotspot geometry, multiple plausible kit PNs, and conflicting catalogue mappings remain `UNVERIFIED` or `UNSUPPORTED`; they must not be emitted as kit composition. #352 must establish how a detector's image-space evidence relates to the exact target asset and how its bounds map to source hotspot evidence before a clickable or persisted geometric assertion is made.
 
 ## Image validation and transformation
 
@@ -545,7 +545,7 @@ Automated tests use temporary synthetic fixtures and fake destination/catalogue 
 - raw coordinate preservation without pixel claims;
 - blocked geometry before #352 approval;
 - candidate dashed-enclosure/callout observations, including a negative case that must not create kit composition;
-- evidence-gated mapping from a candidate kit group to separate component occurrences and a source-qualified kit PN;
+- evidence-gated mapping from a candidate kit group to a source-qualified kit PN, including individually numbered components that retain their own PART identity and kit-only components without an invented standalone PN;
 - checksum/object-key idempotency;
 - crash after upload but before local checkpoint;
 - crash after object verification but before catalogue publication;
