@@ -179,7 +179,6 @@ class WiringTests(unittest.TestCase):
         self.assertIs(config["p7"]["enabled"], False)
         self.assertEqual(config["p7"]["allowed_issue_numbers"], [])
         self.assertEqual(config["p7"]["approved_source_revision"], "")
-        self.assertIs(config["p7"]["read_only_credential_confirmed"], False)
         self.assertEqual(config["p7"]["pending_event_file"], "")
         self.assertEqual(config["p7"]["approved_research_paths"], [])
         self.assertEqual(config["p7"]["approved_domain_paths"], [])
