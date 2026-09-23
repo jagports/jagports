@@ -6,61 +6,60 @@
 
 This specification extends the current runtime; its approval alone does not enable paid model calls, automated Telegram delivery, autonomous GitHub writes, independent-review substitution, merge or deployment authority.
 
-## Target ownership — AI OS application-development agent team (#924)
+## Revised target — the original AI OS development agents only (#924)
 
-**Proposed specification; migration not yet implemented.** The original Lead Agent owns **only the AI OS software/application development workstream** and retains the original executable roles: `LeadAgent` coordinator, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`. The three specialists' existing names and responsibilities are restored, not replaced or repurposed as vehicle Research or Product/Vehicle agents. The separate six-role human/AI operating model in [Agent Roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) is not the runtime registry.
+**Proposed specification; implementation and Raspberry Pi deployment are not yet complete.** [Issue #924](https://github.com/jagports/jagports/issues/924) explicitly supersedes the earlier proposal to extract a separate Vehicle team. Remove **all active vehicle-research/Product-Vehicle agent implementations**, prompts, dispatch, tests, configuration keys and current normative references introduced by the mixed P7 pilot; do not create a replacement Vehicle runtime. Preserve unrelated Jaguar/VIEPS source data, VIN/fitment/JEPC research, historical Git records and the established human research-to-decision workflow. The six logical project-work roles in [AGENT_ROLES.md](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) are not Python runtime specialists.
 
-The [standalone Jaguar vehicle-domain team SPEC](../jagports-vehicle-agent/SPEC_Vehicle_Agent_Team.md) owns its own Vehicle Lead, domain Research and Product/Vehicle validation, Jaguar VIN/Range/fitment/JEPC skills and domain evidence. Its registry, source permissions, event cursor, paid-model activation, checkpoint files and report are separate. **No car-related domain agent, prompt or implicit vehicle Issue routing is part of the AI OS agent runtime.**
-
-The original architecture map below remains the baseline for Team A. The target retains that exact runtime ownership but adds selectively authorized semantic understanding and application-development skills:
+The canonical executable agent team remains the original `LeadAgent` with **`DocumentationAgent`**, **`DeploymentAgent`** and **`KnowledgeAgent`**. No Vehicle specialist runs in the original registry and no alternative P7 branch bypasses it once the cleanup is implemented. Retain deterministic zero-cost handling when reasoning is disabled.
 
 ```text
-TEAM A — AI OS application-development agents
-===============================================
-existing Raspberry Pi systemd user timer / explicit manual run
-  |
-  v
-main.py --> GitHubService --> GitHubAgent (AI OS Issue selection)
-  |            |
-  |            +--> scoped IssueContext / approved AI OS guidance
-  |
-  v
-LeadAgent --> StateService --> compact Event / verified source revision
-  |
-  +--> AgentRegistry
-  |      +--> DocumentationAgent --> documentation-analysis skills
-  |      +--> DeploymentAgent -----> deployment/configuration skills
-  |      +--> KnowledgeAgent ------> knowledge/research-for-development skills
-  |
-  +--> optional model-neutral ReasoningService for approved
-  |    application-development semantic tasks (no car-domain prompts)
-  |
-  +--> AgentResult[] --> durable AI OS report / governed hand-off
+existing codex systemd user timer (585 minutes) / manual entry point
+    |
+    v
+main.py  <--- run-agent.sh uses this same entry point
+    |
+    +--> GitHubService / GitHubAgent: bounded Issues, approved guidance
+    |
+    v
+LeadAgent --> StateService / versioned changed-Issue event (#904)
+    |
+    v
+AgentRegistry
+    +--> DocumentationAgent: documentation relevance and explanation
+    +--> DeploymentAgent: deployment relevance and impact
+    +--> KnowledgeAgent: accepted knowledge impact
+            |
+            +--> approved scoped reasoning through shared ReasoningService
+            |
+            v
+      AgentResult[] --> durable ReportService --> authorized Telegram outbox
+                                            |
+       one-shot authorized Telegram /ask --> original agent --> reply
 ```
 
-Team A may call approved **application-development** tools (Issues, repository guidance, plans, tests, architecture and deployment analysis) only under existing permissions and Management workflow. The vehicle team is **not** one of its callable specialists or a default skill fallback.
+Implement meaningful changed-Issue selection and source retrieval through the existing `GitHubAgent` / `GitHubService`, with bounded title/body/labels/comments, verified content revision, approved AI OS Markdown guidance, source IDs, truncation and prompt-injection protections. Begin with model-backed **DocumentationAgent** on a single explicitly approved AI OS Issue/revision; extend to Deployment and Knowledge only with independently reviewed role-appropriate prompts and regression coverage. Missing, unchanged, unrelated or inadequately sourced events do not spend tokens. Keep the original lifecycle report even when OpenAI is disabled or the provider is unavailable.
 
-Reuse shared generic GET-only transport, event/revision schema, budget reservations, atomic checkpoints, replay and report primitives under the [Shared Agent Services SPEC](../SHARED_AGENT_SERVICES_SPEC.md), but instantiate them in **team-owned** namespaces. Preserve PR #919's security/cost/recovery progress without carrying its temporary mixed-team P7 wiring forward. Existing checked-in `openai.enabled: false` is a safe runtime default despite the available $5 paid API test pool; explicitly approved local testing is a separate switch, not a reason to automatically enable recurring costs.
+## Retain and generalize the existing infrastructure
 
-The current research-to-decision pilot specification and mixed-team code are **transitional source material** until the reviewed migration is complete. Remove all **active** P7 names across specifications, runtime, tests, configuration and workflows during that implementation. Preserve only immutable historical Issue/PR links and genuine migration evidence, not duplicate governing instructions in permanent SPECs. The proposed separation is tracked by [#924](https://github.com/jagports/jagports/issues/924), after prerequisite PR #919 merged.
+Reuse the audited GET-only HTTP guard, request cap, versioned #904 Issue-enrichment event and integrity-checked pending store, `AgentRegistry`, `AgentResult`, atomic report persistence, model-neutral reasoning interface, durable cross-process cost ledger, uncertain-attempt accounting, locks/checkpoints and replay without rebilling. Remove Vehicle-only assumptions from the reasoning interface (including hard-coded `research`/`product_vehicle` names and exactly-two-role requirements) **only after equivalent general-purpose safety tests are in place**. Historical charged or uncertain attempts and #904 cursors must be inventoried and durably preserved before deleting the obsolete pilot. The project's $5 credit pool and existing $4 local cumulative reservation cap do not restart on migration.
 
-## Central GitHub operations — original runtime and separate agent teams
+[Shared Agent Services](../SHARED_AGENT_SERVICES_SPEC.md) defines domain-neutral contracts for this **one** development runtime. The existing `GITHUB_TOKEN` remains the configured GitHub credential, but shared-source access does not grant write authority. GET-only read adapters and low-level caps remain enforced; no previously confirmed security gate is removed before replacement authorization and negative tests exist. Future writes, if separately approved, go through one audited, per-operation authorized GitHub boundary with independent read-after-write. This SPEC does not authorize autonomous edits, merges, deployment, new GitHub permissions or recurring paid execution.
 
-The existing `GitHubAgent`/`GitHubService` is the **single GitHub API execution boundary** for the original AI OS team, with a reusable, domain-neutral contract also available to the independent Jaguar vehicle team. It performs authorized **reads and writes** using the existing `GITHUB_TOKEN`. No Documentation, Deployment, Knowledge, Lead, Research or Product/Vehicle specialist maintains a duplicate authenticated GitHub client or reads credentials directly. The original three AI OS specialists, their registry and decision ownership remain intact; sharing a GitHub service does **not** merge the two teams.
+## Agent-based report and Telegram acceptance
 
-Agents submit structured operations (requesting team/role, repository, work item, operation and payload, source revision, authorization/approval evidence where needed, idempotency key) through the common interface; simple internal method calls need not generate extra Issue messages. The GitHub boundary validates the applicable Management workflow and explicit per-operation authorization, applies scope and rate limits, executes permitted mutations, independently reads back changed state, and records a redacted auditable result. Significant work, decisions and hand-offs stay in their normal persistent Issue/PR records. Untrusted Issue/model text never grants write authority. Only the central GitHub boundary accesses the canonical `GITHUB_TOKEN`; keeping multiple agents as Python modules in one process does not itself enforce secret isolation.
+The **original agents** must produce useful, structured, source-linked results from real changed AI OS Issues, including uncertainty, rationale, model/token usage and measured/estimated cost where applicable. Persist the report **before** enqueueing a bounded, secret-free Telegram message through the existing `services/telegram_service.py`. A durable notification outbox records the event/result digest and delivery state; no-change or already acknowledged results do not resend, and delivery failures never repeat reasoning. At-least-once delivery across the external send/local acknowledgement boundary is documented.
 
-The standalone `GITHUB_TOKEN_RO`/`JAGPORTS_READONLY_GITHUB_TOKEN` credential requirement, separate RO verifier and credential-confirmation gate are **retired**. Retain generic read operation validation, GET-only behavior for read-designated workflows, authorization tests, existing durable recovery and paid-model safety gates. This SPEC amendment does not itself enable autonomous Issue edits, repository changes, merge, deployment or paid model calls: each action remains subject to the established change/review/human-decision rules and separately accepted execution stage. The shared [service contract](../SHARED_AGENT_SERVICES_SPEC.md) governs cross-team API behavior.
+Separately enable a **one-shot** Telegram `/ask` receiver that validates the configured chat and sender, persists the Telegram update ID and source/question context, routes the query to an appropriate **original `agents/*.py` specialist**, enforces a separately approved spend limit, persists the structured answer, then replies through the existing Telegram transport. An unauthorized or replayed update makes no billable call. Do not create another polling timer, silently enable a bot listener or count a direct SDK smoke script as agent integration.
 
-## Scheduled Telegram delivery after agent separation and centralized GitHub access (#924)
+**Minimum real host evidence:** independently verify one bounded, allowlisted GitHub → original agent → `ReasoningService` → persisted report → Telegram message and one authorized Telegram `/ask` → original agent → reply on the Raspberry Pi. Mock the equivalent success/no-change/unauthorized/truncated/provider-failure/replay/Telegram-failure cases first. Running as `codex` never requires sudo or the account's password; host administration stays with `admin`. Keep the existing 585-minute timer and paid-disabled defaults until separately accepted live and scheduled gates.
 
-**Required completion dependency:** After restoring the original AI OS specialists, separating the independent Jaguar vehicle team and centralizing all authorized GitHub operations, integrate automatic Telegram result delivery into **the existing scheduled AI OS `main.py` execution**. This replaces reliance on manually running `telegram_notify.py`, `telegram_test_send.py` or an independent notification timer. Preserve the already operator-tested `services/telegram_service.py` sender, private `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` settings, and the existing **585-minute systemd user timer**; do not add another scheduler or reimplement the Telegram HTTP client in specialists or GitHubAgent. Notification transport is separate from the centralized GitHub API gateway.
+## Migration and acceptance boundary
 
-The scheduled sequence is: `main.py` -> AI OS LeadAgent -> its Documentation/Deployment/Knowledge results -> durable report and notification outbox -> one bounded relevant Telegram digest via the existing sender -> delivery status and retry checkpoint. Send only when there is a meaningful, new, successfully completed and authorized result needing attention; distinguish rule-based observations from model-generated recommendations, include Issue/PR source links and specialist attribution, and suppress empty, duplicate and already acknowledged events. Persist a stable event+result digest key before sending and record delivered/failed/next-retry state, with bounded backoff and secret-free error reporting. Do not acknowledge a notification as delivered on an exception; the report, events and already completed model checkpoints must survive delivery failures. At-least-once delivery across a crash after remote send but before local acknowledgement may cause a duplicate and must be documented.
-
-Both independent teams may reuse the notification transport only through their **separately governed** report/outbox interface. The vehicle team's outputs must never be silently incorporated into the AI OS team's 585-minute run or its Telegram digest; vehicle scheduling and delivery require their own explicitly authorized configuration. No Telegram send is a GitHub mutation, workflow approval, independent review or authorization to enable paid model calls. Maintain existing disabled-by-default model spending and the Management approval gates for any newly automated delivery policy.
-
-**Acceptance before the split and central GitHub implementation is considered operationally complete:** offline tests prove one eligible result causes exactly one digest, unchanged/no-work or repeated events cause none, malformed/truncated or unauthorized results cause none, failed Telegram sends preserve an inspectable pending outbox and retry without duplicate model charges, and a restarted run handles an interrupted delivery. A real scheduled `main.py` execution must then be evidenced by a systemd journal entry, matching durable report/outbox records and human confirmation of the received Telegram message containing the approved changed Issue/PR and relevant results. The prior manual TG-001 and INT-001 evidence remains valid only for manual transport and integration, not this automatic scheduled acceptance.
+1. Review all active imports, prompts, configuration, tests, workflows and Markdown for the mixed P7/Vehicle runtime. Remove Vehicle-only code and proposed Vehicle-team SPECs, retiring the mixed-team [research-to-decision runtime SPEC](RESEARCH_TO_DECISION_SPEC.md) while preserving the independent *human* workflow and historical evidence.
+2. Preserve and reconcile every possibly billed or uncertain reservation, stage checkpoint, Issue snapshot and #904 event cursor. Do not reset ledgers or use a new request key to evade an uncertain bill.
+3. Correct `run-agent.sh` (currently invoking nonexistent `agent.py`) to invoke the same `main.py` as systemd; align the current README, operations and deployment instructions without overwriting the separate [Agent Update PR #935](https://github.com/jagports/jagports/pull/935).
+4. Deliver the Documentation-agent reasoning slice, then the agent-based Telegram digest and gated `/ask` path. Extend the other original agents only after role-specific evidence, prompts and tests exist.
+5. Verify all original deterministic, #904 enrichment, security, cost, recovery, report and notification regressions on the exact implementation head; obtain independent review and separate Pi live evidence. A SPEC-only PR or successful standalone OpenAI wrapper call is not completion of #924.
 
 ## Current architecture
 
