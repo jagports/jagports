@@ -29,7 +29,7 @@ ExecStart=/home/codex/jagports-lead-agent/venv/bin/python /home/codex/jagports-l
 Description=Run Jagports Lead Agent every 9 hours 45 minutes
 
 [Timer]
-OnActiveSec=9h45min
+OnActiveSec=1s
 OnUnitActiveSec=9h45min
 Unit=jagports-lead-agent.service
 
@@ -37,7 +37,7 @@ Unit=jagports-lead-agent.service
 WantedBy=timers.target
 ```
 
-`OnUnitActiveSec=9h45min` counts from service activation; it is **not 09:45 on a clock**. `OnActiveSec=9h45min` schedules the first activation 9h45min after the timer becomes active; `OnUnitActiveSec=9h45min` schedules subsequent runs relative to service activation. There is no short startup run. The repository's `config.yaml` `polling.interval_minutes: 585` is descriptive: current `main.py` does not consume it to create a scheduler.
+`OnUnitActiveSec=9h45min` counts from service activation; it is **not 09:45 on a clock**. `OnActiveSec=1s` starts the agent once shortly after the timer is activated (including an intentional restart of this timer); `OnUnitActiveSec=9h45min` schedules subsequent runs from the most recent service activation. This replaces the unwanted five-minute boot-relative trigger, but intentionally starts once when the timer starts. The repository's `config.yaml` `polling.interval_minutes: 585` is descriptive: current `main.py` does not consume it to create a scheduler.
 
 ## Install or repair as `admin`
 
@@ -73,7 +73,7 @@ if ! sudo test -f "$UNITDIR/jagports-lead-agent.timer"; then
 Description=Run Jagports Lead Agent every 9 hours 45 minutes
 
 [Timer]
-OnActiveSec=9h45min
+OnActiveSec=1s
 OnUnitActiveSec=9h45min
 Unit=jagports-lead-agent.service
 
@@ -92,9 +92,9 @@ If existing unit contents differ, do **not** enable until you identify why. Back
 
 ## Replace the previous short startup trigger on an existing host
 
-For an already-enabled timer, **inspect** `systemctl --user cat jagports-lead-agent.timer` before changing it. If the effective unit includes a startup directive, inspect its source and all displayed drop-ins. Do not modify unrelated MyNode timers. The intended `[Timer]` block contains only `OnActiveSec=9h45min`, `OnUnitActiveSec=9h45min` and `Unit=jagports-lead-agent.service`.
+For an already-enabled timer, **inspect** `systemctl --user cat jagports-lead-agent.timer` before changing it. If the effective unit includes a startup directive, inspect its source and all displayed drop-ins. Do not modify unrelated MyNode timers. The intended `[Timer]` block contains only `OnActiveSec=1s`, `OnUnitActiveSec=9h45min` and `Unit=jagports-lead-agent.service`.
 
-After backing up the existing **codex-owned** timer file, remove any `OnBootSec` assignment from that file, add the intended `OnActiveSec=9h45min` once, and check whether another assignment comes from a drop-in. Reload the `codex` user manager, restart **only this timer**, and inspect the effective unit, monotonic triggers and next activation. Restarting the timer recalculates its first-activation deadline; do not interpret it as a successful unattended service run.
+After backing up the existing **codex-owned** timer file, remove any `OnBootSec` assignment from that file, add the intended `OnActiveSec=1s` once, and check whether another assignment comes from a drop-in. Reload the `codex` user manager, restart **only this timer**, and inspect the effective unit, monotonic triggers and next activation. Restarting the timer recalculates its first-activation deadline; do not interpret it as a successful unattended service run.
 
 As `admin` (do not run these commands through `sudo -iu codex` without its runtime bus), use a codex-targeted user manager:
 
@@ -104,13 +104,13 @@ sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:p
 sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user list-timers --all
 ```
 
-**Safe change after auditing the unit and its drop-ins:** if the obsolete directive is in the primary `codex` timer file, paste the following **as `admin`**. It backs up only that file, removes the old assignment, ensures the 9h45min activation trigger exists, and reloads/restarts **only** the Lead Agent user timer. If `systemctl cat` showed another assignment in a drop-in, inspect and correct that exact drop-in separately before calling the work complete.
+**Safe change after auditing the unit and its drop-ins:** if the obsolete directive is in the primary `codex` timer file, paste the following **as `admin`**. It backs up only that file, removes the old assignment, ensures the one-second first-activation trigger exists, and reloads/restarts **only** the Lead Agent user timer. If `systemctl cat` showed another assignment in a drop-in, inspect and correct that exact drop-in separately before calling the work complete.
 
 ```bash
 UNIT=/home/codex/.config/systemd/user/jagports-lead-agent.timer
 sudo cp -p "$UNIT" "$UNIT.bak.$(date +%Y%m%d%H%M%S)"
 sudo sed -i '/^[[:space:]]*OnBootSec[[:space:]]*=/d' "$UNIT"
-sudo grep -q '^[[:space:]]*OnActiveSec[[:space:]]*=' "$UNIT" || sudo sed -i '/^\[Timer\]/a OnActiveSec=9h45min' "$UNIT"
+sudo grep -q '^[[:space:]]*OnActiveSec[[:space:]]*=' "$UNIT" || sudo sed -i '/^\[Timer\]/a OnActiveSec=1s' "$UNIT"
 sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user daemon-reload
 sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user restart jagports-lead-agent.timer
 sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user cat jagports-lead-agent.timer
@@ -118,7 +118,7 @@ sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:p
 sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user list-timers --all
 ```
 
-**Acceptance:** the effective timer contains no `OnBootSec` assignment, displays both 9h45min intervals, remains enabled/active, and has a plausible next activation. If the effective unit shows any inherited startup trigger, remove it from the exact drop-in shown by `systemctl cat` before declaring success. A separate later timer-triggered service journal entry and durable report remain required for unattended-execution acceptance.
+**Acceptance:** the effective timer contains no `OnBootSec` assignment, displays `OnActiveSec=1s` and `OnUnitActiveSec=9h45min`, remains enabled/active, and after its first near-immediate invocation has a plausible next activation about 9h45min later. If the effective unit shows any inherited startup trigger, remove it from the exact drop-in shown by `systemctl cat` before declaring success. A separate later timer-triggered service journal entry and durable report remain required for unattended-execution acceptance.
 
 ## Service and scheduler acceptance from the `admin` SSH session
 
