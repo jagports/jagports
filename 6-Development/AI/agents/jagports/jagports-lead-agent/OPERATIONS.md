@@ -26,6 +26,8 @@ Reusable engineering and diagnostic commands for the Jagports Lead Agent. These 
 
 **Verifier defect identified and corrected under #927:** A second full Pi test again reported `identity_authenticated=true`, `issue_read=false`, `reason=approved_issue_read_failed`, and `result=blocked`, despite the separately confirmed HTTP 200 and matching Issue #904 JSON. Code review found that the original verifier parsed only the first **4096 bytes** of the entire Issue response, resulting in invalid truncated JSON for longer Issue bodies; this explains the discrepancy without assuming the token lacks access. The corrected verifier now reads the complete response up to a **1 MiB safety limit**, rejects oversized responses before any permission probe, and has offline regressions for large and oversized Issue responses. **The corrected script still requires CI and operator installation before a further live test; no write-denial result has been established yet.** Avoid repeated live requests until that reviewed version is installed.
 
+**Owner-confirmed corrected verifier installation:** The Pi operator backed up the original script, downloaded the revised verifier from PR #928 commit `a1d281e8ebdd7500cfe0a370107023997dedb047`, successfully compiled it as `codex`, and confirmed it contains `MAX_GET_RESPONSE_BYTES = 1024 * 1024` and the bounded full-response read. This is confirmation of script installation and syntax only; the corrected **live** read/write-denial verifier has not yet been run or accepted.
+
 ## P7 Batch 16.3 — dedicated GitHub read-only credential evidence
 
 This is a **Raspberry Pi operator test**, not a GitHub connector test. The
