@@ -31,15 +31,15 @@ A recurring Team Lead audit is supported by ChatGPT automation. Its current sche
 
 The audit is intended to be read-only by default and to identify actionable exceptions while respecting the authoritative Management, workflow, communication, and knowledge sources.
 
-## Current Agent Automation Capability Constraint
+## Lead Agent API and Unattended Execution
 
-For the current Jagports operating environment, a purchasable Codex API subscription suitable for the planned unattended agent runtime is not available. The self-hosted Lead Agent prototype must therefore not be treated as an available production Codex-backed autonomous service.
+The Raspberry Pi Lead Agent has successfully completed operator-reported, separately authorized OpenAI API and existing wrapper smoke tests. This establishes a usable, billed API connection for **bounded advisory reasoning development**; no additional Codex-specific subscription is required for the initial OpenAI-backed specialist pilot.
 
-Automated and scheduled Agent Infrastructure work that depends on Codex API execution is suspended until further notice. This suspension is a capability constraint, not abandonment of the AI OS architecture or its future agent-runtime direction.
+The existing modular coordinator implements deterministic GitHub collection, lifecycle comparison, specialist routing, state and reports. The OpenAI wrapper is not yet connected to its specialist execution path, and automatic model-generated Telegram delivery has not been verified. The 9h45min user timer and manual service invocation have been reported as active/successful; an actual later timer-triggered invocation requires distinct journal and report evidence.
 
-The currently available agent-like scheduled capability is ChatGPT scheduled task/prompt automation. Those scheduled ChatGPT prompts may continue where appropriate under the existing Management workflow, governance, verification, and system-of-record rules.
+Incremental model-backed reasoning, research-to-decision validation and reliable notification work may proceed through the accepted specification, an approved per-run/recurring cost budget, least-privilege access and the existing human decision and independent review gates. Unimplemented production autonomy, autonomous code changes, merges and deployments must not be represented as existing capabilities merely because API connectivity succeeds.
 
-If Codex API or another suitable unattended agent-execution capability becomes available later, the suspended infrastructure work must be explicitly re-evaluated before it is resumed; availability must not be assumed from the existence of the prototype, a ChatGPT subscription, or interactive Codex access.
+ChatGPT scheduled prompt automation and the local Lead Agent are separate scheduling/execution paths; both preserve GitHub as the durable project system of record. Treat an unavailable **specific** execution or tool capability as a scoped, testable dependency rather than a blanket subscription-based block on all agent development.
 
 ## Capability Separation
 
