@@ -327,6 +327,8 @@ A Range slug uses lowercase ASCII letters, digits and internal hyphens (`[a-z0-9
 
 Database provisioning must be specified and executed through a **repository-controlled setup script with README instructions**, not by manually creating an unrecorded database in the Cloudflare dashboard. This specification does not create a Cloudflare database. The setup workflow must:
 
+Before creating each Range database, check the selected account's D1 plan, current database count and storage headroom. Cloudflare's Workers Free D1 limit is currently 10 databases, 500 MB per database and 5 GB total ([D1 limits](https://developers.cloudflare.com/d1/platform/limits/)); the existing fixture `jagports` database consumes a slot when it shares the account. A per-Range database is accepted only when capacity is available. A future need beyond account limits requires an explicit plan or partitioning decision, not an unrecorded naming exception.
+
 1. accept an approved Range slug, derive and display the database name, and verify the selected Cloudflare account and existing database identity before any mutation;
 2. create the named D1 database only when absent, persist its returned database ID in reviewed configuration, and refuse an unexpected existing name/ID instead of adopting or resetting it silently;
 3. apply a reviewed **schema-only** migration path for the approved catalogue model, keeping fixture-seeding SQL out of the Range database; the current mixed migration chain must be separated or otherwise controlled before this step is implemented;
