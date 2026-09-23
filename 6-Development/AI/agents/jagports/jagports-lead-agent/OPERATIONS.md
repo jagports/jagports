@@ -6,6 +6,157 @@ Reusable engineering and diagnostic commands for the Jagports Lead Agent. These 
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
+## Agent update from reviewed main — codex-owned Raspberry Pi workspace
+
+**Audience:** the operator updating the existing \`mynode-sby\` application, not installing a new host. The live installation is \`/home/codex/jagports-lead-agent\` and its Python environment and files are owned by \`codex\` (previously observed UID 1008). Host account and first-time systemd setup belong in the [canonical MyNode Deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). This procedure updates **only already merged \`main\`**: open architecture/specification PRs are not installed automatically. Confirm that a reviewed release is ready before updating the scheduled host.
+
+**Account and password rule:** SSH into the host as \`admin\`, then run \`sudo -v\` **once in that interactive shell**. \`sudo -u codex -H bash\` uses \`admin\`'s authorized sudo access; it does **not** request or require the \`codex\` password. Do not use \`su codex\`; never run \`git\`, \`rsync\`, \`pip\`, \`main.py\`, Python compilation or tests as \`admin\` in the agent workspace. If \`admin\` cannot use sudo, stop and ask the host administrator for authorized access. Do not alter the account password or grant \`codex\` sudo to work around this.
+
+### A. Preflight and update as codex
+
+From an \`admin@mynode-sby\` SSH session run \`sudo -v\` separately, then paste the block below. The application may be a copied installation without a \`.git\` folder, so use a temporary **\`codex\`-owned sparse clone** instead of \`git pull\` inside it. No \`.env\`, virtual environment, state or reports are uploaded, printed or overwritten. The private backup intentionally excludes the credential file and virtual environment; both remain in place. The existing local \`config.yaml\` is backed up, then replaced with the merged, **disabled-by-default** template; reconcile any legitimate local settings separately under the pilot's own approval gates.
+
+The download and preflight happen **before stopping the timer**. If an update/test fails after the timer is stopped, **leave it stopped** until repaired or restored; do not silently restart a broken scheduled installation.
+
+\`\`\`bash
+# Run interactively as admin, separately, so sudo does not consume heredoc input.
+sudo -v
+sudo -u codex -H id
+
+sudo -u codex -H bash <<'CODEX'
+set -euo pipefail
+umask 077
+test "$(id -un)" = codex || { echo "Wrong user"; exit 1; }
+
+APP=/home/codex/jagports-lead-agent
+SUB=6-Development/AI/agents/jagports/jagports-lead-agent
+STAGE=$(mktemp -d /home/codex/jagports-update.XXXXXX)
+BACKUP=$(mktemp -d /home/codex/jagports-backup.XXXXXX)
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+
+test -d "$APP" && test -w "$APP"
+test -f "$APP/.env" && test -x "$APP/venv/bin/python"
+test -S "$XDG_RUNTIME_DIR/bus"
+command -v git
+command -v rsync
+"$APP/venv/bin/python" -c \
+  'import github, yaml, dotenv, openai; print("Python dependencies OK")'
+
+git clone --depth 1 --filter=blob:none --sparse --branch main \
+  https://github.com/jagports/jagports.git "$STAGE"
+git -C "$STAGE" sparse-checkout set "$SUB"
+test -f "$STAGE/$SUB/main.py"
+echo "Selected main commit:"
+git -C "$STAGE" rev-parse HEAD
+
+# Reject an unexpectedly enabled checked-in release before changing the host.
+"$APP/venv/bin/python" - "$STAGE/$SUB/config.yaml" <<'PY'
+import sys, yaml
+with open(sys.argv[1], encoding="utf-8") as handle:
+    c = yaml.safe_load(handle)
+assert c["openai"]["enabled"] is False
+assert c["p7"]["enabled"] is False
+assert c["p7"]["reasoning"]["enabled"] is False
+assert c["p7"]["allowed_issue_numbers"] == []
+assert c["polling"]["interval_minutes"] == 585
+print("Release defaults verified: no paid execution")
+PY
+
+# Stop only the existing codex timer; do not update a running process.
+systemctl --user stop jagports-lead-agent.timer
+if systemctl --user is-active --quiet jagports-lead-agent.service; then
+  echo "Service still running; leave timer stopped and retry when it exits."
+  exit 1
+fi
+
+# Backup is private and codex-owned; no duplicate .env or venv.
+rsync -a \
+  --exclude='/venv/' --exclude='/.env' --exclude='/.git/' \
+  --exclude='__pycache__/' --exclude='*.pyc' \
+  "$APP/" "$BACKUP/"
+
+# Install files as codex. Preserve local secrets and durable runtime data.
+rsync -a \
+  --exclude='/venv/' --exclude='/.env' --exclude='/.git/' \
+  --exclude='/config.yaml' --exclude='/state/' --exclude='/reports/' \
+  --exclude='/issues_snapshot.txt' --exclude='/agent_status.json' \
+  --exclude='__pycache__/' --exclude='*.pyc' \
+  "$STAGE/$SUB/" "$APP/"
+install -m 600 "$STAGE/$SUB/config.yaml" "$APP/config.yaml"
+
+cd "$APP"
+./venv/bin/python -m compileall -q agents core services tests main.py
+./venv/bin/python -m unittest discover -s tests -p 'test_*.py' -q
+
+echo "Offline update and tests PASS; paid execution remains disabled."
+echo "Private backup: $BACKUP"
+echo "Downloaded source: $STAGE"
+echo "Timer intentionally remains stopped pending the service check below."
+CODEX
+\`\`\`
+
+If dependency preflight fails, **do not switch to \`sudo pip\`**. Inspect the existing \`codex\` virtual environment and install only approved missing dependencies using \`/home/codex/jagports-lead-agent/venv/bin/python -m pip\` as \`codex\`, then repeat the update.
+
+### B. Existing admin-owned cache repair, only if required
+
+If earlier \`admin\` Python runs left inaccessible \`__pycache__\` directories, identify the affected paths in the **admin** shell before repairing. The following only changes owners inside Python cache directories under the application and excludes \`venv/\`; do not recursively \`chown\` the home directory, virtual environment or unrelated MyNode services.
+
+\`\`\`bash
+APP=/home/codex/jagports-lead-agent
+sudo find "$APP" -path "$APP/venv" -prune -o \
+  -type d -name '__pycache__' -print
+# After inspecting this path list, repair only these application caches:
+sudo find "$APP" -path "$APP/venv" -prune -o \
+  -type d -name '__pycache__' -exec chown -R codex:codex {} +
+\`\`\`
+
+All subsequent Python compilation, testing and runtime invocations still run as \`codex\`.
+
+### C. Verify the installed user service, then resume the existing timer
+
+From the **admin** shell, run this separate \`codex\` block **only after section A passed**. It does not reconfigure the systemd unit, change credentials or create a new scheduler. Starting the existing timer with \`OnActiveSec=1s\` causes a near-immediate first deterministic run; subsequent runs use \`OnUnitActiveSec=9h45min\`. Inspect the *effective* unit and any drop-ins against the MyNode guide before starting it.
+
+\`\`\`bash
+sudo -u codex -H bash <<'CODEX'
+set -euo pipefail
+APP=/home/codex/jagports-lead-agent
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+cd "$APP"
+
+./venv/bin/python - <<'PY'
+import yaml
+with open("config.yaml", encoding="utf-8") as handle:
+    c = yaml.safe_load(handle)
+assert c["openai"]["enabled"] is False
+assert c["p7"]["enabled"] is False
+assert c["p7"]["reasoning"]["enabled"] is False
+assert c["p7"]["allowed_issue_numbers"] == []
+print("PASS: paid Research/Product pipeline disabled")
+PY
+
+systemctl --user cat jagports-lead-agent.service
+systemctl --user cat jagports-lead-agent.timer
+# Stop and inspect if the effective timer shows OnBootSec or unexpected drop-ins.
+systemctl --user start jagports-lead-agent.service
+systemctl --user show jagports-lead-agent.service \
+  -p Result -p ExecMainStatus
+stat -c '%y %U:%G %n' \
+  reports/lead_report.md state/agent_state.json
+# Review successful Result=success and ExecMainStatus=0 above before resuming.
+systemctl --user start jagports-lead-agent.timer
+systemctl --user list-timers --all
+systemctl --user show jagports-lead-agent.timer \
+  -p LastTriggerUSec -p TimersMonotonic -p DropInPaths
+journalctl --user -u jagports-lead-agent.service -n 40 --no-pager
+CODEX
+\`\`\`
+
+**Rollback / blocked update:** if the code, offline tests, service or effective timer checks fail, stop the **Lead Agent timer only**, keep \`p7\` and \`openai\` disabled, and preserve the exact \`STAGE\` and \`BACKUP\` paths printed above. From an authorized \`codex\` shell, inspect the private backup and copy the approved prior application files back with \`rsync -a\` excluding \`venv/\`, \`.env\`, \`state/\` and \`reports/\`; restore the prior \`config.yaml\` only after verifying its paid-execution gates. Do **not** use an unreviewed blanket \`--delete\` against the live workspace. Diagnose any new paths left by the failed update and remove only confirmed obsolete files. Re-run compilation, offline tests and a manual service check before restarting the timer.
+
+**Evidence and scope:** record the exact main commit, offline test result, service exit result, resulting file owners, private backup location and last/next timer activation without credentials. A newly installed file is not evidence of a later unattended 585-minute run; verify its journal and report separately. This routine update does not enable model calls, automatic Telegram, autonomous GitHub writes, the unmerged two-team architecture, or an additional timer.
+
 ## P7 Batch 16.3 — dedicated GitHub read-only credential evidence
 
 This is a **Raspberry Pi operator test**, not a GitHub connector test. The
