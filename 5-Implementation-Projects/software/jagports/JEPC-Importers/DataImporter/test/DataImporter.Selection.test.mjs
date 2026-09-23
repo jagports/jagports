@@ -4,21 +4,26 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { XK_MODEL_IDS, selectXkBundles } from '../src/DataImporter.Selection.mjs';
+import { matchingLeafModels, selectModelBundles } from '../src/DataImporter.Selection.mjs';
+
+const TEST_MODEL_IDS = ['3187', '3183', '3178', '3173', '7420'];
 
 async function fixture(t) {
   const parent = await mkdtemp(path.join(tmpdir(), 'jepc-select-'));
   t.after(() => rm(parent, { recursive: true, force: true }));
-  const source = path.join(parent, 'source');
-  const stateDir = path.join(parent, 'state');
+  const source = path.join(parent, 'source'), stateDir = path.join(parent, 'state');
   const put = async (relative, value) => {
     const filename = path.join(source, relative);
     await mkdir(path.dirname(filename), { recursive: true });
     await writeFile(filename, value);
   };
   const wrapper = values => `<?xml version="1.0" encoding="ISO8859-1" ?>\n<Data>\n${values.join('\n')}\n</Data>`;
-  await put('menus/models_l_id_0.xml', wrapper(XK_MODEL_IDS.map(id => `[${id},3175,'XK model ${id}']`)));
-  for (const model of XK_MODEL_IDS) {
+  await put('menus/models_l_id_0.xml', wrapper([
+    '[3175,10001,\'Jaguar XK8 Coupe/Convertible\']',
+    ...TEST_MODEL_IDS.slice(0, 4).map(id => `[${id},3175,'XK8 model ${id}']`),
+    '[7422,10001,\'XK Range\']', '[7420,7422,\'XK Range model\']',
+  ]));
+  for (const model of TEST_MODEL_IDS) {
     const entries = [];
     for (let n = 1; n <= 9; n++) {
       const category = String(Number(model) * 100 + n);
@@ -30,67 +35,70 @@ async function fixture(t) {
     }
     await put(`menus/L0/pl_id_${model}_l_id_0.xml`, wrapper(entries));
   }
-  return { source, stateDir, seed: 'reviewable-seed', put };
+  return { source, stateDir, put };
 }
 
-test('selects forty real bundles across five models and reuses the same manifest', async t => {
-  const options = await fixture(t);
-  const first = await selectXkBundles(options);
-  assert.equal(first.reused, false);
-  assert.equal(first.manifest.selection.candidateCount, 45);
-  assert.equal(first.manifest.bundles.length, 40);
-  assert.deepEqual([...new Set(first.manifest.bundles.map(b => b.model))].sort(), [...XK_MODEL_IDS].sort());
-  assert.equal(first.manifest.bundles[0].files.length, 3);
-  assert.equal(first.manifest.phase, 'SELECTION_ONLY');
-  assert.equal((await readFile(first.filename, 'utf8')).includes('PN-'), false);
-  const again = await selectXkBundles(options);
-  assert.equal(again.reused, true);
-  assert.deepEqual(again.manifest.bundles, first.manifest.bundles);
+test('model pattern selects XML leaves and matching parent descendants without fixed IDs', () => {
+  const source = `<Data>\n[3175,10001,'Jaguar XK8 Coupe/Convertible']\n[3187,3175,'XK8 Coupe']\n[7422,10001,'XK Range']\n[7420,7422,'XK Range later']\n[2233,10001,'XJ Series X300']\n[2231,2233,'XJ Series model']\n[3215,10001,'XJ Series X308']\n[3218,3215,'XJ Series model']\n[2213,10001,'XJS Sports Coupe']\n[2216,2213,'XJS model']\n</Data>`;
+  assert.deepEqual(matchingLeafModels(source, 'XK').map(model => model.id), ['3187', '7420']);
+  assert.deepEqual(matchingLeafModels(source, 'X300').map(model => model.id), ['2231']);
+  assert.deepEqual(matchingLeafModels(source, 'X3').map(model => model.id), ['2231', '3218']);
+  assert.deepEqual(matchingLeafModels(source, 'XJ').map(model => model.id), ['2231', '3218', '2216']);
+  assert.deepEqual(matchingLeafModels(source, 'XJS').map(model => model.id), ['2216']);
+  assert.throws(() => matchingLeafModels(source, 'F-Type'), /No leaf source models/);
 });
 
-test('different seed has a separate manifest; source change blocks reuse', async t => {
+test('selection caps complete categories at forty, covers matched models and records incomplete ones', async t => {
   const options = await fixture(t);
-  const first = await selectXkBundles(options);
-  const other = await selectXkBundles({ ...options, seed: 'another-seed' });
-  assert.notEqual(other.filename, first.filename);
-  assert.notDeepEqual(other.manifest.bundles.map(b => `${b.model}/${b.category}`),
-    first.manifest.bundles.map(b => `${b.model}/${b.category}`));
-  const file = first.manifest.bundles[0].files[0].path;
-  await options.put(file, '<Data>changed source</Data>');
-  await assert.rejects(selectXkBundles(options), /Existing selection differs/);
+  const first = await selectModelBundles({ ...options, pattern: 'XK' });
+  assert.equal(first.modelPattern, 'XK');
+  assert.deepEqual(first.modelIds, TEST_MODEL_IDS);
+  assert.equal(first.eligibleCategories, 45);
+  assert.equal(first.categoryLimit, 40);
+  assert.equal(first.bundles.length, 40);
+  assert.deepEqual(new Set(first.bundles.map(bundle => bundle.model)), new Set(TEST_MODEL_IDS));
+  assert.deepEqual((await selectModelBundles({ ...options, pattern: 'xk' })).bundles, first.bundles);
+  const other = await selectModelBundles({ ...options, pattern: 'XK', seed: 'another-sample' });
+  assert.equal(other.bundles.length, 40);
+  assert.notDeepEqual(other.bundles.map(bundle => `${bundle.model}/${bundle.category}`),
+    first.bundles.map(bundle => `${bundle.model}/${bundle.category}`));
+  assert.equal(first.incompleteCategories.length, 0);
+  await assert.rejects(readdir(options.stateDir), /ENOENT/);
+  await rm(path.join(options.source, 'drilldown/pl_id_3187/L0/tl_M3187_C318701_L0.xml'));
+  const changed = await selectModelBundles({ ...options, pattern: 'xk' });
+  assert.equal(changed.eligibleCategories, 44);
+  assert.equal(changed.bundles.length, 40);
+  assert.deepEqual(changed.incompleteCategories[0].missing, ['top-level']);
 });
 
-test('missing or unknown menu structures fail rather than invent candidates', async t => {
+test('unknown menu structures and state inside the source are rejected', async t => {
   const options = await fixture(t);
   await options.put('menus/L0/pl_id_3187_l_id_0.xml', '<?xml version="1.0"?>\n<Data>\n[broken]\n</Data>');
-  await assert.rejects(selectXkBundles(options), /Unknown menu row/);
-  await assert.rejects(selectXkBundles({ ...options, stateDir: path.join(options.source, 'state') }), /outside/);
+  await assert.rejects(selectModelBundles({ ...options, pattern: 'XK' }), /Unknown menu row/);
+  await assert.rejects(selectModelBundles({ ...options, pattern: 'XK', stateDir: path.join(options.source, 'state') }), /outside/);
 });
 
-test('a missing dependency excludes that category from the candidate population', async t => {
-  const options = await fixture(t);
-  await rm(path.join(options.source, 'drilldown/pl_id_3187/L0/tl_M3187_C318701_L0.xml'));
-  const result = await selectXkBundles(options);
-  assert.equal(result.manifest.selection.candidateCount, 44);
-  assert.equal(result.manifest.bundles.some(bundle => bundle.model === '3187' && bundle.category === '318701'), false);
-});
-
-test('pre-import estimate runs only when explicitly enabled', async t => {
+test('--parse stages forty matched bundles and reuses evidence without saving a selection file', async t => {
   const options = await fixture(t);
   const cli = path.resolve('src/DataImporter.CLI.mjs');
-  const base = ['select-xk', '--source', options.source, '--state-dir', options.stateDir,
-    '--seed', options.seed, '--json'];
-  const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
-  const plain = call(base);
-  assert.equal(plain.status, 0, plain.stderr);
-  assert.equal(JSON.parse(plain.stdout).estimate, undefined);
-  assert.equal((await readdir(options.stateDir)).some(name => name.startsWith('range-estimate-')), false);
-  const enabled = call([...base, '--estimate', '--sample-size', '5']);
-  assert.equal(enabled.status, 0, enabled.stderr);
-  const summary = JSON.parse(enabled.stdout);
-  assert.equal(summary.estimate.state, 'COMPLETED');
-  assert.equal(summary.estimate.sourceFiles, 141);
-  assert.equal(summary.estimate.projectedD1Bytes, null);
-  assert.ok((await readdir(options.stateDir)).some(name => name.startsWith('range-estimate-')));
-  assert.equal(call([...base, '--sample-size', '5']).status, 1);
+  const run = (pattern, extra = []) => spawnSync(process.execPath, [cli, '--parse', pattern,
+    '--source', options.source, '--state-dir', options.stateDir, ...extra, '--json'], { encoding: 'utf8' });
+  const first = run('XK');
+  assert.equal(first.status, 0, first.stderr);
+  const summary = JSON.parse(first.stdout);
+  assert.equal(summary.eligible, 45);
+  assert.equal(summary.limit, 40);
+  assert.equal(summary.selected, 40);
+  assert.deepEqual(summary.modelIds, TEST_MODEL_IDS);
+  assert.equal(summary.staging.bundles, 40);
+  assert.equal(summary.staging.reused, 0);
+  assert.equal((await readdir(options.stateDir)).some(name => name.includes('selection')), false);
+  const second = run('xk');
+  assert.equal(second.status, 0, second.stderr);
+  assert.equal(JSON.parse(second.stdout).staging.reused, 40);
+  const estimated = run('XK', ['--estimate']);
+  assert.equal(estimated.status, 0, estimated.stderr);
+  const estimateReport = JSON.parse(await readFile(JSON.parse(estimated.stdout).estimate.report, 'utf8'));
+  assert.equal(estimateReport.modelPattern, 'XK');
+  assert.equal(estimateReport.range, null);
 });
