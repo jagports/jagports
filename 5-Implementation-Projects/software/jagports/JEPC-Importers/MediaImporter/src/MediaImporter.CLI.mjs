@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { moveCursor, cursorTo, clearScreenDown } from 'node:readline';
-import { importManifest, inspectMedia, readState, run } from './MediaImporter.Runtime.mjs';
+import { importManifest, inspectMedia, preserveMedia, readState, run } from './MediaImporter.Runtime.mjs';
 
 const help = `
 Jagports JEPC MediaImporter v0.1 — bounded local preservation
@@ -9,6 +9,7 @@ Jagports JEPC MediaImporter v0.1 — bounded local preservation
 Node.js 24+; run locally beside a JEPC installation.
   import-manifest --manifest <file> --state-dir <directory>
   inspect --source <JEPC root> --state-dir <directory> --media-id <id> [--json]
+  preserve --source <JEPC root> --state-dir <directory> --destination-dir <directory> --media-id <id> [--json]
   run --source <JEPC root> --state-dir <directory> [--json]
   status --state-dir <directory> [--json]
   report --state-dir <directory>
@@ -36,14 +37,14 @@ export function screen(snapshot) {
 
 async function main() {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
-    source: { type: 'string' }, 'state-dir': { type: 'string' }, manifest: { type: 'string' }, 'media-id': { type: 'string' },
+  source: { type: 'string' }, 'state-dir': { type: 'string' }, 'destination-dir': { type: 'string' }, manifest: { type: 'string' }, 'media-id': { type: 'string' },
     json: { type: 'boolean' }, full: { type: 'boolean' }, help: { type: 'boolean', short: 'h' },
   } });
   if (values.help || !positionals.length) { console.log(help); return; }
   const [command] = positionals;
-  if (positionals.length !== 1 || !['import-manifest', 'inspect', 'run', 'status', 'report', 'doctor'].includes(command)) throw new Error('Unknown command. Use --help.');
+  if (positionals.length !== 1 || !['import-manifest', 'inspect', 'preserve', 'run', 'status', 'report', 'doctor'].includes(command)) throw new Error('Unknown command. Use --help.');
   const allowed = command === 'import-manifest' ? ['manifest', 'state-dir']
-    : command === 'inspect' ? ['source', 'state-dir', 'media-id', 'json']
+    : command === 'inspect' ? ['source', 'state-dir', 'media-id', 'json'] : command === 'preserve' ? ['source', 'state-dir', 'destination-dir', 'media-id', 'json']
       : command === 'run' ? ['source', 'state-dir', 'json']
         : command === 'doctor' ? ['state-dir', 'full'] : command === 'status' ? ['state-dir', 'json'] : ['state-dir'];
   for (const key of Object.keys(values)) if (!allowed.includes(key)) throw new Error(`--${key} is not valid for ${command}.`);
@@ -57,7 +58,8 @@ async function main() {
     console.log(JSON.stringify(await importManifest({ manifest: values.manifest, stateDir: values['state-dir'] }), null, 2)); return;
   }
   if (!values.source) throw new Error('--source is required.');
-  if (command === 'inspect' && !values['media-id']) throw new Error('--media-id is required.');
+  if ((command === 'inspect' || command === 'preserve') && !values['media-id']) throw new Error('--media-id is required.');
+  if (command === 'preserve' && !values['destination-dir']) throw new Error('--destination-dir is required.');
   let stopped = false, signals = 0, renderedLines = 0;
   const onSignal = () => { stopped = true; if (++signals > 1) process.exit(130); };
   const onKey = chunk => { if (chunk.includes('\x03')) onSignal(); else if (/q/i.test(chunk)) stopped = true; };
@@ -73,6 +75,7 @@ async function main() {
   try {
     const result = command === 'inspect'
       ? await inspectMedia({ source: values.source, stateDir: values['state-dir'], mediaId: values['media-id'] }, { shouldStop: () => stopped, onProgress: progress })
+      : command === 'preserve' ? await preserveMedia({ source: values.source, stateDir: values['state-dir'], destinationDir: values['destination-dir'], mediaId: values['media-id'] })
       : await run({ source: values.source, stateDir: values['state-dir'] }, { shouldStop: () => stopped, onProgress: progress });
     if (!interactive) console.log(values.json ? JSON.stringify(result, null, 2) : screen(result));
     process.exitCode = result.run.state === 'STOPPED_BY_USER' ? 130 : 0;

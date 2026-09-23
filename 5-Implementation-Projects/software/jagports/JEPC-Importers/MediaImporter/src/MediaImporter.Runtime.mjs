@@ -4,6 +4,7 @@ import { createReadStream } from 'node:fs';
 import { mkdir, realpath, stat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import readline from 'node:readline';
+import { FilesystemDestination, objectKey } from './MediaImporter.Destination.mjs';
 
 export const CONTRACT_VERSION = 1;
 export const MANIFEST_CONTRACT = 'jagports.jepc.media-work';
@@ -181,6 +182,11 @@ function schema(db) {
     );
     CREATE TABLE IF NOT EXISTS events (
       sequence INTEGER PRIMARY KEY, run_id TEXT NOT NULL REFERENCES runs(id), time TEXT NOT NULL, detail TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS preserved_objects (
+      work_id TEXT NOT NULL REFERENCES media_work(id), role TEXT NOT NULL, object_key TEXT NOT NULL,
+      checksum TEXT NOT NULL, size INTEGER NOT NULL, media_type TEXT NOT NULL, state TEXT NOT NULL,
+      PRIMARY KEY(work_id, role)
     );
     PRAGMA user_version=1;
   `);
@@ -392,6 +398,36 @@ export async function run(options, controls = {}) {
     }
     closeRun(db, id, shouldStop() ? 'STOPPED_BY_USER' : 'COMPLETED');
     return { ...snapshot(db, id), stateDir };
+  } catch (error) { closeRun(db, id, 'FAILED', error.message); throw error; }
+  finally { db.close(); }
+}
+
+export async function preserveMedia(options) {
+  await inspectMedia(options);
+  const { db, id, source, stateDir } = await open(options, 'PRESERVE');
+  try {
+    const destination = await FilesystemDestination.open(options.destinationDir);
+    if (source && inside(source, destination.root)) throw new Error('Destination directory must be outside the source installation.');
+    await destination.health();
+    const work = db.prepare('SELECT * FROM media_work WHERE media_id=? ORDER BY rowid DESC LIMIT 1').get(options.mediaId);
+    const candidates = db.prepare("SELECT * FROM candidates WHERE work_id=? AND state='FOUND' ORDER BY role").all(work.id);
+    let preserved = 0, reused = 0;
+    for (const candidate of candidates) {
+      const evidence = candidate.role === 'hotspot_xml';
+      const bytes = await readFile(await sourcePath(source, candidate.source_path));
+      if (sha(bytes) !== candidate.checksum || bytes.length !== candidate.size) throw new Error(`Source changed before preservation: ${candidate.source_path}`);
+      const extension = evidence ? 'xml' : candidate.media_type === 'image/jpeg' ? 'jpg' : 'png';
+      const key = objectKey({ checksum: candidate.checksum, extension, evidence });
+      const result = await destination.putVerified({ key, bytes, expectedChecksum: candidate.checksum, expectedSize: candidate.size });
+      transaction(db, () => {
+        db.prepare(`INSERT INTO preserved_objects VALUES(?,?,?,?,?,?,?) ON CONFLICT(work_id,role) DO UPDATE SET object_key=excluded.object_key,checksum=excluded.checksum,size=excluded.size,media_type=excluded.media_type,state=excluded.state`)
+          .run(work.id, candidate.role, key, candidate.checksum, candidate.size, candidate.media_type ?? 'application/xml', result.reused ? 'REUSED' : 'PRESERVED');
+        event(db, id, { type: 'OBJECT_PRESERVED', workId: work.id, role: candidate.role, key, reused: result.reused });
+      });
+      preserved += 1; if (result.reused) reused += 1;
+    }
+    closeRun(db, id, 'COMPLETED');
+    return { ...snapshot(db, id), preserved, reused, destination: destination.root, stateDir };
   } catch (error) { closeRun(db, id, 'FAILED', error.message); throw error; }
   finally { db.close(); }
 }
