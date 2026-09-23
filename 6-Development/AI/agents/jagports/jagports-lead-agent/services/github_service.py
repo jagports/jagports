@@ -188,7 +188,7 @@ class GitHubService:
                 for comment_id in ids:
                     self._record_get("comment_id_gets")
                     try:
-                        comments.append(self.repo.get_issue_comment(comment_id))
+                        comments.append(issue.get_comment(comment_id))
                     except Exception as exc:
                         return failure(self._error_status(exc),
                                        "selected_comment_lookup_failed", exc)
@@ -215,9 +215,10 @@ class GitHubService:
                         cutoff=cutoff)
                 except (AttributeError, TypeError, ValueError) as exc:
                     return failure("retryable_error", "comment_provenance_incomplete", exc)
+                # Text was fetched even if age policy excludes this comment.
+                self._metrics["fetched_text_chars"] += len(comment.body or "")
                 if item is not None:
                     context["comments"].append(item)
-                    self._metrics["fetched_text_chars"] += len(comment.body or "")
                 if reason:
                     reasons.append(reason)
             context["truncated"] = bool(reasons)
