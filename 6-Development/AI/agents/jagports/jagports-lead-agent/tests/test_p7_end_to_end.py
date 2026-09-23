@@ -189,6 +189,7 @@ class EndToEndAndLegacyTests(unittest.TestCase):
         issue.updated_at = datetime(2026, 9, 23, tzinfo=timezone.utc)
         pr = Mock()
         pr.raw_data = {"pull_request": {"url": "https://api.github.com/pr/5"}}
+        pr.number = 5
         repo = Mock()
         repo.get_issues.return_value = [pr, issue]
         service.repo = repo
