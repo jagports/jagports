@@ -42,7 +42,8 @@ class GitHubRequestGuard:
         if (verb != "GET" or input is not None or stream or
                 follow_302_redirect or parsed.scheme != "https" or
                 parsed.netloc != "api.github.com" or
-                not parsed.path.startswith(allowed_path) or
+                not (parsed.path == allowed_path[:-1] or
+                     parsed.path.startswith(allowed_path)) or
                 parsed.username is not None or parsed.password is not None):
             with self._lock:
                 self.denied += 1
