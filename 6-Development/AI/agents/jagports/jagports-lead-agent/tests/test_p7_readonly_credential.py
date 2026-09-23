@@ -77,6 +77,16 @@ class ReadonlyCredentialTests(unittest.TestCase):
         self.assertNotIn(TOKEN, json.dumps(evidence))
         self.assertNotIn("readonly-bot", json.dumps(evidence))
 
+    def test_issue_larger_than_previous_prefix_limit(self):
+        issue = {"number": 904, "body": "A" * 9000}
+        opener = SequenceOpener([
+            IDENTITY, (200, issue), (403, {
+                "message": "Resource not accessible by personal access token"
+            })])
+        evidence = checker.verify(TOKEN, opener=opener)
+        self.assertEqual(evidence["result"], "verified")
+        self.assertEqual(opener.methods, ["GET", "GET", "POST"])
+
     def test_write_capable_credential_fails_closed_on_validation_error(self):
         opener = SequenceOpener([
             IDENTITY, ISSUE, (422, {"message": "Validation failed"})])
