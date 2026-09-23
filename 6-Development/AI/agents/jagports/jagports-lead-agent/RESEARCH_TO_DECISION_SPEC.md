@@ -6,6 +6,12 @@
 
 **Location:** Lead Agent Development specification. This document defines the research-to-decision extension only; it does not redefine the shared Lead Agent runtime, Management workflow, prioritization method, review gates, or deployment procedure.
 
+## Transitional ownership and planned retirement
+
+**The historical mixed-team workflow described below is not the target team architecture.** Its implementation entered `main` through PR #919 as an independently reviewed bounded pilot; Issue [#924](https://github.com/jagports/jagports/issues/924) governs the subsequent separation. Move Jaguar Research, Product/Vehicle prompts and domain validation to the [independent vehicle agent SPEC](../jagports-vehicle-agent/SPEC_Vehicle_Agent_Team.md); the [original AI OS Lead Agent SPEC](SPEC_Agent_Lead.md#target-ownership--ai-os-application-development-agent-team-924) owns only the original application-development coordinator and Documentation, Deployment and Knowledge specialists. Move reusable budget, event, checkpoint, retrieval and report contracts to [Shared Agent Services](../SHARED_AGENT_SERVICES_SPEC.md). Do not integrate the vehicle role into an original AI OS specialist.
+
+After independently reviewed implementation of #924, retire this mixed-team document and remove all active temporary P7 names without deleting historical work records or resetting any billed/uncertain checkpoint. No specification change alone activates either team, paid OpenAI calls or the Raspberry Pi timer.
+
 ## 1. Objective and acceptance boundary
 
 Prove that the existing Raspberry Pi Lead Agent can execute a **bounded, unattended, source-backed, multi-role research-to-decision hand-off** using the available OpenAI API, without requiring a Codex-backed autonomous coding runtime.
