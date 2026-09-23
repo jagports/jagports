@@ -94,6 +94,7 @@ class ReasoningService:
             raise ReasoningError("Paid reasoning is disabled.")
         required = ("model", "max_calls_per_run", "max_input_tokens",
                     "max_output_tokens", "max_run_cost_usd", "max_daily_cost_usd",
+                    "max_total_cost_usd",
                     "input_usd_per_million_tokens", "output_usd_per_million_tokens")
         if any(not c.get(key) for key in required):
             raise ReasoningError("Pilot model, token and approved cost limits are required.")
@@ -106,7 +107,7 @@ class ReasoningService:
         if any(type(c[k]) is not int or c[k] < 1
                for k in ("max_input_tokens", "max_output_tokens")):
             raise ReasoningError("Positive integer token caps are required.")
-        for k in ("max_run_cost_usd", "max_daily_cost_usd",
+        for k in ("max_run_cost_usd", "max_daily_cost_usd", "max_total_cost_usd",
                   "input_usd_per_million_tokens", "output_usd_per_million_tokens"):
             try:
                 value = float(c[k])
@@ -167,12 +168,19 @@ class ReasoningService:
             daily_reserved = sum(float(entry.get("reserved_usd", 0))
                                  for entry in attempts.values()
                                  if entry.get("day") == day)
+            # The $5 API pool is not renewed at midnight. Reservations from
+            # every previous day and process count, including uncertain calls.
+            total_reserved = sum(float(entry.get("reserved_usd", 0))
+                                 for entry in attempts.values())
             if (not math.isfinite(run_reserved) or
                     run_reserved + maximum_cost > float(c["max_run_cost_usd"]) + 1e-12):
                 raise BudgetExceeded("Approved per-run budget exhausted.")
             if (not math.isfinite(daily_reserved) or
                     daily_reserved + maximum_cost > float(c["max_daily_cost_usd"]) + 1e-12):
                 raise BudgetExceeded("Approved daily budget exhausted.")
+            if (not math.isfinite(total_reserved) or
+                    total_reserved + maximum_cost > float(c["max_total_cost_usd"]) + 1e-12):
+                raise BudgetExceeded("Approved cumulative API budget exhausted.")
 
             attempts[request_key] = {
                 "day": day, "role": role, "run_key": run_key,
