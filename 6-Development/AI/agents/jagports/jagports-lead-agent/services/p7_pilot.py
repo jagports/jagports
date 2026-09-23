@@ -50,6 +50,16 @@ class P7Pilot:
         except FileNotFoundError:
             return {}
 
+    def completed_event_key(self):
+        """Return only the exact durable complete checkpoint's event identity."""
+        state = self._load()
+        if (state.get("stage") != "complete" or
+                state.get("model_calls_started") != 2 or
+                not state.get("research") or not state.get("product_vehicle") or
+                not state.get("decision_route")):
+            return None
+        return state.get("event_key")
+
     def _save(self, state):
         _write_json_atomic(self.checkpoint_path, state)
         # Atomic rename prevents torn JSON; fsync also makes stage boundaries
