@@ -34,6 +34,21 @@ class LeadAgent:
 
         old_state = state_service.load_state()
 
+        # Legacy snapshots contain PRs because GitHub's Issues endpoint also
+        # returns them. Remove only PR numbers actually classified in this
+        # collection before computing lifecycle deltas. In a PR-only legacy
+        # snapshot, the resulting empty baseline prevents a false historical
+        # "new Issue" flood. The next saved snapshot is Issue-only.
+        filtered_pr_numbers = getattr(self.github.github,
+                                      "filtered_pr_numbers", set())
+        if filtered_pr_numbers and isinstance(old_state.get("issues"), dict):
+            excluded = {str(number) for number in filtered_pr_numbers}
+            old_state = dict(old_state)
+            old_state["issues"] = {
+                key: value for key, value in old_state["issues"].items()
+                if str(key) not in excluded
+            }
+
         issue_state = {}
 
         for issue in issues:
