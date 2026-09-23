@@ -28,7 +28,7 @@ CONTEXT = {"number": 42, "title": "Source-backed research", "body": "Approved qu
 
 
 class FakeGitHub:
-    def __init__(self, token=None, repository=None):
+    def __init__(self, token=None, repository=None, *, max_requests_per_run=12):
         self.collected = 0
 
     def get_issues(self):
