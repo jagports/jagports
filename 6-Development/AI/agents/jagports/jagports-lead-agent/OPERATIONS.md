@@ -392,19 +392,7 @@ WorkingDirectory=/home/codex/jagports-lead-agent
 ExecStart=/home/codex/jagports-lead-agent/run-agent.sh
 ```
 
-The proposed timer at `~/.config/systemd/user/jagports-lead-agent.timer` was:
-
-```ini
-[Unit]
-Description=Run Jagports Lead Agent hourly
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=1h
-
-[Install]
-WantedBy=timers.target
-```
+The superseded prototype hourly timer example is intentionally omitted: it is not an installation or troubleshooting template. Use the current 9h45min timer in the canonical [MyNode Deployment procedure](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md), and inspect the installed unit and drop-ins before assuming it matches the repository.
 
 The earlier system-wide service alternatives named `/etc/systemd/system/jagports-lead.service` and later `/etc/systemd/system/jagports-lead-agent.service`; neither had a complete verified installation. User-service startup across logout/reboot was not demonstrated. Manual execution alongside a timer was identified as a possible cause of overlapping runs, so verify timer state before interpreting duplicate notifications.
 
