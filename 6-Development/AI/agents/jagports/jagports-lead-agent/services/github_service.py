@@ -6,13 +6,20 @@ logical PyGithub GET operations, NOT verified HTTP requests: PyGithub paginates
 and may perform extra requests. A strict on-wire cap is a separate gate.
 """
 from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
 
 from github import Github, Auth
+from services.github_request_guard import GitHubRequestGuard
 
 
 class GitHubService:
-    def __init__(self, token, repository):
-        self.github = Github(auth=Auth.Token(token))
+    def __init__(self, token, repository, *, max_requests_per_run=12):
+        if repository != "jagports/jagports":
+            raise ValueError("P7 pilot is restricted to jagports/jagports.")
+        self.github = Github(auth=Auth.Token(token), retry=0, per_page=100)
+        self.http_guard = GitHubRequestGuard(
+            self.github.requester, max_requests=max_requests_per_run,
+            repository=repository)
         self.repo = self.github.get_repo(repository)
         self.filtered_prs = 0
         self.filtered_pr_numbers = set()
@@ -36,7 +43,11 @@ class GitHubService:
         """A copy; these logical counts are not an enforced HTTP request cap."""
         if not hasattr(self, "_metrics"):
             self._metrics = self._new_metrics()
-        return dict(self._metrics)
+        metrics = dict(self._metrics)
+        guard = getattr(self, "http_guard", None)
+        if guard is not None:
+            metrics.update(guard.metrics())
+        return metrics
 
     @staticmethod
     def _is_pull_request(issue):
@@ -228,3 +239,29 @@ class GitHubService:
                     "issue_number": number, "context_or_error": context}
         except Exception as exc:
             return failure(self._error_status(exc), "issue_detail_failed", exc)
+
+    def read_approved_sources(self, paths, max_files=2, max_chars=3500):
+        if not isinstance(paths, list) or len(paths) > max_files:
+            raise ValueError("Too many source files for the approved pilot.")
+        sources = []
+        for path in paths:
+            if (not isinstance(path, str) or ".." in path.split("/") or
+                    not (path.startswith("7-Research/") or
+                         path.startswith("0-DocumentationEducationCompetense/") or
+                         path.startswith("00-Management/") or path == "KNOWLEDGE.md")):
+                raise ValueError("Source path is outside approved repository areas.")
+            if not path.endswith(".md"):
+                raise ValueError("Only Markdown evidence or guidance may be loaded.")
+            content = self.repo.get_contents(path, ref="main")
+            if isinstance(content, list):
+                raise ValueError("A source must identify one file, not a directory.")
+            decoded = content.decoded_content.decode("utf-8")
+            sources.append({
+                "id": str(content.sha), "path": path,
+                "url": content.html_url or
+                       "https://github.com/jagports/jagports/blob/main/" + quote(path, safe="/"),
+                "text": decoded[:max_chars], "truncated": len(decoded) > max_chars,
+                "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                "kind": "repository",
+            })
+        return sources
