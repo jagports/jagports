@@ -49,6 +49,8 @@ def result_for(role, **changes):
                 "outcome": "validated", "decision_required": True,
                 "role_run_id": "product-id",
                 "research_role_run_id": "research-id"}
+    data.update({"request_outcome": "complete", "model": "mock-model",
+                 "usage": {"input_tokens": 100, "output_tokens": 20}})
     data.update(changes)
     return AgentResult(role, "review", "Mocked source-backed result.", data)
 
@@ -207,6 +209,21 @@ class P7PilotTests(unittest.TestCase):
         self.assertEqual(self.run_pilot()[0].data["status"], "needs_operator_review")
         self.pilot.research.analyse.assert_called_once()
         self.pilot.product_vehicle.analyse.assert_not_called()
+
+    def test_malformed_completed_research_cannot_start_product_call(self):
+        self.pilot.research.analyse.return_value = result_for(
+            "research", usage={"input_tokens": 0, "output_tokens": 20})
+        result = self.run_pilot()
+        self.assertEqual(result[-1].data["status"], "needs_operator_review")
+        self.pilot.product_vehicle.analyse.assert_not_called()
+        self.assertEqual(self.checkpoint()["model_calls_started"], 1)
+
+    def test_product_role_cannot_claim_same_role_id(self):
+        self.pilot.product_vehicle.analyse.return_value = result_for(
+            "product_vehicle", role_run_id="research-id")
+        result = self.run_pilot()
+        self.assertEqual(result[-1].data["status"], "needs_operator_review")
+        self.assertEqual(self.checkpoint()["model_calls_started"], 2)
 
     def test_two_call_ceiling_rejected_before_work(self):
         self.reasoning.config["max_calls_per_run"] = 3
