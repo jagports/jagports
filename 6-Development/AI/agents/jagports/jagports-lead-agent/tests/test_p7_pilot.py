@@ -214,6 +214,20 @@ class P7PilotTests(unittest.TestCase):
         self.assertEqual(result[0].severity, "blocked")
         self.assertEqual(self.github.requests, [])
 
+    def test_retrieval_timestamp_change_does_not_invalidate_source_identity(self):
+        state = {"event_key": str(NUMBER) + ":" + REVISION,
+                 "issue_number": NUMBER, "source_revision": REVISION,
+                 "stage": "prepared", "model_calls_started": 0}
+        Path(self.config["checkpoint_file"]).write_text(json.dumps(state))
+        first = self.run_pilot()
+        self.assertEqual(first[-1].data["route"], "human_decision_needed")
+        self.assertTrue(self.checkpoint()["evidence_fingerprint"])
+
+    def test_shared_event_object_uses_compact_904_payload(self):
+        evt = Event("issue.meaningful.changed", change())
+        result = self.pilot.process(evt, issue())
+        self.assertEqual(result[-1].data["route"], "human_decision_needed")
+
     def test_evidence_changes_between_checkpoints_require_review(self):
         state = {"event_key": str(NUMBER) + ":" + REVISION,
                  "issue_number": NUMBER, "source_revision": REVISION,
