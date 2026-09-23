@@ -84,6 +84,8 @@ def event(domain=None, research=None, **extras):
 def supported_research():
     return AgentResult("research", "review", "Source-backed finding.", {
         "status": "complete", "confidence": "supported",
+        "request_outcome": "complete", "model": "mock-research",
+        "usage": {"input_tokens": 100, "output_tokens": 20},
         "source_revision": "sha-test",
         "role_run_id": "research-role-42",
         "sources": [{
@@ -141,6 +143,18 @@ class ProductVehicleContractTests(unittest.TestCase):
         self.assertFalse(result.data["decision_required"])
         self.assertEqual(result.data["conflicting_sources"][0]["id"], "domain-b")
         self.assertIn("conflicts", " ".join(result.data["limitations"]))
+
+    def test_conflicting_rejection_remains_unresolved(self):
+        mock = MockReasoning(product=product_output(
+            outcome="rejected", conflicting_source_ids=["domain-b"],
+            unresolved_questions=["Sources disagree about vehicle fitment."],
+        ))
+        result = ProductVehicleAgent(mock).analyse(event(
+            research=supported_research(),
+            domain=[source("domain-a"), source("domain-b")],
+        ))
+        self.assertEqual(result.data["outcome"], "needs_more_research")
+        self.assertEqual(result.data["conflicting_sources"][0]["id"], "domain-b")
 
     def test_provisional_research_prevents_unverified_fitment_requirement(self):
         research = supported_research()
@@ -211,6 +225,14 @@ class ProductVehicleContractTests(unittest.TestCase):
         self.assertEqual(route.data["route"], "remain_research")
         self.assertEqual(product.data["outcome"], "needs_more_research")
         self.assertEqual(product.data["draft_requirement"], "")
+
+    def test_non_model_research_cannot_trigger_independent_validation(self):
+        mock = MockReasoning()
+        legacy = supported_research()
+        legacy.data.pop("request_outcome")
+        result = ProductVehicleAgent(mock).analyse(event(research=legacy))
+        self.assertEqual(result.data["status"], "research_incomplete")
+        self.assertEqual(mock.calls, [])
 
     def test_missing_or_wrong_revision_research_never_calls_model(self):
         mock = MockReasoning()
