@@ -36,7 +36,7 @@ VehicleLeadAgent (own event routing, allowlist and checkpoints)
 Human Product Owner + normal technical/review/change governance
 ```
 
-The AI OS `LeadAgent` MUST NOT instantiate these vehicle agents in its original `AgentRegistry`; the Vehicle team MUST NOT execute the AI OS registry or mutate its lifecycle cursor. The two teams may read the same GitHub repository through separately authorized interfaces, but that is not a shared work queue or implied inter-team authority.
+The AI OS `LeadAgent` MUST NOT instantiate these vehicle agents in its original `AgentRegistry`; the Vehicle team MUST NOT execute the AI OS registry or mutate its lifecycle cursor. The two teams use the same centralized GitHubAgent/GitHubService interface for authorized reads and writes, but retain independent team-specific work scope and approvals. Sharing this domain-neutral GitHub integration is not a shared work queue, coordinator or implied inter-team authority.
 
 ## Vehicle-only evidence and skills
 
@@ -47,7 +47,7 @@ The AI OS `LeadAgent` MUST NOT instantiate these vehicle agents in its original 
 
 ## Reused infrastructure — interface, not ownership
 
-Use the domain-neutral contracts in [Shared Agent Services](../SHARED_AGENT_SERVICES_SPEC.md) for source-limited GitHub reads, meaningfully changed Issue events, model invocation, measured usage, cost reservations, recoverable checkpoints and validated result/report envelopes. Instantiate the services with **this team's own** source allowlist, event owner, credential/permissions, local files, configured execution schedule and budget. Do not silently share a usage ledger or multiply the Product Owner's total $5 API testing allowance.
+Use the domain-neutral contracts in [Shared Agent Services](../SHARED_AGENT_SERVICES_SPEC.md) for centralized authorized GitHub reads and writes, meaningfully changed Issue events, model invocation, measured usage, cost reservations, recoverable checkpoints and validated result/report envelopes. Instantiate team-specific **source and operation scopes, event owner, authorization context**, local files, configured execution schedule and budget. The GitHubAgent/GitHubService alone holds the canonical `GITHUB_TOKEN`; vehicle specialists submit validated operation requests and never handle direct GitHub credentials. Do not silently share a usage ledger or multiply the Product Owner's total $5 API testing allowance.
 
 Research and Product/Vehicle must receive **different** independently retrieved evidence sets and record distinct role invocation IDs. Maintain strict provenance and source-revision equality. Research uncertainty or conflicting evidence can only route to further research or human decision, never become an approved implementation requirement.
 
@@ -61,7 +61,7 @@ Replace temporary P7 names in all **active** specs, code, tests, workflows, repo
 
 - [ ] Vehicle Lead + Research + independent Product/Vehicle are instantiated independently of the original AI OS team, with dedicated role prompts, domain evidence and report namespace.
 - [ ] No vehicle-domain imports, prompts, skills or implicit dispatch remain in the original AI OS `AgentRegistry`.
-- [ ] Separate allowlists, state/checkpoints, credential permission scopes, manual activation and budget reservations are proven by offline tests; sharing a global $5 project credit requires explicit aggregate accounting.
+- [ ] Separate allowlists, operation authorization, state/checkpoints, manual activation and budget reservations are proven by offline tests; shared GitHub access does not grant cross-team write authority. Sharing a global $5 project credit requires explicit aggregate accounting.
 - [ ] Existing successful and uncertain attempts retain their identities and spending reservations across versioned migration; interruption cannot trigger a second paid model request.
-- [ ] Domain evidence provenance, conflict/uncertainty routing, human approval and no-autonomous-write constraints have dedicated fixtures and independent review.
+- [ ] Domain evidence provenance, conflict/uncertainty routing and human approval have dedicated fixtures and independent review; specialist read and proposed-write requests pass through the shared GitHub boundary, with unapproved mutations rejected and approved changes verified by read-after-write.
 - [ ] No active P7 naming remains after the migration; no unapproved timer or paid API calls occur during the move.
