@@ -17,6 +17,7 @@ from urllib.request import Request, urlopen
 BASE = "https://api.github.com"
 REPO = "/repos/jagports/jagports"
 EXISTING_ISSUE = 904
+MAX_GET_RESPONSE_BYTES = 1024 * 1024  # full bounded JSON; Issue bodies exceed 4096 bytes
 
 
 def _request(url, token, *, method="GET", body=None, opener=urlopen):
@@ -33,7 +34,12 @@ def _request(url, token, *, method="GET", body=None, opener=urlopen):
     request = Request(url, data=body, method=method, headers=headers)
     try:
         with opener(request, timeout=15) as response:
-            return response.status, response.read(4096)
+            # Never parse an arbitrary 4096-byte prefix as a complete Issue.
+            # Read a bounded full response or fail closed before the POST probe.
+            payload = response.read(MAX_GET_RESPONSE_BYTES + 1)
+            if len(payload) > MAX_GET_RESPONSE_BYTES:
+                raise ValueError("GitHub response exceeds bounded verification size")
+            return response.status, payload
     except HTTPError as exc:
         return exc.code, exc.read(4096)
 
