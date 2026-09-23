@@ -87,6 +87,14 @@ class ReadonlyCredentialTests(unittest.TestCase):
         self.assertEqual(evidence["result"], "verified")
         self.assertEqual(opener.methods, ["GET", "GET", "POST"])
 
+    def test_oversized_issue_response_blocks_before_post(self):
+        issue = {"number": 904, "body": "A" * (checker.MAX_GET_RESPONSE_BYTES + 1)}
+        opener = SequenceOpener([IDENTITY, (200, issue)])
+        evidence = checker.verify(TOKEN, opener=opener)
+        self.assertEqual(evidence["result"], "blocked")
+        self.assertEqual(evidence["reason"], "network_or_response_error")
+        self.assertEqual(opener.methods, ["GET", "GET"])
+
     def test_write_capable_credential_fails_closed_on_validation_error(self):
         opener = SequenceOpener([
             IDENTITY, ISSUE, (422, {"message": "Validation failed"})])
