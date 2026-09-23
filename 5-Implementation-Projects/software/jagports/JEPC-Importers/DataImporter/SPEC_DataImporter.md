@@ -128,6 +128,17 @@ Language-qualified source trees must be preserved independently when JEPC struct
 
 Canonical PART identity may be shared across languages. Source node/path identity remains language-qualified unless deterministic equivalence is proven. Cross-language node or occurrence reconciliation is derived data, not an import assumption.
 
+## Persistence tiers and publication
+
+The DataImporter uses two distinct persistence tiers:
+
+- **Local SQLite** is the importer-owned processing ledger, staging store, run report and test environment on the computer reading the JEPC installation. It supports checkpoints, lossless raw capture, retry and validation. It is not the live VIEPS catalogue.
+- **Cloudflare D1** is the authoritative production destination for accepted VIEPS catalogue/reference data. Actual imported PARTs, occurrences, tree paths, applicability properties and related published catalogue relationships must be written to the approved D1 model and become available to the VIEPS UI through its Worker/API.
+
+The importer must parse and validate a selected bundle locally before publication. A successful local staging run alone is not an import result for the product. A publication step must write accepted data to D1 idempotently, report the D1 outcome separately from local parsing, and leave failed or unresolved source structures out of the live catalogue until they are validly handled.
+
+Development fixtures may remain local or in test databases. They must not be described as live imported product information.
+
 ## Catalogue occurrence-tree persistence target
 
 Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
@@ -160,6 +171,10 @@ Importer reruns must use the source-qualified node/path identities so identical 
 
 
 ## Kits, nested kit contents and NSS callouts
+
+### MVP boundary
+
+Kit/assembly composition, nested kit contents and NSS constituent handling are post-MVP catalogue enrichment. They must not delay the pilot or require kit/NSS-specific parser logic. When encountered during MVP import, preserve any safely capturable raw source evidence, report it as unsupported/unresolved where needed, and never invent a Jaguar part number for an NSS constituent.
 
 JEPC catalogue structure can describe a sellable PART as a kit or assembly while the illustration exposes constituent components separately.
 
@@ -661,7 +676,7 @@ The importer v0.1/MVP should demonstrate that:
 - the operator sees stable aggregate parent/model/path/language/structure metrics without a scrolling per-record console flood;
 - detailed processing and a development-oriented run report remain available in background logs;
 - canonical part identity remains independent from language-specific source occurrences;
-- kit/assembly composition, nested kit subsets and NSS constituent callouts are preserved when evidenced by JEPC source or illustration/callout structure, without inventing Jaguar part numbers;
+- successful publication of the pilot's accepted catalogue data is separately reported in the authoritative D1 destination;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
 
 ## Related work
