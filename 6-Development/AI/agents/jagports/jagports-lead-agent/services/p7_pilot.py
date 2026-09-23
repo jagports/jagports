@@ -177,6 +177,8 @@ class P7Pilot:
         if (not isinstance(allowed, list) or len(allowed) != 1 or
                 type(allowed[0]) is not int or allowed[0] < 1):
             return "Exactly one approved existing Issue is required."
+        if type(c.get("read_only_credential_confirmed")) is not bool or not c["read_only_credential_confirmed"]:
+            return "Separately verified read-only GitHub credentials are required."
         if not self.reasoning.config.get("enabled", False):
             return "Paid reasoning requires explicit approval."
         if self.reasoning.config.get("max_calls_per_run") != 2:
