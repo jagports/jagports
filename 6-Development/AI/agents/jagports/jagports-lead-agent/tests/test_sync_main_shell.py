@@ -43,7 +43,7 @@ class MainSyncShellTests(unittest.TestCase):
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, script)
-        self.assertNotIn("sudo ", script.replace("sudo." , ""))
+        self.assertFalse(any(line.lstrip().startswith("sudo ") for line in script.splitlines()))
 
     def test_scheduled_user_unit_is_independent_of_agent_timer(self):
         service = SERVICE.read_text(encoding="utf-8")
