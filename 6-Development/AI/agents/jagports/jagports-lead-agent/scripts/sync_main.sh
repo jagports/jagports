@@ -50,7 +50,13 @@ assert c.get("polling", {}).get("interval_minutes") == 585
 print("SAFE_CONFIG:", sys.argv[1])
 PYTHON
 }
-safe_config "$APP/config.yaml"
+if [[ "$MODE" == --check ]]; then
+  if ! safe_config "$APP/config.yaml"; then
+    echo "LOCAL_CONFIG_ENABLED: check-only is allowed; deployment requires model-disabled reconciliation." >&2
+  fi
+else
+  safe_config "$APP/config.yaml"
+fi
 WORK=$(mktemp -d /home/codex/.cache/jagports-sync.XXXXXX)
 BACKUP=
 CHANGED=0
@@ -100,7 +106,13 @@ OLD_SHA=unrecorded
 OLD_TREE=unrecorded
 if [[ -f "$STATE/installed_main_commit" ]]; then OLD_SHA=$(cat "$STATE/installed_main_commit"); fi
 if [[ -f "$STATE/installed_app_tree" ]]; then OLD_TREE=$(cat "$STATE/installed_app_tree"); fi
-safe_config "$SRC/config.yaml"
+if [[ "$MODE" == --check ]]; then
+  if ! safe_config "$SRC/config.yaml"; then
+    echo "MAIN_DEFAULT_UNSAFE: do not install or auto-deploy this revision." >&2
+  fi
+else
+  safe_config "$SRC/config.yaml"
+fi
 echo "MAIN_COMMIT=$NEW_SHA INSTALLED_COMMIT=$OLD_SHA"
 echo "MAIN_APP_TREE=$NEW_TREE INSTALLED_APP_TREE=$OLD_TREE"
 
