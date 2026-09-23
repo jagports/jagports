@@ -21,7 +21,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from services.issue_change_detection import (
-    SNAPSHOT_SCHEMA_VERSION, _valid_previous, compare_issue_context,
+    SNAPSHOT_SCHEMA_VERSION, _valid_previous, _timestamp, compare_issue_context,
 )
 
 
@@ -148,7 +148,8 @@ class GHDPendingStore:
                 snapshot.get("source_revision") != revision or
                 not _valid_previous(snapshot, number) or
                 pending["issue_context"].get("number") != number or
-                pending["issue_context"].get("url") != snapshot["url"]):
+                pending["issue_context"].get("url") != snapshot["url"] or
+                pending["issue_context"].get("source_revision") != revision):
             raise PendingStoreError("GHD pending event has inconsistent identity.")
         prior = pending.get("previous_revision")
         if prior is not None and (not isinstance(prior, str) or
@@ -181,6 +182,29 @@ class GHDPendingStore:
             raise PendingStoreError("GHD cursor diverged from pending event.")
         state["issues"][number] = next_snapshot
         _write_json_atomic(self.snapshot_path, state)
+
+    def observed_revisions(self):
+        """Return validated, minimal Issue observations for lazy candidate selection.
+
+        No raw bodies/comments leave this interface. A pending checkpoint is
+        repaired before observations are exposed; corruption blocks the run.
+        """
+        with _locked(self.lock_path):
+            pending = self._pending()
+            if pending is not None:
+                self._ensure_cursor(pending)
+            state = self._snapshots()
+            result = {}
+            for key, item in state["issues"].items():
+                try:
+                    _timestamp(item["last_observed_at"])
+                except (ValueError, TypeError) as exc:
+                    raise PendingStoreError("GHD observation timestamp is invalid.") from exc
+                result[int(key)] = {
+                    "source_revision": item["source_revision"],
+                    "last_observed_at": item["last_observed_at"],
+                }
+            return result
 
     @staticmethod
     def _public_pending(pending):
@@ -238,6 +262,7 @@ class GHDPendingStore:
             # A fully validated observation is the sole source of context.
             event = outcome["changed_event"]
             context = copy.deepcopy(retrieval["context_or_error"])
+            context["source_revision"] = event["source_revision"]
             next_pending = {
                 "producer": "ghd_increment_a", "schema_version": 1,
                 "status": "pending",
