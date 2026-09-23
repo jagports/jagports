@@ -104,6 +104,20 @@ sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:p
 sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user list-timers --all
 ```
 
+**Safe change after auditing the unit and its drop-ins:** if the obsolete directive is in the primary `codex` timer file, paste the following **as `admin`**. It backs up only that file, removes the old assignment, ensures the 9h45min activation trigger exists, and reloads/restarts **only** the Lead Agent user timer. If `systemctl cat` showed another assignment in a drop-in, inspect and correct that exact drop-in separately before calling the work complete.
+
+```bash
+UNIT=/home/codex/.config/systemd/user/jagports-lead-agent.timer
+sudo cp -p "$UNIT" "$UNIT.bak.$(date +%Y%m%d%H%M%S)"
+sudo sed -i '/^[[:space:]]*OnBootSec[[:space:]]*=/d' "$UNIT"
+sudo grep -q '^[[:space:]]*OnActiveSec[[:space:]]*=' "$UNIT" || sudo sed -i '/^\[Timer\]/a OnActiveSec=9h45min' "$UNIT"
+sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user daemon-reload
+sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user restart jagports-lead-agent.timer
+sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user cat jagports-lead-agent.timer
+sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user show jagports-lead-agent.timer -p TimersMonotonic
+sudo -u codex env XDG_RUNTIME_DIR=/run/user/1008 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1008/bus systemctl --user list-timers --all
+```
+
 **Acceptance:** the effective timer contains no `OnBootSec` assignment, displays both 9h45min intervals, remains enabled/active, and has a plausible next activation. If the effective unit shows any inherited startup trigger, remove it from the exact drop-in shown by `systemctl cat` before declaring success. A separate later timer-triggered service journal entry and durable report remain required for unattended-execution acceptance.
 
 ## Service and scheduler acceptance from the `admin` SSH session
