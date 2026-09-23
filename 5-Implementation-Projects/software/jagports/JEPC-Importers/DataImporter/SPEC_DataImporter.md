@@ -52,6 +52,82 @@ Observed interpretation to validate across multiple datasets:
 The importer must preserve source scope because related files exist at different levels, including model/category/language and model/category/item/language scopes.
 
 
+## Occurrence-first catalogue import contract
+
+The importer shall treat a JEPC PART as a canonical identity that may have multiple source occurrences. Each occurrence is bound to the exact catalogue/tree path and source applicability evidence in which the PART appears.
+
+The source occurrence path is assembled from linked scopes:
+
+```text
+model / catalogue ancestry
+    -> category ancestry
+    -> top-level item description
+    -> ordered item-tree descriptions
+    -> PART leaf
+```
+
+The importer shall preserve, at minimum:
+
+```text
+canonical PART reference
+source model/category/item/language scope
+source tree node identity and ancestry
+source ordering
+source descriptions
+applicationId
+raw applicability rules and predicates
+source-file / record provenance
+```
+
+A flattened `FullDescriptionPath` may be generated for logs, validation and exports, but must not be used as the structural identity of the tree or occurrence.
+
+The human-readable source descriptions can be used as browse/filter candidates immediately. Raw `A`, `C` and other source predicates are still preserved for provenance and later applicability evaluation. The importer must not attempt to reconstruct readable descriptions by positional alignment between predicates and tree nodes.
+
+## Applicability as separate filterable properties
+
+JEPC applicability is source evidence attached to an occurrence. The importer shall convert every understood applicability assertion into one or more **separate descriptive properties**, linked to the occurrence and grouped according to the source rule. It shall not flatten applicability into the PART description or carry source decision-tree nodes into VIEPS as application logic.
+
+An imported property must retain at least its source label/value or code, polarity where expressed, source operator/grouping where understood, and source evidence reference. Examples include Region/market, LHD/RHD, Supercharged or Non-Supercharged, Other Option, headlamp levelling, powerwash and VIN boundary. A readable description is a display label for a property; it is not the property identity and must not be the only retained form.
+
+The UI owns filtering. It shall expose the imported descriptive properties as filters and evaluate them against occurrences, so a PART remains visible when at least one of its occurrences satisfies the chosen vehicle/configuration conditions. The importer prepares the explicit relationships and property values; it does not recreate the source decision tree in the destination or hide filter semantics inside a concatenated description string.
+
+Where an assertion's meaning or boolean grouping is not yet understood, the importer preserves the raw source rule and reports it as unresolved. It must not invent a filter property or assume that textual adjacency establishes AND/OR logic.
+
+### Query behavior enabled by the import
+
+Catalogue browsing:
+
+```text
+selected branch
+    -> all occurrences below the branch
+    -> optional description / VIN / applicability filtering
+    -> surviving occurrences
+    -> distinct PART numbers
+```
+
+PART-number search:
+
+```text
+PART number
+    -> every source occurrence
+    -> complete path for each occurrence
+    -> applicationId + raw applicability evidence
+```
+
+Filtering is occurrence-first. The canonical PART remains visible if at least one occurrence survives the selected conditions.
+
+### Semantic mapping is a later enrichment layer
+
+The importer shall not invent domain categories for source descriptions. A later controlled mapping layer may map a source description to one or more normalized facets. The original description, occurrence path and raw predicates remain independently recoverable.
+
+Mappings may be context-sensitive. A mapping change must not require a source re-import when the original occurrence/tree data is already preserved losslessly.
+
+### Multilingual source trees
+
+Language-qualified source trees must be preserved independently when JEPC structure differs between languages. Do not assume that i18n is only a translated string table over one universal tree.
+
+Canonical PART identity may be shared across languages. Source node/path identity remains language-qualified unless deterministic equivalence is proven. Cross-language node or occurrence reconciliation is derived data, not an import assumption.
+
 ## Catalogue occurrence-tree persistence target
 
 Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
@@ -212,6 +288,16 @@ Initial v0.1/MVP validation profiles:
 Related durable source knowledge establishes that the corresponding Canada/USA XK8 and Canada/Mexico/USA X308 source variants represent `Region = Americas`.
 
 Where a short region token such as `Region=NA` is used, it must be represented as a Region/market value and kept semantically distinct from the engine-option abbreviation `N/A`, meaning Non-Aspirated/non-Supercharged. Region and aspiration/supercharger state are separate dimensions.
+
+## Cross-range pilot scope
+
+The first actual catalogue-import pilot is not limited to the XK Range. It shall import **ten representative catalogue items from each available JEPC model range** in the supplied source dataset, including JEPC Accessories.
+
+A model range is selected from the JEPC source hierarchy, using its preserved parent/model identifiers and descriptions. The sample must cover the distinct source range profiles available to the installation rather than treating one XK profile as representative of the entire catalogue. Accessories are a first-class pilot source scope: they must be selected and reported through the same importer contract, not treated as an afterthought or merged into a vehicle range.
+
+For every selected range, the ten items must be chosen deterministically and recorded in the run report. The selection must exercise ordinary catalogue rows plus any available variation such as an application rule, item-tree depth, illustration reference or source-side missing/unsupported shape. A selected item is a source catalogue item and may create multiple canonical PART occurrences; ten items is not a promise of ten distinct part numbers.
+
+This cross-range sample proves that the parser and publication path generalize across source families while remaining bounded. It is not a replacement for a later full-installation import.
 
 ## Incremental processing loop
 
@@ -559,6 +645,8 @@ The importer v0.1/MVP should demonstrate that:
 - the processing ledger is built incrementally bundle by bundle;
 - source checksums are calculated and used instead of trusting modification time;
 - selected model/sub-range/Region profiles can be processed independently while preserving and displaying both JEPC `model_id` and immediate `parent_id` hierarchy identity;
+- the first actual-import pilot covers ten representative catalogue items from every available JEPC model range, including Accessories, rather than only the XK Range;
+- understood applicability assertions become separate descriptive properties linked to occurrences; the UI filters those properties instead of interpreting source decision-tree nodes or concatenated part descriptions;
 - processing resumes from persistent bundle state rather than restarting from the beginning;
 - each normal loop reads/processes one bundle and only then determines the next;
 - known structures import without unnecessary normalized-schema churn;
