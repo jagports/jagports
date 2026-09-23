@@ -96,6 +96,8 @@ class DurableGHDTests(unittest.TestCase):
         self.assertEqual(event["schema_version"], 1)
         self.assertEqual(event["producer"], "ghd_increment_a")
         self.assertEqual(event["issue_context"]["number"], 42)
+        self.assertEqual(event["issue_context"]["source_revision"],
+                         event["changed_event"]["source_revision"])
         self.assertEqual(self.cursor_state()["issues"]["42"]["source_revision"],
                          event["changed_event"]["source_revision"])
 
@@ -233,6 +235,28 @@ class DurableGHDTests(unittest.TestCase):
                          results[1]["pending_event"]["event_key"])
         self.assertEqual(self.pending_state()["event_key"],
                          results[0]["pending_event"]["event_key"])
+
+    def test_observation_watermarks_are_minimal_and_repair_pending_cursor(self):
+        self.baseline()
+        first = self.store.observed_revisions()
+        self.assertEqual(set(first), {42})
+        self.assertEqual(set(first[42]), {
+            "source_revision", "last_observed_at"})
+        self.assertNotIn("Initial body", str(first))
+        produced = self.store.record_observation(self.changed())
+        restarted = self.restart()
+        self.assertEqual(restarted.observed_revisions()[42]["source_revision"],
+                         produced["pending_event"]["changed_event"]["source_revision"])
+        self.assertEqual(restarted.replay_pending()["issue_context"]["source_revision"],
+                         produced["pending_event"]["changed_event"]["source_revision"])
+
+    def test_corrupt_watermark_is_not_used_to_skip_changed_issue(self):
+        self.baseline()
+        value = self.cursor_state()
+        value["issues"]["42"]["last_observed_at"] = "not-a-timestamp"
+        self.cursor.write_text(json.dumps(value), encoding="utf-8")
+        with self.assertRaisesRegex(PendingStoreError, "timestamp"):
+            self.restart().observed_revisions()
 
     def test_pending_store_does_not_mutate_legacy_state(self):
         self.baseline()
