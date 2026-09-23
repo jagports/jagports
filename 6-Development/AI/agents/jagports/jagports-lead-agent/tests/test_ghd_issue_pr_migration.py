@@ -161,6 +161,7 @@ def make_issue(number=42, *, body="Bounded investigation", comments=None,
         comments=len(items) if declared_comment_count is None else declared_comment_count,
         raw_data={"number": number},
         get_comments=Mock(return_value=list(items)),
+        get_comment=Mock(side_effect=AssertionError("Unselected comment fetched")),
     )
     if pr:
         issue.raw_data["pull_request"] = {"url": "https://api.github.com/pulls/%d" % number}
@@ -226,7 +227,7 @@ class GHDBoundedDetailTests(unittest.TestCase):
         issue = make_issue(declared_comment_count=88)
         self.service.repo.get_issue.return_value = issue
         selected = {200: make_comment(42, 200), 201: make_comment(42, 201)}
-        self.service.repo.get_issue_comment.side_effect = selected.__getitem__
+        issue.get_comment.side_effect = selected.__getitem__
         result = self.service.get_issue_context(
             42, selected_comment_ids=[201, 200], max_comments=2)
         self.assertEqual(result["status"], "complete")
@@ -236,7 +237,9 @@ class GHDBoundedDetailTests(unittest.TestCase):
         self.assertEqual([c["id"] for c in context["comments"]], [201, 200])
         self.assertFalse(context["truncated"])
         issue.get_comments.assert_not_called()
-        self.assertEqual(self.service.repo.get_issue_comment.call_count, 2)
+        self.assertEqual(issue.get_comment.call_count, 2)
+        issue.get_comment.assert_any_call(201)
+        issue.get_comment.assert_any_call(200)
         self.assertEqual(self.service.request_metrics()["comment_id_gets"], 2)
         self.assertEqual(self.service.request_metrics()["logical_get_operations"], 3)
 
@@ -248,7 +251,7 @@ class GHDBoundedDetailTests(unittest.TestCase):
         self.assertEqual(result["status"], "truncated")
         self.assertIn("selected_comment_limit",
                       result["context_or_error"]["truncation_reasons"])
-        self.service.repo.get_issue_comment.assert_not_called()
+        issue.get_comment.assert_not_called()
         issue.get_comments.assert_not_called()
 
     def test_body_and_comment_character_limits_are_explicit(self):
@@ -274,11 +277,15 @@ class GHDBoundedDetailTests(unittest.TestCase):
         self.assertEqual(result["context_or_error"]["comments"], [])
         self.assertEqual(result["context_or_error"]["truncation_reasons"],
                          ["comment_age"])
+        self.assertGreaterEqual(self.service.request_metrics()["fetched_text_chars"],
+                                len(issue.title) + len(issue.body)
+                                + len(old.body))
 
     def test_changed_comment_provenance_mismatch_is_error(self):
         issue = make_issue(declared_comment_count=99)
         self.service.repo.get_issue.return_value = issue
-        self.service.repo.get_issue_comment.return_value = make_comment(
+        issue.get_comment.side_effect = None
+        issue.get_comment.return_value = make_comment(
             42, 101, source_issue=43)
         result = self.service.get_issue_context(
             42, selected_comment_ids=[101])
@@ -296,6 +303,29 @@ class GHDBoundedDetailTests(unittest.TestCase):
         self.assertEqual(result["context_or_error"]["reason"], "comments_page_failed")
         self.assertNotIn("private token", str(result))
         self.assertEqual(self.service.request_metrics()["comment_list_gets"], 1)
+
+    def test_selected_comment_lookup_failure_is_not_silent_empty_evidence(self):
+        issue = make_issue(declared_comment_count=50)
+        issue.get_comment.side_effect = RuntimeError("connection interrupted")
+        self.service.repo.get_issue.return_value = issue
+        result = self.service.get_issue_context(
+            42, selected_comment_ids=[101], max_comments=1)
+        self.assertEqual(result["status"], "retryable_error")
+        self.assertEqual(result["context_or_error"]["reason"],
+                         "selected_comment_lookup_failed")
+        self.assertEqual(result["context_or_error"]["url"], issue.html_url)
+        issue.get_comment.assert_called_once_with(101)
+        issue.get_comments.assert_not_called()
+
+    def test_changed_comment_count_during_page_is_truncated(self):
+        issue = make_issue(comments=[make_comment(42, 101),
+                                     make_comment(42, 102)],
+                           declared_comment_count=1)
+        self.service.repo.get_issue.return_value = issue
+        result = self.service.get_issue_context(42, max_comments=2)
+        self.assertEqual(result["status"], "truncated")
+        self.assertIn("comment_count_changed_during_fetch",
+                      result["context_or_error"]["truncation_reasons"])
 
     def test_deleted_issue_is_permanent_error(self):
         class Missing(Exception):
