@@ -25,3 +25,6 @@ p7:
   approved_domain_paths: []
   reasoning:
     enabled: false
+    # Local ledger's cumulative cap; leave headroom in the $5 project pool.
+    # This does not include other clients or pre-existing API charges.
+    max_total_cost_usd: 4.0
