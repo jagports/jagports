@@ -1,10 +1,10 @@
 """Offline ReasoningService budget and failure regression tests.
 
-The two expected failures document known implementation gaps: cross-process
-reservation serialization and validation of provider-reported token overruns.
-They must be resolved before authorizing paid unattended execution.
+Exercises cross-process reservations, restart-durable cost limits, provider
+token overruns, uncertain paid attempts, and fail-closed ledger recovery.
 """
 import json
+import multiprocessing
 import os
 import tempfile
 import threading
@@ -52,6 +52,23 @@ class OfflineClient:
         if self.error:
             raise self.error
         return self.response
+
+
+def _separate_process_attempt(config, gate, ready, output, request_key):
+    client = OfflineClient()
+    service = ReasoningService(config, client=client)
+    ready.put("ready")
+    if not gate.wait(timeout=15):
+        output.put("timeout")
+        return
+    try:
+        service.analyse_json("research", "Only supplied evidence.",
+                             {"question": "What is supported?"}, request_key)
+        output.put("reserved")
+    except BudgetExceeded:
+        output.put("blocked")
+    except Exception as exc:
+        output.put(type(exc).__name__)
 
 
 class ReasoningBudgetTests(unittest.TestCase):
@@ -165,32 +182,73 @@ class ReasoningBudgetTests(unittest.TestCase):
         with self.assertRaisesRegex(ReasoningError, "uncertain"):
             self.run_one(restarted)
 
-    @unittest.expectedFailure
     def test_provider_token_overrun_must_not_be_accepted(self):
-        # Current implementation validates positive usage but not the caps.
         client = OfflineClient(response=mock_response(output_tokens=101))
         service = ReasoningService(configuration(self.ledger), client=client)
         with self.assertRaises(ReasoningError):
             self.run_one(service)
+        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:research"]
+        self.assertEqual(entry["status"], "uncertain")
+        self.assertEqual(entry["measured_usage"]["output_tokens"], 101)
+        with self.assertRaisesRegex(ReasoningError, "uncertain"):
+            self.run_one(ReasoningService(configuration(self.ledger), client=client))
+        self.assertEqual(len(client.calls), 1)
 
-    @unittest.expectedFailure
+    def test_provider_input_token_overrun_must_not_be_accepted(self):
+        client = OfflineClient(response=mock_response(input_tokens=5001))
+        with self.assertRaises(ReasoningError):
+            self.run_one(ReasoningService(configuration(self.ledger), client=client))
+        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:research"]
+        self.assertEqual(entry["status"], "uncertain")
+        self.assertEqual(entry["measured_usage"]["input_tokens"], 5001)
+
+    def test_restart_cannot_reset_per_run_reservations(self):
+        cfg = configuration(self.ledger, max_run_cost_usd=0.006)
+        first = ReasoningService(cfg, client=OfflineClient())
+        self.run_one(first)
+        second_client = OfflineClient()
+        restarted = ReasoningService(cfg, client=second_client)
+        with self.assertRaises(BudgetExceeded):
+            restarted.analyse_json("product_vehicle", "Independent validation.",
+                                   {"question": "Is it confirmed?"},
+                                   "issue:42:product_vehicle")
+        self.assertEqual(len(second_client.calls), 0)
+        self.assertEqual(len(json.loads(self.ledger.read_text())["attempts"]), 1)
+
+    def test_completion_preserves_other_process_reservation(self):
+        cfg = configuration(self.ledger)
+        second_client = OfflineClient()
+        second = ReasoningService(cfg, client=second_client)
+
+        class InterleavingClient(OfflineClient):
+            def create(self, **kwargs):
+                second.analyse_json("product_vehicle", "Validate separately.",
+                                    {"question": "Check?"},
+                                    "issue:42:product_vehicle")
+                return super().create(**kwargs)
+
+        first = ReasoningService(cfg, client=InterleavingClient())
+        self.run_one(first)
+        ledger = json.loads(self.ledger.read_text())["attempts"]
+        self.assertEqual(len(ledger), 2)
+        self.assertTrue(all(x["status"] == "complete" for x in ledger.values()))
+
+    def test_unreadable_ledger_blocks_all_model_requests(self):
+        self.ledger.write_text("{incomplete", encoding="utf-8")
+        client = OfflineClient()
+        with self.assertRaisesRegex(ReasoningError, "unreadable"):
+            self.run_one(ReasoningService(configuration(self.ledger), client=client))
+        self.assertEqual(client.calls, [])
+
     def test_concurrent_daily_reservations_must_be_serialized(self):
-        # Two separate services deliberately load the same old ledger before
-        # either reserves. Current atomic replace does not serialize read/write.
-        barrier = threading.Barrier(2)
-        parent = ReasoningService
-
-        class SimultaneousService(parent):
-            def _ledger(self):
-                snapshot = super()._ledger()
-                barrier.wait(timeout=5)
-                return snapshot
-
-        config = configuration(self.ledger, max_daily_cost_usd=0.006)
-        first = SimultaneousService(config, client=OfflineClient())
-        second = SimultaneousService(config, client=OfflineClient())
+        # Two separate instances contend for one shared file-based allowance.
+        gate = threading.Barrier(2)
+        cfg = configuration(self.ledger, max_daily_cost_usd=0.006)
+        first = ReasoningService(cfg, client=OfflineClient())
+        second = ReasoningService(cfg, client=OfflineClient())
 
         def attempt(instance, key):
+            gate.wait(timeout=5)
             try:
                 self.run_one(instance, request=key)
                 return "reserved"
@@ -202,6 +260,31 @@ class ReasoningBudgetTests(unittest.TestCase):
             b = executor.submit(attempt, second, "issue:43:research")
             outcomes = sorted((a.result(), b.result()))
         self.assertEqual(outcomes, ["blocked", "reserved"])
+        self.assertEqual(len(first.client.calls) + len(second.client.calls), 1)
+
+    def test_cross_process_daily_reservations_are_serialized(self):
+        ctx = multiprocessing.get_context("spawn")
+        gate, ready, output = ctx.Event(), ctx.Queue(), ctx.Queue()
+        cfg = configuration(self.ledger, max_daily_cost_usd=0.006)
+        children = [ctx.Process(target=_separate_process_attempt,
+                                args=(cfg, gate, ready, output, "issue:%d:research" % n))
+                    for n in (42, 43)]
+        for child in children:
+            child.start()
+        try:
+            self.assertEqual([ready.get(timeout=15) for _ in children], ["ready", "ready"])
+            gate.set()
+            results = sorted(output.get(timeout=15) for _ in children)
+            self.assertEqual(results, ["blocked", "reserved"])
+        finally:
+            gate.set()
+            for child in children:
+                child.join(timeout=15)
+                if child.is_alive():
+                    child.terminate()
+                    child.join(timeout=5)
+        self.assertTrue(all(child.exitcode == 0 for child in children))
+        self.assertEqual(len(json.loads(self.ledger.read_text())["attempts"]), 1)
 
 
 if __name__ == "__main__":
