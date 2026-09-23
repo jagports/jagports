@@ -71,6 +71,9 @@ class ProductVehicleAgent:
         if (not research or getattr(research, "agent", None) != "research" or
                 not isinstance(research.data, dict) or
                 research.data.get("status") != "complete" or
+                research.data.get("request_outcome") != "complete" or
+                not isinstance(research.data.get("model"), str) or
+                not research.data.get("model") or
                 not research.data.get("role_run_id") or
                 research.data.get("source_revision") != c.get("source_revision")):
             return AgentResult(
@@ -184,7 +187,7 @@ class ProductVehicleAgent:
                 (not checked or conflicts or questions or
                  research.data.get("confidence") != "supported")):
             outcome = "needs_more_research"
-        if outcome == "rejected" and not checked:
+        if outcome == "rejected" and (not checked or conflicts or questions):
             outcome = "needs_more_research"
         if outcome == "needs_more_research" and not limitations:
             limitations.append("Further domain verification is required.")
