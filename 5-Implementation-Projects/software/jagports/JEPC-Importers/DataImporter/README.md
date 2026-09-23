@@ -15,6 +15,7 @@ node src/DataImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEP
 node src/DataImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
 node src/DataImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --full
 node src/DataImporter.CLI.mjs select-xk --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --seed "xk-selection-1"
+node src/DataImporter.CLI.mjs select-xk --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --seed "xk-selection-1" --estimate
 node src/DataImporter.CLI.mjs estimate-range --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --range xk --seed xk-inventory-1 --sample-size 100
 npm test
 ```
@@ -31,6 +32,7 @@ The source directory is read-only to this application. Put state outside the ins
 | `report` | Read-only JSON with latest run and ordered detailed events, including paths/checksums. Redirect stdout to save a report. |
 | `doctor` | Read-only `quick_check` and `foreign_key_check`; `--full` selects `integrity_check`. Requires an existing ledger. |
 | `select-xk` | Selects 40 complete XK category bundles using `--seed`, with one from each source model before filling the remaining places by hash rank. Stores a manifest with model/category identities, candidate counts, menu checksums and selected file checksums. This is source selection only. |
+| `select-xk --estimate` | After selection, optionally runs the Range estimator against that run's source and Model_ID set. Without `--estimate`, selection does no Range inventory. `--sample-size` and `--calibration` require this flag. Estimate failure is reported separately and does not erase the selection manifest. |
 | `estimate-range` | Optional source inventory using `--source`, `--state-dir`, and `--range`. XK uses the five Model_IDs from `select-xk`; another Range requires comma-separated `--models`. `--models` may narrow XK for a partial scan. Optional `--seed`, `--sample-size` (1–10000), `--calibration`, and `--json`. |
 
 Exit codes: `0` successful inspection/read command, `1` invalid invocation or failure, `2` completed inspection with missing paths, `130` user stop/emergency exit. `COMPLETED` means the inspection recipe finished; it never means parts were imported. Unknown options and commands fail, including an unimplemented `run`/`migrate` command.
@@ -42,6 +44,8 @@ The report gives file counts and bytes by model/extension/source-file family, el
 ```json
 {"range":"xk","sourceBytes":1000000,"d1BytesAdded":450000,"importSeconds":120}
 ```
+
+When an actual catalogue `run` command is implemented, its `--estimate` flag will call the same estimator before publication and will be off by default. There is no import `run` command yet. `select-xk --estimate` provides the opt-in pre-import path now; the standalone `estimate-range` command remains available for an explicit Range scope. Every invocation scans its selected source anew. No result from one installation is bundled into the importer or used as a default calibration.
 
 `sourceBytes` is the XML/CSV byte count actually imported in that measured sample; `d1BytesAdded` is the observed increase in D1 storage; `importSeconds` is measured import/publication time. The estimator scales those measurements to inventoried XML/CSV bytes and labels the projection and its calibration basis. Without such evidence, projected D1 bytes and import seconds remain `null`. A source tree changed during a long scan can yield inconsistent counts; use a stable installation for capacity planning. First Ctrl+C requests a partial report after the current file; second Ctrl+C exits immediately.
 

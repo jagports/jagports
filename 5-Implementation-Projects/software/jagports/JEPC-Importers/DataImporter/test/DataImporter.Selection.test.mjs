@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { XK_MODEL_IDS, selectXkBundles } from '../src/DataImporter.Selection.mjs';
 
 async function fixture(t) {
@@ -72,4 +73,24 @@ test('a missing dependency excludes that category from the candidate population'
   const result = await selectXkBundles(options);
   assert.equal(result.manifest.selection.candidateCount, 44);
   assert.equal(result.manifest.bundles.some(bundle => bundle.model === '3187' && bundle.category === '318701'), false);
+});
+
+test('pre-import estimate runs only when explicitly enabled', async t => {
+  const options = await fixture(t);
+  const cli = path.resolve('src/DataImporter.CLI.mjs');
+  const base = ['select-xk', '--source', options.source, '--state-dir', options.stateDir,
+    '--seed', options.seed, '--json'];
+  const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+  const plain = call(base);
+  assert.equal(plain.status, 0, plain.stderr);
+  assert.equal(JSON.parse(plain.stdout).estimate, undefined);
+  assert.equal((await readdir(options.stateDir)).some(name => name.startsWith('range-estimate-')), false);
+  const enabled = call([...base, '--estimate', '--sample-size', '5']);
+  assert.equal(enabled.status, 0, enabled.stderr);
+  const summary = JSON.parse(enabled.stdout);
+  assert.equal(summary.estimate.state, 'COMPLETED');
+  assert.equal(summary.estimate.sourceFiles, 141);
+  assert.equal(summary.estimate.projectedD1Bytes, null);
+  assert.ok((await readdir(options.stateDir)).some(name => name.startsWith('range-estimate-')));
+  assert.equal(call([...base, '--sample-size', '5']).status, 1);
 });
