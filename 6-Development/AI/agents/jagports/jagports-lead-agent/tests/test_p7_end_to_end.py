@@ -145,8 +145,13 @@ class EndToEndAndLegacyTests(unittest.TestCase):
         self.assertEqual(checkpoint["stage"], "complete")
         self.assertEqual(checkpoint["model_calls_started"], 2)
 
-        # Same revision cannot silently generate a second paid run.
-        self.assertEqual(lead.run()[2], [])
+        # After a crash before the report/outbox acknowledgement, return the
+        # exact already-checkpointed results without a second paid run.
+        replay = lead.run()[2]
+        self.assertEqual([x.agent for x in replay],
+                         ["research", "product_vehicle", "team_lead"])
+        self.assertEqual(replay[0].data["role_run_id"],
+                         results[0].data["role_run_id"])
         self.assertEqual(len(self.provider.calls), 2)
 
     def test_default_mode_keeps_legacy_specialists_and_lifecycle(self):
