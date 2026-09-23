@@ -52,6 +52,16 @@ class P7Pilot:
 
     def _save(self, state):
         _write_json_atomic(self.checkpoint_path, state)
+        # Atomic rename prevents torn JSON; fsync also makes stage boundaries
+        # durable against host interruption before a possibly billable request.
+        with self.checkpoint_path.open("rb") as handle:
+            os.fsync(handle.fileno())
+        if hasattr(os, "O_DIRECTORY"):
+            fd = os.open(str(self.checkpoint_path.parent), os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
 
     @staticmethod
     def _blocked(message, data=None):
@@ -269,6 +279,10 @@ class P7Pilot:
             elif saved.get("stage") not in (
                     "prepared", "research_complete", "product_complete"):
                 return self._blocked("Unknown checkpoint stage needs operator review.",
+                                     {"status": "needs_operator_review"})
+            elif (saved["stage"] in ("research_complete", "product_complete") and
+                  not saved.get("evidence_fingerprint")):
+                return self._blocked("Legacy checkpoint has no verified evidence identity.",
                                      {"status": "needs_operator_review"})
 
         if not saved or saved.get("event_key") != event_key:
