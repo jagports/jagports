@@ -19,7 +19,6 @@ p7:
   enabled: false
   allowed_issue_numbers: []
   approved_source_revision: ""
-  read_only_credential_confirmed: false
   pending_event_file: ""
   approved_research_paths: []
   approved_domain_paths: []
