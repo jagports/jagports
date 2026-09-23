@@ -218,6 +218,8 @@ The estimate may sample reproducibly selected source files to measure input size
 
 ## Configurable import scope
 
+Range is an explicit operator selection, not a different parser command for each Range. The CLI accepts a known Range slug through `--range` when creating a selection manifest; an eventual progress UI presents the same known Range choices. The manifest records the Range, source Model_ID set and selected bundles. Parsing and later import take the manifest as their scope authority rather than asking for a second, potentially conflicting Range value. Unsupported Range mappings fail clearly until implemented. A multi-Range operation keeps separate manifests, progress and destination database identities per Range. The current bounded selection supports XK only; `parse` stages its manifest locally and does not publish to D1. Existing XK manifests without an explicit Range field remain readable.
+
 The importer must allow selection below the broad VIEPS Range level when JEPC exposes distinct model/sub-range/market variants.
 
 The import scope therefore needs configurable profiles based on source facts such as:

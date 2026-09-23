@@ -1,8 +1,8 @@
 import { parseArgs } from 'node:util';
 import { moveCursor, cursorTo, clearScreenDown } from 'node:readline';
 import { inspect, readState } from './DataImporter.Runtime.mjs';
-import { selectXkBundles } from './DataImporter.Selection.mjs';
-import { parseXkSelection } from './DataImporter.Parse.mjs';
+import { selectRangeBundles } from './DataImporter.Selection.mjs';
+import { parseSelection } from './DataImporter.Parse.mjs';
 import { estimateRange, modelsForRange } from './DataImporter.Estimate.mjs';
 
 const help = `
@@ -15,9 +15,9 @@ Node.js 24+; run locally on the computer that can read the source files.
   status  --state-dir <directory> [--json]
   report  --state-dir <directory>
   doctor  --state-dir <directory> [--full]
-  select-xk --source <JEPC root> --state-dir <outside source> --seed <text> [--language 0] [--estimate] [--sample-size 100] [--calibration measured.json] [--json]
+  select --range xk --source <JEPC root> --state-dir <outside source> --seed <text> [--language 0] [--estimate] [--sample-size 100] [--calibration measured.json] [--json]
   estimate-range --source <JEPC root> --state-dir <outside source> --range xk [--models 3187,3183,...] [--seed text] [--sample-size 100] [--calibration measured.json] [--json]
-  parse-xk --manifest <xk-selection.json> --state-dir <outside source> [--json]
+  parse --manifest <selection.json> --state-dir <outside source> [--json]
 
  example usage:
   
@@ -25,9 +25,9 @@ Node.js 24+; run locally on the computer that can read the source files.
   node .\src\DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir . --model 3187 --category 12088 --item 1 --language 0
 
 inspect checks eight expected source paths. It does not import catalogue data.
-select-xk records a reproducible forty-category XK selection; --estimate optionally scans its Range source before a later import.
+select records a reproducible forty-category selection for the requested Range; currently only xk is supported. --estimate optionally scans its Range source before a later import.
 estimate-range inventories the selected Range source and samples files; it never starts import.
-parse-xk stages the selected source records and applicability sidecars locally; it does not publish to D1.
+parse stages the manifest's source records and applicability sidecars locally; it does not publish to D1.
 Repeat inspect with the same arguments to recheck/reuse persisted checksums.
 Q or first Ctrl+C stops after the current file checkpoint; second Ctrl+C exits.
 report emits the latest run and its detailed persistent events as JSON.
@@ -62,11 +62,11 @@ async function main() {
   } });
   if (values.help || !positionals.length) { console.log(help); return; }
   const [command] = positionals;
-  if (positionals.length !== 1 || !['inspect', 'status', 'report', 'doctor', 'select-xk', 'estimate-range', 'parse-xk'].includes(command)) throw new Error('Unknown command. Use --help.');
+  if (positionals.length !== 1 || !['inspect', 'status', 'report', 'doctor', 'select', 'estimate-range', 'parse'].includes(command)) throw new Error('Unknown command. Use --help.');
   const allowed = command === 'inspect' ? ['source', 'state-dir', 'model', 'category', 'item', 'language', 'json']
-    : command === 'select-xk' ? ['source', 'state-dir', 'seed', 'language', 'estimate', 'sample-size', 'calibration', 'json']
+    : command === 'select' ? ['range', 'source', 'state-dir', 'seed', 'language', 'estimate', 'sample-size', 'calibration', 'json']
     : command === 'estimate-range' ? ['source', 'state-dir', 'range', 'models', 'seed', 'sample-size', 'calibration', 'json']
-    : command === 'parse-xk' ? ['manifest', 'state-dir', 'json']
+    : command === 'parse' ? ['manifest', 'state-dir', 'json']
     : command === 'doctor' ? ['state-dir', 'full'] : command === 'status' ? ['state-dir', 'json'] : ['state-dir'];
   for (const key of Object.keys(values)) if (!allowed.includes(key)) throw new Error(`--${key} is not valid for ${command}.`);
   if (!values['state-dir']) throw new Error('--state-dir is required.');
@@ -94,13 +94,13 @@ async function main() {
     } finally { process.off('SIGINT', onSignal); process.off('SIGTERM', onSignal); }
     return;
   }
-  if (command === 'select-xk') {
+  if (command === 'select') {
     if (!values.estimate && (values['sample-size'] !== undefined || values.calibration)) {
       throw new Error('--sample-size and --calibration require --estimate.');
     }
-    const result = await selectXkBundles({ source: values.source, stateDir: values['state-dir'],
+    const result = await selectRangeBundles({ range: values.range, source: values.source, stateDir: values['state-dir'],
       seed: values.seed, language: values.language ?? '0' });
-    const summary = { manifest: result.filename, reused: result.reused,
+    const summary = { range: result.manifest.range ?? 'xk', manifest: result.filename, reused: result.reused,
       phase: result.manifest.phase, selected: result.manifest.bundles.length,
       candidates: result.manifest.selection.candidateCount,
       candidatesByModel: result.manifest.selection.candidateCountsByModel,
@@ -112,7 +112,7 @@ async function main() {
       process.on('SIGINT', onSignal); process.on('SIGTERM', onSignal);
       try {
         const estimate = await estimateRange({ source: values.source, stateDir: values['state-dir'],
-          range: 'xk', models: result.manifest.selection.modelIds, seed: values.seed,
+          range: values.range, models: result.manifest.selection.modelIds, seed: values.seed,
           sampleSize: values['sample-size'] === undefined ? 100 : Number(values['sample-size']),
           calibrationPath: values.calibration }, { shouldStop: () => stopped,
           onProgress: current => {
@@ -131,13 +131,13 @@ async function main() {
       } finally { process.off('SIGINT', onSignal); process.off('SIGTERM', onSignal); }
     }
     console.log(values.json ? JSON.stringify(summary, null, 2)
-      : `Selected ${summary.selected} XK category bundles from ${summary.candidates} candidates.\nManifest: ${summary.manifest}\n${summary.estimate ? `Optional estimate: ${summary.estimate.state}; report: ${summary.estimate.report ?? summary.estimate.error}.\n` : ''}D1 publication: not started.`);
+      : `Selected ${summary.selected} ${values.range} category bundles from ${summary.candidates} candidates.\nManifest: ${summary.manifest}\n${summary.estimate ? `Optional estimate: ${summary.estimate.state}; report: ${summary.estimate.report ?? summary.estimate.error}.\n` : ''}D1 publication: not started.`);
     return;
   }
-  if (command === 'parse-xk') {
-    const result = await parseXkSelection({ manifestPath: values.manifest, stateDir: values['state-dir'] });
+  if (command === 'parse') {
+    const result = await parseSelection({ manifestPath: values.manifest, stateDir: values['state-dir'] });
     console.log(values.json ? JSON.stringify(result, null, 2)
-      : `Staged ${result.bundles} XK bundles and ${result.records} source records.\nUnknown records: ${result.unknown}.\nStaging: ${result.outputDir}\nD1 publication: not started.`);
+      : `Staged ${result.bundles} ${result.range} bundles and ${result.records} source records.\nUnknown records: ${result.unknown}.\nStaging: ${result.outputDir}\nD1 publication: not started.`);
     return;
   }
   if (command !== 'inspect') {

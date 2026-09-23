@@ -76,7 +76,8 @@ async function fingerprint(root, relative) {
   return { path: relative, size: after.size, sha256: hash.digest('hex') };
 }
 
-export async function selectXkBundles({ source, stateDir, seed, language = '0' }) {
+export async function selectRangeBundles({ range, source, stateDir, seed, language = '0' }) {
+  if (range !== 'xk') throw new Error('Unsupported Range for bundle selection; currently supported: xk.');
   if (!source || !stateDir || typeof seed !== 'string' || !seed || seed.length > 256) {
     throw new Error('Require --source, --state-dir and a nonempty --seed (up to 256 characters).');
   }
@@ -141,7 +142,7 @@ export async function selectXkBundles({ source, stateDir, seed, language = '0' }
     delete bundles.at(-1).paths;
   }
   const manifest = {
-    schemaVersion: SELECTION_VERSION, phase: 'SELECTION_ONLY',
+    schemaVersion: SELECTION_VERSION, phase: 'SELECTION_ONLY', range,
     selection: { algorithm: 'sha256(seed,source-qualified-bundle); one-per-model then lowest scores',
       seed, language: String(language), count: LIMIT, modelIds: [...XK_MODEL_IDS],
       candidateCount: ranked.length, candidateCountsByModel: Object.fromEntries(XK_MODEL_IDS.map(model => [model, ranked.filter(b => b.model === model).length])),
@@ -154,6 +155,12 @@ export async function selectXkBundles({ source, stateDir, seed, language = '0' }
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
   try {
     const prior = await readFile(filename, 'utf8');
+    // Preserve manifests written before Range became an explicit selection field.
+    const legacy = { ...manifest };
+    delete legacy.range;
+    if (prior === `${JSON.stringify(legacy, null, 2)}\n`) {
+      return { filename, manifest: JSON.parse(prior), reused: true };
+    }
     if (prior !== serialized) throw new Error(`Existing selection differs from current source: ${filename}`);
     return { filename, manifest, reused: true };
   } catch (error) { if (error.code !== 'ENOENT') throw error; }

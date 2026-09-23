@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { XK_MODEL_IDS, selectXkBundles } from '../src/DataImporter.Selection.mjs';
+import { XK_MODEL_IDS, selectRangeBundles } from '../src/DataImporter.Selection.mjs';
 
 async function fixture(t) {
   const parent = await mkdtemp(path.join(tmpdir(), 'jepc-select-'));
@@ -30,12 +30,13 @@ async function fixture(t) {
     }
     await put(`menus/L0/pl_id_${model}_l_id_0.xml`, wrapper(entries));
   }
-  return { source, stateDir, seed: 'reviewable-seed', put };
+  return { range: 'xk', source, stateDir, seed: 'reviewable-seed', put };
 }
 
 test('selects forty real bundles across five models and reuses the same manifest', async t => {
   const options = await fixture(t);
-  const first = await selectXkBundles(options);
+  const first = await selectRangeBundles(options);
+  assert.equal(first.manifest.range, 'xk');
   assert.equal(first.reused, false);
   assert.equal(first.manifest.selection.candidateCount, 45);
   assert.equal(first.manifest.bundles.length, 40);
@@ -43,34 +44,40 @@ test('selects forty real bundles across five models and reuses the same manifest
   assert.equal(first.manifest.bundles[0].files.length, 3);
   assert.equal(first.manifest.phase, 'SELECTION_ONLY');
   assert.equal((await readFile(first.filename, 'utf8')).includes('PN-'), false);
-  const again = await selectXkBundles(options);
+  const again = await selectRangeBundles(options);
   assert.equal(again.reused, true);
   assert.deepEqual(again.manifest.bundles, first.manifest.bundles);
+  const legacy = { ...first.manifest };
+  delete legacy.range;
+  await writeFile(first.filename, `${JSON.stringify(legacy, null, 2)}\n`);
+  const reusedLegacy = await selectRangeBundles(options);
+  assert.equal(reusedLegacy.reused, true);
+  assert.equal(reusedLegacy.manifest.range, undefined);
 });
 
 test('different seed has a separate manifest; source change blocks reuse', async t => {
   const options = await fixture(t);
-  const first = await selectXkBundles(options);
-  const other = await selectXkBundles({ ...options, seed: 'another-seed' });
+  const first = await selectRangeBundles(options);
+  const other = await selectRangeBundles({ ...options, seed: 'another-seed' });
   assert.notEqual(other.filename, first.filename);
   assert.notDeepEqual(other.manifest.bundles.map(b => `${b.model}/${b.category}`),
     first.manifest.bundles.map(b => `${b.model}/${b.category}`));
   const file = first.manifest.bundles[0].files[0].path;
   await options.put(file, '<Data>changed source</Data>');
-  await assert.rejects(selectXkBundles(options), /Existing selection differs/);
+  await assert.rejects(selectRangeBundles(options), /Existing selection differs/);
 });
 
 test('missing or unknown menu structures fail rather than invent candidates', async t => {
   const options = await fixture(t);
   await options.put('menus/L0/pl_id_3187_l_id_0.xml', '<?xml version="1.0"?>\n<Data>\n[broken]\n</Data>');
-  await assert.rejects(selectXkBundles(options), /Unknown menu row/);
-  await assert.rejects(selectXkBundles({ ...options, stateDir: path.join(options.source, 'state') }), /outside/);
+  await assert.rejects(selectRangeBundles(options), /Unknown menu row/);
+  await assert.rejects(selectRangeBundles({ ...options, stateDir: path.join(options.source, 'state') }), /outside/);
 });
 
 test('a missing dependency excludes that category from the candidate population', async t => {
   const options = await fixture(t);
   await rm(path.join(options.source, 'drilldown/pl_id_3187/L0/tl_M3187_C318701_L0.xml'));
-  const result = await selectXkBundles(options);
+  const result = await selectRangeBundles(options);
   assert.equal(result.manifest.selection.candidateCount, 44);
   assert.equal(result.manifest.bundles.some(bundle => bundle.model === '3187' && bundle.category === '318701'), false);
 });
@@ -78,7 +85,7 @@ test('a missing dependency excludes that category from the candidate population'
 test('pre-import estimate runs only when explicitly enabled', async t => {
   const options = await fixture(t);
   const cli = path.resolve('src/DataImporter.CLI.mjs');
-  const base = ['select-xk', '--source', options.source, '--state-dir', options.stateDir,
+  const base = ['select', '--range', 'xk', '--source', options.source, '--state-dir', options.stateDir,
     '--seed', options.seed, '--json'];
   const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
   const plain = call(base);
@@ -93,4 +100,6 @@ test('pre-import estimate runs only when explicitly enabled', async t => {
   assert.equal(summary.estimate.projectedD1Bytes, null);
   assert.ok((await readdir(options.stateDir)).some(name => name.startsWith('range-estimate-')));
   assert.equal(call([...base, '--sample-size', '5']).status, 1);
+  assert.match(call(base.filter((value, index) => index < 1 || index > 2)).stderr, /Unsupported Range/);
+  assert.match(call(base.map(value => value === 'xk' ? 'xj' : value)).stderr, /Unsupported Range/);
 });

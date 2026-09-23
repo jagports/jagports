@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { parseJepcFile, parseXkSelection } from '../src/DataImporter.Parse.mjs';
+import { parseJepcFile, parseSelection } from '../src/DataImporter.Parse.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 
@@ -55,17 +55,22 @@ test('stages forty bundles, reuses identical evidence and rejects source drift',
       }
     }
     const manifestPath = path.join(temp, 'selection.json');
-    await writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, phase: 'SELECTION_ONLY', source, bundles }));
-    const first = await parseXkSelection({ manifestPath, stateDir });
+    await writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, phase: 'SELECTION_ONLY', range: 'xj', source, bundles }));
+    await assert.rejects(parseSelection({ manifestPath, stateDir }), /Unsupported Range/);
+    await writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, phase: 'SELECTION_ONLY', range: 'xk', source, bundles }));
+    const first = await parseSelection({ manifestPath, stateDir });
+    assert.equal(first.range, 'xk');
     assert.equal(first.bundles, 40);
     assert.equal(first.files, 121);
     assert.equal(first.unknown, 0);
     assert.equal(first.reused, 0);
-    const second = await parseXkSelection({ manifestPath, stateDir });
+    const second = await parseSelection({ manifestPath, stateDir });
     assert.equal(second.reused, 40);
     const staged = JSON.parse(await readFile(path.join(first.outputDir, 'M3187_C1_L0.json')));
     assert.equal(staged.files.find(file => file.kind === 'attributes').records[0].key, '142207');
+    await writeFile(manifestPath, JSON.stringify({ schemaVersion: 1, phase: 'SELECTION_ONLY', source, bundles }));
+    assert.equal((await parseSelection({ manifestPath, stateDir })).range, 'xk');
     await writeFile(path.join(source, 'drilldown', 'pl_id_3187', 'L0', 'cat_M3187_C1_L0.xml'), 'changed');
-    await assert.rejects(parseXkSelection({ manifestPath, stateDir }), /checksum changed/);
+    await assert.rejects(parseSelection({ manifestPath, stateDir }), /checksum changed/);
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
