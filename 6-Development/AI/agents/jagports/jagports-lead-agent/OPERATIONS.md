@@ -46,7 +46,7 @@ systemctl --user list-timers --all
 journalctl --user -u jagports-sync-main.service -n 50 --no-pager
 ```
 
-**Precondition:** both installed and incoming `config.yaml` must have `openai.enabled: false`, any legacy `p7.enabled: false` and its reasoning disabled. If your local configuration is still set to `openai.enabled: true` or `p7.enabled: true`, restore those flags to false **after checking any active/uncertain pilot state** before enrollment or scheduled synchronization. The updater refuses to change an enabled paid installation without operator reconciliation. Its source verification invokes no OpenAI API and never copies `.env` into a source checkout or backup.
+**Deployment precondition:** `--enroll`, `--apply` and opted-in scheduled auto-apply require **both installed and incoming** `config.yaml` to have `openai.enabled: false`, any legacy `p7.enabled: false` and its reasoning disabled. A `--check` remains permitted when a local paid pilot is enabled; it only retrieves reviewed main, prints the diff and warns that deployment is blocked—no agent/model call or configuration change occurs. If your local configuration is still set to `openai.enabled: true` or `p7.enabled: true`, restore those flags to false **after checking any active/uncertain pilot state** before enrollment or scheduled synchronization. The updater refuses to change an enabled paid installation without operator reconciliation. Its source verification invokes no OpenAI API and never copies `.env` into a source checkout or backup.
 
 ### Explicit opt-in to automatic deployment from reviewed main
 
