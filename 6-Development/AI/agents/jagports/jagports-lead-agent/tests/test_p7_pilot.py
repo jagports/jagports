@@ -215,13 +215,31 @@ class P7PilotTests(unittest.TestCase):
         self.assertEqual(self.github.requests, [])
 
     def test_retrieval_timestamp_change_does_not_invalidate_source_identity(self):
-        state = {"event_key": str(NUMBER) + ":" + REVISION,
-                 "issue_number": NUMBER, "source_revision": REVISION,
-                 "stage": "prepared", "model_calls_started": 0}
-        Path(self.config["checkpoint_file"]).write_text(json.dumps(state))
         first = self.run_pilot()
         self.assertEqual(first[-1].data["route"], "human_decision_needed")
-        self.assertTrue(self.checkpoint()["evidence_fingerprint"])
+        state = self.checkpoint()
+        self.assertTrue(state["evidence_fingerprint"])
+        state.pop("product_vehicle")
+        state.pop("decision_route")
+        state["stage"] = "research_complete"
+        state["model_calls_started"] = 1
+        Path(self.config["checkpoint_file"]).write_text(json.dumps(state))
+        original_read = self.github.read_approved_sources
+
+        def refresh_timestamps(paths, **bounds):
+            items = original_read(paths, **bounds)
+            for item in items:
+                item["retrieved_at"] = "2026-09-24T12:34:56Z"
+            return items
+
+        self.github.read_approved_sources = refresh_timestamps
+        resumed = P7Pilot(self.github, self.reasoning, self.config)
+        resumed.research.analyse = Mock(return_value=result_for("research"))
+        resumed.product_vehicle.analyse = Mock(return_value=result_for("product_vehicle"))
+        results = resumed.process(change(), issue())
+        self.assertEqual(results[-1].data["route"], "human_decision_needed")
+        resumed.research.analyse.assert_not_called()
+        resumed.product_vehicle.analyse.assert_called_once()
 
     def test_shared_event_object_uses_compact_904_payload(self):
         evt = Event("issue.meaningful.changed", change())
