@@ -10,13 +10,13 @@ The AI OS runtime remains `main.py → GitHubService/GitHubAgent → LeadAgent �
 
 | Capability | Shared contract | Per-team isolation |
 |---|---|---|
-| GitHub source retrieval | Repository-bound GET-only request guard, bounded Issue detail and approved source reads | Different team-approved Issue/source allowlists and independently selected credential; no implicit write authority |
+| GitHub integration | Shared GitHubAgent/GitHubService is the sole API boundary for authenticated reads and authorized writes, with bounded retrieval, request validation and read-after-write checks | Team-specific scope, work-item authorization and immutable audit provenance; one canonical `GITHUB_TOKEN`, not per-specialist GitHub clients or a separate read-only-token requirement |
 | Change detection | Versioned compact `ChangedIssueEvent`, `IssueContext`, precise content revision, checksum/integrity-checked pending records | Event ownership and consumption acknowledgement belong to **one named team**; no implicit fan-out of paid work |
 | Model reasoning | Replaceable model-neutral JSON provider adapter; separate task-specific instructions supplied by caller | Different team prompts, source authority, explicit enablement, role IDs and per-team deployment config |
 | Cost accounting | Durable atomic reservation/finish ledger with cross-process lock, uncertain-call retention, no silent retries; measured usage | Per-team ledgers **plus** an independently enforced shared/global spending allocation when multiple teams draw on the same $5 credit |
 | Recovery | Exact event+revision ID, durable role checkpoints, evidence fingerprint, single-run lock, replay without re-invoking completed billable calls | Distinct files, namespaces, ownership, service account permissions and operator runbooks |
 | Reporting | Structured `AgentResult`, bounded redacted human-readable report, atomic local persistence before event acknowledgement | Team-specific output paths and clearly attributed provenance; no automatic GitHub or Telegram delivery |
-| Security | Treat Issue text and retrieved source as untrusted data; fail closed on incomplete/ambiguous evidence | No cross-team source/decision escalation or delegated GitHub write actions without an approved explicit contract |
+| Security | Treat GitHub content and proposed agent actions as untrusted inputs; validate each mutation against the canonical Management workflow, human gates and GitHub permission model | Shared GitHub transport does not grant cross-team work authority; each request declares initiating team/role, target, intended operation, approval evidence and idempotency key |
 
 Implementing the interface by importing a common Python package is allowed. Configuring one `LeadAgent` to silently run both teams, reusing one role registry, merging their event cursors, using one team's domain prompt in the other, or inheriting an enabled OpenAI flag from the other team is **not** allowed.
 
@@ -25,28 +25,37 @@ Implementing the interface by importing a common Python package is allowed. Conf
 ```text
 GitHub repository + approved source stores
           |
-          +------[team A allowed reads]------> AI OS LeadAgent
+          +--> shared GitHubAgent/GitHubService (all authenticated reads and writes)
+          |        |-- per-operation authorization + audit + read-after-write
+          |        +-- one canonical GITHUB_TOKEN
+          |
+          +------[team A scoped requests]----> AI OS LeadAgent
           |                                   +--> DocumentationAgent
           |                                   +--> DeploymentAgent
           |                                   +--> KnowledgeAgent
           |                                   +--> AI OS state/report
           |
-          +------[team B allowed reads]------> VehicleLeadAgent
+          +------[team B scoped requests]--> VehicleLeadAgent
                                               +--> VehicleResearchAgent
                                               +--> ProductVehicleAgent
                                               +--> Vehicle state/report
 
 Reusable libraries (no specialist registry, no implicit dispatch):
-    GET-only GitHub adapter | event/schema and source provenance
+    central GitHubAgent/GitHubService | scoped request/approval contracts
+    event/schema and source provenance
     model-neutral reasoning | globally bounded cost allocation
     atomic state, locks and checkpoints | redacted reporting
 ```
+
+## Central GitHub operation contract
+
+Specialists send structured read requests or proposed mutation requests through the existing agent communication boundary; the central GitHubAgent/GitHubService performs GitHub API calls. A proposed mutation carries the initiating team/role, target repository and work item, desired action/payload, governing authorization, approval evidence when needed, idempotency key and expected source revision. The service rejects unapproved or out-of-scope requests, applies rate/size limits, executes approved operations, verifies writes through a bounded independent read and returns a durable, redacted result. Internal Python method calls or queue messages may convey routine requests; persistent GitHub Issue/PR records are required for significant hand-offs and decisions, not for every internal API call. No specialist may bypass this boundary by using the credential directly. The original application-development and separate vehicle-domain teams retain independent registries, work queues, decision authority, state and budgets; a shared GitHub API layer is **not** a shared coordinator.
 
 ## Activation and budget
 
 An existing OpenAI API pay-as-you-go subscription exists with a Product Owner-authorized **$5 test-credit pool**. The checked-in default `openai.enabled: false` means *runtime disabled by default*, **not** “no API subscription.” Explicit manual/local pilot enablement is separately governed for each team. A single-team $4 local cumulative cap must not automatically become $4 **per team**: once multiple teams can spend, implement a common aggregate allocation/reservation authority or enforce a single active spending team until aggregate accounting is reviewed. Never test exhaustion of paid tokens, GitHub quota or the available $5 pool. No automatic scheduled paid calls as a side effect of this specification.
 
-The existing `jagports-lead-agent` GitHub credential passed authenticated Issue read testing on Raspberry Pi; a dedicated read-only token and independent write-denial verification were deferred. Do not claim credential isolation based solely on application-level GET enforcement. Keep any previous fail-closed credential gates explicit until a separately approved design changes them.
+Use the existing `GITHUB_TOKEN` as the canonical GitHub runtime credential, exposed only through the shared GitHub boundary. The separate `GITHUB_TOKEN_RO` and `JAGPORTS_READONLY_GITHUB_TOKEN` names, read-only-token creation/verification scripts and credential-confirmation gate are **obsolete** under #924. Do not replace operation-level controls with a blanket ability to write: the GitHub boundary validates authorization before mutation, uses GitHub's actual permission checks, and records auditable outcomes. Prior credential-test evidence remains only in immutable Issue/PR history, not active requirements. Repository-hosted Python modules within one process do not gain security isolation just from being called different agents.
 
 ## Migration guarantees
 
@@ -56,5 +65,7 @@ Move and rename the temporary P7-marked pilot APIs/files/config/workflows to per
 
 - [ ] Both teams can be instantiated and offline-tested independently with the same shared library contracts and different configuration/state namespaces.
 - [ ] No hidden shared scheduler, coordinator, registry, Issue cursor, credential scope, work queue, model activation or duplicated $5 spending allocation.
-- [ ] Offline regressions cover replay after report failure, uncertain attempt retention, cross-team source isolation, model-disabled defaults and no autonomous GitHub writes.
+- [ ] Offline regressions cover replay after report failure, uncertain attempt retention, cross-team source isolation, model-disabled defaults and rejection of unapproved GitHub writes at the centralized boundary.
+- [ ] Every authenticated GitHub read/write from both agent teams uses the shared GitHubAgent/GitHubService with `GITHUB_TOKEN`; specialists do not instantiate competing GitHub API clients. A mocked specialist mutation request passes through approval checks, audit and read-after-write verification.
+- [ ] Remove active RO-token verifier, its dedicated tests and all obsolete RO-token/credential-confirmation references from specs, Python, YAML, workflows, operations and installation instructions, preserving unrelated GET-only transport safeguards and valuable generic retrieval regressions.
 - [ ] Active temporary P7 names have permanent replacements and versioned migration paths.
