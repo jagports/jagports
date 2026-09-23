@@ -96,14 +96,14 @@ Adopt occurrence-bound applicability assertions with complete alternative condit
 Alternatives considered:
 
 - Independent PART-to-range lists are smaller, but lose combinations and can manufacture applicability through cross-joining.
-- Source tree entities reproduce JEPC navigation semantics and contradict the accepted VIEPS destination boundary.
+- Source tree entities are now retained for catalogue browsing, occurrence context and human-readable filter candidates. They remain separate from the normalized applicability evaluator and must not substitute for grouped source predicates.
 - A general arbitrary Boolean expression engine adds scope and can hide source structure in opaque payloads. The proposal starts with finite, inspectable relational sets and quarantines mappings that cannot be safely represented within bounded processing.
 
 The additive physical SQL implementation is now described in the companion specification's persistence contract. Source identity mapping, the initial comparator and verified attribute mappings still need review before production transformation. No API evaluator, deployment or universal JEPC translation is claimed.
 
 ## Acceptance review
 
-The proposal defines fourteen acceptance examples covering observed one-sided bounds, PART coverage across sub-models, repeated headlamp application paths, market scope below a shared model, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent identity.
+The proposal defines fourteen acceptance examples covering observed one-sided bounds, PART coverage across sub-models, repeated headlamp application paths, market scope below a shared model, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent PART identity with language-qualified source-tree evidence.
 
 These examples include requirements for subsequent evaluation/importer tests. Persistence tests described below now cover their storage boundaries; they do not claim all destination evaluation acceptance criteria passed.
 
@@ -153,7 +153,7 @@ Both `menus/pl_id_<model>_attributes.xml` files exist. The bundle also depends o
 
 LJA4513AF/application 145240 occurs four times: Canada or USA, each with `Except headlamp levelling` or `headlamp powerwash`, followed by LH side. The selected USA/except-levelling row ID is 1100110001. The top-level sidecar contains item 1 with A21 values 120 and 121; no dictionary mapping of these codes is claimed here.
 
-LJA4501AG/application 145251 occurs twice: `headlamp levelling → Except Japan → RHD → LH side` (row 110080001), and `Except headlamp powerwash → Except Japan → RHD → LH side` (row 1100310001). Its application sidecar contains `145251,[A23,157,0,0]`, while the corresponding LHD rows use A23/154. This is corroborating context, not a universal code dictionary. The sidecar does not encode all the visible ancestor headings.
+LJA4501AG/application 145251 occurs twice: `headlamp levelling → Except Japan → RHD → LH side` (row 110080001), and `Except headlamp powerwash → Except Japan → RHD → LH side` (row 1100310001). Its application sidecar contains `145251,[A23,157,0,0]`, while the corresponding LHD rows use A23/154. This is corroborating context, not a universal code dictionary. The sidecar does not encode all the visible ancestor descriptions.
 
 The raw source headings, selected row IDs and sidecar tuples are observed. Their complete Boolean translation, equipment semantics across category/title and option branches, and applicability beyond the selected scope still require mapping validation. Do not flatten the displayed alternatives indiscriminately or label missing application sidecars as missing all conditions.
 
@@ -193,3 +193,27 @@ That separate open PR relocates `PART_MODEL.md` to `5-Implementation-Projects/in
 The existing VIEPS `KNOWLEDGE.md` already records the accepted identity/context, no-source-tree, exclusion, alternative and unknown-data boundaries. No proposed schema decision is promoted to accepted knowledge before review. Detailed new evidence stays in this record; the companion SPEC owns the proposed field/relationship requirements.
 
 Independent review and specification acceptance remain pending. Project Item mutation/read is unavailable through the current connector; no Project Status transition is claimed.
+
+## Occurrence-tree clarification
+
+Subsequent JEPC tree investigation established a simpler and safer import boundary than attempting to decode every raw applicability tuple into display text.
+
+The source item tree already contains the human-readable descriptions JEPC presents to the user. A PART leaf is linked to an application identifier, and the corresponding applicability sidecar preserves the raw machine predicates. The importer can therefore preserve both without manufacturing a positional code-to-description mapping:
+
+```text
+catalogue/category ancestry
+    -> top-level item description
+    -> ordered item-tree descriptions
+    -> PART occurrence
+         + applicationId
+         + raw applicability rule/predicates
+         + source evidence
+```
+
+The complete occurrence path is first-class browse/evidence data. Raw applicability remains the source for verified Boolean evaluation. The tree is not itself the predicate evaluator.
+
+The same model supports reverse lookup: a PART-number search returns every source occurrence and full path for that PART. Catalogue filtering operates on occurrences first and projects distinct PARTs from the surviving set.
+
+Semantic mappings from source descriptions into normalized VIEPS facets are a later enrichment layer and must not alter the source descriptions or raw predicates.
+
+Multilingual source import must not assume one identical tree with translated labels. Preserve language-specific tree structure independently where JEPC differs, while keeping canonical PART identity shared when source identity supports it. Cross-language path/occurrence reconciliation is derived and must be deterministic.

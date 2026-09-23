@@ -13,7 +13,7 @@ Pre-production Worker: vieps
 Production Worker:     jagports — reserved for a later production phase
 ```
 
-The existing Deployment-1 MVP `jagports.parts-5ec.workers.dev` deployment is superseded and discarded. It is not the pre-production Worker and is not preserved by this procedure.
+The reduced-MVP/pre-production Worker endpoint is `https://vieps.parts-5ec.workers.dev/`.
 
 ## Pre-production representation
 
@@ -249,6 +249,46 @@ npx wrangler login
 npx wrangler whoami
 ```
 
+### Transitional administrator token setup
+
+The current application still uses `ADMIN_TOKEN` / `x-admin-token` as a transitional stock-mutation authorization mechanism while Issue #448 replaces it with the accepted administrator login/session model. This token is a project-generated application secret; it is not a GitHub token or Cloudflare API token.
+
+Run the setup from the repository root in Windows PowerShell:
+
+```powershell
+cd ".\4-Production\internet\cloudflare\workers\jagports"
+
+npx wrangler whoami
+
+$b = New-Object byte[] 32
+$r = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$r.GetBytes($b)
+$r.Dispose()
+$token = ([BitConverter]::ToString($b) -replace '-','').ToLower()
+
+$token
+
+npx wrangler secret put ADMIN_TOKEN
+```
+
+When Wrangler prompts for the secret value, paste the 64-character value printed by `$token`.
+
+The `cd` step is required when starting at the repository root because `wrangler.toml` is in the Worker directory. That configuration already declares `name = "vieps"`, so no `--name` argument is required when the command is run there.
+
+Use the secret name exactly as `ADMIN_TOKEN`; do not escape the underscore as `ADMIN\_TOKEN`.
+
+Verify that the secret name exists:
+
+```powershell
+npx wrangler secret list
+```
+
+Cloudflare does not reveal the stored secret value. If the value is lost, generate a new token and run `npx wrangler secret put ADMIN_TOKEN` again to rotate it.
+
+Paste the same raw token into the VIEPS **Authorization** field. Do not add a `Bearer ` prefix. The current Worker compares the request header `x-admin-token` directly with `env.ADMIN_TOKEN`.
+
+Never commit, paste into Issues/PRs, or otherwise record the token value in repository content or logs.
+
 Restore the exact locked dependency set and execute the authoritative build:
 
 ```text
@@ -307,13 +347,11 @@ A successful Worker deployment does not prove that the required D1 migrations ha
 
 ## Production endpoint dependency
 
-The discarded Deployment-1 MVP endpoint was:
+The reduced-MVP/pre-production endpoint is:
 
 ```text
-https://jagports.parts-5ec.workers.dev
+https://vieps.parts-5ec.workers.dev/
 ```
-
-It must not be treated as the current pre-production endpoint.
 
 The intended public VIEPS production hostname remains a separate DNS/production concern:
 
@@ -376,7 +414,7 @@ Deployment verification must establish:
 - when `preview_branches` is empty, no preview trigger exists;
 - an unlisted PR branch produces no Cloudflare Workers Build or deployment-status/comment noise;
 - if an explicit preview branch is temporarily configured, that branch can trigger the preview path and removing it disables future preview builds;
-- the discarded `jagports.parts-5ec.workers.dev` Deployment-1 MVP is not being treated as the pre-production environment.
+- the verified reduced-MVP/pre-production endpoint is `https://vieps.parts-5ec.workers.dev/`.
 
 Record actual test evidence in the relevant Issue/PR or execution record, not as a permanent chronological log here.
 

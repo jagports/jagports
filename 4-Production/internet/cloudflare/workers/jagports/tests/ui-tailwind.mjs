@@ -43,14 +43,24 @@ test('versioned Tailwind source and documentation mirror is present locally', as
   assert.equal(JSON.parse(cliPackage).version, '4.1.13');
 });
 
-test('Tailwind source follows the merged Concept-11 geometry', async () => {
+test('Tailwind source follows the approved #875 three-column geometry', async () => {
   const css = await readFile(sourceCssUrl, 'utf8');
   assert.match(css, /--color-jagports-teal:/);
-  assert.match(css, /grid-template-areas:/);
-  assert.match(css, /"tree search search"/);
-  assert.match(css, /"tree ranges ranges"/);
-  assert.match(css, /"tree location suitability"/);
-  assert.match(css, /"tree details details"/);
+  assert.match(css, /grid-template-columns:\s*minmax\(13rem, \.9fr\) minmax\(0, 2fr\) minmax\(18rem, 1\.1fr\)/);
+  assert.match(css, /grid-template-rows:\s*auto auto minmax\(0, 1fr\)/);
+  for (const [selector, column, row] of [
+    [".availability-block", "1", "2"],
+    [".left-workspace", "1", "3"],
+    [".centre-workspace", "2", "2 / 4"],
+    [".search-block", "3", "2"],
+    [".right-workspace", "3", "3"],
+  ]) {
+    const matches = [...css.matchAll(new RegExp("\\." + selector.slice(1) + "\\s*\\{([^}]*)\\}", "g"))];
+    assert.ok(matches.length, selector + " rule exists");
+    const block = matches[0][1];
+    assert.ok(block.includes("grid-column: " + column), selector + " column");
+    assert.ok(block.includes("grid-row: " + row), selector + " row");
+  }
   assert.match(css, /\.selected-path/);
   assert.match(css, /CSS-Kit-2ndRound-Tailwind-CSS\.jpg/);
 });
@@ -58,9 +68,10 @@ test('Tailwind source follows the merged Concept-11 geometry', async () => {
 test('static shell keeps merged Concept-11 semantic regions without inventing unsupported behavior', async () => {
   const html = await readFile(indexUrl, 'utf8');
   assert.match(html, /class="search-availability-strip"/);
-  assert.match(html, /id="availabilitySelect" disabled/);
+  assert.match(html, /id="availabilitySelect" type="checkbox"/);
   assert.match(html, /id="vehicleLocation" class="vehicle-location-canvas"/);
-  assert.match(html, /<h2 id="ranges-heading" data-i18n="ranges\.heading"><\/h2>/);
+  assert.match(html, /<h2 id="ranges-heading" data-i18n="header\.applicable_models"><\/h2>/);
+  assert.match(html, /id="searchResults"/);
   assert.match(html, /<h2 id="fitment-heading" data-i18n="fitment\.heading"><\/h2>/);
   assert.match(html, /<h2 id="visual-heading" data-i18n="visual\.heading"><\/h2>/);
   assert.doesNotMatch(html, />Top view</);

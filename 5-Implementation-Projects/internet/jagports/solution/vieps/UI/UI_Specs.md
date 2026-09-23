@@ -2,61 +2,78 @@
 
 ## Status
 
-This document defines the durable VIEPS UI information architecture and presentation contract.
+This document defines the VIEPS UI presentation and information architecture. The #875 layout below is the target for the search-results and Applicable Models enhancement; the currently deployed Concept-11 implementation remains the runtime baseline until this specification is reviewed and implemented.
 
-The domain/data behaviour remains controlled by the existing VIEPS specifications and Parts Data Model. For the Tailwind visual implementation, **the Concept-11 SVG merged by PR #645 is the authoritative layout/content reference** and supersedes the older Concept View-1 placement map.
+Domain/data semantics remain governed by the approved search, fitment, PART and STOCK contracts. The enhancement changes display placement and interaction without creating another PART identity or expanding the reduced-MVP completion gate by itself.
 
 **Implementation parent:** #368 — VIEPS UI / Implement MVP Web UI  
-**Controlling specification:** #468 — VIEPS UI specification  
-**Tailwind implementation:** #642 / PR #647  
-**Merged Concept-11 visual:** PR #645
+**Layout enhancement:** #875 — Search-results PART list and Applicable Models panel  
+**Parts Tree coordination:** #873 — one shared-root tree with PART leaves  
+**Visual foundation:** PR #645 — Concept-11
 
 ## Visual authorities
 
-- **Layout/content relationships:** `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/VIEPS UI-Concept-11.svg`
-- **Tailwind style/theme:** `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/CSS-Kit-2ndRound-Tailwind-CSS.jpg`
+- **#875 target layout/content:** `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/Concept-11v1.svg` (the `UI-/-Enchancement` branch).
+- **Tailwind style/theme:** `5-Implementation-Projects/internet/jagports/solution/vieps/UI_CONCEPTS/CSS-Kit-2ndRound-Tailwind-CSS.jpg`.
+- **Implemented layout baseline:** `VIEPS UI-Concept-11.svg` remains evidence of the deployed presentation until the new layout is implemented and validated.
 
-The images define presentation direction. Existing VIEPS data/API specifications remain authoritative for behaviour. Example values and controls shown in concept artwork are not production facts and do not authorize fabricated application logic.
+The #875 SVG and Product Owner's annotated screenshot establish region placement, not verified runtime sample PART/status/fitment data. Existing data/API specifications continue to control behaviour.
 
-## Normative Concept-11 map
+## Normative Concept-11v1 complete desktop page map (#875)
 
-The following is the normative text representation of the **merged** Concept-11 SVG. It follows the SVG's actual region geometry rather than the earlier simplified interpretation.
+The following **Product Owner-supplied ASCII map** is the normative target desktop arrangement for #875. Preserve these region positions and relative relationships when implementing the Concept-11v1 enhancement; the accompanying geometry rules govern interaction and responsive behavior. It replaces the earlier expanded ASCII approximation rather than creating a competing layout. Concept-11 remains the deployed baseline until the enhancement is reviewed and implemented.
 
-```text
-┌──────────────────────────┬──────────────────────────────────────────────────────────────────────────┐
-│ BRANDING / INSTRUCTIONS  │ SEARCH + AVAILABILITY                                                    │
-│ Logos / instructions     │ Search: [ part number / supported identifier ] [Search]                 │
-│ Flags / Language         │ Availability: [ stock quality A…E / descriptions ▼ ]                    │
-│ [UI] [Parts]             │ empty-search stock constraint may narrow Tree + Model Ranges            │
-├──────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
-│ PARTS TREE               │ SUITABILITY MODEL RANGES                                                 │
-│ scrolling main-level     │ filter/check fit across verified model/range context                     │
-│ category index           │ [ ] … [x] applicable range(s)                                            │
-│                          ├───────────────────────────────────┬──────────────────────────────────────┤
-│ retain main levels;      │ LOCATION AT CAR                   │ SUITABILITY / FILTER                 │
-│ expand/emphasize only    │ one vehicle-location canvas       │ browse/multiple-result: filters      │
-│ relevant descendant      │ verified location or unavailable  │ one selected PART/context: facts     │
-│ path(s)                  │                                   │ Models / ModelYear / VINRanges /     │
-│                          │                                   │ features / qualifiers / exclusions   │
-│ selected occurrence/path │                                   │ (i) verified Model Family & Year     │
-│ strongly highlighted     │                                   │     Introduction document            │
-│                          ├───────────────────────────────────┴──────────────────────────────────────┤
-│                          │ PART / IMAGE / STATUS                                                    │
-│                          │ warning/status + PART/item identity + Classic/supersession + details    │
-│                          │ one selected part image / exploded diagram or unavailable state         │
-└──────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
-```
+~~~text
+┌────────────────────────┬──────────────────────────────────────────────────┬────────────────────────┐
+│ Logo / instructions    │ Banner / header                                  │                        │
+│ UI + Parts languages   │                                                  │                        │
+├────────────────────────┼──────────────────────────────────────────────────┼────────────────────────┤
+│ Availability           │ VIN                                               │ Search                 │
+│ stock quality list     │ [input / range picker]                            │ [PN / free text]       │
+│                        │ Filter                                            │                        │
+│ Parts Tree             │ [suitability / variations]                        │ Search Results PART    │
+│ scrollable             ├───────────────────────┬──────────────────────────┤ List                   │
+│ root → branch → leaf   │ Location at car       │ Selected PART            │ scrollable             │
+│ expanded path only     │                       │ status / part name       │ row = select PART      │
+│ PART leafs selectable  │                       │ exploded diagram/image   │ checkbox = bookmark    │
+│                        │                       │                          ├────────────────────────┤
+│                        │                       │                          │ Applicable Models      │
+│                        │                       │                          │ fixture list / fit     │
+│                        │                       │                          │ filter checkboxes      │
+│                        │                       │                          │ scrollable             │
+└────────────────────────┴───────────────────────┴──────────────────────────┴────────────────────────┘
+~~~
+
+**Reading the map:** the centre-top VIN and normalized variations controls span the centre workspace. Directly below them, Location at car occupies centre-left and the single selected PART/Image/Status panel occupies centre-right. The permanent right column is split vertically into Search, Search Results and Applicable Models. The left Availability block remains above the persistent Parts Tree. Branding/instructions and the banner occupy the header. The illustration does not assert working language, stock, VIN or fitment controls where their read contracts are not implemented.
+
+**Exact browse fixture index:** Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These are model-range browse/test labels, not a declaration of fitment to the selected PART.
+
+**Current increment:** implement this shell, separately scrolling Parts Tree / Search Results / Applicable Models, accessible selectable PN/name rows and **one shared PART selection** across tree, result rows and centre detail. Bookmark checkboxes are visible but **disabled**, with no saving. Advanced model-range checkbox filtering is also deferred; its approved future semantics are **multiple selections matching ANY (OR)** with only positively evidenced surviving occurrences. The initial layout may display the 13-entry browse index and verified selected-PART applicability where an approved read contract exists, but must not invent fitment, VIN evidence or data-driven filters.
+
+## Region ownership and current implementation
+
+| Position | Region | Behavior |
+|---|---|---|
+| Header left | Logo / instructions; UI + Parts languages | Reserve the region; activate language controls only through approved #554/#620 contracts. |
+| Header centre | Banner / header | Preserve the full-width centre header slot shown in the map. |
+| Left top | Availability | Approved operational stock-quality controls; unsupported choices remain unavailable, never simulated. |
+| Left below | Parts Tree | Independent scrolling, persistent root index, complete expanded root-to-selected-leaf ancestry, stable links, deduplicated shared ancestors, selectable PART leaves (#873). |
+| Centre top | VIN; Filter | VIN input/supported range picker and normalized suitability/variations (#641), only when backed by approved data. |
+| Centre lower left | Location at car | One evidence-backed location canvas or explicit unavailable state. |
+| Centre lower right | Selected PART | One canonical PART with verified name/status and image/diagram where available; never a candidate list. |
+| Right top | Search | Part-number/deterministic-identifier-first search with reduced-MVP free-text fallback. |
+| Right middle | Search Results PART List | Independent scrolling; one selectable PN/name row per distinct canonical PART, synchronized with tree selection. |
+| Right bottom | Applicable Models | Independent scrolling; unselected browse index of 13 exact requested fixture labels or verified fit for selected PART/context. |
 
 ### Geometry rules
 
-- The Concept-11 top-left block is reserved for Jagports/VIEPS branding, instructions and language concerns.
-- Search + Availability occupies the top workspace to the right of that block.
-- Parts Tree is the persistent left column below the header block.
-- Suitability Model Ranges is a **separate full-width row across the centre/right workspace** below Search/Availability.
-- The next row has **Location at car on the left and Suitability / Filter on the right, side-by-side**.
-- `Location at car` is one vehicle-location canvas, not permanent Top/Side sub-panels.
-- PART / Image / Status spans the **full centre/right lower workspace**.
-- On narrower layouts the regions may reflow while retaining the same semantic relationships.
+- The left column shows Availability above the persistent root-index Parts Tree. The latter scrolls internally and preserves the root-to-selected-node/PART context, stable identities and path de-duplication required by #873.
+- The centre top contains VIN entry and the normalized Suitability/Variations filter; a blank VIN or filter may show supported browse choices only where the approved read contract provides them.
+- The centre workspace places one vehicle-location canvas on the left and one selected PART/diagram/status panel on the right. The selected PART panel never presents multiple candidate PARTs.
+- The persistent right column contains one primary part-number/free-text search input, a separate scrollable Search Results PART List with bookmark checkboxes, and an independently scrollable Applicable Models panel below it.
+- Results rows and tree PART leaves are two views over **one shared canonical PART selection**. Their visible duplication never creates duplicate PART records or synthetic occurrence paths.
+- The banner, branding and distinct UI versus catalogue-data language controls remain reserved; unimplemented controls must not pretend to work.
+- The desktop shell fits the viewport, while long tree/results/models content scrolls in its own region. Narrow layouts may reflow without changing region semantics or the single-selection contract.
 
 ## Language controls shown in Concept-11
 
@@ -70,19 +87,21 @@ Concept-11 explicitly shows `Language [UI] [Parts]` as separate concerns.
 
 ## Core interaction flow
 
-```text
-search / browse constraints
+~~~text
+Search or supported browse/VIN/variation/stock constraints
         ↓
-resolve canonical PART or constrained catalogue/stock context
+Resolve verified canonical PART candidates and occurrence contexts
+        ├─ left Parts Tree: retain root index, show relevant paths and clickable PART leaves
+        └─ right Search Results: show distinct canonical PART rows + disabled bookmark placeholders
         ↓
-retain Parts Tree main-level index + expand relevant descendant path(s)
+Select ONE PART from either surface (same shared selection)
         ↓
-show / constrain verified Model Ranges
+Synchronize selected tree path/occurrence, Location at car and centre PART/image/status
         ↓
-show Location-at-car and Suitability/Filter side-by-side
-        ↓
-show PART / Image / Status across the lower workspace
-```
+Show verified applicable ranges in right Applicable Models panel
+~~~
+
+When a PART has several source occurrences, preserve each source-qualified path. A result-row selection must not guess an occurrence or positive fitment. A PART with no selected occurrence may display verified PART-level fields while occurrence-dependent facts await explicit context selection.
 
 ## Deterministic vertical-slice contract
 
@@ -118,6 +137,10 @@ Fixture identifiers and values must be clearly marked as deterministic test data
 
 Representative fixture coverage for the full #368 vertical-slice contract should include:
 
+- the exact 13-label #875 Applicable Models **browse index** independently of any chosen PART, with fixture-only provenance and no inferred positive fitment;
+- a PART visible under multiple genuine occurrence paths but only once in the right-hand result list;
+- two linked selection surfaces that synchronize one selected PART while bookmarking remains independent;
+
 - successful part-number or approved fixture-identifier resolution;
 - multiple EPC contexts;
 - a relevant Parts Tree path;
@@ -139,55 +162,82 @@ Replacing fixtures with imported data must not require a UI information-architec
 
 ## Empty-search / stock browsing
 
-Concept-11 states that when Search is empty, a supported stock availability/quality constraint may update both Model Ranges and the Parts Tree to the models/main levels represented by matching stock.
+When the primary Search field is empty, supported stock/catalogue browsing may narrow the left Parts Tree and right Applicable Models index only if the approved stock-to-PART and applicability read contracts provide the evidence.
 
-```text
-empty search + supported stock constraint
-          │
-          ├── resolve stock records through canonical PART references
-          ├── Parts Tree → show applicable main levels / relevant branches
-          └── Model Ranges → show/filter verified applicable ranges
-```
+~~~text
+empty Search + supported stock constraints
+  ├─ resolve stock records through canonical PART references
+  ├─ Parts Tree → show supported root branches and relevant paths
+  ├─ Search Results → supported stock-backed PART candidates, if the browse contract supplies them
+  └─ Applicable Models → only verified applicable ranges for those candidate contexts
+~~~
 
-The SVG illustrates stock qualities `A…E with descriptions`. The meanings of A–E must come from the approved stock contract. Until the stock/catalogue browse contract exists, Availability remains disabled/unavailable and no stock-derived hierarchy or fitment is invented.
+Without a supporting browse contract, preserve the permanent regions and display unavailable/unsupported state; do not infer catalogue fitment or fabricate stock-backed ranges. Normalized A–E quality meanings are defined in `../SPEC/MODEL_STOCK.md`, not in the artwork.
+
+### Empty search, clear and browse continuity
+
+Clearing Search preserves the stock-filter setting, invalidates stale requests, clears selected PART/occurrence and old Search Results selection, removes stale `part`/`tree` URL parameters and restores evidenced collapsed roots. The right results panel returns to its empty/browse state; Applicable Models returns to an available browse index, not stale selected-PART fitment.
+
+
+Clearing Search or submitting an empty/whitespace-only query invalidates earlier requests, clears selected PART/occurrence and dependent context, removes stale `?part`/`?tree` state from the current URL, and restores the available collapsed root index with no active selection. Preserve the supported stock filter and permanent Concept-11v1 regions. Empty search is a browse/prompt state, not a failed PART lookup.
+
+Initial root load, clear, empty submit and empty-search Availability refresh use the same root/evidence-state contract. A late PART/tree/root response must not replace a newer user action. Root unavailable/error states do not fabricate categories or revive old PART details.
+
+UI language changes preserve browse state even without a selected PART. Catalogue-language changes respect source-qualified identity and structural differences rather than mapping by label.
+
+The normative transition, stock and URL rules and regression acceptance matrix are in [Part Search](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition). [Parts Tree](UI_Specs_Parts_Tree.md#empty-search--browse-state) owns root presentation and [Main View](UI_Specs_Main_View.md#clearing-selected-context) owns cleared contextual-region presentation.
 
 ## Search-result distribution
 
-```text
-canonical PART / selected context
-   ├── Parts Tree main level + relevant descendant path(s)
-   ├── Suitability Model Ranges
-   ├── Location at car
-   ├── Suitability / Filter or verified facts
-   └── PART / Image / Status
-```
+~~~text
+shared search / browse / fitment state
+  ├─ left Availability → supported stock-only/quality controls
+  ├─ left Parts Tree → root index, matching paths + real canonical PART leaves
+  ├─ centre VIN / variation Filter → supported normalized facets only
+  ├─ centre Location at car → verified single vehicle location or unavailable
+  ├─ centre PART / Image / Status → exactly ONE selected canonical PART
+  ├─ right Search Results PART List → distinct selectable PN/name rows + disabled bookmark placeholders
+  └─ right Applicable Models → verified ranges/fit, or browsing fixture index without fit claims
+~~~
 
-A canonical PART may have multiple EPC occurrences without duplicating canonical identity. Presentation selection never mutates canonical PART identity.
+Filter occurrence contexts first, then derive distinct canonical PART candidates. Keep all legitimate source paths in the Parts Tree, but deduplicate right result rows by stable canonical PART identity. A row and a tree leaf share selected PART state; choosing an occurrence-specific tree leaf additionally selects that exact occurrence. If a row maps to more than one occurrence, require an explicit occurrence/context choice before showing context-specific location or fitment.
+
+Search-result bookmark checkboxes are visible in the current layout increment but **disabled and labelled as coming later**: no bookmark storage, saved-list UI, account requirement or simulated working toggle is introduced now. When implemented in a later approved phase, bookmark state is independent of PART selection, filtering, availability, applicability and catalogue state.
 
 ## 1. Search + Availability
 
-- Canonical Jaguar part-number search remains a primary entry point.
-- Approved alternative identifiers, including deterministic non-numbered fixture identifiers, may be supported without pretending they are Jaguar part numbers.
-- Search status distinguishes empty, invalid, not-found, resolved, unavailable-context and error states.
-- Availability is operational stock state and does not alter catalogue identity or fitment semantics.
-- If stock-quality filtering is unsupported, the control remains disabled/unavailable rather than simulated.
+- The single primary part-number/deterministic-identifier/free-text Search field is in the right-hand column above Search Results; its resolution order, match highlighting and stock-filtered-empty semantics remain controlled by `../SPEC/UI_Part_Search.md`.
+- The left Availability area consumes approved operational STOCK controls and does not change catalogue identity, fitment or source evidence.
+- Centre VIN and suitability/variations filters are separate narrowing inputs, populated from approved data. Blank input browse lists, including VIN ranges, are shown only when the supporting contract exists.
+- Invalid, not-found, multiple-match, context-only, unsupported, unavailable and error states remain explicit; neither search-results rows nor filters may fabricate a PART.
+- The #875 layout adds a second PART-selection surface; it does not add a second search engine or change deterministic-first/free-text-fallback resolution.
+
+### Occurrence-first Parts Tree filtering
+
+Imported catalogue browsing is occurrence-first. A Parts Tree branch represents source occurrence contexts; filters narrow those occurrences, then the UI shows the distinct PARTs that still have at least one surviving occurrence.
+
+Part-number reverse search may expose every occurrence/path for the canonical PART. Do not merge those paths into one synthetic applicability path.
+
+JEPC catalogue-data language is distinct from VIEPS UI locale. If imported language trees differ structurally, the Parts Tree presents the selected source-language structure rather than assuming one fixed tree with translated labels.
 
 ## 2. Parts Tree
 
-- Parts Tree is a scrolling persistent left-side region.
-- The merged SVG visibly retains many main-level catalogue categories while expanding the relevant descendant branch.
-- A resolved context therefore keeps the main-level category index where supplied by the read contract and expands/emphasizes only relevant descendant path(s).
-- Ancestors and selected occurrence/context must remain clear.
-- Expand/collapse is UI state over the catalogue model, not a new data model.
-- Missing tree context is `unavailable`, not `not_found`.
+- The Parts Tree remains a persistent, independently scrolling left-side catalogue hierarchy with the root index visible.
+- A selected category or PART shows one expanded root-to-selection path with stable-node ancestor de-duplication. Show immediate children of the active branch and avoid expanding unrelated descendants.
+- Present canonical PART names/identities as selectable terminal tree leaves under supported catalogue contexts. Real stable node/PART links preserve the context; selected text is underlined, with modest indentation and root-to-leaf font-weight progression.
+- A search may display the same canonical PART both as a tree leaf (potentially at several genuine occurrence paths) and as one right-hand Search Results row. Both surfaces update one shared selected PART; tree leaves may also select the exact occurrence.
+- Never infer a tree path, occurrence, PART identity or fitment. The implementation details and direct-link guarantees remain owned by #873 and `UI_Specs_Parts_Tree.md`.
 
 ## 3. Suitability Model Ranges
 
-- Model Ranges is its own row across the centre/right workspace.
-- Concept-11 depicts filter/check-box semantics to communicate or constrain fit.
-- Runtime interaction may use only the selection operations actually supported by the approved read contract; the artwork does not authorize invented multi-selection behaviour.
-- A resolved PART may turn ranges into factual applicability rather than arbitrary filters.
-- Unsupported/unknown fitment is never shown as a positive match.
+The #875 **Applicable Models** panel occupies the right column below Search Results. It has two distinct modes:
+
+1. **No selected PART — browse/filter index:** display the available model-range fixture/index entries without asserting that an unselected PART fits them. Supported model selection may constrain candidate occurrences, independently of centre variations filters. Filter state must be distinguishable from fitment state.
+2. **Selected PART/context — verified applicability:** display only ranges with approved `applicable` evidence for the selected PART/occurrence and vehicle context. Excluded/not-applicable ranges are not presented as suitable. Distinguish no confirmed match, unavailable evidence and processing errors. A range may show verified contextual qualifiers without promoting unknowns to fit.
+
+The required deterministic **browse fixture display labels**, in order, are: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These labels test the index, not any PART's per-range applicability; use verified existing normalized IDs when available and fixture-only IDs otherwise.
+
+**Approved model-range filter rule:** users may select multiple ranges, with **ANY (OR)** matching: a canonical PART qualifies when at least one surviving evidenced occurrence is positively applicable to at least one selected range, subject to all other active supported constraints. Deselecting every range removes the range constraint. Never treat unavailable/unknown fitment as a positive match or apply filters using labels as identities. The advanced multi-range filtering backend is deferred; until a supported read contract exists, controls may appear in the approved layout but remain disabled rather than silently filtering incorrectly.
 
 ## 4. Location at car
 
@@ -199,30 +249,20 @@ A canonical PART may have multiple EPC occurrences without duplicating canonical
 
 ## 5. Suitability / Filter
 
-This right-middle region has two modes over one applicability contract:
+The centre-top Filter is a normalized Suitability / Variations *search narrowing* control (#641); it is distinct from the right-hand Applicable Models panel's browse filters and evidence-backed fit indicators.
 
-1. **Filter/selection mode** while browsing or when multiple candidate contexts remain.
-2. **Fact mode** when one canonical PART/context is selected.
-
-The concept illustrates Models, ModelYear, VINRanges, features and example facts such as body, engine, supercharger, market and steering. All such values must come from approved fitment evidence.
-
-- VIN applicability comes from approved VIN-range evidence, not generic model-year inference.
-- Unknowns remain explicit and exclusions remain effective.
-- The `(i)` control may link to a verified **Model Family & Year Introduction PDF/document** when an approved source relationship exists.
-- That document is contextual information, not proof of fitment by itself.
+- During browsing or multi-candidate search, show only distinct fitting normalized options returned for the current result universe. Selecting an option narrows surviving occurrence contexts and consequently the Parts Tree, Search Results and applicable range presentation.
+- For one selected PART/context, show verified qualifiers and exclusions through the existing fitment/detail contract; do not turn browse-filter labels into fitment facts.
+- VIN-range applicability comes from approved VIN evidence; unavailable data stays explicit and is not a negative match. Preserve source qualifiers such as body, steering, market and engine only when verified.
+- The optional `(i)` reference may open a verified Model Family & Year Introduction document; it never proves fitment on its own.
 
 ## 6. PART / Image / Status
 
-The full lower centre/right region groups:
+The selected PART panel occupies the centre-right workspace beside Location at car, never the right-hand multi-PART Search Results column.
 
-- warning/status when supported;
-- canonical PART identity and selected item/callout identity;
-- Jaguar Classic indication according to its defined semantics;
-- supersession relationship according to approved supersession data;
-- verified part name/details;
-- one selected part image or exploded diagram.
+It groups one verified selected PART's identity/name, EPC item/callout, warnings, Jaguar Classic and supersession where sourced, plus one relevant image or exploded diagram or an explicit unavailable state. A multi-match search selects no PART by default; choosing a result row or tree leaf updates this *one* panel. Selection changes do not mutate canonical identity.
 
-The SVG's example `Fan warning label`, `MJB7703AA`, item number, Classic and superseded text are illustrative. Do not convert them into facts unless the current result data supplies them.
+The concept's `Fan warning label`, `MJB7703AA`, item number, Classic and superseded text are illustrative only. Missing media, location or occurrence-dependent details remain unavailable rather than guessed.
 
 ## 7. Part identity and non-numbered items
 
@@ -237,9 +277,27 @@ Operational stock remains separate from catalogue/reference information. Quantit
 
 ## Permanent shell and viewport behaviour
 
-All major Concept-11 regions remain permanent through loading, empty, unavailable and error states.
+All major #875 regions retain their allocated space during loading, empty, unavailable and error states. On the default desktop layout, preserve #616's viewport-fit shell: the page itself fits the viewport, with **separate internal scrolling for the Parts Tree, Search Results list and Applicable Models panel**. Avoid nested scroll traps; preserve keyboard scrolling, visible focus, accessible region headings, row links and separately labelled bookmark/filter checkboxes. Narrower layouts may reflow and use normal page scrolling while preserving selected PART/tree context.
 
-On the default desktop layout, preserve PR #616 behaviour: the page itself fits the viewport and long content scrolls inside permanent regions. Narrower layouts may reflow and use normal page scrolling.
+## Merged #888 presentation baseline carried into #875
+
+The completed compact-spacing and mobile-header enhancement from #888 is the presentation baseline for this three-column layout. The #875 desktop geometry replaces only the desktop region arrangement; it must not revert #886 Parts Tree and search clearing, #888 mobile controls or the later #893 browser checks.
+
+- Use compact panel gaps/padding and Parts Tree row spacing/indentation, including 220–320 CSS px. Preserve stable ancestry connectors, complete selected paths, highlighted PART leaves and the intentional reserved space for Location, Suitability and the single selected PART/Image/Status panel.
+- The branded banner exclusively owns existing fixture instructions, explanatory content and relevant links, with expandable translated keyboard-accessible instructions on narrow screens; do not duplicate them below Parts Tree.
+- On mobile, one persistent non-scrolling top region contains branding, language controls, banner/instructions, the primary Find field/button and Availability/Stock-only checkbox plus its separate help button. Only the remaining content scrolls beneath it. Avoid stacking independently sticky controls or fixed offsets; retain usability with translated/wrapped labels, expanded instructions, orientation and the on-screen keyboard without trapping content or horizontal overflow.
+- The Stock-only help button is distinct from its checkbox label. Desktop hover/focus/click and mobile tap expose the localized explanation; repeated activation, outside interaction and Escape dismiss it without toggling the checkbox. The in-viewport overlay must not cover Find or permanently grow the mobile top region. The canonical wording and details belong in [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md).
+- Preserve existing search resolution/clearing, PART identity, STOCK eligibility, fitment and deep links. The separate `search.multiple_matches` EN/FI translation fix is covered by merged #894; do not reintroduce raw keys.
+
+**Verification:** retain existing #886/#888 regressions, current i18n assets and #893 browser screenshot checks; extend the same browser mechanism for the three-column desktop and synchronized Search Results without duplicating workflows.
+
+## Approved #875 Product Owner decisions — 2026-09-22
+
+1. **Bookmarks:** show a separate checkbox beside each PART result now, **disabled and labelled for a future release**. Do not implement session/browser/account persistence, saved lists, or a misleading local-only bookmark toggle in this increment. Future bookmarking remains independent of shared PART selection, fitment and stock.
+2. **Model range filtering:** support selecting several ranges with **ANY (logical OR)** semantics in the later supported filtering increment. A PART survives when at least one of its evidenced surviving occurrences is positively applicable to at least one chosen range, together with all other active approved constraints; zero ranges selected means no range constraint. Missing/unavailable evidence is not a match. Checkboxes may be shown disabled until the read contract supports this correctly; do not simulate an effective filter.
+3. **Phase split:** implement the approved three-column **layout and synchronized Parts Tree / right-hand Search Results PART selection now**, without changing #280's existing reduced-MVP closure gate by itself. Defer bookmark activation/persistence and advanced model-range filtering to later, separately governed implementation work. The 13-label fixture browse index and verified selected-PART applicability presentation remain in the layout increment where existing supported data permits.
+
+The current implementation acceptance is limited to page regions/scrolling/accessibility, distinct PN/name rows and shared selection with one centre PART, retained #873 tree semantics, visible disabled bookmark controls, and non-fabricated Applicable Models browse/fact states. Later increments require their own API, storage, authorization and integration tests; these are **not** acceptance blockers for the layout increment.
 
 ## Implementation boundaries
 
@@ -262,16 +320,19 @@ On the default desktop layout, preserve PR #616 behaviour: the page itself fits 
 
 ## Acceptance principles
 
-A conforming implementation preserves:
+A conforming #875 implementation preserves:
 
-- the merged Concept-11 geometry above;
-- canonical PART identity vs occurrence/context separation;
-- persistent Parts Tree main-level context with relevant descendants expanded/emphasized;
-- Model Ranges as a separate centre/right row;
-- Location and Suitability side-by-side on desktop;
-- one vehicle-location canvas;
-- PART/Image/Status spanning the lower centre/right workspace;
-- separate future UI-language and Parts-language concerns without premature fake controls;
-- viewport-fit behaviour from PR #616;
-- deterministic fixture behaviour from current `main`;
-- explicit unavailable states and no fabricated concept-only facts.
+- clear/empty-submit behavior, preserved stock-filter state, clean selection URLs and race-safe root restoration under the Part Search contract;
+- browse-mode language continuity without fabricated source-tree identity or a selected PART;
+- the three-column target layout, including distinct left Availability/Parts Tree, centre VIN/Variations and one Location/PART pair, and right Search/Results/Applicable Models;
+- one canonical PART identity shared by the Parts Tree and right-hand Search Results, with genuine source-qualified occurrences and no guessed default PART for multi-match;
+- persistent tree root index, stable links, no repeated shared ancestors, expanded path to selected PART, clear indentation and underlined selection as specified under #873;
+- independently selectable PN/name result rows, with separately labelled **disabled** bookmark checkboxes until later activation/storage is approved;
+- the exact 13-label fixture browse index without treating every label as evidence of fitment;
+- right Applicable Models showing only verified fitting ranges for a selected PART/context; unavailable, no-match, excluded and error remain separate;
+- normalized centre variation filters from #641 rather than a second presentation-only taxonomy;
+- evidence-backed single Location canvas and one selected PART/image/status panel;
+- UI-vs-Parts language independence, internal scrolling, keyboard/screen-reader support and #616 viewport-fit behavior;
+- existing deterministic-first/free-text-fallback, stock-only semantics, canonical PART vs occurrence boundaries and explicit missing-data states.
+
+The three Product Owner decisions are recorded above. Layout/shared-selection acceptance is separate from deferred bookmark activation and advanced ANY-range filtering.

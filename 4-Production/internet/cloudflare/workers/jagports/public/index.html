@@ -8,77 +8,113 @@
 </head>
 <body>
   <main class="app-shell">
-    <header class="app-header">
-      <div class="locale-control" role="group" data-i18n-aria-label="locale.label">
-        <button type="button" class="locale-button" data-language="fi" aria-label="fi-FI" title="fi-FI">🇫🇮 <span>[fi-FI]</span></button>
-        <button type="button" class="locale-button" data-language="en" aria-label="en-GB" title="en-GB">🇬🇧 <span>[en-GB]</span></button>
-      </div>
-      <div><p class="eyebrow" data-i18n="header.product_name"></p><h1>VIEPS</h1></div>
-    </header>
-    <div id="result" class="concept-grid">
-      <section class="panel search-panel" aria-labelledby="search-heading">
-        <div class="search-availability-strip">
-          <div class="search-block">
-            <h2 id="search-heading" data-i18n="common.search"></h2>
-            <form id="partSearch" class="search-form">
-              <label for="partNumber" class="visually-hidden" data-i18n="search.input_aria"></label>
-              <input id="partNumber" name="partNumber" autocomplete="off" data-i18n-placeholder="search.input_placeholder" data-i18n-aria-label="search.input_aria">
-              <button type="submit" data-i18n="common.search"></button>
-            </form>
-          </div>
-          <div class="availability-block">
-            <label for="availabilitySelect" data-i18n="common.availability"></label>
-            <select id="availabilitySelect" disabled aria-describedby="availabilityStatus">
-              <option value="" data-i18n="stock.filter_unavailable"></option>
-            </select>
-            <p id="availabilityStatus" class="muted compact-note" data-i18n="stock.filter_unavailable_note"></p>
+    <div class="mobile-top">
+      <header class="app-header">
+        <div class="brand-block">
+          <div><p class="eyebrow" data-i18n="header.product_name"></p><h1>VIEPS</h1></div>
+          <div class="locale-control" role="group" data-i18n-aria-label="locale.label">
+            <button type="button" class="locale-button" data-language="fi" aria-label="fi-FI" title="fi-FI">🇫🇮 <span>[fi-FI]</span></button>
+            <button type="button" class="locale-button" data-language="en" aria-label="en-GB" title="en-GB">🇬🇧 <span>[en-GB]</span></button>
           </div>
         </div>
-        <p id="searchStatus" class="muted status-line" role="status"></p>
-      </section>
-      <section class="panel tree-panel" aria-labelledby="tree-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="tree.catalogue_context"></p><h2 id="tree-heading" data-i18n="tree.heading"></h2></div>
-        <aside class="fixture-guide" data-i18n-aria-label="fixture.test_guidance_aria">
-          <p class="eyebrow" data-i18n="fixture.tester_data"></p>
-          <h3 data-i18n="fixture.heading"></h3>
-          <p class="muted compact-note" data-i18n="fixture.randomized_note"></p>
-          <ul>
-            <li><code>MJB7703AA</code> — <span data-i18n="fixture.mjb7703aa_description"></span></li>
-            <li><code>MNA7691AA</code> — <span data-i18n="fixture.mna7691aa_description"></span></li>
-            <li><code>XR847031</code> — <span data-i18n="fixture.xr847031_description"></span></li>
-            <li><code>FIX538C</code> — <span data-i18n="fixture.fix538c_description"></span></li>
-          </ul>
-          <h3 data-i18n="fixture.descriptive_heading"></h3>
-          <p class="muted compact-note" data-i18n="fixture.descriptive_note"></p>
-          <ul>
-            <li><code>firtree1</code> — <span data-i18n="fixture.firtree1_description"></span></li>
-            <li><code>firtree2</code> — <span data-i18n="fixture.firtree2_description"></span></li>
-          </ul>
-        </aside>
-        <div id="tree"></div>
-      </section>
-      <section class="panel ranges-panel" aria-labelledby="ranges-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="fitment.applicability"></p><h2 id="ranges-heading" data-i18n="ranges.heading"></h2></div>
-        <label for="rangeSelect" data-i18n="ranges.label"></label>
-        <select id="rangeSelect" disabled></select>
-        <div id="ranges"></div>
-      </section>
-      <section class="panel location-panel" aria-labelledby="location-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="location.main_view"></p><h2 id="location-heading" data-i18n="location.heading"></h2></div>
-        <div id="vehicleLocation" class="vehicle-location-canvas"></div>
-        <p id="locationStatus" class="muted compact-note"></p>
-      </section>
-      <section class="panel fitment-panel" aria-labelledby="fitment-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="fitment.applicability"></p><h2 id="fitment-heading" data-i18n="fitment.heading"></h2></div>
-        <p id="selectedRange" class="muted"></p>
-        <div id="fitment"></div>
-      </section>
-      <section class="panel visual-panel" aria-labelledby="visual-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="visual.main_view"></p><h2 id="visual-heading" data-i18n="visual.heading"></h2></div>
-        <div id="partCard" class="card"></div>
-        <div id="visualChooser" hidden><label for="visualSelect" data-i18n="visual.chooser_label"></label><select id="visualSelect"></select></div>
-        <div id="visuals"></div>
-      </section>
+        <div class="banner-block" role="group" data-i18n-aria-label="header.instructions">
+          <details class="fixture-guide" data-i18n-aria-label="fixture.test_guidance_aria"><summary data-i18n="header.instructions"></summary>
+                    <p class="eyebrow" data-i18n="fixture.tester_data"></p>
+                    <h3 data-i18n="fixture.heading"></h3>
+                    <p class="muted compact-note" data-i18n="fixture.randomized_note"></p>
+                    <ul>
+                      <li><code>MJB7703AA</code> — <span data-i18n="fixture.mjb7703aa_description"></span></li>
+                      <li><code>MNA7691AA</code> — <span data-i18n="fixture.mna7691aa_description"></span></li>
+                      <li><code>XR847031</code> — <span data-i18n="fixture.xr847031_description"></span></li>
+                      <li><code>FIX538C</code> — <span data-i18n="fixture.fix538c_description"></span></li>
+                    </ul>
+                    <h3 data-i18n="fixture.descriptive_heading"></h3>
+                    <p class="muted compact-note" data-i18n="fixture.descriptive_note"></p>
+                    <ul>
+                      <li><code>firtree1</code> — <span data-i18n="fixture.firtree1_description"></span></li>
+                      <li><code>firtree2</code> — <span data-i18n="fixture.firtree2_description"></span></li>
+                    </ul>
+                  </details>
+        </div>
+      </header>
+      <section class="panel search-panel" aria-labelledby="search-heading">
+          <div class="search-availability-strip">
+            <div class="search-block">
+              <h2 id="search-heading" data-i18n="common.search"></h2>
+              <form id="partSearch" class="search-form">
+                <label for="partNumber" class="visually-hidden" data-i18n="search.input_aria"></label>
+                <input id="partNumber" name="partNumber" autocomplete="off" data-i18n-placeholder="search.input_placeholder" data-i18n-aria-label="search.input_aria">
+                <button type="submit" data-i18n="common.search"></button>
+              </form>
+              <p id="searchStatus" class="muted status-line" role="status"></p>
+            </div>
+            <div class="availability-block">
+              <span data-i18n="common.availability"></span>
+              <div class="stock-help-row">
+                <label for="availabilitySelect">
+                <input id="availabilitySelect" type="checkbox" aria-describedby="availabilityStatus">
+                <span data-i18n="stock.filter_on_stock"></span>
+              </label>
+                <div class="stock-help">
+                  <button id="stockHelpButton" type="button" class="stock-help-button" aria-expanded="false" aria-controls="stockHelpPopover" data-i18n-aria-label="stock.filter_on_stock_about" title="About Stock only">ⓘ</button>
+                  <div id="stockHelpPopover" class="stock-help-popover" role="tooltip" hidden data-i18n="stock.filter_on_stock_note"></div>
+                </div>
+              </div>
+              <p id="availabilityStatus" class="visually-hidden" data-i18n="stock.filter_on_stock_note"></p>
+            </div>
+          </div>
+        </section>
+    </div>
+    <div id="result" class="concept-grid">
+      <div class="left-workspace">
+        <section class="panel tree-panel" aria-labelledby="tree-heading">
+          <div class="section-heading"><h2 id="tree-heading" data-i18n="tree.heading"></h2></div>
+          <nav id="tree" aria-label="Parts Tree" tabindex="0"></nav>
+        </section>
+      </div>
+      <div class="centre-workspace">
+        <section class="panel vin-panel" aria-labelledby="vin-heading">
+          <h2 id="vin-heading" data-i18n="header.vin"></h2>
+          <label class="visually-hidden" for="vinInput" data-i18n="header.vin"></label>
+          <input id="vinInput" type="text" disabled aria-describedby="unsupportedControlsNote" data-i18n-placeholder="header.vin_pending" data-i18n-title="header.not_yet_supported">
+          <h2 data-i18n="header.variations_filter"></h2>
+          <label class="visually-hidden" for="variationsSelect" data-i18n="header.variations_filter"></label>
+          <select id="variationsSelect" disabled aria-describedby="unsupportedControlsNote" data-i18n-title="header.not_yet_supported"><option data-i18n="header.filter_pending"></option></select>
+          <p id="unsupportedControlsNote" class="muted compact-note" data-i18n="header.not_yet_supported"></p>
+        </section>
+        <div class="centre-detail">
+          <section class="panel location-panel" aria-labelledby="location-heading">
+            <div class="section-heading"><h2 id="location-heading" data-i18n="location.heading"></h2></div>
+            <div id="vehicleLocation" class="vehicle-location-canvas"></div>
+            <p id="locationStatus" class="muted compact-note"></p>
+          </section>
+          <section class="panel visual-panel" aria-labelledby="visual-heading">
+            <div class="section-heading"><h2 id="visual-heading" data-i18n="visual.heading"></h2></div>
+            <div id="partCard" class="card"></div>
+            <div id="visualChooser" hidden><label for="visualSelect" data-i18n="visual.chooser_label"></label><select id="visualSelect"></select></div>
+            <div id="visuals"></div>
+            <section class="fitment-panel" aria-labelledby="fitment-heading">
+              <h2 id="fitment-heading" data-i18n="fitment.heading"></h2>
+              <p id="selectedRange" class="muted"></p>
+              <div id="fitment"></div>
+            </section>
+          </section>
+        </div>
+      </div>
+      <div class="right-workspace">
+        <section class="panel results-panel" aria-labelledby="results-heading">
+          <h2 id="results-heading" data-i18n="header.results_heading"></h2>
+          <div id="searchResults" class="results-scroll" role="region" tabindex="0" data-i18n-aria-label="header.results_heading"></div>
+        </section>
+        <section class="panel ranges-panel" aria-labelledby="ranges-heading">
+          <div class="section-heading"><h2 id="ranges-heading" data-i18n="header.applicable_models"></h2></div>
+          <div id="ranges" class="ranges-scroll" role="region" tabindex="0" data-i18n-aria-label="header.applicable_models"></div>
+          <div id="rangeDetails">
+            <label for="rangeSelect" data-i18n="ranges.label"></label>
+            <select id="rangeSelect" disabled></select>
+          </div>
+        </section>
+      </div>
     </div>
   </main>
   <script src="i18n-resources.js"></script>

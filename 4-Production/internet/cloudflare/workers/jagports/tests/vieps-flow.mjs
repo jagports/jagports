@@ -15,7 +15,7 @@ function uiHarness(fetch) {
   const nodes = new Map();
   for (const [, id] of html.matchAll(/id="([^"]+)"/g)) {
     nodes.set(id, {
-      value: '', hidden: false, disabled: false, textContent: '', listeners: {}, attrs: {},
+      value: '', checked: false, hidden: false, disabled: false, textContent: '', listeners: {}, attrs: {},
       set innerHTML(value) {
         this.markup = value;
         if (id.endsWith('Select')) this.value = value.match(/value="([^"]*)"/)?.[1] || '';
@@ -37,8 +37,9 @@ function uiHarness(fetch) {
   const get = id => nodes.get(id);
   return {
     get,
-    async search(query) {
+    async search(query, { stockOnly = false } = {}) {
       get('partNumber').value = query;
+      get('availabilitySelect').checked = stockOnly;
       await get('partSearch').listeners.submit({ preventDefault() {} });
     },
   };
@@ -86,6 +87,20 @@ test('variation panel distinguishes confirmed no-match from unavailable applicab
   assert.match(ui.get('fitment').innerHTML, /Variation applicability data is unavailable/);
 });
 
+test('public stock-only filter distinguishes stocked PARTs from stock-filtered empty results', async (t) => {
+  const { db, ui } = productionPath(t);
+
+  await ui.search('MJB7703AA', { stockOnly: true });
+  assert.match(ui.get('partCard').innerHTML, /MJB7703AA/);
+
+  db.prepare(`UPDATE stock_item SET available=0 WHERE part_id=(SELECT id FROM part WHERE part_number_normalized='MJB7703AA')`).run();
+  await ui.search('MJB7703AA', { stockOnly: true });
+  assert.match(ui.get('searchStatus').textContent, /currently on stock/i);
+
+  await ui.search('MJB7703AA');
+  assert.match(ui.get('partCard').innerHTML, /MJB7703AA/);
+});
+
 test('Part Image path keeps unavailable and non-numbered states explicit', async (t) => {
   const { ui } = productionPath(t);
   await ui.search('firtree1');
@@ -102,7 +117,7 @@ test('Concept-11 acceptance regions remain visibly represented in the production
   ]) {
     assert.match(html, new RegExp(`id="${id}"`), id);
   }
-  assert.match(html, /data-i18n="stock\.filter_unavailable"/);
+  assert.match(html, /data-i18n="stock\.filter_on_stock"/);
   assert.match(html, /data-i18n="location\.heading"/);
   assert.match(html, /data-i18n="fitment\.heading"/);
   assert.match(html, /data-i18n="visual\.heading"/);
