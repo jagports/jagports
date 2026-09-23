@@ -6,6 +6,69 @@ Reusable engineering and diagnostic commands for the Jagports Lead Agent. These 
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
+## Scheduled main-sync check and optional unattended application update
+
+**Scope:** this is a **separate daily code-maintenance timer**, not an extra Lead Agent execution timer. The existing `jagports-lead-agent.timer` continues to run the original agent every 585 minutes. The new `jagports-sync-main.timer` checks public, repository-reviewed `main` at approximately **04:15 in the Pi's local timezone** (with up to 10 minutes of randomized delay). `Persistent=true` catches a missed daily check after host downtime. Use `timedatectl` to verify the Pi's timezone; adjust `OnCalendar` if it differs from the intended local time.
+
+**Safe default:** the scheduled service invokes `--scheduled`, which is **check-only** until the owner creates a deliberate private opt-in file. The check reports the selected main commit, deployed commit and a dry-run source/deletion diff in `journalctl --user -u jagports-sync-main.service`, without modifying application code or using any API tokens. A separately approved **auto-deploy** option stages new application code, runs every offline regression, backs up the current version, stops only the agent timer while replacing files, executes one deterministic model-disabled service verification, then restores the timer only if it was running beforehand. Failed staged tests leave the installed application unchanged; a failed installed service triggers rollback of code/config from the private backup. Obsolete managed Python files are deleted **only if present in the previous installation manifest**; unexpected new local files block automatic deletion.
+
+**Trust gate:** the updater can verify GitHub's current `main` commit, **not** independently prove that every commit underwent the required PR approval. Before enabling automatic deployment, the operator must verify branch protection/merge rules actually enforce independent review and required CI, and separately approve unattended updates on this Pi. Otherwise use the default scheduled check and manually invoke `--apply` only after reviewing the specific main revision. No open or unmerged PR code is selected by the updater.
+
+### Install and enroll once, as codex, after PR #935 is reviewed and merged
+
+First use the **manual** procedure below to update the application from reviewed `main`. It supplies the new `scripts/sync_main.sh` and `systemd/` files. The following commands run **inside an existing `codex` login**, not as `admin`; `codex` is not in sudoers and must never be added. An authorized `admin` may establish a `codex` process with `sudo -u codex -H bash` outside this block if needed.
+
+```bash
+test "$(id -un)" = codex
+cd /home/codex/jagports-lead-agent
+
+# The scheduled job is a stable script copy OUTSIDE the code being replaced.
+install -d -m 700 "$HOME/.local/libexec" "$HOME/.config/systemd/user"
+install -m 700 scripts/sync_main.sh "$HOME/.local/libexec/jagports-sync-main.sh"
+install -m 600 systemd/jagports-sync-main.service \
+  "$HOME/.config/systemd/user/jagports-sync-main.service"
+install -m 600 systemd/jagports-sync-main.timer \
+  "$HOME/.config/systemd/user/jagports-sync-main.timer"
+
+# Inspect both units and confirm no unintended paid/runtime activation.
+systemctl --user daemon-reload
+systemctl --user cat jagports-sync-main.service jagports-sync-main.timer
+systemd-analyze calendar '*-*-* 04:15:00'
+
+# First inspect the downloaded main SHA and the full managed-code deletion plan.
+bash "$HOME/.local/libexec/jagports-sync-main.sh" --check
+# After reviewing the above diff, approve the FIRST synchronization explicitly:
+bash "$HOME/.local/libexec/jagports-sync-main.sh" --enroll
+
+# Schedule future *checks* (the default), without enabling auto-deployment.
+systemctl --user enable --now jagports-sync-main.timer
+systemctl --user list-timers --all
+journalctl --user -u jagports-sync-main.service -n 50 --no-pager
+```
+
+**Precondition:** both installed and incoming `config.yaml` must have `openai.enabled: false`, any legacy `p7.enabled: false` and its reasoning disabled. If your local configuration is still set to `openai.enabled: true` or `p7.enabled: true`, restore those flags to false **after checking any active/uncertain pilot state** before enrollment or scheduled synchronization. The updater refuses to change an enabled paid installation without operator reconciliation. Its source verification invokes no OpenAI API and never copies `.env` into a source checkout or backup.
+
+### Explicit opt-in to automatic deployment from reviewed main
+
+**Only after** inspecting branch protection, one successful `--enroll`, the backup, the offline-test results, effective user service and the exact main SHA, the operator may activate unattended installation:
+
+```bash
+# As codex, without sudo:
+test -s "$HOME/jagports-lead-agent/state/installed_app_tree"
+install -d -m 700 "$HOME/.config/jagports-agent"
+printf '%s\n' I_APPROVE_REVIEWED_MAIN_AUTO_DEPLOY \
+  > "$HOME/.config/jagports-agent/auto-deploy-approved"
+chmod 600 "$HOME/.config/jagports-agent/auto-deploy-approved"
+systemctl --user start jagports-sync-main.service
+journalctl --user -u jagports-sync-main.service -n 80 --no-pager
+```
+
+To **disable auto-deployment without disabling daily checks**, remove only `$HOME/.config/jagports-agent/auto-deploy-approved`; the existing sync timer then reverts to check-only. To stop all checks, `systemctl --user disable --now jagports-sync-main.timer`. An operator can explicitly run `bash ~/.local/libexec/jagports-sync-main.sh --apply` after enrollment even in check-only mode.
+
+**Conflict and failure rules:** a running agent service causes the updater to defer, not interrupt, deployment. The script holds a cross-process flock and never modifies another MyNode service. It preserves the existing `.env`, `venv/`, `state/` including model spend/uncertain attempts and #904 cursors, `reports/` and `notifications/`. A changed updater script or user-systemd unit must be manually reviewed/reinstalled from the new `main` before unattended deployment continues. The code update uses a protected `rsync --delete` and a prior-source file manifest to remove obsolete tracked Python modules; the older manual no-delete procedure below does **not** remove stale code automatically. Backups live privately under `/home/codex/jagports-backup.*`; inspect and prune them manually under a retention policy instead of silently deleting rollback history.
+
+**Observability:** an `IN_SYNC` journal entry proves only code-tree equivalence with the recorded main revision. `UPDATED` plus offline tests, successful deterministic user service and the commit marker prove an update attempt succeeded. **Neither** proves an independently observed later 585-minute unattended run or model-backed acceptance. If rollback tests fail, leave the agent timer stopped and repair deliberately; investigate any failed sync service with `systemctl --user status jagports-sync-main.service` and its journal. These new maintenance timers do not authorize recurring OpenAI spending, GitHub mutations or automatic Telegram question processing.
+
 ## Agent update from reviewed main — codex-owned Raspberry Pi workspace
 
 **Audience:** the operator updating the existing `mynode-sby` application, not installing a new host. The live installation is `/home/codex/jagports-lead-agent` and its Python environment and files are owned by `codex` (previously observed UID 1008). Host account and first-time systemd setup belong in the [canonical MyNode Deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). This procedure updates **only already merged `main`**: open architecture/specification PRs are not installed automatically. Confirm that a reviewed release is ready before updating the scheduled host.
