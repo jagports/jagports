@@ -11,6 +11,7 @@ import yaml
 from agents.lead_agent import LeadAgent
 from core.result import AgentResult
 from services import report_service, state_service
+from services.ghd_pending_store import GHDPendingStore, PendingStoreError
 import main as entry
 
 
@@ -63,6 +64,23 @@ class FakePilot:
     def process(self, changed_event, issue_context):
         self.calls.append((changed_event, issue_context))
         return self.output
+
+
+def write_real_ghd_pending(path="state/pending.json"):
+    """Generate the versioned, integrity-checked #904 handoff in a temp dir."""
+    pending_path = Path(path)
+    store = GHDPendingStore(
+        snapshot_path=pending_path.with_name("ghd_enrichment.json"),
+        pending_path=pending_path)
+    complete = dict(CONTEXT)
+    complete.pop("source_revision", None)
+    complete.update({"comment_scope": "all", "total_comment_count": 0})
+    produced = store.record_observation({
+        "status": "complete", "issue_number": 42,
+        "context_or_error": complete,
+    }, newly_observed=True)
+    assert produced["status"] == "pending", produced
+    return produced["pending_event"]
 
 
 class WiringTests(unittest.TestCase):
@@ -124,7 +142,7 @@ class WiringTests(unittest.TestCase):
                           p7_event_source=lambda: entry.load_ghd_pending_event(
                               "state/missing.json"))
         _issues, _event, results = agent.run()
-        self.assertEqual(results[0].data["status"], "invalid_event_source")
+        self.assertEqual(results, [])  # no pending outbox means zero model calls
         self.assertEqual(pilot.calls, [])
 
     def test_only_versioned_904_pending_events_are_accepted(self):
@@ -134,14 +152,14 @@ class WiringTests(unittest.TestCase):
                          "status": "pending", "changed_event": CHANGE,
                          "issue_context": CONTEXT}):
             file.write_text(json.dumps(payload))
-            with self.assertRaises(ValueError):
+            with self.assertRaises(PendingStoreError):
                 entry.load_ghd_pending_event(file)
-        file.write_text(json.dumps({
-            "producer": "ghd_increment_a", "schema_version": 1,
-            "status": "pending", "changed_event": CHANGE, "issue_context": CONTEXT,
-        }))
+        file.unlink()
+        pending = write_real_ghd_pending(file)
         event, context = entry.load_ghd_pending_event(file)
         self.assertEqual(event["source_revision"], context["source_revision"])
+        self.assertEqual(event["source_revision"],
+                         pending["changed_event"]["source_revision"])
 
     def test_repository_default_config_keeps_p7_and_spending_disabled(self):
         """The committed installation defaults must never authorize P7."""
@@ -195,16 +213,13 @@ class WiringTests(unittest.TestCase):
             entry.build_agent(config, self.github)
 
     def test_enabled_main_passes_904_handoff_without_provider_calls(self):
-        Path("state/pending.json").write_text(json.dumps({
-            "producer": "ghd_increment_a", "schema_version": 1,
-            "status": "pending", "changed_event": CHANGE,
-            "issue_context": CONTEXT,
-        }))
+        pending = write_real_ghd_pending()
+        revision = pending["changed_event"]["source_revision"]
         config_file = Path("config.yaml")
         config_file.write_text(yaml.safe_dump({
             "github": {"repository": "jagports/jagports"},
             "openai": {"enabled": True},
-            "p7": {"enabled": True, "approved_source_revision": "approved-revision",
+            "p7": {"enabled": True, "approved_source_revision": revision,
                    "pending_event_file": "state/pending.json",
                    "reasoning": {"enabled": True}},
         }))
@@ -217,7 +232,8 @@ class WiringTests(unittest.TestCase):
         reasoning.assert_called_once()
         self.assertEqual([r.agent for r in results],
                          ["research", "product_vehicle", "team_lead"])
-        self.assertEqual(pilot.calls[0][0]["source_revision"], "approved-revision")
+        self.assertEqual(pilot.calls[0][0]["source_revision"], revision)
+        self.assertEqual(pilot.calls[0][1]["source_revision"], revision)
         self.assertIn("P7 advisory pilot", save.call_args.args[0])
         self.assertNotIn("Sensitive untrusted evidence", save.call_args.args[0])
 
