@@ -47,6 +47,27 @@ function rows(source, fields, relative) {
   return result;
 }
 
+export function matchingLeafModels(modelMenuSource, fragment) {
+  const query = String(fragment ?? '').trim().toLocaleLowerCase('en');
+  if (query.length < 2) throw new Error('Model name fragment must contain at least two characters.');
+  const models = rows(modelMenuSource, 3, 'menus/models_l_id_0.xml')
+    .map(([id, parent, label]) => ({ id, parent, label }));
+  const children = new Map();
+  for (const model of models) {
+    const siblings = children.get(model.parent) ?? [];
+    siblings.push(model.id);
+    children.set(model.parent, siblings);
+  }
+  const matches = label => label.toLocaleLowerCase('en').includes(query);
+  const selected = new Set(models.filter(model => matches(model.label)).map(model => model.id));
+  const visit = id => { for (const child of children.get(id) ?? []) if (!selected.has(child)) { selected.add(child); visit(child); } };
+  for (const id of [...selected]) visit(id);
+  const leaves = [...new Map(models.filter(model => selected.has(model.id) && !children.has(model.id))
+    .map(model => [model.id, model])).values()];
+  if (!leaves.length) throw new Error(`No leaf source models match: ${fragment}`);
+  return leaves;
+}
+
 async function filesInModel(root, model, language) {
   const relative = sourcePath('drilldown', `pl_id_${model}`, `L${language}`);
   const directory = await realpath(path.join(root, relative));
@@ -76,8 +97,22 @@ async function fingerprint(root, relative) {
   return { path: relative, size: after.size, sha256: hash.digest('hex') };
 }
 
-export async function selectRangeBundles({ range, source, stateDir, seed, language = '0' }) {
+export async function selectRangeBundles(options) {
+  const { range } = options;
   if (range !== 'xk') throw new Error('Unsupported Range for bundle selection; currently supported: xk.');
+  return selectBundles(options);
+}
+
+export async function selectModelFamilyBundles({ modelFragment, source, stateDir, language = '0', onProgress }) {
+  if (typeof modelFragment !== 'string' || modelFragment.trim().length < 2) {
+    throw new Error('Model name fragment must contain at least two characters.');
+  }
+  const normalized = modelFragment.trim().toLocaleUpperCase('en');
+  return selectBundles({ modelFragment: normalized, source, stateDir, language, seed: normalized.toLocaleLowerCase('en'),
+    all: true, onProgress });
+}
+
+async function selectBundles({ range, modelFragment, all = false, source, stateDir, seed, language = '0', onProgress }) {
   if (!source || !stateDir || typeof seed !== 'string' || !seed || seed.length > 256) {
     throw new Error('Require --source, --state-dir and a nonempty --seed (up to 256 characters).');
   }
@@ -99,10 +134,12 @@ export async function selectRangeBundles({ range, source, stateDir, seed, langua
   const modelsFile = 'menus/models_l_id_0.xml';
   const modelsMenu = await menu(root, modelsFile);
   const models = new Map(rows(modelsMenu.source, 3, modelsFile).map(([id, parent, label]) => [id, { parent, label }]));
+  const modelIds = modelFragment ? matchingLeafModels(modelsMenu.source, modelFragment).map(model => model.id) : XK_MODEL_IDS;
   const population = [];
+  const incompleteCategories = [];
   const menuChecksums = [{ path: modelsFile, sha256: modelsMenu.sha256 }];
-  for (const model of XK_MODEL_IDS) {
-    if (!models.has(model)) throw new Error(`XK model ${model} absent from model menu.`);
+  for (const model of modelIds) {
+    if (!models.has(model)) throw new Error(`Selected model ${model} absent from model menu.`);
     const relative = sourcePath('menus', `L${language}`, `pl_id_${model}_l_id_${language}.xml`);
     const categoryMenu = await menu(root, relative);
     menuChecksums.push({ path: relative, sha256: categoryMenu.sha256 });
@@ -110,7 +147,12 @@ export async function selectRangeBundles({ range, source, stateDir, seed, langua
     for (const [category, parent, label, leaf] of rows(categoryMenu.source, 4, relative)) {
       if (leaf !== '1') continue;
       const bundle = files.get(category);
-      if (!bundle?.cat || !bundle?.tl || !bundle.items.length) continue;
+      if (!bundle?.cat || !bundle?.tl || !bundle.items.length) {
+        incompleteCategories.push({ model, category, missing: [
+          !bundle?.cat && 'category', !bundle?.tl && 'top-level', !bundle?.items.length && 'item',
+        ].filter(Boolean) });
+        continue;
+      }
       population.push({ model, parentModel: models.get(model).parent,
         modelLabel: models.get(model).label, category, categoryParent: parent,
         categoryLabel: label, language: String(language),
@@ -121,17 +163,24 @@ export async function selectRangeBundles({ range, source, stateDir, seed, langua
   }
   const identity = bundle => `${bundle.model}/${bundle.category}/L${bundle.language}`;
   if (new Set(population.map(identity)).size !== population.length) throw new Error('Duplicate category in source menus.');
+  for (const model of modelIds) {
+    if (!population.some(bundle => bundle.model === model)) throw new Error(`No complete category bundle in model ${model}.`);
+  }
   const score = bundle => hashText(`${SELECTION_VERSION}\0${seed}\0${identity(bundle)}`);
-  const ranked = population.sort((a, b) => score(a).localeCompare(score(b)) || identity(a).localeCompare(identity(b)));
-  if (ranked.length < LIMIT) throw new Error(`Only ${ranked.length} complete category bundles; need ${LIMIT}.`);
-  const chosen = [];
+  const ranked = population.sort(all
+    ? (a, b) => identity(a).localeCompare(identity(b))
+    : (a, b) => score(a).localeCompare(score(b)) || identity(a).localeCompare(identity(b)));
+  if (!ranked.length || (!all && ranked.length < LIMIT)) {
+    throw new Error(`Only ${ranked.length} complete category bundles; need ${all ? 1 : LIMIT}.`);
+  }
+  const chosen = all ? [...ranked] : [];
   const used = new Set();
-  for (const model of XK_MODEL_IDS) {
+  for (const model of all ? [] : modelIds) {
     const first = ranked.find(bundle => bundle.model === model);
     if (!first) throw new Error(`No complete category bundle in XK model ${model}.`);
     chosen.push(first); used.add(identity(first));
   }
-  for (const bundle of ranked) {
+  for (const bundle of all ? [] : ranked) {
     if (chosen.length === LIMIT) break;
     if (!used.has(identity(bundle))) { chosen.push(bundle); used.add(identity(bundle)); }
   }
@@ -140,18 +189,20 @@ export async function selectRangeBundles({ range, source, stateDir, seed, langua
     bundles.push({ ...bundle, files: await Promise.all(bundle.paths.map(relative => fingerprint(root, relative))),
       selectionScore: score(bundle) });
     delete bundles.at(-1).paths;
+    onProgress?.({ phase: 'selection', completed: bundles.length, total: chosen.length, model: bundle.model });
   }
   const manifest = {
-    schemaVersion: SELECTION_VERSION, phase: 'SELECTION_ONLY', range,
-    selection: { algorithm: 'sha256(seed,source-qualified-bundle); one-per-model then lowest scores',
-      seed, language: String(language), count: LIMIT, modelIds: [...XK_MODEL_IDS],
-      candidateCount: ranked.length, candidateCountsByModel: Object.fromEntries(XK_MODEL_IDS.map(model => [model, ranked.filter(b => b.model === model).length])),
-      menuChecksums },
+    schemaVersion: SELECTION_VERSION, phase: 'SELECTION_ONLY',
+    ...(range ? { range } : { modelFragment: modelFragment.trim() }),
+    selection: { algorithm: all ? 'all complete categories in matched leaf models' : 'sha256(seed,source-qualified-bundle); one-per-model then lowest scores',
+      seed, language: String(language), count: chosen.length, modelIds: [...modelIds],
+      candidateCount: ranked.length, candidateCountsByModel: Object.fromEntries(modelIds.map(model => [model, ranked.filter(b => b.model === model).length])),
+      ...(all ? { incompleteCategories } : {}), menuChecksums },
     source: root, bundles,
     note: 'No catalogue rows were parsed or published to D1.',
   };
   await mkdir(state, { recursive: true });
-  const filename = path.join(state, `xk-selection-${hashText(`${language}\0${seed}`).slice(0,20)}.json`);
+  const filename = path.join(state, `${all ? 'model' : 'xk'}-selection-${hashText(`${language}\0${seed}`).slice(0,20)}.json`);
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
   try {
     const prior = await readFile(filename, 'utf8');

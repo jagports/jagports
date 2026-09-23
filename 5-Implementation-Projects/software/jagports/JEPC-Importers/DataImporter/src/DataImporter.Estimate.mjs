@@ -47,9 +47,11 @@ function sampleFile(sample, candidate, size) {
   }
 }
 
-function validateOptions({ source, stateDir, range, models, seed, sampleSize }) {
-  if (!source || !stateDir || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(range ?? '')) {
-    throw new Error('Require --source, --state-dir and a lowercase Range slug.');
+function validateOptions({ source, stateDir, range, modelPattern, models, seed, sampleSize }) {
+  const rangeScope = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(range ?? '') && modelPattern === undefined;
+  const patternScope = range === undefined && typeof modelPattern === 'string' && modelPattern.trim().length >= 2;
+  if (!source || !stateDir || !(rangeScope || patternScope)) {
+    throw new Error('Require --source, --state-dir and either a lowercase Range slug or a model-name pattern.');
   }
   if (!Array.isArray(models) || !models.length || models.some(id => !/^\d{1,10}$/.test(String(id))) || new Set(models).size !== models.length) {
     throw new Error('Provide unique numeric Model_IDs.');
@@ -60,9 +62,10 @@ function validateOptions({ source, stateDir, range, models, seed, sampleSize }) 
   }
 }
 
-export async function estimateRange({ source, stateDir, range, models, seed = 'range-estimate', sampleSize = 100, calibrationPath },
+export async function estimateRange({ source, stateDir, range, modelPattern, models, seed = 'range-estimate', sampleSize = 100, calibrationPath },
   { onProgress = () => {}, shouldStop = () => false } = {}) {
-  validateOptions({ source, stateDir, range, models, seed, sampleSize });
+  validateOptions({ source, stateDir, range, modelPattern, models, seed, sampleSize });
+  if (modelPattern !== undefined && calibrationPath) throw new Error('D1 calibration requires a resolved destination Range.');
   const root = await realpath(path.resolve(source));
   const state = await canonicalFuture(path.resolve(stateDir));
   if (within(root, state)) throw new Error('State directory must be outside the source installation.');
@@ -70,7 +73,8 @@ export async function estimateRange({ source, stateDir, range, models, seed = 'r
   const start = performance.now();
   const result = {
     schemaVersion: 1, phase: 'SOURCE_ESTIMATE', state: 'RUNNING',
-    range, modelIds: [...models], source: root, startedAt,
+    range: range ?? null, ...(modelPattern === undefined ? {} : { modelPattern }),
+    modelIds: [...models], source: root, startedAt,
     coverage: 'Explicit Model_ID directories and their model menus; shared media is excluded.',
     inventory: { files: 0, bytes: 0, directories: 0, byExtension: {}, byFamily: {}, byModel: {}, errorCount: 0, errors: [], skippedLinks: 0 },
     sample: { seed, requested: sampleSize, eligibleFiles: 0, eligibleBytes: 0, files: [], readBytes: 0, readSeconds: 0, lines: 0, recordLikeLines: 0, byFamily: {} },
@@ -216,7 +220,8 @@ export async function estimateRange({ source, stateDir, range, models, seed = 'r
     };
   }
   await mkdir(state, { recursive: true });
-  const filename = path.join(state, `range-estimate-${range}-${randomUUID()}.json`);
+  const scopeName = range ?? `models-${createHash('sha256').update(modelPattern).digest('hex').slice(0, 12)}`;
+  const filename = path.join(state, `range-estimate-${scopeName}-${randomUUID()}.json`);
   const temporary = `${filename}.tmp`;
   await writeFile(temporary, `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
   await rename(temporary, filename);

@@ -61,6 +61,17 @@ test('D1/time projection requires a measured calibration and keeps its basis exp
   assert.match(result.projection.basis, /Linear projection/);
 });
 
+test('model-pattern estimate measures source scope without inventing a destination Range', async t => {
+  const options = await fixture(t);
+  const { result } = await estimateRange({ ...options, range: undefined, modelPattern: 'XK' });
+  assert.equal(result.modelPattern, 'XK');
+  assert.equal(result.range, null);
+  assert.equal(result.inventory.files, 5);
+  assert.equal(result.projection.d1Bytes, null);
+  await assert.rejects(estimateRange({ ...options, range: undefined, modelPattern: 'XK',
+    calibrationPath: path.join(options.stateDir, 'calibration.json') }), /resolved destination Range/);
+});
+
 test('CLI accepts explicit model scope and rejects invalid invocations', async t => {
   const options = await fixture(t);
   assert.deepEqual(modelsForRange('xk'), ['3187', '3183', '3178', '3173', '7420']);

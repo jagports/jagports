@@ -1,7 +1,9 @@
 import { parseArgs } from 'node:util';
 import { moveCursor, cursorTo, clearScreenDown } from 'node:readline';
+import { homedir } from 'node:os';
+import path from 'node:path';
 import { inspect, readState } from './DataImporter.Runtime.mjs';
-import { selectRangeBundles } from './DataImporter.Selection.mjs';
+import { selectRangeBundles, selectModelFamilyBundles } from './DataImporter.Selection.mjs';
 import { parseSelection } from './DataImporter.Parse.mjs';
 import { estimateRange, modelsForRange } from './DataImporter.Estimate.mjs';
 
@@ -11,6 +13,7 @@ Jagports JEPC Data Importer v0.1 — source inspection skeleton
 (C)2026 by tlindi and ChatGPT
 
 Node.js 24+; run locally on the computer that can read the source files.
+  --parse <model-name-fragment> [--source <JEPC root>] [--state-dir <outside source>] [--language 0] [--estimate] [--json]
   inspect --source <JEPC root> --state-dir <outside source> --model <id> --category <id> --item <id> [--language 0] [--json]
   status  --state-dir <directory> [--json]
   report  --state-dir <directory>
@@ -28,6 +31,7 @@ inspect checks eight expected source paths. It does not import catalogue data.
 select records a reproducible forty-category selection for the requested Range; currently only xk is supported. --estimate optionally scans its Range source before a later import.
 estimate-range inventories the selected Range source and samples files; it never starts import.
 parse stages the manifest's source records and applicability sidecars locally; it does not publish to D1.
+--parse matches source XML model names by case-insensitive literal substring and stages every complete category bundle in matching leaf models. For example, X3 matches X300 and X308; XJ also matches XJS.
 Repeat inspect with the same arguments to recheck/reuse persisted checksums.
 Q or first Ctrl+C stops after the current file checkpoint; second Ctrl+C exits.
 report emits the latest run and its detailed persistent events as JSON.
@@ -57,10 +61,43 @@ async function main() {
     language: { type: 'string' }, json: { type: 'boolean' }, full: { type: 'boolean' },
     seed: { type: 'string' }, manifest: { type: 'string' }, range: { type: 'string' }, models: { type: 'string' },
     'sample-size': { type: 'string' }, calibration: { type: 'string' },
-    estimate: { type: 'boolean' },
+    estimate: { type: 'boolean' }, parse: { type: 'string' },
     help: { type: 'boolean', short: 'h' },
   } });
-  if (values.help || !positionals.length) { console.log(help); return; }
+  if (values.help) { console.log(help); return; }
+  if (values.parse !== undefined) {
+    if (positionals.length || Object.keys(values).some(key => !['parse', 'source', 'state-dir', 'language', 'estimate', 'json'].includes(key))) {
+      throw new Error('--parse accepts only source, state-dir, language, estimate and json options.');
+    }
+    const source = values.source ?? process.env.JEPC_SOURCE ?? 'C:\\Program Files\\JEPC\\applications\\JEPC';
+    const stateDir = values['state-dir'] ?? path.join(process.env.LOCALAPPDATA ?? path.join(homedir(), '.local', 'state'),
+      'Jagports', 'JEPC-Importer');
+    let lastNotice = 0;
+    const onProgress = current => {
+      const now = Date.now();
+      if (current.completed !== current.total && now - lastNotice < 15000) return;
+      lastNotice = now;
+      process.stderr.write(`${current.phase}: ${current.completed}/${current.total} bundles (Model_ID ${current.model}).\n`);
+    };
+    const selection = await selectModelFamilyBundles({ modelFragment: values.parse, source, stateDir,
+      language: values.language ?? '0', onProgress });
+    const summary = { modelFragment: selection.manifest.modelFragment, modelIds: selection.manifest.selection.modelIds,
+      selected: selection.manifest.bundles.length,
+      incompleteCategories: selection.manifest.selection.incompleteCategories?.length ?? 0,
+      manifest: selection.filename, selectionReused: selection.reused };
+    if (values.estimate) {
+      try {
+        const estimate = await estimateRange({ source, stateDir, modelPattern: summary.modelFragment,
+          models: summary.modelIds, seed: values.parse.trim().toLocaleLowerCase('en'), sampleSize: 100 });
+        summary.estimate = { state: estimate.result.state, report: estimate.filename };
+      } catch (error) { summary.estimate = { state: 'FAILED', error: safe(error.message) }; }
+    }
+    summary.staging = await parseSelection({ manifestPath: selection.filename, stateDir, onProgress });
+    console.log(values.json ? JSON.stringify(summary, null, 2)
+      : `Matched ${summary.modelIds.length} source models; staged ${summary.staging.bundles} category bundles.\nManifest: ${summary.manifest}\nStaging: ${summary.staging.outputDir}\nD1 publication: not started.`);
+    return;
+  }
+  if (!positionals.length) { console.log(help); return; }
   const [command] = positionals;
   if (positionals.length !== 1 || !['inspect', 'status', 'report', 'doctor', 'select', 'estimate-range', 'parse'].includes(command)) throw new Error('Unknown command. Use --help.');
   const allowed = command === 'inspect' ? ['source', 'state-dir', 'model', 'category', 'item', 'language', 'json']

@@ -4,7 +4,18 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { XK_MODEL_IDS, selectRangeBundles } from '../src/DataImporter.Selection.mjs';
+import { XK_MODEL_IDS, matchingLeafModels, selectRangeBundles } from '../src/DataImporter.Selection.mjs';
+
+test('model fragment includes matching leaves and descendants of matching parent rows', () => {
+  const source = `<Data>\n[3175,10001,'Jaguar XK8 Coupe/Convertible']\n[3187,3175,'XK8 Coupe up to VIN']\n[3183,3175,'XK8 Coupe Canada/USA']\n[7422,10001,'XK Range']\n[7420,7422,'XK Range later']\n[2233,10001,'XJ Range X300']\n[2231,2233,'XJ Range X300 model']\n[3215,10001,'XJ Range X308']\n[3218,3215,'XJ Range X308 model']\n[2213,10001,'XJS Sports Coupe']\n[2216,2213,'XJS model']\n</Data>`;
+  assert.deepEqual(matchingLeafModels(source, 'xk').map(model => model.id), ['3187', '3183', '7420']);
+  assert.deepEqual(matchingLeafModels(source, 'Jaguar XK8').map(model => model.id), ['3187', '3183']);
+  assert.deepEqual(matchingLeafModels(source, 'X300').map(model => model.id), ['2231']);
+  assert.deepEqual(matchingLeafModels(source, 'X3').map(model => model.id), ['2231', '3218']);
+  assert.deepEqual(matchingLeafModels(source, 'XJ').map(model => model.id), ['2231', '3218', '2216']);
+  assert.deepEqual(matchingLeafModels(source, 'XJS').map(model => model.id), ['2216']);
+  assert.throws(() => matchingLeafModels(source, 'F-Type'), /No leaf source models/);
+});
 
 async function fixture(t) {
   const parent = await mkdtemp(path.join(tmpdir(), 'jepc-select-'));
@@ -102,4 +113,28 @@ test('pre-import estimate runs only when explicitly enabled', async t => {
   assert.equal(call([...base, '--sample-size', '5']).status, 1);
   assert.match(call(base.filter((value, index) => index < 1 || index > 2)).stderr, /Unsupported Range/);
   assert.match(call(base.map(value => value === 'xk' ? 'xj' : value)).stderr, /Unsupported Range/);
+});
+
+test('--parse model fragment stages every complete category in all matching source models', async t => {
+  const options = await fixture(t);
+  const cli = path.resolve('src/DataImporter.CLI.mjs');
+  const run = fragment => spawnSync(process.execPath, [cli, '--parse', fragment, '--source', options.source,
+    '--state-dir', options.stateDir, '--json'], { encoding: 'utf8' });
+  const first = run('XK');
+  assert.equal(first.status, 0, first.stderr);
+  const summary = JSON.parse(first.stdout);
+  assert.equal(summary.selected, 45);
+  assert.deepEqual(summary.modelIds, XK_MODEL_IDS);
+  assert.equal(summary.staging.bundles, 45);
+  assert.equal(summary.staging.reused, 0);
+  assert.equal(summary.estimate, undefined);
+  const second = run('xk');
+  assert.equal(second.status, 0, second.stderr);
+  assert.equal(JSON.parse(second.stdout).staging.reused, 45);
+  const estimated = spawnSync(process.execPath, [cli, '--parse', 'XK', '--source', options.source,
+    '--state-dir', options.stateDir, '--estimate', '--json'], { encoding: 'utf8' });
+  assert.equal(estimated.status, 0, estimated.stderr);
+  const estimateReport = JSON.parse(await readFile(JSON.parse(estimated.stdout).estimate.report, 'utf8'));
+  assert.equal(estimateReport.modelPattern, 'XK');
+  assert.equal(estimateReport.range, null);
 });
