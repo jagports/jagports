@@ -1,5 +1,4 @@
 """Jagports Lead Agent entry point; P7 is disabled unless explicitly authorized."""
-import json
 import os
 from pathlib import Path
 
@@ -11,23 +10,27 @@ from services.github_service import GitHubService
 from services import report_service
 
 
+def _ghd_store(pending_path):
+    """Use exactly the #904 producer's versioned outbox and sibling cursor."""
+    from services.ghd_pending_store import GHDPendingStore
+
+    pending_path = Path(pending_path)
+    return GHDPendingStore(
+        snapshot_path=pending_path.with_name("ghd_enrichment.json"),
+        pending_path=pending_path,
+    )
+
+
 def load_ghd_pending_event(path):
-    """Read the durable #904 hand-off; do not infer an event from a snapshot.
+    """Return only #904's integrity-checked, crash-recoverable pending event.
 
-    #904 is not implemented on this branch. Its writer must explicitly adopt
-    this versioned hand-off before live P7 dispatch can be enabled.
+    Never deserialize an arbitrary event file directly as a paid P7 trigger.
+    Missing or acknowledged records are a quiet no-work outcome.
     """
-    with Path(path).open(encoding="utf-8") as handle:
-        payload = json.load(handle)
-    if (not isinstance(payload, dict) or
-            payload.get("producer") != "ghd_increment_a" or
-            payload.get("schema_version") != 1 or
-            payload.get("status") != "pending" or
-            not isinstance(payload.get("changed_event"), dict) or
-            not isinstance(payload.get("issue_context"), dict)):
-        raise ValueError("Unverified or incomplete #904 pending-event hand-off.")
-    return payload["changed_event"], payload["issue_context"]
-
+    pending = _ghd_store(path).replay_pending()
+    if pending is None:
+        return None
+    return pending["changed_event"], pending["issue_context"]
 
 def build_agent(config, github):
     """Keep the original deterministic coordinator unless both gates are on."""
@@ -54,7 +57,8 @@ def build_agent(config, github):
     runner = P7Pilot(github, reasoning, pilot)
     pending_file = Path(pilot["pending_event_file"])
     return LeadAgent(
-        github, p7_pilot=runner,
+        github, ghd_store=_ghd_store(pending_file),
+        p7_pilot=runner,
         p7_event_source=lambda: load_ghd_pending_event(pending_file),
     )
 
