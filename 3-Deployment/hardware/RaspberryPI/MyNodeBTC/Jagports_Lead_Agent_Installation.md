@@ -39,13 +39,13 @@ WantedBy=timers.target
 
 `OnUnitActiveSec=9h45min` counts from service activation; it is **not 09:45 on a clock**. `OnActiveSec=1s` starts the agent once shortly after the timer is activated (including an intentional restart of this timer); `OnUnitActiveSec=9h45min` schedules subsequent runs from the most recent service activation. This replaces the unwanted five-minute boot-relative trigger, but intentionally starts once when the timer starts. The repository's `config.yaml` `polling.interval_minutes: 585` is descriptive: current `main.py` does not consume it to create a scheduler.
 
-## Update an existing non-Git Pi installation from repository \`main\`
+## Update an existing non-Git Pi installation from repository `main`
 
-The existing \`/home/codex/jagports-lead-agent\` workspace may be **a manually installed directory without \`.git\`**. Do not run \`git pull\` there or overlay the repository root onto it. The repository's versioned Python application resides at \`6-Development/AI/agents/jagports/jagports-lead-agent/\`; clone \`main\` in a **separate source directory** using sparse checkout, check the exact revision and tests, then copy only that application subtree into the installed workspace. The existing \`venv\`, private \`.env\`, state/checkpoints, reports, notifications and local \`run-agent.sh\` survive the copy. The checked-in \`config.yaml\` replaces the prior local config **only after** taking a private backup: this intentionally restores disabled-by-default OpenAI/model settings rather than accidentally inheriting a locally enabled old config. No paid provider calls or new timer are part of updating.
+The existing `/home/codex/jagports-lead-agent` workspace may be **a manually installed directory without `.git`**. Do not run `git pull` there or overlay the repository root onto it. The repository's versioned Python application resides at `6-Development/AI/agents/jagports/jagports-lead-agent/`; clone `main` in a **separate source directory** using sparse checkout, check the exact revision and tests, then copy only that application subtree into the installed workspace. The existing `venv`, private `.env`, state/checkpoints, reports, notifications and local `run-agent.sh` survive the copy. The checked-in `config.yaml` replaces the prior local config **only after** taking a private backup: this intentionally restores disabled-by-default OpenAI/model settings rather than accidentally inheriting a locally enabled old config. No paid provider calls or new timer are part of updating.
 
-**1. As \`admin\`: inspect the actual user service/timer, stop only the Lead Agent timer and wait for any already-running service to finish before deploying.** These commands do not disable other MyNode services:
+**1. As `admin`: inspect the actual user service/timer, stop only the Lead Agent timer and wait for any already-running service to finish before deploying.** These commands do not disable other MyNode services:
 
-\`\`\`bash
+```bash
 sudo -v
 CUID="$(id -u codex)"
 cctl() { sudo -u codex env XDG_RUNTIME_DIR="/run/user/$CUID" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$CUID/bus" systemctl --user "$@"; }
@@ -53,11 +53,11 @@ cctl cat jagports-lead-agent.service jagports-lead-agent.timer
 cctl stop jagports-lead-agent.timer
 cctl is-active jagports-lead-agent.service || true
 # Continue only once the service is inactive. Do not force-stop a paid/recoverable run.
-\`\`\`
+```
 
-**2. As \`codex\`: separately fetch \`main\`, test it offline, back up the installed workspace and update application files.** If the dependencies are missing, stop and reconcile the existing \`venv\`; do not silently recreate it or invoke a paid model during deployment. Review the reported \`SHA\` to identify precisely which version is being installed.
+**2. As `codex`: separately fetch `main`, test it offline, back up the installed workspace and update application files.** If the dependencies are missing, stop and reconcile the existing `venv`; do not silently recreate it or invoke a paid model during deployment. Review the reported `SHA` to identify precisely which version is being installed.
 
-\`\`\`bash
+```bash
 set -euo pipefail
 umask 077
 LIVE="$HOME/jagports-lead-agent"
@@ -91,11 +91,11 @@ rsync -a --exclude='.env' --exclude='venv/' --exclude='state/' \
 cp "$SRC/config.yaml" "$LIVE/config.yaml"
 "$LIVE/venv/bin/python" -m compileall -q "$LIVE/main.py" "$LIVE/agents" "$LIVE/services"
 printf 'Copied main SHA: '; git -C "$REPO" rev-parse HEAD
-\`\`\`
+```
 
-**3. As \`admin\`: one controlled deterministic service run, then restart the existing timer only if successful.** The repository \`main\` version may contain a separately gated model-backed path; its checked-in config is disabled, so the controlled service check must not consume OpenAI credit. Starting the timer may cause a near-immediate run because of \`OnActiveSec=1s\`.
+**3. As `admin`: one controlled deterministic service run, then restart the existing timer only if successful.** The repository `main` version may contain a separately gated model-backed path; its checked-in config is disabled, so the controlled service check must not consume OpenAI credit. Starting the timer may cause a near-immediate run because of `OnActiveSec=1s`.
 
-\`\`\`bash
+```bash
 set -e
 CUID="$(id -u codex)"
 cctl() { sudo -u codex env XDG_RUNTIME_DIR="/run/user/$CUID" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$CUID/bus" systemctl --user "$@"; }
@@ -105,9 +105,9 @@ test "$(cctl show jagports-lead-agent.service -p ExecMainStatus --value)" = 0
 cctl start jagports-lead-agent.timer
 cctl list-timers --all
 sudo -u codex env XDG_RUNTIME_DIR="/run/user/$CUID" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$CUID/bus" journalctl --user -u jagports-lead-agent.service -n 35 --no-pager
-\`\`\`
+```
 
-**Failure/rollback:** leave the timer stopped. The private archive contains the old application, \`.env\`, configuration and state/checkpoints (therefore never upload it to GitHub or share it in chat), but excludes the unchanged virtual environment. Restore the old files from \`workspace.tar.gz\` only after checking which files the new version introduced; avoid unsafe bulk deletion of private directories. Re-run the old installation's offline checks before starting its timer. If the source \`main\` still contains the former credential-confirmation gate, leave it disabled; after the #924 separation/central-GitHub branch is merged, repeat this procedure against the new \`main\` and explicitly verify no obsolete RO-token code remains. **A successful update does not prove independent scheduled Telegram delivery or model-backed execution**; those have separate acceptance evidence.
+**Failure/rollback:** leave the timer stopped. The private archive contains the old application, `.env`, configuration and state/checkpoints (therefore never upload it to GitHub or share it in chat), but excludes the unchanged virtual environment. Restore the old files from `workspace.tar.gz` only after checking which files the new version introduced; avoid unsafe bulk deletion of private directories. Re-run the old installation's offline checks before starting its timer. If the source `main` still contains the former credential-confirmation gate, leave it disabled; after the #924 separation/central-GitHub branch is merged, repeat this procedure against the new `main` and explicitly verify no obsolete RO-token code remains. **A successful update does not prove independent scheduled Telegram delivery or model-backed execution**; those have separate acceptance evidence.
 
 ## Install or repair as `admin`
 
