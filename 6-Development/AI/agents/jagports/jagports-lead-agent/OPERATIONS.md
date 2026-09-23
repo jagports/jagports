@@ -88,6 +88,35 @@ script is not yet installed or the dedicated token is missing, record
 `Batch 16.3: host blocked`, not `verified`. Do not substitute an
 operator's write-capable GitHub token or attempt an actual valid write.
 
+## Python cache ownership — operator check before the credential test
+
+**Observed during #927 walkthrough:** the new `scripts/verify_readonly_github.py` was downloaded on the Raspberry Pi, and `grep` confirmed it reads `GITHUB_TOKEN_RO`. Running `./venv/bin/python -m py_compile scripts/verify_readonly_github.py` as `codex` returned `Permission denied: scripts/__pycache__`. The owner then verified the downloaded script with a **no-write** `ast.parse()` check, which printed `Verifier syntax: PASS`. This confirms syntax, **not** the GitHub credential or installed file ownership.
+
+Check the actual ownership and mode **before** changing or removing any files:
+
+```bash
+cd /home/codex/jagports-lead-agent
+id -un
+stat -c '%a %U:%G %n' scripts scripts/__pycache__ 2>/dev/null || true
+find scripts -maxdepth 2 -name '__pycache__' -type d -exec stat -c '%a %U:%G %n' {} +
+```
+
+Project Python commands must execute as the unprivileged `codex` runtime user; an administrator may manage the user-service configuration but must **not** invoke project Python with `sudo python` or create root/admin-owned bytecode in the `codex` workspace. For a **confirmed root/admin-owned, generated `scripts/__pycache__` only**, use an administrator account to restore that directory's ownership to `codex`, after inspecting its contents. Never recursively change the entire project or `.env` ownership on the assumption that every file is generated. If ownership cannot be established, retain the no-write syntax verification and escalate to the operator.
+
+A safer syntax check that never writes `__pycache__` is:
+
+```bash
+cd /home/codex/jagports-lead-agent
+./venv/bin/python - <<'PY'
+import ast
+from pathlib import Path
+ast.parse(Path("scripts/verify_readonly_github.py").read_text(encoding="utf-8"))
+print("Verifier syntax: PASS")
+PY
+```
+
+The one-shot GitHub verifier remains **pending** until local permissions are reviewed and its read-only credential is tested. Do not restart the timer, activate paid OpenAI calls or run the write-denial probe with the original potentially write-capable token.
+
 ## Reusable runtime checks
 
 From the non-privileged runtime user's shell when the Lead Agent is already installed:
