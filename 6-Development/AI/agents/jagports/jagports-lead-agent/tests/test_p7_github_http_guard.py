@@ -6,7 +6,7 @@ from services.github_request_guard import GitHubRequestDenied, GitHubRequestGuar
 from services.github_service import GitHubService
 
 
-BASE = "https://api.github.com/repos/jagports/jagports"
+BASE = "/repos/jagports/jagports"
 HDR = {"Authorization": "Bearer NEVER_PRINT"}
 
 
@@ -55,10 +55,12 @@ class GuardTests(unittest.TestCase):
     def test_blocks_other_repositories_hosts_http_and_credentials_in_url(self):
         for url in (
             BASE.replace("jagports/jagports", "somebody/another"),
+            "https://api.github.com/repos/jagports/jagports/issues",
             "https://evil.example/repos/jagports/jagports/issues",
             "http://api.github.com/repos/jagports/jagports/issues",
             "https://username:password@api.github.com/repos/jagports/jagports/issues",
             "https://api.github.com/repos/jagports/jagports-other/issues",
+            "/rate_limit",
             "https://api.github.com/rate_limit",
         ):
             with self.subTest(url=url):
@@ -109,6 +111,35 @@ class GuardTests(unittest.TestCase):
         self.assertTrue(service.request_metrics()["http_requests_verified"])
         self.assertEqual(service.request_metrics()["http_requests_max"], 2)
         fake_github.get_repo.assert_called_once_with("jagports/jagports")
+
+    def test_real_pygithub_request_formatting_uses_relative_paths(self):
+        # PyGithub converts absolute/relative endpoint inputs into a relative
+        # socket request path before __requestRaw. This catches mock-only gates.
+        from github import Github, Auth
+        github = Github(auth=Auth.Token("never-sent"), retry=0, per_page=100)
+        requester = github.requester
+        with patch.object(requester, "_Requester__requestRaw",
+                          return_value=(200, {}, "{}")) as wire:
+            gate = GitHubRequestGuard(requester, max_requests=2)
+            requester.requestJson("GET", BASE + "/issues", {"per_page": 100})
+            requester.requestJson("GET", BASE + "/issues", {"page": 2})
+            self.assertEqual(gate.metrics()["http_requests_attempted"], 2)
+            self.assertEqual(wire.call_count, 2)
+            first = wire.call_args_list[0].args
+            self.assertTrue(first[2].startswith(BASE + "/issues?"))
+            with self.assertRaises(GitHubRequestDenied):
+                requester.requestJson("GET", BASE + "/issues", {"page": 3})
+            self.assertEqual(wire.call_count, 2)
+            with self.assertRaises(GitHubRequestDenied):
+                requester.requestJson("POST", BASE + "/issues/42/comments",
+                                      input={"body": "unapproved"})
+            self.assertEqual(wire.call_count, 2)
+
+    def test_rejects_custom_connection_to_unapproved_host(self):
+        other = Mock(host="evil.example", protocol="https", port=443)
+        with self.assertRaises(GitHubRequestDenied):
+            self.raw(other, "GET", BASE + "/issues", HDR, None)
+        self.assertEqual(self.guard.metrics()["http_requests_attempted"], 0)
 
     def test_github_service_rejects_bad_repository_without_constructing_client(self):
         with patch("services.github_service.Github") as constructor:
