@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 import { moveCursor, cursorTo, clearScreenDown } from 'node:readline';
 import { inspect, readState } from './DataImporter.Runtime.mjs';
+import { selectXkBundles } from './DataImporter.Selection.mjs';
 
 const help = `
 
@@ -12,6 +13,7 @@ Node.js 24+; run locally on the computer that can read the source files.
   status  --state-dir <directory> [--json]
   report  --state-dir <directory>
   doctor  --state-dir <directory> [--full]
+  select-xk --source <JEPC root> --state-dir <outside source> --seed <text> [--language 0] [--json]
 
  example usage:
   
@@ -19,6 +21,7 @@ Node.js 24+; run locally on the computer that can read the source files.
   node .\src\DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir . --model 3187 --category 12088 --item 1 --language 0
 
 inspect checks eight expected source paths. It does not import catalogue data.
+select-xk records a reproducible forty-category XK selection; it does not import catalogue data.
 Repeat inspect with the same arguments to recheck/reuse persisted checksums.
 Q or first Ctrl+C stops after the current file checkpoint; second Ctrl+C exits.
 report emits the latest run and its detailed persistent events as JSON.
@@ -46,15 +49,29 @@ async function main() {
     source: { type: 'string' }, 'state-dir': { type: 'string' },
     model: { type: 'string' }, category: { type: 'string' }, item: { type: 'string' },
     language: { type: 'string' }, json: { type: 'boolean' }, full: { type: 'boolean' },
-    help: { type: 'boolean', short: 'h' },
+    seed: { type: 'string' }, help: { type: 'boolean', short: 'h' },
   } });
   if (values.help || !positionals.length) { console.log(help); return; }
   const [command] = positionals;
-  if (positionals.length !== 1 || !['inspect', 'status', 'report', 'doctor'].includes(command)) throw new Error('Unknown command. Use --help.');
+  if (positionals.length !== 1 || !['inspect', 'status', 'report', 'doctor', 'select-xk'].includes(command)) throw new Error('Unknown command. Use --help.');
   const allowed = command === 'inspect' ? ['source', 'state-dir', 'model', 'category', 'item', 'language', 'json']
+    : command === 'select-xk' ? ['source', 'state-dir', 'seed', 'language', 'json']
     : command === 'doctor' ? ['state-dir', 'full'] : command === 'status' ? ['state-dir', 'json'] : ['state-dir'];
   for (const key of Object.keys(values)) if (!allowed.includes(key)) throw new Error(`--${key} is not valid for ${command}.`);
   if (!values['state-dir']) throw new Error('--state-dir is required.');
+  if (command === 'select-xk') {
+    const result = await selectXkBundles({ source: values.source, stateDir: values['state-dir'],
+      seed: values.seed, language: values.language ?? '0' });
+    const summary = { manifest: result.filename, reused: result.reused,
+      phase: result.manifest.phase, selected: result.manifest.bundles.length,
+      candidates: result.manifest.selection.candidateCount,
+      candidatesByModel: result.manifest.selection.candidateCountsByModel,
+      selectedByModel: Object.fromEntries(result.manifest.selection.modelIds.map(model =>
+        [model, result.manifest.bundles.filter(bundle => bundle.model === model).length])) };
+    console.log(values.json ? JSON.stringify(summary, null, 2)
+      : `Selected ${summary.selected} XK category bundles from ${summary.candidates} candidates.\nManifest: ${summary.manifest}\nD1 publication: not started.`);
+    return;
+  }
   if (command !== 'inspect') {
     const result = readState(values['state-dir'], { doctor: command === 'doctor', full: values.full, report: command === 'report' });
     console.log(command === 'status' && !values.json ? screen(result) : JSON.stringify(result, null, 2));
