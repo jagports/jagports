@@ -208,6 +208,12 @@ missing source       -> retain ledger history and mark MISSING/REMOVED
 
 A complete million-file scan must not be required for **any normal processing loop**. Each loop processes one bundle and then determines the next bundle.
 
+### Optional pre-import Range estimate
+
+An operator may explicitly run a slow, exhaustive **source inventory** for selected Range Model_IDs before import. This remains separate from the incremental selection/processing loop: no estimate is required before a useful import, and a failed or interrupted estimate must not alter importer ledger state or D1 data. The command retains the exact Range slug, Model_ID set, source scope, start/end time, file/byte counts, errors and random-sample seed in a durable report outside the source installation. It streams discovery instead of materializing the complete source file list in memory, and allows a safe partial report on cancellation.
+
+The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts and bytes are measurements; D1 storage and import duration are projections only after a calibration sample has actually been transformed and published into the intended Range schema. Until then, those projections are unavailable rather than inferred from fixture data or raw XML byte size. A calibrated projection states the observed denominator and assumptions, and must not claim that an incomplete source scan covers the Range. Shared media belongs to a separate MediaImporter estimate.
+
 ## Configurable import scope
 
 The importer must allow selection below the broad VIEPS Range level when JEPC exposes distinct model/sub-range/market variants.
