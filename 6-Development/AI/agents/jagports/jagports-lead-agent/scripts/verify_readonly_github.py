@@ -1,6 +1,6 @@
 """Raspberry Pi operator check of a SEPARATE, fine-grained GitHub read token.
 
-Usage: JAGPORTS_READONLY_GITHUB_TOKEN=... python scripts/verify_readonly_github.py
+Usage: load the private .env, then invoke main() as codex; never put the token in a shell command.
 The secret must NOT be pasted into an Issue, CLI argument or report.
 No valid writes are ever sent: the denial probe submits an INVALID, empty
 comment body to a designated existing Issue. A write-authorized token should
@@ -112,7 +112,7 @@ def verify(token, *, opener=urlopen):
 
 
 def main():
-    evidence = verify(os.environ.get("JAGPORTS_READONLY_GITHUB_TOKEN", ""))
+    evidence = verify(os.environ.get("GITHUB_TOKEN_RO", ""))
     # Only fixed status fields; never print credentials, identity, HTTP payload
     # or headers. The operator stores this redacted JSON on the Pi.
     print(json.dumps(evidence, sort_keys=True))
