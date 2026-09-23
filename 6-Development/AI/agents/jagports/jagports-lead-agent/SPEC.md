@@ -11,6 +11,7 @@ The current coordinator collects GitHub records; persists issue lifecycle change
 Operator evidence supplied on 23 September 2026:
 - Direct API returned `JAGPORTS API TEST OK` and the existing `openai_service.analyse()` wrapper returned `JAGPORTS AGENT API OK`. Neither constitutes model-backed specialist operation.
 - **TG-001 PASSED (operator-reported):** the short Telegram test printed `Telegram sent: Jagports Issue changes: {'new': [], 'closed': [], 'reopened': []}` and the operator confirmed the message arrived. This proves manual delivery of saved *empty* changes only.
+- **INT-001 manual integration PASSED (operator-reported, 23 September):** the Lead Agent collected 86 currently open GitHub records, detected `new: [903, 902, 901]`, routed the event to all three rule-based specialists, saved a report, and the operator received the one-shot Telegram message reporting 86 open records and three executed specialists. The `new` list includes PR #903, exposing the unresolved PR-as-Issue classification. The script did **not** fetch full Issue bodies, use model reasoning, or send automatic timer-triggered notifications.
 - The 9h45min MyNode user timer is enabled and active, and a manual user-service run succeeded. The subsequent timer-triggered unattended run is a distinct acceptance check under #900.
 
 **Objective:** enrich changed GitHub Issues with relevant title/body/comments, run selectively invoked model-backed specialists, and deliver one compact AI-generated summary to the Product Owner's configured Telegram chat during the existing scheduled coordinator execution. Preserve all present governance, human decision, review and merge boundaries.
@@ -76,6 +77,7 @@ Automated tests use mocked GitHub, model and Telegram adapters and fixture Issue
 | RSN-002 | B | No change, irrelevant Issue or disabled service | Zero model requests, existing deterministic report remains valid |
 | RSN-003 | B | Model timeout, invalid JSON, rate limit, exhausted token budget | Bounded failure/retry, visible status, no event loss or unrestricted spend |
 | RSN-004 | B | Actual authorized model run on one controlled Issue | Measured usage and relevant human-reviewable result; no repo mutation |
+| INT-001 | Existing | Manual live GitHub snapshot, saved lifecycle delta, all three deterministic specialists, report and Telegram send | **PASS on 23 Sep 2026, operator-reported:** 86 open records, `new: [903, 902, 901]`, three specialist results and received summary; no Issue body/model/scheduled-run verification |
 | TG-001 | Existing | Manually send saved lifecycle changes from the local state file | **PASS on 23 Sep 2026, operator-reported:** CLI send succeeded; empty-change message received |
 | TG-002 | C | Mock one relevant model result during scheduled coordinator execution | One appropriately bounded Telegram digest, outbox marked delivered after successful send |
 | TG-003 | C | No changes, repeat event, missing token, Telegram outage or retry | No unnecessary send/duplicates in normal reruns; failures observable and pending work preserved |
