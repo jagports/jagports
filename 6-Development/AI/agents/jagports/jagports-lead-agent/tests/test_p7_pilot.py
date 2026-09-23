@@ -140,9 +140,27 @@ class P7PilotTests(unittest.TestCase):
         self.assertEqual(state["research"]["data"]["role_run_id"], "research-id")
         self.assertEqual(state["product_vehicle"]["data"]["role_run_id"], "product-id")
         self.assertTrue(state["evidence_fingerprint"])
-        self.assertEqual(self.run_pilot(), [])
+        replayed = self.run_pilot()
+        self.assertEqual([r.agent for r in replayed],
+                         ["research", "product_vehicle", "team_lead"])
+        self.assertEqual(replayed[-1].data["route"], "human_decision_needed")
+        self.assertEqual(self.pilot.completed_event_key(),
+                         str(NUMBER) + ":" + REVISION)
+        # Checkpoint replay must not fetch new source files or bill again.
+        self.assertEqual(len(self.github.requests), 2)
         self.assertEqual(self.pilot.research.analyse.call_count, 1)
         self.assertEqual(self.pilot.product_vehicle.analyse.call_count, 1)
+
+    def test_corrupt_complete_checkpoint_blocks_replay_without_new_calls(self):
+        self.run_pilot()
+        state = self.checkpoint()
+        state.pop("decision_route")
+        Path(self.config["checkpoint_file"]).write_text(json.dumps(state))
+        blocked = self.run_pilot()
+        self.assertEqual(blocked[0].data["status"], "needs_operator_review")
+        self.assertIsNone(self.pilot.completed_event_key())
+        self.pilot.research.analyse.assert_called_once()
+        self.pilot.product_vehicle.analyse.assert_called_once()
 
     def test_completed_research_resumes_product_without_repeating_first_call(self):
         def fail_once(evt):
