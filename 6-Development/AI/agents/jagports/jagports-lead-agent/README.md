@@ -8,7 +8,7 @@ This directory contains the current Jagports Lead Agent prototype implementation
 
 The implementation is a working deterministic event-processing and specialist-routing framework. It is not currently a production autonomous development agent system and it does not currently perform LLM-backed reasoning in the modular execution path.
 
-The current unattended Codex-API-dependent Agent Infrastructure roadmap is suspended until a suitable unattended execution capability is available and explicitly re-evaluated. This repository implementation remains useful as a prototype, testable architecture, and future integration starting point.
+Operator-tested OpenAI API access now supports the staged, budget-controlled advisory-agent development path. The current modular coordinator still runs deterministic specialists; model-backed hand-offs and an actual unattended end-to-end run require their own implementation and acceptance. Production autonomy and recurring expenditure remain subject to explicit authorization and existing review gates.
 
 ## Getting started
 
