@@ -7,8 +7,9 @@ import { spawnSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import {
   candidatePaths, inspectImage, inspectMedia, importManifest, logicalMediaKey,
-  parseHotspots, readState, referenceId, run,
+  parseHotspots, preserveMedia, readState, referenceId, run,
 } from '../src/MediaImporter.Runtime.mjs';
+import { FilesystemDestination, objectKey } from '../src/MediaImporter.Destination.mjs';
 
 const png = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13]), Buffer.from('IHDR'), Buffer.from([0, 0, 0, 40, 0, 0, 0, 30])]);
 const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xc0, 0, 11, 8, 0, 20, 0, 30, 3, 1, 17, 0, 2, 17, 1, 3, 17, 1, 0xff, 0xd9]);
@@ -44,6 +45,29 @@ test('candidate paths and parsers are bounded and retain raw hotspot rectangles'
   assert.equal(parsed.originalWidth, '1544'); assert.equal(parsed.rectangles.length, 3);
   assert.equal(parsed.rectangles.filter(rectangle => rectangle.itemNumber === '4').length, 2);
   assert.throws(() => parseHotspots('<image></image>'), /originalwidth/);
+});
+
+test('filesystem destination preserves verified content-addressed bytes once', async t => {
+  const root = await mkdtemp(path.join(tmpdir(), 'jepc-media-destination-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const destination = await FilesystemDestination.open(root), bytes = Buffer.from('evidence');
+  const hash = (await import('node:crypto')).createHash('sha256').update(bytes).digest('hex');
+  const key = objectKey({ checksum: hash, evidence: true });
+  assert.equal((await destination.health()).state, 'ok');
+  assert.equal((await destination.putVerified({ key, bytes, expectedChecksum: hash, expectedSize: bytes.length })).reused, false);
+  assert.equal((await destination.putVerified({ key, bytes, expectedChecksum: hash, expectedSize: bytes.length })).reused, true);
+  await assert.rejects(destination.putVerified({ key, bytes, expectedChecksum: '0'.repeat(64), expectedSize: bytes.length }), /identity/);
+  assert.throws(() => objectKey({ checksum: hash, extension: 'gif' }), /extension/);
+});
+
+test('preserve creates physical image and private XML objects and reuses them', async t => {
+  const options = await fixture(t), destinationDir = path.join(options.root, 'objects');
+  const first = await preserveMedia({ ...options, mediaId: 'tu6333', destinationDir });
+  assert.equal(first.preserved, 3); assert.equal(first.reused, 0);
+  const second = await preserveMedia({ ...options, mediaId: 'tu6333', destinationDir });
+  assert.equal(second.reused, 3);
+  const files = await readFile(path.join(destinationDir, 'jepc/evidence/sha256', (await import('node:crypto')).createHash('sha256').update(hotspot).digest('hex').slice(0, 2), `${(await import('node:crypto')).createHash('sha256').update(hotspot).digest('hex')}.xml`));
+  assert.equal(files.toString(), hotspot);
 });
 
 test('manifest import is replay-safe and bounded run preserves images and raw XML', async t => {
