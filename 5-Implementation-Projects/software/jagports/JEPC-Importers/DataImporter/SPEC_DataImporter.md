@@ -133,7 +133,7 @@ Canonical PART identity may be shared across languages. Source node/path identit
 The DataImporter uses two distinct persistence tiers:
 
 - **Local SQLite** is the importer-owned processing ledger, staging store, run report and test environment on the computer reading the JEPC installation. It supports checkpoints, lossless raw capture, retry and validation. It is not the live VIEPS catalogue.
-- **Cloudflare D1** is the authoritative production destination for accepted VIEPS catalogue/reference data. Actual imported PARTs, occurrences, tree paths, applicability properties and related published catalogue relationships must be written to the approved D1 model and become available to the VIEPS UI through its Worker/API. The pilot uses the current single approved D1 database; per-model or per-range D1 splits require later evidence, specification and controlled migration.
+- **Cloudflare D1** is the authoritative production destination for accepted VIEPS catalogue/reference data. Actual imported PARTs, occurrences, tree paths, applicability properties and related published catalogue relationships must be written to the approved D1 model and become available to the VIEPS UI through its Worker/API. The publication target is a D1 database selected by the accepted VIEPS Range key using the naming and setup contract below. The existing `jagports` D1 database remains the fixture-backed application database and is not an importer write target.
 
 The importer must parse and validate a selected bundle locally before publication. A successful local staging run alone is not an import result for the product. A publication step must write accepted data to D1 idempotently, report the D1 outcome separately from local parsing, and leave failed or unresolved source structures out of the live catalogue until they are validly handled.
 
@@ -174,7 +174,7 @@ Importer reruns must use the source-qualified node/path identities so identical 
 
 ### MVP boundary
 
-Kit/assembly composition, nested kit contents and NSS constituent handling are post-MVP catalogue enrichment. They must not delay the pilot or require kit/NSS-specific parser logic. When encountered during MVP import, preserve any safely capturable raw source evidence, report it as unsupported/unresolved where needed, and never invent a Jaguar part number for an NSS constituent.
+Kit/assembly composition, nested kit contents and NSS constituent handling are post-MVP catalogue enrichment. They must not delay the first forty-bundle XK import or require kit/NSS-specific parser logic. When encountered during MVP import, preserve any safely capturable raw source evidence, report it as unsupported/unresolved where needed, and never invent a Jaguar part number for an NSS constituent.
 
 JEPC catalogue structure can describe a sellable PART as a kit or assembly while the illustration exposes constituent components separately.
 
@@ -304,15 +304,38 @@ Related durable source knowledge establishes that the corresponding Canada/USA X
 
 Where a short region token such as `Region=NA` is used, it must be represented as a Region/market value and kept semantically distinct from the engine-option abbreviation `N/A`, meaning Non-Aspirated/non-Supercharged. Region and aspiration/supercharger state are separate dimensions.
 
-## Bounded XK random-bundle pilot scope
+## First XK forty-bundle import scope
 
-The first actual catalogue-import pilot is limited to the XK Range and consists of **forty randomly selected JEPC category bundles** from the available XK source hierarchy. It is not a full XK import and it does not include a separate Accessories sample in this pilot.
+The first actual catalogue import is limited to the XK Range and consists of **forty randomly selected JEPC category bundles** from the available XK source hierarchy. It is not a full XK import and it does not include a separate Accessories sample in this first selection.
 
 Selection is stratified across all available XK JEPC Model_ID profiles that expose category bundles: each such model receives at least one selected bundle before the remaining selections are drawn. The importer must persist the random seed, selection algorithm version, candidate population definition and the resulting ordered bundle identities. This makes a chosen forty-bundle run reproducible and explainable while allowing later runs to choose a different sample.
 
 A selected category bundle includes its related model/category/language source files and the item files required to import that category's supplied occurrences. A selected bundle may create many canonical PARTs and occurrences; forty bundles is not a cap on part numbers.
 
-The pilot writes accepted catalogue/reference data into the **current approved VIEPS D1 database**. It must not introduce a speculative database split by model, Range, source package or importer run. Later specifications may propose D1 redesigns or controlled migrations only when the pilot provides evidence that the existing model cannot represent required source facts correctly.
+Accepted XK catalogue/reference data is published only to the Range database resolved from the Range key `xk`: `jagports-xk`. The importer must not publish JEPC catalogue data to `jagports`. All JEPC model/sub-range variants of the same accepted VIEPS Range share that Range database; source model, category, language and occurrence identities remain explicit within it.
+
+## Range D1 naming, setup and routing contract
+
+The database name for an imported VIEPS Range is derived from its **approved, stable Range slug**:
+
+```text
+database_name = "jagports-" + range_slug
+XK Range: range_slug = "xk" -> database_name = "jagports-xk"
+```
+
+A Range slug uses lowercase ASCII letters, digits and internal hyphens (`[a-z0-9]+(?:-[a-z0-9]+)*`). It is a controlled Range identifier, not a JEPC model ID, source menu label, random-selection seed, language or version nickname. A slug must be unique and stable; ambiguous or colliding Range mappings stop setup and import. The importer records the accepted Range key, resolved database name, database ID/account, source model IDs and source checksums in its run evidence. Future Ranges use the same rule without hard-coded database names in importer logic.
+
+Database provisioning must be specified and executed through a **repository-controlled setup script with README instructions**, not by manually creating an unrecorded database in the Cloudflare dashboard. This specification does not create a Cloudflare database. The setup workflow must:
+
+1. accept an approved Range slug, derive and display the database name, and verify the selected Cloudflare account and existing database identity before any mutation;
+2. create the named D1 database only when absent, persist its returned database ID in reviewed configuration, and refuse an unexpected existing name/ID instead of adopting or resetting it silently;
+3. apply a reviewed **schema-only** migration path for the approved catalogue model, keeping fixture-seeding SQL out of the Range database; the current mixed migration chain must be separated or otherwise controlled before this step is implemented;
+4. verify migration ledger and table shape on the exact target, then test the Worker/API path that reads that Range database;
+5. make repeated setup runs safe, report the resulting binding/name/ID and applied migrations, and never delete or recreate an existing database as a normal retry.
+
+The importer publication command must require an explicit accepted Range target and verify that its configured D1 binding resolves to the corresponding `jagports-<range_slug>` database. It must refuse a missing, mismatched or default `jagports` destination. A source model mapped to a different Range is a blocking mismatch, not a reason to create another database automatically.
+
+The current Worker queries catalogue PART, occurrence, tree, applicability and STOCK tables through one `DB` binding. Before a Range database is exposed as live VIEPS data, the implementation must specify and test Worker routing and catalogue-to-STOCK reconciliation across database boundaries. Numeric row IDs and foreign keys are database-local; a cross-Range or STOCK relationship must use an approved stable identity and must not be inferred from matching local IDs. No combined UI or stock-link claim is accepted until that contract is implemented and verified. This Range split is a storage/routing decision, not permission to duplicate canonical PART semantics or to turn JEPC decision-tree traversal into fitment logic.
 
 ### Repeated random runs
 
@@ -324,7 +347,7 @@ Repeated runs are safe by source-qualified identity, not by assuming that two ra
 - changed checksums must mark affected bundles for controlled reprocessing rather than silently duplicating or overwriting unrelated data;
 - each run report must distinguish locally parsed, validly published to D1, unchanged, unresolved, failed and skipped bundles.
 
-This is a bounded proof that the current D1 model can receive real XK catalogue data through multiple random import runs. It is not evidence that the complete installation or every model family has been imported.
+This is a bounded proof that the approved catalogue model can receive real XK data through multiple random import runs into `jagports-xk`. It is not evidence that the complete installation or every model family has been imported.
 
 ## Incremental processing loop
 
@@ -672,7 +695,7 @@ The importer v0.1/MVP should demonstrate that:
 - the processing ledger is built incrementally bundle by bundle;
 - source checksums are calculated and used instead of trusting modification time;
 - selected model/sub-range/Region profiles can be processed independently while preserving and displaying both JEPC `model_id` and immediate `parent_id` hierarchy identity;
-- the first actual-import pilot uses forty reproducibly selected XK category bundles, stratified across all available XK JEPC Model_ID profiles, and publishes accepted data into the current D1 database without a speculative database split;
+- the first actual import uses forty reproducibly selected XK category bundles, stratified across all available XK JEPC Model_ID profiles, and publishes accepted data only into the Range database resolved as `jagports-xk`;
 - understood applicability assertions become separate descriptive properties linked to occurrences; the UI filters those properties instead of interpreting source decision-tree nodes or concatenated part descriptions;
 - processing resumes from persistent bundle state rather than restarting from the beginning;
 - each normal loop reads/processes one bundle and only then determines the next;
