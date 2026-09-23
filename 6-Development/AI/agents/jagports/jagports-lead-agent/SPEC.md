@@ -30,7 +30,7 @@ systemd (existing 9h45min user timer)
     -> delivery acknowledgement, retry/replay state and local observability
 ```
 
-Delivery in three **independently testable increments**. A and B do not require automatic Telegram. C depends on B's accepted structured result format. Keep current deterministic operation as a fallback. Specification approval does not automatically enable paid unattended processing.
+Delivery in three **independently testable increments**. This specification references the Development `OPERATIONS.md` currently proposed in [PR #899](https://github.com/jagports/jagports/pull/899); merge #899 before merging this spec PR so that its cross-document links exist on `main`. A and B do not require automatic Telegram. C depends on B's accepted structured result format. Keep current deterministic operation as a fallback. Specification approval does not automatically enable paid unattended processing.
 
 ### A — Meaningful Issue change detection and bounded detail retrieval
 
@@ -39,6 +39,25 @@ Delivery in three **independently testable increments**. A and B do not require 
 3. Fetch title, body, labels, URL and bounded, paginated comments **on demand** for changed Issues only. Persist enough revision identity for replay; make max comments, sizes and look-back configurable. Explicitly signal incomplete/truncated context.
 4. Carry compact event identity (Issue number, change kind, source revision and changed comment IDs), not a complete repository snapshot, through the Event and specialist interface. Preserve evidence links to the source Issue and individual comments.
 5. Treat Issue bodies/comments as **untrusted external data**, not agent instructions. Restrict secrets, personal data and unrelated comments in model prompts. Rate limits, missing/deleted Issues and API errors produce explicit retryable states, not silent event loss.
+
+#### A.1 — Increment 1 implementation contracts
+
+The initial enrichment increment is **read-only and model-free**. It establishes an explicit boundary that later reasoning and Telegram features may consume without embedding GitHub access into specialist business logic.
+
+| Boundary | Required fields | Behavioral contract |
+|---|---|---|
+| CollectedIssue | `number`, `title`, `state`, `updated_at`, `url`, `is_pull_request` | Only verified Issues feed Issue-only state/event analysis. Retain a count of filtered PRs for diagnostics. |
+| ChangedIssueEvent | `issue_number`, `kind`, `source_revision`, `changed_comment_ids` | `kind` is one of `new`, `closed`, `reopened`, `title_changed`, `body_changed`, `comment_added`, `comment_edited`; multiple kinds can coexist for the same revision. |
+| IssueContext | `number`, `title`, `body`, `labels`, `state`, `url`, `comments`, `truncated`, `fetched_at` | Only changed/selected Issues receive the lazy detail request. Comment entries carry `id`, `url`, `author`, `created_at`, `updated_at` and bounded `body`. |
+| RetrievalOutcome | `status`, `issue_number`, `context_or_error` | `status` is `complete`, `truncated`, `retryable_error` or `permanent_error`. A partial fetch must never be represented as complete evidence. |
+
+**Change-detection sequence:** (1) enumerate repository Issue metadata and identify/exclude PRs; (2) compare known lifecycle state and an updated-time candidate filter; (3) lazily fetch details only for candidate Issues and compare stored title/body fingerprint, comment IDs and changed-comment revision metadata; (4) persist changed-event identity and the next comparison cursor **before** handing work to specialists. Absence from a partial/failed listing is not an Issue closure. A cursor alone is insufficient to guarantee capture of events that occur and reverse entirely between 9h45min polls; expose this polling limitation instead of claiming complete history.
+
+**Replay and migration:** retain old `state/agent_state.json` structure in the initial migration; add a separately versioned enrichment snapshot and durable pending-event record. Preserve the first-run/no-flood behavior even if legacy state already contains PR numbers. A crash after snapshot persistence but before analysis must replay the pending event once, not discard it. Deduplicate events by Issue ID + stable observed content revision (not timestamp alone). Bot/agent-generated comments should not trigger self-recursive recommendations.
+
+**Bounded fetch policy:** choose named, adjustable limits for changed Issues/run, comments/Issue, comment age and body characters. A response exceeding a limit must set `truncated` with explicit reason and preserve the source link; do not silently treat the omitted material as assessed. Provide instrumentation for API requests and fetched characters per run. Retrieve only enough comments needed for the changed event and its specialist, not the entire discussion by default.
+
+**Read-only handoff:** the first increment returns IssueContext + ChangedIssueEvent through the current LeadAgent/Event and report path; all existing deterministic specialist results and the prior `new`/`closed`/`reopened` report remain available. It does **not** invoke OpenAI, send automatic Telegram messages or perform any GitHub write. Verification fixtures must include a new Issue, an updated body, an edited old comment, a bot comment, a PR with an Issue-like title, and a failed paginated collection.
 
 ### B — Model-backed specialist recommendations
 
