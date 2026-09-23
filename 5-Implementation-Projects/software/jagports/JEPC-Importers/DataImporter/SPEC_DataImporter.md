@@ -133,7 +133,7 @@ Canonical PART identity may be shared across languages. Source node/path identit
 The DataImporter uses two distinct persistence tiers:
 
 - **Local SQLite** is the importer-owned processing ledger, staging store, run report and test environment on the computer reading the JEPC installation. It supports checkpoints, lossless raw capture, retry and validation. It is not the live VIEPS catalogue.
-- **Cloudflare D1** is the authoritative production destination for accepted VIEPS catalogue/reference data. Actual imported PARTs, occurrences, tree paths, applicability properties and related published catalogue relationships must be written to the approved D1 model and become available to the VIEPS UI through its Worker/API.
+- **Cloudflare D1** is the authoritative production destination for accepted VIEPS catalogue/reference data. Actual imported PARTs, occurrences, tree paths, applicability properties and related published catalogue relationships must be written to the approved D1 model and become available to the VIEPS UI through its Worker/API. The pilot uses the current single approved D1 database; per-model or per-range D1 splits require later evidence, specification and controlled migration.
 
 The importer must parse and validate a selected bundle locally before publication. A successful local staging run alone is not an import result for the product. A publication step must write accepted data to D1 idempotently, report the D1 outcome separately from local parsing, and leave failed or unresolved source structures out of the live catalogue until they are validly handled.
 
@@ -304,15 +304,27 @@ Related durable source knowledge establishes that the corresponding Canada/USA X
 
 Where a short region token such as `Region=NA` is used, it must be represented as a Region/market value and kept semantically distinct from the engine-option abbreviation `N/A`, meaning Non-Aspirated/non-Supercharged. Region and aspiration/supercharger state are separate dimensions.
 
-## Cross-range pilot scope
+## Bounded XK random-bundle pilot scope
 
-The first actual catalogue-import pilot is not limited to the XK Range. It shall import **ten representative catalogue items from each available JEPC model range** in the supplied source dataset, including JEPC Accessories.
+The first actual catalogue-import pilot is limited to the XK Range and consists of **forty randomly selected JEPC category bundles** from the available XK source hierarchy. It is not a full XK import and it does not include a separate Accessories sample in this pilot.
 
-A model range is selected from the JEPC source hierarchy, using its preserved parent/model identifiers and descriptions. The sample must cover the distinct source range profiles available to the installation rather than treating one XK profile as representative of the entire catalogue. Accessories are a first-class pilot source scope: they must be selected and reported through the same importer contract, not treated as an afterthought or merged into a vehicle range.
+Selection is stratified across all available XK JEPC Model_ID profiles that expose category bundles: each such model receives at least one selected bundle before the remaining selections are drawn. The importer must persist the random seed, selection algorithm version, candidate population definition and the resulting ordered bundle identities. This makes a chosen forty-bundle run reproducible and explainable while allowing later runs to choose a different sample.
 
-For every selected range, the ten items must be chosen deterministically and recorded in the run report. The selection must exercise ordinary catalogue rows plus any available variation such as an application rule, item-tree depth, illustration reference or source-side missing/unsupported shape. A selected item is a source catalogue item and may create multiple canonical PART occurrences; ten items is not a promise of ten distinct part numbers.
+A selected category bundle includes its related model/category/language source files and the item files required to import that category's supplied occurrences. A selected bundle may create many canonical PARTs and occurrences; forty bundles is not a cap on part numbers.
 
-This cross-range sample proves that the parser and publication path generalize across source families while remaining bounded. It is not a replacement for a later full-installation import.
+The pilot writes accepted catalogue/reference data into the **current approved VIEPS D1 database**. It must not introduce a speculative database split by model, Range, source package or importer run. Later specifications may propose D1 redesigns or controlled migrations only when the pilot provides evidence that the existing model cannot represent required source facts correctly.
+
+### Repeated random runs
+
+Repeated runs are safe by source-qualified identity, not by assuming that two random samples are equal:
+
+- rerunning the same persisted selection and unchanged source must produce no duplicate D1 catalogue/tree/occurrence/applicability rows;
+- rerunning a bundle selected in an earlier random sample must update or confirm its existing rows idempotently;
+- a new seeded selection may add new source-qualified bundles without deleting accepted data from earlier samples;
+- changed checksums must mark affected bundles for controlled reprocessing rather than silently duplicating or overwriting unrelated data;
+- each run report must distinguish locally parsed, validly published to D1, unchanged, unresolved, failed and skipped bundles.
+
+This is a bounded proof that the current D1 model can receive real XK catalogue data through multiple random import runs. It is not evidence that the complete installation or every model family has been imported.
 
 ## Incremental processing loop
 
@@ -660,7 +672,7 @@ The importer v0.1/MVP should demonstrate that:
 - the processing ledger is built incrementally bundle by bundle;
 - source checksums are calculated and used instead of trusting modification time;
 - selected model/sub-range/Region profiles can be processed independently while preserving and displaying both JEPC `model_id` and immediate `parent_id` hierarchy identity;
-- the first actual-import pilot covers ten representative catalogue items from every available JEPC model range, including Accessories, rather than only the XK Range;
+- the first actual-import pilot uses forty reproducibly selected XK category bundles, stratified across all available XK JEPC Model_ID profiles, and publishes accepted data into the current D1 database without a speculative database split;
 - understood applicability assertions become separate descriptive properties linked to occurrences; the UI filters those properties instead of interpreting source decision-tree nodes or concatenated part descriptions;
 - processing resumes from persistent bundle state rather than restarting from the beginning;
 - each normal loop reads/processes one bundle and only then determines the next;
@@ -676,7 +688,7 @@ The importer v0.1/MVP should demonstrate that:
 - the operator sees stable aggregate parent/model/path/language/structure metrics without a scrolling per-record console flood;
 - detailed processing and a development-oriented run report remain available in background logs;
 - canonical part identity remains independent from language-specific source occurrences;
-- successful publication of the pilot's accepted catalogue data is separately reported in the authoritative D1 destination;
+- repeated seeded selections and reruns of the same source-qualified bundle remain idempotent in D1, while each run separately reports local parsing and D1 publication outcomes;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
 
 ## Related work
