@@ -4,6 +4,7 @@ The caller supplies #904's verified change event and bounded context. This
 module neither enumerates Issues nor assumes that a pending #904 implementation
 is deployed. Model execution remains explicitly disabled by default.
 """
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -138,7 +139,7 @@ class P7Pilot:
             return "Paid reasoning requires explicit approval."
         if self.reasoning.config.get("max_calls_per_run") != 2:
             return "Pilot requires an explicitly configured two-call ceiling."
-        if change.get("is_pull_request") is not False or issue.get("is_pull_request", False):
+        if change.get("is_pull_request") is True or issue.get("is_pull_request", False):
             return "PRs cannot enter the Issue-only pilot."
         number = change.get("issue_number")
         if type(number) is not int or number != allowed[0] or issue.get("number") != number:
@@ -275,6 +276,14 @@ class P7Pilot:
             return self._blocked("Research and domain evidence must be complete and distinct.",
                                  {"status": "insufficient_evidence"})
         research_sources, domain_sources = pair
+        source_fingerprint = hashlib.sha256(json.dumps(
+            pair, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+        if saved.get("evidence_fingerprint") and saved["evidence_fingerprint"] != source_fingerprint:
+            return self._blocked("Evidence changed between role checkpoints; review required.",
+                                 {"status": "needs_operator_review"})
+        if not saved.get("evidence_fingerprint"):
+            saved["evidence_fingerprint"] = source_fingerprint
+            self._save(saved)
         issue_source = {
             "id": "issue:" + str(number), "url": issue["url"],
             "text": issue["title"] + "\n" + issue["body"],
