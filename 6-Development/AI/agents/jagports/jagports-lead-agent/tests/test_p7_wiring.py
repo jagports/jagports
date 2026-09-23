@@ -63,6 +63,9 @@ class FakePilot:
 
     def process(self, changed_event, issue_context):
         self.calls.append((changed_event, issue_context))
+        # Match the real P7 results' exact verified #904 source revision.
+        for result in self.output:
+            result.data["source_revision"] = changed_event["source_revision"]
         return self.output
 
     def completed_event_key(self):
@@ -234,7 +237,8 @@ class WiringTests(unittest.TestCase):
         with patch.object(entry, "GitHubService", FakeGitHub):
             with patch("services.reasoning_service.ReasoningService") as reasoning:
                 with patch("services.p7_pilot.P7Pilot", return_value=pilot):
-                    with patch.object(entry.report_service, "save_report") as save:
+                    with patch.object(entry.report_service, "save_report",
+                                      wraps=entry.report_service.save_report) as save:
                         _issues, _event, results = entry.main(config_file)
         reasoning.assert_called_once()
         self.assertEqual([r.agent for r in results],
