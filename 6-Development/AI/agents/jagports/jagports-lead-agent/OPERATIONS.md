@@ -101,6 +101,8 @@ stat -c '%a %U:%G %n' scripts scripts/__pycache__ 2>/dev/null || true
 find scripts -maxdepth 2 -name '__pycache__' -type d -exec stat -c '%a %U:%G %n' {} +
 ```
 
+**Observed ownership result, reported by Product Owner:** `id -un` returned `codex`; `scripts` is `755 root:root`; `scripts/__pycache__` does **not** exist. Python cannot create the cache because `codex` cannot write to the root-owned `scripts` directory. There are no generated cache files to remove. The administrator should correct ownership of **that directory alone**, using `sudo chown codex:codex /home/codex/jagports-lead-agent/scripts` (no `-R`), then verify `scripts` is `755 codex:codex` and run the syntax compilation as `codex`. Do not use `chmod 777`, delete caches that do not exist, or change `.env` ownership.
+
 Project Python commands must execute as the unprivileged `codex` runtime user; an administrator may manage the user-service configuration but must **not** invoke project Python with `sudo python` or create root/admin-owned bytecode in the `codex` workspace. For a **confirmed root/admin-owned, generated `scripts/__pycache__` only**, use an administrator account to restore that directory's ownership to `codex`, after inspecting its contents. Never recursively change the entire project or `.env` ownership on the assumption that every file is generated. If ownership cannot be established, retain the no-write syntax verification and escalate to the operator.
 
 A safer syntax check that never writes `__pycache__` is:
