@@ -12,6 +12,8 @@
 
 After independently reviewed implementation of #924, retire this mixed-team document and remove all active temporary P7 names without deleting historical work records or resetting any billed/uncertain checkpoint. No specification change alone activates either team, paid OpenAI calls or the Raspberry Pi timer.
 
+**Superseding GitHub access rule (#924):** The separate RO-token requirement and its live permission-testing acceptance are obsolete. All future GitHub reads and authorized writes go through shared `GitHubAgent`/`GitHubService` using the canonical `GITHUB_TOKEN`. Research and validation may request reads or propose changes, but do not call GitHub APIs directly; the central boundary validates work-item scope, authorization and any applicable human approval before mutation and verifies writes after execution. Read-only *workflow behavior* remains valid where mandated, without a dedicated read-only credential or read-only-only agent. The original AI OS specialists and independent Jaguar vehicle team retain separate registries, work scope, state, approval routing and spending budgets. This file remains transitional pending the #924 split; no standalone RO token setup, verifier or confirmation gate is part of future acceptance.
+
 ## 1. Objective and acceptance boundary
 
 Prove that the existing Raspberry Pi Lead Agent can execute a **bounded, unattended, source-backed, multi-role research-to-decision hand-off** using the available OpenAI API, without requiring a Codex-backed autonomous coding runtime.
@@ -96,11 +98,11 @@ RunRecord records timer/manual trigger, start and end, allowlisted work-item ide
 - **Default off:** the multi-role model pipeline and automatic GitHub/Telegram delivery are disabled until explicitly enabled for an approved pilot.
 - **Pilot scope:** one allowlisted existing work item, one source revision, one research call, one independent Product / Vehicle call, no unrestricted specialist fan-out.
 - **Spend:** configure model, input/output token caps, per-run invocation cap, daily spend cap, and an explicitly approved budget before the first paid run. An unset or invalid cap means no paid execution. Record actual usage, including a clear distinction between measured cost and estimated cost.
-- **Read-only first:** research and validation may inspect approved GitHub/repository/public sources. They must not edit Issues, Project fields, code, secrets, permissions, or deployments.
+- **Controlled operations:** research and validation inspect approved sources through the central GitHub service; any proposed mutation is a separate authorized operation routed through GitHubAgent and existing Management approval gates. No specialist performs direct GitHub mutations or handles tokens.
 - **Untrusted inputs:** external pages, Issue bodies, comments, and model output are data, never instructions overriding Management rules. Bound all fetched content and expose truncation.
 - **Isolation:** maintain distinct role calls and identifiers; reject malformed structured output; never interpret role agreement alone as human authorization.
 - **Recovery:** persist pending work before executing paid reasoning; use stable event/revision keys, a single-run lock, bounded retries, and stage-level checkpoints. A failed second role must not lose the first result or cause uncontrolled repeated charges.
-- **Optional GitHub delivery:** only after separate approval, grant the minimum comment-only scope on an allowlisted work record. Verify the resulting comment through an independent read and check for an existing identical hand-off before retrying. Until this is approved, an operator attaches the verified report to the work record.
+- **Optional GitHub delivery:** only after workflow approval, submit a scope-limited comment request to the shared GitHubAgent; the service checks authorization, verifies the result via independent read and deduplicates hand-offs before retrying. Until delivery is approved, an operator attaches the verified report to the work record; no additional token is created.
 - **Decisions:** consequential changes to product, architecture, security, cost, data strategy, or workflow wait at the existing human decision gate. Routine recommendations still follow the established review/testing process.
 
 ## 6. Specification work — complete in order
