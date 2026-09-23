@@ -94,6 +94,30 @@ def create_report(issues, changes, documentation=None, event_context=None):
 
 
 def save_report(content):
-    os.makedirs("reports", exist_ok=True)
-    with open("reports/lead_report.md", "w", encoding="utf-8") as handle:
-        handle.write(content)
+    """Durably replace the local report before acknowledging a P7 event."""
+    from pathlib import Path
+    from tempfile import NamedTemporaryFile
+
+    directory = Path("reports")
+    directory.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with NamedTemporaryFile(mode="w", encoding="utf-8",
+                                dir=str(directory), prefix=".lead-report-",
+                                delete=False) as handle:
+            temporary = Path(handle.name)
+            os.chmod(temporary, 0o600)
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, directory / "lead_report.md")
+        temporary = None
+        if hasattr(os, "O_DIRECTORY"):
+            fd = os.open(str(directory), os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
