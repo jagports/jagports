@@ -49,7 +49,7 @@ Treat roles as separate execution boundaries, not separate paid accounts. The mi
 
 Only a meaningful, allowlisted change can trigger paid reasoning. A no-change, irrelevant, truncated-without-sufficient-evidence, disabled, unapproved, or over-budget event must not trigger an unauthorized model call. The first-run baseline must not treat all historical Issues as new research opportunities. Pull requests must not be misclassified as Issues.
 
-The OpenAI API and Agents SDK may provide the reasoning layer through the shared model-neutral interface. This proposal does not resume the suspended full Codex-backed autonomous runtime and does not require autonomous coding.
+The OpenAI API and Agents SDK may provide the reasoning layer through the shared model-neutral interface. This pilot does not depend on a Codex-specific subscription or require autonomous coding. A full autonomous engineering runtime is a separate, unimplemented capability with independent permission and acceptance gates.
 
 ## 4. P7-specific data contracts
 
@@ -168,4 +168,4 @@ Automated tests use mocked adapters and real-looking but non-sensitive source fi
 
 The proof is complete only when an actual scheduled run executes **both distinct model-backed roles** on a relevant, approved work-item revision; produces verifiable source-backed ResearchFinding and independent ProductValidation; applies the existing Team Lead decision gate; respects authorization and cost limits; preserves recovery evidence; and makes the result available for human inspection through a verified, durable work record.
 
-The approval and implementation of this specification are different decisions. The pilot may demonstrate the unattended multi-role chain while the larger Codex-backed autonomous engineering/runtime program remains suspended. Broader production use, additional specialists, autonomous GitHub writes, merge/deploy rights, and recurring spending require their own explicit authority and validation.
+The approval and implementation of this specification are different decisions. The pilot may demonstrate an unattended multi-role advisory chain using the operator-tested OpenAI API. The broader autonomous engineering/runtime program is a separate, unimplemented capability, not a prerequisite for this bounded validation. Broader production use, additional specialists, autonomous GitHub writes, merge/deploy rights, and recurring spending require their own explicit authority and validation.
