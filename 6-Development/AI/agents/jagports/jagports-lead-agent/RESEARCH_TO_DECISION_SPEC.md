@@ -18,8 +18,8 @@ A successful direct API request, a successful manual service run, a single model
 
 Use these existing sources rather than copying their normative rules:
 
-- [Lead Agent architecture and roadmap](README.md): the current deterministic coordinator, Event, AgentRegistry, AgentResult, StateService, ReportService, specialist boundaries, and model-integration direction.
-- [Shared Issue reasoning and notification specification](README.md#staged-advisory-issue-reasoning-and-telegram-specification): meaningful Issue changes, bounded lazy detail retrieval, a model-neutral reasoning service, usage accounting, retry/deduplication, and optional Telegram delivery. **Review and merge the shared specification before implementing dependent interfaces.**
+- [Shared Lead Agent architecture and roadmap](SPEC_Agent_Lead.md): the current deterministic coordinator, Event, AgentRegistry, AgentResult, StateService, ReportService, specialist boundaries, and model-integration direction.
+- [Shared Issue reasoning and notification specification](SPEC_Agent_Lead.md#staged-advisory-issue-reasoning-and-telegram-specification): meaningful Issue changes, bounded lazy detail retrieval, a model-neutral reasoning service, usage accounting, retry/deduplication, and optional Telegram delivery. **Review and merge the shared specification before implementing dependent interfaces.**
 - [Management workflows](../../../../../00-Management/WORKFLOWS.md): state transitions, historical work discovery, the repository change gate, independent review, testing, and merge authority.
 - [Prioritization method](../../../../../00-Management/PRIORITIZATION.md): existing priority evidence and controlled queue changes. This document creates no separate scoring model.
 - [Agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md): logical Research, Product / Vehicle, Team Lead, and other responsibilities.
@@ -30,7 +30,7 @@ Development owns the contracts and automated tests. Existing Deployment document
 
 **Research-artifact location:** Actual source-backed research reports, evidence collections and unresolved investigations belong under the repository's established `7-Research/` semantic root or its applicable existing subfolders. Persist work-specific finding and hand-off references in GitHub; promote accepted reusable conclusions only to the narrowest applicable knowledge file through the normal review path. The engineering specification and test contracts remain in `6-Development/`, so they are not treated as raw research artifacts. The initial read-only pilot proposes evidence paths but does not autonomously create or edit research files.
 
-**Prerequisite:** the shared README's Issue-enrichment and first model-backed specialist amendment must be independently accepted and merged before this extension reuses its interfaces. The existing timer's installation and successful manual service execution must not be misreported as proof of a later unattended timer-triggered run.
+**Prerequisite:** the shared Lead Agent specification's Issue-enrichment and first model-backed specialist amendment must be independently accepted and merged before this extension reuses its interfaces. The existing timer's installation and successful manual service execution must not be misreported as proof of a later unattended timer-triggered run.
 
 ## 3. Architecture and execution policy
 
