@@ -269,7 +269,32 @@ class P7Pilot:
                         {"status": "needs_operator_review",
                          "pending_event_key": saved.get("event_key")})
             elif saved.get("stage") == "complete":
-                return []
+                # A crash after checkpointing but before the durable report
+                # and #904 acknowledgement must regenerate the same report
+                # without any new source retrieval or billable model call.
+                if (not saved.get("research") or
+                        not saved.get("product_vehicle") or
+                        not saved.get("decision_route")):
+                    return self._blocked(
+                        "Completed checkpoint lacks the durable report results.",
+                        {"status": "needs_operator_review"})
+                try:
+                    research = _result_from_dict(saved["research"])
+                    product = _result_from_dict(saved["product_vehicle"])
+                    route = _result_from_dict(saved["decision_route"])
+                    if (not self._role_accepted(research, "research", revision) or
+                            not self._role_accepted(
+                                product, "product_vehicle", revision,
+                                research.data["role_run_id"]) or
+                            route.agent != "team_lead" or
+                            route.data.get("source_revision") != revision or
+                            route.data.get("requires_human_review") is not True):
+                        raise ValueError("Completed checkpoint identity mismatch")
+                except (KeyError, TypeError, ValueError):
+                    return self._blocked(
+                        "Completed checkpoint needs independent reconciliation.",
+                        {"status": "needs_operator_review"})
+                return [research, product, route]
             elif saved.get("stage") in (
                     "research_started", "product_started",
                     "needs_operator_review"):
