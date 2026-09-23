@@ -501,11 +501,38 @@ A change increments only the affected component version and selects prior record
 
 ### Slice 2 — destination adapter and object preservation
 
-- implement an in-memory/filesystem test adapter;
-- define the R2 adapter configuration and health contract;
+- implement the approved filesystem test adapter and its contract tests;
+- define and implement the R2 adapter configuration and health contract without repository credentials;
 - publish content-addressed objects conditionally;
 - verify upload recovery and unchanged reruns;
-- preserve raw hotspot XML under private evidence policy.
+- preserve raw hotspot XML under private evidence policy;
+- do not publish catalogue metadata to D1 in this slice.
+
+#### Slice 2 object-preservation contract
+
+Slice 2 preserves only source assets already validated by the local ledger. For a verified JPEG or PNG, its immutable presentation-object key is:
+
+```text
+jepc/assets/sha256/<first-two-lowercase-hex>/<sha256>.<verified-extension>
+```
+
+For verified hotspot XML, its private evidence-object key is:
+
+```text
+jepc/evidence/sha256/<first-two-lowercase-hex>/<sha256>.xml
+```
+
+The object key is derived from checksum and verified type, never from a source path, media ID, public URL or user input. JPEG and PNG bytes remain distinct representations even where they share a logical illustration. Raw hotspot XML is evidence, not a browser-delivery asset.
+
+The destination adapter exposes `health`, `head`, conditional `put`, verification and delivery-reference derivation. A successful `put` is insufficient: verification compares the expected key, SHA-256, byte size and verified media type. The adapter does not list an entire bucket during normal processing. It must reject unsafe keys and must not expose credentials in events, reports or manifests.
+
+The filesystem adapter is the required physical-test destination. Its configured root is outside the JEPC source installation and acts as a deterministic object store: keys map to files below that root, with adjacent or equivalent non-secret metadata sufficient to verify the object. Its tests prove the same conditional and verification semantics required from R2.
+
+The R2 adapter has the same contract. Endpoint, bucket, account/credential material and any delivery host are runtime configuration, not committed semantics. A delivery reference is derived only after storage verification; it is not the canonical media identity and Slice 2 does not publish it to D1.
+
+For each object, the durable checkpoint order is: persist preservation intent and expected identity in the MediaImporter ledger; `head` the deterministic key; conditionally upload only when no verified matching object exists; verify the stored result; then persist the verified object result in the ledger. A restart repeats `head` and verification before any upload. A matching verified object is reused; a mismatched or unverifiable object fails explicitly and is never silently accepted. A crash after upload and before the local checkpoint therefore resumes safely without duplicate bytes.
+
+The initial physical smoke test uses one explicit XK media ID such as `tu6333`, performs no recursive source enumeration, and compares source hashes before and after. It proves the filesystem adapter receives the selected verified image representation and hotspot XML in their separate namespaces, then repeats the run to prove object reuse. D1 publication, public serving, conversion of hotspot coordinates, and deletion are outside Slice 2.
 
 ### Slice 3 — catalogue metadata publication
 
