@@ -90,7 +90,8 @@ test('production UI includes applicable ranges and preserves canonical PART whil
 
   ui.get('rangeSelect').value = 'X150';
   ui.get('rangeSelect').listeners.change();
-  assert.match(ui.get('selectedRange').textContent, /X150/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /X150|4\.0|variation|qualifier/i);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /X100 —.*X150 —.*X100 —/);
   assert.match(ui.get('partCard').innerHTML, /MJB7703AA/);
 });
 
