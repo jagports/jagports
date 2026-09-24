@@ -53,6 +53,19 @@ The filter reads published mappings at occurrence scope. It never treats a raw d
 
 The merged #883 layout places the control at centre-top and keeps right-hand Applicable Models separate. Its 13 model-range browse labels are not suitability values.
 
+### UI integration plan and active-work reconciliation
+
+The merged #883 specification is the layout authority: persistent Parts Tree on the left; central search and upper Suitability / Variations controls; and a right column containing Search Results above Applicable Models. Search-result rows and tree leaves select one canonical PART. Applicable Models remains evidence display, not the suitability filter.
+
+Implementation follows this order:
+
+1. **Description mapping read contract (#877 / #879).** Publish only normalized category/value entries that carry a persisted source-qualified description mapping, language-qualified domain name/description metadata and an occurrence scope. Return a deterministic unavailable state when any required relation is absent. Raw JEPC text is presentation evidence, never an API key or filter predicate.
+2. **Persistence and fixture correction (draft PR #892).** Replace its proposed set-membership/cardinality path with source-shaped fixture descriptions and mapping revisions. Fixtures require synthetic namespace, dataset, language, locator and mapping identity, but remain test data and cannot become JEPC fitment facts.
+3. **Upper filter and lower-panel removal (Issue #895 / draft PR #939).** Keep removal of the lower duplicate panel and retain selected-PART range evidence in the right Applicable Models region. Implement the upper control as the requested horizontal, keyboard-accessible checkbox row with checked-first alphabetical ordering and horizontal overflow. Its options and filtering must consume the mapping read contract; do not retain a hard-coded variation list or an independent evaluator based on labels, namespace alone, or inferred conditions.
+4. **Evidence.** Add browser screenshots at desktop, tablet and narrow widths for empty/unavailable, source-backed available options, source-mapping failure, EN/FI UI chrome with catalogue-language source description, fixture isolation, checked ordering and synchronized Search Results/Parts Tree selection. Captions must state whether an image uses fixture or imported data.
+
+The known fixture labels—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—are examples of mapped descriptions. The two seat labels may appear together only when separately sourced description records identify the same occurrence. They do not justify a new condition operator or hard-coded suitability logic.
+
 ### Information document link
 The `(i)` control may link to verified **Model Family & Year Introduction** documentation when a valid source/document relationship exists.
 
