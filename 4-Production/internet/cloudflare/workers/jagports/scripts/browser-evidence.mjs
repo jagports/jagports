@@ -287,8 +287,15 @@ try {
   await page.locator("#partNumber").focus();
   assert.equal(await page.evaluate(() => document.activeElement?.id), "partNumber",
     "Find must remain keyboard focusable on tablet");
-  assert.ok(await page.locator("#vinInput").isDisabled() && await page.locator("#variationsSelect").isDisabled(),
-    "unsupported VIN and advanced variation controls stay explicitly disabled");
+  assert.ok(await page.locator("#vinInput").isDisabled(),
+    "unsupported VIN lookup stays explicitly disabled");
+  assert.equal(await page.locator("#variationsSelect").count(), 0,
+    "#895 removed the obsolete disabled variation dropdown");
+  const variationGroup = page.locator("#variationOptions");
+  assert.equal(await variationGroup.getAttribute("role"), "group",
+    "#895 upper variation controls retain a labelled accessibility group");
+  assert.equal(await variationGroup.getAttribute("aria-labelledby"), "variationsHeading",
+    "upper variation controls use the visible heading");
   await page.screenshot({ path: evidenceDir + "tablet-900.png", fullPage: true });
 
   // Mobile snapshots prove the upper controls stay put while lower panels scroll.
