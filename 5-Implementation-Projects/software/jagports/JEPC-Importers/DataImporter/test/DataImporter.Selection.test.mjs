@@ -104,7 +104,7 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.equal(estimateReport.range, null);
 });
 
-test('CLI exposes parsing and estimation without the obsolete inspection commands', () => {
+test('CLI exposes parsing and estimation commands only', () => {
   const cli = path.resolve('src/DataImporter.CLI.mjs');
   const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
   const help = call(['--help']);
