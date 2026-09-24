@@ -10,6 +10,16 @@ The importer must begin from source structures and target-schema concepts alread
 
 This specification complements the existing JEPC source-structure and importer documents. It does not replace the approved VIEPS Parts Data Model.
 
+## v0.1a command contract
+
+```text
+node src/DataImporter.CLI.mjs --parse PATTERN [--estimate]
+```
+
+`--parse PATTERN` is required for every importer run. `PATTERN` must contain at least two characters and is matched as a source model-name fragment. `--estimate` is optional and valid only with `--parse`; it adds a source inventory to that run. The CLI rejects all other flags and all positional commands. An invocation without `--parse PATTERN` fails and prints the usage line.
+
+The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence goes under `%LOCALAPPDATA%\Jagports\JEPC-Importer`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters.
+
 ## Core operating principle
 
 The importer must not require the complete JEPC installation to be reverse-engineered before useful import work can begin.

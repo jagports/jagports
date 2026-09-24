@@ -96,7 +96,7 @@ async function fingerprint(root, relative) {
 
 export async function selectModelBundles({ pattern, source, stateDir, language = '0', onProgress }) {
   if (typeof pattern !== 'string' || pattern.trim().length < 2 || !source || !stateDir) {
-    throw new Error('Require a model-name pattern, --source and --state-dir.');
+    throw new Error('Require a model-name pattern, source root and state directory.');
   }
   if (!/^\d{1,2}$/.test(String(language))) throw new Error('Language must be a numeric ID.');
   const modelPattern = pattern.trim().toLocaleUpperCase('en');

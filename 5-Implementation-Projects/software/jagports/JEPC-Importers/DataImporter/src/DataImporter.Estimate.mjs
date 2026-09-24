@@ -50,7 +50,7 @@ function validateOptions({ source, stateDir, range, modelPattern, models, seed, 
   const rangeScope = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(range ?? '') && modelPattern === undefined;
   const patternScope = range === undefined && typeof modelPattern === 'string' && modelPattern.trim().length >= 2;
   if (!source || !stateDir || !(rangeScope || patternScope)) {
-    throw new Error('Require --source, --state-dir and either a lowercase Range slug or a model-name pattern.');
+    throw new Error('Require a source root, state directory and model-name pattern.');
   }
   if (!Array.isArray(models) || !models.length || models.some(id => !/^\d{1,10}$/.test(String(id))) || new Set(models).size !== models.length) {
     throw new Error('Provide unique numeric Model_IDs.');

@@ -11,7 +11,8 @@ const TEST_MODEL_IDS = ['3187', '3183', '3178', '3173', '7420'];
 async function fixture(t) {
   const parent = await mkdtemp(path.join(tmpdir(), 'jepc-select-'));
   t.after(() => rm(parent, { recursive: true, force: true }));
-  const source = path.join(parent, 'source'), stateDir = path.join(parent, 'state');
+  const source = path.join(parent, 'source'), appData = path.join(parent, 'state');
+  const stateDir = path.join(appData, 'Jagports', 'JEPC-Importer');
   const put = async (relative, value) => {
     const filename = path.join(source, relative);
     await mkdir(path.dirname(filename), { recursive: true });
@@ -35,7 +36,7 @@ async function fixture(t) {
     }
     await put(`menus/L0/pl_id_${model}_l_id_0.xml`, wrapper(entries));
   }
-  return { source, stateDir, put };
+  return { source, stateDir, appData, put };
 }
 
 test('model pattern selects XML leaves and matching parent descendants without fixed IDs', () => {
@@ -78,10 +79,11 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   const options = await fixture(t);
   const cli = path.resolve('src/DataImporter.CLI.mjs');
   const run = (pattern, extra = []) => spawnSync(process.execPath, [cli, '--parse', pattern,
-    '--source', options.source, '--state-dir', options.stateDir, ...extra, '--json'], { encoding: 'utf8' });
+    ...extra], { encoding: 'utf8', env: { ...process.env, JEPC_SOURCE: options.source, LOCALAPPDATA: options.appData } });
   const first = run('XK');
   assert.equal(first.status, 0, first.stderr);
   const summary = JSON.parse(first.stdout);
+  assert.equal(summary.version, 'v0.1a');
   assert.equal(summary.eligible, 45);
   assert.equal(summary.limit, 40);
   assert.equal(summary.selected, 40);
@@ -111,17 +113,15 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
 test('CLI exposes parsing and estimation commands only', () => {
   const cli = path.resolve('src/DataImporter.CLI.mjs');
   const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
-  const help = call(['--help']);
-  assert.equal(help.status, 0);
+  const help = call([]);
+  assert.equal(help.status, 1);
   for (const command of ['inspect', 'status', 'report', 'doctor']) {
-    assert.doesNotMatch(help.stdout, new RegExp(`^\\s*${command}\\s`, 'm'));
     assert.equal(call([command]).status, 1);
   }
-  assert.match(help.stdout, /--parse/);
-  assert.match(help.stdout, /--estimate/);
+  assert.match(help.stderr, /--parse PATTERN \[--estimate\]/);
   assert.equal(call(['--estimate']).status, 1);
   assert.equal(call(['estimate-range']).status, 1);
-  for (const option of ['--range', '--models', '--sample-size', '--calibration']) {
+  for (const option of ['--range', '--models', '--sample-size', '--calibration', '--source', '--state-dir', '--language', '--json', '--help']) {
     assert.equal(call([option, 'value']).status, 1);
   }
 });

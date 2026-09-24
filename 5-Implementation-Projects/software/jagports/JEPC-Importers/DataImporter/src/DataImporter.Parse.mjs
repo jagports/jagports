@@ -125,7 +125,7 @@ async function persistExact(filename, value) {
 }
 
 export async function parseSelection({ selection, stateDir, onProgress }) {
-  if (!selection || !stateDir) throw new Error('Require a selected source scope and --state-dir.');
+  if (!selection || !stateDir) throw new Error('Require a selected source scope and state directory.');
   const { modelPattern, modelIds, bundles } = selection;
   if (selection.schemaVersion !== 1 || typeof modelPattern !== 'string' || modelPattern.trim().length < 2
       || !Array.isArray(modelIds) || !modelIds.length || new Set(modelIds).size !== modelIds.length

@@ -9,7 +9,6 @@ Install Node.js 24 or later and open PowerShell at the root of the Jagports repo
 ```powershell
 Set-Location .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter
 node --version
-node .\src\DataImporter.CLI.mjs --help
 ```
 
 No `npm install` is needed. The application reads the JEPC installation without changing it. By default it writes local state under `$env:LOCALAPPDATA\Jagports\JEPC-Importer`; keep state outside the source installation.
@@ -24,10 +23,10 @@ node .\src\DataImporter.CLI.mjs --parse XK
 
 `XK` is matched case-insensitively against the model names in the installed XML menu. A matching parent includes its leaf models. The command identifies complete categories in those models, then makes up to **40 fresh random picks per run**. Each pick chooses a model with remaining categories and one category in that model. A category cannot be picked twice in the same run. Progress appears while selection and parsing run; the final output gives the matched-model count, eligible and staged category counts, and local staging directory. Repeat the command to make another set of picks. Different runs may overlap, and repeated random runs do not guarantee eventual coverage of every category.
 
-To see **which categories this run picked** and its evidence counts, use JSON output:
+The result is JSON. To see **which categories this run picked** and its evidence counts in PowerShell:
 
 ```powershell
-$result = node .\src\DataImporter.CLI.mjs --parse XK --json | ConvertFrom-Json
+$result = node .\src\DataImporter.CLI.mjs --parse XK | ConvertFrom-Json
 $result | Select-Object modelPattern, eligible, selected, incompleteCategories
 $result.sampledCategories | Format-Table model, category, categoryLabel
 $result.staging | Select-Object reused, unknown, missingOptionalSidecars, outputDir
@@ -43,22 +42,23 @@ Get-ChildItem -LiteralPath $folder -Filter '*.json' | Select-Object -ExpandPrope
 
 Each evidence file retains source bytes, checksums, ordered records, line numbers, available applicability sidecars and unknown record locations. Missing sidecars and incomplete categories are reported rather than treated as unrestricted applicability. Selection is held only in memory; there is no selection file to save or pass to another command.
 
-For a JEPC installation in a different location, set both paths explicitly:
+For a JEPC installation in a different location, set its source root in the environment before running the same command:
 
 ```powershell
-$source = 'D:\JEPC\applications\JEPC'
-$state = Join-Path $env:LOCALAPPDATA 'Jagports\JEPC-Importer'
-node .\src\DataImporter.CLI.mjs --parse XK --source $source --state-dir $state
+$env:JEPC_SOURCE = 'D:\JEPC\applications\JEPC'
+node .\src\DataImporter.CLI.mjs --parse XK
 ```
 
 `--parse` matches model names from the source XML.
+The pattern must contain at least two characters.
+The CLI accepts no other flags or positional commands. Progress appears on standard error; the final JSON result appears on standard output.
 
 ## Optional import estimates
 
 Add the optional `--estimate` flag to a parse command if you want a separate file/byte inventory for the matched models. `--estimate` cannot run without `--parse PATTERN`:
 
 ```powershell
-$result = node .\src\DataImporter.CLI.mjs --parse XK --estimate --json | ConvertFrom-Json
+$result = node .\src\DataImporter.CLI.mjs --parse XK --estimate | ConvertFrom-Json
 $result.estimate
 ```
 
