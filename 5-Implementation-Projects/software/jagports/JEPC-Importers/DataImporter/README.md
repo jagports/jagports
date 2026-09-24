@@ -51,7 +51,7 @@ $state = Join-Path $env:LOCALAPPDATA 'Jagports\JEPC-Importer'
 node .\src\DataImporter.CLI.mjs --parse XK --source $source --state-dir $state
 ```
 
-`--parse` matches model names from the source XML. It does not assign or change a VIEPS Range.
+`--parse` matches model names from the source XML.
 
 ## Optional import estimates
 
@@ -62,6 +62,6 @@ $result = node .\src\DataImporter.CLI.mjs --parse XK --estimate --json | Convert
 $result.estimate
 ```
 
-The estimate inventories source files for the matched models, beyond the 40 parsed categories. The report distinguishes measured source file and byte counts from D1 storage and import-time projections. Those projections are available only with a measured calibration from a published import. The advanced `estimate-range` command accepts an explicit `--range`, comma-separated `--models`, and `--calibration` file; it does not verify that the supplied models belong to that Range. `--help` shows its full invocation.
+The estimate inventories source files for the matched models, beyond the 40 parsed categories. The report distinguishes measured source file and byte counts from D1 storage and import-time projections. Those projections are available only with a measured calibration from a published import. The advanced `estimate-range` command accepts an explicit `--range`, comma-separated `--models`, and `--calibration` file; `--help` shows its full invocation.
 
 Run `npm test` from this directory to execute the synthetic parser, selection, safety and CLI tests. The sibling MediaImporter handles images and hotspots separately.

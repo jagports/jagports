@@ -68,9 +68,9 @@ test('model-pattern estimate measures source scope without inventing a destinati
   assert.equal(result.range, null);
   assert.equal(result.inventory.files, 5);
   assert.equal(result.projection.d1Bytes, null);
-  assert.match(result.projection.basis, /destination Ranges are resolved/);
+  assert.match(result.projection.basis, /model-pattern source inventory/);
   await assert.rejects(estimateRange({ ...options, range: undefined, modelPattern: 'XK',
-    calibrationPath: path.join(options.stateDir, 'calibration.json') }), /resolved destination Range/);
+    calibrationPath: path.join(options.stateDir, 'calibration.json') }), /advanced Range estimate/);
 });
 
 test('CLI accepts explicit model scope and rejects invalid invocations', async t => {

@@ -64,7 +64,7 @@ function validateOptions({ source, stateDir, range, modelPattern, models, seed, 
 export async function estimateRange({ source, stateDir, range, modelPattern, models, seed = 'range-estimate', sampleSize = 100, calibrationPath },
   { onProgress = () => {}, shouldStop = () => false } = {}) {
   validateOptions({ source, stateDir, range, modelPattern, models, seed, sampleSize });
-  if (modelPattern !== undefined && calibrationPath) throw new Error('D1 calibration requires a resolved destination Range.');
+  if (modelPattern !== undefined && calibrationPath) throw new Error('Calibrated projection requires the advanced Range estimate.');
   const root = await realpath(path.resolve(source));
   const state = await canonicalFuture(path.resolve(stateDir));
   if (within(root, state)) throw new Error('State directory must be outside the source installation.');
@@ -79,7 +79,7 @@ export async function estimateRange({ source, stateDir, range, modelPattern, mod
     sample: { seed, requested: sampleSize, eligibleFiles: 0, eligibleBytes: 0, files: [], readBytes: 0, readSeconds: 0, lines: 0, recordLikeLines: 0, byFamily: {} },
     projection: { d1Bytes: null, importSeconds: null, basis: modelPattern === undefined
       ? 'Unavailable until measured D1/import calibration is provided.'
-      : 'Unavailable until destination Ranges are resolved and measured D1/import calibration is provided.' },
+      : 'Unavailable in a model-pattern source inventory; use the advanced Range estimate with measured calibration.' },
   };
   const sample = { seed, limit: sampleSize, files: [] };
   const seenDirectories = new Set();
