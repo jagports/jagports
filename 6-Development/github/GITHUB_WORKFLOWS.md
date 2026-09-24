@@ -11,8 +11,6 @@ These sections are GitHub-specific operating/execution details and therefore bel
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` for the current ChatGPT/GitHub Project capability boundary;
 - `00-Management/WORKFLOWS.md` for the top-level Management workflow state machine and gates.
 
-Obsolete instructions requiring this current ChatGPT/GitHub connection to perform every Project mutation are intentionally not restored as executable steps. Project operations are executable only by a capable human, automation, or future tool that can mutate and independently verify Project state.
-
 ---
 
 ### Checkbox handling
@@ -108,8 +106,7 @@ Rules:
 - Arbitrary Issue mentions, title text, branch names, labels, repository paths, or semantic similarity do not satisfy owning-Issue traceability.
 - Do not create an implementation PR first and add its Issue afterward.
 - The PR must explicitly trace to every Issue it implements/resolves.
-- Do not attempt GitHub Project management, Project View reads, Project Item reads, Project Item Status reads, Project Item mutations, Project Item Status mutations, Project transitions, Project archive/unarchive operations, or Project field/view/option management through this current ChatGPT/GitHub connection.
-- When Project state would normally be relevant through this current connection, record: `*** !!! ALERT - GitHub Project functions are non-existing !!! ***`
+- Ordinary Project synchronization is handled by existing repository Actions under `Projects/PROJECT_CAPABILITY_BOUNDARY.md`; inspect relevant Actions logs when synchronization or other failures need investigation.
 - Required review, checkbox, and testing gates must pass before merge.
 - Never treat GitHub's `mergeable` state as proof of review or approval.
 - After merge, verify repository, PR, Issue, review, test, and file state available through this connection. Do not claim Project state unless a capable actor/tool independently verifies it.
@@ -198,12 +195,7 @@ Distinguish, where observable, among:
 - unavailable integration;
 - technical operation failure.
 
-Project management/read/mutation operations are already known to be unavailable through the current ChatGPT/GitHub connection. Do not test or retry them as part of ordinary work.
-
 If capability is unavailable, use the exact alert required by the active execution rules:
 
 `*** !!! ALERT - GitHub functions unavailable !!! ***`
 
-For the known Project capability boundary, use the exact Project-functions alert:
-
-`*** !!! ALERT - GitHub Project functions are non-existing !!! ***`
