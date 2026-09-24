@@ -213,7 +213,9 @@ test('#875 browse index displays precisely 13 vocabulary labels and no implied P
   assert.match(markup, /rangeBrowseNote/);
   assert.doesNotMatch(markup, /data-applicable|aria-checked="true"/);
   assert.equal(ui.get('rangeSelect').disabled, true);
-  assert.equal(ui.get('variationsSelect').disabled, true);
+  assert.ok(ui.get('variationOptions'), 'the upper normalized variation group replaces the old dropdown');
+  assert.match(html, /id="variationOptions"[^>]*role="group"/);
+  assert.doesNotMatch(html, /id="variationsSelect"/);
   assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
   assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   ui.setLanguage('fi');
@@ -240,7 +242,8 @@ test('#875 selected PART never promotes browse vocabulary, excluded or unavailab
   assert.doesNotMatch(markup, /E-Pace|F-Pace|XJS|data-browse-range-index/);
   assert.equal((markup.match(/<li>/g) || []).length, 2);
   assert.equal(ui.get('rangeSelect').disabled, false, 'supported ranges may select verified detail, not filter');
-  assert.equal(ui.get('variationsSelect').disabled, true, 'normalized #641 filter remains separate');
+  assert.ok(ui.get('variationOptions'), 'normalized #641 controls remain separate from range detail');
+  assert.doesNotMatch(html, /id="variationsSelect"/);
   assert.match(ui.get('rangeEvidence').innerHTML, /Verified qualifier/);
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
 });
@@ -587,18 +590,21 @@ test('#875 direct candidate/tree link is selected once and search clear preserve
   assert.match(ui.get('tree').innerHTML, /Suspension/);
 });
 
-test('#875 future VIN/variations are disabled and explain unsupported state in both UI locales', () => {
+test('#895 future VIN remains disabled while upper variations has a labelled group in both UI locales', () => {
   const ui = harness(() => { throw Error('unsupported controls must not fetch'); });
-  for (const id of ['vinInput', 'variationsSelect']) {
-    const input = ui.get(id);
-    assert.equal(input.disabled, true, id + ' must remain disabled');
-    assert.match(html, new RegExp('id="' + id + '"[^>]*disabled[^>]*aria-describedby="unsupportedControlsNote"'));
-    assert.match(html, new RegExp('id="' + id + '"[^>]*data-i18n-title="header\\.not_yet_supported"'));
-  }
+  const input = ui.get('vinInput');
+  assert.equal(input.disabled, true, 'VIN remains unavailable');
+  assert.match(html, /id="vinInput"[^>]*disabled[^>]*aria-describedby="unsupportedControlsNote"/);
+  assert.match(html, /id="vinInput"[^>]*data-i18n-title="header\.not_yet_supported"/);
+  assert.match(html, /id="variationOptions"[^>]*role="group"/);
+  assert.match(html, /aria-labelledby="variationsHeading"[^>]*aria-describedby="variationsStatus"/);
+  assert.match(html, /id="variationsStatus"[^>]*aria-live="polite"/);
+  assert.doesNotMatch(html, /id="variationsSelect"/);
   assert.match(html, /id="unsupportedControlsNote"[^>]*data-i18n="header\.not_yet_supported"/);
   assert.equal(ui.get('rangeSelect').disabled, true);
   assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   assert.ok(en.header.not_yet_supported && fi.header.not_yet_supported);
+  assert.ok(en.header.variations_filter && fi.header.variations_filter);
 });
 
 test('#875 disabled bookmarks remain separate from row selection across English/Finnish', async () => {
