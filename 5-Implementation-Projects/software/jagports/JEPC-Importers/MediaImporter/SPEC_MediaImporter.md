@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Define the first implementation-ready operating contract for the Jagports JEPC MediaImporter.
+Define the operating contract for the Jagports JEPC MediaImporter.
 
 MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It runs beside an installed JEPC source tree and owns a separate ledger. It follows the restart, checksum, provenance and reporting contract established with DataImporter.
 
@@ -56,7 +56,7 @@ MediaImporter local ledger
 
 Media bytes must not be stored as D1 BLOBs. D1 stores catalogue entities, stable object keys, source references, checksums, dimensions, status and relationships. A delivery URL is derived at runtime from a stable object key; it is not media identity.
 
-Cloudflare R2 is the initial object-storage provider because VIEPS is already Cloudflare-based. MediaImporter must use a narrow destination adapter so another object store can implement the same contract without changing JEPC source or catalogue semantics.
+Cloudflare R2 is the initial object-storage provider because VIEPS is already Cloudflare-based. MediaImporter uses a storage-provider-neutral preservation contract, so changing an object-storage provider does not change JEPC source or catalogue semantics.
 
 InvenTree remains a separate StockProvider investigation under issue #672. Its attachment feature may be evaluated later as a storage adapter, but it is not the v0.1 destination and must not become authoritative for JEPC diagram identity, PART occurrences, hotspot relationships or provenance.
 
@@ -77,7 +77,7 @@ MediaImporter must preserve these distinctions in its ledger and reports.
 
 ## Logical identities
 
-The implementation must distinguish four identities.
+Media import distinguishes four identities.
 
 ### Source reference identity
 
@@ -101,7 +101,7 @@ The importer must not merge logical illustrations solely because their filenames
 
 ## DataImporter coordination
 
-DataImporter owns interpretation of catalogue files and discovery of logical illustration IDs. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and eventual publication. The applications keep separate writable SQLite ledgers. The current MediaImporter accepts an explicit `--media-id` for bounded local work; any future automated hand-off requires a separately specified, reviewed contract.
+DataImporter owns interpretation of catalogue files and discovery of logical illustration IDs. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and eventual publication. The applications keep separate writable ledgers. For bounded local work, MediaImporter accepts an explicitly selected media identifier; any future automated hand-off requires a separately specified, reviewed contract.
 
 ## Source resolution
 
@@ -184,13 +184,13 @@ The work state summarizes scheduling only. Detailed states remain authoritative 
 
 ## Incremental processing loop
 
-The normal loop processes one logical illustration work item at a time:
+Media import processes one logical illustration work item at a time:
 
 1. Open the independent MediaImporter ledger.
-2. run startup `quick_check` and `foreign_key_check`;
-3. recover a stranded `PROCESSING` item only after the configured owner is proven dead and a full integrity check succeeds;
+2. verify ledger integrity before processing;
+3. recover a stranded `PROCESSING` item only after the former owner is proven inactive and integrity is confirmed;
 4. accept an explicit logical illustration ID or resume a locally queued item;
-5. select the next `NEEDS_REPROCESS` item that the current resolver/converter can improve, otherwise the next `DISCOVERED` item in deterministic order;
+5. select the next `NEEDS_REPROCESS` item that current source or conversion knowledge can improve, otherwise the next `DISCOVERED` item in deterministic order;
 6. mark the item `PROCESSING` and persist the attempt;
 7. resolve only its bounded candidate paths;
 8. hash and validate each existing source file without modifying it;
@@ -202,13 +202,13 @@ The normal loop processes one logical illustration work item at a time:
 14. honor a safe-stop request;
 15. continue with the next item.
 
-The application must not build a complete in-memory installation inventory. It uses indexed ledger queries.
+The normal process must not require a complete installation inventory before it can begin.
 
 ## Ledger requirements
 
-MediaImporter owns a local SQLite ledger separate from DataImporter. At minimum it records:
+MediaImporter owns a ledger separate from DataImporter. At minimum it records:
 
-- run ID, state, owner PID, timestamps and application version;
+- run ID, state, ownership evidence, timestamps and media-import version;
 - source root and non-secret source fingerprint;
 - source references and logical illustration identities;
 - candidate relative paths;
@@ -225,16 +225,7 @@ Checksums, not timestamps, determine byte identity. Source files are re-statted 
 
 ## Object-storage contract
 
-The selected object-storage service must support:
-
-```text
-health
-head/check object
-put object conditionally
-verify checksum/size/type metadata
-derive delivery reference
-mark or report stale/withdrawn metadata
-```
+The selected object-storage service must support availability checking, conditional preservation, verification of object identity and metadata, delivery-reference derivation, and stale/withdrawn status reporting.
 
 Object preservation must be idempotent and conditional. A recommended v0.1 object key is content-addressed:
 
@@ -250,7 +241,7 @@ jepc/evidence/sha256/<first-two-hex>/<sha256>.xml
 
 The exact bucket name, account identifier, endpoint and public hostname are deployment configuration, not committed source semantics.
 
-Upload success is not inferred from a client request completing. The adapter verifies the stored object using provider metadata or a read/head operation sufficient to compare key, size and checksum evidence. Credentials never appear in ledger events, reports or repository content.
+Upload success is not inferred from a request completing. The stored object is verified using provider evidence sufficient to compare key, size and checksum evidence. Credentials never appear in ledger events, reports or repository content.
 
 If an upload succeeds but the local checkpoint fails, the next run checks the deterministic object key, verifies the existing bytes and continues without creating another object. If catalogue publication fails after object publication, the object remains preserved and publication is retried.
 
@@ -290,7 +281,7 @@ The current model cannot express the complete MediaImporter result without overl
 
 This may be implemented as additive media/representation entities rather than adding every field to `diagram`. The final shape belongs to the Parts Data Model workflow. Until approved, MediaImporter stores the complete result in its staging ledger and publishes only fields the current model represents truthfully.
 
-The current VIEPS API also projects `part_image.image_ref` and legacy `part_diagram.image_url` directly to browser image URLs. The implementation must define a stable delivery projection from object key to VIEPS URL, such as a VIEPS media route. Expiring provider URLs and deployment hostnames must not be persisted as canonical asset identity.
+The current VIEPS API also projects `part_image.image_ref` and legacy `part_diagram.image_url` directly to browser image URLs. Media import must provide a stable delivery projection from object key to VIEPS URL. Expiring provider URLs and deployment hostnames must not be persisted as canonical asset identity.
 
 ## Hotspot evidence and #352 gate
 
@@ -313,7 +304,7 @@ When #352 is unresolved, MediaImporter may publish the image and textual item as
 
 Some JEPC exploded diagrams appear to use dashed enclosures to group callouts for components supplied by a kit. A kit part number may be present in the catalogue context while an explicit, machine-readable kit-content list is absent. This is a research signal, not a source-of-truth composition relationship.
 
-The future importer may detect a dashed enclosure and numbered callouts such as `1` or `12` from the selected image representation. It must preserve each result as a **candidate kit-group observation**, tied to the exact image checksum, representation, detector/OCR version and evidence location. It must retain the source callout text, the corresponding raw hotspot records where available, and the separate source-qualified part occurrences that those callouts resolve to.
+The future importer may detect a dashed enclosure and numbered callouts such as `1` or `12` from the selected image representation. It must preserve each result as a **candidate kit-group observation**, tied to the exact image checksum, representation, analysis version and evidence location. It must retain the source callout text, the corresponding raw hotspot records where available, and the separate source-qualified part occurrences that those callouts resolve to.
 
 A candidate becomes a verified kit-content relationship only when all required evidence agrees: the enclosure/callout observation, a validated mapping from the visual callout to a hotspot or catalogue item, the distinct component occurrence/part identity where one exists, and a source-qualified kit part-number context. A component with its own PN remains its own PART and occurrence while also participating in a verified kit-content relationship; kit membership must not replace its individual identity or availability.
 
@@ -326,7 +317,7 @@ Each existing image candidate is decoded and validated. Validation records the f
 The original source bytes are preserved before any lossy transformation. A derived asset must record:
 
 - parent checksum;
-- transformation implementation/version;
+- transformation name/version;
 - crop rectangle;
 - padding;
 - rotation/orientation handling;
@@ -377,7 +368,7 @@ Media import exposes the current phase, logical illustration, source/preservatio
 
 ## Transaction and recovery boundaries
 
-One logical illustration is the operator-visible checkpoint boundary. Provider upload and D1 publication cannot share one local atomic transaction, so recovery uses deterministic identities and ordered verification:
+One logical illustration is the operator-visible checkpoint boundary. Object preservation and D1 publication cannot complete as one atomic action, so recovery uses deterministic identities and ordered verification:
 
 1. persist intent and source checksums locally;
 2. publish/verify content-addressed object;
@@ -387,7 +378,7 @@ One logical illustration is the operator-visible checkpoint boundary. Provider u
 
 Every stage is replay-safe. A crash at any boundary resumes by checking existing deterministic results rather than blindly repeating side effects.
 
-Only one writer may own a state directory. Read-only `status`, `report` and `doctor` commands may operate under the same safety rules as DataImporter.
+Only one writer may own a state directory. Read-only operational visibility and integrity checks may operate under the same safety rules as DataImporter.
 
 ## Versioning and reprocessing
 
@@ -398,7 +389,7 @@ Track independently:
 - hotspot parser version;
 - media transformation/converter version;
 - ledger schema version;
-- destination adapter version;
+- destination-provider contract version;
 - catalogue publication schema/version.
 
 A change increments only the affected component version and selects prior records that can benefit. New conversion knowledge must not require re-uploading unchanged original bytes. A destination adapter change must not change logical illustration identity.
@@ -417,8 +408,8 @@ A change increments only the affected component version and selects prior record
 - [ ] D1 contains metadata/relationships rather than media BLOBs.
 - [ ] Images can be published for textual/non-clickable use while hotspot geometry remains blocked.
 - [ ] Verified clickable geometry is published only against the exact target asset and approved #352 transformation.
-- [ ] Safe stop, restart, reconciliation, integrity checks and detailed reporting work.
-- [ ] Tests demonstrate no source mutation, no full-tree normal-loop scan and no automatic hard deletion.
+- [ ] Safe stop, restart, reconciliation, integrity checks and detailed reporting are available.
+- [ ] Import preserves source files, avoids a full-tree scan during normal processing, and performs no automatic hard deletion.
 
 ## Traceability
 
