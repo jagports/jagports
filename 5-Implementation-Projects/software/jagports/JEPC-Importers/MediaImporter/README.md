@@ -1,6 +1,8 @@
 # JEPC MediaImporter
 
-This local Windows/Node.js 24 application inspects and preserves one JEPC illustration at a time. It uses an independent SQLite ledger, reads only bounded paths for the selected media ID, and does not alter JEPC source files or publish to R2/D1. See the [MediaImporter specification](SPEC_MediaImporter.md) for future transformation and publication requirements.
+This local Windows/Node.js 24 application inspects and preserves one JEPC illustration at a time. It uses an independent SQLite ledger, reads only bounded paths for the selected media ID, and does not alter JEPC source files or publish to R2/D1. See the [MediaImporter specification](SPEC_MediaImporter.md) for the operating responsibilities and relationships.
+
+Kit detection, dashed-enclosure analysis, kit composition, and kit-membership publication are excluded until explicitly reopened.
 
 ```powershell
 node src/MediaImporter.CLI.mjs --help
