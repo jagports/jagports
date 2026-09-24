@@ -40,6 +40,8 @@ test("#875 desktop fits three workspaces while preserving #888 compact spacing",
   assert.match(rule(".centre-detail"), /grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1\.05fr\)/);
   assert.match(rule(".results-panel .results-scroll, .ranges-panel .ranges-scroll"), /overflow:\s*auto/);
   assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".ranges-panel #rangeEvidence"), /overflow:\s*auto/);
+  assert.doesNotMatch(html, /class="fitment-panel"/);
 });
 
 test("#888 reduces panel spacing and #886 tree indentation without shrinking reserved panels", () => {
