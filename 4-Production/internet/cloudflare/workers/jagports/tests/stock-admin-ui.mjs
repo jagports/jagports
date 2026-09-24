@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import vm from "node:vm";
 
 const html = fs.readFileSync(new URL("../public/stock-admin.html", import.meta.url), "utf8");
 const js = fs.readFileSync(new URL("../public/stock-admin.js", import.meta.url), "utf8");
@@ -109,4 +110,93 @@ test("Stock Admin does not expose technical placeholder site names to operators"
   assert.match(js, /visibleSiteName\(location\.site_name\)/);
   assert.match(js, /visibleSiteName\(row\.storage_site_name\)/);
   assert.doesNotMatch(js, /RnX site - name not recorded in XLSX/);
+});
+
+
+// Exercise the actual browser script using stock API response shapes.
+async function renderStockLocation(locations, row) {
+  const elements = new Map();
+  const element = (id = "") => ({
+    id, value: "", textContent: "", children: [], handlers: {},
+    classList: { toggle() {} },
+    addEventListener(type, handler) { this.handlers[type] = handler; },
+    append(child) { this.children.push(child); },
+    replaceChildren(...children) { this.children = children; this.textContent = ""; },
+  });
+  const byId = (id) => {
+    if (!elements.has(id)) elements.set(id, element(id));
+    return elements.get(id);
+  };
+  const document = {
+    getElementById: byId,
+    createElement: () => element(),
+    querySelectorAll: () => [],
+  };
+  const fetch = async (path) => {
+    const payload = path === "/api/stock-meta"
+      ? { locations, source_parties: [], vehicles: [] }
+      : path.startsWith("/api/stock?")
+        ? { results: [row] }
+        : null;
+    assert.ok(payload, "unexpected API call: " + path);
+    return { ok: true, json: async () => payload };
+  };
+  vm.runInNewContext(js, {
+    document, fetch, URLSearchParams,
+    globalThis: { viepsI18n: { init() {}, t: (key) => key } },
+  });
+  await byId("accessForm").handlers.submit({ preventDefault() {} });
+  const result = byId("stockList").children[0]?.textContent;
+  const option = byId("storageLocationId").children
+    .find((item) => String(item.value) === String(row.storage_location_id));
+  return { result, selector: option?.textContent };
+}
+
+test("Stock Admin compact result includes R2A without showing the #856 placeholder", async () => {
+  const placeholder = "RnX site - name not recorded in XLSX";
+  const { result, selector } = await renderStockLocation([
+    { id: 71, name: "R2A", parent_id: null, site_name: placeholder, location_type: "shelf" },
+    { id: 72, name: "B14", parent_id: 71, site_name: placeholder, location_type: "box" },
+  ], {
+    part_number: "HJA3403AB", quantity: 1, condition_code: null,
+    storage_location_id: "72", storage_location_name: "B14", storage_site_name: placeholder,
+  });
+  assert.match(result, /HJA3403AB.*R2A \/ B14/);
+  assert.doesNotMatch(result, /name not recorded in XLSX/);
+  assert.equal(selector, "R2A / B14 (box)");
+});
+
+test("Stock Admin displays nested rack, shelf and box in order", async () => {
+  const locations = [
+    { id: 1, name: "Rack 4", parent_id: null, site_name: "Depot", location_type: "rack" },
+    { id: 2, name: "S2", parent_id: 1, site_name: "Depot", location_type: "shelf" },
+    { id: 3, name: "B9", parent_id: 2, site_name: "Depot", location_type: "box" },
+  ];
+  const { result, selector } = await renderStockLocation(locations, {
+    part_number: "P1", quantity: 1, storage_location_id: 3,
+    storage_location_name: "B9", storage_site_name: "Depot",
+  });
+  assert.match(result, /Depot \/ Rack 4 \/ S2 \/ B9$/);
+  assert.equal(selector, "Depot / Rack 4 / S2 / B9 (box)");
+});
+
+test("Stock Admin retains root-only location labels", async () => {
+  const { result, selector } = await renderStockLocation([
+    { id: 4, name: "Rack 1", parent_id: null, site_name: "Depot", location_type: "rack" },
+  ], {
+    part_number: "P2", quantity: 2, storage_location_id: 4,
+    storage_location_name: "Rack 1", storage_site_name: "Depot",
+  });
+  assert.match(result, /Depot \/ Rack 1$/);
+  assert.equal(selector, "Depot / Rack 1 (rack)");
+});
+
+test("Stock Admin falls back to API location when metadata is missing", async () => {
+  const { result } = await renderStockLocation([], {
+    part_number: "P3", quantity: 1, storage_location_id: 999,
+    storage_location_name: "B14",
+    storage_site_name: "RnX site - name not recorded in XLSX",
+  });
+  assert.match(result, /B14$/);
+  assert.doesNotMatch(result, /name not recorded in XLSX/);
 });
