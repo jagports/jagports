@@ -100,8 +100,9 @@ test('complete Concept-11 shell exists before search, with no automatic part loo
   for (const region of ['tree', 'location', 'visual', 'ranges']) {
     assert.match(html, new RegExp(`class="panel ${region}-panel"`));
   }
-  // #875 nests suitability inside the single selected-PART panel.
-  assert.match(html, /class="fitment-panel"/);
+  // #895 removes the duplicate lower Suitability panel; verified range evidence stays on the right.
+  assert.doesNotMatch(html, /class="fitment-panel"/);
+  assert.match(html, /id="rangeEvidence"/);
   assert.match(html, /id="searchResults"/);
   assert.match(html, /class="left-workspace"/);
   assert.match(html, /class="centre-workspace"/);
@@ -240,7 +241,7 @@ test('#875 selected PART never promotes browse vocabulary, excluded or unavailab
   assert.equal((markup.match(/<li>/g) || []).length, 2);
   assert.equal(ui.get('rangeSelect').disabled, false, 'supported ranges may select verified detail, not filter');
   assert.equal(ui.get('variationsSelect').disabled, true, 'normalized #641 filter remains separate');
-  assert.match(ui.get('fitment').innerHTML, /Verified qualifier/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Verified qualifier/);
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
 });
 
