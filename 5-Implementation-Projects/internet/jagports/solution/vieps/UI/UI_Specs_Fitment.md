@@ -41,6 +41,27 @@ The centre-top Suitability / Variations filter (#641) and right-bottom Applicabl
 
 VIN applicability uses approved source VIN ranges, not inferred model years or KOVuosi. Result-row bookmark checkboxes are **visible but disabled** in the current layout increment; later bookmarking cannot select a model, apply a filter or assert fitment.
 
+### Normalized categories, JEPC descriptions and the fixture bridge (#641 / #877)
+
+**Category** means a normalized applicability dimension and its approved value domain (for example `body / coupe`). A **source description** means a source-language JEPC tree/attribute label retained with its source-qualified identity. The Admin category→value→description mapping specified by #877 interprets such descriptions without rewriting JEPC records; equal visible wording in two source groups is not necessarily one meaning.
+
+The filter and selected-PART facts must use the **same normalized dimension/value identities and occurrence-scoped verified applicability**. Human-visible category headings, prompts, states and buttons use semantic EN/FI i18n keys; imported JEPC description text follows the separately selected Parts/catalogue language. Never use translated or unqualified description strings as API identity.
+
+Until imported #355 data exists, enable **synthetic fixture-backed suitability read/filter options** with the identical public UI/API contract:
+
+| Normalized category | Displayed synthetic descriptions / values | Required fixture behavior |
+|---|---|---|
+| Body | Coupe; Convertible | Distinct selectable values; scope to actual fixture occurrence |
+| Steering | LHD; RHD | Keep distinct from unverified JEPC LH/RH source-path labels |
+| Engine aspiration | NA; Supercharged | Fixture conditions represent only declared fixture alternatives |
+| Seat equipment | Memory Seat; Powered Seats | Can coexist on the same occurrence/context |
+
+Populate categories and choices from the **resulting applicable occurrence set**, not a global fixed checkbox list. A PART remains a result while at least one matching occurrence survives. Combine different category selections using verified occurrence-scoped conditions, preserving alternative condition sets and exclusions; never manufacture an applicability match by independently joining PART-level labels. A context with missing necessary evidence is `unavailable`, not silently excluded or asserted applicable. Selected-PART factual applicability remains separate from the browse filter.
+
+Deterministic fixtures must provide: each of the eight values; two distinct occurrence combinations; same PART in multiple occurrences; combined Body + Steering + aspiration selections; coexisting Memory Seat + Powered Seats; explicit excluded and unavailable cases; options disappearing when other constraints remove their last matching occurrence; and source descriptions sharing a label but not a source identity. Reuse the #354/#355 normalized read path so the imported-data switch **changes only the source records**, not public filter controls or request/result semantics. Clearly mark fixture evidence; do not assert these cases are actual Jaguar catalogue fitment.
+
+The merged #883 layout places this normalized Suitability / Variations control at centre-top and keeps right-hand Applicable Models separate. The variation filter must not use its 13 model-range browse labels as suitability values. Right-hand Search Results rows and left Parts Tree leaves share one canonical PART selection while preserving occurrence evidence; neither may join attributes from different occurrences.
+
 ### Information document link
 The `(i)` control may link to verified **Model Family & Year Introduction** documentation when a valid source/document relationship exists.
 
@@ -75,6 +96,27 @@ Do not add a second domain taxonomy for the 13 fixture labels. Use normalized ex
 
 ## Deterministic fixtures
 Cover all 13 exact browse/index fixture display labels independently of selected-PART fitment, a single PART applicable to only some Ranges, an excluded Range not presented as suitable, verified source qualifiers, VIN-range match/exclusion, selected row with multiple source occurrences, unavailable evidence, context-only search and API error. The later multi-range filter test matrix must include **ANY/OR** across two or more ranges, empty-selection pass-through, exclusions/unknowns and conjunction with an approved normalized variation filter. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
+
+### Pre-JEPC filter regression matrix (#641 / #877)
+
+Use the logical source/occurrence fixture matrix in `../SPEC/MODEL_PART_APPLICABILITY.md` (`F-SUIT-01` through `F-SUIT-05`; `O-A` through `O-F`), not a separate UI-only hard-coded list. The following are required public API and UI tests **once their approved normalized reader/evaluator is implemented**:
+
+| Browse/filter input | Required result when applicable fixture predicates are implemented |
+|---|---|
+| No variation selection in the fixture X100 context | Expose only supported values from positively evidenced surviving fixture occurrences; an unavailable-only value is not an asserted match |
+| Body = Coupe; Steering = LHD; aspiration = Supercharged | Select `F-SUIT-01 / O-A`, not `O-B`; never combine LHD from one occurrence with Convertible/NA from another |
+| Body = Convertible; Steering = RHD; aspiration = NA | Select `F-SUIT-01 / O-B`, not `O-A` |
+| Body = Coupe; Steering = RHD; aspiration = NA | Select `F-SUIT-02 / O-C`; update available choices based on the remaining occurrence universe |
+| Body = Convertible; Steering = LHD | Do not surface `F-SUIT-03 / O-D` as applicable merely because it contains an explicit `exclude` record |
+| A filter that needs `O-E`'s missing aspiration value | Preserve `unavailable`; never call it confirmed `no_match` or `applicable` |
+| Body = Convertible AND aspiration = Supercharged against the seeded X100 positives | Zero positively evidenced matching occurrences; retain a visible selected zero-result state without offering impossible additional choices |
+| Same display description `Coupe` from two synthetic source groups | Show one normalized option **only after each source identity has an independently approved mapping**; an unmapped duplicate cannot become verified from matching text |
+| Switch from X100-fixture to X150-fixture model context | Only matching surviving scoped occurrences supply choices; do not cross-join alternative contexts or infer Jaguar-wide coverage |
+| Both Memory Seat and Powered Seats selected | Must be a conjunction of two verified set-membership predicates on `O-A`, **not** two incompatible scalar equals; until set membership is implemented, show this option as unsupported/unavailable |
+
+Within a scalar category, separately selected conflicting values produce zero results unless the approved UI explicitly supports **ANY/OR** within that category. Across different selected categories, evaluate **AND on each complete surviving occurrence/alternative**; positively matched occurrences and complete alternatives combine with **OR** at the result aggregation boundary. Keep model-range filters separate: #875's proposed model multi-select is ANY/OR and is deferred until backed by its own verified contract. No test may implicitly treat the 13 model-range browse labels as verified PART fitment.
+
+A full regression run must cover filter option recomputation after part-number/free-text search and stock-only changes, repeated PART occurrences, explicit exclusions, unresolved source labels, empty results, source-language switching without identity mutation, and a simulated fixture-to-JEPC provider swap with identical normalized request/response field names. A test-only namespace and fixture provenance must remain visible; an application instance without fixture/demo opt-in cannot leak these assertions to ordinary production users.
 
 ## Viewport and language
 Applicable Models is independently scrollable in the persistent right column below the separate Search Results list; centre VIN/Variations remain above Location and one selected PART. Keep #616 fitted desktop behavior with inner scroll and accessible links/labelled checkboxes. On narrow layouts reflow without mixing bookmark, model filter and verified fit indicators. UI text and source Parts-language remain independently governed by #554 and #620.
