@@ -99,7 +99,7 @@ async function geometry(page) {
       contentScrollable: content.scrollHeight > content.clientHeight,
       contentScrollTop: content.scrollTop,
       locationHeight: rect(".location-panel").height,
-      fitmentHeight: rect(".fitment-panel").height,
+      rangesHeight: rect(".ranges-panel").height,
       visualHeight: rect(".visual-panel").height,
     };
   });
@@ -300,7 +300,7 @@ try {
     assert.ok(g.pageWidth <= width + 1 && g.bodyWidth <= width + 1, width + "px horizontal overflow");
     assert.ok(g.contentScrollable, width + "px lower content must be independently scrollable");
     assert.ok(g.content.height >= 50, width + "px lower content is trapped");
-    assert.ok(g.locationHeight >= 170 && g.fitmentHeight >= 170 && g.visualHeight >= 300,
+    assert.ok(g.locationHeight >= 170 && g.rangesHeight >= 170 && g.visualHeight >= 300,
       width + "px reserved content panels shrank");
     await page.screenshot({ path: evidenceDir + "mobile-" + width + ".png" });
     const topBefore = g.top.top;
