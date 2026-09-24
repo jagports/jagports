@@ -47,7 +47,7 @@ def source_files(tree):
             raise RuntimeError("Unsafe or reserved upstream path")
         if entry["type"] == "tree":
             continue
-        if (entry["type"] != "blob" or entry.get("size", 0) > 4 * 1024 * 1024
+        if (entry["type"] != "blob" or entry.get("mode") not in ("100644", "100755") or entry.get("size", 0) > 4 * 1024 * 1024
                 or not isinstance(entry.get("size"), int)):
             raise RuntimeError("Unsafe or oversized upstream file")
         entries[name] = entry["size"]
@@ -153,6 +153,13 @@ def upgrade(destination, *, download=github_bytes, check=True):
             backup.mkdir(parents=True, exist_ok=False, mode=0o700)
             existing_manifest = destination / ".jagports-managed-files.json"
             old_files = json.loads(existing_manifest.read_text()) if existing_manifest.exists() else []
+            if (not isinstance(old_files, list) or
+                    any(not isinstance(n, str) or not n or
+                        PurePosixPath(n).is_absolute() or
+                        ".." in PurePosixPath(n).parts or
+                        any(k in PRESERVED for k in PurePosixPath(n).parts)
+                        for n in old_files)):
+                raise RuntimeError("Unsafe or corrupt previous source manifest")
             # First update: protect all existing first-level code/scripts,
             # including older manual installations, without archiving secrets.
             managed = set(old_files) | set(files) | LEGACY_RO_FILES
