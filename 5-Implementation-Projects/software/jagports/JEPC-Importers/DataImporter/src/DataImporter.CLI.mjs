@@ -8,7 +8,7 @@ import { estimateRange, modelsForRange } from './DataImporter.Estimate.mjs';
 
 const help = `
 
-Jagports JEPC Data Importer v0.1 — source category parser
+Jagports JEPC Data Importer v0.1a — source category parser
 (C)2026 by tlindi and ChatGPT
 
 Node.js 24+; run locally on the computer that can read the source files.

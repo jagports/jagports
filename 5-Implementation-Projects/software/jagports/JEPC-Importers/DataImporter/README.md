@@ -1,4 +1,4 @@
-# JEPC DataImporter
+# JEPC DataImporter v0.1a
 
 DataImporter runs on the Windows computer that has the JEPC installation. **The current command parses source categories into local evidence files; it does not create VIEPS catalogue records or upload anything to D1.** The [operating specification](SPEC_DataImporter.md) covers the later transformation and publication stages.
 

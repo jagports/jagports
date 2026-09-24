@@ -1,10 +1,10 @@
-# Jagports JEPC Data Importer v0.1
+# Jagports JEPC Data Importer v0.1a
 
 (C)2026 by tlindi and ChatGPT
 
 ## Purpose
 
-Define the v0.1/MVP operating specification for a restartable, discovery-driven JEPC data importer.
+Define the v0.1a/MVP operating specification for a restartable, discovery-driven JEPC data importer.
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
@@ -247,7 +247,7 @@ Verified examples from `menus/models_I_id_0.xml` include:
 
 For importer/operator presentation, the selected model shall therefore retain and expose both its own `Model_ID` and its immediate `Parent_ID`, together with the source descriptions for both levels. The parent level may act as a model/family grouping in JEPC, but the importer must preserve the source hierarchy rather than assuming a stronger domain label than the source establishes.
 
-Initial v0.1/MVP validation profiles:
+Initial v0.1a/MVP validation profiles:
 
 1. `XK8 Coupe/Convertible up to (V) 042775` — Region `Rest of world excluding Americas`.
 2. `XJ Series From (V)812317 to (V)F59525 (X308)` — Region `Rest of world excluding Americas`.
@@ -470,7 +470,7 @@ The screen should be redrawn in place rather than producing an endlessly scrolli
 Example:
 
 ```text
-Jagports JEPC Data Importer v0.1
+Jagports JEPC Data Importer v0.1a
 (C)2026 by tlindi and ChatGPT
 
 JEPC Parent_ID #3175 — Jaguar XK8 Coupe/Convertible
@@ -595,9 +595,9 @@ whether normalized schema change appears necessary
 
 The operator should not be expected to follow this high-volume log visually during normal processing.
 
-## v0.1/MVP acceptance direction
+## v0.1a/MVP acceptance direction
 
-The importer v0.1/MVP should demonstrate that:
+The importer v0.1a/MVP should demonstrate that:
 
 - no complete pre-existing million-file index is required before useful import begins;
 - the processing ledger is built incrementally bundle by bundle;
