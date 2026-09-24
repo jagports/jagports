@@ -50,7 +50,7 @@ test("#888 reduces panel spacing and #886 tree indentation without shrinking res
   assert.match(rule(".tree-children"), /border-left:\s*1px/);
   assert.match(rule(".selected-path a"), /underline/);
   assert.match(rule(".location-panel", mobile), /min-height:\s*12rem/);
-  assert.match(rule(".visual-panel", mobile), /min-height:\s*12rem/);
+  assert.match(rule(".ranges-panel", mobile), /min-height:\s*14rem/);
   assert.match(rule(".visual-panel", mobile), /min-height:\s*22rem/);
 });
 
