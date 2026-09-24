@@ -115,7 +115,7 @@
   .ranges-panel { flex-basis: 46%; }
   .availability-panel, .vin-panel { flex: 0 0 auto; }
   .visual-panel, .location-panel { min-height: 0; }
-  .vin-panel #vinInput, .vin-panel #variationsSelect {
+  .vin-panel #vinInput {
     @apply mb-2 w-full cursor-not-allowed bg-slate-100 text-jagports-muted;
   }
   .ranges-panel #rangeEvidence {
