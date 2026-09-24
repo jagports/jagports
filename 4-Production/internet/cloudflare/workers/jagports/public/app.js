@@ -432,6 +432,10 @@ function renderFitment(fitment, declaredState = null) {
     `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>`
     : empty(emptyLabel);
   renderSelectedRange();
+  if (!ranges.length) {
+    $("rangeEvidence").innerHTML = empty(t(error ? "fitment.unavailable"
+      : confirmedNoMatch ? "fitment.no_match" : "fitment.unavailable"));
+  }
 }
 
 function renderResolvedData(data) {
