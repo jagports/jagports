@@ -5,14 +5,12 @@ Run as codex. Downloads a pinned GitHub archive; no Git checkout or sudo needed.
 It does not call OpenAI, send Telegram or run main.py.
 """
 import argparse
-import io
 import json
 import os
 from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
@@ -36,30 +34,63 @@ def github_bytes(url, limit):
     return data
 
 
-def archive_files(archive, commit):
-    """Return safe, regular files only from the pinned agent directory."""
-    result = {}
-    prefix = "jagports-" + commit + "/" + SOURCE + "/"
-    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as tar:
-        for member in tar:
-            if not member.name.startswith(prefix):
-                continue
-            name = member.name[len(prefix):]
-            if not name or member.isdir():
-                continue
-            path = PurePosixPath(name)
-            if (not member.isfile() or path.is_absolute() or
-                    ".." in path.parts or any(x in PRESERVED for x in path.parts) or
-                    path.parts[0] == "config.local.yaml"):
-                raise RuntimeError("Unsafe or reserved archive entry")
-            if member.size > 4 * 1024 * 1024:
-                raise RuntimeError("Source file exceeds 4 MiB")
-            result[name] = tar.extractfile(member).read()
+def source_files(tree):
+    """Validate one exact repository subtree; return names and declared sizes."""
+    if tree.get("truncated"):
+        raise RuntimeError("GitHub source tree is truncated; refusing partial update")
+    entries = {}
+    for entry in tree["tree"]:
+        name = entry["path"]
+        path = PurePosixPath(name)
+        if (path.is_absolute() or ".." in path.parts or
+                any(part in PRESERVED for part in path.parts)):
+            raise RuntimeError("Unsafe or reserved upstream path")
+        if entry["type"] == "tree":
+            continue
+        if (entry["type"] != "blob" or entry.get("size", 0) > 4 * 1024 * 1024
+                or not isinstance(entry.get("size"), int)):
+            raise RuntimeError("Unsafe or oversized upstream file")
+        entries[name] = entry["size"]
     for required in ("main.py", "config.yaml", "services/github_service.py",
-                     "services/telegram_service.py", "scripts/update_from_main.py"):
-        if required not in result:
-            raise RuntimeError("Pinned archive missing " + required)
-    return result
+                     "services/telegram_service.py", "scripts/update_from_main.py",
+                     "requirements.txt"):
+        if required not in entries:
+            raise RuntimeError("Pinned main missing " + required)
+    return entries
+
+
+def download_files(download):
+    """Resolve just the agent subtree, never the full ~239 MiB repository."""
+    from urllib.parse import quote
+    commit_info = json.loads(download(
+        "https://api.github.com/repos/" + REPO + "/commits/main", 128 * 1024))
+    actual = commit_info["sha"]
+    if len(actual) != 40 or any(c not in "0123456789abcdef" for c in actual):
+        raise RuntimeError("Invalid main commit SHA")
+    print("Latest main commit:", actual)
+    tree_sha = commit_info["commit"]["tree"]["sha"]
+    for component in SOURCE.split("/"):
+        tree = json.loads(download(
+            "https://api.github.com/repos/" + REPO + "/git/trees/" + tree_sha,
+            512 * 1024))
+        matches = [item for item in tree["tree"]
+                   if item["path"] == component and item["type"] == "tree"]
+        if len(matches) != 1:
+            raise RuntimeError("Pinned main missing source directory: " + component)
+        tree_sha = matches[0]["sha"]
+    tree = json.loads(download(
+        "https://api.github.com/repos/" + REPO + "/git/trees/" + tree_sha
+        + "?recursive=1", 2 * 1024 * 1024))
+    entries = source_files(tree)
+    files = {}
+    for name, size in sorted(entries.items()):
+        url = ("https://raw.githubusercontent.com/" + REPO + "/" + actual
+               + "/" + quote(SOURCE + "/" + name, safe="/"))
+        payload = download(url, min(size + 1024, 4 * 1024 * 1024 + 1))
+        if len(payload) != size:
+            raise RuntimeError("Incomplete pinned upstream file: " + name)
+        files[name] = payload
+    return actual, files
 
 
 def run(command, **kwargs):
@@ -87,15 +118,7 @@ def upgrade(destination, *, download=github_bytes, check=True):
     if timer_status.returncode or timer_status.stdout.strip() != "loaded":
         raise RuntimeError("Existing codex timer unavailable; inspect installation")
 
-    commit_info = json.loads(download(
-        "https://api.github.com/repos/" + REPO + "/commits/main", 128 * 1024))
-    commit = commit_info["sha"]
-    if len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
-        raise RuntimeError("Invalid main commit SHA")
-    print("Latest main commit:", commit)
-    archive = download("https://codeload.github.com/" + REPO + "/tar.gz/" + commit,
-                       35 * 1024 * 1024)
-    files = archive_files(archive, commit)
+    commit, files = download_files(download)
 
     with tempfile.TemporaryDirectory(prefix="jagports-update-") as temporary:
         stage = Path(temporary) / "source"
