@@ -85,6 +85,8 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.equal(summary.eligible, 45);
   assert.equal(summary.limit, 40);
   assert.equal(summary.selected, 40);
+  assert.equal(summary.sampledCategories.length, 40);
+  assert.equal(new Set(summary.sampledCategories.map(row => `${row.model}/${row.category}/L${row.language}`)).size, 40);
   assert.deepEqual(summary.modelIds, TEST_MODEL_IDS);
   assert.equal(summary.staging.bundles, 40);
   assert.equal(summary.staging.reused, 0);

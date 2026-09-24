@@ -80,7 +80,9 @@ async function main() {
       language: values.language ?? '0', onProgress });
     const summary = { modelPattern: selection.modelPattern, modelIds: selection.modelIds,
       eligible: selection.eligibleCategories, limit: selection.categoryLimit,
-      selected: selection.bundles.length, incompleteCategories: selection.incompleteCategories.length };
+      selected: selection.bundles.length, incompleteCategories: selection.incompleteCategories.length,
+      sampledCategories: selection.bundles.map(bundle => ({ model: bundle.model, modelLabel: bundle.modelLabel,
+        category: bundle.category, categoryLabel: bundle.categoryLabel, language: bundle.language })) };
     if (values.estimate) {
       try {
         const estimate = await estimateRange({ source, stateDir, modelPattern: summary.modelPattern,

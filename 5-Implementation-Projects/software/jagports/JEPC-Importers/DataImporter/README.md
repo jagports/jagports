@@ -1,27 +1,77 @@
 # JEPC DataImporter
 
-Run locally on Windows with Node.js 24 or later, beside the installed JEPC files. The current application inspects source files and stages lossless category evidence locally. It does not transform catalogue relationships or publish to D1. See the [operating specification](SPEC_DataImporter.md) for the intended later stages.
+DataImporter runs on the Windows computer that has the JEPC installation. **The current command parses source categories into local evidence files; it does not create VIEPS catalogue records or upload anything to D1.** The [operating specification](SPEC_DataImporter.md) covers the later transformation and publication stages.
+
+## Before the first run
+
+Install Node.js 24 or later and open PowerShell at the root of the Jagports repository. The JEPC source root must contain `menus/models_l_id_0.xml` and `drilldown/`. The default root on the installation computer is `C:\Program Files\JEPC\applications\JEPC`.
 
 ```powershell
-node src/DataImporter.CLI.mjs --help
-node src/DataImporter.CLI.mjs --parse XK
-node src/DataImporter.CLI.mjs --parse X3 --json
-node src/DataImporter.CLI.mjs --parse XJS --estimate
-node src/DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
-node src/DataImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
-node src/DataImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
-node src/DataImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --full
-npm test
+Set-Location .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter
+node --version
+node .\src\DataImporter.CLI.mjs --help
 ```
 
-`--parse PATTERN` reads the installed `menus/models_l_id_0.xml` on every run. It matches a case-insensitive literal substring of source model names and includes descendants when a parent row matches. For example, `X3` matches X300 and X308; `XJ` also matches XJS, while `XJS` narrows to that family. It stages **at most 40 complete category bundles per run** across the matched models. For each pick, it chooses a random matched model with remaining categories and then a random complete category in that model; categories are not repeated within one run. Each run makes fresh picks. The result reports eligible, selected and incomplete category counts. There is no fixed model-ID mapping. The default source is `C:\Program Files\JEPC\applications\JEPC`; the default state directory is `%LOCALAPPDATA%\Jagports\JEPC-Importer`. Override either with `--source` or `--state-dir`.
+No `npm install` is needed. The application reads the JEPC installation without changing it. By default it writes local state under `$env:LOCALAPPDATA\Jagports\JEPC-Importer`; keep state outside the source installation.
 
-Selection exists only in memory during the command. One bundle is a complete source category: its category, top-level and item files, plus available sidecars. The parser checks selected file hashes and writes one evidence JSON file per bundle under `state-dir/model-staging/parser-v5/`. Its filename includes a hash of that bundle's evidence. When a later random run picks the same unchanged category, it reuses that file even if the other 39 picks differ. Changed source evidence gets a new file. No selection file is saved. Evidence preserves source bytes, line numbers, ordered records, optional applicability sidecars and unknown record locations. Missing sidecars do not imply unrestricted applicability. The source installation is read-only and state must live outside it.
+## Parse categories
 
-The pattern selects source models, not a destination Range or database. X300 and X308 belong to `XJ Range` even when selected with `X3`; XJS remains a separate Range even when selected by `XJ`. A future publication stage must resolve each Model_ID through the canonical VIEPS Range registry and reject unresolved assignments. Local staging does not claim that this resolution or D1 publication has happened.
+From the DataImporter directory, run:
 
-`--estimate` is optional on `--parse`. It scans the selected model scope and writes a source inventory report, including file counts, bytes, elapsed time and a seeded sample of XML/CSV files. It makes no D1 size or import-duration projection without measured calibration, and a model-pattern scope has no inferred destination Range. `estimate-range` remains available for an explicit Range and comma-separated `--models`; its report stays outside the source installation. No measurements from one computer are bundled as defaults.
+```powershell
+node .\src\DataImporter.CLI.mjs --parse XK
+```
 
-`inspect` examines one explicitly named model/category/item bundle and records checksums in the local SQLite ledger. `status`, `report`, and `doctor` read that ledger. `inspect` displays a bounded progress screen; Q or the first Ctrl+C stops after the current checkpoint, and a second Ctrl+C exits. Repeating inspection rehashes its selected paths. The ledger is separate from parser staging and neither marks catalogue bundles imported.
+`XK` is matched case-insensitively against the model names in the installed XML menu. A matching parent includes its leaf models. The command identifies complete categories in those models, then makes up to **40 fresh random picks per run**. Each pick chooses a model with remaining categories and one category in that model. A category cannot be picked twice in the same run. Progress appears while selection and parsing run; the final output gives the matched-model count, eligible and staged category counts, and local staging directory. Repeat the command to make another set of picks. Different runs may overlap, and repeated random runs do not guarantee eventual coverage of every category.
 
-Future slices cover transformation into explicit part occurrences and applicability conditions, idempotent D1 publication, translations and content counts. The sibling MediaImporter handles images and hotspots independently. Run `npm test` for synthetic parsing, source safety, repeatability, and CLI checks.
+To see **which categories this run picked** and its evidence counts, use JSON output:
+
+```powershell
+$result = node .\src\DataImporter.CLI.mjs --parse XK --json | ConvertFrom-Json
+$result | Select-Object modelPattern, eligible, selected, incompleteCategories
+$result.sampledCategories | Format-Table model, category, categoryLabel
+$result.staging | Select-Object reused, unknown, missingOptionalSidecars, outputDir
+```
+
+`reused` counts unchanged categories whose evidence was already written by an earlier run. The files for each picked category are under `$result.staging.outputDir\M<model>\C<category>\L<language>\<hash>.json`. For example, to open the first picked category's evidence folder:
+
+```powershell
+$first = $result.sampledCategories[0]
+$folder = Join-Path $result.staging.outputDir ("M{0}\C{1}\L{2}" -f $first.model, $first.category, $first.language)
+Get-ChildItem -LiteralPath $folder -Filter '*.json' | Select-Object -ExpandProperty FullName
+```
+
+Each evidence file retains source bytes, checksums, ordered records, line numbers, available applicability sidecars and unknown record locations. Missing sidecars and incomplete categories are reported rather than treated as unrestricted applicability. Selection is held only in memory; there is no selection file to save or pass to another command.
+
+For a JEPC installation in a different location, set both paths explicitly:
+
+```powershell
+$source = 'D:\JEPC\applications\JEPC'
+$state = Join-Path $env:LOCALAPPDATA 'Jagports\JEPC-Importer'
+node .\src\DataImporter.CLI.mjs --parse X3 --source $source --state-dir $state
+```
+
+`X3` matches X300 and X308 source models. `XJ` also matches XJS names, while `XJS` narrows the selection. These patterns select **source models**, never a destination Range or D1 database. X300 and X308 still belong to VIEPS `XJ Range`; destination Range resolution is a future publication step.
+
+## Optional source estimate
+
+Add `--estimate` to a parse command if you want a separate file/byte inventory for the matched models:
+
+```powershell
+$result = node .\src\DataImporter.CLI.mjs --parse XK --estimate --json | ConvertFrom-Json
+$result.estimate
+```
+
+The estimate scans the selected **models' source trees**, not just the 40 picked categories, so it can take much longer. It writes a report outside the JEPC installation and does not infer a D1 size or import duration without measured calibration. `estimate-range` is an advanced command for an explicit Range and comma-separated `--models`; see `--help`.
+
+## Inspect one known item
+
+`inspect` is a separate, narrower diagnostic command. Supply numeric model, category and item IDs:
+
+```powershell
+node .\src\DataImporter.CLI.mjs inspect --source 'C:\Program Files\JEPC\applications\JEPC' --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
+```
+
+It writes checksum observations to `ledger.sqlite` in the state directory. `status`, `report` and `doctor` read that **inspection ledger**; they do not report the random `--parse` staging runs. For this interactive inspection command, Q or the first Ctrl+C requests a stop after the current checkpoint; a second Ctrl+C exits immediately.
+
+Run `npm test` from this directory to execute the synthetic parser, selection, safety and CLI tests. The sibling MediaImporter handles images and hotspots separately.
