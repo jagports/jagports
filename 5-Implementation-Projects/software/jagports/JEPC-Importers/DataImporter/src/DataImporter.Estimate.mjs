@@ -61,10 +61,10 @@ function validateOptions({ source, stateDir, range, modelPattern, models, seed, 
   }
 }
 
-export async function estimateRange({ source, stateDir, range, modelPattern, models, seed = 'range-estimate', sampleSize = 100, calibrationPath },
+export async function estimateSource({ source, stateDir, range, modelPattern, models, seed = 'source-estimate', sampleSize = 100, calibrationPath },
   { onProgress = () => {}, shouldStop = () => false } = {}) {
   validateOptions({ source, stateDir, range, modelPattern, models, seed, sampleSize });
-  if (modelPattern !== undefined && calibrationPath) throw new Error('Calibrated projection requires the advanced Range estimate.');
+  if (modelPattern !== undefined && calibrationPath) throw new Error('Calibrated projection is unavailable during source parsing.');
   const root = await realpath(path.resolve(source));
   const state = await canonicalFuture(path.resolve(stateDir));
   if (within(root, state)) throw new Error('State directory must be outside the source installation.');
@@ -79,7 +79,7 @@ export async function estimateRange({ source, stateDir, range, modelPattern, mod
     sample: { seed, requested: sampleSize, eligibleFiles: 0, eligibleBytes: 0, files: [], readBytes: 0, readSeconds: 0, lines: 0, recordLikeLines: 0, byFamily: {} },
     projection: { d1Bytes: null, importSeconds: null, basis: modelPattern === undefined
       ? 'Unavailable until measured D1/import calibration is provided.'
-      : 'Unavailable in a model-pattern source inventory; use the advanced Range estimate with measured calibration.' },
+      : 'Unavailable in v0.1a without a measured published import.' },
   };
   const sample = { seed, limit: sampleSize, files: [] };
   const seenDirectories = new Set();
@@ -222,15 +222,10 @@ export async function estimateRange({ source, stateDir, range, modelPattern, mod
   }
   await mkdir(state, { recursive: true });
   const scopeName = range ?? `models-${createHash('sha256').update(modelPattern).digest('hex').slice(0, 12)}`;
-  const filename = path.join(state, `range-estimate-${scopeName}-${randomUUID()}.json`);
+  const filename = path.join(state, `source-estimate-${scopeName}-${randomUUID()}.json`);
   const temporary = `${filename}.tmp`;
   await writeFile(temporary, `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
   await rename(temporary, filename);
   progress(true);
   return { filename, result };
-}
-
-export function modelsForRange(range, explicitModels) {
-  if (explicitModels) return explicitModels.split(',').map(value => value.trim());
-  throw new Error(`Range ${range} requires an explicit comma-separated --models list; Model_IDs are not hardcoded.`);
 }

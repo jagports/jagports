@@ -208,19 +208,19 @@ missing source       -> retain ledger history and mark MISSING/REMOVED
 
 A complete million-file scan must not be required for **any normal processing loop**. Each loop processes one bundle and then determines the next bundle.
 
-### Optional pre-import Range estimate
+### Optional source estimate
 
-An operator may explicitly run a slow, exhaustive **source inventory** for selected Range Model_IDs before import. This remains separate from the incremental selection/processing loop: no estimate is required before a useful import, and a failed or interrupted estimate must not alter importer ledger state or D1 data. The command retains the exact Range slug, Model_ID set, source scope, start/end time, file/byte counts, errors and random-sample seed in a durable report outside the source installation. It streams discovery instead of materializing the complete source file list in memory, and allows a safe partial report on cancellation.
+An operator may explicitly run a slow, exhaustive **source inventory** for the models selected by `--parse`. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed or interrupted estimate must not alter parsed evidence or D1 data. The report retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and random-sample seed outside the source installation. The scan streams discovery instead of materializing the complete source file list in memory and allows a safe partial report on cancellation.
 
-The importer exposes the source inventory as an opt-in `--estimate` flag with `--parse`. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. The advanced `estimate-range` command accepts an explicit Range and Model_ID scope for measured-calibration projections. An estimate failure is reported separately from parsing and must not erase accepted progress.
+The importer exposes the source inventory only as an opt-in `--estimate` flag with `--parse`. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress.
 
-The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts and bytes are measurements; D1 storage and import duration are projections only after a calibration sample has actually been transformed and published into the intended Range schema. Until then, those projections are unavailable rather than inferred from fixture data or raw XML byte size. A calibrated projection states the observed denominator and assumptions, and must not claim that an incomplete source scan covers the Range. Shared media belongs to a separate MediaImporter estimate.
+The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts, bytes and elapsed scan time are measurements. D1 storage and import duration would be projections only after a calibration sample has actually been transformed and published; v0.1a does not provide those projections. No duration or D1 size is inferred from fixture data or raw XML byte size. Shared media belongs to MediaImporter.
 
 ## Configurable import scope
 
 The operator's parsing input is a case-insensitive model-name pattern, for example `--parse XK`. Match it as a literal substring against the installed `models_l_id_0.xml` names and parent relationships, then identify complete category bundles in the matching leaf models. A parent name match includes its descendant leaves. Stage at most 40 complete bundles per invocation. For each pick, randomly choose a matched model with remaining complete categories, then randomly choose one of that model's categories. Remove the chosen category from the current run's pool so it cannot be picked twice. A later run makes fresh picks without an operator-supplied seed. Report eligible, selected and incomplete category counts. Selection remains in memory. Evidence reuse is keyed by each category's content rather than the whole random selection, so overlapping runs reuse unchanged evidence. This path stages locally and does not publish to D1.
 
-A pattern-scoped `--estimate` measures the matched source files. D1 storage and import-time projections require the advanced Range estimate and a measured published calibration.
+A pattern-scoped `--estimate` measures the matched source files. D1 storage and import-time projections require measured published calibration and remain outside v0.1a.
 
 The importer must allow selection below the broad VIEPS Range level when JEPC exposes distinct model/sub-range/market variants.
 

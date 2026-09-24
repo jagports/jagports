@@ -99,7 +99,11 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.equal(run('XK', ['--seed', 'not-supported']).status, 1);
   const estimated = run('XK', ['--estimate']);
   assert.equal(estimated.status, 0, estimated.stderr);
-  const estimateReport = JSON.parse(await readFile(JSON.parse(estimated.stdout).estimate.report, 'utf8'));
+  const estimateSummary = JSON.parse(estimated.stdout).estimate;
+  assert.ok(estimateSummary.files > 0);
+  assert.ok(estimateSummary.bytes > 0);
+  assert.ok(estimateSummary.elapsedSeconds >= 0);
+  const estimateReport = JSON.parse(await readFile(estimateSummary.report, 'utf8'));
   assert.equal(estimateReport.modelPattern, 'XK');
   assert.equal(estimateReport.range, null);
 });
@@ -115,4 +119,8 @@ test('CLI exposes parsing and estimation commands only', () => {
   }
   assert.match(help.stdout, /--parse/);
   assert.match(help.stdout, /--estimate/);
+  assert.equal(call(['estimate-range']).status, 1);
+  for (const option of ['--range', '--models', '--sample-size', '--calibration']) {
+    assert.equal(call([option, 'value']).status, 1);
+  }
 });

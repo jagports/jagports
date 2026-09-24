@@ -11,4 +11,4 @@ DataImporter stages up to 40 complete category bundles per model-pattern run as 
 
 The local parsing input is a model-name pattern such as `--parse XK`. Match it as a case-insensitive literal substring against the installed source model XML and its parent links, include every matching leaf model, and report the exact Model_ID scope and incomplete categories. Selection remains in memory for the current run. Local staging does not publish to D1.
 
-The optional `--estimate` inventories source files for the selected models. The advanced Range estimator reports D1 size and import-time projections only when given a measured published calibration. MediaImporter owns image and hotspot processing separately.
+The optional `--estimate` inventories source files for the selected models and reports measured file and byte counts and elapsed scan time. v0.1a does not project D1 size or import duration. MediaImporter owns image and hotspot processing separately.
