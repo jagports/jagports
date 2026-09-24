@@ -81,8 +81,11 @@ def upgrade(destination, *, download=github_bytes, check=True):
         raise RuntimeError("Expected existing Python virtualenv; use host installation guide")
     if destination.is_symlink():
         raise RuntimeError("Unexpected symlinked installation; inspect manually")
-    if not user_timer(["show", "jagports-lead-agent.timer", "-p", "LoadState"]):
-        raise RuntimeError("codex systemd user manager unavailable; inspect installation")
+    timer_status = subprocess.run(
+        ["systemctl", "--user", "show", "jagports-lead-agent.timer",
+         "--property=LoadState", "--value"], capture_output=True, text=True)
+    if timer_status.returncode or timer_status.stdout.strip() != "loaded":
+        raise RuntimeError("Existing codex timer unavailable; inspect installation")
 
     commit_info = json.loads(download(
         "https://api.github.com/repos/" + REPO + "/commits/main", 128 * 1024))
@@ -136,21 +139,39 @@ def upgrade(destination, *, download=github_bytes, check=True):
                     saved = backup / name
                     saved.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(target, saved)
-            for name in sorted(files):
-                target = destination / name
-                if target.is_symlink():
-                    raise RuntimeError("Unexpected symlinked installed file: " + name)
-                target.parent.mkdir(parents=True, exist_ok=True)
-                temp = target.with_name("." + target.name + ".updating")
-                temp.write_bytes(files[name])
-                temp.chmod(0o755 if name.endswith(".sh") else 0o644)
-                os.replace(temp, target)
-            for name in (set(old_files) | LEGACY_RO_FILES) - set(files):
-                target = destination / name
-                if target.is_file() and not target.is_symlink():
-                    target.unlink()
-            existing_manifest.write_text(json.dumps(sorted(files), indent=2) + "\n")
-            (destination / ".jagports-source-revision").write_text(commit + "\n")
+            deployed = []
+            try:
+                for name in sorted(files):
+                    target = destination / name
+                    if target.is_symlink():
+                        raise RuntimeError("Unexpected symlinked installed file: " + name)
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    temp = target.with_name("." + target.name + ".updating")
+                    try:
+                        temp.write_bytes(files[name])
+                        temp.chmod(0o755 if name.endswith(".sh") else 0o644)
+                        os.replace(temp, target)
+                    finally:
+                        temp.unlink(missing_ok=True)
+                    deployed.append(name)
+                for name in (set(old_files) | LEGACY_RO_FILES) - set(files):
+                    target = destination / name
+                    if target.is_file() and not target.is_symlink():
+                        target.unlink()
+                        deployed.append(name)
+                existing_manifest.write_text(json.dumps(sorted(files), indent=2) + "\n")
+                (destination / ".jagports-source-revision").write_text(commit + "\n")
+            except BaseException:
+                # Restore the exact pre-update copies. A first-time install
+                # never deletes unknown local files or state directories.
+                for name in deployed:
+                    saved, target = backup / name, destination / name
+                    if saved.is_file():
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(saved, target)
+                    elif target.is_file():
+                        target.unlink()
+                raise
             print("Installed main:", commit)
             print("Private backup:", backup)
             print("Existing .env, venv, state, reports and notifications preserved.")
