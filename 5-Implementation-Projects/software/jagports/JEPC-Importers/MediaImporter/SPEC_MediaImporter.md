@@ -268,7 +268,7 @@ The current model preserves `source_x`, `source_y` and opaque `source_geometry`,
 
 ### Expected Parts Data Model refinement
 
-The current model cannot express the complete MediaImporter result without overloading opaque fields. Before Slice 3 production publication, the Parts Data Model owner must approve an additive representation for:
+The current model cannot express the complete MediaImporter result without overloading opaque fields. Before production catalogue publication, the Parts Data Model owner must approve an additive representation for:
 
 - storage-provider-neutral object key;
 - SHA-256, byte size and verified media type;
@@ -280,7 +280,7 @@ The current model cannot express the complete MediaImporter result without overl
 - converter/transform version and exact target asset checksum;
 - normalized geometry/coordinate system only if #352 verifies it.
 
-This may be implemented as additive media/representation entities rather than adding every field to `diagram`. The final shape belongs to the Parts Data Model workflow. Until approved, MediaImporter stores the complete result in its staging ledger and publishes only fields the current model represents truthfully.
+The approved Parts Data Model may use additive media/representation entities rather than adding every field to `diagram`. The final shape belongs to the Parts Data Model workflow. Until approved, MediaImporter stores the complete result in its staging ledger and publishes only fields the current model represents truthfully.
 
 The current VIEPS API also projects `part_image.image_ref` and legacy `part_diagram.image_url` directly to browser image URLs. Media import must provide a stable delivery projection from object key to VIEPS URL. Expiring provider URLs and deployment hostnames must not be persisted as canonical asset identity.
 
@@ -351,7 +351,7 @@ The specification separates storage from delivery:
 - browser delivery must not expose storage credentials;
 - authorization requirements for catalogue images are a deployment/product decision and must be explicit.
 
-Backup and restore must include both object bytes and the catalogue/ledger metadata needed to reconnect stable keys to logical illustrations. Restoring one without the other is not a complete recovery test.
+Backup and restore must include both object bytes and the catalogue/ledger metadata needed to reconnect stable keys to logical illustrations. Restoring one without the other is not a complete recovery outcome.
 
 ## Operator-visible contract
 
@@ -383,7 +383,7 @@ Track independently:
 - destination-provider contract version;
 - catalogue publication schema/version.
 
-A change increments only the affected component version and selects prior records that can benefit. New conversion knowledge must not require re-uploading unchanged original bytes. A destination adapter change must not change logical illustration identity.
+A change increments only the affected component version and selects prior records that can benefit. New conversion knowledge must not require re-uploading unchanged original bytes. Changing the storage provider must not change logical illustration identity.
 
 ## Acceptance criteria
 
