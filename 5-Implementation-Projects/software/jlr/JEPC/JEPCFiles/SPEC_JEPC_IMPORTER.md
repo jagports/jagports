@@ -358,6 +358,8 @@ The PowerShell JEPC scanner under `7-Research/jlr/JEPC/` is a verification harne
 
 Its purpose is to prove that the required source joins and normalized outputs are understood before implementing them in the Python DataImporter. The production importer should reproduce the verified behavior directly in Python rather than porting the PowerShell structure mechanically.
 
+**CONFLICT requiring owner confirmation:** This earlier document specifies Python for the future production importer, while the current DataImporter v0.1a is implemented in Node.js and stages local evidence only. This document does not establish that the current parser must be rewritten or that Python remains the approved future runtime.
+
 The research scanner's primary importer-oriented outputs are:
 
 ```text
@@ -376,7 +378,7 @@ Required semantics:
 - `applicability_rules`: retain raw source rule identity and `RuleIndex`; repeated source rules are not globally intersected.
 - `vin_boundaries`: retain explicit source FROM/TO predicates and explicit catalogue-domain bounds without inventing a global VIN partition.
 
-Diagnostic tree-family reports may be used during research, but they are not the primary DataImporter interface.
+Diagnostic tree-family reports may be used during research. The current DataImporter interface is `--parse PATTERN [--estimate]`, with JSON result on standard output and local staged evidence.
 
 ## Phase 5 — Media import
 
@@ -508,4 +510,3 @@ and the sidecar contains:
 ```
 
 The importer must preserve all of these facts. `LHD` correlates with `A23=154` here. `RH` comes directly from an `Itm_*_L0.xml` ancestor node; do not classify it as presentation-only, physical-position-only, or non-applicability data until its relationship to the remaining JEPC source structures has been traced.
-

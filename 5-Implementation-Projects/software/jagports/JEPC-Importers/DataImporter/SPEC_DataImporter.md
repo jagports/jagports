@@ -1,10 +1,12 @@
-# Jagports JEPC Data Importer v0.1a
+# Jagports JEPC DataImporter specification
 
 (C)2026 by tlindi and ChatGPT
 
 ## Purpose
 
-Define the v0.1a/MVP operating specification for a restartable, discovery-driven JEPC data importer.
+Define the current v0.1a command and evidence-staging behavior, followed by requirements for later catalogue transformation and publication. The runnable v0.1a procedure is in the [DataImporter README](README.md).
+
+**Implementation boundary:** v0.1a is a local Windows/Node.js parser. It stages up to 40 complete source-category bundles per run, preserves source evidence, and optionally inventories the matched source files. It does not maintain a processing ledger or normalized catalogue database, transform source rows into VIEPS entities, publish to D1, provide the progress screen described below, or implement the future safe-stop and recovery controls. Requirements below for those capabilities are future targets, not claims about v0.1a.
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
@@ -21,6 +23,8 @@ node src/DataImporter.CLI.mjs --parse PATTERN [--estimate]
 The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence goes under `%LOCALAPPDATA%\Jagports\JEPC-Importer`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters.
 
 ## Core operating principle
+
+The remainder of this specification describes the intended importer unless a paragraph explicitly says it describes the current v0.1a implementation.
 
 The importer must not require the complete JEPC installation to be reverse-engineered before useful import work can begin.
 
@@ -220,7 +224,7 @@ A complete million-file scan must not be required for **any normal processing lo
 
 ### Optional source estimate
 
-An operator may explicitly run a slow, exhaustive **source inventory** for the models selected by `--parse`. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed or interrupted estimate must not alter parsed evidence or D1 data. The report retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and random-sample seed outside the source installation. The scan streams discovery instead of materializing the complete source file list in memory and allows a safe partial report on cancellation.
+An operator may explicitly run a slow, exhaustive **source inventory** for the models selected by `--parse`. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed estimate must not alter parsed evidence. The report retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and internal random-sample seed outside the source installation. The scan streams discovery instead of materializing the complete source file list in memory. The estimator function supports cooperative stopping, but the v0.1a CLI does not expose a stop control or guarantee a partial report when its process is interrupted.
 
 Every importer run requires `--parse PATTERN`. The source inventory is enabled only by adding the optional `--estimate` flag to that run; `--estimate` alone is invalid. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress.
 
@@ -234,10 +238,10 @@ A pattern-scoped `--estimate` measures the matched source files. D1 storage and 
 
 The importer must allow selection below the broad VIEPS Range level when JEPC exposes distinct model/sub-range/market variants.
 
-The import scope therefore needs configurable profiles based on source facts such as:
+Later transformation may need source context based on facts such as:
 
 - JEPC Model_ID;
-- JEPC `parent_id` from the model hierarchy in `models_l_id_0.xml` / `menus/models_I_id_0.xml` source hierarchy data;
+- JEPC `parent_id` from the model hierarchy in `menus/models_l_id_0.xml`;
 - parent model/family source description;
 - selected JEPC model/sub-range description;
 - normalized Region/market context;
@@ -245,7 +249,7 @@ The import scope therefore needs configurable profiles based on source facts suc
 
 JEPC model hierarchy records are of the form `[model_id,parent_id,model_name]`. Both `model_id` and `parent_id` must be preserved because the hierarchy relationship can distinguish a selected model/sub-range from its parent model/family even when display names are not unique. Source menu paths such as `pl_id_<model_id>` remain source linkage for the selected JEPC model and must not be confused with a separate VIEPS vehicle identity.
 
-Verified examples from `menus/models_I_id_0.xml` include:
+Verified examples from `menus/models_l_id_0.xml` include:
 
 ```text
 [3175,10001,'Jaguar XK8 Coupe/Convertible']
@@ -257,13 +261,7 @@ Verified examples from `menus/models_I_id_0.xml` include:
 
 For importer/operator presentation, the selected model shall therefore retain and expose both its own `Model_ID` and its immediate `Parent_ID`, together with the source descriptions for both levels. The parent level may act as a model/family grouping in JEPC, but the importer must preserve the source hierarchy rather than assuming a stronger domain label than the source establishes.
 
-Initial v0.1a/MVP validation profiles:
-
-1. `XK8 Coupe/Convertible up to (V) 042775` — Region `Rest of world excluding Americas`.
-2. `XJ Series From (V)812317 to (V)F59525 (X308)` — Region `Rest of world excluding Americas`.
-3. F-Type — representative modern JEPC source dataset.
-
-Related durable source knowledge establishes that the corresponding Canada/USA XK8 and Canada/Mexico/USA X308 source variants represent `Region = Americas`.
+The current `--parse` selector applies the same model-name matching rule to every source model; it does not load a fixed list of validation profiles or assign a VIEPS Range. Later Region mappings require explicit source evidence and remain separate from model selection.
 
 Where a short region token such as `Region=NA` is used, it must be represented as a Region/market value and kept semantically distinct from the engine-option abbreviation `N/A`, meaning Non-Aspirated/non-Supercharged. Region and aspiration/supercharger state are separate dimensions.
 
@@ -480,7 +478,7 @@ The screen should be redrawn in place rather than producing an endlessly scrolli
 Example:
 
 ```text
-Jagports JEPC Data Importer v0.1a
+Jagports JEPC DataImporter — future processing screen
 (C)2026 by tlindi and ChatGPT
 
 JEPC Parent_ID #3175 — Jaguar XK8 Coupe/Convertible
@@ -605,9 +603,9 @@ whether normalized schema change appears necessary
 
 The operator should not be expected to follow this high-volume log visually during normal processing.
 
-## v0.1a/MVP acceptance direction
+## Future catalogue-import acceptance direction
 
-The importer v0.1a/MVP should demonstrate that:
+Later catalogue-import implementation should demonstrate that:
 
 - no complete pre-existing million-file index is required before useful import begins;
 - the processing ledger is built incrementally bundle by bundle;
