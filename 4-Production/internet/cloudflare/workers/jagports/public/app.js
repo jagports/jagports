@@ -19,6 +19,81 @@ let cachedRootData = null;
 let cachedBrowseData = null;
 let cachedCandidatesData = null;
 let viewMode = "empty";
+let suitabilitySelection = new Set();
+let suitabilityRequestVersion = 0;
+
+function hideSuitability() {
+  ++suitabilityRequestVersion;
+  if ($("suitabilityPanel")) $("suitabilityPanel").hidden = true;
+}
+
+// Fixture suitability is intentionally separate from selected-PART fitment.
+// Never silently apply test-only facets to ordinary JEPC search or tree rows.
+async function refreshSuitability(query, stockOnly = false) {
+  if (!$("suitabilityPanel")) return; // Older browser test DOMs need no fixture UI.
+  const version = ++suitabilityRequestVersion;
+  const input = String(query || "").trim();
+  if (!input) {
+    $("suitabilityPanel").hidden = true;
+    return;
+  }
+  const params = new URLSearchParams({ q: input, stock_only: stockOnly ? "1" : "0" });
+  for (const facet of suitabilitySelection) params.append("facet", facet);
+  try {
+    const response = await fetch(`/api/vieps/suitability?${params.toString()}`);
+    const data = await response.json();
+    if (version !== suitabilityRequestVersion) return;
+    if (!response.ok || data.fixture_mode !== true) {
+      $("suitabilityPanel").hidden = true;
+      return;
+    }
+    const options = new Set(data.available_options || []);
+    const selected = suitabilitySelection;
+    // Keep selected values visible even when they narrow the result to zero.
+    const groups = (data.categories || []).map((category) => ({
+      ...category,
+      values: (category.values || []).filter((value) =>
+        options.has(value.id) || selected.has(value.id))
+        .sort((a, b) => Number(selected.has(b.id)) - Number(selected.has(a.id))
+          || a.code.localeCompare(b.code)),
+    })).filter((category) => category.values.length);
+    $("suitabilityPanel").hidden = !groups.length && !selected.size;
+    $("suitabilityChoices").innerHTML = groups.map((category) =>
+      `<fieldset style="display:flex;flex:none;align-items:center;gap:0.5rem;border:0;padding:0">
+        <legend style="font-weight:600;white-space:nowrap">${escapeHtml(category.code.replaceAll("_", " "))}</legend>
+        ${category.values.map((value) => `<label style="display:inline-flex;align-items:center;gap:0.25rem;white-space:nowrap">
+          <input type="checkbox" data-suitability-facet="${escapeHtml(value.id)}"
+            ${selected.has(value.id) ? "checked" : ""}>
+          <span>${escapeHtml(value.code.replaceAll("_", " "))}</span>
+        </label>`).join("")}
+      </fieldset>`).join("");
+    $("suitabilityChoices").querySelectorAll?.("[data-suitability-facet]").forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        const facet = checkbox.dataset.suitabilityFacet;
+        if (checkbox.checked) suitabilitySelection.add(facet);
+        else suitabilitySelection.delete(facet);
+        void refreshSuitability($("partNumber").value, Boolean($("availabilitySelect").checked));
+      });
+    });
+    const matches = data.matches || [];
+    const unknown = (data.unavailable_occurrences || []).length;
+    const excluded = (data.excluded_occurrences || []).length;
+    $("suitabilityStatus").textContent = data.state === "applicable"
+      ? `${matches.length} synthetic occurrence match(es); not verified Jaguar suitability.`
+      : data.state === "unavailable"
+        ? "Synthetic suitability evidence is incomplete."
+        : data.state === "excluded"
+          ? "Only explicitly excluded synthetic occurrences match."
+          : "No matching synthetic occurrences.";
+    $("suitabilityResults").textContent = matches.length
+      ? matches.map((match) => `${match.part_number} / ${match.occurrence_key}`).join("; ")
+      : unknown ? `${unknown} incomplete synthetic occurrence(s)${excluded ? `; ${excluded} excluded` : ""}.`
+        : excluded ? `${excluded} explicitly excluded synthetic occurrence(s).` : "";
+  } catch {
+    if (version === suitabilityRequestVersion) $("suitabilityPanel").hidden = true;
+  }
+}
+
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"]/g, (ch) => ({
@@ -413,6 +488,8 @@ function localizeError(error) {
 
 function refreshForLanguageChange() {
   i18n?.applyDocument();
+  if (!$("suitabilityPanel")?.hidden) void refreshSuitability($("partNumber").value,
+    Boolean($("availabilitySelect").checked));
   if (currentData) {
     renderResolvedData(currentData);
     $("searchStatus").textContent = t("search.resolved");
@@ -508,6 +585,7 @@ function setupViepsUi() {
   };
 
   $("partNumber").addEventListener("input", () => {
+    hideSuitability();
     const version = ++requestVersion;
     selectedTreeNodeId = null;
     cachedBrowseData = null;
@@ -526,6 +604,7 @@ function setupViepsUi() {
   });
 
   const browseTree = async (nodeId = null, options = {}) => {
+    hideSuitability();
     const version = ++requestVersion;
     resetContext();
     viewMode = "empty";
@@ -567,6 +646,8 @@ function setupViepsUi() {
     event.preventDefault();
     const version = ++requestVersion;
     const partNumber = $("partNumber").value.trim();
+    hideSuitability();
+    if (partNumber) void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked));
     resetContext();
     cachedBrowseData = null;
     cachedCandidatesData = null;
