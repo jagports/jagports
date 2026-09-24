@@ -2,6 +2,17 @@
 
 This is the **human-oriented guide** to the Jagports Lead Agent: what currently runs, how to execute and inspect it, how to verify the Raspberry Pi timer, and where to find full operational instructions. Requirements and acceptance tests are maintained only in [SPEC_Agent_Lead.md](SPEC_Agent_Lead.md).
 
+## Update this existing Pi installation from main
+
+The Raspberry Pi workspace is an installed application, **not** a Git repository. After the updater has been merged to GitHub `main`, run its two-line bootstrap once as the unprivileged `codex` user:
+
+```bash
+curl -fsSLo /tmp/jagports-agent-update.py https://raw.githubusercontent.com/jagports/jagports/main/6-Development/AI/agents/jagports/jagports-lead-agent/scripts/update_from_main.py
+python3 /tmp/jagports-agent-update.py
+```
+
+Later updates, deterministic/offline checks, one-shot execution, timer status and one-shot Telegram delivery all have short launchers in [OPERATIONS.md](OPERATIONS.md#raspberry-pi--update-and-run-exact-github-main). No Git checkout or sudo is required inside the agent workspace. The updater downloads one pinned `main` commit, validates it, backs up previous code/configuration and preserves private `.env`, virtualenv, state and reports. The upstream safe `config.yaml` replaces the installed configuration; restore only explicitly approved overrides from the private backup. The existing 585-minute timer is preserved; restarting it may invoke the updated agent promptly. This update mechanism does not itself enable paid calls or implement automatic Telegram delivery.
+
 ## Purpose and current limitation
 
 This directory contains the current Jagports Lead Agent prototype implementation.
