@@ -144,85 +144,24 @@ Authorization remains an API requirement. Building an Admin login/account-manage
 
 ## Future catalogue Admin panel — Suitability Categories and source descriptions (#877)
 
-This is an **independent catalogue/reference administration extension** on the existing one-page Admin UI. It does not change #612 minimum STOCK Add/Edit/Delete scope, operational stock attributes, the #354 canonical PART model, or the protected `/api/stock` mutation path. No menus, dashboard or separate administration site are needed.
+This is a future extension of the existing one-page Admin UI. It is separate from operational STOCK and `/api/stock`.
 
-The word **Category** in this panel means a **normalized applicability dimension**, not a JEPC catalogue-navigation category, a STOCK quality grade or a translated heading. A JEPC *description* means source-qualified imported description evidence, not an already approved vehicle predicate.
+An authorized operator can create or retire stable normalized category/value IDs, provide language-qualified domain names and descriptions, and map **one selected JEPC source description** to one category/value. A source record must show its namespace, dataset/version, original text, source language, locator, group/value identifiers and model/category/item/tree-path scope. Linking creates an append-only interpretation revision; it never rewrites JEPC data.
 
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│ PARTS / STOCK MANAGEMENT — existing stock controls unchanged     │
-├──────────────────────────────────────────────────────────────────┤
-│ SUITABILITY CATEGORIES / DESCRIPTIONS                            │
-│ Categories: [ Body ▼ ] [ + Add category ] [ Edit ] [ Retire ]      │
-│ Values:     [ Coupe ▼ ] [ + Add value ] [ Edit label ]             │
-│ Source:     [ imported JEPC / fixture description search      ]  │
-│             [ Unmapped ] [ Mapped ] [ Needs review ]              │
-│ Source description | Source group / model / language | Status    │
-│ Coupe             | fixture:body / EN             | [Link]      │
-│ [Link to category] [Body ▼] [Value: Coupe ▼] [Review] [Save]       │
-│ Existing mappings: source identity → category + normalized value │
-│ [Unlink] [Revision / evidence] [Validation or persisted result]   │
-└──────────────────────────────────────────────────────────────────┘
-```
+The panel may list the approved fixture vocabulary—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—only as explicitly tagged synthetic source records. Fixture rows use the same provenance shape as the future importer but are not JEPC facts and cannot publish production suitability.
 
-### Category and description workflow
+A mapping remains proposed or unavailable when its JEPC relation, source scope, language metadata, evidence or review is missing. Raw description text, translated UI text and localized domain names are never foreign keys. There is no condition or predicate authored from this panel: every later condition must reference its persisted JEPC source-description mapping and resolvable i18n domain name/description.
 
-- An authorized operator can list, add, label/edit, and retire normalized categories and their permitted values. Stable category/value **codes** remain identity; changing a display label must not rewrite existing relationships. Retire referenced categories/values instead of silently deleting imported mappings or active occurrence predicates.
-- A searchable **unmapped source descriptions** list comes from imported JEPC source evidence; before import, it comes from explicitly tagged fixture records with the same read shape.
-- Selecting a source description exposes its **source-qualified identity**, available JEPC attribute group/value ID, source namespace/dataset, applicable source model/category/item/path scope, source language and original immutable wording. One displayed label may occur under different source identities.
-- **Link** assigns a particular source identity to a normalized category **and** value with mapping version, verification/review state and operator provenance. **Unlink** retires that interpretation without deleting the original source. Admin editing never modifies source JEPC wording, tree hierarchy, path evidence or raw predicates.
-- Unknown group semantics or ambiguous source descriptions remain **unmapped / needs review**. A presentational grouping alone does not create verified occurrence applicability; only approved source interpretation and complete condition-set evidence may authorize a predicate.
-- Category/value management and source-link mutations use an **independently authorized catalogue Admin API**, not `/api/stock`. Persist, read back, validate duplicate codes and source-identity collisions, and expose deterministic forbidden/conflict/not-found/unavailable states. Do not pretend this panel is functional before its read and mutation paths exist.
-- Labels, help, status and validation text follow the shared i18next EN/FI resources. JEPC descriptions are source-language catalogue data and must not be translated through UI-localization keys; where available use the separately selected Parts/catalogue language.
+### Future Admin API contract
 
-### Source-description identity and mapping acceptance
-
-Creating a **normalized category** establishes one unique stable dimension code and its approved cardinality; adding a **value** establishes one unique value code *within that dimension*. The editor must separately offer language-qualified labels. Labels can be changed, but neither a translated category label nor a JEPC description is a foreign key or proof of semantic equivalence. Duplicate code and missing/retired-parent errors are reported without creating partial records.
-
-Linking starts with **one explicitly selected source record** and must never search for all equal description strings and assign them en masse. Present the source record's immutable identity and available namespace, dataset/revision, group/value identifiers, source language and original text, record locator and model/tree/item scope **beside** the chosen normalized category and value before Save. If any identity or scope needed to disambiguate the chosen record is missing, keep the mapping proposed/unresolved and expose the evidence gap. The operation stores only a derived interpretation/revision; an imported JEPC record remains immutable and remains visible after a mapping is retired. Reimport of the same source logical identity must not create duplicate active mappings; changed source revisions require review before reactivation.
-
-**Confirmation flow:** choose Category → choose Value → select one source-qualified description → inspect immutable evidence → create a `proposed` mapping → read back the persisted revision. Show `verified` only when the approved, independently attributable review and source-evidence gates have actually completed. A single shared `ADMIN_TOKEN` by itself cannot identify an independent reviewer. A conflicting active interpretation returns a conflict requiring human resolution rather than silently overwriting the previous target. A newly created category or label alone does not affect live PART applicability.
-
-The same Admin page may also host the separately specified **Ranges & JEPC Models** section from #884 / PR #885. That feature maps JEPC Models to normalized Ranges; **this section maps JEPC source descriptions to applicability dimensions/values**. Share authorization and visual structure where practical but never reuse one feature's model IDs, editable form state, or inferred relationships as the other's source of truth.
-
-### Admin API, persistence and authorization contract
-
-The following paths are **specified future catalogue endpoints**, not claims that the current Worker implements them. Reuse the existing server-side `ADMIN_TOKEN` check as the initial authorization boundary; avoid putting mapping credentials or writable catalogue routes in the public application. Catalogue administration must not mutate or extend the operational `/api/stock` record schema.
-
-| Operation | Proposed route | Result and safeguards |
+| Operation | Proposed route | Required safeguard |
 |---|---|---|
-| Browse categories/values | `GET /api/admin/suitability/categories` | Stable dimension/value codes, optional language-qualified display labels, cardinality, active/retired state and verification; authenticated. |
-| Create/update category or label | `POST /api/admin/suitability/categories`; `PATCH /api/admin/suitability/categories/:id` | Validate unique stable code, locale-qualified label and `scalar`/`set` cardinality. A renamed display label cannot change code or active predicate semantics. |
-| Create/retire category value | `POST /api/admin/suitability/categories/:id/values`; `PATCH /api/admin/suitability/categories/:id/values/:value_code` | Validate dimension/value FK and active use; referenced values are retired, not physically deleted. |
-| Browse source descriptions | `GET /api/admin/suitability/descriptions?status=&language=&q=` | Search immutable JEPC/source records by source-qualified ID; preserve group/value code, language, record locator and source model/tree scope. Distinguish unmapped, proposed, verified, conflict and retired. |
-| Link/unlink source descriptions | `POST /api/admin/suitability/mappings`; `POST /api/admin/suitability/mappings/:id/retire` | Append revision with `source_description_id`, `dimension_id`, `value_code`, mapping/evidence versions and status. Unlink records retirement; original JEPC text persists. Duplicate active incompatible mapping is `409`. |
+| Browse categories/values | `GET /api/admin/suitability/categories` | Authenticated stable IDs plus language-qualified domain metadata. |
+| Manage categories/values | `POST/PATCH /api/admin/suitability/categories` and `.../:id/values` | Validate codes and retire referenced values instead of deleting them. |
+| Browse descriptions | `GET /api/admin/suitability/descriptions?status=&language=&q=` | Return immutable source identity, provenance and mapping status. |
+| Map/retire | `POST /api/admin/suitability/mappings`; `POST /api/admin/suitability/mappings/:id/retire` | Append a source-qualified revision; reject ambiguous or conflicting active mappings. |
 
-All mutations require the Admin credential and validate again on the server; a UI-only hide/disable is not authorization. Persist then **read back** the actual category/value/mapping revision. Reject invalid codes, retired target values, ambiguous source scope, stale revisions, unsupported cardinality or missing evidence without partial mutation. Error/status payloads must be deterministic and UI-localizable; unauthorized operations must never write catalogue data. The initial single-token Admin mechanism does not establish an individual reviewer identity: until a separately verifiable approval mechanism is available, an Admin may submit a `proposed` mapping, but the UI/API must not fabricate independent human verification. Explicitly synthetic fixture mappings have their own `fixture` evidence state and are never presented as verified imported JEPC.
-
-The mapping endpoint does **not** directly create, relax, delete or mark `verified` occurrence applicability assertions. #355/#354 own the evidence-backed transformation from approved mappings plus complete source condition paths into applicability predicates. Read-only public search consumes only the published normalized result, never draft Admin mappings.
-
-### UI interaction and validation
-
-The catalogue Admin section lives **below or alongside existing STOCK controls on the same simple page** and does not alter the Stock list/Add/Edit/Delete workflow. Separate its status and error region from the operational stock form so a failed mapping save cannot be presented as successful stock persistence.
-
-On initial authorized load, list normalized dimensions/values and available source descriptions. Selecting a category shows its stable code, cardinality, labels and values. Selecting a description shows the original source text and complete available source reference; **Link** offers only active approved target categories/values compatible with the source evidence. Display an explicit `Needs review` state when the source group/value meaning, source context or evidence completeness is unresolved. Admins can browse such records, but cannot publish them as verified fitment.
-
-Display `Body`/`Coupe` and the other temporary values as tagged fixture data when in fixture mode. When actual JEPC source descriptions become available, replace the source-list provider without replacing category/value IDs or changing the Admin workflow. For `seat_equipment`, display `set` cardinality and permit Memory Seat and Powered Seats to be present in one condition set; never silently enforce a scalar-exclusive dropdown for that dimension. Until the additive set-membership migration and evaluator are implemented, this use case must remain visibly **not supported**, not appear as completed functionality.
-
-### Deterministic pre-JEPC records
-
-Use the approved normalized dimension/value identities, with synthetic source descriptions explicitly marked as fixture evidence:
-
-| Category | Normalized fixture values |
-|---|---|
-| Body | Coupe; Convertible |
-| Steering | LHD; RHD |
-| Engine aspiration | NA; Supercharged |
-| Seat equipment | Memory Seat; Powered Seats |
-
-**Memory Seat and Powered Seats can coexist**; these two descriptions must not be implemented as an exclusive toggle merely because the fixture list presents them together. Fixture values are illustrative of description→category/value linking; they are not verified Jaguar fitment.
-
-The public #641 filter consumes the published normalized read contract and occurrence-scoped applicability, **not** this Admin form's raw strings. When #355 imports actual JEPC descriptions, the Admin mapper consumes the imported source identities; fixture rows remain test-only and must not silently persist as production JEPC assertions. The proposed #875 public-page layout is independent of this Admin extension.
+All mutations require independent catalogue Admin authorization, validate on the server, and read back the persisted revision. A shared token alone does not prove an independent reviewer. The public filter consumes only published mappings with source and language metadata; it never consumes raw Admin form text.
 
 ## Future physical-stock photos
 
