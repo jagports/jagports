@@ -88,90 +88,29 @@ Mappings derived from ancestry are versioned interpretation evidence, not replac
 
 ## Admin-curated semantic categories and source-description mapping (#877)
 
-**Normalized suitability categories** are the approved applicability dimensions represented by existing `applicability_dimension` rows, with permitted values in `applicability_dimension_value`. They are **not** JEPC catalogue navigation categories, locale-specific display strings, or an alternative to the occurrence-bound applicability assertions and condition sets above.
+A normalized suitability category is a stable domain identifier backed by the existing `applicability_dimension` and `applicability_dimension_value` relations. It is not a JEPC navigation category or a display string.
 
-JEPC descriptions can name vehicle attributes, alternative or excluded conditions, source-side/path context, or ordinary catalogue navigation. Preserve their original source text and provenance. Mapping a description for UI browsing is **not by itself proof** that the description can become an executable fitment predicate; its semantic role, scope, condition grouping and operator still require verified interpretation.
+A value can enter the public suitability contract only through a source-qualified JEPC description mapping. The mapping must retain the JEPC namespace, dataset/version, language, original text, record/group/value locator and model/category/item/tree-path scope. Equal text from two JEPC records remains two source records until an approved mapping establishes their shared normalized meaning.
 
-A proposed authorized **source-description → normalized dimension/value mapping** must retain at least:
+The mapping relation is additive and versioned:
 
-- source namespace/dataset and source-language identity, with JEPC group and raw group-value IDs where present;
-- the original description and enough model/category/item/application/tree-path or record scope to distinguish identical words attached to different source meanings;
-- stable target `applicability_dimension.code` and `applicability_dimension_value.value_code`, without duplicating their vocabulary in the UI;
-- interpretation/mapping version, source evidence, reviewer/verification status and the effective/retired state;
-- explicit unresolved, ambiguous and conflicting states, not an assumed universal mapping by text.
-
-The exact mapping relation, referential integrity, authorization/audit and migration are implementation decisions under #354/#355 and require a reviewed additive change. This document does **not** claim that existing `0016_occurrence_applicability.sql` already stores such source-description mappings. A display-language switch must not change the mapping identity or merge independently qualified JEPC trees. Explicit category/value creation and description linking are specified for the Admin UI in `../UI/UI_Specs_StockAdmin.md`; catalogue writes must be independent of STOCK.
-
-### Additive persistence design for source-qualified description mapping
-
-This is the implementation contract to review under #354/#355 before a database migration. **Do not alter any previously applied migration**, especially `0016_occurrence_applicability.sql`. Keep `applicability_dimension`, `applicability_dimension_value`, `occurrence_applicability`, `applicability_condition_set` and source evidence as the existing authorities; the following are additive relationships, not a replacement fitment schema.
-
-| Proposed relation/extension | Minimum fields and invariant |
+| Relation | Required purpose |
 |---|---|
-| `applicability_source_description` | Stable logical source key qualified by source namespace/dataset, source file/record family and locator, original group/value IDs (nullable only when genuinely absent), source language and relevant model/category/item/tree-path scope; immutable original text; reference to raw source evidence where available; explicit `fixture` versus `jepc` provenance. Unique source identity is **not** the description text. Different languages or source groups cannot collide. |
-| `applicability_description_mapping_revision` | Immutable revision referencing exactly one source description and the composite FK `(dimension_id, value_code)`; interpretation and mapping-version keys, source evidence, reviewer/verification and status (`proposed`, `verified`, `conflict`, `retired`). A partial unique active-mapping constraint prevents multiple incompatible `verified` targets for one source identity/scope. An unlink writes a retired revision, not a deletion of JEPC evidence or history. |
-| `applicability_dimension_label` and `applicability_dimension_value_label` | Optional language-qualified domain display names keyed to the stable dimension/value IDs. A label edit must preserve normalized codes, source text and previously published meaning. UI chrome labels belong in EN/FI i18next resources; operator-created term labels are versioned domain data, not new UI translation keys. |
-| `applicability_dimension.cardinality` | Add `scalar`/`set` metadata with a backward-compatible `scalar` default. Never silently change cardinality of an existing dimension with active predicates; review a mapping migration and revalidate affected assertions. |
-| `applicability_set_membership_condition` | For a `set` dimension only: FK to the complete occurrence-bound `applicability_condition_set` and permitted `(dimension_id, value_code)`; explicit `contains`/`not_contains` operator, versioned evidence and a unique predicate key. Two positive `contains` predicates may both be true. Existing scalar `applicability_attribute_condition.equals/not_equals` remains for scalar dimensions only. The public evaluator must support both and return `unavailable` for unknown membership. |
+| `applicability_source_description` | Immutable JEPC description identity and provenance: namespace, dataset/revision, language, raw text, locator, group/value identifiers and source scope. |
+| `applicability_description_mapping_revision` | Append-only mapping from one source description to one normalized dimension/value, with evidence, reviewer/status and effective/retired state. |
+| `applicability_dimension_label` and `applicability_dimension_value_label` | Language-qualified domain names for the stable normalized IDs. UI chrome uses EN/FI i18next resources; imported JEPC wording remains catalogue data. |
 
-**Why cardinality is explicit:** the current 0016 scalar evaluator contract cannot represent both Memory Seat and Powered Seats as two independent `equals` conditions on one single-valued `seat_equipment` dimension. The new membership relationship is necessary before multi-valued equipment combinations can be claimed as verified applicability. Do not weaken this into an OR-only display label or change the old scalar table's operators in place.
+There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
 
-One logical description may have several historical mapping revisions, but at most one currently effective verified target per source identity and compatible scope. Equal raw text from two JEPC groups requires two source records and independently reviewed mappings. Cross-language tree variants retain distinct identities until verified equivalence permits shared normalized meaning.
+The pre-import fixture is limited to source-shaped test records: each fixture description has a stable synthetic source namespace, dataset, language, locator and mapped normalized ID. It proves the read shape and localization behavior only. It cannot be treated as a JEPC condition or published catalogue fitment. When #355 imports JEPC descriptions, it replaces the fixture provider while retaining normalized IDs and API field names.
 
-**Read and mutation separation:** immutable JEPC source files/imported descriptions are written by #355; authorized catalogue Admin operations create proposed category/value/label or mapping revisions; only evidence-backed reviewed revisions become publishable normalized meanings. A source-description mapping by itself never activates occurrence predicates, condition completeness, exclusion effect, model bounds or a `verified` fitment result. Those belong to the importer/evaluator's validated complete condition sets. Missing or conflicting evidence remains unpublished and `unavailable`.
+The approved initial fixture vocabulary is Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats. Coexistence of the two seat descriptions is a source-data fact to preserve in one occurrence when JEPC source records support it. This specification does not introduce a new condition operator, set-membership schema or inferred evaluator for it.
 
-**Fixture isolation:** synthetic records live in an explicit fixture source namespace and dataset, with fixture-only verification status and a reproducible seed. A runtime must opt into fixture/demo data before exposing these rows as its active catalogue; the real JEPC import path must exclude them from live applicability and filter choice generation. Replacement changes source evidence/mapping revisions but retains stable normalized category/value IDs and the public read contract.
+### Public facet read boundary
 
-### Public facet evaluation boundary
+The #641 filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
 
-The #641 consumer applies predicates to **whole source occurrences and complete alternative condition sets**, never independent PART-level value joins. Within one verified alternative, scalar and set-membership predicates are conjunctive; alternative complete sets and independently applicable occurrences are disjunctive. A negative assertion applies only within its source scope, not globally across an otherwise valid occurrence. Unresolved scope, unsupported cardinality, an unknown required vehicle value or a mapping conflict is `unavailable`, not a fabricated `applicable` or confirmed exclusion.
-
-Facet result counts and selectable values are derived from the surviving applicable occurrence universe under current identifier/free-text, stock, model and other active filters. A selected value with zero matches may remain visible as a selected zero-result state, but must not be offered as an additional active choice. Missing context should not erase an otherwise evidenced canonical PART from non-fitment browsing. Imported and fixture modes must share the same endpoint/payload and stable IDs.
-
-### Temporary fixture mapping and replacement
-
-The following **synthetic** descriptions exercise this identical category/value mapping and public-read shape before JEPC import:
-
-| Dimension code (proposed fixture identity) | Display descriptions | Semantic constraints |
-|---|---|---|
-| `body` | Coupe; Convertible | Values are distinct per declared fixture context |
-| `steering` | LHD; RHD | Different from unresolved `LH`/`RH` source-path descriptions |
-| `engine_aspiration` | NA; Supercharged | Do not infer from opaque group codes |
-| `seat_equipment` | Memory Seat; Powered Seats | Both may apply in one context; not an exclusive pair |
-
-The above codes are **fixture mapping identities proposed for the approved normalized vocabulary**, not assertions about all JEPC data. Use the same dimension/value foreign keys and source-qualified mapping interface that the importer will later populate. A reusable fixture must link values to an **occurrence and a complete verified-for-fixture condition set**, not merely paste a global list into every PART. Include separate supported, explicitly excluded and `unavailable` scenarios. Do not infer `applicable` from an incomplete set or combine constraints from different source occurrences.
-
-Fixture provenance must be visible at the source/mapping/assertion level. Imported #355 source descriptions and their verified interpretations take over the production read path when available; the fixture namespace remains isolated for tests and must not be mistaken for live JEPC evidence. Swapping sources must not change normalized category/value or public #641 filter identities.
-
-### Deterministic fixture dataset and assertion matrix (#641 / #877)
-
-Use this **logical test dataset**, with synthetic IDs in the `fixture:pre-jepc-suitability:v1` namespace. These names are test keys, not Jaguar PNs, VINs, JEPC record IDs or new production entities. The Step 4 implementation must bind them to actual test fixture `part`, `part_occurrence`, model-context, snapshot and condition-set rows; never guess numeric production IDs or change historical migrations.
-
-| Category code | Value code and display description | Cardinality |
-|---|---|---|
-| `body` | `coupe` = Coupe; `convertible` = Convertible | `scalar` |
-| `steering` | `lhd` = LHD; `rhd` = RHD | `scalar` |
-| `engine_aspiration` | `na` = NA; `supercharged` = Supercharged | `scalar` |
-| `seat_equipment` | `memory_seat` = Memory Seat; `powered_seats` = Powered Seats | `set` |
-
-Create one distinct, source-qualified synthetic description record **per fixture value** with stable dataset/version, logical source key, `en` source language, group/value code and original text. In addition, create two source records both displaying `Coupe` but with distinct synthetic groups/scopes and independent mapping revisions; mapping one must not automatically approve the other. A separate explicitly reviewed synthetic alias may demonstrate two source descriptions mapping to `body/coupe` without collapsing their source IDs. Preserve immutable original text and mapping status. A mock imported record using the same display label has a **different** source namespace; it cannot inherit fixture verification.
-
-Representative whole-occurrence scenarios (all listed values are **fixture assertions only**):
-
-| Test PART key | Test occurrence key | Complete alternative set and source context | Expected purpose |
-|---|---|---|---|
-| `F-SUIT-01` | `O-A` | X100-fixture; `body=coupe AND steering=lhd AND engine_aspiration=supercharged AND seat_equipment CONTAINS memory_seat AND seat_equipment CONTAINS powered_seats`; positive, complete, fixture-reviewed | One positively matching occurrence; both seat features coexist |
-| `F-SUIT-01` | `O-B` | X100-fixture; `body=convertible AND steering=rhd AND engine_aspiration=na AND seat_equipment CONTAINS powered_seats`; positive, complete, fixture-reviewed | Same canonical test PART at a **different** occurrence; conjunction must not borrow O-A attributes |
-| `F-SUIT-02` | `O-C` | X100-fixture; `body=coupe AND steering=rhd AND engine_aspiration=na`; positive, complete, fixture-reviewed | Other positive combinations and dynamic option narrowing |
-| `F-SUIT-03` | `O-D` | X100-fixture; explicit negative/exclusion for `body=convertible AND steering=lhd`, source scope and complete predicate known | Exclusion applies only within its scope; not a global blacklist |
-| `F-SUIT-04` | `O-E` | X100-fixture; source qualifier or condition-set coverage incomplete, unresolved `engine_aspiration` | `unavailable`; no synthetic positive or confirmed negative |
-| `F-SUIT-05` | `O-F` | X150-fixture; separate positively reviewed `body=coupe AND steering=rhd AND engine_aspiration=supercharged` | Range/model-context scoping; do not mix X100 and X150 condition sets |
-
-The X100/X150 strings above identify only **synthetic test model contexts**; do not imply these combinations match real Jaguar vehicles. Each positive row represents a whole source occurrence and a complete, reviewed-*for-fixture* condition set. For `O-D`, store an explicitly scoped `exclude` effect; an exclusion alone must not be converted to an included result. For `O-E`, keep incomplete verification/coverage and return `unavailable`. The real-data read path must never interpret synthetic fixture review as imported JEPC verification.
-
-**Schema gate for seat equipment:** `0016_occurrence_applicability.sql` has a scalar `equals/not_equals` table; it cannot faithfully encode both positive seat memberships as a single scalar attribute. The Step 4 fixture seed may not mark `O-A` as fully evaluable until the reviewed additive `set` cardinality/membership migration and its reader/evaluator support exist. Until then, seed the source fixture and unresolved membership evidence separately and expose this combined case as **unsupported/unavailable**, not as falsely complete fitment. Do not approximate `CONTAINS` with two contradictory scalar equals or independent PART-level joins.
-
-**Replacement gate:** fixtures are activated only by an explicit test/demo fixture mode. A successful #355 import must switch the read source to independently verified JEPC source records and condition sets, retaining normalized category/value codes and public filter request/response identity. Fixture-only source evidence must not appear alongside imported facts as if both were independently verified catalogue data. Preserve fixture coverage as regression tests after import.
+Facet counts and selectable values come from the surviving occurrence universe under active search, stock, model and other filters. A selected zero-result value remains visible as selected but is not offered as an additional choice. The fixture and imported providers share the same endpoint and payload, while fixture data is opt-in and visibly marked.
 
 ## Occurrence and combination requirements
 
