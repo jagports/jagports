@@ -119,6 +119,7 @@ test('CLI exposes parsing and estimation commands only', () => {
   }
   assert.match(help.stdout, /--parse/);
   assert.match(help.stdout, /--estimate/);
+  assert.equal(call(['--estimate']).status, 1);
   assert.equal(call(['estimate-range']).status, 1);
   for (const option of ['--range', '--models', '--sample-size', '--calibration']) {
     assert.equal(call([option, 'value']).status, 1);

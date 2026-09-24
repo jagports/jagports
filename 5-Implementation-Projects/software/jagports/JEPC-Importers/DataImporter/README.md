@@ -16,7 +16,7 @@ No `npm install` is needed. The application reads the JEPC installation without 
 
 ## Parse categories
 
-From the DataImporter directory, run:
+From the DataImporter directory, run with the required `--parse PATTERN` parameter:
 
 ```powershell
 node .\src\DataImporter.CLI.mjs --parse XK
@@ -55,7 +55,7 @@ node .\src\DataImporter.CLI.mjs --parse XK --source $source --state-dir $state
 
 ## Optional import estimates
 
-Add `--estimate` to a parse command if you want a separate file/byte inventory for the matched models:
+Add the optional `--estimate` flag to a parse command if you want a separate file/byte inventory for the matched models. `--estimate` cannot run without `--parse PATTERN`:
 
 ```powershell
 $result = node .\src\DataImporter.CLI.mjs --parse XK --estimate --json | ConvertFrom-Json

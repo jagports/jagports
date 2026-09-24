@@ -19,8 +19,8 @@ Example:
   node .\src\DataImporter.CLI.mjs --parse XK
   node .\src\DataImporter.CLI.mjs --parse XK --estimate
 
---parse matches source XML model names by case-insensitive literal substring and stages up to 40 complete category bundles per run.
---estimate optionally inventories the matched models' source files.
+--parse PATTERN is required for an importer run. It matches source XML model names by case-insensitive literal substring and stages up to 40 complete category bundles.
+--estimate is optional and only valid with --parse PATTERN; it inventories the matched models' source files.
 The source installation is read-only. Local parsed evidence is not a D1 import.
 `;
 
