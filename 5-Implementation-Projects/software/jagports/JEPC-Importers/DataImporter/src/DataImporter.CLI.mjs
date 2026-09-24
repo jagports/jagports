@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 import { moveCursor, cursorTo, clearScreenDown } from 'node:readline';
 import { homedir } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { inspect, readState } from './DataImporter.Runtime.mjs';
 import { selectModelBundles } from './DataImporter.Selection.mjs';
@@ -13,12 +14,12 @@ Jagports JEPC Data Importer v0.1 — source inspection skeleton
 (C)2026 by tlindi and ChatGPT
 
 Node.js 24+; run locally on the computer that can read the source files.
-  --parse <model-name-fragment> [--source <JEPC root>] [--state-dir <outside source>] [--language 0] [--seed text] [--estimate] [--json]
+  --parse <model-name-fragment> [--source <JEPC root>] [--state-dir <outside source>] [--language 0] [--estimate] [--json]
   inspect --source <JEPC root> --state-dir <outside source> --model <id> --category <id> --item <id> [--language 0] [--json]
   status  --state-dir <directory> [--json]
   report  --state-dir <directory>
   doctor  --state-dir <directory> [--full]
-  estimate-range --source <JEPC root> --state-dir <outside source> --range xk --models 3187,3183,... [--seed text] [--sample-size 100] [--calibration measured.json] [--json]
+  estimate-range --source <JEPC root> --state-dir <outside source> --range xk --models 3187,3183,... [--sample-size 100] [--calibration measured.json] [--json]
 
  example usage:
   
@@ -55,15 +56,15 @@ async function main() {
     source: { type: 'string' }, 'state-dir': { type: 'string' },
     model: { type: 'string' }, category: { type: 'string' }, item: { type: 'string' },
     language: { type: 'string' }, json: { type: 'boolean' }, full: { type: 'boolean' },
-    seed: { type: 'string' }, range: { type: 'string' }, models: { type: 'string' },
+    range: { type: 'string' }, models: { type: 'string' },
     'sample-size': { type: 'string' }, calibration: { type: 'string' },
     estimate: { type: 'boolean' }, parse: { type: 'string' },
     help: { type: 'boolean', short: 'h' },
   } });
   if (values.help) { console.log(help); return; }
   if (values.parse !== undefined) {
-    if (positionals.length || Object.keys(values).some(key => !['parse', 'source', 'state-dir', 'language', 'seed', 'estimate', 'json'].includes(key))) {
-      throw new Error('--parse accepts only source, state-dir, language, seed, estimate and json options.');
+    if (positionals.length || Object.keys(values).some(key => !['parse', 'source', 'state-dir', 'language', 'estimate', 'json'].includes(key))) {
+      throw new Error('--parse accepts only source, state-dir, language, estimate and json options.');
     }
     const source = values.source ?? process.env.JEPC_SOURCE ?? 'C:\\Program Files\\JEPC\\applications\\JEPC';
     const stateDir = values['state-dir'] ?? path.join(process.env.LOCALAPPDATA ?? path.join(homedir(), '.local', 'state'),
@@ -76,14 +77,14 @@ async function main() {
       process.stderr.write(`${current.phase}: ${current.completed}/${current.total} bundles (Model_ID ${current.model}).\n`);
     };
     const selection = await selectModelBundles({ pattern: values.parse, source, stateDir,
-      language: values.language ?? '0', seed: values.seed ?? 'default', onProgress });
-    const summary = { modelPattern: selection.modelPattern, modelIds: selection.modelIds, sampleSeed: selection.sampleSeed,
+      language: values.language ?? '0', onProgress });
+    const summary = { modelPattern: selection.modelPattern, modelIds: selection.modelIds,
       eligible: selection.eligibleCategories, limit: selection.categoryLimit,
       selected: selection.bundles.length, incompleteCategories: selection.incompleteCategories.length };
     if (values.estimate) {
       try {
         const estimate = await estimateRange({ source, stateDir, modelPattern: summary.modelPattern,
-          models: summary.modelIds, seed: values.seed ?? values.parse.trim().toLocaleLowerCase('en'), sampleSize: 100 });
+          models: summary.modelIds, seed: randomUUID(), sampleSize: 100 });
         summary.estimate = { state: estimate.result.state, report: estimate.filename };
       } catch (error) { summary.estimate = { state: 'FAILED', error: safe(error.message) }; }
     }
@@ -96,7 +97,7 @@ async function main() {
   const [command] = positionals;
   if (positionals.length !== 1 || !['inspect', 'status', 'report', 'doctor', 'estimate-range'].includes(command)) throw new Error('Unknown command. Use --help.');
   const allowed = command === 'inspect' ? ['source', 'state-dir', 'model', 'category', 'item', 'language', 'json']
-    : command === 'estimate-range' ? ['source', 'state-dir', 'range', 'models', 'seed', 'sample-size', 'calibration', 'json']
+    : command === 'estimate-range' ? ['source', 'state-dir', 'range', 'models', 'sample-size', 'calibration', 'json']
     : command === 'doctor' ? ['state-dir', 'full'] : command === 'status' ? ['state-dir', 'json'] : ['state-dir'];
   for (const key of Object.keys(values)) if (!allowed.includes(key)) throw new Error(`--${key} is not valid for ${command}.`);
   if (!values['state-dir']) throw new Error('--state-dir is required.');
@@ -108,7 +109,7 @@ async function main() {
     process.on('SIGINT', onSignal); process.on('SIGTERM', onSignal);
     try {
       const { filename, result } = await estimateRange({ source: values.source, stateDir: values['state-dir'],
-        range: values.range, models, seed: values.seed ?? 'range-estimate',
+        range: values.range, models, seed: randomUUID(),
         sampleSize: values['sample-size'] === undefined ? 100 : Number(values['sample-size']),
         calibrationPath: values.calibration }, { shouldStop: () => stopped,
         onProgress: current => {

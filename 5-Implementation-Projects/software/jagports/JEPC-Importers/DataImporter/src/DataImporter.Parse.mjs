@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { readFile, realpath, stat, mkdir, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 
-export const PARSER_VERSION = 4;
+export const PARSER_VERSION = 5;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const within = (root, child) => {
   const rel = path.relative(root, child);
@@ -135,7 +135,6 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
   }
   const identities = bundles.map(bundle => `${bundle.model}/${bundle.category}/L${bundle.language}`);
   if (new Set(identities).size !== identities.length) throw new Error('Duplicate bundle identity in source selection.');
-  const selectionSha256 = hash(Buffer.from(`${JSON.stringify(selection, null, 2)}\n`));
   const root = await realpath(selection.source);
   const state = path.resolve(stateDir);
   let ancestor = state;
@@ -144,10 +143,10 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
     catch (error) { if (error.code !== 'ENOENT') throw error; ancestor = path.dirname(ancestor); }
   }
   if (within(root, state) || within(root, ancestor)) throw new Error('State directory must be outside source installation.');
-  const outputDir = path.join(state, 'model-staging', selectionSha256.slice(0,20), `parser-v${PARSER_VERSION}`);
+  const outputDir = path.join(state, 'model-staging', `parser-v${PARSER_VERSION}`);
   await mkdir(outputDir, { recursive: true });
   const scope = { modelPattern, modelIds };
-  const summary = { parserVersion: PARSER_VERSION, ...scope, selectionSha256, phase: 'LOCAL_STAGING_ONLY',
+  const summary = { parserVersion: PARSER_VERSION, ...scope, phase: 'LOCAL_STAGING_ONLY',
     bundles: 0, reused: 0, files: 0, records: 0, unknown: 0, missingOptionalSidecars: 0, statuses: {}, outputDir };
   for (const bundle of bundles) {
     if (!/^\d+$/.test(bundle.model) || !/^\d+$/.test(bundle.category) || !/^\d{1,2}$/.test(bundle.language)
@@ -176,13 +175,15 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
     }
     const unknown = files.flatMap(file => file.unknown.map(item => ({ path: file.path, ...item })));
     const status = unknown.length ? 'UNKNOWN_STRUCTURE' : 'PARSED';
-    const staged = { schemaVersion: 1, parserVersion: PARSER_VERSION, phase: 'LOCAL_STAGING_ONLY', ...scope,
-      selectionSha256, identity: { model: bundle.model, category: bundle.category, language: bundle.language },
-      source: { modelLabel: bundle.modelLabel, categoryLabel: bundle.categoryLabel,
+    const staged = { schemaVersion: 1, parserVersion: PARSER_VERSION, phase: 'LOCAL_STAGING_ONLY',
+      identity: { model: bundle.model, category: bundle.category, language: bundle.language },
+      source: { root, modelLabel: bundle.modelLabel, categoryLabel: bundle.categoryLabel,
         parentModel: bundle.parentModel, parentModelLabel: bundle.parentModelLabel,
         categoryParent: bundle.categoryParent },
       status, files, missingOptionalSidecars: missingSidecars, unknown };
-    const filename = path.join(outputDir, `M${bundle.model}_C${bundle.category}_L${bundle.language}.json`);
+    const evidenceHash = hash(Buffer.from(JSON.stringify(staged)));
+    const filename = path.join(outputDir, `M${bundle.model}`, `C${bundle.category}`, `L${bundle.language}`, `${evidenceHash}.json`);
+    await mkdir(path.dirname(filename), { recursive: true });
     if (await persistExact(filename, staged)) summary.reused++;
     summary.bundles++; summary.files += files.length;
     summary.records += files.reduce((count, file) => count + file.records.length, 0);
