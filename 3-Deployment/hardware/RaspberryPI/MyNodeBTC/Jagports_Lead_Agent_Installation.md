@@ -1,5 +1,39 @@
 # Jagports Lead Agent — MyNode Raspberry Pi Installation
 
+## Routine upgrades from GitHub main — codex, two-command bootstrap
+
+The verified host workspace `/home/codex/jagports-lead-agent` contains a private `.env` and `venv` but is **not a Git checkout**. The canonical updater is maintained with the agent sources in [`scripts/update_from_main.py`](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/scripts/update_from_main.py). After its PR is merged, connect as `codex` and run exactly two lines to bootstrap from the latest GitHub `main`:
+
+```bash
+curl -fsSLo /tmp/jagports-agent-update.py https://raw.githubusercontent.com/jagports/jagports/main/6-Development/AI/agents/jagports/jagports-lead-agent/scripts/update_from_main.py
+python3 /tmp/jagports-agent-update.py
+```
+
+For subsequent updates, one command is sufficient once in the installed workspace:
+
+```bash
+bash ~/jagports-lead-agent/scripts/agentctl.sh update
+```
+
+For post-update offline verification and status:
+
+```bash
+bash ~/jagports-lead-agent/scripts/agentctl.sh check
+bash ~/jagports-lead-agent/scripts/agentctl.sh status
+```
+
+For a separately intentional manual execution or Telegram smoke test:
+
+```bash
+bash ~/jagports-lead-agent/scripts/agentctl.sh run
+```
+
+```bash
+bash ~/jagports-lead-agent/scripts/agentctl.sh telegram-test
+```
+
+The updater obtains one exact `main` SHA, downloads only the agent subtree, installs declared venv requirements, and runs syntax/offline unit tests before changing the installed code. It temporarily stops **only** the existing `codex` user timer and restores it if initially active; the timer's `OnActiveSec=1s` may invoke `main.py` promptly when restored. It rejects an active service, missing timer, root execution, unsafe upstream paths and incomplete downloads. The current private `.env`, virtualenv, state, reports and notifications are preserved; previously installed code and `config.yaml` are backed up under `/home/codex/.jagports-agent-backups/`. Upstream `config.yaml` defaults are applied (paid calls disabled), so review and explicitly reapply any approved local configuration before enabling paid execution. Do not run the updater with `sudo`, change MyNode services, create cron jobs, or use `git pull` in the non-repository workspace. Inspect the backup if deployment fails. All long host-repair commands below are administrator-only contingencies, **not** prerequisites for a normal update.
+
 ## Scope and host boundary
 
 This is the **one host-specific installation document** for the existing Raspberry Pi MyNodeBTC instance. General-purpose agent commands belong to [Development OPERATIONS.md](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/OPERATIONS.md), the architecture to its sibling [README.md](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/README.md), and the project business case to [Projects](../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
