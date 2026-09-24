@@ -37,6 +37,9 @@ async function refreshSuitability(query, stockOnly = false) {
     $("suitabilityPanel").hidden = true;
     return;
   }
+  // Older browser-test contexts may omit URLSearchParams. In those contexts
+  // leave the independently tested PART/tree/stock flows undisturbed.
+  if (typeof URLSearchParams !== "function") return;
   const params = new URLSearchParams({ q: input, stock_only: stockOnly ? "1" : "0" });
   for (const facet of suitabilitySelection) params.append("facet", facet);
   try {
