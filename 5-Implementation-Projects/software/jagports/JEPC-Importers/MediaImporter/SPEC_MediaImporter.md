@@ -6,7 +6,7 @@
 
 Define the first implementation-ready operating contract for the Jagports JEPC MediaImporter.
 
-MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It is a local Windows/Node.js application that runs beside an installed JEPC source tree. It follows the restart, checksum, ledger, safe-stop and reporting conventions established by DataImporter while owning a separate process and state database.
+MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It runs beside an installed JEPC source tree and owns a separate ledger. It follows the restart, checksum, provenance and reporting contract established with DataImporter.
 
 This specification does not establish hotspot coordinate conversion, redefine the canonical PART model, or make an inventory system authoritative for JEPC catalogue media.
 
@@ -225,7 +225,7 @@ Checksums, not timestamps, determine byte identity. Source files are re-statted 
 
 ## Object-storage contract
 
-The destination adapter exposes operations equivalent to:
+The selected object-storage service must support:
 
 ```text
 health
@@ -236,7 +236,7 @@ derive delivery reference
 mark or report stale/withdrawn metadata
 ```
 
-The adapter must support idempotent conditional publication. A recommended v0.1 object key is content-addressed:
+Object preservation must be idempotent and conditional. A recommended v0.1 object key is content-addressed:
 
 ```text
 jepc/assets/sha256/<first-two-hex>/<sha256>.<verified-extension>
@@ -321,7 +321,7 @@ Some diagrams may show component shapes inside a verified kit enclosure that hav
 
 ## Image validation and transformation
 
-Each existing image candidate is decoded with a bounded, maintained image library. Validation records the format detected from bytes, dimensions, decode success and reasonable configured size/dimension limits. Filename extension alone is not proof of format.
+Each existing image candidate is decoded and validated. Validation records the format detected from bytes, dimensions, decode success and reasonable configured size/dimension limits. Filename extension alone is not proof of format.
 
 The original source bytes are preserved before any lossy transformation. A derived asset must record:
 
@@ -371,36 +371,9 @@ The specification separates storage from delivery:
 
 Backup and restore must include both object bytes and the catalogue/ledger metadata needed to reconnect stable keys to logical illustrations. Restoring one without the other is not a complete recovery test.
 
-## CLI and operator contract
+## Operator-visible contract
 
-The first executable should align with DataImporter where semantics match:
-
-```text
-MediaImporter inspect --media-id <id> --source <root> --state-dir <dir> [source context]
-MediaImporter run --state-dir <dir> --destination <configured-adapter>
-MediaImporter status --state-dir <dir> [--json]
-MediaImporter report --state-dir <dir> [--json]
-MediaImporter doctor --state-dir <dir> [--full]
-MediaImporter reconcile --state-dir <dir> --destination <configured-adapter>
-```
-
-`inspect` is bounded source inspection and does not publish. `run` processes queued work. `reconcile` verifies known ledger objects/references incrementally; it does not list an entire bucket or source installation by default.
-
-Interactive output is a stable, non-scrolling aggregate screen. It shows selected profile, current logical illustration, phase, run state and counters for references, images found/preserved/published, hotspots parsed/blocked, unchanged items, missing/corrupt/unknown items and errors. Deep paths and filenames belong in detailed events/report rather than scrolling output.
-
-`Q` and the first Ctrl+C request a safe stop after the current work-item transaction/checkpoint. A second Ctrl+C is an emergency exit. JSON mode emits one final machine-readable snapshot and no terminal control sequences.
-
-Run states are:
-
-```text
-RUNNING
-COMPLETED
-STOPPED_BY_USER
-FAILED
-CRASH_RECOVERED
-```
-
-Completion means all selected/queued work reached a persisted result. It does not mean every image exists or every hotspot conversion is verified.
+Media import exposes the current phase, logical illustration, source/preservation/conversion/publication states, counters, detailed evidence and an integrity result. An operator may request a safe stop at a completed illustration checkpoint; a restart recovers only after verifying the prior owner is no longer active and the ledger is sound. Machine-readable reports identify the selected source scope, object identities, outcomes and unresolved cases without exposing credentials.
 
 ## Transaction and recovery boundaries
 
@@ -429,105 +402,6 @@ Track independently:
 - catalogue publication schema/version.
 
 A change increments only the affected component version and selects prior records that can benefit. New conversion knowledge must not require re-uploading unchanged original bytes. A destination adapter change must not change logical illustration identity.
-
-## Implementation slices
-
-### Slice 1 — bounded local preservation
-
-- scaffold the sibling Node.js application and independent SQLite ledger;
-- inspect an explicit XK media ID;
-- resolve the three bounded candidate paths;
-- hash and decode existing images;
-- parse hotspot XML losslessly;
-- implement safe stop, status, report and doctor;
-- do not publish externally.
-
-### Slice 2 — destination adapter and object preservation
-
-- implement the approved filesystem test adapter and its contract tests;
-- define and implement the R2 adapter configuration and health contract without repository credentials;
-- publish content-addressed objects conditionally;
-- verify upload recovery and unchanged reruns;
-- preserve raw hotspot XML under private evidence policy;
-- do not publish catalogue metadata to D1 in this slice.
-
-#### Slice 2 object-preservation contract
-
-Slice 2 preserves only source assets already validated by the local ledger. For a verified JPEG or PNG, its immutable presentation-object key is:
-
-```text
-jepc/assets/sha256/<first-two-lowercase-hex>/<sha256>.<verified-extension>
-```
-
-For verified hotspot XML, its private evidence-object key is:
-
-```text
-jepc/evidence/sha256/<first-two-lowercase-hex>/<sha256>.xml
-```
-
-The object key is derived from checksum and verified type, never from a source path, media ID, public URL or user input. JPEG and PNG bytes remain distinct representations even where they share a logical illustration. Raw hotspot XML is evidence, not a browser-delivery asset.
-
-The destination adapter exposes `health`, `head`, conditional `put`, verification and delivery-reference derivation. A successful `put` is insufficient: verification compares the expected key, SHA-256, byte size and verified media type. The adapter does not list an entire bucket during normal processing. It must reject unsafe keys and must not expose credentials in events or reports.
-
-The filesystem adapter is the required physical-test destination. Its configured root is outside the JEPC source installation and acts as a deterministic object store: keys map to files below that root, with adjacent or equivalent non-secret metadata sufficient to verify the object. Its tests prove the same conditional and verification semantics required from R2.
-
-The R2 adapter has the same contract. Endpoint, bucket, account/credential material and any delivery host are runtime configuration, not committed semantics. A delivery reference is derived only after storage verification; it is not the canonical media identity and Slice 2 does not publish it to D1.
-
-For each object, the durable checkpoint order is: persist preservation intent and expected identity in the MediaImporter ledger; `head` the deterministic key; conditionally upload only when no verified matching object exists; verify the stored result; then persist the verified object result in the ledger. A restart repeats `head` and verification before any upload. A matching verified object is reused; a mismatched or unverifiable object fails explicitly and is never silently accepted. A crash after upload and before the local checkpoint therefore resumes safely without duplicate bytes.
-
-The initial physical smoke test uses one explicit XK media ID such as `tu6333`, performs no recursive source enumeration, and compares source hashes before and after. It proves the filesystem adapter receives the selected verified image representation and hotspot XML in their separate namespaces, then repeats the run to prove object reuse. D1 publication, public serving, conversion of hotspot coordinates, and deletion are outside Slice 2.
-
-### Slice 3 — catalogue metadata publication
-
-- publish selected diagram media keys and statuses to a test/staging VIEPS database;
-- preserve multiple source references and representations;
-- publish explicit unavailable states;
-- verify object-first/catalogue-second recovery.
-
-### Slice 4 — verified hotspot conversion
-
-- consume the approved #352 algorithm and fixtures;
-- add approved Parts Data Model migration if required;
-- persist conversion version and target asset checksum;
-- publish normalized/clickable geometry only for verified cases;
-- retain blocked/unsupported cases explicitly.
-- consume approved dashed-enclosure/callout evidence only as source-qualified kit-composition evidence after its separate #352 validation.
-
-### Slice 5 — bounded XK operational validation
-
-- process model `3187` incrementally after a separate hand-off contract is approved;
-- compare counts and exceptions with the existing source audit;
-- exercise stop/restart, changed bytes, missing/corrupt inputs and destination failures;
-- produce an operator report suitable for review before expanding to all XK profiles.
-
-## Required tests
-
-Automated tests use temporary synthetic fixtures and fake destination/catalogue adapters. They cover at least:
-
-- repeated explicit work inspection and stable logical media IDs;
-- source-root escape rejection;
-- bounded candidate resolution without recursive installation enumeration;
-- JPEG/PNG detection from bytes, dimensions and corrupt input;
-- source change during hashing;
-- multiple representations for one logical illustration;
-- multiple references sharing one asset;
-- hotspot XML parsing, repeated item regions, missing file and malformed XML;
-- raw coordinate preservation without pixel claims;
-- blocked geometry before #352 approval;
-- candidate dashed-enclosure/callout observations, including a negative case that must not create kit composition;
-- evidence-gated mapping from a candidate kit group to a source-qualified kit PN, including individually numbered components that retain their own PART identity and kit-only components without an invented standalone PN;
-- checksum/object-key idempotency;
-- crash after upload but before local checkpoint;
-- crash after object verification but before catalogue publication;
-- changed source creating a new asset and stale dependent conversion;
-- safe stop and restart;
-- writer exclusion and dead-owner recovery;
-- schema/version guards and database integrity checks;
-- unavailable/unknown/error counters and report evidence;
-- no source mutation;
-- no automatic hard deletion.
-
-Real installed XK data is a bounded smoke/evidence test. It is not committed as a test dependency and does not prove full JEPC coverage.
 
 ## Acceptance criteria
 
