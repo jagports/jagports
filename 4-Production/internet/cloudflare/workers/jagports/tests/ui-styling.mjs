@@ -159,12 +159,12 @@ test('search renders escaped identity, nested paths and range-specific variation
   await ui.search('TEST1');
   assert.match(ui.get('partCard').innerHTML, /Test &lt;part&gt;/);
   assert.match(ui.get('tree').innerHTML, /selected-path/);
-  assert.match(ui.get('fitment').innerHTML, /Alpha 2/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Beta/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Alpha 2/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Beta/);
   ui.get('rangeSelect').value = 'B';
   ui.get('rangeSelect').listeners.change();
-  assert.match(ui.get('fitment').innerHTML, /Beta/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Alpha/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Beta/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Alpha/);
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
 });
 
@@ -177,8 +177,8 @@ test('only applicable ranges are presented as suitable', async () => {
   await ui.search('TEST1');
   assert.match(ui.get('ranges').innerHTML, /Range A/);
   assert.doesNotMatch(ui.get('ranges').innerHTML, /Range B|Range C/);
-  assert.match(ui.get('fitment').innerHTML, /Alpha/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Beta|Gamma/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Alpha/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Beta|Gamma/);
 });
 
 test('confirmed no-match and unavailable applicability are distinct UI states', async () => {
@@ -314,7 +314,7 @@ test('locale flag switching rerenders presentation without changing canonical da
   assert.equal(ui.document.documentElement.lang, 'fi');
   assert.equal(ui.get('searchStatus').textContent, 'OSA ratkaistu.');
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
-  assert.match(ui.get('fitment').innerHTML, /Muunnelma/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Muunnelma/);
   assert.match(ui.get('ranges').innerHTML, /Range A/);
   ui.setLanguage('en');
   assert.equal(ui.document.documentElement.lang, 'en');
