@@ -118,8 +118,9 @@
   .vin-panel #vinInput, .vin-panel #variationsSelect {
     @apply mb-2 w-full cursor-not-allowed bg-slate-100 text-jagports-muted;
   }
-  .fitment-panel {
-    @apply mt-2 flex max-h-[11rem] flex-none flex-col overflow-hidden border-t border-jagports-line pt-2;
+  .ranges-panel #rangeEvidence {
+    max-height: 11rem; overflow: auto; overscroll-behavior: contain;
+    @apply mt-2 border-t border-jagports-line pt-2;
   }
   .results-panel .results-scroll, .ranges-panel .ranges-scroll {
     flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain;
@@ -203,7 +204,7 @@
   }
   .vehicle-location-canvas .empty { @apply w-full bg-white text-center; }
   .compact-note { @apply mb-0 mt-1 flex-none text-xs; }
-  .tree-panel #tree, .ranges-panel #ranges, .fitment-panel #fitment, .visual-panel #visuals {
+  .tree-panel #tree, .ranges-panel #ranges, .visual-panel #visuals {
     flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
@@ -335,7 +336,7 @@
   .right-workspace { grid-area: right; min-height: 24rem; }
   .concept-grid .panel { overflow: visible; }
   .tree-panel #tree, .results-panel .results-scroll, .ranges-panel .ranges-scroll,
-  .visual-panel #visuals, .fitment-panel #fitment, .stock-section { overflow: auto; max-height: 26rem; }
+  .visual-panel #visuals, .stock-section { overflow: auto; max-height: 26rem; }
 }
 @media (max-width: 760px) {
   html, body { height: 100%; overflow: hidden; }
@@ -405,10 +406,9 @@
   .tree-panel { min-height: 12rem; }
   .ranges-panel { min-height: 14rem; }
   .location-panel { min-height: 12rem; }
-  .fitment-panel { min-height: 12rem; }
   .visual-panel { min-height: 22rem; }
   .tree-panel #tree, .ranges-panel #ranges, .ranges-panel .ranges-scroll, .results-panel .results-scroll,
-  .fitment-panel #fitment, .visual-panel #visuals, .stock-section { overflow: visible; max-height: none; }
+  .visual-panel #visuals, .stock-section { overflow: visible; max-height: none; }
   .card dl { @apply grid-cols-1; }
   .tree-children { margin-left: .1rem; padding-left: .25rem; }
   .tree-node-row, .tree-part-row { padding-inline: .25rem; }
