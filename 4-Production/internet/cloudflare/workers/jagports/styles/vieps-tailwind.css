@@ -118,6 +118,23 @@
   .vin-panel #vinInput {
     @apply mb-2 w-full cursor-not-allowed bg-slate-100 text-jagports-muted;
   }
+  /* #895: one active, independently horizontally scrollable variation row. */
+  .variation-options {
+    display: flex; align-items: stretch; gap: .35rem;
+    min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden;
+    overscroll-behavior-x: contain; padding: .2rem .1rem .45rem;
+    scrollbar-width: thin;
+  }
+  .variation-choice {
+    display: inline-flex; flex: 0 0 auto; align-items: center;
+    gap: .3rem; min-height: 2.5rem; padding: .3rem .5rem;
+    border: 1px solid #94a3b8; border-radius: .4rem;
+    cursor: pointer; font-size: .85rem;
+  }
+  .variation-choice:has(input:focus-visible) { outline: 2px solid #036b76; outline-offset: 2px; }
+  .variation-choice:has(input:checked) { border-color: #036b76; font-weight: 600; }
+  .variation-choice input { width: 1rem; height: 1rem; margin: 0; }
+
   .ranges-panel #rangeEvidence {
     max-height: 11rem; overflow: auto; overscroll-behavior: contain;
     @apply mt-2 border-t border-jagports-line pt-2;
