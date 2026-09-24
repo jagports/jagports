@@ -51,9 +51,9 @@ $state = Join-Path $env:LOCALAPPDATA 'Jagports\JEPC-Importer'
 node .\src\DataImporter.CLI.mjs --parse X3 --source $source --state-dir $state
 ```
 
-`X3` matches X300 and X308 source models. `XJ` also matches XJS names, while `XJS` narrows the selection. These patterns select **source models**, never a destination Range or D1 database. X300 and X308 still belong to VIEPS `XJ Range`; destination Range resolution is a future publication step.
+`--parse` matches model names from the source XML. It does not assign or change a VIEPS Range.
 
-## Optional source estimate
+## Optional import estimates
 
 Add `--estimate` to a parse command if you want a separate file/byte inventory for the matched models:
 
@@ -62,16 +62,6 @@ $result = node .\src\DataImporter.CLI.mjs --parse XK --estimate --json | Convert
 $result.estimate
 ```
 
-The estimate scans the selected **models' source trees**, not just the 40 picked categories, so it can take much longer. It writes a report outside the JEPC installation and does not infer a D1 size or import duration without measured calibration. `estimate-range` is an advanced command for an explicit Range and comma-separated `--models`; see `--help`.
-
-## Inspect one known item
-
-`inspect` is a separate, narrower diagnostic command. Supply numeric model, category and item IDs:
-
-```powershell
-node .\src\DataImporter.CLI.mjs inspect --source 'C:\Program Files\JEPC\applications\JEPC' --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
-```
-
-It writes checksum observations to `ledger.sqlite` in the state directory. `status`, `report` and `doctor` read that **inspection ledger**; they do not report the random `--parse` staging runs. For this interactive inspection command, Q or the first Ctrl+C requests a stop after the current checkpoint; a second Ctrl+C exits immediately.
+The estimate inventories source files for the matched models, beyond the 40 parsed categories. The report distinguishes measured source file and byte counts from D1 storage and import-time projections. Those projections are available only with a measured calibration from a published import. The advanced `estimate-range` command accepts an explicit `--range`, verified comma-separated `--models`, and `--calibration` file; `--help` shows its full invocation.
 
 Run `npm test` from this directory to execute the synthetic parser, selection, safety and CLI tests. The sibling MediaImporter handles images and hotspots separately.

@@ -103,3 +103,16 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.equal(estimateReport.modelPattern, 'XK');
   assert.equal(estimateReport.range, null);
 });
+
+test('CLI exposes parsing and estimation without the obsolete inspection commands', () => {
+  const cli = path.resolve('src/DataImporter.CLI.mjs');
+  const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+  const help = call(['--help']);
+  assert.equal(help.status, 0);
+  for (const command of ['inspect', 'status', 'report', 'doctor']) {
+    assert.doesNotMatch(help.stdout, new RegExp(`^\\s*${command}\\s`, 'm'));
+    assert.equal(call([command]).status, 1);
+  }
+  assert.match(help.stdout, /--parse/);
+  assert.match(help.stdout, /--estimate/);
+});
