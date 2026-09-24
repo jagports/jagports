@@ -128,24 +128,26 @@ def upgrade(destination, *, download=github_bytes, check=True):
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_bytes(payload)
         python = str(destination / "venv/bin/python")
-        # Install dependencies in the existing private venv; never invoke main.py.
-        if "requirements.txt" in files:
-            run([python, "-m", "pip", "install", "-r", str(stage / "requirements.txt")])
-        run([python, "-m", "compileall", "-q", str(stage)])
-        if check:
-            env = dict(os.environ, OPENAI_API_KEY="", TELEGRAM_BOT_TOKEN="",
-                       GITHUB_TOKEN="", GITHUB_TOKEN_RO="")
-            run([python, "-m", "unittest", "discover", "-s", "tests",
-                 "-p", "test_*.py"], cwd=stage, env=env)
-        print("Offline validation passed; installation not yet changed.")
 
-        # Stop only the existing timer; never create or enable another timer.
+        # Stop the timer *before* pip changes the shared venv. Never overlap
+        # with an actual scheduled run or create another timer.
         active = user_timer(["is-active", "--quiet", "jagports-lead-agent.timer"])
         if user_timer(["is-active", "--quiet", "jagports-lead-agent.service"]):
             raise RuntimeError("Agent service is running; retry after it finishes")
         if active:
             run(["systemctl", "--user", "stop", "jagports-lead-agent.timer"])
         try:
+            # Install dependencies in the existing private venv; never invoke main.py.
+            if "requirements.txt" in files:
+                run([python, "-m", "pip", "install", "-r", str(stage / "requirements.txt")])
+            run([python, "-m", "compileall", "-q", str(stage)])
+            if check:
+                env = dict(os.environ, OPENAI_API_KEY="", TELEGRAM_BOT_TOKEN="",
+                           GITHUB_TOKEN="", GITHUB_TOKEN_RO="")
+                run([python, "-m", "unittest", "discover", "-s", "tests",
+                     "-p", "test_*.py"], cwd=stage, env=env)
+            print("Offline validation passed; installation not yet changed.")
+
             if user_timer(["is-active", "--quiet", "jagports-lead-agent.service"]):
                 raise RuntimeError("Agent service started during update; retry later")
             stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
