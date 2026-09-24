@@ -119,6 +119,7 @@ test('Concept-11 acceptance regions remain visibly represented in the production
   }
   assert.match(html, /data-i18n="stock\.filter_on_stock"/);
   assert.match(html, /data-i18n="location\.heading"/);
-  assert.match(html, /data-i18n="fitment\.heading"/);
+  assert.match(html, /id="rangeEvidence"/);
+  assert.doesNotMatch(html, /class="fitment-panel"/);
   assert.match(html, /data-i18n="visual\.heading"/);
 });
