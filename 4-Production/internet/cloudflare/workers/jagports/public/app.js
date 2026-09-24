@@ -390,7 +390,6 @@ function renderSelectedRange() {
   const rangeRows = fitmentRows.filter((item) => item.range_code === code);
   const selected = rangeRows.filter((item) => item.applicability_state === "applicable");
   const range = selected[0];
-  $("selectedRange").textContent = range ? `${range.range_code} — ${range.range_name}` : t("fitment.selected_none");
   $("locationStatus").textContent = range
     ? t("location.range_unavailable", { range: range.range_name })
     : t("location.verified_unavailable");
@@ -402,7 +401,7 @@ function renderSelectedRange() {
     variationStateKey = "fitment.no_match";
   }
 
-  $("fitment").innerHTML = selected.length ? `<div class="table-scroll"><table>
+  $("rangeEvidence").innerHTML = selected.length ? `<div class="table-scroll"><table>
     <thead><tr><th>${escapeHtml(t("fitment.variation"))}</th><th>${escapeHtml(t("fitment.qualifier"))}</th><th>${escapeHtml(t("fitment.verification"))}</th></tr></thead>
     <tbody>${selected.map((item) => `<tr><td>${escapeHtml(item.variation || t("common.not_specified"))}</td><td>${escapeHtml(item.qualifier || t("common.not_supplied"))}</td><td>${escapeHtml(item.verification_status || t("common.not_recorded"))}</td></tr>`).join("")}</tbody>
     </table></div>` : empty(t(variationStateKey));
@@ -433,10 +432,6 @@ function renderFitment(fitment, declaredState = null) {
     `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>`
     : empty(emptyLabel);
   renderSelectedRange();
-  if (!ranges.length) {
-    $("fitment").innerHTML = empty(t(error ? "fitment.unavailable"
-      : confirmedNoMatch ? "fitment.no_match" : "fitment.unavailable"));
-  }
 }
 
 function renderResolvedData(data) {
@@ -468,8 +463,7 @@ function resetContext(messageKey = "part.no_part_selected") {
   $("rangeSelect").innerHTML = `<option value="">${escapeHtml(t("ranges.no_part_selected"))}</option>`;
   $("rangeSelect").disabled = true;
   renderBrowseRangeIndex();
-  $("selectedRange").textContent = t("fitment.selected_none");
-  $("fitment").innerHTML = empty(t("fitment.browse_help"));
+  $("rangeEvidence").innerHTML = empty(t("fitment.browse_help"));
   $("vehicleLocation").innerHTML = empty(t("location.unavailable"));
   $("locationStatus").textContent = t("location.select_help");
 }
