@@ -48,7 +48,7 @@ For a JEPC installation in a different location, set both paths explicitly:
 ```powershell
 $source = 'D:\JEPC\applications\JEPC'
 $state = Join-Path $env:LOCALAPPDATA 'Jagports\JEPC-Importer'
-node .\src\DataImporter.CLI.mjs --parse X3 --source $source --state-dir $state
+node .\src\DataImporter.CLI.mjs --parse XK --source $source --state-dir $state
 ```
 
 `--parse` matches model names from the source XML. It does not assign or change a VIEPS Range.
