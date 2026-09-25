@@ -367,6 +367,14 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
       return;
     }
     suitabilityData = data;
+    if (data.reason === "non_fixture_search_context" ||
+        (data.state === "unavailable" && !(data.matches || []).length)) {
+      // Fixture evidence cannot exclude real catalogue PARTs or unknown records.
+      // Retain the ordinary canonical search and make the limitation visible.
+      suitabilityMatchingIds = null;
+      showSuitability();
+      return;
+    }
     suitabilityMatchingIds = new Set((data.matches || []).map((m) => String(m.part_id)));
     showSuitability();
     if (viewMode === "candidates" && cachedCandidatesData) {
