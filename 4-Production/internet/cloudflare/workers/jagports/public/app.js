@@ -18,83 +18,26 @@ let selectedTreeNodeId = null;
 let cachedRootData = null;
 let cachedBrowseData = null;
 let cachedCandidatesData = null;
+let pendingCandidateId = null;
 let viewMode = "empty";
-let suitabilitySelection = new Set();
-let suitabilityRequestVersion = 0;
 
-function hideSuitability() {
-  ++suitabilityRequestVersion;
-  if ($("suitabilityPanel")) $("suitabilityPanel").hidden = true;
+const BROWSE_RANGE_LABELS = Object.freeze([
+  "Jaguar Accessories", "Daimler Limousine", "E-Pace", "E-Type", "F-Pace",
+  "F-Type", "S-Type", "X-Type", "XE Range", "XF Range", "XJ Range",
+  "XJS", "XK Range",
+]); // #875 browse-only labels, never evidence of PART fitment.
+function renderBrowseRangeIndex() {
+  const note = escapeHtml(t("header.filter_pending"));
+  $("ranges").innerHTML = `<p id="rangeBrowseNote" class="muted compact-note">${note}</p>
+    <ul class="range-list browse-range-list">${BROWSE_RANGE_LABELS.map((label, index) =>
+      `<li><label><input type="checkbox" disabled aria-describedby="rangeBrowseNote"
+        data-browse-range-index="${index}"> ${escapeHtml(label)}</label></li>`).join("")}</ul>`;
 }
-
-// Fixture suitability is intentionally separate from selected-PART fitment.
-// Never silently apply test-only facets to ordinary JEPC search or tree rows.
-async function refreshSuitability(query, stockOnly = false) {
-  if (!$("suitabilityPanel")) return; // Older browser test DOMs need no fixture UI.
-  const version = ++suitabilityRequestVersion;
-  const input = String(query || "").trim();
-  if (!input) {
-    $("suitabilityPanel").hidden = true;
-    return;
-  }
-  // Older browser-test contexts may omit URLSearchParams. In those contexts
-  // leave the independently tested PART/tree/stock flows undisturbed.
-  if (typeof URLSearchParams !== "function") return;
-  const params = new URLSearchParams({ q: input, stock_only: stockOnly ? "1" : "0" });
-  for (const facet of suitabilitySelection) params.append("facet", facet);
-  try {
-    const response = await fetch(`/api/vieps/suitability?${params.toString()}`);
-    const data = await response.json();
-    if (version !== suitabilityRequestVersion) return;
-    if (!response.ok || data.fixture_mode !== true) {
-      $("suitabilityPanel").hidden = true;
-      return;
-    }
-    const options = new Set(data.available_options || []);
-    const selected = suitabilitySelection;
-    // Keep selected values visible even when they narrow the result to zero.
-    const groups = (data.categories || []).map((category) => ({
-      ...category,
-      values: (category.values || []).filter((value) =>
-        options.has(value.id) || selected.has(value.id))
-        .sort((a, b) => Number(selected.has(b.id)) - Number(selected.has(a.id))
-          || a.code.localeCompare(b.code)),
-    })).filter((category) => category.values.length);
-    $("suitabilityPanel").hidden = !groups.length && !selected.size;
-    $("suitabilityChoices").innerHTML = groups.map((category) =>
-      `<fieldset style="display:flex;flex:none;align-items:center;gap:0.5rem;border:0;padding:0">
-        <legend style="font-weight:600;white-space:nowrap">${escapeHtml(category.code.replaceAll("_", " "))}</legend>
-        ${category.values.map((value) => `<label style="display:inline-flex;align-items:center;gap:0.25rem;white-space:nowrap">
-          <input type="checkbox" data-suitability-facet="${escapeHtml(value.id)}"
-            ${selected.has(value.id) ? "checked" : ""}>
-          <span>${escapeHtml(value.code.replaceAll("_", " "))}</span>
-        </label>`).join("")}
-      </fieldset>`).join("");
-    $("suitabilityChoices").querySelectorAll?.("[data-suitability-facet]").forEach((checkbox) => {
-      checkbox.addEventListener("change", () => {
-        const facet = checkbox.dataset.suitabilityFacet;
-        if (checkbox.checked) suitabilitySelection.add(facet);
-        else suitabilitySelection.delete(facet);
-        void refreshSuitability($("partNumber").value, Boolean($("availabilitySelect").checked));
-      });
-    });
-    const matches = data.matches || [];
-    const unknown = (data.unavailable_occurrences || []).length;
-    const excluded = (data.excluded_occurrences || []).length;
-    $("suitabilityStatus").textContent = data.state === "applicable"
-      ? `${matches.length} synthetic occurrence match(es); not verified Jaguar suitability.`
-      : data.state === "unavailable"
-        ? "Synthetic suitability evidence is incomplete."
-        : data.state === "excluded"
-          ? "Only explicitly excluded synthetic occurrences match."
-          : "No matching synthetic occurrences.";
-    $("suitabilityResults").textContent = matches.length
-      ? matches.map((match) => `${match.part_number} / ${match.occurrence_key}`).join("; ")
-      : unknown ? `${unknown} incomplete synthetic occurrence(s)${excluded ? `; ${excluded} excluded` : ""}.`
-        : excluded ? `${excluded} explicitly excluded synthetic occurrence(s).` : "";
-  } catch {
-    if (version === suitabilityRequestVersion) $("suitabilityPanel").hidden = true;
-  }
+function renderApplicableState(state) {
+  const message = state === "error" ? t("ranges.error")
+    : state === "no_match" ? t("ranges.no_match")
+    : t("ranges.unavailable");
+  $("ranges").innerHTML = empty(message);
 }
 
 
@@ -134,9 +77,10 @@ function partDisplayLabel(part) {
   return part.description && part.description !== identity ? `${identity} — ${part.description}` : identity;
 }
 
-async function resolvePart(partNumber, stockOnly = false) {
+async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
-  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}`);
+  const candidateFilter = candidateId === null ? "" : `&candidate_id=${encodeURIComponent(candidateId)}`;
+  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -155,9 +99,10 @@ async function resolveTreeRoots(stockOnly = false) {
 function clearSelectionUrl() {
   if (!globalThis.location || typeof URLSearchParams !== "function") return;
   const params = new URLSearchParams(globalThis.location.search || "");
-  if (!params.has("part") && !params.has("tree")) return;
+  if (!params.has("part") && !params.has("tree") && !params.has("candidate_id")) return;
   params.delete("part");
   params.delete("tree");
+  params.delete("candidate_id");
   const query = params.toString();
   globalThis.history?.replaceState?.(null, "",
     `${globalThis.location.pathname || "/"}${query ? `?${query}` : ""}${globalThis.location.hash || ""}`);
@@ -292,7 +237,7 @@ function renderTree(paths = [], options = {}) {
       && String(part.id) === selectedPartId;
     if (selected) markedPartLeaf = true;
     return `<li class="tree-part-leaf" role="treeitem"><div class="tree-part-row${selected ? ' selected-path' : ''}">
-      <a href="${partHref(part, contextNodeId)}" data-part-query="${escapeHtml(partSearchValue(part))}" data-part-context="${escapeHtml(contextNodeId ?? "")}"
+      <a href="${partHref(part, contextNodeId)}" data-part-query="${escapeHtml(partSearchValue(part))}" data-part-id="${escapeHtml(part.id ?? "")}" data-part-context="${escapeHtml(contextNodeId ?? "")}"
          ${selected ? 'aria-current="page"' : ''}>${escapeHtml(partTreeLeafLabel(part))}</a>
     </div></li>`;
   };
@@ -322,28 +267,63 @@ function renderTree(paths = [], options = {}) {
     link.addEventListener("click", (event) => {
       event.preventDefault();
       selectedTreeNodeId = link.dataset.partContext || null;
-      $("partNumber").value = link.dataset.partQuery;
+      pendingCandidateId = link.dataset.partId || null;
+      $("partNumber").value = cachedCandidatesData?.query || link.dataset.partQuery;
+      $("partSearch").dispatchEvent?.(new Event("submit", { cancelable: true }));
+    });
+  });
+}
+
+function canonicalCandidates(parts = []) {
+  // API candidates are canonical, but defend the UI against repeated EPC
+  // occurrences without ever merging distinct PART IDs by display label.
+  return [...new Map(parts.filter((part) => part?.id != null)
+    .map((part) => [String(part.id), part])).values()];
+}
+
+function candidateLeaves(data) {
+  const paths = Array.isArray(data.parts_tree) ? data.parts_tree : [];
+  return canonicalCandidates(data.matches || []).map((part) => ({
+    part,
+    paths: (part.tree_paths?.length ? part.tree_paths : paths
+      .filter((path) => String(path.part_id) === String(part.id))
+      .map((path) => ({ nodes: (path.nodes || []).filter((node) => node.kind !== "part") })))
+      .filter((path) => path.nodes?.length && path.nodes.every((node) => node.node_id != null)),
+  }));
+}
+
+function renderSearchResults(parts = [], selectedId = null) {
+  const panel = $("searchResults");
+  if (!panel) return;
+  const candidates = canonicalCandidates(parts);
+  panel.innerHTML = candidates.length ? `<ul class="results-list">${candidates.map((part) => {
+    const selected = selectedId != null && String(part.id) === String(selectedId);
+    return `<li class="result-row${selected ? " selected-result" : ""}">
+      <a href="?part=${encodeURIComponent(partSearchValue(part))}&candidate_id=${encodeURIComponent(part.id)}"
+         data-result-part-id="${escapeHtml(part.id)}" ${selected ? 'aria-current="page"' : ""}>${escapeHtml(partDisplayLabel(part))}</a>
+      <label class="bookmark-label"><input type="checkbox" disabled aria-label="${escapeHtml(`${t("search.bookmark_pending")}: ${partDisplayLabel(part)}`)}" title="${escapeHtml(t("search.bookmark_pending"))}"><span class="bookmark-caption">${escapeHtml(t("search.bookmark_pending"))}</span></label>
+    </li>`;
+  }).join("")}</ul>` : empty(t("part.no_part_selected"));
+  panel.querySelectorAll?.("[data-result-part-id]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      const part = candidates.find((entry) => String(entry.id) === link.dataset.resultPartId);
+      if (!part) return;
+      selectedTreeNodeId = null; // A result row cannot guess an EPC occurrence.
+      pendingCandidateId = String(part.id);
+      $("partNumber").value = cachedCandidatesData?.query || partSearchValue(part);
       $("partSearch").dispatchEvent?.(new Event("submit", { cancelable: true }));
     });
   });
 }
 
 function renderPartCandidates(data) {
-  const candidates = (data.matches || []).filter((part) => partSearchValue(part));
-  const serverPaths = Array.isArray(data.parts_tree) ? data.parts_tree : [];
   $("partCard").innerHTML = empty(t("part.no_part_selected"));
   renderTree([], {
     roots: data.tree_roots || cachedRootData?.roots || [],
-    // Current-main free-text searches supply parts_tree; older browse payloads
-    // supply matches[].tree_paths. Both must use evidenced node IDs only.
-    partLeaves: candidates.map((part) => ({
-      part,
-      paths: (part.tree_paths?.length ? part.tree_paths : serverPaths
-        .filter((path) => String(path.part_id) === String(part.id))
-        .map((path) => ({ nodes: (path.nodes || []).filter((node) => node.kind !== "part") })))
-        .filter((path) => path.nodes?.length && path.nodes.every((node) => node.node_id != null)),
-    })),
+    partLeaves: candidateLeaves(data),
   });
+  renderSearchResults(data.matches || []);
 }
 
 function renderTreeBrowse(data) {
@@ -428,41 +408,50 @@ function renderSelectedRange() {
     </table></div>` : empty(t(variationStateKey));
 }
 
-function renderFitment(fitment) {
-  fitmentRows = fitment;
-  const applicable = fitment.filter((item) => item.applicability_state === "applicable");
+function renderFitment(fitment, declaredState = null) {
+  // Consume only positive assertions returned by the approved PART read path.
+  // The 13 synthetic browse labels never enter this selected-PART result.
+  fitmentRows = Array.isArray(fitment) ? fitment : [];
+  const applicable = fitmentRows.filter((item) =>
+    item.applicability_state === "applicable" && item.range_code && item.range_name);
   const ranges = [...new Map(applicable.map((item) => [item.range_code, item])).values()];
-  const unavailable = fitment.some((item) => item.applicability_state === "unavailable");
-  const confirmedNoMatch = fitment.length > 0 && fitment.every((item) => item.applicability_state === "excluded");
+  const error = declaredState === "error" || fitmentRows.some((item) => item.applicability_state === "error");
+  const unavailable = !fitmentRows.length || declaredState === "unavailable"
+    || fitmentRows.some((item) => item.applicability_state === "unavailable");
+  const confirmedNoMatch = declaredState === "no_match"
+    || (fitmentRows.length > 0 && fitmentRows.every((item) =>
+      ["excluded", "no_match"].includes(item.applicability_state)));
 
-  let emptyLabel = t("ranges.no_suitable");
-  if (unavailable && !ranges.length) emptyLabel = t("ranges.unavailable");
-  else if (confirmedNoMatch) emptyLabel = t("ranges.no_match");
-
+  const emptyState = error ? "error" : confirmedNoMatch ? "no_match" : "unavailable";
+  const emptyLabel = t(emptyState === "error" ? "ranges.error"
+    : emptyState === "no_match" ? "ranges.no_match" : "ranges.unavailable");
   $("rangeSelect").innerHTML = ranges.length ? ranges.map((item) =>
     `<option value="${escapeHtml(item.range_code)}">${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</option>`).join("")
     : `<option value="">${escapeHtml(emptyLabel)}</option>`;
   $("rangeSelect").disabled = !ranges.length;
   $("ranges").innerHTML = ranges.length ? `<ul class="range-list">${ranges.map((item) =>
-    `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>` : empty(emptyLabel);
+    `<li>${escapeHtml(item.range_code)} — ${escapeHtml(item.range_name)}</li>`).join("")}</ul>`
+    : empty(emptyLabel);
   renderSelectedRange();
   if (!ranges.length) {
-    const variationStateKey = unavailable ? "fitment.unavailable" : confirmedNoMatch ? "fitment.no_match" : "fitment.no_confirmed";
-    $("fitment").innerHTML = empty(t(variationStateKey));
+    $("fitment").innerHTML = empty(t(error ? "fitment.unavailable"
+      : confirmedNoMatch ? "fitment.no_match" : "fitment.unavailable"));
   }
 }
 
 function renderResolvedData(data) {
   currentData = data;
   renderPart(data.part, data.occurrences || [], data.stock || []);
-  renderTree(data.parts_tree || [], {
+  renderTree(cachedCandidatesData?.parts_tree || data.parts_tree || [], {
     roots: data.tree_roots || cachedRootData?.roots || [],
     selectedPartId: data.part?.id,
     selectedNodeId: selectedTreeNodeId,
-    partLeaves: [{ part: data.part, paths: (data.parts_tree || []).filter((path) => path.nodes?.some((node) => node.node_id != null)) }],
+    partLeaves: cachedCandidatesData ? candidateLeaves(cachedCandidatesData)
+      : [{ part: data.part, paths: (data.parts_tree || []).filter((path) => path.nodes?.some((node) => node.node_id != null)) }],
   });
+  renderSearchResults(cachedCandidatesData?.matches || [data.part], data.part?.id);
   renderVisuals(data.images || [], data.diagrams || []);
-  renderFitment(data.fitment || []);
+  renderFitment(data.fitment, data.fitment_state);
 }
 
 function resetContext(messageKey = "part.no_part_selected") {
@@ -471,13 +460,14 @@ function resetContext(messageKey = "part.no_part_selected") {
   visualItems = [];
   const message = t(messageKey);
   $("partCard").innerHTML = empty(message);
+  renderSearchResults();
   $("tree").innerHTML = empty(t("tree.no_selection", { message }));
   $("visuals").innerHTML = empty(t("visual.no_image_selected"));
   $("visualChooser").hidden = true;
   $("visualSelect").innerHTML = "";
   $("rangeSelect").innerHTML = `<option value="">${escapeHtml(t("ranges.no_part_selected"))}</option>`;
   $("rangeSelect").disabled = true;
-  $("ranges").innerHTML = empty(t("ranges.applicable_help"));
+  renderBrowseRangeIndex();
   $("selectedRange").textContent = t("fitment.selected_none");
   $("fitment").innerHTML = empty(t("fitment.browse_help"));
   $("vehicleLocation").innerHTML = empty(t("location.unavailable"));
@@ -491,8 +481,6 @@ function localizeError(error) {
 
 function refreshForLanguageChange() {
   i18n?.applyDocument();
-  if (!$("suitabilityPanel")?.hidden) void refreshSuitability($("partNumber").value,
-    Boolean($("availabilitySelect").checked));
   if (currentData) {
     renderResolvedData(currentData);
     $("searchStatus").textContent = t("search.resolved");
@@ -559,6 +547,15 @@ function setupViepsUi() {
       refreshForLanguageChange();
     });
   });
+  // The heading returns to the first-level catalogue index, without changing
+  // the independently selected Stock filter.
+  $("treeRootLink")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    $("partNumber").value = "";
+    pendingCandidateId = null;
+    clearSelectionUrl();
+    void browseTree(null);
+  });
   $("rangeSelect").addEventListener("change", renderSelectedRange);
   $("visualSelect").addEventListener("change", renderSelectedVisual);
   const loadRootBrowse = async (version, options = {}) => {
@@ -588,9 +585,9 @@ function setupViepsUi() {
   };
 
   $("partNumber").addEventListener("input", () => {
-    hideSuitability();
     const version = ++requestVersion;
     selectedTreeNodeId = null;
+    pendingCandidateId = null;
     cachedBrowseData = null;
     cachedCandidatesData = null;
     viewMode = "empty";
@@ -607,7 +604,6 @@ function setupViepsUi() {
   });
 
   const browseTree = async (nodeId = null, options = {}) => {
-    hideSuitability();
     const version = ++requestVersion;
     resetContext();
     viewMode = "empty";
@@ -649,11 +645,12 @@ function setupViepsUi() {
     event.preventDefault();
     const version = ++requestVersion;
     const partNumber = $("partNumber").value.trim();
-    hideSuitability();
-    if (partNumber) void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked));
+    const candidateId = pendingCandidateId;
+    const preservedCandidates = candidateId ? cachedCandidatesData : null;
+    pendingCandidateId = null;
     resetContext();
     cachedBrowseData = null;
-    cachedCandidatesData = null;
+    cachedCandidatesData = preservedCandidates;
     viewMode = "empty";
     $("searchStatus").className = "muted status-line";
     if (!partNumber) {
@@ -666,7 +663,7 @@ function setupViepsUi() {
     $("searchStatus").textContent = t("search.resolving");
     $("result").setAttribute("aria-busy", "true");
     try {
-      const data = await resolvePart(partNumber, Boolean($("availabilitySelect").checked));
+      const data = await resolvePart(partNumber, Boolean($("availabilitySelect").checked), candidateId);
       if (version !== requestVersion) return;
       if (data.state === "multiple_match") {
         cachedCandidatesData = data;
@@ -684,6 +681,7 @@ function setupViepsUi() {
       if (version !== requestVersion) return;
       resetContext("part.no_part_resolved");
       renderTree([], { roots: cachedRootData?.roots || [] });
+      if (String(error?.message || "") !== "part not found") renderApplicableState("error");
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
     } finally {
@@ -703,6 +701,7 @@ function setupViepsUi() {
   const initialTree = initialParams?.get("tree")?.trim();
   if (initialPart) {
     selectedTreeNodeId = initialTree || null;
+    pendingCandidateId = initialParams?.get("candidate_id")?.trim() || null;
     $("partNumber").value = initialPart;
     void submitSearch({ preventDefault() {} });
   } else if (initialTree) {
