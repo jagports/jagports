@@ -77,7 +77,7 @@ function browserSuitabilityResponse(params) {
   return {
     state: matches.length ? "applicable" : "no_match", fixture_mode: true,
     source_namespace: "fixture:pre-jepc-suitability:v1",
-    selected, categories, matches, excluded_occurrences: [], unavailable_occurrences: [],
+    selected, query: params.get("q") || "", categories, matches, excluded_occurrences: [], unavailable_occurrences: [],
     available_options: [...new Set(matches.flatMap((m) => m.values))].sort(),
   };
 }
@@ -412,6 +412,7 @@ try {
     if (!base) {
       await page.locator("#partNumber").fill("BRTEST");
       await page.locator("#partSearch").press("Enter");
+      await page.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
       const facet = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
       await facet.waitFor();
       if (width === 220) {
