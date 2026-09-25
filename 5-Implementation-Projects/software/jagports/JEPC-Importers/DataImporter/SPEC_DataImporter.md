@@ -6,7 +6,7 @@
 
 Define the current v0.1a command and evidence-staging behavior, followed by requirements for later catalogue transformation and publication. The runnable v0.1a procedure is in the [DataImporter README](README.md).
 
-**Implementation boundary:** v0.1a is a local Windows/Node.js parser. It stages up to 40 complete source-category bundles per run, preserves source evidence, and optionally inventories the matched source files. It does not maintain a processing ledger or normalized catalogue database, transform source rows into VIEPS entities, publish to D1, provide the progress screen described below, or implement the future safe-stop and recovery controls. Requirements below for those capabilities are future targets, not claims about v0.1a.
+**Implementation boundary:** v0.1a is a local Windows/Node.js parser. It stages up to 40 complete source-category bundles per run in `ledger.sqlite`, preserves source evidence and run history, and optionally inventories the matched source files into the same ledger. It does not maintain a normalized catalogue database, transform source rows into VIEPS entities, publish to D1, provide the progress screen described below, or implement the future safe-stop and recovery controls. Requirements below for those capabilities are future targets, not claims about v0.1a.
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
@@ -20,7 +20,7 @@ node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\s
 
 Run this command from the repository root. `--parse PATTERN` is required for every importer run. `PATTERN` must contain at least two characters and is matched as a source model-name fragment. `--estimate` is optional and valid only with `--parse`; it adds a source inventory to that run. The CLI rejects all other flags and all positional commands. An invocation without `--parse PATTERN` fails and prints the usage line.
 
-The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence goes under `%LOCALAPPDATA%\Jagports\JEPC-Importer`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters.
+The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence and run history go into `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters. Current runs write no separate source copies, category JSON files or estimate-report files. Earlier JSON staging output is left untouched and is not a second active store.
 
 ## Core operating principle
 
@@ -132,6 +132,23 @@ Language-qualified source trees must be preserved independently when JEPC struct
 
 Canonical PART identity may be shared across languages. Source node/path identity remains language-qualified unless deterministic equivalence is proven. Cross-language node or occurrence reconciliation is derived data, not an import assumption.
 
+### Applicability and JEPC branch descriptions
+
+These are separate layers, and each must be represented explicitly:
+
+| Layer | Meaning | Required representation |
+| --- | --- | --- |
+| Source branch | A JEPC non-PART row on an item's parent-child path, with a source node ID, parent ID, order, language and text such as `To VIN (A36873)`, `RHD`, `LH side`, `Except Japan`, `assembly` or `Supercharged`. | Preserve the exact row, source location and language-qualified ancestry. A branch can be a condition, catalogue role, presentation grouping or still unresolved. Do not classify every branch as a vehicle predicate. |
+| Source application | The PART leaf's source application ID and the matching keyed row in an available `Itm_*_attributes.xml` sidecar, together with model, category and top-level scope. | Join by exact application ID within the exact item sidecar; preserve raw tuples and report absent sidecars. One application can appear on multiple tree paths. |
+| Normalized applicability | A verified assertion for one occurrence and model context, expressed as complete alternative condition sets with typed dimensions, VIN/serial bounds, operators and evidence. | Produce only when the relevant source scopes, branch meanings and predicate mapping have been verified. Missing information yields an explicit unavailable/unresolved state, never unrestricted applicability. |
+| Fitment | Evaluation of normalized applicability against a supplied vehicle/configuration. | Return applicable, not applicable or unavailable with the supporting occurrence and reasons; it is a query result, not a permanent PART field. |
+
+The importer must keep source branch nodes as catalogue evidence and must **not** copy JEPC's decision-tree navigation as the VIEPS applicability engine. `LH side` and `RHD` are separate source terms; the former is not silently rewritten as vehicle steering. Sibling branches may be alternatives, and repeated application IDs do not alone determine Boolean `AND` or `OR`. The sidecar's tuple order is not a description dictionary. A part-number search must return all its occurrences and their source paths; a filtered browse must evaluate occurrence-level assertions, then project surviving PARTs.
+
+For a branch whose condition meaning is resolved, VIEPS shall store a stable normalized **description reference** for that meaning and present its localized label through an i18n mapping. The reference identifies the verified concept (for example steering/right-hand-drive), while the JEPC text remains a language-qualified source label with file/row provenance. The reference must not be minted from label spelling or treated as proof that all identically worded branches mean the same thing. Catalogue role descriptions that are not applicability conditions still receive source-language display records without being forced into a condition dimension. The UI may show a source label when a normalized reference is unresolved, but must expose its source/uncertain status and must not use it as a verified filter.
+
+For each selected bundle, look first for the corresponding JEPC language files under that same model/category/item scope. Match localized branch descriptions to a canonical occurrence only after comparing source row/node structure, PART number, application ID, ancestry and role; record the matched source file and line. Do **not** assume that identical node IDs across languages have identical meaning: in installed model `3173`, category `10036`, item `1`, node `11001` in `L0` heads an `LH side` path to `LJA3705AB`, while the `L-2` file uses that node for the opposite-side part `LJA3704AE`. If a localized label is absent or the local row differs, search other language files and nearby item/category files **within the selected model/category scope** for the PART/application and candidate wording. Record search scope, candidates and outcome in SQLite; do not scan the entire installation, invent a translation, or treat a failed search as an empty condition. Any unresolved mapping remains source text plus a missing/ambiguous localization state for later review.
+
 ## Catalogue occurrence-tree persistence target
 
 Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
@@ -224,7 +241,7 @@ A complete million-file scan must not be required for **any normal processing lo
 
 ### Optional source estimate
 
-An operator may explicitly run a slow, exhaustive **selected-model inventory** for the models matched by `--parse`. It traverses their drilldown directories and model menus, excluding shared media and other models. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed estimate must not alter parsed evidence. The report retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and sample details outside the source installation. The scan streams discovery instead of materializing the complete source file list in memory. The estimator function supports cooperative stopping, but the v0.1a CLI does not expose a stop control or guarantee a partial report when its process is interrupted.
+An operator may explicitly run a slow, exhaustive **selected-model inventory** for the models matched by `--parse`. It traverses their drilldown directories and model menus, excluding shared media and other models. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed estimate must not alter parsed evidence. The report is stored in `ledger.sqlite` and retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and sample details. The scan streams discovery instead of materializing the complete source file list in memory. The estimator function supports cooperative stopping, but the v0.1a CLI does not expose a stop control or guarantee a partial report when its process is interrupted.
 
 Every importer run requires `--parse PATTERN`. The source inventory is enabled only by adding the optional `--estimate` flag to that run; `--estimate` alone is invalid. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress.
 

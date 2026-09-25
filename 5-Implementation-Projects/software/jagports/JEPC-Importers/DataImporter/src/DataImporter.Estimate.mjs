@@ -1,9 +1,10 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, opendir, readFile, realpath, rename, stat, writeFile } from 'node:fs/promises';
+import { opendir, readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { createInterface } from 'node:readline';
+import { saveEstimate } from './DataImporter.Runtime.mjs';
 
 const within = (root, child) => {
   const relative = path.relative(root, child);
@@ -220,12 +221,8 @@ export async function estimateSource({ source, stateDir, range, modelPattern, mo
         d1BytesAdded: calibration.d1BytesAdded, importSeconds: calibration.importSeconds },
     };
   }
-  await mkdir(state, { recursive: true });
   const scopeName = range ?? `models-${createHash('sha256').update(modelPattern).digest('hex').slice(0, 12)}`;
-  const filename = path.join(state, `source-estimate-${scopeName}-${randomUUID()}.json`);
-  const temporary = `${filename}.tmp`;
-  await writeFile(temporary, `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
-  await rename(temporary, filename);
+  const stored = await saveEstimate(root, state, scopeName, result);
   progress(true);
-  return { filename, result };
+  return { ...stored, result };
 }

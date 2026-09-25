@@ -7,7 +7,7 @@ JEPC importer applications are Jagports software. Their implementation, tests an
 
 Keep application-specific code, tests and specifications inside the named application directory. Standard package metadata and README filenames remain scoped by that directory; executable modules and tests also carry the application name.
 
-DataImporter stages up to 40 complete category bundles per model-pattern run as local evidence, retaining raw file bytes, ordered records, and available applicability sidecars. Local staging is not catalogue import completion. Future transformation must interpret source decision paths and produce explicit destination application relationships. Source research remains in the [JLR JEPC research domain](../../../../7-Research/jlr/JEPC/KNOWLEDGE.md).
+DataImporter stages up to 40 complete category bundles per model-pattern run in its local `ledger.sqlite`, retaining raw file bytes, ordered records, and available applicability sidecars. Current runs do not write separate category or estimator report files. Local staging is not catalogue import completion. Future transformation must interpret source decision paths and produce explicit destination application relationships. Source research remains in the [JLR JEPC research domain](../../../../7-Research/jlr/JEPC/KNOWLEDGE.md).
 
 The local parsing input is a model-name pattern such as `--parse XK`. Match it as a case-insensitive literal substring against the installed source model XML and its parent links, include every matching leaf model, and report the exact Model_ID scope and incomplete categories. Selection remains in memory for the current run. Local staging does not publish to D1.
 

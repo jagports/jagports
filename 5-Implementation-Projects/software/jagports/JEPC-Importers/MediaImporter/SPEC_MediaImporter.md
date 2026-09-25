@@ -6,7 +6,7 @@
 
 Define the first implementation-ready operating contract for the Jagports JEPC MediaImporter.
 
-MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It is a local Windows/Node.js application that runs beside an installed JEPC source tree. Its ledger, safe-stop and reporting requirements are MediaImporter requirements; the current DataImporter v0.1a only stages local parsed evidence and does not provide a ledger or catalogue publication.
+MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It is a local Windows/Node.js application that runs beside an installed JEPC source tree. Its ledger, safe-stop and reporting requirements are MediaImporter requirements; the current DataImporter v0.1a stages parsed evidence in its own SQLite ledger but does not publish a catalogue.
 
 This specification does not establish hotspot coordinate conversion, redefine the canonical PART model, or make an inventory system authoritative for JEPC catalogue media.
 
@@ -101,7 +101,7 @@ The importer must not merge logical illustrations solely because their filenames
 
 ## DataImporter coordination
 
-Later DataImporter catalogue transformation is expected to interpret catalogue files and discover logical illustration IDs. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and eventual publication. The planned applications keep separate writable SQLite ledgers. The current DataImporter v0.1a has no writable SQLite ledger or automated media hand-off. The current MediaImporter accepts an explicit `--media-id` for bounded local work; any future automated hand-off requires a separately specified, reviewed contract.
+Later DataImporter catalogue transformation is expected to interpret catalogue files and discover logical illustration IDs. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and eventual publication. The applications keep separate writable SQLite ledgers. The current DataImporter v0.1a has no automated media hand-off. The current MediaImporter accepts an explicit `--media-id` for bounded local work; any future automated hand-off requires a separately specified, reviewed contract.
 
 ## Source resolution
 
@@ -206,7 +206,7 @@ The application must not build a complete in-memory installation inventory. It u
 
 ## Ledger requirements
 
-MediaImporter owns a local SQLite ledger separate from the planned DataImporter ledger. The MediaImporter ledger records at minimum:
+MediaImporter owns a local SQLite ledger separate from the DataImporter ledger. The MediaImporter ledger records at minimum:
 
 - run ID, state, owner PID, timestamps and application version;
 - source root and non-secret source fingerprint;

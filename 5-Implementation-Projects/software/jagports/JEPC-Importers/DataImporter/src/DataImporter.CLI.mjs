@@ -44,7 +44,8 @@ async function main() {
         } });
         summary.estimate = { state: estimate.result.state, files: estimate.result.inventory.files,
           bytes: estimate.result.inventory.bytes, elapsedSeconds: estimate.result.elapsedSeconds,
-          errors: estimate.result.inventory.errorCount, report: estimate.filename };
+          errors: estimate.result.inventory.errorCount, database: estimate.database,
+          reportId: estimate.id };
       } catch (error) { summary.estimate = { state: 'FAILED', error: safe(error.message) }; }
     }
     summary.staging = await parseSelection({ selection, stateDir, onProgress });

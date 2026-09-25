@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { matchingLeafModels, selectModelBundles } from '../src/DataImporter.Selection.mjs';
+import { openLedger } from '../src/DataImporter.Runtime.mjs';
 
 const TEST_MODEL_IDS = ['3187', '3183', '3178', '3173', '7420'];
 
@@ -92,6 +93,7 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.deepEqual(summary.modelIds, TEST_MODEL_IDS);
   assert.equal(summary.staging.bundles, 40);
   assert.equal(summary.staging.reused, 0);
+  assert.deepEqual(await readdir(options.stateDir), ['ledger.sqlite']);
   assert.equal((await readdir(options.stateDir)).some(name => name.includes('selection')), false);
   const second = run('xk');
   assert.equal(second.status, 0, second.stderr);
@@ -105,7 +107,9 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.ok(estimateSummary.files > 0);
   assert.ok(estimateSummary.bytes > 0);
   assert.ok(estimateSummary.elapsedSeconds >= 0);
-  const estimateReport = JSON.parse(await readFile(estimateSummary.report, 'utf8'));
+  const ledger = await openLedger(options.source, options.stateDir);
+  const estimateReport = ledger.readEstimate(estimateSummary.reportId);
+  ledger.close();
   assert.equal(estimateReport.modelPattern, 'XK');
   assert.equal(estimateReport.range, null);
 });

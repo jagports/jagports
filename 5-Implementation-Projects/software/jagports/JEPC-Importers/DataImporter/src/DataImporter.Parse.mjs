@@ -1,6 +1,7 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { readFile, realpath, stat, mkdir, writeFile, rename } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { openLedger } from './DataImporter.Runtime.mjs';
 
 export const PARSER_VERSION = 5;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -111,19 +112,6 @@ function sidecarFor(relative, language) {
   return relative.replace(`/L${language}/`, '/').replace(new RegExp(`_L${language}\\.xml$`), '_attributes.xml');
 }
 
-async function persistExact(filename, value) {
-  const serialized = `${JSON.stringify(value, null, 2)}\n`;
-  try {
-    const prior = await readFile(filename, 'utf8');
-    if (prior !== serialized) throw new Error(`Existing staged evidence differs from source: ${filename}`);
-    return true;
-  } catch (error) { if (error.code !== 'ENOENT') throw error; }
-  const temporary = `${filename}.${randomUUID()}.tmp`;
-  await writeFile(temporary, serialized, { flag: 'wx' });
-  await rename(temporary, filename);
-  return false;
-}
-
 export async function parseSelection({ selection, stateDir, onProgress }) {
   if (!selection || !stateDir) throw new Error('Require a selected source scope and state directory.');
   const { modelPattern, modelIds, bundles } = selection;
@@ -143,11 +131,13 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
     catch (error) { if (error.code !== 'ENOENT') throw error; ancestor = path.dirname(ancestor); }
   }
   if (within(root, state) || within(root, ancestor)) throw new Error('State directory must be outside source installation.');
-  const outputDir = path.join(state, 'model-staging', `parser-v${PARSER_VERSION}`);
-  await mkdir(outputDir, { recursive: true });
+  const ledger = await openLedger(root, state);
+  const runId = ledger.beginRun({ modelPattern, modelIds, parserVersion: PARSER_VERSION });
   const scope = { modelPattern, modelIds };
   const summary = { parserVersion: PARSER_VERSION, ...scope, phase: 'LOCAL_STAGING_ONLY',
-    bundles: 0, reused: 0, files: 0, records: 0, unknown: 0, missingOptionalSidecars: 0, statuses: {}, outputDir };
+    bundles: 0, reused: 0, files: 0, records: 0, unknown: 0, missingOptionalSidecars: 0, statuses: {},
+    database: ledger.filename, runId };
+  try {
   for (const bundle of bundles) {
     if (!/^\d+$/.test(bundle.model) || !/^\d+$/.test(bundle.category) || !/^\d{1,2}$/.test(bundle.language)
         || !Array.isArray(bundle.files) || bundle.files.length < 3) throw new Error('Invalid bundle identity or file list.');
@@ -181,10 +171,7 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
         parentModel: bundle.parentModel, parentModelLabel: bundle.parentModelLabel,
         categoryParent: bundle.categoryParent },
       status, files, missingOptionalSidecars: missingSidecars, unknown };
-    const evidenceHash = hash(Buffer.from(JSON.stringify(staged)));
-    const filename = path.join(outputDir, `M${bundle.model}`, `C${bundle.category}`, `L${bundle.language}`, `${evidenceHash}.json`);
-    await mkdir(path.dirname(filename), { recursive: true });
-    if (await persistExact(filename, staged)) summary.reused++;
+    if (ledger.storeBundle(runId, staged).reused) summary.reused++;
     summary.bundles++; summary.files += files.length;
     summary.records += files.reduce((count, file) => count + file.records.length, 0);
     summary.unknown += unknown.length;
@@ -193,5 +180,10 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
     onProgress?.({ phase: 'parsing', completed: summary.bundles, total: bundles.length,
       model: bundle.model });
   }
+  ledger.completeRun(runId, 'COMPLETED');
   return summary;
+  } catch (error) {
+    ledger.completeRun(runId, 'FAILED', error.message);
+    throw error;
+  } finally { ledger.close(); }
 }
