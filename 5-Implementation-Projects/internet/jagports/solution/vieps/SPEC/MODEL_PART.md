@@ -364,9 +364,9 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `part_diagram` | `idx_part_diagram_part`. |
 | occurrence applicability | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
 | source-qualified suitability descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. The unique source identity and revision pair also have SQLite-managed autoindexes. |
-| set-membership predicates (`0019`) | `idx_applicability_membership_lookup` for dimension/value/operator lookup; occurrence-scoped FK is via the condition-set relationship. |
+| source-to-occurrence description evidence (`0019`) | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookup; domain label tables use language-qualified composite primary keys. |
 
-The `0019` mapping relation preserves immutable source-qualified description text and append-only mapping revisions. A current-mapping view resolves the highest revision per source identity; the original `0016` scalar predicate tables are retained, while set-membership records support independently evidenced simultaneous seat equipment. These are persistence contracts only: fixture verification does not establish imported JEPC applicability or a completed production evaluator.
+The `0019` mapping relation preserves immutable source-qualified description text, language-qualified normalized domain labels and append-only mapping revisions. A current-mapping view resolves the highest revision per source identity. Separate immutable source-to-condition-set evidence records preserve occurrence context for distinct descriptions, including coexisting seat equipment, without adding an inferred condition operator. The original `0016` scalar predicate tables are unchanged. Synthetic fixtures are isolated test evidence; neither their mappings nor their explicit occurrence associations establish imported JEPC applicability.
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID.
 
