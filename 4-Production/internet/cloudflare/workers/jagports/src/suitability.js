@@ -68,7 +68,7 @@ export async function handleViepsSuitability(request, env) {
   // Publish only current mappings with complete source and requested-domain
   // language metadata. Same-looking source records retain distinct identities.
   const mappings = (await db.prepare(
-    \`SELECT m.id AS mapping_revision_id, sd.id AS source_description_id,
+    `SELECT m.id AS mapping_revision_id, sd.id AS source_description_id,
        sd.source_namespace, sd.dataset_key, sd.source_key, sd.source_language,
        sd.source_group_code, sd.source_value_code, sd.source_model_ref,
        sd.source_category_ref, sd.source_item_ref, sd.source_tree_path,
@@ -86,7 +86,7 @@ export async function handleViepsSuitability(request, env) {
        AND vl.value_code = v.value_code AND vl.language = ?
      WHERE sd.source_namespace = ? AND sd.provenance_kind = 'fixture'
        AND m.status = 'fixture'
-     ORDER BY d.code, m.value_code, sd.id\`
+     ORDER BY d.code, m.value_code, sd.id`
   ).bind(language, language, SOURCE).all()).results || [];
   if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
       !m.value_name || !m.value_description || !m.source_language ||
@@ -125,7 +125,7 @@ export async function handleViepsSuitability(request, env) {
   }
   const categories = [...categoriesByCode.values()];
   const assertions = (await db.prepare(
-    \`SELECT a.id, a.part_occurrence_id, a.effect, a.verification, a.coverage,
+    `SELECT a.id, a.part_occurrence_id, a.effect, a.verification, a.coverage,
        c.verification AS context_verification, c.source_model_id AS model_context,
        p.id AS part_id, p.part_number_normalized AS part_number,
        p.description AS description, o.source_ref AS occurrence_key
@@ -140,18 +140,18 @@ export async function handleViepsSuitability(request, env) {
        OR instr(upper(COALESCE(p.description, '')), upper(?)) > 0)
        AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item st
          WHERE st.part_id = p.id AND st.available = 1 AND st.quantity > 0))
-     ORDER BY p.id, o.id, a.id\`
+     ORDER BY p.id, o.id, a.id`
   ).bind(SOURCE, SOURCE, SOURCE, q, q, q, stockOnly).all()).results || [];
   if (!assertions.length) return send(empty('no_match', selectedIds, categories, q));
   const sets = (await db.prepare(
-    \`SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
-       FROM applicability_condition_set WHERE assertion_id IN (\${assertions.map(() => '?').join(',')})\`
+    `SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
+       FROM applicability_condition_set WHERE assertion_id IN (${assertions.map(() => '?').join(',')})`
   ).bind(...assertions.map((a) => a.id)).all()).results || [];
   const byAssertion = new Map(), tagsBySet = new Map();
   for (const set of sets) put(byAssertion, set.assertion_id, set);
   if (sets.length) {
     const tags = (await db.prepare(
-      \`SELECT se.set_id, se.mapping_revision_id, se.verification,
+      `SELECT se.set_id, se.mapping_revision_id, se.verification,
          m.id AS current_id, m.status, d.code AS dimension, m.value_code,
          sd.source_namespace, sd.provenance_kind, sd.source_model_ref,
          dl.name AS dimension_name, vl.name AS value_name
@@ -168,7 +168,7 @@ export async function handleViepsSuitability(request, env) {
        LEFT JOIN applicability_dimension_value_label vl
          ON vl.dimension_id = d.id AND vl.value_code = m.value_code
          AND vl.language = ?
-       WHERE se.set_id IN (\${sets.map(() => '?').join(',')})\`
+       WHERE se.set_id IN (${sets.map(() => '?').join(',')})`
     ).bind(language, language, ...sets.map((s) => s.id)).all()).results || [];
     for (const tag of tags) put(tagsBySet, tag.set_id, tag);
   }
