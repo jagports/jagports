@@ -46,6 +46,7 @@
                 <input id="partNumber" name="partNumber" autocomplete="off" data-i18n-placeholder="search.input_placeholder" data-i18n-aria-label="search.input_aria">
                 <button type="submit" data-i18n="common.search"></button>
               </form>
+              <p id="searchStatus" class="muted status-line" role="status"></p>
             </div>
             <div class="availability-block">
               <span data-i18n="common.availability"></span>
@@ -62,43 +63,58 @@
               <p id="availabilityStatus" class="visually-hidden" data-i18n="stock.filter_on_stock_note"></p>
             </div>
           </div>
-          <section id="suitabilityPanel" aria-labelledby="suitabilityHeading" hidden style="min-width:0;margin-top:0.5rem">
-            <div class="section-heading"><h3 id="suitabilityHeading">Suitability / Variations (synthetic fixtures)</h3></div>
-            <div id="suitabilityChoices" role="group" aria-label="Suitability filters" style="display:flex;align-items:start;gap:0.75rem;overflow-x:auto;max-width:100%;padding:0.35rem 0"></div>
-            <p id="suitabilityStatus" class="muted compact-note" role="status" aria-live="polite"></p>
-            <div id="suitabilityResults" class="muted compact-note" aria-live="polite"></div>
-          </section>
-          <p id="searchStatus" class="muted status-line" role="status"></p>
         </section>
     </div>
     <div id="result" class="concept-grid">
-
-      <section class="panel tree-panel" aria-labelledby="tree-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="tree.catalogue_context"></p><h2 id="tree-heading" data-i18n="tree.heading"></h2></div>
-        <div id="tree" tabindex="0"></div>
-      </section>
-      <section class="panel ranges-panel" aria-labelledby="ranges-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="fitment.applicability"></p><h2 id="ranges-heading" data-i18n="ranges.heading"></h2></div>
-        <label for="rangeSelect" data-i18n="ranges.label"></label>
-        <select id="rangeSelect" disabled></select>
-        <div id="ranges"></div>
-      </section>
-      <section class="panel location-panel" aria-labelledby="location-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="location.main_view"></p><h2 id="location-heading" data-i18n="location.heading"></h2></div>
-        <div id="vehicleLocation" class="vehicle-location-canvas"></div>
-        <p id="locationStatus" class="muted compact-note"></p>
-      </section>
-      <section class="panel fitment-panel" aria-labelledby="fitment-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="fitment.applicability"></p><h2 id="fitment-heading" data-i18n="fitment.heading"></h2></div>
-        <p id="selectedRange" class="muted"></p>
-        <div id="fitment"></div>
-      </section>
-      <section class="panel visual-panel" aria-labelledby="visual-heading">
-        <div class="section-heading"><p class="eyebrow" data-i18n="visual.main_view"></p><h2 id="visual-heading" data-i18n="visual.heading"></h2></div>
-        <div id="partCard" class="card"></div>
-        <div id="visualChooser" hidden><label for="visualSelect" data-i18n="visual.chooser_label"></label><select id="visualSelect"></select></div>
-        <div id="visuals"></div>
-      </section>
+      <div class="left-workspace">
+        <section class="panel tree-panel" aria-labelledby="tree-heading">
+          <div class="section-heading"><h2 id="tree-heading"><a id="treeRootLink" href="?" data-i18n="tree.heading"></a></h2></div>
+          <nav id="tree" aria-label="Parts Tree" tabindex="0"></nav>
+        </section>
+      </div>
+      <div class="centre-workspace">
+        <section class="panel vin-panel" aria-labelledby="vin-heading">
+          <h2 id="vin-heading" data-i18n="header.vin"></h2>
+          <label class="visually-hidden" for="vinInput" data-i18n="header.vin"></label>
+          <input id="vinInput" type="text" disabled aria-describedby="unsupportedControlsNote" data-i18n-placeholder="header.vin_pending" data-i18n-title="header.not_yet_supported">
+          <h2 data-i18n="header.variations_filter"></h2>
+          <label class="visually-hidden" for="variationsSelect" data-i18n="header.variations_filter"></label>
+          <select id="variationsSelect" disabled aria-describedby="unsupportedControlsNote" data-i18n-title="header.not_yet_supported"><option data-i18n="header.filter_pending"></option></select>
+          <p id="unsupportedControlsNote" class="muted compact-note" data-i18n="header.not_yet_supported"></p>
+        </section>
+        <div class="centre-detail">
+          <section class="panel location-panel" aria-labelledby="location-heading">
+            <div class="section-heading"><h2 id="location-heading" data-i18n="location.heading"></h2></div>
+            <div id="vehicleLocation" class="vehicle-location-canvas"></div>
+            <p id="locationStatus" class="muted compact-note"></p>
+          </section>
+          <section class="panel visual-panel" aria-labelledby="visual-heading">
+            <div class="section-heading"><h2 id="visual-heading" data-i18n="visual.heading"></h2></div>
+            <div id="partCard" class="card"></div>
+            <div id="visualChooser" hidden><label for="visualSelect" data-i18n="visual.chooser_label"></label><select id="visualSelect"></select></div>
+            <div id="visuals"></div>
+            <section class="fitment-panel" aria-labelledby="fitment-heading">
+              <h2 id="fitment-heading" data-i18n="fitment.heading"></h2>
+              <p id="selectedRange" class="muted"></p>
+              <div id="fitment"></div>
+            </section>
+          </section>
+        </div>
+      </div>
+      <div class="right-workspace">
+        <section class="panel results-panel" aria-labelledby="results-heading">
+          <h2 id="results-heading" data-i18n="header.results_heading"></h2>
+          <div id="searchResults" class="results-scroll" role="region" tabindex="0" data-i18n-aria-label="header.results_heading"></div>
+        </section>
+        <section class="panel ranges-panel" aria-labelledby="ranges-heading">
+          <div class="section-heading"><h2 id="ranges-heading" data-i18n="header.applicable_models"></h2></div>
+          <div id="ranges" class="ranges-scroll" role="region" tabindex="0" data-i18n-aria-label="header.applicable_models"></div>
+          <div id="rangeDetails">
+            <label for="rangeSelect" data-i18n="ranges.label"></label>
+            <select id="rangeSelect" disabled></select>
+          </div>
+        </section>
+      </div>
     </div>
   </main>
   <script src="i18n-resources.js"></script>
