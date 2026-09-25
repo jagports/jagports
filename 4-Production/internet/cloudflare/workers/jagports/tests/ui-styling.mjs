@@ -10,7 +10,7 @@ const css = readFileSync(new URL('../styles/vieps-tailwind.css', import.meta.url
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
-function harness(fetch, { initialSearch = '', rootFetch } = {}) {
+function harness(fetch, { initialSearch = '', rootFetch, suitabilityFetch } = {}) {
   const requests = [];
   const location = { pathname: '/vieps', search: initialSearch, hash: '#browse' };
   const history = { replaceState(_state, _title, path) {
@@ -20,6 +20,7 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
   } };
   const routedFetch = (url) => {
     requests.push(url);
+    if (url.startsWith('/api/vieps/suitability?') && suitabilityFetch) return Promise.resolve(suitabilityFetch(url));
     if (url.startsWith('/api/vieps/suitability?')) return Promise.resolve(response({
       state: 'unavailable', fixture_mode: false, categories: [], matches: [],
     }, false));
@@ -635,6 +636,37 @@ test('#895 future VIN remains disabled while upper variations has a labelled gro
   assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   assert.ok(en.header.not_yet_supported && fi.header.not_yet_supported);
   assert.ok(en.header.variations_filter && fi.header.variations_filter);
+});
+
+test('#641 fixture-reader unavailable does not silently remove unverified catalogue candidates', async () => {
+  const parts = [
+    { id: 10, part_number_normalized: 'TEST1', description: 'Existing candidate' },
+    { id: 11, part_number_normalized: 'TEST2', description: 'Uncovered candidate' },
+  ];
+  const ui = harness(async () => response({
+    state: 'multiple_match', query: 'TEST', matches: parts,
+    tree_roots: [{ node_id: 1, label: 'Parent' }],
+    parts_tree: parts.map(part => ({part_id:part.id, nodes:[{node_id:1,label:'Parent'}]})),
+  }), {
+    suitabilityFetch: () => response({
+      fixture_mode: true, state: 'unavailable', reason: 'non_fixture_search_context',
+      selected: ['body:coupe'], categories: [{ code: 'body', name: 'Body', values: [
+        { id: 'body:coupe', name: 'Coupe', description: 'Fixture-only', source_descriptions: [] },
+      ] }], matches: [], available_options: [],
+    }),
+  });
+  await ui.search('TEST');
+  await flush();
+  ui.get('variationOptions').listeners.change({
+    target: { dataset: { suitabilityFacet: 'body:coupe' }, checked: true },
+  });
+  await flush();
+  const visible = ui.get('searchResults').innerHTML;
+  assert.match(visible, /data-result-part-id="10"/);
+  assert.match(visible, /data-result-part-id="11"/);
+  assert.match(ui.get('tree').innerHTML, /TEST1/);
+  assert.match(ui.get('tree').innerHTML, /TEST2/);
+  assert.match(ui.get('variationsStatus').textContent, /unavailable|incomplete/i);
 });
 
 test('#875 disabled bookmarks remain separate from row selection across English/Finnish', async () => {
