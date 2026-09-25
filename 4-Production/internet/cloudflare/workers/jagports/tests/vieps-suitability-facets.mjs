@@ -115,6 +115,26 @@ test('available options follow positively surviving occurrences and never expose
   assert.deepEqual(empty.available_options, []);
 });
 
+test('fixture facet reader shares canonical source-occurrence free-text candidate lookup', async (t) => {
+  const { request } = fixture(t);
+  // O-A is a source occurrence reference, not part of the fixture PN/description.
+  // The canonical /api/vieps/part search already accepts this query.
+  const result = await request([], { q: 'O-A' });
+  assert.equal(result.status, 200);
+  assert.deepEqual(keys(result.body), ['O-A', 'O-B']);
+  assert.equal(result.body.state, 'applicable');
+});
+
+test('fixture evaluator never declares a real or other-namespace search candidate unsuitable', async (t) => {
+  const { request } = fixture(t);
+  const { status, body } = await request(['body:coupe'], { q: 'MJB7703AA' });
+  assert.equal(status, 200);
+  assert.equal(body.state, 'unavailable');
+  assert.equal(body.reason, 'non_fixture_search_context');
+  assert.deepEqual(body.matches, []);
+  assert.deepEqual(body.available_options, []);
+});
+
 test('invalid facet IDs, unsupported query, stock-only filtering, and non-GET are handled deterministically', async (t) => {
   const { env, request } = fixture(t);
   for (const [facets, opts, code] of [
