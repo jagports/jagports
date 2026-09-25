@@ -1,3 +1,6 @@
+import { normalizePartNumber } from './part.js';
+import { findPartCandidates } from './vieps.js';
+
 // Fixture-only, source-qualified normalized suitability read contract (#641/#877).
 // Never evaluate imported JEPC descriptions as predicates until #354/#355
 // provide reviewed occurrence mapping and operator semantics.
@@ -126,6 +129,17 @@ export async function handleViepsSuitability(request, env) {
     if (![...values].every((v) => published.has(facetId(d, v)))) return invalid('facet_unknown');
   }
   const categories = [...categoriesByCode.values()];
+  // Match exactly the bounded candidate universe produced by /api/vieps/part.
+  // Source or occurrence free-text searches must not disappear from Suitability.
+  const searched = q ? (await findPartCandidates(env, q, normalizePartNumber(q))).candidates : null;
+  const eligibleCandidates = searched === null ? null : searched.filter((part) =>
+    stockOnly !== '1' || Number(part.has_available_stock) === 1);
+  const candidateIds = eligibleCandidates?.map((part) => Number(part.id)) || [];
+  if (searched !== null && candidateIds.length === 0) {
+    return send(empty('no_match', selectedIds, categories, q));
+  }
+  const searchClause = searched === null ? '1=1'
+    : `p.id IN (${candidateIds.map(() => '?').join(',')})`;
   const assertions = (await db.prepare(
     `SELECT a.id, a.part_occurrence_id, a.effect, a.verification, a.coverage,
        c.verification AS context_verification, c.source_model_id AS model_context,
@@ -138,12 +152,17 @@ export async function handleViepsSuitability(request, env) {
      JOIN part p ON p.id = o.part_id AND p.verification_status = 'fixture'
      JOIN applicability_model_context c ON c.id = a.model_context_id
        AND c.source_namespace = ?
-     WHERE (? = '' OR instr(upper(COALESCE(p.part_number_normalized, '')), upper(?)) > 0
-       OR instr(upper(COALESCE(p.description, '')), upper(?)) > 0)
+     WHERE ${searchClause}
        AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item st
          WHERE st.part_id = p.id AND st.available = 1 AND st.quantity > 0))
      ORDER BY p.id, o.id, a.id`
-  ).bind(SOURCE, SOURCE, SOURCE, q, q, q, stockOnly).all()).results || [];
+  ).bind(SOURCE, SOURCE, SOURCE, ...candidateIds, stockOnly).all()).results || [];
+  // A source-limited fixture evaluator cannot declare non-fixture candidates
+  // in the same public search unsuitable. Fail closed for the whole query.
+  const covered = new Set(assertions.map((row) => Number(row.part_id)));
+  if (searched !== null && candidateIds.some((id) => !covered.has(id))) {
+    return send(empty('unavailable', selectedIds, categories, q, 'non_fixture_search_context'));
+  }
   if (!assertions.length) return send(empty('no_match', selectedIds, categories, q));
   const sets = (await db.prepare(
     `SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
