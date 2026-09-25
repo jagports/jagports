@@ -143,7 +143,7 @@ npx wrangler d1 migrations list jagports --remote
 npx wrangler d1 execute jagports --remote --command "SELECT name FROM sqlite_schema WHERE type='table' AND name IN ('applicability_source_description','applicability_description_mapping_revision','applicability_dimension_retirement','applicability_suitability_admin_audit') ORDER BY name;"
 ~~~
 
-Check that the remote ledger lists both **applied** migrations `0019_suitability_description_mapping.sql` and `0020_suitability_admin.sql`; the SQL query must return all four listed tables. This read-only check is part of the [Worker/D1 upgrade procedure](../../cloudflare/workers/jagports/Cloudflare_Worker_D1_Upgrade_Guide.md). If migrations are pending, use the separately authorized procedure there; do not create a new database or run arbitrary fixture SQL in remote D1.
+Check that the remote ledger lists both **applied** migrations `0019_suitability_description_mapping.sql` and `0020_suitability_admin.sql`; the SQL query must return all four listed tables. This read-only check is part of the [Worker/D1 upgrade procedure](../../../cloudflare/workers/jagports/Cloudflare_Worker_D1_Upgrade_Guide.md). If migrations are pending, use the separately authorized procedure there; do not create a new database or run arbitrary fixture SQL in remote D1.
 
 Once the intended Worker version and D1 schema are verified, run the existing remote application and deployed-asset tests. From the Worker root in PowerShell:
 
