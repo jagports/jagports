@@ -30,6 +30,22 @@ if (!baseUrl) {
     assert.equal(data.database, "ok");
   });
 
+  test("shared Worker keeps pre-JEPC suitability fixtures unpublished", async () => {
+    const response = await fetch(`${baseUrl}/api/vieps/suitability`);
+    assert.equal(response.status, 503, "fixture-only suitability must not publish synthetic matches");
+    const data = await response.json();
+    assert.equal(data.state, "unavailable");
+    assert.equal(data.fixture_mode, false);
+    assert.equal(data.reason, "normalized_suitability_not_published");
+  });
+
+  test("Suitability Admin API requires authorization on deployed Worker", async () => {
+    const response = await fetch(`${baseUrl}/api/admin/suitability`);
+    assert.equal(response.status, 401, "public users must not read Admin mappings");
+    const data = await response.json();
+    assert.equal(data.error_code, "authorization_required");
+  });
+
   test("canonical part search returns VIEPS context", async () => {
     const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
     assert.equal(response.status, 200);
