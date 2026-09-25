@@ -148,17 +148,12 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
       assert.ok(db.prepare(`SELECT 1 FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1`).get(), `fixture for ${name}.${fk.from}`);
       // Immutable evidence/revision tables deliberately reject UPDATE before
       // SQLite reaches FK enforcement. Exercise their FK with INSERT below.
-      if (name === 'applicability_source_description' || name === 'applicability_description_mapping_revision') {
+      if (name === 'applicability_source_description' || name === 'applicability_description_mapping_revision' || name === 'applicability_set_description_evidence') {
         const immutability = name === 'applicability_source_description'
           ? /source descriptions are immutable/
-          : /mapping revisions are immutable/;
+          : name === 'applicability_description_mapping_revision'
+            ? /mapping revisions are immutable/ : /description evidence is immutable/;
         rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, immutability);
-      } else if (fk.from === 'dimension_id' && name === 'applicability_set_membership_condition') {
-        // The new cardinality trigger rejects a missing/non-set dimension
-        // before SQLite performs its FK check.
-        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /(membership requires set dimension|FOREIGN KEY constraint failed)/);
-      } else if (fk.from === 'dimension_id' && name === 'applicability_attribute_condition') {
-        rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /(scalar condition requires scalar dimension|FOREIGN KEY constraint failed)/);
       } else {
         rejected(db, `UPDATE ${quote(name)} SET ${quote(fk.from)}=-999999 WHERE rowid=(SELECT rowid FROM ${quote(name)} WHERE ${quote(fk.from)} IS NOT NULL LIMIT 1)`, /FOREIGN KEY constraint failed/);
       }
@@ -180,7 +175,7 @@ test('every declared foreign key rejects an invalid parent at runtime', (t) => {
     source_description_id,revision,dimension_id,value_code,status,
     mapping_version,evidence_note
   ) VALUES(87701,2,87701,'nonexistent','proposed','fk-probe','unknown value')`, /FOREIGN KEY constraint failed/);
-  assert.ok(checked >= 49, 'each populated FK is exercised, including additive mapping relationships');
+  assert.ok(checked >= 49, 'each populated FK is exercised, including source-description mappings and language labels');
 });
 
 test('canonical and relationship uniqueness reject duplicate populated identities', (t) => {
