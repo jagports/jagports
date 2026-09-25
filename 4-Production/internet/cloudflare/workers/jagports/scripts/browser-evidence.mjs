@@ -439,6 +439,95 @@ try {
   assert.ok(g.pageWidth <= g.viewport.width + 1, "landscape horizontal overflow");
   assert.ok(g.content.height >= 40, "landscape content became inaccessible");
   await page.screenshot({ path: evidenceDir + "mobile-landscape.png" });
+  // The same existing #893 browser workflow also verifies the real one-page
+  // Admin layout and source-qualified mapping controls without publishing fixtures.
+  if (!base) {
+    const auditWrites = [];
+    const originalSource = {
+      id: 87709, original_text: "Coupe", source_language: "en",
+      source_namespace: "fixture:pre-jepc-suitability:v1",
+      dataset_key: "browser", source_key: "body/group-2",
+      source_group_code: "Body-2", source_model_ref: "X100",
+      record_locator: "browser/body/group-2", provenance_kind: "fixture",
+      status: "proposed", revision: 1, dimension_id: 87701,
+      value_code: "coupe", mapping_version: "browser-v1",
+      evidence_note: "Unresolved source sample",
+    };
+    let currentSource = { ...originalSource };
+    const fulfil = (route, body) => route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify(body),
+    });
+    await page.route("**/api/**", async (route) => {
+      const request = route.request(), url = new URL(request.url), path = url.pathname;
+      if (path === "/api/stock-meta") {
+        await fulfil(route, { locations: [], source_parties: [], vehicles: [] });
+      } else if (path === "/api/stock") {
+        await fulfil(route, { results: [] });
+      } else if (path === "/api/admin/suitability" && request.method() === "GET") {
+        await fulfil(route, {
+          categories: [{
+            id: 87701, code: "body", name_en: "Body", name_fi: "Kori",
+            description_en: "Body shape", description_fi: "Korin muoto",
+          }],
+          values: [{
+            dimension_id: 87701, value_code: "coupe",
+            name_en: "Coupe", name_fi: "Coupé",
+            description_en: "Coupe body", description_fi: "Coupé-kori",
+          }],
+          sources: [currentSource], next_offset: null,
+        });
+      } else if (path === "/api/admin/suitability/mappings" && request.method() === "POST") {
+        const body = JSON.parse(request.postData());
+        auditWrites.push(body);
+        currentSource = { ...currentSource, status: body.status,
+          revision: currentSource.revision + 1, mapping_version: body.mapping_version,
+          evidence_note: body.evidence_note, reviewer_ref: body.reviewer_ref };
+        await fulfil(route, { mapping: { revision: currentSource.revision,
+          status: currentSource.status } });
+      } else if (path === "/api/admin/suitability/history") {
+        await fulfil(route, { source_description_id: currentSource.id, audit: [],
+          revisions: [
+            { revision: 1, status: "proposed", mapping_version: "browser-v1",
+              evidence_note: "Unresolved source sample" },
+            { revision: 2, status: currentSource.status,
+              mapping_version: currentSource.mapping_version,
+              evidence_note: currentSource.evidence_note },
+          ] });
+      } else await route.continue();
+    });
+    await page.setViewportSize({ width: 1240, height: 860 });
+    await page.goto(local.url + "stock-admin.html", { waitUntil: "load" });
+    await page.locator("#adminToken").fill("browser-admin-test");
+    await page.locator("#accessForm button[type=submit]").click();
+    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
+    assert.match(await page.locator("#suitabilitySourceDetails").textContent(),
+      /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
+      "Admin must show raw text and its distinct source namespace and group");
+    await page.locator("#suitabilityMappingStatus").selectOption("conflict");
+    await page.locator("#suitabilityMappingVersion").fill("browser-v2");
+    await page.locator("#suitabilityEvidenceNote").fill("Group requires separate verification");
+    await page.locator("#suitabilityMappingForm button[type=submit]").click();
+    await page.locator("#suitabilityAdminStatus").filter({ hasText: "Catalogue change saved" }).waitFor();
+    assert.equal(auditWrites.length, 1, "Admin must submit exactly one new mapping revision");
+    assert.equal(auditWrites[0].source_description_id, 87709,
+      "mapping must use immutable source ID, not display text");
+    assert.equal(auditWrites[0].status, "conflict",
+      "unverified fixture description must not become verified JEPC");
+    assert.equal(currentSource.original_text, "Coupe");
+    await page.locator("#suitabilityShowHistory").click();
+    await page.locator("#suitabilityHistory li").last().waitFor();
+    assert.equal(await page.locator("#suitabilityHistory li").count(), 2,
+      "Admin must show historic and current interpretation separately");
+    await page.screenshot({ path: evidenceDir + "admin-suitability-desktop.png", fullPage: true });
+    await page.locator('[data-language="fi"]').click();
+    assert.match(await page.locator("#suitabilityAdminHeading").textContent(), /Soveltuvuusluokat/);
+    await page.setViewportSize({ width: 320, height: 780 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
+      "Admin must not cause horizontal overflow on 320px mobile");
+    await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    console.log("PASS: one-page Admin source-qualified mappings, history, EN/FI, mobile and screenshots");
+  }
+
   console.log("PASS: #875 desktop/tablet/mobile geometry, synchronized PART selection, independent scrolling, accessibility and screenshots");
   console.log("Evidence directory: " + evidenceDir);
   if (!base) console.log("Scope: built local UI, not a verified deployed Worker or real device soft keyboard");
