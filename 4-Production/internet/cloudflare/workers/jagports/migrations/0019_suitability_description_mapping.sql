@@ -2,11 +2,6 @@ PRAGMA foreign_keys = ON;
 
 -- #641 / #877: additive normalized suitability metadata and source-description
 -- mapping. No JEPC records or synthetic fixture assertions are seeded here.
--- Existing scalar dimensions retain their behavior by default.
-ALTER TABLE applicability_dimension
-  ADD COLUMN cardinality TEXT NOT NULL DEFAULT 'scalar'
-  CHECK (cardinality IN ('scalar', 'set'));
-
 -- Immutable imported/fixture source descriptions are distinct from normalized
 -- dimension/value identities. Equal wording never implies equal source meaning.
 CREATE TABLE applicability_source_description (
@@ -18,6 +13,8 @@ CREATE TABLE applicability_source_description (
   source_group_code TEXT,
   source_value_code TEXT,
   source_model_ref TEXT,
+  source_category_ref TEXT,
+  source_item_ref TEXT,
   source_tree_path TEXT,
   record_locator TEXT NOT NULL CHECK (TRIM(record_locator) <> ''),
   original_text TEXT NOT NULL CHECK (TRIM(original_text) <> ''),
@@ -59,82 +56,68 @@ WHERE r.revision = (
 CREATE INDEX idx_applicability_mapping_dimension
   ON applicability_description_mapping_revision(dimension_id, value_code, status);
 
--- Two positive membership conditions may coexist on one complete alternative.
--- This does NOT make an assertion verified or evaluate occurrence suitability.
-CREATE TABLE applicability_set_membership_condition (
-  id INTEGER PRIMARY KEY,
-  set_id INTEGER NOT NULL REFERENCES applicability_condition_set(id),
+-- Language-qualified domain labels are separate from the raw JEPC description text.
+-- UI chrome itself is translated through EN/FI i18next resources.
+CREATE TABLE applicability_dimension_label (
   dimension_id INTEGER NOT NULL REFERENCES applicability_dimension(id),
-  operator TEXT NOT NULL CHECK (operator IN ('contains', 'not_contains')),
+  language TEXT NOT NULL CHECK (TRIM(language) <> ''),
+  name TEXT NOT NULL CHECK (TRIM(name) <> ''),
+  description TEXT NOT NULL CHECK (TRIM(description) <> ''),
+  PRIMARY KEY (dimension_id, language)
+);
+CREATE TABLE applicability_dimension_value_label (
+  dimension_id INTEGER NOT NULL,
   value_code TEXT NOT NULL,
-  evidence_id INTEGER REFERENCES applicability_evidence(id),
+  language TEXT NOT NULL CHECK (TRIM(language) <> ''),
+  name TEXT NOT NULL CHECK (TRIM(name) <> ''),
+  description TEXT NOT NULL CHECK (TRIM(description) <> ''),
   FOREIGN KEY (dimension_id, value_code)
     REFERENCES applicability_dimension_value(dimension_id, value_code),
-  UNIQUE (set_id, dimension_id, operator, value_code)
+  PRIMARY KEY (dimension_id, value_code, language)
 );
-CREATE INDEX idx_applicability_membership_lookup
-  ON applicability_set_membership_condition(dimension_id, value_code, operator);
 
--- A condition set explicitly declared unconditional cannot also carry
--- membership conditions, matching the pre-existing scalar protection.
-CREATE TRIGGER applicability_no_unconditional_membership_insert
-BEFORE INSERT ON applicability_set_membership_condition
-WHEN EXISTS (
-  SELECT 1 FROM applicability_condition_set
-  WHERE id = NEW.set_id AND unconditional = 1
-)
-BEGIN SELECT RAISE(ABORT, 'unconditional set cannot contain membership'); END;
-CREATE TRIGGER applicability_no_unconditional_membership_update
-BEFORE UPDATE OF set_id ON applicability_set_membership_condition
-WHEN EXISTS (
-  SELECT 1 FROM applicability_condition_set
-  WHERE id = NEW.set_id AND unconditional = 1
-)
-BEGIN SELECT RAISE(ABORT, 'unconditional set cannot contain membership'); END;
-CREATE TRIGGER applicability_no_unconditional_set_with_membership
-BEFORE UPDATE OF unconditional ON applicability_condition_set
-WHEN NEW.unconditional = 1 AND EXISTS (
-  SELECT 1 FROM applicability_set_membership_condition WHERE set_id = OLD.id
-)
-BEGIN SELECT RAISE(ABORT, 'conditional set contains membership'); END;
-
--- Keep scalar and set condition storage disjoint. Existing dimensions are
--- scalar until an explicitly reviewed category changes its cardinality.
-CREATE TRIGGER applicability_membership_set_dimension_insert
-BEFORE INSERT ON applicability_set_membership_condition
+-- Explicit evidence that a given source description occurs inside ONE
+-- source-qualified condition alternative. This is not a predicate operator.
+-- Interpretation is kept in the referenced, append-only mapping revision.
+CREATE TABLE applicability_set_description_evidence (
+  set_id INTEGER NOT NULL REFERENCES applicability_condition_set(id),
+  mapping_revision_id INTEGER NOT NULL REFERENCES applicability_description_mapping_revision(id),
+  evidence_id INTEGER NOT NULL REFERENCES applicability_evidence(id),
+  verification TEXT NOT NULL CHECK (verification IN ('fixture', 'verified')),
+  PRIMARY KEY (set_id, mapping_revision_id, evidence_id)
+);
+CREATE INDEX idx_applicability_set_description_mapping
+  ON applicability_set_description_evidence(mapping_revision_id, set_id);
+CREATE TRIGGER applicability_set_description_scope_insert
+BEFORE INSERT ON applicability_set_description_evidence
 WHEN NOT EXISTS (
-  SELECT 1 FROM applicability_dimension
-  WHERE id = NEW.dimension_id AND cardinality = 'set'
+  SELECT 1 FROM applicability_condition_set cs
+  JOIN occurrence_applicability a ON a.id = cs.assertion_id
+  JOIN applicability_snapshot snap ON snap.id = a.snapshot_id
+  JOIN applicability_bundle b ON b.id = snap.bundle_id
+  JOIN applicability_model_context ctx ON ctx.id = a.model_context_id
+  JOIN applicability_evidence ev ON ev.id = NEW.evidence_id
+    AND ev.snapshot_id = a.snapshot_id
+  JOIN applicability_set_evidence se ON se.set_id = cs.id
+    AND se.evidence_id = ev.id
+  JOIN applicability_description_mapping_revision rev
+    ON rev.id = NEW.mapping_revision_id
+  JOIN applicability_source_description sd ON sd.id = rev.source_description_id
+  WHERE cs.id = NEW.set_id
+    AND sd.source_namespace = b.source_namespace
+    AND (sd.source_model_ref IS NULL OR sd.source_model_ref = ctx.source_model_id)
+    AND ((NEW.verification = 'fixture' AND sd.provenance_kind = 'fixture'
+          AND rev.status = 'fixture')
+      OR (NEW.verification = 'verified' AND sd.provenance_kind = 'jepc'
+          AND rev.status = 'verified' AND TRIM(COALESCE(rev.reviewer_ref, '')) <> ''))
 )
-BEGIN SELECT RAISE(ABORT, 'membership requires set dimension'); END;
-CREATE TRIGGER applicability_membership_set_dimension_update
-BEFORE UPDATE OF dimension_id ON applicability_set_membership_condition
-WHEN NOT EXISTS (
-  SELECT 1 FROM applicability_dimension
-  WHERE id = NEW.dimension_id AND cardinality = 'set'
-)
-BEGIN SELECT RAISE(ABORT, 'membership requires set dimension'); END;
-CREATE TRIGGER applicability_scalar_dimension_insert
-BEFORE INSERT ON applicability_attribute_condition
-WHEN EXISTS (
-  SELECT 1 FROM applicability_dimension
-  WHERE id = NEW.dimension_id AND cardinality <> 'scalar'
-)
-BEGIN SELECT RAISE(ABORT, 'scalar condition requires scalar dimension'); END;
-CREATE TRIGGER applicability_scalar_dimension_update
-BEFORE UPDATE OF dimension_id ON applicability_attribute_condition
-WHEN EXISTS (
-  SELECT 1 FROM applicability_dimension
-  WHERE id = NEW.dimension_id AND cardinality <> 'scalar'
-)
-BEGIN SELECT RAISE(ABORT, 'scalar condition requires scalar dimension'); END;
-CREATE TRIGGER applicability_cardinality_guard
-BEFORE UPDATE OF cardinality ON applicability_dimension
-WHEN NEW.cardinality <> OLD.cardinality AND (
-  EXISTS (SELECT 1 FROM applicability_attribute_condition WHERE dimension_id = OLD.id)
-  OR EXISTS (SELECT 1 FROM applicability_set_membership_condition WHERE dimension_id = OLD.id)
-)
-BEGIN SELECT RAISE(ABORT, 'cannot change cardinality with active conditions'); END;
+BEGIN SELECT RAISE(ABORT, 'description evidence violates source, scope or review boundary'); END;
+CREATE TRIGGER applicability_set_description_no_update
+BEFORE UPDATE ON applicability_set_description_evidence
+BEGIN SELECT RAISE(ABORT, 'description evidence is immutable'); END;
+CREATE TRIGGER applicability_set_description_no_delete
+BEFORE DELETE ON applicability_set_description_evidence
+BEGIN SELECT RAISE(ABORT, 'description evidence is immutable'); END;
 
 -- Source descriptions and mapping revisions are append-only evidence.
 -- Corrections use a new source dataset/version or a new mapping revision.
