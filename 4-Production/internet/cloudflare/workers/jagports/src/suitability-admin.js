@@ -51,12 +51,12 @@ async function responseBody(request) {
   } catch { failure("invalid_json", "a JSON object is required"); }
 }
 async function dimension(db, id) {
-  const row = await one(db, "SELECT id,code,verification,retired_at FROM applicability_dimension WHERE id=?", id);
+  const row = await one(db, "SELECT d.id,d.code,d.verification,r.retired_at FROM applicability_dimension d LEFT JOIN applicability_dimension_retirement r ON r.dimension_id=d.id WHERE d.id=?", id);
   if (!row) failure("category_not_found", "category does not exist", 404);
   return row;
 }
 async function value(db, id, code) {
-  const row = await one(db, "SELECT dimension_id,value_code,retired_at FROM applicability_dimension_value WHERE dimension_id=? AND value_code=?", id, code);
+  const row = await one(db, "SELECT v.dimension_id,v.value_code,r.retired_at FROM applicability_dimension_value v LEFT JOIN applicability_dimension_value_retirement r ON r.dimension_id=v.dimension_id AND r.value_code=v.value_code WHERE v.dimension_id=? AND v.value_code=?", id, code);
   if (!row) failure("value_not_found", "value does not exist", 404);
   return row;
 }
@@ -68,9 +68,9 @@ async function listing(db, url) {
   const offset = Number(url.searchParams.get("offset") || "0");
   if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) failure("invalid_offset", "offset is out of range");
   const categories = await select(db,
-    "SELECT d.id,d.code,d.verification,d.retired_at, en.name AS name_en, fi.name AS name_fi, en.description AS description_en, fi.description AS description_fi FROM applicability_dimension d LEFT JOIN applicability_dimension_label en ON en.dimension_id=d.id AND en.language='en' LEFT JOIN applicability_dimension_label fi ON fi.dimension_id=d.id AND fi.language='fi' ORDER BY d.code");
+    "SELECT d.id,d.code,d.verification,r.retired_at, en.name AS name_en, fi.name AS name_fi, en.description AS description_en, fi.description AS description_fi FROM applicability_dimension d LEFT JOIN applicability_dimension_retirement r ON r.dimension_id=d.id LEFT JOIN applicability_dimension_label en ON en.dimension_id=d.id AND en.language='en' LEFT JOIN applicability_dimension_label fi ON fi.dimension_id=d.id AND fi.language='fi' ORDER BY d.code");
   const values = await select(db,
-    "SELECT v.dimension_id,v.value_code,v.retired_at, en.name AS name_en,fi.name AS name_fi,en.description AS description_en,fi.description AS description_fi FROM applicability_dimension_value v LEFT JOIN applicability_dimension_value_label en ON en.dimension_id=v.dimension_id AND en.value_code=v.value_code AND en.language='en' LEFT JOIN applicability_dimension_value_label fi ON fi.dimension_id=v.dimension_id AND fi.value_code=v.value_code AND fi.language='fi' ORDER BY v.dimension_id,v.value_code");
+    "SELECT v.dimension_id,v.value_code,r.retired_at, en.name AS name_en,fi.name AS name_fi,en.description AS description_en,fi.description AS description_fi FROM applicability_dimension_value v LEFT JOIN applicability_dimension_value_retirement r ON r.dimension_id=v.dimension_id AND r.value_code=v.value_code LEFT JOIN applicability_dimension_value_label en ON en.dimension_id=v.dimension_id AND en.value_code=v.value_code AND en.language='en' LEFT JOIN applicability_dimension_value_label fi ON fi.dimension_id=v.dimension_id AND fi.value_code=v.value_code AND fi.language='fi' ORDER BY v.dimension_id,v.value_code");
   const sources = await select(db,
     "SELECT s.id,s.source_namespace,s.dataset_key,s.source_key,s.source_language,s.source_group_code,s.source_value_code,s.source_model_ref,s.source_category_ref,s.source_item_ref,s.source_tree_path,s.record_locator,s.original_text,s.provenance_kind, m.id AS mapping_revision_id,m.revision,m.dimension_id,m.value_code,m.status,m.mapping_version,m.evidence_note,m.reviewer_ref FROM applicability_source_description s LEFT JOIN applicability_description_mapping_current m ON m.source_description_id=s.id WHERE (?='' OR instr(lower(s.original_text),lower(?))>0 OR instr(lower(s.source_key),lower(?))>0 OR instr(lower(COALESCE(s.source_group_code,'')),lower(?))>0 OR instr(lower(s.record_locator),lower(?))>0) ORDER BY s.id LIMIT 100 OFFSET ?",
     q,q,q,q,q,offset);
@@ -99,7 +99,7 @@ async function editCategory(db,env,id,body) {
   if (row.retired_at) failure("category_retired","retired category cannot be modified",409);
   if (body.code!==undefined && body.code!==row.code) failure("immutable_code","category code is immutable",409);
   if (body.retire === true) {
-    await db.prepare("UPDATE applicability_dimension SET retired_at=CURRENT_TIMESTAMP WHERE id=? AND retired_at IS NULL").bind(id).run();
+    await db.prepare("INSERT INTO applicability_dimension_retirement (dimension_id) VALUES (?)").bind(id).run();
     await audit(db,env,"dimension_retire",id,null,null,null,{code:row.code});
     return reply({id,retired:true});
   }
@@ -129,7 +129,7 @@ async function editValue(db,env,id,code,body) {
   if(dim.retired_at) failure("category_retired","retired category cannot be edited",409);
   if(body.value_code!==undefined && body.value_code!==code) failure("immutable_code","value code is immutable",409);
   if(body.retire===true){
-    await db.prepare("UPDATE applicability_dimension_value SET retired_at=CURRENT_TIMESTAMP WHERE dimension_id=? AND value_code=? AND retired_at IS NULL").bind(id,code).run();
+    await db.prepare("INSERT INTO applicability_dimension_value_retirement (dimension_id,value_code) VALUES (?,?)").bind(id,code).run();
     await audit(db,env,"value_retire",id,code,null,null,{});
     return reply({dimension_id:id,value_code:code,retired:true});
   }

@@ -1,7 +1,17 @@
 -- #877: category/value retirement and auditable Admin changes.
 -- Existing identities and evidence are preserved. No catalogue data is seeded.
-ALTER TABLE applicability_dimension ADD COLUMN retired_at TEXT;
-ALTER TABLE applicability_dimension_value ADD COLUMN retired_at TEXT;
+-- Side tables keep legacy positional INSERTs into 0016 dimension/value tables valid.
+CREATE TABLE applicability_dimension_retirement (
+  dimension_id INTEGER PRIMARY KEY REFERENCES applicability_dimension(id),
+  retired_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE applicability_dimension_value_retirement (
+  dimension_id INTEGER NOT NULL,
+  value_code TEXT NOT NULL,
+  retired_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (dimension_id, value_code) REFERENCES applicability_dimension_value(dimension_id, value_code),
+  PRIMARY KEY (dimension_id, value_code)
+);
 CREATE TABLE applicability_suitability_admin_audit (
   id INTEGER PRIMARY KEY,
   action TEXT NOT NULL CHECK (action IN (
