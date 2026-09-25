@@ -31,7 +31,7 @@ test('fixture endpoint is unavailable by default and never reads synthetic facts
   assert.deepEqual(body.matches, []);
   const empty = await handleViepsSuitability(new Request('https://test.example/api/vieps/suitability'), {});
   assert.equal(empty.status, 503);
-  assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 10);
+  assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 13);
 });
 
 test('fixture vocabulary has four stable dimensions, eight values, and source-separated duplicate wording', async (t) => {
@@ -40,14 +40,14 @@ test('fixture vocabulary has four stable dimensions, eight values, and source-se
   assert.equal(status, 200);
   assert.equal(body.source_namespace, namespace);
   assert.equal(body.fixture_mode, true);
-  assert.deepEqual(body.categories.map((row) => [row.code, row.cardinality, row.values.map((v) => v.code)]), [
-    ['body', 'scalar', ['convertible', 'coupe']],
-    ['engine_aspiration', 'scalar', ['na', 'supercharged']],
-    ['seat_equipment', 'set', ['memory_seat', 'powered_seats']],
-    ['steering', 'scalar', ['LHD', 'RHD']],
+  assert.deepEqual(body.categories.map((row) => [row.code, row.values.map((v) => v.code)]), [
+    ['body', ['convertible', 'coupe']],
+    ['engine_aspiration', ['na', 'supercharged']],
+    ['seat_equipment', ['memory_seat', 'powered_seats']],
+    ['steering', ['LHD', 'RHD']],
   ]);
   const sourceRows = db.prepare("SELECT id,source_group_code,original_text FROM applicability_source_description WHERE original_text='Coupe' ORDER BY id").all();
-  assert.equal(sourceRows.length, 3);
+  assert.equal(sourceRows.length, 4);
   assert.equal(new Set(sourceRows.map((row) => row.id)).size, 3);
   assert.equal(db.prepare("SELECT status FROM applicability_description_mapping_current WHERE source_description_id=87709").get().status, 'proposed');
   assert.equal(body.categories.find((row) => row.code === 'body').values.length, 2);
@@ -76,7 +76,7 @@ test('AND across categories uses one condition set, never different occurrences 
   assert.deepEqual(keys((await request(['body:coupe', 'steering:RHD', 'engine_aspiration:supercharged'])).body), ['O-F']);
 });
 
-test('two positive seat memberships coexist; selecting both requires both on one occurrence', async (t) => {
+test('two independent sourced seat descriptions coexist on one occurrence', async (t) => {
   const { request } = fixture(t);
   const both = (await request(['seat_equipment:memory_seat', 'seat_equipment:powered_seats'])).body;
   assert.deepEqual(keys(both), ['O-A']);
@@ -136,13 +136,51 @@ test('invalid facet IDs, unsupported query, stock-only filtering, and non-GET ar
   assert.equal(post.status, 405);
 });
 
-test('ordinary databases do not accidentally publish fixture data when flag is enabled', async (t) => {
-  const { db, env } = fixture(t);
-  db.exec("DELETE FROM applicability_set_membership_condition WHERE id BETWEEN 87771 AND 87773");
-  const selected = await handleViepsSuitability(
-    new Request('https://test.example/api/vieps/suitability?facet=seat_equipment:memory_seat&facet=seat_equipment:powered_seats'), env,
-  );
-  const body = await selected.json();
+test('retired current mapping makes affected occurrences unavailable rather than a positive match', async (t) => {
+  const { db, request } = fixture(t);
+  db.exec(`INSERT INTO applicability_description_mapping_revision
+    (source_description_id,revision,dimension_id,value_code,status,mapping_version,evidence_note)
+    VALUES (87708,2,87703,'powered_seats','retired','fixture-v2','synthetic retirement test')`);
+  const { body } = await request([], { q: 'F-SUIT-01' });
+  assert.equal(body.state, 'unavailable');
   assert.deepEqual(body.matches, []);
-  assert.notEqual(body.state, 'applicable');
+  assert.equal(body.unavailable_occurrences.length, 2);
+  assert.ok(!body.categories.find((c) => c.code === 'seat_equipment')
+    .values.some((v) => v.code === 'powered_seats'));
+});
+
+test('Finnish domain labels do not change canonical facet identities or raw source language', async (t) => {
+  const { request } = fixture(t);
+  const { status, body } = await request(['body:coupe'], { ui_language: 'fi' });
+  assert.equal(status, 200);
+  const category = body.categories.find((c) => c.code === 'body');
+  assert.equal(category.name, 'Kori');
+  const coupe = category.values.find((v) => v.id === 'body:coupe');
+  assert.equal(coupe.name, 'Coupé');
+  assert.ok(coupe.source_descriptions.every((s) => s.language === 'en'));
+  assert.ok(coupe.source_descriptions.every((s) => s.source_namespace === namespace));
+  assert.equal(new Set(coupe.source_descriptions.map((s) => s.id)).size, 3);
+  assert.deepEqual(keys(body), ['O-A', 'O-C', 'O-F']);
+});
+
+test('missing required domain language labels produces an explicit unavailable response', async (t) => {
+  const { db, request } = fixture(t);
+  db.exec("DELETE FROM applicability_dimension_value_label WHERE dimension_id=87703 AND value_code='powered_seats' AND language='fi'");
+  const { status, body } = await request([], { ui_language: 'fi' });
+  assert.equal(status, 503);
+  assert.equal(body.state, 'unavailable');
+  assert.equal(body.reason, 'mapping_language_or_provenance_unavailable');
+  assert.deepEqual(body.matches, []);
+});
+
+test('a clean database never publishes synthetic facts even when the fixture flag is enabled', async (t) => {
+  const db = database({ fixtures: false }); t.after(() => db.close());
+  const response = await handleViepsSuitability(
+    new Request('https://test.example/api/vieps/suitability'),
+    { DB: d1(db), ENABLE_SUITABILITY_FIXTURES: '1' },
+  );
+  const body = await response.json();
+  assert.equal(body.state, 'no_match');
+  assert.deepEqual(body.categories, []);
+  assert.deepEqual(body.matches, []);
 });
