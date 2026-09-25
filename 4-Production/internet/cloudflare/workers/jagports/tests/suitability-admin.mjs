@@ -57,6 +57,10 @@ test("category/value lifecycle keeps codes and historic rows; every mutation aud
     { ...labels("Vehicle body", "Ajoneuvon kori"), verification: "verified" })).status, 200);
   assert.equal((await call(env, base + "/values/" + id + "/coupe", "PATCH",
     labels("Coupe body", "Coupé-kori"))).status, 200);
+  const categoriesOnly = await call(env, base + "/categories?lang=fi");
+  assert.equal(categoriesOnly.status, 200);
+  assert.ok(categoriesOnly.body.categories.some(x => x.id === id));
+  assert.equal(categoriesOnly.body.sources, undefined);
   const list = await call(env, base + "?lang=fi");
   assert.equal(list.body.categories.find(x => x.id === id).name_fi, "Ajoneuvon kori");
   assert.equal(list.body.values.find(x => x.dimension_id === id).name_fi, "Coupé-kori");
@@ -79,6 +83,10 @@ test("identically worded raw descriptions keep distinct source IDs and revision 
   assert.equal(same.length, 4);
   assert.equal(new Set(same.map(x => x.id)).size, 4);
   const original = same.find(x => x.id === 87709);
+  const filtered = await call(env, base + "/descriptions?status=proposed&language=en&q=Coupe");
+  assert.equal(filtered.status, 200);
+  assert.deepEqual(filtered.body.sources.map(x => x.id), [87709]);
+  assert.equal(filtered.body.categories, undefined);
   assert.equal(original.status, "proposed");
   const dim = list.categories.find(x => x.code === "body").id;
   const revised = await call(env, base + "/mappings", "POST", {
@@ -87,10 +95,12 @@ test("identically worded raw descriptions keep distinct source IDs and revision 
   });
   assert.equal(revised.status, 201);
   assert.equal(revised.body.mapping.revision, 2);
-  assert.equal((await call(env, base + "/mappings", "POST", {
-    source_description_id: original.id, status: "retired",
+  assert.equal((await call(env, base + "/mappings/" + revised.body.mapping.id + "/retire", "POST", {
     mapping_version: "test-v3", evidence_note: "Unresolved interpretation retired",
   })).status, 201);
+  assert.equal((await call(env, base + "/mappings/" + revised.body.mapping.id + "/retire", "POST", {
+    mapping_version: "test-v4", evidence_note: "Stale retry",
+  })).body.error_code, "stale_mapping_revision");
   const history = (await call(env, base + "/history?source_description_id=" + original.id)).body;
   assert.deepEqual(history.revisions.map(x => x.status), ["proposed", "conflict", "retired"]);
   assert.equal(history.audit.length, 2);
