@@ -31,7 +31,7 @@ test('fixture endpoint is unavailable by default and never reads synthetic facts
   assert.deepEqual(body.matches, []);
   const empty = await handleViepsSuitability(new Request('https://test.example/api/vieps/suitability'), {});
   assert.equal(empty.status, 503);
-  assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 14);
+  assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 19);
 });
 
 test('fixture vocabulary has four stable dimensions, eight values, and source-separated duplicate wording', async (t) => {
@@ -47,7 +47,7 @@ test('fixture vocabulary has four stable dimensions, eight values, and source-se
     ['steering', ['LHD', 'RHD']],
   ]);
   const sourceRows = db.prepare("SELECT id,source_group_code,original_text FROM applicability_source_description WHERE original_text='Coupe' ORDER BY id").all();
-  assert.equal(sourceRows.length, 4);
+  assert.equal(sourceRows.length, 5);
   assert.equal(new Set(sourceRows.map((row) => row.id)).size, 4);
   assert.equal(db.prepare("SELECT status FROM applicability_description_mapping_current WHERE source_description_id=87709").get().status, 'proposed');
   assert.equal(body.categories.find((row) => row.code === 'body').values.length, 2);
@@ -195,7 +195,7 @@ test('Finnish domain labels do not change canonical facet identities or raw sour
   assert.equal(coupe.name, 'Coupé');
   assert.ok(coupe.source_descriptions.every((s) => s.language === 'en'));
   assert.ok(coupe.source_descriptions.every((s) => s.source_namespace === namespace));
-  assert.equal(new Set(coupe.source_descriptions.map((s) => s.id)).size, 3);
+  assert.equal(new Set(coupe.source_descriptions.map((s) => s.id)).size, 4);
   assert.deepEqual(keys(body), ['O-A', 'O-C', 'O-F']);
 });
 
