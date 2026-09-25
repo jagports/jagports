@@ -1,6 +1,6 @@
 # VIEPS Admin UI — Range creation and JEPC Model mapping
 
-**Status:** Specification for independent review  
+**Status:** Approved documentation (merged PR #885); source-derived Range Admin implementation pending  
 **Controlling issue:** #884  
 **Range taxonomy owner:** #361  
 **Normalized model and persistence owner:** #354  
@@ -62,7 +62,7 @@ Add a section **Ranges & JEPC Models** on the current Admin page, separate from 
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-The example row text in angle brackets denotes data read from the imported source, **not** a synthetic replacement title. If source Model description data is genuinely unavailable, show its stable source identifier and an explicit **description unavailable** notice; do not substitute `Unassigned` as the title.
+The illustrative `XK_RANGE` / `XK Range` creation values above represent an administrator-entered example, not seeded Range or Model fixtures. The example row text in angle brackets denotes data read from the imported source, **not** a synthetic replacement title. If source Model description data is genuinely unavailable, show its stable source identifier and an explicit **description unavailable** notice; do not substitute `Unassigned` as the title.
 
 ### Range management
 
@@ -115,21 +115,13 @@ Proposed operations for the eventual catalogue Admin API: list/create/edit/retir
 
 Consumer boundaries: an unassigned source Model can still appear under its original JEPC description in source-Model views. It must **not** appear as a verified member of an invented Range. Public Range-filtered browsing and suitability remain governed by #609, #641 and approved occurrence-applicability evidence; this Admin mapping alone does not establish part fitment.
 
-## XK Range pre-JEPC fixture
+## JEPC-derived Ranges and source-qualified test cases
 
-The normalized fixture described by #361 / [PR #651](https://github.com/jagports/jagports/pull/651) is:
+There is **no fixed, authoritative or required pre-import XK Range/model-name fixture**. The former proposed `Ranges/ranges-fixtures.md` was withdrawn unmerged in PR #651. Normalized Ranges are created by authorized administrators and linked explicitly to imported JEPC Models using the approved one-Range-maximum relationship. Their existence, names and memberships must not be inferred from a list of market-name labels.
 
-```text
-XK Range
-├── XK
-├── XK8
-├── XKR
-└── XKR 100
-```
+Actual JEPC source menu records are present at `5-Implementation-Projects/software/jlr/JEPC/JEPCFiles/menus/models_l_id_0.xml`. For example, the menu includes source-menu ID `3187`, parent `3175`, with original description `XK8 Coupe/Convertible up to (V) 042775`, and ID `3183`, parent `3175`, with original description `XK8 Coupe/Convertible - Canada/USA up to (V) 042775`. These are **source-menu records**, not proof that #355 has imported them into the production Model table or approved their Range assignments. Persisted source-qualified identities and descriptions are established by the importer; the Admin then explicitly maps each imported Model to at most one Range. Until that import exists, the actual imported-Model list is empty/unavailable, not populated with invented imported IDs.
 
-These are **sibling market/model-name fixture values** under one Range, not four assumed JEPC source Model IDs. Use real #355-imported Model IDs/descriptions when present; until then, any Model records used to test assignment must be explicitly **synthetic, source-qualified fixtures** and must never masquerade as imported JEPC records.
-
-`XK` is the later market/model name, not the Range parent. `XKR 100` remains a rare, evidence-only individual-vehicle classification; generic XKR models, ordinary VIN interpretation and Range assignment do not prove an individual vehicle is an XKR 100.
+Isolated, explicitly synthetic source-shaped records remain permissible for deterministic Admin/API tests; they never seed a normative Range taxonomy or become production Jaguar or JEPC facts. An illustrative, operator-created `XK_RANGE` Range may be used in a test only as a deliberate create-and-read-back operation, not a migration seed. The rarely used `XKR 100` individual-vehicle classification cannot be inferred from a generic XKR source label, ordinary VIN logic or Range membership; explicit Jaguar/factory or vehicle-specific evidence remains required.
 
 ## Required specification/implementation tests
 
@@ -142,14 +134,14 @@ These are **sibling market/model-name fixture values** under one Range, not four
 7. Reimport an unchanged source Model without duplicating or erasing its mapping; changed/ambiguous source identity produces an explicit review conflict.
 8. Imported-data-unavailable and description-missing states never invent Model names, model IDs, Range memberships or applicability evidence.
 9. Unauthorized mutations are rejected server-side; Admin EN/FI locale switching changes controls but not imported source descriptions.
-10. Exercise the XK Range sibling fixture vocabulary, including a negative test that generic XKR or ordinary VIN evidence cannot promote an individual vehicle to XKR 100.
+10. Exercise two distinct source-menu records with original descriptions (including IDs 3187 and 3183 only after the importer establishes their source-qualified Model identities), confirm no automatic Range mapping or invented import, and verify generic XKR or VIN evidence cannot assert individual XKR 100 identification.
 
 ## Scope and related work
 
-**This PR is specification-only**; no production Admin UI, migrations, endpoints or fixture importers are claimed implemented. Implementation can proceed against this contract once independently reviewed, with schema/import decisions retained by #354/#355.
+**Original PR #885 was specification-only and merged.** This #949 documentation update retires its superseded fixture example. It does not implement the production Admin UI, migration, endpoint or JEPC importer; schema/import decisions remain with #354/#355.
 
 - #884 — controlling Admin Range specification Issue.
-- #361 / PR #651 — Range taxonomy and accepted XK fixture proposal.
+- #361 — remaining JEPC/Range and whole-car zone research; withdrawn, unmerged PR #651 is historical only.\n- #949 — retirement of static Range fixtures and source-derived documentation alignment.
 - #354 — canonical model and persistence owner.
 - #355 — source import, original Model descriptions and provenance.
 - #877 / PR #879 — separate Suitability Categories Admin extension on the same one-page Admin UI.
