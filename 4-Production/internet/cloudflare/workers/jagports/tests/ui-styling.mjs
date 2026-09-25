@@ -20,6 +20,9 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
   } };
   const routedFetch = (url) => {
     requests.push(url);
+    if (url.startsWith('/api/vieps/suitability?')) return Promise.resolve(response({
+      state: 'unavailable', fixture_mode: false, categories: [], matches: [],
+    }, false));
     if (url.startsWith('/api/vieps/tree?root=1')) return rootFetch
       ? rootFetch(url)
       : Promise.resolve(response({ state: 'root', roots: [
@@ -81,6 +84,8 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
 }
 
 const response = (data, ok = true) => ({ ok, json: async () => data });
+const catalogueRequests = (requests) => requests.filter((url) =>
+  !url.startsWith('/api/vieps/suitability?'));
 const fixture = {
   part: { id: 10, part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
   tree_roots: [{ node_id: 1, label: 'Parent', sort_order: 1 }, { node_id: 8, label: 'Body', sort_order: 2 }],
@@ -433,13 +438,13 @@ test('UI locale change retains selected browse tree without an extra API read', 
     return response(browseFixture);
   }, { initialSearch: '?tree=2' });
   await flush();
-  const before = ui.requests.length;
+  const before = catalogueRequests(ui.requests).length;
   assert.match(ui.get('tree').innerHTML, /Bushings/);
   ui.setLanguage('fi');
   assert.equal(ui.document.documentElement.lang, 'fi');
   assert.match(ui.get('tree').innerHTML, /Suspension|Front/);
   assert.match(ui.get('tree').innerHTML, /Bushings/);
-  assert.equal(ui.requests.length, before);
+  assert.equal(catalogueRequests(ui.requests).length, before);
 });
 
 test('root failure is distinguished from resolved PART and releases busy state', async () => {
@@ -639,7 +644,7 @@ test('#875 disabled bookmarks remain separate from row selection across English/
     parts_tree: [{ part_id: 42, nodes: [{ node_id: 1, label: 'Parent' }] }] };
   const ui = harness(async () => response(data));
   await ui.search('TEST');
-  const before = ui.requests.length;
+  const before = catalogueRequests(ui.requests).length;
   const enHtml = ui.get('searchResults').innerHTML;
   assert.match(enHtml, /<a[^>]*data-result-part-id="42"/);
   assert.match(enHtml, /<label class="bookmark-label"><input type="checkbox" disabled/);
@@ -649,7 +654,8 @@ test('#875 disabled bookmarks remain separate from row selection across English/
   const fiHtml = ui.get('searchResults').innerHTML;
   assert.match(fiHtml, /Kirjanmerkki \(ei vielä käytettävissä\): TEST42 — Fixture description/);
   assert.match(fiHtml, /<input type="checkbox" disabled/);
-  assert.equal(ui.requests.length, before, 'changing UI language never selects a PART or invokes persistence');
+  assert.equal(catalogueRequests(ui.requests).length, before,
+    'changing UI language never selects a PART or invokes persistence');
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST42/);
 });
 
@@ -663,11 +669,11 @@ test('switching language retains multiple-candidate leaves and avoids another se
   const ui = harness(async () => response(data));
   await ui.search('TEST');
   assert.equal(ui.get('searchStatus').textContent, '1 matching PART. Select it from the Parts Tree or Search Results.');
-  const before = ui.requests.length;
+  const before = catalogueRequests(ui.requests).length;
   ui.setLanguage('fi');
   assert.equal(ui.document.documentElement.lang, 'fi');
   assert.equal(ui.get('searchStatus').textContent, '1 vastaava OSA. Valitse se osapuusta tai hakutuloksista.');
   assert.match(ui.get('tree').innerHTML, /TEST1/);
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
-  assert.equal(ui.requests.length, before);
+  assert.equal(catalogueRequests(ui.requests).length, before);
 });
