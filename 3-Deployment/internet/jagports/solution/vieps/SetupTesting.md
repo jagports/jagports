@@ -33,6 +33,8 @@ curl.exe -i https://<verified-test-host>/
 
 ## Administrator test
 
+**Current transitional implementation:** the Stock/Suitability Admin currently uses `ADMIN_TOKEN` / `x-admin-token`; its safe, non-mutating live test is Step 4 below. This is not the final login/session system.
+
 The accepted administrator model is application-level username/password authentication with `parts@jagports.fi` as the initial administrator identity.
 
 Do not execute this as passed until Issue #448 has been implemented, reviewed, tested, and merged.
