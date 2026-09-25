@@ -458,7 +458,7 @@ try {
       status: 200, contentType: "application/json", body: JSON.stringify(body),
     });
     await page.route("**/api/**", async (route) => {
-      const request = route.request(), url = new URL(request.url), path = url.pathname;
+      const request = route.request(), url = new URL(request.url()), path = url.pathname;
       if (path === "/api/stock-meta") {
         await fulfil(route, { locations: [], source_parties: [], vehicles: [] });
       } else if (path === "/api/stock") {
