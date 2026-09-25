@@ -114,6 +114,79 @@
         </div>
       </form>
     </section>
+    <section class="panel" id="suitabilityAdminPanel" aria-labelledby="suitabilityAdminHeading">
+      <h2 id="suitabilityAdminHeading" data-i18n="suitability_admin.heading"></h2>
+      <p class="muted compact-note" data-i18n="suitability_admin.note"></p>
+      <p id="suitabilityAdminStatus" class="muted status-line" role="status" aria-live="polite"></p>
+      <form id="suitabilityCategoryForm">
+        <h3 data-i18n="suitability_admin.category_heading"></h3>
+        <div class="admin-form-grid">
+          <div class="admin-field admin-field-wide"><label for="suitabilityCategorySelect" data-i18n="suitability_admin.category_select"></label><select id="suitabilityCategorySelect"><option value=""></option></select></div>
+          <div class="admin-field"><label for="suitabilityCategoryCode" data-i18n="suitability_admin.category_code"></label><input id="suitabilityCategoryCode" maxlength="64" pattern="[a-z][a-z0-9_]*" required></div>
+          <div class="admin-field"><label for="suitabilityCategoryNameEn" data-i18n="suitability_admin.name_en"></label><input id="suitabilityCategoryNameEn" maxlength="120" required></div>
+          <div class="admin-field"><label for="suitabilityCategoryNameFi" data-i18n="suitability_admin.name_fi"></label><input id="suitabilityCategoryNameFi" maxlength="120" required></div>
+          <div class="admin-field"><label for="suitabilityCategoryDescriptionEn" data-i18n="suitability_admin.description_en"></label><input id="suitabilityCategoryDescriptionEn" maxlength="1000" required></div>
+          <div class="admin-field"><label for="suitabilityCategoryDescriptionFi" data-i18n="suitability_admin.description_fi"></label><input id="suitabilityCategoryDescriptionFi" maxlength="1000" required></div>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-button" type="submit" data-i18n="suitability_admin.save_category"></button>
+          <button class="admin-button admin-button-secondary" id="suitabilityNewCategory" type="button" data-i18n="suitability_admin.new_category"></button>
+          <button class="admin-button admin-button-danger" id="suitabilityRetireCategory" type="button" data-i18n="suitability_admin.retire_category" disabled></button>
+        </div>
+      </form>
+      <form id="suitabilityValueForm">
+        <h3 data-i18n="suitability_admin.value_heading"></h3>
+        <div class="admin-form-grid">
+          <div class="admin-field"><label for="suitabilityValueCategory" data-i18n="suitability_admin.value_category"></label><select id="suitabilityValueCategory" required></select></div>
+          <div class="admin-field"><label for="suitabilityValueSelect" data-i18n="suitability_admin.value_select"></label><select id="suitabilityValueSelect"><option value=""></option></select></div>
+          <div class="admin-field"><label for="suitabilityValueCode" data-i18n="suitability_admin.value_code"></label><input id="suitabilityValueCode" maxlength="64" pattern="[A-Za-z][A-Za-z0-9_]*" required></div>
+          <div class="admin-field"><label for="suitabilityValueNameEn" data-i18n="suitability_admin.name_en"></label><input id="suitabilityValueNameEn" maxlength="120" required></div>
+          <div class="admin-field"><label for="suitabilityValueNameFi" data-i18n="suitability_admin.name_fi"></label><input id="suitabilityValueNameFi" maxlength="120" required></div>
+          <div class="admin-field"><label for="suitabilityValueDescriptionEn" data-i18n="suitability_admin.description_en"></label><input id="suitabilityValueDescriptionEn" maxlength="1000" required></div>
+          <div class="admin-field"><label for="suitabilityValueDescriptionFi" data-i18n="suitability_admin.description_fi"></label><input id="suitabilityValueDescriptionFi" maxlength="1000" required></div>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-button" type="submit" data-i18n="suitability_admin.save_value"></button>
+          <button class="admin-button admin-button-secondary" id="suitabilityNewValue" type="button" data-i18n="suitability_admin.new_value"></button>
+          <button class="admin-button admin-button-danger" id="suitabilityRetireValue" type="button" data-i18n="suitability_admin.retire_value" disabled></button>
+        </div>
+      </form>
+      <form id="suitabilitySourceSearch">
+        <h3 data-i18n="suitability_admin.source_heading"></h3>
+        <div class="admin-search-row">
+          <label for="suitabilitySourceQuery" class="visually-hidden" data-i18n="suitability_admin.source_query"></label>
+          <input id="suitabilitySourceQuery" data-i18n-placeholder="suitability_admin.source_query">
+          <button class="admin-button" type="submit" data-i18n="common.search"></button>
+        </div>
+        <div class="admin-field">
+          <label for="suitabilitySourceSelect" data-i18n="suitability_admin.source_select"></label>
+          <select id="suitabilitySourceSelect" size="5" aria-describedby="suitabilitySourceDetails"></select>
+        </div>
+        <p id="suitabilitySourceDetails" class="muted compact-note" aria-live="polite"></p>
+      </form>
+      <form id="suitabilityMappingForm">
+        <h3 data-i18n="suitability_admin.mapping_heading"></h3>
+        <div class="admin-form-grid">
+          <div class="admin-field"><label for="suitabilityMappingCategory" data-i18n="suitability_admin.mapping_category"></label><select id="suitabilityMappingCategory" required></select></div>
+          <div class="admin-field"><label for="suitabilityMappingValue" data-i18n="suitability_admin.mapping_value"></label><select id="suitabilityMappingValue" required></select></div>
+          <div class="admin-field"><label for="suitabilityMappingStatus" data-i18n="suitability_admin.mapping_status"></label><select id="suitabilityMappingStatus">
+            <option value="proposed" data-i18n="suitability_admin.proposed"></option>
+            <option value="verified" data-i18n="suitability_admin.verified"></option>
+            <option value="conflict" data-i18n="suitability_admin.conflict"></option>
+            <option value="retired" data-i18n="suitability_admin.retired"></option>
+            <option value="fixture" data-i18n="suitability_admin.fixture"></option>
+          </select></div>
+          <div class="admin-field"><label for="suitabilityMappingVersion" data-i18n="suitability_admin.mapping_version"></label><input id="suitabilityMappingVersion" maxlength="120" required></div>
+          <div class="admin-field"><label for="suitabilityReviewerRef" data-i18n="suitability_admin.reviewer_ref"></label><input id="suitabilityReviewerRef" maxlength="200"></div>
+          <div class="admin-field admin-field-wide"><label for="suitabilityEvidenceNote" data-i18n="suitability_admin.evidence_note"></label><textarea id="suitabilityEvidenceNote" maxlength="2000" required></textarea></div>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-button" type="submit" data-i18n="suitability_admin.save_mapping"></button>
+          <button class="admin-button admin-button-secondary" id="suitabilityShowHistory" type="button" data-i18n="suitability_admin.history"></button>
+        </div>
+        <ol id="suitabilityHistory" aria-live="polite"></ol>
+      </form>
+    </section>
   </main>
   <script src="i18n-resources.js"></script>
   <script src="i18n-runtime.js"></script>
