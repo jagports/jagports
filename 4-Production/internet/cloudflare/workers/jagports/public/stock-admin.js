@@ -3,6 +3,7 @@
   const t = (key) => i18n?.t(key) ?? key;
   let token = "";
   let rows = [];
+  let locationPathsById = new Map();
   let statusTranslationKey = null;
   let statusIsError = false;
 
@@ -96,24 +97,27 @@
 
   async function loadMeta() {
     const meta = await api("/api/stock-meta");
-    const byLocationId = new Map(meta.locations.map((location) => [location.id, location]));
-    const locationLabel = (location) => {
+    const byLocationId = new Map(meta.locations.map((location) => [String(location.id), location]));
+    const locationPath = (location) => {
       const names = [];
       let current = location;
       const seen = new Set();
-      while (current && !seen.has(current.id)) {
-        seen.add(current.id);
+      while (current && !seen.has(String(current.id))) {
+        seen.add(String(current.id));
         names.unshift(current.name);
-        current = current.parent_id ? byLocationId.get(current.parent_id) : null;
+        current = current.parent_id != null ? byLocationId.get(String(current.parent_id)) : null;
       }
-      const path = [visibleSiteName(location.site_name), ...names].filter(Boolean).join(" / ");
-      return `${path} (${location.location_type})`;
+      return [visibleSiteName(location.site_name), ...names].filter(Boolean).join(" / ");
     };
+    const paths = new Map();
     for (const location of meta.locations) {
-      const label = locationLabel(location);
+      const path = locationPath(location);
+      paths.set(String(location.id), path);
+      const label = `${path} (${location.location_type})`;
       byId("storageLocationId").append(option(location.id, label));
       byId("stockLocationFilter").append(option(location.id, label));
     }
+    locationPathsById = paths;
     for (const party of meta.source_parties) byId("sourcePartyId").append(option(party.id, `${party.name} (${party.source_type})`));
     for (const vehicle of meta.vehicles) byId("donorVehicleId").append(option(vehicle.id, vehicle.vin_raw || vehicle.serial || `#${vehicle.id}`));
   }
@@ -147,8 +151,8 @@
       button.type = "button";
       button.className = "card";
       const quality = row.condition_code || t("stock.quality.unclassified.label");
-      const locationParts = [visibleSiteName(row.storage_site_name), row.storage_location_name].filter(Boolean);
-      const location = row.storage_location_name ? locationParts.join(" / ") : t("common.not_recorded");
+      const fallbackLocation = [visibleSiteName(row.storage_site_name), row.storage_location_name].filter(Boolean).join(" / ");
+      const location = locationPathsById.get(String(row.storage_location_id)) || fallbackLocation || t("common.not_recorded");
       button.textContent = `${row.part_number} — ${t("stock.qty")}: ${row.quantity} — ${quality} — ${location}`;
       button.addEventListener("click", () => edit(row));
       target.append(button);
