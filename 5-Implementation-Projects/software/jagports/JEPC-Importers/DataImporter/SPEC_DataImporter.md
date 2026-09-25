@@ -22,6 +22,14 @@ Run this command from the repository root. `--parse PATTERN` is required for eve
 
 The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence and run history go into `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters. Current runs write no separate source copies, category JSON files or estimate-report files. Earlier JSON staging output is left untouched and is not a second active store.
 
+## Local and production persistence boundary
+
+The local SQLite ledger is importer-owned source evidence, run history and recovery state. It is not the live VIEPS catalogue. Accepted PARTs, occurrences, tree paths, localized descriptions and verified applicability must eventually be published idempotently to the approved Range D1 database. An accepted Range slug determines the database name as `jagports-<range_slug>`; `xk` resolves to `jagports-xk`. The fixture-backed `jagports` database is not a JEPC importer write target. `--parse PATTERN` selects source models only; it does not assign a Range or destination.
+
+Before remote publication, the repository-controlled [Range D1 setup procedure](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) must verify account/name/ID. A schema-only migration path, source-model-to-Range verification, Worker routing and cross-Range identity/search behavior remain required under [Issue #555](https://github.com/jagports/jagports/issues/555). A successful local parse cannot be reported as a published import. The Range setup command is a separate deployment tool and adds no parameters or subcommands to DataImporter.
+
+Kit, nested-kit and NSS source observations must be preserved with provenance when encountered, including an unnumbered constituent; no Jaguar part number or verified composition may be invented. Kit composition is not required to complete the current 40-bundle parsing run. The approved [PART model](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md) governs the distinction between catalogue PART identity, occurrence evidence and verified composition.
+
 ## Core operating principle
 
 The remainder of this specification describes the intended importer unless a paragraph explicitly says it describes the current v0.1a implementation.
