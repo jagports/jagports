@@ -446,3 +446,13 @@
   .availability-block > span { display: none; }
   .tree-children { margin-left: .05rem; padding-left: .2rem; }
 }
+
+/* Catalogue suitability stays in the existing one-page Admin shell. */
+#suitabilityAdminPanel form + form { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-jagports-line); }
+#suitabilityAdminPanel .admin-form-grid { min-width: 0; }
+#suitabilityAdminPanel .admin-field { min-width: 0; }
+#suitabilitySourceSelect { width: 100%; max-width: 100%; min-height: 9rem; overflow-x: auto; }
+#suitabilitySourceDetails { overflow-wrap: anywhere; white-space: pre-wrap; }
+#suitabilityHistory { margin: .5rem 0 0; padding-left: 1.5rem; overflow-wrap: anywhere; }
+#suitabilityMoreSources { margin-top: .5rem; }
+@media (max-width: 760px) { #suitabilityAdminPanel .admin-actions { flex-direction: column; } #suitabilityMoreSources { width: 100%; } }

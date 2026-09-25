@@ -45,6 +45,7 @@
   function refreshForLanguageChange() {
     i18n?.applyDocument();
     render();
+    renderSuitabilityAdmin();
     if (statusTranslationKey) setLocalizedStatus(statusTranslationKey, statusIsError);
   }
 
@@ -180,6 +181,227 @@
     byId("deleteStock").disabled = true;
   }
 
+
+  // Catalogue suitability administration is independent of mutable STOCK.
+  // Raw JEPC/source text is always displayed, never edited by this page.
+  let suitCategories = [], suitValues = [], suitSources = [];
+  let suitNextOffset = null;
+  const suit = (name) => byId("suitability" + name);
+  const suitLang = () => i18n?.language === "fi" ? "fi" : "en";
+  const suitLabel = (row) => row?.["name_" + suitLang()] || row?.name_en || row?.code || "";
+  const suitIsActive = (row) => row && !row.retired_at;
+  const suitCategory = (id) => suitCategories.find((row) => String(row.id) === String(id));
+  const suitValue = (id, code) => suitValues.find((row) =>
+    String(row.dimension_id) === String(id) && row.value_code === code);
+  const suitSource = (id) => suitSources.find((row) => String(row.id) === String(id));
+  function suitStatus(key, error = false, detail = "") {
+    const node = suit("AdminStatus");
+    node.textContent = t("suitability_admin." + key) + (detail ? ": " + detail : "");
+    node.classList.toggle("error", error);
+  }
+  function suitError(error) {
+    suitStatus("error", true, error?.code || "request_failed");
+  }
+  function suitFillSelect(name, items, selected, empty) {
+    const node = suit(name);
+    node.replaceChildren();
+    if (empty) node.append(option("", t("suitability_admin." + empty)));
+    for (const item of items) node.append(option(item.value, item.label));
+    node.value = items.some((item) => String(item.value) === String(selected)) ?
+      String(selected) : (empty ? "" : String(items[0]?.value ?? ""));
+  }
+  function suitCategoryOptions(includeRetired = false) {
+    return suitCategories.filter((row) => includeRetired || suitIsActive(row))
+      .map((row) => ({value:String(row.id),label:suitLabel(row) + " [" + row.code + "]" +
+        (row.retired_at ? " (" + t("suitability_admin.retired_suffix") + ")" : "")}));
+  }
+  function suitValueOptions(id, includeRetired = false) {
+    return suitValues.filter((row) => String(row.dimension_id) === String(id) &&
+      (includeRetired || suitIsActive(row)))
+      .map((row) => ({value:row.value_code,label:suitLabel(row) + " [" + row.value_code + "]" +
+        (row.retired_at ? " (" + t("suitability_admin.retired_suffix") + ")" : "")}));
+  }
+  function suitShowCategory() {
+    const category = suitCategory(suit("CategorySelect").value);
+    const fields = ["NameEn","NameFi","DescriptionEn","DescriptionFi"];
+    const keys = ["name_en","name_fi","description_en","description_fi"];
+    suit("CategoryCode").value = category?.code || "";
+    suit("CategoryCode").readOnly = Boolean(category);
+    fields.forEach((field, index) => { suit("Category" + field).value = category?.[keys[index]] || ""; });
+    suit("RetireCategory").disabled = !suitIsActive(category);
+    suit("CategoryForm").querySelector('button[type="submit"]').disabled = Boolean(category?.retired_at);
+  }
+  function suitShowValue() {
+    const dimId = suit("ValueCategory").value;
+    const code = suit("ValueSelect").value;
+    const value = suitValue(dimId, code);
+    const fields = ["NameEn","NameFi","DescriptionEn","DescriptionFi"];
+    const keys = ["name_en","name_fi","description_en","description_fi"];
+    suit("ValueCode").value = value?.value_code || "";
+    suit("ValueCode").readOnly = Boolean(value);
+    fields.forEach((field, index) => { suit("Value" + field).value = value?.[keys[index]] || ""; });
+    suit("RetireValue").disabled = !suitIsActive(value);
+    suit("ValueForm").querySelector('button[type="submit"]').disabled =
+      !suitIsActive(suitCategory(dimId)) || Boolean(value?.retired_at);
+  }
+  function suitRenderValueSelect(chooseCode = suit("ValueSelect").value) {
+    suitFillSelect("ValueSelect", suitValueOptions(suit("ValueCategory").value,true),chooseCode,"new_option");
+    suitShowValue();
+  }
+  function suitRenderMappingValues(chooseCode = suit("MappingValue").value) {
+    suitFillSelect("MappingValue",suitValueOptions(suit("MappingCategory").value),chooseCode);
+  }
+  function suitShowSource() {
+    const selected=suitSource(suit("SourceSelect").value);
+    suit("History").replaceChildren();
+    if (!selected) {
+      suit("SourceDetails").textContent=t("suitability_admin.no_source");
+      return;
+    }
+    const identity = [selected.original_text + " [" + selected.source_language + "]",
+      selected.source_namespace + " / " + selected.dataset_key + " / " + selected.source_key,
+      selected.record_locator,
+      selected.source_group_code && "group: " + selected.source_group_code,
+      selected.source_value_code && "value: " + selected.source_value_code,
+      selected.source_model_ref && "model: " + selected.source_model_ref,
+      selected.source_tree_path && "path: " + selected.source_tree_path,
+      selected.status && "current: " + selected.status + " (" + selected.revision + ")",
+      selected.provenance_kind === "fixture" && t("suitability_admin.source_fixture_warning")];
+    suit("SourceDetails").textContent = identity.filter(Boolean).join(" · ");
+    if(selected.dimension_id && suitIsActive(suitCategory(selected.dimension_id))) {
+      suit("MappingCategory").value = String(selected.dimension_id);
+      suitRenderMappingValues(selected.value_code);
+    }
+    suit("MappingStatus").value=selected.status || "proposed";
+    suit("MappingVersion").value=selected.mapping_version || "";
+    suit("EvidenceNote").value=selected.evidence_note || "";
+    suit("ReviewerRef").value=selected.reviewer_ref || "";
+    suit("ReviewerRef").required=suit("MappingStatus").value==="verified";
+    suit("MappingStatus").querySelector('[value="fixture"]').disabled =
+      selected.provenance_kind !== "fixture";
+    suit("MappingStatus").querySelector('[value="verified"]').disabled =
+      selected.provenance_kind !== "jepc";
+  }
+  function suitRenderSourceSelect(selected = suit("SourceSelect").value) {
+    const items=suitSources.map((row)=>({
+      value:String(row.id),
+      label:row.original_text + " [" + row.source_language + "; " +
+        row.source_namespace + "; " + (row.source_group_code || row.source_key) +
+        "; #" + row.id + "]",
+    }));
+    suitFillSelect("SourceSelect",items,selected);
+    suitShowSource();
+  }
+  function renderSuitabilityAdmin(overrides = {}) {
+    const category = overrides.category ?? suit("CategorySelect").value;
+    const valueCategory = overrides.valueCategory ?? suit("ValueCategory").value;
+    const value = overrides.value ?? suit("ValueSelect").value;
+    const mappingCategory = overrides.mappingCategory ?? suit("MappingCategory").value;
+    const source = overrides.source ?? suit("SourceSelect").value;
+    suitFillSelect("CategorySelect",suitCategoryOptions(true),category,"new_option");
+    suitShowCategory();
+    suitFillSelect("ValueCategory",suitCategoryOptions(),valueCategory);
+    suitRenderValueSelect(value);
+    suitFillSelect("MappingCategory",suitCategoryOptions(),mappingCategory);
+    suitRenderMappingValues();
+    suitRenderSourceSelect(source);
+    suit("MoreSources").hidden = suitNextOffset === null;
+  }
+  async function loadSuitabilityAdmin(query = suit("SourceQuery").value.trim(), overrides = {}) {
+    const params=new URLSearchParams({lang:suitLang(),q:query});
+    const data=await api("/api/admin/suitability?" + params.toString());
+    suitCategories=data.categories || [];
+    suitValues=data.values || [];
+    suitSources=data.sources || [];
+    suitNextOffset=data.next_offset;
+    renderSuitabilityAdmin(overrides);
+    suitStatus("loaded");
+  }
+  function suitWords(prefix) {
+    return {names:{en:suit(prefix+"NameEn").value.trim(),fi:suit(prefix+"NameFi").value.trim()},
+      descriptions:{en:suit(prefix+"DescriptionEn").value.trim(),
+        fi:suit(prefix+"DescriptionFi").value.trim()}};
+  }
+  async function suitSaveCategory(event) {
+    event.preventDefault();
+    const id=suit("CategorySelect").value,body={
+      code:suit("CategoryCode").value.trim(),...suitWords("Category"),
+    };
+    try {
+      const response=await api(id ? "/api/admin/suitability/categories/"+id :
+        "/api/admin/suitability/categories",{
+          method:id?"PATCH":"POST",body:JSON.stringify(body),
+        });
+      await loadSuitabilityAdmin(undefined,{category:response.id,valueCategory:response.id});
+      suitStatus("saved");
+    } catch(error){suitError(error);}
+  }
+  async function suitSaveValue(event) {
+    event.preventDefault();
+    const id=suit("ValueCategory").value,code=suit("ValueSelect").value;
+    if (!id) return suitStatus("missing_category",true);
+    const body={dimension_id:Number(id),value_code:suit("ValueCode").value.trim(),
+      ...suitWords("Value")};
+    try{
+      const response=await api(code ?
+        "/api/admin/suitability/values/"+id+"/"+encodeURIComponent(code) :
+        "/api/admin/suitability/values",{
+          method:code?"PATCH":"POST",body:JSON.stringify(body),
+        });
+      await loadSuitabilityAdmin(undefined,{valueCategory:response.dimension_id,value:response.value_code});
+      suitStatus("saved");
+    }catch(error){suitError(error);}
+  }
+  async function suitSaveMapping(event) {
+    event.preventDefault();
+    const source=suitSource(suit("SourceSelect").value);
+    if(!source)return suitStatus("missing_source",true);
+    const status=suit("MappingStatus").value;
+    const categoryId=suit("MappingCategory").value,value=suit("MappingValue").value;
+    if(status!=="retired" && !categoryId)return suitStatus("missing_category",true);
+    if(status!=="retired" && !value)return suitStatus("missing_value",true);
+    const body={source_description_id:source.id,dimension_id:Number(categoryId),
+      value_code:value,status,mapping_version:suit("MappingVersion").value.trim(),
+      evidence_note:suit("EvidenceNote").value.trim(),reviewer_ref:suit("ReviewerRef").value.trim()};
+    try{
+      await api("/api/admin/suitability/mappings",{method:"POST",body:JSON.stringify(body)});
+      await loadSuitabilityAdmin(undefined,{source:source.id,mappingCategory:categoryId});
+      suitStatus("saved");
+    }catch(error){suitError(error);}
+  }
+  async function suitLoadMore() {
+    if(suitNextOffset===null)return;
+    const params=new URLSearchParams({lang:suitLang(),q:suit("SourceQuery").value.trim(),
+      offset:String(suitNextOffset)});
+    try{
+      const data=await api("/api/admin/suitability?" + params.toString());
+      suitSources.push(...data.sources);
+      suitNextOffset=data.next_offset;
+      suitRenderSourceSelect();
+      suit("MoreSources").hidden=suitNextOffset===null;
+    }catch(error){suitError(error);}
+  }
+  async function suitShowHistory(){
+    const source=suitSource(suit("SourceSelect").value);
+    if(!source)return suitStatus("missing_source",true);
+    try{
+      const data=await api("/api/admin/suitability/history?source_description_id="+source.id);
+      suit("History").replaceChildren();
+      if(!data.revisions.length) {
+        const item=document.createElement("li");
+        item.textContent=t("suitability_admin.no_history");
+        suit("History").append(item);
+      }
+      for(const row of data.revisions){
+        const item=document.createElement("li");
+        item.textContent="#" + row.revision + " · " + row.status + " · " +
+          row.mapping_version + " · " + row.evidence_note +
+          (row.reviewer_ref ? " · "+row.reviewer_ref : "");
+        suit("History").append(item);
+      }
+    }catch(error){suitError(error);}
+  }
+
   i18n?.init();
   document.querySelectorAll?.("[data-language]").forEach((control) => {
     control.addEventListener("click", () => {
@@ -197,7 +419,9 @@
   byId("accessForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     token = byId("adminToken").value;
-    try { await loadMeta(); await loadStock(); setLocalizedStatus("stock_admin.connected"); }
+    try { await loadMeta(); await loadStock(); setLocalizedStatus("stock_admin.connected");
+      try { await loadSuitabilityAdmin(""); } catch (error) { suitError(error); }
+    }
     catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
 
@@ -247,6 +471,53 @@
     try { await api(`/api/stock/${id}`, { method: "DELETE" }); resetForm(); setLocalizedStatus("stock_admin.deleted"); await loadStock(); }
     catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
+
+
+  suit("CategorySelect").addEventListener("change",suitShowCategory);
+  suit("CategoryForm").addEventListener("submit",suitSaveCategory);
+  suit("NewCategory").addEventListener("click",()=>{
+    suit("CategorySelect").value="";
+    suitShowCategory();
+  });
+  suit("RetireCategory").addEventListener("click",async()=>{
+    const id=suit("CategorySelect").value;
+    if(!id || !confirm(t("suitability_admin.confirm_retire_category")))return;
+    try{
+      await api("/api/admin/suitability/categories/"+id,{
+        method:"PATCH",body:JSON.stringify({retire:true}),
+      });
+      await loadSuitabilityAdmin(undefined,{category:id});
+      suitStatus("saved");
+    }catch(error){suitError(error);}
+  });
+  suit("ValueCategory").addEventListener("change",()=>suitRenderValueSelect(""));
+  suit("ValueSelect").addEventListener("change",suitShowValue);
+  suit("ValueForm").addEventListener("submit",suitSaveValue);
+  suit("NewValue").addEventListener("click",()=>{suit("ValueSelect").value="";suitShowValue();});
+  suit("RetireValue").addEventListener("click",async()=>{
+    const id=suit("ValueCategory").value,code=suit("ValueSelect").value;
+    if(!id||!code||!confirm(t("suitability_admin.confirm_retire_value")))return;
+    try{
+      await api("/api/admin/suitability/values/"+id+"/"+encodeURIComponent(code),{
+        method:"PATCH",body:JSON.stringify({retire:true}),
+      });
+      await loadSuitabilityAdmin(undefined,{valueCategory:id,value:code});
+      suitStatus("saved");
+    }catch(error){suitError(error);}
+  });
+  suit("SourceSearch").addEventListener("submit",async(event)=>{
+    event.preventDefault();
+    try{await loadSuitabilityAdmin(suit("SourceQuery").value.trim(),{source:""});}
+    catch(error){suitError(error);}
+  });
+  suit("SourceSelect").addEventListener("change",suitShowSource);
+  suit("MoreSources").addEventListener("click",suitLoadMore);
+  suit("MappingCategory").addEventListener("change",()=>suitRenderMappingValues(""));
+  suit("MappingStatus").addEventListener("change",()=>{
+    suit("ReviewerRef").required=suit("MappingStatus").value==="verified";
+  });
+  suit("MappingForm").addEventListener("submit",suitSaveMapping);
+  suit("ShowHistory").addEventListener("click",suitShowHistory);
 
   setIdentityMode("canonical");
 })();

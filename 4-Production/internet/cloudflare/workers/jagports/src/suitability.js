@@ -78,8 +78,10 @@ export async function handleViepsSuitability(request, env) {
      FROM applicability_description_mapping_current m
      JOIN applicability_source_description sd ON sd.id = m.source_description_id
      JOIN applicability_dimension d ON d.id = m.dimension_id
+        AND NOT EXISTS (SELECT 1 FROM applicability_dimension_retirement dr WHERE dr.dimension_id=d.id)
      JOIN applicability_dimension_value v ON v.dimension_id = d.id
        AND v.value_code = m.value_code
+        AND NOT EXISTS (SELECT 1 FROM applicability_dimension_value_retirement vr WHERE vr.dimension_id=v.dimension_id AND vr.value_code=v.value_code)
      LEFT JOIN applicability_dimension_label dl ON dl.dimension_id = d.id
        AND dl.language = ?
      LEFT JOIN applicability_dimension_value_label vl ON vl.dimension_id = d.id
@@ -163,10 +165,13 @@ export async function handleViepsSuitability(request, env) {
        LEFT JOIN applicability_description_mapping_current m
          ON m.id = se.mapping_revision_id
        LEFT JOIN applicability_dimension d ON d.id = m.dimension_id
+         AND NOT EXISTS (SELECT 1 FROM applicability_dimension_retirement dr WHERE dr.dimension_id=d.id)
        LEFT JOIN applicability_dimension_label dl ON dl.dimension_id = d.id
          AND dl.language = ?
+       LEFT JOIN applicability_dimension_value v ON v.dimension_id=d.id AND v.value_code=m.value_code
+         AND NOT EXISTS (SELECT 1 FROM applicability_dimension_value_retirement vr WHERE vr.dimension_id=v.dimension_id AND vr.value_code=v.value_code)
        LEFT JOIN applicability_dimension_value_label vl
-         ON vl.dimension_id = d.id AND vl.value_code = m.value_code
+         ON vl.dimension_id=d.id AND vl.value_code=v.value_code
          AND vl.language = ?
        WHERE se.set_id IN (${sets.map(() => '?').join(',')})`
     ).bind(language, language, ...sets.map((s) => s.id)).all()).results || [];
