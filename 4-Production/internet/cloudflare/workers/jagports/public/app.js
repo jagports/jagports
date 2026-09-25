@@ -342,6 +342,12 @@ function showSuitability() {
 
 async function refreshSuitability(query, stockOnly, mainVersion = requestVersion) {
   const version = ++suitabilityRequestVersion;
+  if (typeof URLSearchParams !== "function") {
+    suitabilityMatchingIds = null;
+    suitabilityData = null;
+    showSuitability();
+    return;
+  }
   const params = new URLSearchParams({
     q: query || "", stock_only: stockOnly ? "1" : "0",
     ui_language: i18n?.language || "en",
@@ -704,6 +710,7 @@ function setupViepsUi() {
     cachedBrowseData = null;
     cachedCandidatesData = null;
     viewMode = "empty";
+    suitabilityMatchingIds = null;
     resetContext();
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
@@ -760,6 +767,7 @@ function setupViepsUi() {
     event.preventDefault();
     const version = ++requestVersion;
     ++suitabilityRequestVersion; // Invalidate late responses for the previous query.
+    suitabilityMatchingIds = null; // Never apply the previous query's matches.
     const partNumber = $("partNumber").value.trim();
     const candidateId = pendingCandidateId;
     const preservedCandidates = candidateId ? cachedCandidatesData : null;
