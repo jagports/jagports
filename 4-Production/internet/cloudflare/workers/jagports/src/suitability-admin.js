@@ -65,6 +65,10 @@ async function listing(db, url) {
   if (!["en", "fi"].includes(lang)) failure("invalid_language", "language must be en or fi");
   const q = (url.searchParams.get("q") || "").trim();
   if (q.length > 160) failure("invalid_query", "search text is too long");
+  const mappingStatus = (url.searchParams.get("status") || "").trim();
+  if (!["", "proposed", "verified", "conflict", "retired", "fixture", "unmapped"].includes(mappingStatus)) failure("invalid_status", "unknown mapping status");
+  const sourceLanguage = (url.searchParams.get("language") || "").trim();
+  if (sourceLanguage && (sourceLanguage.length > 32 || !/^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{2,8})*$/.test(sourceLanguage))) failure("invalid_language", "invalid source language");
   const offset = Number(url.searchParams.get("offset") || "0");
   if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) failure("invalid_offset", "offset is out of range");
   const categories = await select(db,
@@ -72,8 +76,8 @@ async function listing(db, url) {
   const values = await select(db,
     "SELECT v.dimension_id,v.value_code,r.retired_at, en.name AS name_en,fi.name AS name_fi,en.description AS description_en,fi.description AS description_fi FROM applicability_dimension_value v LEFT JOIN applicability_dimension_value_retirement r ON r.dimension_id=v.dimension_id AND r.value_code=v.value_code LEFT JOIN applicability_dimension_value_label en ON en.dimension_id=v.dimension_id AND en.value_code=v.value_code AND en.language='en' LEFT JOIN applicability_dimension_value_label fi ON fi.dimension_id=v.dimension_id AND fi.value_code=v.value_code AND fi.language='fi' ORDER BY v.dimension_id,v.value_code");
   const sources = await select(db,
-    "SELECT s.id,s.source_namespace,s.dataset_key,s.source_key,s.source_language,s.source_group_code,s.source_value_code,s.source_model_ref,s.source_category_ref,s.source_item_ref,s.source_tree_path,s.record_locator,s.original_text,s.provenance_kind, m.id AS mapping_revision_id,m.revision,m.dimension_id,m.value_code,m.status,m.mapping_version,m.evidence_note,m.reviewer_ref FROM applicability_source_description s LEFT JOIN applicability_description_mapping_current m ON m.source_description_id=s.id WHERE (?='' OR instr(lower(s.original_text),lower(?))>0 OR instr(lower(s.source_key),lower(?))>0 OR instr(lower(COALESCE(s.source_group_code,'')),lower(?))>0 OR instr(lower(s.record_locator),lower(?))>0) ORDER BY s.id LIMIT 100 OFFSET ?",
-    q,q,q,q,q,offset);
+    "SELECT s.id,s.source_namespace,s.dataset_key,s.source_key,s.source_language,s.source_group_code,s.source_value_code,s.source_model_ref,s.source_category_ref,s.source_item_ref,s.source_tree_path,s.record_locator,s.original_text,s.provenance_kind, m.id AS mapping_revision_id,m.revision,m.dimension_id,m.value_code,m.status,m.mapping_version,m.evidence_note,m.reviewer_ref FROM applicability_source_description s LEFT JOIN applicability_description_mapping_current m ON m.source_description_id=s.id WHERE (?='' OR instr(lower(s.original_text),lower(?))>0 OR instr(lower(s.source_key),lower(?))>0 OR instr(lower(COALESCE(s.source_group_code,'')),lower(?))>0 OR instr(lower(s.record_locator),lower(?))>0) AND (?='' OR COALESCE(m.status,'unmapped')=?) AND (?='' OR lower(s.source_language)=lower(?)) ORDER BY s.id LIMIT 100 OFFSET ?",
+    q,q,q,q,q,mappingStatus,mappingStatus,sourceLanguage,sourceLanguage,offset);
   return reply({language:lang,categories,values,sources,next_offset:sources.length===100?offset+100:null});
 }
 async function history(db, url) {
@@ -165,6 +169,14 @@ export async function handleSuitabilityAdmin(request,env) {
   const url=new URL(request.url),path=url.pathname,method=request.method,db=env.DB;
   try {
     if(method==="GET" && path==="/api/admin/suitability") return await listing(db,url);
+    if(method==="GET" && path==="/api/admin/suitability/categories") {
+      const data = await (await listing(db,url)).json();
+      return reply({language:data.language,categories:data.categories,values:data.values});
+    }
+    if(method==="GET" && path==="/api/admin/suitability/descriptions") {
+      const data = await (await listing(db,url)).json();
+      return reply({sources:data.sources,next_offset:data.next_offset});
+    }
     if(method==="GET" && path==="/api/admin/suitability/history") return await history(db,url);
     if(method==="POST" && path==="/api/admin/suitability/categories") return await createCategory(db,env,await responseBody(request));
     let match=path.match(/^\/api\/admin\/suitability\/categories\/([0-9]+)$/);
@@ -173,6 +185,15 @@ export async function handleSuitabilityAdmin(request,env) {
     match=path.match(/^\/api\/admin\/suitability\/values\/([0-9]+)\/([A-Za-z][A-Za-z0-9_]*)$/);
     if(method==="PATCH" && match) return await editValue(db,env,positive(match[1],"dimension_id"),match[2],await responseBody(request));
     if(method==="POST" && path==="/api/admin/suitability/mappings") return await addMapping(db,env,await responseBody(request));
+    match=path.match(/^\/api\/admin\/suitability\/mappings\/([0-9]+)\/retire$/);
+    if(method==="POST" && match) {
+      const revisionId=positive(match[1],"mapping_revision_id");
+      const mapping=await one(db,"SELECT source_description_id FROM applicability_description_mapping_revision WHERE id=?",revisionId);
+      if(!mapping) failure("mapping_not_found","mapping revision does not exist",404);
+      const current=await one(db,"SELECT id FROM applicability_description_mapping_current WHERE source_description_id=?",mapping.source_description_id);
+      if(!current || current.id!==revisionId) failure("stale_mapping_revision","mapping was revised by another operator",409);
+      return await addMapping(db,env,{...await responseBody(request),source_description_id:mapping.source_description_id,status:"retired"});
+    }
     return reply({error_code:"method_not_allowed"},405);
   } catch(error) {
     if(error.status) return reply({error_code:error.code,error:error.message},error.status);
