@@ -48,7 +48,7 @@ test('fixture vocabulary has four stable dimensions, eight values, and source-se
   ]);
   const sourceRows = db.prepare("SELECT id,source_group_code,original_text FROM applicability_source_description WHERE original_text='Coupe' ORDER BY id").all();
   assert.equal(sourceRows.length, 4);
-  assert.equal(new Set(sourceRows.map((row) => row.id)).size, 3);
+  assert.equal(new Set(sourceRows.map((row) => row.id)).size, 4);
   assert.equal(db.prepare("SELECT status FROM applicability_description_mapping_current WHERE source_description_id=87709").get().status, 'proposed');
   assert.equal(body.categories.find((row) => row.code === 'body').values.length, 2);
 });
