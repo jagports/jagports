@@ -2,7 +2,11 @@
 
 This local Windows/Node.js 24 application inspects and preserves one JEPC illustration at a time. It uses an independent SQLite ledger, reads only bounded paths for the selected media ID, and does not alter JEPC source files or publish to R2/D1. See the [MediaImporter specification](SPEC_MediaImporter.md) for the operating responsibilities and relationships.
 
-Kit detection, dashed-enclosure analysis, kit composition, and kit-membership publication are excluded until explicitly reopened.
+## Current application and complete solution
+
+The current local application preserves bounded selected source assets only; it does not yet publish to R2 or D1. The [MediaImporter specification](SPEC_MediaImporter.md) defines the complete required solution: verified R2 objects, VIEPS/D1 diagram-media metadata and relationships, raw hotspot evidence, and geometry publication only after #352 and Parts Data Model approval.
+
+Kit detection, dashed-enclosure analysis, kit composition, and kit-membership publication are excluded from the MediaImporter solution. Deferred JEPC source knowledge is recorded in `7-Research/jlr/JEPC/JEPC_KIT_EVIDENCE.md` and creates no application behavior.
 
 ```powershell
 node src/MediaImporter.CLI.mjs --help
