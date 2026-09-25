@@ -158,7 +158,8 @@ INSERT INTO applicability_source_description
  (87710,'fixture:pre-jepc-suitability:v1','v1','reviewed-alias-coupe','en','body-alias','coupe','FIX877-X100','body','fixture/body/alias-coupe','Coupe','fixture',87703),
  (87711,'fixture:pre-jepc-suitability:v1','v1','x150-body-coupe','en','body','coupe','FIX877-X150','body','fixture/x150/body/coupe','Coupe','fixture',87706),
  (87712,'fixture:pre-jepc-suitability:v1','v1','x150-steering-rhd','en','steering','RHD','FIX877-X150','steering','fixture/x150/steering/rhd','RHD','fixture',87706),
- (87713,'fixture:pre-jepc-suitability:v1','v1','x150-aspiration-sc','en','aspiration','supercharged','FIX877-X150','engine','fixture/x150/aspiration/supercharged','Supercharged','fixture',87706);
+ (87713,'fixture:pre-jepc-suitability:v1','v1','x150-aspiration-sc','en','aspiration','supercharged','FIX877-X150','engine','fixture/x150/aspiration/supercharged','Supercharged','fixture',87706),
+ (87714,'fixture:pre-jepc-suitability:v1','v1','seat-powered-o-b','en','seat','powered_seats','FIX877-X100','equipment','fixture/seat/powered/o-b','Powered Seats','fixture',87702);
 INSERT INTO applicability_description_mapping_revision
  (id,source_description_id,revision,dimension_id,value_code,status,mapping_version,evidence_note) VALUES
  (87701,87701,1,87701,'coupe','fixture','fixture-v1','Synthetic source mapping; not JEPC evidence'),
@@ -173,7 +174,8 @@ INSERT INTO applicability_description_mapping_revision
  (87710,87710,1,87701,'coupe','fixture','fixture-v1','Distinct source identity, independently synthetic-reviewed alias'),
  (87711,87711,1,87701,'coupe','fixture','fixture-v1','Separate X150 source identity'),
  (87712,87712,1,65901,'RHD','fixture','fixture-v1','Separate X150 source identity'),
- (87713,87713,1,87702,'supercharged','fixture','fixture-v1','Separate X150 source identity');
+ (87713,87713,1,87702,'supercharged','fixture','fixture-v1','Separate X150 source identity'),
+ (87714,87714,1,87703,'powered_seats','fixture','fixture-v1','Separately evidenced O-B seat equipment');
 
 -- Approved normalized domain vocabulary labels, not translations of JEPC text.
 -- Finnish entries are proposals pending human/Weblate linguistic review.
@@ -202,7 +204,7 @@ INSERT INTO applicability_set_description_evidence
  (87741,87706,87701,'fixture'),(87741,87707,87701,'fixture'),
  (87741,87708,87701,'fixture'),
  (87742,87702,87702,'fixture'),(87742,87704,87702,'fixture'),
- (87742,87705,87702,'fixture'),(87742,87708,87702,'fixture'),
+ (87742,87705,87702,'fixture'),(87742,87714,87702,'fixture'),
  (87743,87710,87703,'fixture'),(87743,87704,87703,'fixture'),
  (87743,87705,87703,'fixture'),
  (87744,87702,87704,'fixture'),(87744,87703,87704,'fixture'),
