@@ -335,6 +335,7 @@ try {
     assert.ok(groupScroll.content >= groupScroll.viewport);
     await page.screenshot({ path: evidenceDir + "desktop-suitability-filter.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
+    await page.locator("#variationOptions").filter({ hasText: "Coupé" }).waitFor();
     await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
     assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
     assert.match(await page.locator('#variationOptions [data-suitability-facet="body:coupe"]').getAttribute("title"), /Coupe \[en;/);
