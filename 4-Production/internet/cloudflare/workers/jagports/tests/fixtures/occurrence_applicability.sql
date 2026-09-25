@@ -131,38 +131,15 @@ INSERT INTO applicability_context_evidence (context_id,evidence_id) VALUES
  (87721,87701),(87722,87706);
 
 -- Preserve the existing steering dimension (65901) and its LHD/RHD codes.
--- Set membership is additive and cannot be encoded as two scalar equals.
-INSERT INTO applicability_dimension (id,code,verification,cardinality) VALUES
- (87701,'body','unverified','scalar'),
- (87702,'engine_aspiration','unverified','scalar'),
- (87703,'seat_equipment','unverified','set');
+-- Fixture-only source-qualified descriptions may coexist in one set.
+INSERT INTO applicability_dimension (id,code,verification) VALUES
+ (87701,'body','unverified'),
+ (87702,'engine_aspiration','unverified'),
+ (87703,'seat_equipment','unverified');
 INSERT INTO applicability_dimension_value (dimension_id,value_code) VALUES
  (87701,'coupe'),(87701,'convertible'),
  (87702,'na'),(87702,'supercharged'),
  (87703,'memory_seat'),(87703,'powered_seats');
-INSERT INTO applicability_attribute_condition
- (id,set_id,dimension_id,operator,value_code) VALUES
- (87751,87741,87701,'equals','coupe'),
- (87752,87741,65901,'equals','LHD'),
- (87753,87741,87702,'equals','supercharged'),
- (87754,87742,87701,'equals','convertible'),
- (87755,87742,65901,'equals','RHD'),
- (87756,87742,87702,'equals','na'),
- (87757,87743,87701,'equals','coupe'),
- (87758,87743,65901,'equals','RHD'),
- (87759,87743,87702,'equals','na'),
- (87760,87744,87701,'equals','convertible'),
- (87761,87744,65901,'equals','LHD'),
- (87762,87745,87701,'equals','coupe'),
- (87763,87746,87701,'equals','coupe'),
- (87764,87746,65901,'equals','RHD'),
- (87765,87746,87702,'equals','supercharged');
-INSERT INTO applicability_set_membership_condition
- (id,set_id,dimension_id,operator,value_code,evidence_id) VALUES
- (87771,87741,87703,'contains','memory_seat',87701),
- (87772,87741,87703,'contains','powered_seats',87701),
- (87773,87742,87703,'contains','powered_seats',87702);
-
 -- Immutable synthetic description keys: duplicate visible text under a
 -- different source group never implies approved synonymy.
 INSERT INTO applicability_source_description
@@ -178,7 +155,10 @@ INSERT INTO applicability_source_description
  (87707,'fixture:pre-jepc-suitability:v1','v1','seat-memory','en','seat','memory_seat','FIX877-X100','equipment','fixture/seat/memory','Memory Seat','fixture',87701),
  (87708,'fixture:pre-jepc-suitability:v1','v1','seat-powered','en','seat','powered_seats','FIX877-X100','equipment','fixture/seat/powered','Powered Seats','fixture',87701),
  (87709,'fixture:pre-jepc-suitability:v1','v1','unresolved-other-coupe','en','unresolved-body','unknown','FIX877-X150','unknown','fixture/other/coupe','Coupe','fixture',87706),
- (87710,'fixture:pre-jepc-suitability:v1','v1','reviewed-alias-coupe','en','body-alias','coupe','FIX877-X100','body','fixture/body/alias-coupe','Coupe','fixture',87703);
+ (87710,'fixture:pre-jepc-suitability:v1','v1','reviewed-alias-coupe','en','body-alias','coupe','FIX877-X100','body','fixture/body/alias-coupe','Coupe','fixture',87703),
+ (87711,'fixture:pre-jepc-suitability:v1','v1','x150-body-coupe','en','body','coupe','FIX877-X150','body','fixture/x150/body/coupe','Coupe','fixture',87706),
+ (87712,'fixture:pre-jepc-suitability:v1','v1','x150-steering-rhd','en','steering','RHD','FIX877-X150','steering','fixture/x150/steering/rhd','RHD','fixture',87706),
+ (87713,'fixture:pre-jepc-suitability:v1','v1','x150-aspiration-sc','en','aspiration','supercharged','FIX877-X150','engine','fixture/x150/aspiration/supercharged','Supercharged','fixture',87706);
 INSERT INTO applicability_description_mapping_revision
  (id,source_description_id,revision,dimension_id,value_code,status,mapping_version,evidence_note) VALUES
  (87701,87701,1,87701,'coupe','fixture','fixture-v1','Synthetic source mapping; not JEPC evidence'),
@@ -190,4 +170,42 @@ INSERT INTO applicability_description_mapping_revision
  (87707,87707,1,87703,'memory_seat','fixture','fixture-v1','Synthetic source mapping; not JEPC evidence'),
  (87708,87708,1,87703,'powered_seats','fixture','fixture-v1','Synthetic source mapping; not JEPC evidence'),
  (87709,87709,1,87701,'coupe','proposed','fixture-v1','Same visible text in another group; not approved'),
- (87710,87710,1,87701,'coupe','fixture','fixture-v1','Distinct source identity, independently synthetic-reviewed alias');
+ (87710,87710,1,87701,'coupe','fixture','fixture-v1','Distinct source identity, independently synthetic-reviewed alias'),
+ (87711,87711,1,87701,'coupe','fixture','fixture-v1','Separate X150 source identity'),
+ (87712,87712,1,65901,'RHD','fixture','fixture-v1','Separate X150 source identity'),
+ (87713,87713,1,87702,'supercharged','fixture','fixture-v1','Separate X150 source identity');
+
+-- Approved normalized domain vocabulary labels, not translations of JEPC text.
+-- Finnish entries are proposals pending human/Weblate linguistic review.
+INSERT INTO applicability_dimension_label (dimension_id,language,name,description) VALUES
+ (87701,'en','Body','Vehicle body style'),(87701,'fi','Kori','Ajoneuvon korimalli'),
+ (65901,'en','Steering','Steering position'),(65901,'fi','Ohjaus','Ohjauksen sijainti'),
+ (87702,'en','Engine aspiration','Engine aspiration type'),(87702,'fi','Moottorin ahtaminen','Moottorin ahtamistapa'),
+ (87703,'en','Seat equipment','Seat equipment features'),(87703,'fi','Istuinvarusteet','Istuinten varustelu');
+INSERT INTO applicability_dimension_value_label
+ (dimension_id,value_code,language,name,description) VALUES
+ (87701,'coupe','en','Coupe','Coupe body style'),(87701,'coupe','fi','Coupé','Coupé-korimalli'),
+ (87701,'convertible','en','Convertible','Convertible body style'),(87701,'convertible','fi','Avoauto','Avoauton korimalli'),
+ (65901,'LHD','en','LHD','Left-hand drive'),(65901,'LHD','fi','Vasemmalta ohjattava','Ohjauspyörä vasemmalla'),
+ (65901,'RHD','en','RHD','Right-hand drive'),(65901,'RHD','fi','Oikealta ohjattava','Ohjauspyörä oikealla'),
+ (87702,'na','en','NA','Naturally aspirated'),(87702,'na','fi','Vapaasti hengittävä','Vapaasti hengittävä moottori'),
+ (87702,'supercharged','en','Supercharged','Supercharged engine'),(87702,'supercharged','fi','Mekaanisesti ahdettu','Mekaanisesti ahdettu moottori'),
+ (87703,'memory_seat','en','Memory Seat','Seat memory equipment'),(87703,'memory_seat','fi','Muisti-istuin','Muistipaikoilla varustettu istuin'),
+ (87703,'powered_seats','en','Powered Seats','Powered seat adjustments'),(87703,'powered_seats','fi','Sähkösäätöiset istuimet','Sähköiset istuinsäädöt');
+
+-- These explicit source-to-alternative associations are fixture evidence,
+-- not JEPC predicates or proof of Jaguar fitment. O-A's two seat labels
+-- coexist because TWO separate source identities are linked to ONE set.
+INSERT INTO applicability_set_description_evidence
+ (set_id,mapping_revision_id,evidence_id,verification) VALUES
+ (87741,87701,87701,'fixture'),(87741,87703,87701,'fixture'),
+ (87741,87706,87701,'fixture'),(87741,87707,87701,'fixture'),
+ (87741,87708,87701,'fixture'),
+ (87742,87702,87702,'fixture'),(87742,87704,87702,'fixture'),
+ (87742,87705,87702,'fixture'),(87742,87708,87702,'fixture'),
+ (87743,87710,87703,'fixture'),(87743,87704,87703,'fixture'),
+ (87743,87705,87703,'fixture'),
+ (87744,87702,87704,'fixture'),(87744,87703,87704,'fixture'),
+ (87745,87701,87705,'fixture'),
+ (87746,87711,87706,'fixture'),(87746,87712,87706,'fixture'),
+ (87746,87713,87706,'fixture');
