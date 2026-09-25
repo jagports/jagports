@@ -1,226 +1,222 @@
-// #641 fixture-backed normalized Suitability read contract.
-// This module intentionally does not interpret imported JEPC assertions.
-// Explicitly opt in with ENABLE_SUITABILITY_FIXTURES=1 on an isolated demo/test Worker.
-const FIXTURE_SOURCE = 'fixture:pre-jepc-suitability:v1';
-const json = (value, status = 200) => new Response(JSON.stringify(value), {
+// Fixture-only, source-qualified normalized suitability read contract (#641/#877).
+// Never evaluate imported JEPC descriptions as predicates until #354/#355
+// provide reviewed occurrence mapping and operator semantics.
+const SOURCE = 'fixture:pre-jepc-suitability:v1';
+const send = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'content-type': 'application/json; charset=utf-8' },
 });
-const invalid = (message, code) => json({ error: message, error_code: code }, 400);
-const key = (dimension, value) => dimension + ':' + value;
-const add = (map, name, value) => {
-  if (!map.has(name)) map.set(name, []);
-  map.get(name).push(value);
-};
+const invalid = (code) => send({ error_code: code }, 400);
+const facetId = (dimension, value) => dimension + ':' + value;
+const put = (map, key, value) => { if (!map.has(key)) map.set(key, []); map.get(key).push(value); };
+const empty = (state, selected = [], categories = [], query = '', reason = null, fixtureMode = true) => ({
+  state, ...(reason ? { reason } : {}), fixture_mode: fixtureMode,
+  source_namespace: fixtureMode ? SOURCE : null, query, selected, categories,
+  available_options: [], matches: [], excluded_occurrences: [], unavailable_occurrences: [],
+});
 
-function parseFilters(url) {
-  const selected = new Map();
+function selections(url) {
+  const result = new Map();
   for (const raw of url.searchParams.getAll('facet')) {
     if (!/^[a-z][a-z0-9_]*:[A-Za-z][A-Za-z0-9_]*$/.test(raw)) return null;
     const [dimension, value] = raw.split(':');
-    if (!selected.has(dimension)) selected.set(dimension, new Set());
-    selected.get(dimension).add(value);
+    if (!result.has(dimension)) result.set(dimension, new Set());
+    result.get(dimension).add(value);
   }
-  return selected;
+  return result;
 }
 
-function predicatesMatch(conditions, memberships, selected, ignoreDimension = null) {
-  // Evaluate every selected category against ONE complete occurrence alternative.
-  // Scalar values within one dimension are alternatives; separate dimensions
-  // and all explicitly selected members of a set-valued dimension are AND.
-  for (const [dimension, values] of selected) {
-    if (dimension === ignoreDimension) continue;
-    const scalar = conditions.filter((row) => row.dimension === dimension);
-    const members = memberships.filter((row) => row.dimension === dimension);
-    if (members.length || dimension === 'seat_equipment') {
-      if (![...values].every((value) =>
-        members.some((row) => row.value_code === value && row.operator === 'contains')
-        && !members.some((row) => row.value_code === value && row.operator === 'not_contains'))) return false;
-    } else if (!scalar.length || !scalar.some((row) =>
-      values.has(row.value_code) && row.operator === 'equals'
-      && !scalar.some((negative) => negative.operator === 'not_equals'
-        && negative.value_code === row.value_code))) return false;
+// Selection is AND across dimensions, OR for alternatives within an
+// ordinary dimension; two separately sourced seat features may coexist.
+function match(tags, selected) {
+  for (const [dimension, choices] of selected) {
+    const present = new Set(tags.filter((t) => t.dimension === dimension).map((t) => t.value_code));
+    if (dimension === 'seat_equipment') {
+      if (![...choices].every((v) => present.has(v))) return false;
+    } else if (![...choices].some((v) => present.has(v))) return false;
+  }
+  return true;
+}
+function stillPossible(tags, selected) {
+  for (const [dimension, choices] of selected) {
+    const present = new Set(tags.filter((t) => t.dimension === dimension).map((t) => t.value_code));
+    if (present.size && dimension !== 'seat_equipment'
+      && ![...choices].some((v) => present.has(v))) return false;
   }
   return true;
 }
 
-function positiveValues(conditions, memberships, published) {
-  const values = new Set();
-  for (const row of [...conditions, ...memberships]) {
-    if (row.operator !== 'equals' && row.operator !== 'contains') continue;
-    if (published.has(key(row.dimension, row.value_code))) {
-      values.add(key(row.dimension, row.value_code));
-    }
-  }
-  return values;
-}
-
 export async function handleViepsSuitability(request, env) {
-  if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
-  // A public endpoint must not publish fixture evidence on an ordinary Worker.
+  if (request.method !== 'GET') return send({ error_code: 'method_not_allowed' }, 405);
   if (env.ENABLE_SUITABILITY_FIXTURES !== '1') {
-    return json({ state: 'unavailable', reason: 'normalized_suitability_not_published',
-      fixture_mode: false, categories: [], available_options: [], matches: [] }, 503);
+    return send(empty('unavailable', [], [], '', 'normalized_suitability_not_published', false), 503);
   }
-  if (!env.DB) return json({ error: 'database unavailable', error_code: 'database_unavailable' }, 503);
+  if (!env.DB) return send({ error_code: 'database_unavailable' }, 503);
   const url = new URL(request.url);
   const q = (url.searchParams.get('q') || '').trim();
-  if (q.length > 160) return invalid('search query too long', 'query_invalid');
-  const only = url.searchParams.get('stock_only') || '0';
-  if (!['0', '1'].includes(only)) return invalid('invalid stock-only filter', 'stock_filter_invalid');
-  const selected = parseFilters(url);
-  if (!selected || [...selected.values()].reduce((n, values) => n + values.size, 0) > 32) {
-    return invalid('invalid normalized facet selection', 'facet_invalid');
+  if (q.length > 160) return invalid('query_invalid');
+  const stockOnly = url.searchParams.get('stock_only') || '0';
+  if (!['0', '1'].includes(stockOnly)) return invalid('stock_filter_invalid');
+  const language = url.searchParams.get('ui_language') || 'en';
+  if (!['en', 'fi'].includes(language)) return invalid('language_invalid');
+  const selected = selections(url);
+  if (!selected || [...selected.values()].reduce((sum, v) => sum + v.size, 0) > 32) {
+    return invalid('facet_invalid');
   }
+  const selectedIds = [...selected].flatMap(([d, v]) => [...v].map((x) => facetId(d, x)));
   const db = env.DB;
-  // Use ONLY the latest fixture mapping revisions, and never merge source
-  // descriptions by equal visible labels. Unmapped/proposed source records
-  // do not publish an additional normalized vocabulary entry.
-  const dimensions = (await db.prepare(
-    `SELECT DISTINCT d.id, d.code, d.cardinality, v.value_code
-       FROM applicability_dimension d
-       JOIN applicability_dimension_value v ON v.dimension_id = d.id
-       JOIN applicability_description_mapping_current m
-         ON m.dimension_id = d.id AND m.value_code = v.value_code
-       JOIN applicability_source_description sd ON sd.id = m.source_description_id
-       WHERE sd.source_namespace = ? AND sd.provenance_kind = 'fixture'
-         AND m.status = 'fixture'
-       ORDER BY d.code, v.value_code`
-  ).bind(FIXTURE_SOURCE).all()).results || [];
-  const published = new Set(dimensions.map((row) => key(row.code, row.value_code)));
-  for (const [dimension, values] of selected) {
-    if (![...values].every((value) => published.has(key(dimension, value)))) {
-      return invalid('unknown or unpublished facet', 'facet_unknown');
-    }
+
+  // Publish only current mappings with complete source and requested-domain
+  // language metadata. Same-looking source records retain distinct identities.
+  const mappings = (await db.prepare(
+    \`SELECT m.id AS mapping_revision_id, sd.id AS source_description_id,
+       sd.source_namespace, sd.dataset_key, sd.source_key, sd.source_language,
+       sd.source_group_code, sd.source_value_code, sd.source_model_ref,
+       sd.source_category_ref, sd.source_item_ref, sd.source_tree_path,
+       sd.record_locator, sd.original_text, d.code AS dimension,
+       m.value_code, dl.name AS dimension_name, dl.description AS dimension_description,
+       vl.name AS value_name, vl.description AS value_description
+     FROM applicability_description_mapping_current m
+     JOIN applicability_source_description sd ON sd.id = m.source_description_id
+     JOIN applicability_dimension d ON d.id = m.dimension_id
+     JOIN applicability_dimension_value v ON v.dimension_id = d.id
+       AND v.value_code = m.value_code
+     LEFT JOIN applicability_dimension_label dl ON dl.dimension_id = d.id
+       AND dl.language = ?
+     LEFT JOIN applicability_dimension_value_label vl ON vl.dimension_id = d.id
+       AND vl.value_code = v.value_code AND vl.language = ?
+     WHERE sd.source_namespace = ? AND sd.provenance_kind = 'fixture'
+       AND m.status = 'fixture'
+     ORDER BY d.code, m.value_code, sd.id\`
+  ).bind(language, language, SOURCE).all()).results || [];
+  if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
+      !m.value_name || !m.value_description || !m.source_language ||
+      !m.record_locator || !m.dataset_key)) {
+    return send(empty('unavailable', selectedIds, [], q, 'mapping_language_or_provenance_unavailable'), 503);
   }
-  const byDimension = new Map();
-  for (const row of dimensions) {
-    if (!byDimension.has(row.code)) byDimension.set(row.code, {
-      code: row.code, cardinality: row.cardinality, values: [],
+  const categoriesByCode = new Map();
+  const published = new Set();
+  for (const m of mappings) {
+    const id = facetId(m.dimension, m.value_code);
+    published.add(id);
+    if (!categoriesByCode.has(m.dimension)) categoriesByCode.set(m.dimension, {
+      code: m.dimension, name: m.dimension_name,
+      description: m.dimension_description, values: [],
     });
-    byDimension.get(row.code).values.push({ code: row.value_code, id: key(row.code, row.value_code) });
-  }
-
-  const assertions = (await db.prepare(
-    `SELECT a.id, a.part_occurrence_id, a.model_context_id, a.effect,
-          a.verification, a.coverage, s.coverage AS snapshot_coverage,
-          p.id AS part_id, p.part_number_normalized AS part_number,
-          p.description AS part_description, o.source_ref AS occurrence_key,
-          c.source_model_id AS model_context, c.verification AS context_verification
-       FROM occurrence_applicability a
-       JOIN applicability_snapshot s ON s.id = a.snapshot_id AND s.state = 'active'
-       JOIN applicability_bundle b ON b.id = s.bundle_id AND b.source_namespace = ?
-       JOIN part_occurrence o ON o.id = a.part_occurrence_id AND o.source = ?
-       JOIN part p ON p.id = o.part_id AND p.verification_status = 'fixture'
-       JOIN applicability_model_context c ON c.id = a.model_context_id
-         AND c.source_namespace = ?
-       WHERE (? = '' OR instr(upper(coalesce(p.part_number_normalized, '')), upper(?)) > 0
-         OR instr(upper(coalesce(p.description, '')), upper(?)) > 0)
-         AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item stock
-           WHERE stock.part_id = p.id AND stock.available = 1 AND stock.quantity > 0))
-       ORDER BY p.id, o.id, a.id`
-  ).bind(FIXTURE_SOURCE, FIXTURE_SOURCE, FIXTURE_SOURCE, q, q, q, only).all()).results || [];
-
-  if (!assertions.length) {
-    return json({ state: 'no_match', fixture_mode: true, source_namespace: FIXTURE_SOURCE,
-      query: q, selected: [...selected].flatMap(([d, values]) => [...values].map((v) => key(d, v))),
-      categories: [...byDimension.values()], available_options: [], matches: [],
-      excluded_occurrences: [], unavailable_occurrences: [] });
-  }
-
-  // All predicates are keyed by condition set and never collected by PART.
-  const ids = assertions.map((row) => row.id);
-  const placeholders = ids.map(() => '?').join(',');
-  const sets = (await db.prepare(
-    `SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
-       FROM applicability_condition_set WHERE assertion_id IN (${placeholders})`
-  ).bind(...ids).all()).results || [];
-  const setIds = sets.map((row) => row.id);
-  const conditionsBySet = new Map();
-  const membersBySet = new Map();
-  if (setIds.length) {
-    const binds = setIds.map(() => '?').join(',');
-    const conditions = (await db.prepare(
-      `SELECT ac.set_id, d.code AS dimension, ac.operator, ac.value_code
-         FROM applicability_attribute_condition ac
-         JOIN applicability_dimension d ON d.id = ac.dimension_id
-         WHERE ac.set_id IN (${binds})`
-    ).bind(...setIds).all()).results || [];
-    const memberships = (await db.prepare(
-      `SELECT mc.set_id, d.code AS dimension, mc.operator, mc.value_code
-         FROM applicability_set_membership_condition mc
-         JOIN applicability_dimension d ON d.id = mc.dimension_id
-         WHERE mc.set_id IN (${binds})`
-    ).bind(...setIds).all()).results || [];
-    for (const row of conditions) add(conditionsBySet, row.set_id, row);
-    for (const row of memberships) add(membersBySet, row.set_id, row);
-  }
-  const setsByAssertion = new Map();
-  for (const set of sets) add(setsByAssertion, set.assertion_id, set);
-  const options = new Set();
-  const matches = new Map();
-  const excluded = [];
-  const unavailable = [];
-
-  for (const row of assertions) {
-    const alternatives = setsByAssertion.get(row.id) || [];
-    // Incomplete source coverage cannot establish a negative result.
-    const complete = row.verification === 'verified' && row.coverage === 'complete'
-      && row.context_verification === 'verified' && alternatives.length > 0;
-    if (!complete || alternatives.some((set) => set.coverage !== 'complete'
-      || set.serial_range_id != null || set.effective_serial_range_id != null)) {
-      // A known, positive scalar contradiction can eliminate an incomplete
-      // alternative from THIS search. Missing dimensions cannot, however,
-      // be interpreted as negative evidence or as a positive match.
-      const couldMatch = alternatives.some((set) => {
-        const attrs = conditionsBySet.get(set.id) || [];
-        const members = membersBySet.get(set.id) || [];
-        return [...selected].every(([dimension, values]) => {
-          const known = attrs.filter((item) => item.dimension === dimension);
-          const setKnown = members.filter((item) => item.dimension === dimension);
-          if (known.some((item) => item.operator === 'equals')
-            && !known.some((item) => item.operator === 'equals' && values.has(item.value_code))) {
-            return false;
-          }
-          if ([...values].some((value) =>
-            known.some((item) => item.operator === 'not_equals' && item.value_code === value)
-            || setKnown.some((item) => item.operator === 'not_contains' && item.value_code === value))) {
-            return false;
-          }
-          return true;
-        });
-      });
-      if (couldMatch) unavailable.push({ part_id: row.part_id, occurrence_id: row.part_occurrence_id,
-        reason: 'incomplete_or_unsupported_fixture_evidence' });
-      continue;
+    const category = categoriesByCode.get(m.dimension);
+    let value = category.values.find((v) => v.id === id);
+    if (!value) {
+      value = { id, code: m.value_code, name: m.value_name,
+        description: m.value_description, source_descriptions: [] };
+      category.values.push(value);
     }
-    for (const set of alternatives) {
-      const attrs = conditionsBySet.get(set.id) || [];
-      const members = membersBySet.get(set.id) || [];
-      const values = positiveValues(attrs, members, published);
-      // Empty unconditional alternatives do not yield selectable options.
-      if (!predicatesMatch(attrs, members, selected)) continue;
-      if (row.effect === 'exclude') {
-        excluded.push({ part_id: row.part_id, occurrence_id: row.part_occurrence_id,
-          model_context: row.model_context });
+    value.source_descriptions.push({
+      id: m.source_description_id, mapping_revision_id: m.mapping_revision_id,
+      source_namespace: m.source_namespace, dataset: m.dataset_key,
+      source_key: m.source_key, language: m.source_language,
+      locator: m.record_locator, group: m.source_group_code,
+      value_code: m.source_value_code, model: m.source_model_ref,
+      category: m.source_category_ref, item: m.source_item_ref,
+      tree_path: m.source_tree_path, original_text: m.original_text,
+      provenance: 'synthetic_fixture',
+    });
+  }
+  for (const [d, values] of selected) {
+    if (![...values].every((v) => published.has(facetId(d, v)))) return invalid('facet_unknown');
+  }
+  const categories = [...categoriesByCode.values()];
+  const assertions = (await db.prepare(
+    \`SELECT a.id, a.part_occurrence_id, a.effect, a.verification, a.coverage,
+       c.verification AS context_verification, c.source_model_id AS model_context,
+       p.id AS part_id, p.part_number_normalized AS part_number,
+       p.description AS description, o.source_ref AS occurrence_key
+     FROM occurrence_applicability a
+     JOIN applicability_snapshot snap ON snap.id = a.snapshot_id AND snap.state = 'active'
+     JOIN applicability_bundle b ON b.id = snap.bundle_id AND b.source_namespace = ?
+     JOIN part_occurrence o ON o.id = a.part_occurrence_id AND o.source = ?
+     JOIN part p ON p.id = o.part_id AND p.verification_status = 'fixture'
+     JOIN applicability_model_context c ON c.id = a.model_context_id
+       AND c.source_namespace = ?
+     WHERE (? = '' OR instr(upper(COALESCE(p.part_number_normalized, '')), upper(?)) > 0
+       OR instr(upper(COALESCE(p.description, '')), upper(?)) > 0)
+       AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item st
+         WHERE st.part_id = p.id AND st.available = 1 AND st.quantity > 0))
+     ORDER BY p.id, o.id, a.id\`
+  ).bind(SOURCE, SOURCE, SOURCE, q, q, q, stockOnly).all()).results || [];
+  if (!assertions.length) return send(empty('no_match', selectedIds, categories, q));
+  const sets = (await db.prepare(
+    \`SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
+       FROM applicability_condition_set WHERE assertion_id IN (\${assertions.map(() => '?').join(',')})\`
+  ).bind(...assertions.map((a) => a.id)).all()).results || [];
+  const byAssertion = new Map(), tagsBySet = new Map();
+  for (const set of sets) put(byAssertion, set.assertion_id, set);
+  if (sets.length) {
+    const tags = (await db.prepare(
+      \`SELECT se.set_id, se.mapping_revision_id, se.verification,
+         m.id AS current_id, m.status, d.code AS dimension, m.value_code,
+         sd.source_namespace, sd.provenance_kind, sd.source_model_ref,
+         dl.name AS dimension_name, vl.name AS value_name
+       FROM applicability_set_description_evidence se
+       JOIN applicability_description_mapping_revision historical
+         ON historical.id = se.mapping_revision_id
+       JOIN applicability_source_description sd
+         ON sd.id = historical.source_description_id
+       LEFT JOIN applicability_description_mapping_current m
+         ON m.id = se.mapping_revision_id
+       LEFT JOIN applicability_dimension d ON d.id = m.dimension_id
+       LEFT JOIN applicability_dimension_label dl ON dl.dimension_id = d.id
+         AND dl.language = ?
+       LEFT JOIN applicability_dimension_value_label vl
+         ON vl.dimension_id = d.id AND vl.value_code = m.value_code
+         AND vl.language = ?
+       WHERE se.set_id IN (\${sets.map(() => '?').join(',')})\`
+    ).bind(language, language, ...sets.map((s) => s.id)).all()).results || [];
+    for (const tag of tags) put(tagsBySet, tag.set_id, tag);
+  }
+  const matches = [], excluded = [], unavailable = [], available = new Set();
+  for (const a of assertions) {
+    for (const set of byAssertion.get(a.id) || []) {
+      const tags = tagsBySet.get(set.id) || [];
+      const valid = tags.length > 0 && tags.every((t) =>
+        t.current_id != null && t.status === 'fixture' && t.verification === 'fixture'
+        && t.source_namespace === SOURCE && t.provenance_kind === 'fixture'
+        && (!t.source_model_ref || t.source_model_ref === a.model_context)
+        && t.dimension_name && t.value_name && published.has(facetId(t.dimension, t.value_code)));
+      const complete = valid && a.verification === 'verified' && a.coverage === 'complete'
+        && a.context_verification === 'verified' && set.coverage === 'complete'
+        && set.unconditional !== 1 && set.serial_range_id == null
+        && set.effective_serial_range_id == null;
+      if (!complete) {
+        if (!valid || stillPossible(tags, selected)) {
+          unavailable.push({ part_id: a.part_id, occurrence_id: a.part_occurrence_id,
+            reason: valid ? 'incomplete_or_unsupported_fixture_evidence'
+              : 'source_mapping_or_language_unavailable' });
+        }
         continue;
       }
-      const match = { part_id: row.part_id, part_number: row.part_number,
-        description: row.part_description, occurrence_id: row.part_occurrence_id,
-        occurrence_key: row.occurrence_key, model_context: row.model_context,
-        condition_set_id: set.id, values: [...values].sort(),
+      if (!match(tags, selected)) continue;
+      if (a.effect === 'exclude') {
+        excluded.push({ part_id: a.part_id, occurrence_id: a.part_occurrence_id,
+          model_context: a.model_context });
+        continue;
+      }
+      const values = [...new Set(tags.map((t) => facetId(t.dimension, t.value_code)))].sort();
+      const item = { part_id: a.part_id, part_number: a.part_number, description: a.description,
+        occurrence_id: a.part_occurrence_id, occurrence_key: a.occurrence_key,
+        model_context: a.model_context, condition_set_id: set.id, values,
         applicability_state: 'applicable', provenance: 'synthetic_fixture' };
-      matches.set(row.part_occurrence_id + ':' + set.id, match);
-      for (const value of values) options.add(value);
+      matches.push(item);
+      for (const value of values) available.add(value);
+    }
+    if (!(byAssertion.get(a.id) || []).length) {
+      unavailable.push({ part_id: a.part_id, occurrence_id: a.part_occurrence_id,
+        reason: 'missing_condition_alternative' });
     }
   }
-  const items = [...matches.values()];
-  return json({
-    state: items.length ? 'applicable' : unavailable.length ? 'unavailable'
+  return send({
+    state: matches.length ? 'applicable' : unavailable.length ? 'unavailable'
       : excluded.length ? 'excluded' : 'no_match',
-    fixture_mode: true, source_namespace: FIXTURE_SOURCE,
-    query: q, selected: [...selected].flatMap(([d, values]) => [...values].map((v) => key(d, v))),
-    categories: [...byDimension.values()], available_options: [...options].sort(),
-    matches: items, excluded_occurrences: excluded,
-    unavailable_occurrences: unavailable,
+    fixture_mode: true, source_namespace: SOURCE, query: q, selected: selectedIds,
+    categories, available_options: [...available].sort(), matches,
+    excluded_occurrences: excluded, unavailable_occurrences: unavailable,
   });
 }
