@@ -81,7 +81,7 @@ test("identically worded raw descriptions keep distinct source IDs and revision 
   const list = (await call(env, base + "?q=Coupe")).body;
   const same = list.sources.filter(x => x.original_text === "Coupe");
   assert.equal(same.length, 5);
-  assert.equal(new Set(same.map(x => x.id)).size, 4);
+  assert.equal(new Set(same.map(x => x.id)).size, 5);
   const original = same.find(x => x.id === 87709);
   const filtered = await call(env, base + "/descriptions?status=proposed&language=en&q=Coupe");
   assert.equal(filtered.status, 200);
