@@ -307,12 +307,12 @@ function showSuitability() {
   const panel = $("variationOptions"), status = $("variationsStatus");
   if (!panel || !status) return;
   if (!suitabilityData?.fixture_mode) {
-    panel.dataset.currentQuery = "";
+    if (panel.dataset) panel.dataset.currentQuery = "";
     panel.innerHTML = "";
     status.textContent = t("suitability.unavailable");
     return;
   }
-  panel.dataset.currentQuery = suitabilityData.query || "";
+  if (panel.dataset) panel.dataset.currentQuery = suitabilityData.query || "";
   const choices = (suitabilityData.categories || []).flatMap((category) =>
     (category.values || []).map((value) => ({
       ...value, category: category.name,
