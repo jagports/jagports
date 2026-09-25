@@ -31,7 +31,7 @@ test('fixture endpoint is unavailable by default and never reads synthetic facts
   assert.deepEqual(body.matches, []);
   const empty = await handleViepsSuitability(new Request('https://test.example/api/vieps/suitability'), {});
   assert.equal(empty.status, 503);
-  assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 13);
+  assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 14);
 });
 
 test('fixture vocabulary has four stable dimensions, eight values, and source-separated duplicate wording', async (t) => {
@@ -142,11 +142,27 @@ test('retired current mapping makes affected occurrences unavailable rather than
     (source_description_id,revision,dimension_id,value_code,status,mapping_version,evidence_note)
     VALUES (87708,2,87703,'powered_seats','retired','fixture-v2','synthetic retirement test')`);
   const { body } = await request([], { q: 'F-SUIT-01' });
-  assert.equal(body.state, 'unavailable');
-  assert.deepEqual(body.matches, []);
-  assert.equal(body.unavailable_occurrences.length, 2);
-  assert.ok(!body.categories.find((c) => c.code === 'seat_equipment')
+  assert.equal(body.state, 'applicable');
+  assert.deepEqual(keys(body), ['O-B'], 'independent O-B source mapping survives retirement of O-A');
+  assert.deepEqual(body.unavailable_occurrences.map((row) => row.occurrence_id), [87711]);
+  assert.ok(body.categories.find((c) => c.code === 'seat_equipment')
     .values.some((v) => v.code === 'powered_seats'));
+});
+
+
+test('reader rejects a cross-occurrence source label even if its text and model agree', async (t) => {
+  const { db, request } = fixture(t);
+  // Same fixture namespace, model and translated label are not proof that
+  // O-A's Memory Seat record occurred in O-B. The source evidence ID differs.
+  db.exec("INSERT INTO applicability_set_description_evidence (set_id,mapping_revision_id,evidence_id,verification) VALUES (87742,87707,87702,'fixture')");
+  const { status, body } = await request([], { q: 'F-SUIT-01' });
+  assert.equal(status, 200);
+  assert.deepEqual(keys(body), ['O-A']);
+  assert.deepEqual(body.unavailable_occurrences.map((row) => row.occurrence_id), [87712]);
+  assert.equal(body.unavailable_occurrences[0].reason, 'source_mapping_or_language_unavailable');
+  const memory = await request(['seat_equipment:memory_seat'], { q: 'F-SUIT-01' });
+  assert.deepEqual(keys(memory.body), ['O-A']);
+  assert.deepEqual(memory.body.excluded_occurrences, []);
 });
 
 test('Finnish domain labels do not change canonical facet identities or raw source language', async (t) => {
