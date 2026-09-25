@@ -1,14 +1,18 @@
-# Jagports JEPC MediaImporter v0.1
+# Jagports JEPC MediaImporter
 
 (C)2026 by tlindi and ChatGPT
 
 ## Purpose
 
-Define the operating contract for the Jagports JEPC MediaImporter.
+Define the complete operating contract for the Jagports JEPC MediaImporter.
 
-MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It runs beside an installed JEPC source tree and owns a separate ledger. It follows the restart, checksum, provenance and reporting contract established with DataImporter.
+MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, publishes verified objects to Cloudflare R2, and publishes supported catalogue metadata and relationships to VIEPS/D1. It runs beside an installed JEPC source tree and owns a separate ledger. It follows the restart, checksum, provenance and reporting contract established with DataImporter.
 
-This specification does not establish hotspot coordinate conversion, redefine the canonical PART model, or make an inventory system authoritative for JEPC catalogue media.
+This document defines the required end-to-end media solution, independently of which capabilities are already available in a local application release. It does not prescribe delivery slices or implementation order.
+
+Hotspot geometry becomes publishable only when issue #352 validates it against the exact target representation and the Parts Data Model approves the required relationship shape. Kit behavior remains outside this solution; deferred source research is recorded separately in `7-Research/jlr/JEPC/JEPC_KIT_EVIDENCE.md`.
+
+This specification does not redefine the canonical PART model or make an inventory system authoritative for JEPC catalogue media.
 
 ## Scope
 
@@ -25,7 +29,7 @@ Version 0.1 handles JEPC catalogue illustration media and its source hotspot evi
 
 The initial validation scope is a bounded XK profile, beginning with model `3187`. The normal processing loop must never require enumeration of the complete JEPC installation.
 
-The following are outside v0.1 unless separately approved:
+The following are outside this solution unless separately approved:
 
 - PART or stock photographs unrelated to JEPC illustrations;
 - using InvenTree as catalogue or media authority;
@@ -59,7 +63,7 @@ Media bytes must not be stored as D1 BLOBs. D1 stores catalogue entities, stable
 
 Cloudflare R2 is the initial object-storage provider because VIEPS is already Cloudflare-based. MediaImporter uses a storage-provider-neutral preservation contract, so changing an object-storage provider does not change JEPC source or catalogue semantics.
 
-InvenTree remains a separate StockProvider investigation under issue #672. Its attachment feature may be evaluated later as a storage adapter, but it is not the v0.1 destination and must not become authoritative for JEPC diagram identity, PART occurrences, hotspot relationships or provenance.
+InvenTree remains a separate StockProvider investigation under issue #672. Its attachment feature may be evaluated later as a storage adapter, but it is not the MediaImporter destination and must not become authoritative for JEPC diagram identity, PART occurrences, hotspot relationships or provenance.
 
 ## Source evidence and current limits
 
@@ -106,7 +110,7 @@ DataImporter owns interpretation of catalogue files and discovery of logical ill
 
 ## Source resolution
 
-For a logical illustration `<id>`, v0.1 examines only the bounded known candidate paths required for that work item:
+For a logical illustration `<id>`, examines only the bounded known candidate paths required for that work item:
 
 ```text
 flash/images/<id>.jpg
@@ -228,7 +232,7 @@ Checksums, not timestamps, determine byte identity. Source files are re-statted 
 
 The selected object-storage service must support availability checking, conditional preservation, verification of object identity and metadata, delivery-reference derivation, and stale/withdrawn status reporting.
 
-Object preservation must be idempotent and conditional. A recommended v0.1 object key is content-addressed:
+Object preservation must be idempotent and conditional. The default object key is content-addressed:
 
 ```text
 jepc/assets/sha256/<first-two-hex>/<sha256>.<verified-extension>
@@ -316,7 +320,7 @@ The original source bytes are preserved before any lossy transformation. A deriv
 - scaling rule and resampling mode;
 - output format and checksum.
 
-For v0.1, prefer an existing verified JPEG or PNG representation over rendering or transcoding. Any transformation affecting geometry must be included in #352 validation.
+Prefer an existing verified JPEG or PNG representation over rendering or transcoding. Any transformation affecting geometry must be included in #352 validation.
 
 ## Missing, corrupt and unknown cases
 
@@ -335,7 +339,7 @@ The importer never invents an image, hotspot or relationship.
 
 MediaImporter is append-safe by default. A new source checksum creates or selects a new content-addressed object and updates metadata only after verification. Prior objects remain until a separate retention policy proves that no active catalogue reference, rollback need or evidence requirement depends on them.
 
-Version 0.1 performs no automatic hard deletion from object storage. It may mark metadata stale or withdrawn. Any later garbage collector requires its own approved retention, reference-counting, backup and recovery contract.
+The solution performs no automatic hard deletion from object storage. It may mark metadata stale or withdrawn. Any later garbage collector requires its own approved retention, reference-counting, backup and recovery contract.
 
 ## Serving, access and caching
 
