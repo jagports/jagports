@@ -34,8 +34,17 @@
     "xr847031_description": "#354 supersession fixture replacement part"
   },
   "header": {
+    "applicable_models": "Applicable Models",
+    "banner": "VIEPS parts search",
+    "filter_pending": "Filter not yet available",
     "instructions": "Instructions and test fixtures",
-    "product_name": "Jagports Vehicle Information and EPC System"
+    "not_yet_supported": "This control is not yet supported",
+    "parts_language_pending": "Parts descriptions follow available source languages",
+    "product_name": "Jagports Vehicle Information and EPC System",
+    "results_heading": "Search Results PART List",
+    "variations_filter": "Suitability / variations",
+    "vin": "VIN",
+    "vin_pending": "VIN lookup not available yet"
   },
   "locale": {
     "english": "English",
@@ -72,6 +81,7 @@
   },
   "ranges": {
     "applicable_help": "Search to show applicable model ranges. Stock-based browsing is unavailable.",
+    "error": "Applicable Models could not be loaded.",
     "heading": "Suitability Model Ranges",
     "label": "Model range / fit",
     "no_match": "No suitable vehicle range matches this PART/context.",
@@ -80,9 +90,12 @@
     "unavailable": "Vehicle applicability data is unavailable."
   },
   "search": {
+    "bookmark_pending": "Bookmark (not yet available)",
     "error": "The PART could not be resolved.",
     "input_aria": "Jaguar part number or fixture identifier",
     "input_placeholder": "e.g. MJB7703AA, MNA7691AA, firtree1",
+    "multiple_matches_one": "{{count}} matching PART. Select it from the Parts Tree or Search Results.",
+    "multiple_matches_other": "{{count}} matching PARTs. Select one from the Parts Tree or Search Results.",
     "no_stock_match": "No matching part is currently on stock.",
     "not_found": "Part not found.",
     "prompt": "Enter a Jaguar part number or fixture identifier to begin.",
@@ -136,6 +149,7 @@
         "short_description": "Stock quality has not yet been classified."
       }
     },
+    "quality_unsupported": "Quality A–E filtering is not yet available.",
     "status": "Status"
   },
   "stock_admin": {

@@ -411,6 +411,12 @@ export async function handleViepsPart(request, env) {
     return json({ error: "invalid stock-only filter", error_code: "stock_filter_invalid" }, 400);
   }
   const stockOnly = stockOnlyParam === "1";
+  // Selection is constrained to the current query result; an ID alone cannot
+  // discover a PART or bypass stock-only eligibility.
+  const candidateIdParam = url.searchParams.get("candidate_id");
+  if (candidateIdParam !== null && !/^[1-9]\d*$/.test(candidateIdParam)) {
+    return json({ error: "invalid candidate id", error_code: "candidate_id_invalid" }, 400);
+  }
 
   const { searchPath, candidates: allCandidates } = await findPartCandidates(env, query, normalized);
   if (!allCandidates.length) return json({ error: "part not found", query, state: "not_found", search_path: searchPath }, 404);
@@ -431,7 +437,14 @@ export async function handleViepsPart(request, env) {
   const exactCandidates = searchPath === "deterministic"
     ? candidates.filter((part) => isExactCandidate(part, query, normalized))
     : [];
-  if (exactCandidates.length > 1 || (!exactCandidates.length && candidates.length > 1)) {
+  // Resolve an explicitly chosen canonical PART only if it survives the same
+  // search and supported STOCK filter that produced the candidate list.
+  const chosen = candidateIdParam === null ? null
+    : candidates.find((part) => String(part.id) === candidateIdParam);
+  if (candidateIdParam !== null && !chosen) {
+    return json({ error: "candidate not in current results", error_code: "candidate_not_found" }, 404);
+  }
+  if (!chosen && (exactCandidates.length > 1 || (!exactCandidates.length && candidates.length > 1))) {
     const matches = candidates.map(candidatePayload);
     const [partsTree, treeRoots] = await Promise.all([
       buildPartLeafPaths(env, matches), loadTreeRoots(env),
@@ -458,7 +471,7 @@ export async function handleViepsPart(request, env) {
     });
   }
 
-  const part = candidatePayload(exactCandidates[0] || candidates[0]);
+  const part = candidatePayload(chosen || exactCandidates[0] || candidates[0]);
 
   const [occurrenceResult, treeResult, imageResult, diagramResult, fitmentResult, stockResult, treeRoots] = await Promise.all([
     env.DB.prepare(

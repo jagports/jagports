@@ -101,3 +101,12 @@ test("Stock Admin responsive CSS keeps fields and actions usable on narrow scree
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.admin-access-form,[\s\S]*\.admin-form-grid,[\s\S]*\.admin-canonical-identity[\s\S]*grid-cols-1/);
   assert.match(css, /\.admin-actions[\s\S]*flex-col/);
 });
+
+
+test("Stock Admin does not expose technical placeholder site names to operators", () => {
+  assert.match(js, /isTechnicalSitePlaceholder/);
+  assert.match(js, /name not recorded in xlsx/i);
+  assert.match(js, /visibleSiteName\(location\.site_name\)/);
+  assert.match(js, /visibleSiteName\(row\.storage_site_name\)/);
+  assert.doesNotMatch(js, /RnX site - name not recorded in XLSX/);
+});

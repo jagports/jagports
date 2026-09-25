@@ -1,15 +1,13 @@
-# JEPC Data Importer runtime skeleton
+# JEPC DataImporter
 
-Implements the first runtime slice of issue #355 and [importer specification v0.1](SPEC_DataImporter_v0.1.md). Run this application **locally on Windows**, beside the installed JEPC files, using **Node.js 24 or later**. It uses Node's built-in SQLite module; no package installation, server, cloud deployment or browser is required. Node may print an experimental SQLite warning on stderr.
-
-This version performs real, bounded **source inspection**, not catalogue import. It reads eight expected paths for one explicitly selected model/category/item/language bundle, records SHA-256 evidence in its own SQLite ledger, and reports missing files. It does not enumerate the million-file installation. This path template is the initial XK inspection recipe, not a claim that every JEPC bundle has exactly these eight files. Missing sidecars are evidence to investigate, not an inferred absence of conditions.
-
-## Start on this computer
-
-Open PowerShell in `5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/`. This application and its specification are Jagports software; the future `MediaImporter/` will live alongside it under `JEPC-Importers/`.
+Run locally on Windows with Node.js 24 or later, beside the installed JEPC files. The current application inspects source files and stages lossless category evidence locally. It does not transform catalogue relationships or publish to D1. See the [operating specification](SPEC_DataImporter.md) for the intended later stages.
 
 ```powershell
 node src/DataImporter.CLI.mjs --help
+node src/DataImporter.CLI.mjs --parse XK
+node src/DataImporter.CLI.mjs --parse X3 --json
+node src/DataImporter.CLI.mjs --parse XK --seed second-sample
+node src/DataImporter.CLI.mjs --parse XJS --estimate
 node src/DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
 node src/DataImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
 node src/DataImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
@@ -17,36 +15,14 @@ node src/DataImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEP
 npm test
 ```
 
-The source directory is read-only to this application. Put state outside the installation; paths resolving through junctions into the source are rejected. Keep the source stable during inspection. Do not share one ledger between computers: the single-writer check uses local process IDs. One state directory supports different profiles and source roots; `status` and `report` show its latest run. State remains local and must not be committed.
+`--parse PATTERN` reads the installed `menus/models_l_id_0.xml` on every run. It matches a case-insensitive literal substring of source model names and includes descendants when a parent row matches. For example, `X3` matches X300 and X308; `XJ` also matches XJS, while `XJS` narrows to that family. It stages **at most 40 complete category bundles per run** across the matched models. Selection is repeatable: a hash ranks category identities, with one category per model chosen first when the cap permits, then the remaining places filled by rank. The default seed is stable; `--seed TEXT` chooses another repeatable sample for a later run. The result reports eligible, selected and incomplete category counts. There is no fixed model-ID mapping. The default source is `C:\Program Files\JEPC\applications\JEPC`; the default state directory is `%LOCALAPPDATA%\Jagports\JEPC-Importer`. Override either with `--source` or `--state-dir`.
 
-## CLI contract v1
+Selection exists only in memory during the command. One bundle is a complete source category: its category, top-level and item files, plus available sidecars. The parser checks the selected file hashes and writes one evidence JSON file for each bundle. It calculates a SHA-256 hash of the current selection, including file checksums, to choose a repeatable output folder under `state-dir/model-staging/`. No selection file is saved. A repeated run against unchanged source reuses exact evidence; changed source produces a new selection and staging location. Evidence preserves source bytes, line numbers, ordered records, optional applicability sidecars and unknown record locations. Missing sidecars do not imply unrestricted applicability. The source installation is read-only and state must live outside it.
 
-| Command | Contract |
-| --- | --- |
-| `inspect` | Requires `--source`, `--state-dir`, `--model`, `--category`, `--item`; optional `--language` defaults to `0`. IDs must be numeric. Reads the English model menu for exact parent/model labels. |
-| `inspect --json` | One final JSON snapshot on stdout; diagnostics on stderr. No terminal control sequences. |
-| `status` | Read-only latest persisted snapshot; `--json` returns its machine representation. |
-| `report` | Read-only JSON with latest run and ordered detailed events, including paths/checksums. Redirect stdout to save a report. |
-| `doctor` | Read-only `quick_check` and `foreign_key_check`; `--full` selects `integrity_check`. Requires an existing ledger. |
+The pattern selects source models, not a destination Range or database. X300 and X308 belong to `XJ Range` even when selected with `X3`; XJS remains a separate Range even when selected by `XJ`. A future publication stage must resolve each Model_ID through the canonical VIEPS Range registry and reject unresolved assignments. Local staging does not claim that this resolution or D1 publication has happened.
 
-Exit codes: `0` successful inspection/read command, `1` invalid invocation or failure, `2` completed inspection with missing paths, `130` user stop/emergency exit. `COMPLETED` means the inspection recipe finished; it never means parts were imported. Unknown options and commands fail, including an unimplemented `run`/`migrate` command.
+`--estimate` is optional on `--parse`. It scans the selected model scope and writes a source inventory report, including file counts, bytes, elapsed time and a seeded sample of XML/CSV files. It makes no D1 size or import-duration projection without measured calibration, and a model-pattern scope has no inferred destination Range. `estimate-range` remains available for an explicit Range and comma-separated `--models`; its report stays outside the source installation. No measurements from one computer are bundled as defaults.
 
-## Progress-screen contract v1
+`inspect` examines one explicitly named model/category/item bundle and records checksums in the local SQLite ledger. `status`, `report`, and `doctor` read that ledger. `inspect` displays a bounded progress screen; Q or the first Ctrl+C stops after the current checkpoint, and a second Ctrl+C exits. Repeating inspection rehashes its selected paths. The ledger is separate from parser staging and neither marks catalogue bundles imported.
 
-Interactive stdout is redrawn in place with the application name, copyright, source parent/model labels, language, phase, run state and aggregate files checked/total, unchanged and missing. Filenames, bundle keys and deep breadcrumbs appear only in the persistent detailed events/report. Region explicitly says it is not interpreted; neither `($)` nor labels automatically become a market restriction.
-
-The screen explicitly states that catalogue import, content/translation counts and media processing are not implemented. Future content tables will distinguish canonical parts from source occurrences and translations as specified in v0.1; this skeleton supplies no fabricated part counters. There is no percentage for the full installation: the denominator is only the eight selected paths. Piped output prints one final screen or JSON snapshot.
-
-`Q` in an interactive terminal or the first Ctrl+C requests stopping after the current file's checksum and SQLite checkpoint commit. A second Ctrl+C exits immediately. Completed checkpoints survive. On the next `inspect`, a dead owner's `RUNNING` record becomes `CRASH_RECOVERED` after a full integrity check. A live owner blocks concurrent inspection. PID reuse may conservatively block recovery until that unrelated process exits; no force-unlock command is supplied.
-
-## Persistence and incremental boundary
-
-`ledger.sqlite` uses controlled schema/contract version 1. Each file result and event are committed together with run counters. Run states are `RUNNING`, `COMPLETED`, `STOPPED_BY_USER`, `FAILED`, and `CRASH_RECOVERED`. Inspection-file states are `INSPECTED` and `MISSING`; they deliberately do not mark importer-spec bundles `PROCESSED`. Startup checks database health and rejects unsupported ledger versions.
-
-Repeating the same command rehashes just these eight paths, identifies unchanged bytes using source root + relative path + SHA-256 + inspector version, and refreshes evidence. It does not trust mtime as identity. This is restartable inspection, not yet incremental parsing or source-to-destination publication. The ledger is the continuously updated development record; `report` exports the latest run at any checkpoint. Nothing is written to VIEPS or to the source installation.
-
-Next slices: bounded bundle discovery, lossless parsing/raw preservation and unknown-structure reports, atomic whole-bundle transformations with occurrence-level applicability and grouped conditions, destination staging/publication, content/translation counters, and incremental MediaImporter with hotspot provenance. MediaImporter can share these operating conventions but has no executable implementation here. The separate applicability proposal PR #659 is not a runtime dependency.
-
-## Verification
-
-`npm test` uses temporary synthetic fixtures to exercise checksum reuse/change/missing handling, source preservation, safe stopping/resumption, writer exclusion/dead-owner recovery, failed runs, schema guards and CLI exit contracts. The installed XK bundle is a separate smoke check, not proof of full catalogue coverage. No recursive source traversal or production migration is required.
+Future slices cover transformation into explicit part occurrences and applicability conditions, idempotent D1 publication, translations and content counts. The sibling MediaImporter handles images and hotspots independently. Run `npm test` for synthetic parsing, source safety, repeatability, and CLI checks.

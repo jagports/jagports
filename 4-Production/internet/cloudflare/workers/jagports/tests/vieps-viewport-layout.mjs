@@ -17,20 +17,29 @@ function rule(selector, source = desktop) {
   return matches.at(-1)[1];
 }
 
-test("#888 desktop retains #886 Concept-11 arrangement and viewport-fit", () => {
+test("#875 desktop fits three workspaces while preserving #888 compact spacing", () => {
   assert.match(rule("html"), /overflow:\s*hidden/);
   assert.match(rule("body"), /overflow:\s*hidden/);
   assert.match(rule(".app-shell"), /height:\s*100dvh/);
-  assert.match(rule(".app-shell"), /grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) minmax\(0, 1\.05fr\)/);
+  assert.match(rule(".app-shell"), /grid-template-columns:\s*minmax\(13rem, \.9fr\) minmax\(0, 2fr\) minmax\(18rem, 1\.1fr\)/);
+  assert.match(rule(".app-shell"), /grid-template-rows:\s*auto auto minmax\(0, 1fr\)/);
   assert.match(rule(".mobile-top, .concept-grid"), /display:\s*contents/);
-  for (const [selector, col, row] of [
-    [".search-panel", "2 / -1", "2"], [".tree-panel", "1", "2 / 6"],
-    [".ranges-panel", "2 / -1", "3"], [".location-panel", "2", "4"],
-    [".fitment-panel", "3", "4"], [".visual-panel", "2 / -1", "5"],
+  // The later rule must override .panel's display:flex on desktop.
+  assert.match(rule(".search-panel, .search-availability-strip"), /display:\s*contents/);
+  for (const [selector, column, row] of [
+    [".availability-block", "1", "2"],
+    [".left-workspace", "1", "3"],
+    [".centre-workspace", "2", "2 / 4"],
+    [".search-block", "3", "2"],
+    [".right-workspace", "3", "3"],
   ]) {
-    assert.ok(rule(selector).includes("grid-column: " + col), selector + " column");
-    assert.ok(rule(selector).includes("grid-row: " + row), selector + " row");
+    const declarations = rule(selector);
+    assert.ok(declarations.includes("grid-column: " + column), selector + " column");
+    assert.ok(declarations.includes("grid-row: " + row), selector + " row");
   }
+  assert.match(rule(".centre-detail"), /grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1\.05fr\)/);
+  assert.match(rule(".results-panel .results-scroll, .ranges-panel .ranges-scroll"), /overflow:\s*auto/);
+  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .fitment-panel #fitment, .visual-panel #visuals"), /overflow:\s*auto/);
 });
 
 test("#888 reduces panel spacing and #886 tree indentation without shrinking reserved panels", () => {
@@ -82,13 +91,16 @@ test("#888 stock help is touch accessible and does not consume mobile top height
   assert.match(css, /@media \(max-width: 320px\)/);
 });
 
-test("#888 tablet and keyboard-scroll regions remain available", () => {
+test("#875 tablet and keyboard-scroll regions remain available", () => {
   assert.match(rule(".concept-grid", tablet), /display:\s*grid/);
-  assert.match(rule(".tree-panel", tablet), /grid-area:\s*tree/);
-  assert.match(rule(".ranges-panel", tablet), /grid-area:\s*ranges/);
-  assert.match(desktop, /\.tree-panel #tree, \.ranges-panel #ranges, \.fitment-panel #fitment, \.visual-panel #visuals\s*\{[^}]*overflow:\s*auto/s);
-  assert.match(html, /id="tree" tabindex="0"/);
-  for (const id of ["partSearch", "availabilitySelect", "tree", "ranges", "vehicleLocation", "fitment", "partCard", "visuals"]) {
+  assert.match(rule(".concept-grid", tablet), /grid-template-areas:\s*"left centre" "right right"/);
+  assert.match(rule(".left-workspace", tablet), /grid-area:\s*left/);
+  assert.match(rule(".centre-workspace", tablet), /grid-area:\s*centre/);
+  assert.match(rule(".right-workspace", tablet), /grid-area:\s*right/);
+  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .fitment-panel #fitment, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".results-panel .results-scroll, .ranges-panel .ranges-scroll"), /overflow:\s*auto/);
+  assert.match(html, /id="tree"[^>]*tabindex="0"/);
+  for (const id of ["partSearch", "availabilitySelect", "tree", "searchResults", "ranges", "vehicleLocation", "fitment", "partCard", "visuals"]) {
     assert.equal((html.match(new RegExp('id="' + id + '"', "g")) || []).length, 1, id);
   }
 });

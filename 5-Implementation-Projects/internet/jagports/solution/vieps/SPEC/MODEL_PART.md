@@ -194,6 +194,16 @@ Source coordinates are retained as source evidence; no normalized VIEPS geometry
 
 A hotspot without a verified occurrence mapping remains representable.
 
+Neither a diagram hotspot nor a visual dashed enclosure establishes kit composition. A diagram may provide evidence that separately numbered component callouts appear inside an apparent kit boundary, but the relationship remains unverified until the image evidence, hotspot/item mapping, component occurrences and source-qualified kit-part context agree.
+
+### Kit-composition evidence
+
+Where a source has a kit PN but no explicit component list, the system may retain a source-qualified `kit_composition_evidence` observation. It is additive evidence, not stock/BOM truth. A verified relationship may connect the kit to a component that retains its own canonical PART and separate availability; membership does not replace the component's individual identity.
+
+Before a verified kit-content link can be published, the Parts Data Model owner must approve an additive representation that records: kit part occurrence or part identity; component occurrence or part identity where available; diagram and exact image checksum; dashed-enclosure/callout observation; source hotspot or item mapping; detector/OCR and coordinate-conversion versions; provenance; verification status; and a reason for unsupported or conflicting cases. A kit-only component with no independent PN/hotspot is represented as source evidence without a fabricated canonical PART or standalone availability. Repeated item numbers and multiple rectangles remain separate observations until their component mapping is verified.
+
+The model must distinguish `candidate`, `verified`, `unsupported` and `conflicting` evidence. It must not infer a kit PN from a dashed line, infer all enclosed components as kit contents, or collapse this catalogue evidence into operational stock or a manufacturing bill of materials.
+
 ## Catalogue vehicle location
 
 `part_vehicle_location` represents a catalogue-side vehicle-location mapping scoped to a PART occurrence and, where applicable, a `model_range`.
@@ -363,10 +373,11 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
 | occurrence applicability | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
-| source-qualified suitability descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. The unique source identity and revision pair also have SQLite-managed autoindexes. |
-| source-to-occurrence description evidence (`0019`) | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookup; domain label tables use language-qualified composite primary keys. |
+| source-qualified suitability descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
+| source-to-occurrence description evidence (`0019`) | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
 
-The `0019` mapping relation preserves immutable source-qualified description text, language-qualified normalized domain labels and append-only mapping revisions. A current-mapping view resolves the highest revision per source identity. Separate immutable source-to-condition-set evidence records preserve occurrence context for distinct descriptions, including coexisting seat equipment, without adding an inferred condition operator. The original `0016` scalar predicate tables are unchanged. Synthetic fixtures are isolated test evidence; neither their mappings nor their explicit occurrence associations establish imported JEPC applicability.
+`0019` adds immutable source-qualified description text, language-qualified normalized labels, append-only mapping revisions and a current-revision view. Separately evidenced source-to-condition-set links keep occurrence contexts distinct and allow coexisting seat-equipment values without inferring a condition operator. Production migrations seed no synthetic fixture records.
+
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID.
 
@@ -417,3 +428,4 @@ The `0016` persistence extension resolves storage of occurrence/context pairing,
 | JEPC source/release/snapshot identity | `0016` adds bundle/snapshot/evidence identity for occurrence applicability; broader importer/source-release policy remains governed by the importer contract. |
 | Stock status, quantities and price | PART model documents only the stock relationship boundary; detailed stock semantics are in `MODEL_STOCK.md`. |
 | Canonical normalization and raw agreement | Import/application responsibility; SQL accepts independently supplied values. Universal Unicode normalization and collision policy require explicit approval before broadening existing ASCII catalogue behavior. |
+
