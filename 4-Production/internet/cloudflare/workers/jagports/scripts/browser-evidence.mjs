@@ -551,6 +551,30 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
       "Admin must not cause horizontal overflow on 320px mobile");
     await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    // Existing browser workflow also exercises a touch-emulated 320px device.
+    // Actual hardware testing remains a separate optional manual check.
+    const touchContext = await browser.newContext({
+      viewport: { width: 320, height: 780 }, hasTouch: true, isMobile: true,
+    });
+    try {
+      const touchPage = await touchContext.newPage();
+      await touchPage.goto(local.url, { waitUntil: "load" });
+      await touchPage.locator("#tree .tree-node-row").first().waitFor();
+      await touchPage.locator("#partNumber").fill("BRTEST");
+      await touchPage.locator("#partSearch").press("Enter");
+      await touchPage.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
+      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]').tap();
+      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await touchPage.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
+      assert.equal(await touchPage.locator('#searchResults [data-result-part-id]').count(), 1,
+        "touch-selected suitability must narrow canonical results");
+      assert.ok(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        "touch device must not acquire page-level horizontal overflow");
+      await touchPage.screenshot({ path: evidenceDir + "mobile-320-suitability-touch.png", fullPage: true });
+      console.log("PASS: 320px emulated touch toggles occurrence-backed Suitability without page overflow");
+    } finally {
+      await touchContext.close();
+    }
     console.log("PASS: one-page Admin source-qualified mappings, history, EN/FI, mobile and screenshots");
   }
 
