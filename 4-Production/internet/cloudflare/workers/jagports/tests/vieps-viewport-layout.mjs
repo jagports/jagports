@@ -106,3 +106,15 @@ test("#875 tablet and keyboard-scroll regions remain available", () => {
     assert.equal((html.match(new RegExp('id="' + id + '"', "g")) || []).length, 1, id);
   }
 });
+
+test("#895 centre-top suitability is an independently scrollable, accessible checkbox row", () => {
+  assert.match(html, /id="variationOptions"[^>]*role="group"/);
+  assert.match(rule(".variation-options"), /display:\\s*flex/);
+  assert.match(rule(".variation-options"), /overflow-x:\\s*auto/);
+  assert.match(rule(".variation-options"), /max-width:\\s*100%/);
+  assert.match(rule(".variation-choice"), /white-space:\\s*nowrap/);
+  assert.match(app, /data-suitability-facet/);
+  assert.match(app, /ui_language/);
+  assert.match(app, /visibleCandidates/);
+  assert.doesNotMatch(app, /FIXTURE_VARIATIONS/);
+});
