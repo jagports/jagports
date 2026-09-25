@@ -209,6 +209,16 @@
     "token_label": "Ylläpitäjän tunnus",
     "unresolved_source_required": "Ratkaisematon varasto tarvitsee lähdetiedon tai lähdeosapuolen."
   },
+    "suitability": {
+      "fixture_count_one": "{{count}} synteettinen esiintymä; ei vahvistettua Jaguar-sopivuutta.",
+      "fixture_count_other": "{{count}} synteettistä esiintymää; ei vahvistettua Jaguar-sopivuutta.",
+      "incomplete": "Osa lähdemäärityksistä tai esiintymien tiedoista ei ole saatavilla.",
+      "no_matches": "Mikään vahvistettu esiintymä ei vastaa näitä suodattimia.",
+      "no_options": "Nykyiseen hakuun ei löydy lähdetietoon perustuvia sopivuusarvoja.",
+      "result_count_one": "{{count}} hakua vastaava OSA sopivuussuodatuksen jälkeen.",
+      "result_count_other": "{{count}} hakua vastaavaa OSAA sopivuussuodatuksen jälkeen.",
+      "unavailable": "Normalisoitua sopivuustietoa ei ole tässä luettelokontekstissa saatavilla."
+    },
   "tree": {
     "browse_empty": "Tähän Parts Tree -kontekstiin ei ole liitetty OSIA.",
     "browse_error": "Parts Tree -kontekstia ei voitu avata.",
