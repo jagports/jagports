@@ -110,3 +110,22 @@ test("Stock Admin does not expose technical placeholder site names to operators"
   assert.match(js, /visibleSiteName\(row\.storage_site_name\)/);
   assert.doesNotMatch(js, /RnX site - name not recorded in XLSX/);
 });
+
+
+test("Suitability Admin reuses one page, exposes sourced mapping and retains STOCK controls", () => {
+  for (const id of ["suitabilityAdminPanel","suitabilityCategoryForm","suitabilityValueForm",
+    "suitabilitySourceSearch","suitabilitySourceSelect","suitabilitySourceDetails",
+    "suitabilityMappingForm","suitabilityReviewerRef","suitabilityEvidenceNote",
+    "suitabilityShowHistory","suitabilityMoreSources"]) {
+    assert.match(html, new RegExp('id="' + id + '"'));
+  }
+  assert.ok(js.includes('/api/admin/suitability/mappings'));
+  assert.match(js, /source_namespace/);
+  assert.match(js, /source_group_code/);
+  assert.match(js, /loadSuitabilityAdmin/);
+  assert.match(js, /renderSuitabilityAdmin/);
+  assert.ok(css.includes('max-width: 100%'));
+  assert.ok(css.includes('overflow-wrap: anywhere'));
+  assert.match(html, /id="stockForm"/);
+  assert.doesNotMatch(html, /<nav\b/i);
+});
