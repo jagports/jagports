@@ -39,7 +39,9 @@ test("#875 desktop fits three workspaces while preserving #888 compact spacing",
   }
   assert.match(rule(".centre-detail"), /grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1\.05fr\)/);
   assert.match(rule(".results-panel .results-scroll, .ranges-panel .ranges-scroll"), /overflow:\s*auto/);
-  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .fitment-panel #fitment, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".ranges-panel #rangeEvidence"), /overflow:\s*auto/);
+  assert.doesNotMatch(html, /class="fitment-panel"/);
 });
 
 test("#888 reduces panel spacing and #886 tree indentation without shrinking reserved panels", () => {
@@ -50,7 +52,7 @@ test("#888 reduces panel spacing and #886 tree indentation without shrinking res
   assert.match(rule(".tree-children"), /border-left:\s*1px/);
   assert.match(rule(".selected-path a"), /underline/);
   assert.match(rule(".location-panel", mobile), /min-height:\s*12rem/);
-  assert.match(rule(".fitment-panel", mobile), /min-height:\s*12rem/);
+  assert.match(rule(".ranges-panel", mobile), /min-height:\s*14rem/);
   assert.match(rule(".visual-panel", mobile), /min-height:\s*22rem/);
 });
 
@@ -97,10 +99,22 @@ test("#875 tablet and keyboard-scroll regions remain available", () => {
   assert.match(rule(".left-workspace", tablet), /grid-area:\s*left/);
   assert.match(rule(".centre-workspace", tablet), /grid-area:\s*centre/);
   assert.match(rule(".right-workspace", tablet), /grid-area:\s*right/);
-  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .fitment-panel #fitment, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .visual-panel #visuals"), /overflow:\s*auto/);
   assert.match(rule(".results-panel .results-scroll, .ranges-panel .ranges-scroll"), /overflow:\s*auto/);
   assert.match(html, /id="tree"[^>]*tabindex="0"/);
-  for (const id of ["partSearch", "availabilitySelect", "tree", "searchResults", "ranges", "vehicleLocation", "fitment", "partCard", "visuals"]) {
+  for (const id of ["partSearch", "availabilitySelect", "tree", "searchResults", "ranges", "vehicleLocation", "rangeEvidence", "partCard", "visuals"]) {
     assert.equal((html.match(new RegExp('id="' + id + '"', "g")) || []).length, 1, id);
   }
+});
+
+test("#895 centre-top suitability is an independently scrollable, accessible checkbox row", () => {
+  assert.match(html, /id="variationOptions"[^>]*role="group"/);
+  assert.match(rule(".variation-options"), /display:\s*flex/);
+  assert.match(rule(".variation-options"), /overflow-x:\s*auto/);
+  assert.match(rule(".variation-options"), /max-width:\s*100%/);
+  assert.match(rule(".variation-choice"), /white-space:\s*nowrap/);
+  assert.match(app, /data-suitability-facet/);
+  assert.match(app, /ui_language/);
+  assert.match(app, /visibleCandidates/);
+  assert.doesNotMatch(app, /FIXTURE_VARIATIONS/);
 });

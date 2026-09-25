@@ -77,9 +77,10 @@
           <h2 id="vin-heading" data-i18n="header.vin"></h2>
           <label class="visually-hidden" for="vinInput" data-i18n="header.vin"></label>
           <input id="vinInput" type="text" disabled aria-describedby="unsupportedControlsNote" data-i18n-placeholder="header.vin_pending" data-i18n-title="header.not_yet_supported">
-          <h2 data-i18n="header.variations_filter"></h2>
-          <label class="visually-hidden" for="variationsSelect" data-i18n="header.variations_filter"></label>
-          <select id="variationsSelect" disabled aria-describedby="unsupportedControlsNote" data-i18n-title="header.not_yet_supported"><option data-i18n="header.filter_pending"></option></select>
+          <h2 id="variationsHeading" data-i18n="header.variations_filter"></h2>
+          <div id="variationOptions" class="variation-options" role="group"
+               aria-labelledby="variationsHeading" aria-describedby="variationsStatus"></div>
+          <p id="variationsStatus" class="muted compact-note" aria-live="polite" data-i18n="header.filter_pending"></p>
           <p id="unsupportedControlsNote" class="muted compact-note" data-i18n="header.not_yet_supported"></p>
         </section>
         <div class="centre-detail">
@@ -93,11 +94,6 @@
             <div id="partCard" class="card"></div>
             <div id="visualChooser" hidden><label for="visualSelect" data-i18n="visual.chooser_label"></label><select id="visualSelect"></select></div>
             <div id="visuals"></div>
-            <section class="fitment-panel" aria-labelledby="fitment-heading">
-              <h2 id="fitment-heading" data-i18n="fitment.heading"></h2>
-              <p id="selectedRange" class="muted"></p>
-              <div id="fitment"></div>
-            </section>
           </section>
         </div>
       </div>
@@ -112,6 +108,7 @@
           <div id="rangeDetails">
             <label for="rangeSelect" data-i18n="ranges.label"></label>
             <select id="rangeSelect" disabled></select>
+            <div id="rangeEvidence" aria-live="polite"></div>
           </div>
         </section>
       </div>
