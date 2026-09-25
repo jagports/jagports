@@ -209,6 +209,16 @@
     "token_label": "Administrator token",
     "unresolved_source_required": "Unresolved stock requires source evidence or a source party."
   },
+    "suitability": {
+      "fixture_count_one": "{{count}} synthetic occurrence; not verified Jaguar fitment.",
+      "fixture_count_other": "{{count}} synthetic occurrences; not verified Jaguar fitment.",
+      "incomplete": "Some source mappings or occurrence evidence are unavailable.",
+      "no_matches": "No positively evidenced occurrence matches these filters.",
+      "no_options": "No source-backed suitability values match the current search.",
+      "result_count_one": "{{count}} matching PART after suitability filtering.",
+      "result_count_other": "{{count}} matching PARTs after suitability filtering.",
+      "unavailable": "Normalized suitability is unavailable for this catalogue context."
+    },
   "tree": {
     "browse_empty": "No PARTs are linked below this Parts Tree context.",
     "browse_error": "The Parts Tree context could not be opened.",
