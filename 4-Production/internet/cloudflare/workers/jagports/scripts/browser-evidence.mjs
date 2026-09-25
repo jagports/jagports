@@ -315,6 +315,7 @@ try {
     await coupe.check();
     await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
     await page.locator('#searchResults [data-result-part-id="101"]').waitFor();
+    await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
     assert.equal(await page.locator("#searchResults [data-result-part-id]").count(), 1,
       "Suitability checkbox must actually narrow the right Search Results");
     assert.equal(await page.locator('#tree [data-part-id="102"]').count(), 0,
