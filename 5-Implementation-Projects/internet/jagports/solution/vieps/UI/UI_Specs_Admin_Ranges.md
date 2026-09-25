@@ -141,7 +141,8 @@ Isolated, explicitly synthetic source-shaped records remain permissible for dete
 **Original PR #885 was specification-only and merged.** This #949 documentation update retires its superseded fixture example. It does not implement the production Admin UI, migration, endpoint or JEPC importer; schema/import decisions remain with #354/#355.
 
 - #884 — controlling Admin Range specification Issue.
-- #361 — remaining JEPC/Range and whole-car zone research; withdrawn, unmerged PR #651 is historical only.\n- #949 — retirement of static Range fixtures and source-derived documentation alignment.
+- #361 — remaining JEPC/Range and whole-car zone research; withdrawn, unmerged PR #651 is historical only.
+- #949 — retirement of static Range fixtures and source-derived documentation alignment.
 - #354 — canonical model and persistence owner.
 - #355 — source import, original Model descriptions and provenance.
 - #877 / PR #879 — separate Suitability Categories Admin extension on the same one-page Admin UI.
