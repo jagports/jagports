@@ -665,6 +665,14 @@ function setupViepsUi() {
         Boolean($("availabilitySelect").checked));
     });
   });
+  // The heading restores the catalogue root index while retaining Stock only.
+  $("treeRootLink")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    $("partNumber").value = "";
+    pendingCandidateId = null;
+    clearSelectionUrl();
+    void browseTree(null);
+  });
   $("variationOptions")?.addEventListener("change", (event) => {
     const id = event.target?.dataset?.suitabilityFacet;
     if (!id) return;
