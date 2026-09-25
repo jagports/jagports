@@ -338,7 +338,7 @@ try {
     await page.locator("#variationOptions").filter({ hasText: "Coupé" }).waitFor();
     await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
     assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
-    assert.match(await page.locator('#variationOptions [data-suitability-facet="body:coupe"]').getAttribute("title"), /Coupe \[en;/);
+    assert.match(await page.locator('#variationOptions label:has([data-suitability-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
     await page.screenshot({ path: evidenceDir + "desktop-suitability-fi.png", fullPage: true });
     await page.locator('[data-language="en"]').click();
     await page.locator("#partNumber").fill("");
