@@ -409,6 +409,31 @@ try {
     assert.ok(g.locationHeight >= 170 && g.rangesHeight >= 170 && g.visualHeight >= 300,
       width + "px reserved content panels shrank");
     await page.screenshot({ path: evidenceDir + "mobile-" + width + ".png" });
+    if (!base) {
+      await page.locator("#partNumber").fill("BRTEST");
+      await page.locator("#partSearch").press("Enter");
+      const facet = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+      await facet.waitFor();
+      if (width === 220) {
+        await facet.focus();
+        await facet.press("Space");
+      } else {
+        await facet.check();
+      }
+      await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
+      const facetScroll = await page.locator("#variationOptions").evaluate((node) => ({
+        overflowX: getComputedStyle(node).overflowX,
+        viewport: node.clientWidth,
+        content: node.scrollWidth,
+      }));
+      assert.equal(facetScroll.overflowX, "auto", width + "px facet row must scroll horizontally");
+      assert.ok(facetScroll.content > facetScroll.viewport,
+        width + "px long source-backed descriptions must stay inside the horizontal scroller");
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        width + "px facet row must not widen the page");
+      await page.screenshot({ path: evidenceDir + "mobile-" + width + "-suitability.png" });
+    }
     const topBefore = g.top.top;
     const findBefore = g.find.top;
     await page.locator("#result").evaluate((node) => { node.scrollTop = 500; });
