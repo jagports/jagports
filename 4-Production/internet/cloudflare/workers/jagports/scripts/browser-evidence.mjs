@@ -27,6 +27,61 @@ const browserPaths = [
   ] },
 ];
 
+
+// Synthetic source-qualified API fixture for the browser layout harness.
+// Independent D1/endpoint assertions are exercised on implementation PR #892.
+const browserSuitability = [
+  ["body", [["coupe", "Coupe", "Coupé"], ["convertible", "Convertible", "Avoauto"]], "Body", "Kori"],
+  ["engine_aspiration", [["na", "NA", "Vapaasti hengittävä"], ["supercharged", "Supercharged", "Mekaanisesti ahdettu"]], "Engine aspiration", "Moottorin ahtaminen"],
+  ["seat_equipment", [["memory_seat", "Memory Seat", "Muisti-istuin"], ["powered_seats", "Powered Seats", "Sähkösäätöiset istuimet"]], "Seat equipment", "Istuinvarusteet"],
+  ["steering", [["LHD", "LHD", "Vasemmalta ohjattava"], ["RHD", "RHD", "Oikealta ohjattava"]], "Steering", "Ohjaus"],
+];
+const browserOccurrences = [
+  { part_id: 101, occurrence_id: 1001, occurrence_key: "BR-O-A", values: [
+    "body:coupe", "steering:LHD", "engine_aspiration:supercharged",
+    "seat_equipment:memory_seat", "seat_equipment:powered_seats",
+  ] },
+  { part_id: 102, occurrence_id: 1002, occurrence_key: "BR-O-B", values: [
+    "body:convertible", "steering:RHD", "engine_aspiration:na",
+    "seat_equipment:powered_seats",
+  ] },
+];
+function browserSuitabilityResponse(params) {
+  const fi = params.get("ui_language") === "fi";
+  const categories = browserSuitability.map(([code, values, en, fin]) => ({
+    code, name: fi ? fin : en, description: fi ? fin : en,
+    values: values.map(([value, english, finnish], i) => ({
+      id: code + ":" + value, code: value,
+      name: fi ? finnish : english, description: fi ? finnish : english,
+      source_descriptions: [{
+        id: 9000 + i, mapping_revision_id: 10000 + i,
+        source_namespace: "fixture:pre-jepc-suitability:v1",
+        dataset: "browser-v1", language: "en", locator: "browser/" + code + "/" + value,
+        original_text: english, provenance: "synthetic_fixture",
+      }],
+    })),
+  }));
+  const selected = params.getAll("facet");
+  const grouped = new Map();
+  for (const id of selected) {
+    const [dimension] = id.split(":");
+    if (!grouped.has(dimension)) grouped.set(dimension, new Set());
+    grouped.get(dimension).add(id);
+  }
+  const matches = params.get("stock_only") === "1" ||
+    (params.get("q") && !["BRTEST", "BRTEST1", "BRTEST2"].includes(params.get("q")))
+    ? [] : browserOccurrences.filter((item) => [...grouped].every(([dimension, choices]) =>
+      dimension === "seat_equipment"
+        ? [...choices].every((id) => item.values.includes(id))
+        : [...choices].some((id) => item.values.includes(id))));
+  return {
+    state: matches.length ? "applicable" : "no_match", fixture_mode: true,
+    source_namespace: "fixture:pre-jepc-suitability:v1",
+    selected, categories, matches, excluded_occurrences: [], unavailable_occurrences: [],
+    available_options: [...new Set(matches.flatMap((m) => m.values))].sort(),
+  };
+}
+
 async function localServer() {
   const server = createServer(async (request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
@@ -36,6 +91,12 @@ async function localServer() {
         roots: [{ node_id: 1, label: "XK Range (browser fixture)", sort_order: 1 }],
         stock_browse_state: "unsupported",
       }));
+      return;
+    }
+    if (pathname === "/api/vieps/suitability") {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify(browserSuitabilityResponse(
+        new URL(request.url, "http://localhost").searchParams)));
       return;
     }
     if (pathname === "/api/vieps/part") {
@@ -246,6 +307,42 @@ try {
     assert.match(await page.locator("#ranges").textContent(), /XK Range/,
       "selected-PART Applicable Models must come from positive fixture evidence");
     await page.screenshot({ path: evidenceDir + "desktop-synchronized-selection.png", fullPage: true });
+
+    // #895 source-qualified fixture-backed filter uses the existing three
+    // columns and synchronizes BOTH results surfaces without guessing fitment.
+    const coupe = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+    await coupe.waitFor();
+    await coupe.check();
+    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    await page.locator('#searchResults [data-result-part-id="101"]').waitFor();
+    assert.equal(await page.locator("#searchResults [data-result-part-id]").count(), 1,
+      "Suitability checkbox must actually narrow the right Search Results");
+    assert.equal(await page.locator('#tree [data-part-id="102"]').count(), 0,
+      "Suitability must filter left Parts Tree leaves in the same way");
+    assert.equal(await page.locator('#partCard').textContent().then((v) => v.includes("BRTEST2")), false,
+      "out-of-filter selected PART must be cleared");
+    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:memory_seat"]').check();
+    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]').check();
+    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]:checked').waitFor();
+    assert.deepEqual(await page.locator('#variationOptions input:checked').evaluateAll((nodes) =>
+      nodes.map((node) => node.closest("label").querySelector("span").textContent.trim())),
+    ["Coupe", "Memory Seat", "Powered Seats"], "checked options appear first alphabetically");
+    const groupScroll = await page.locator("#variationOptions").evaluate((node) => ({
+      viewport: node.clientWidth, content: node.scrollWidth, overflowX: getComputedStyle(node).overflowX,
+    }));
+    assert.equal(groupScroll.overflowX, "auto");
+    assert.ok(groupScroll.content >= groupScroll.viewport);
+    await page.screenshot({ path: evidenceDir + "desktop-suitability-filter.png", fullPage: true });
+    await page.locator('[data-language="fi"]').click();
+    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
+    assert.match(await page.locator('#variationOptions [data-suitability-facet="body:coupe"]').getAttribute("title"), /Coupe \[en;/);
+    await page.screenshot({ path: evidenceDir + "desktop-suitability-fi.png", fullPage: true });
+    await page.locator('[data-language="en"]').click();
+    await page.locator("#partNumber").fill("");
+    await page.locator("#tree .tree-node-row").first().waitFor();
+    assert.equal(await page.locator("#variationOptions input:checked").count(), 0,
+      "clearing search clears active suitability selections");
   }
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
