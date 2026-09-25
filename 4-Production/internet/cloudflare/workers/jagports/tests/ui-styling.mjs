@@ -339,6 +339,31 @@ const browseFixture = {
   part_nodes: [{ part_id: 10, node_id: 2 }],
 };
 
+test('Parts Tree heading link resets selected branch to collapsed roots and retains Stock and URL context', async () => {
+  const ui = harness(async url => {
+    if (url.includes('node_id=2')) return response(browseFixture);
+    throw Error('unexpected request');
+  }, { initialSearch: '?tree=2&lang=fi' });
+  await flush();
+  assert.match(ui.get('tree').innerHTML, /Bushings/);
+  ui.get('availabilitySelect').checked = true;
+  ui.get('partNumber').value = 'obsolete search';
+  let prevented = false;
+  ui.get('treeRootLink').listeners.click({ preventDefault() { prevented = true; } });
+  await flush();
+  assert.equal(prevented, true);
+  assert.equal(ui.get('partNumber').value, '');
+  assert.equal(ui.get('availabilitySelect').checked, true);
+  assert.equal(ui.location.search, '?lang=fi');
+  assert.equal(ui.location.hash, '#browse');
+  assert.ok(ui.requests.includes('/api/vieps/tree?root=1&stock_only=1'));
+  assert.match(ui.get('tree').innerHTML, /Suspension/);
+  assert.match(ui.get('tree').innerHTML, /Body/);
+  assert.doesNotMatch(ui.get('tree').innerHTML, /Front|Bushings|selected-path|data-part-query/);
+  assert.equal(ui.get('rangeSelect').disabled, true);
+  assert.equal(ui.get('result').attrs['aria-busy'], 'false');
+});
+
 test('empty submission restores collapsed roots, clearing selected PART and dependent panels', async () => {
   const ui = harness(async () => response(fixture));
   await ui.search('TEST1');
