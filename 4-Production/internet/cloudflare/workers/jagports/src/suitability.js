@@ -70,7 +70,7 @@ export async function handleViepsSuitability(request, env) {
   const mappings = (await db.prepare(
     `SELECT m.id AS mapping_revision_id, sd.id AS source_description_id,
        sd.source_namespace, sd.dataset_key, sd.source_key, sd.source_language,
-       sd.source_group_code, sd.source_value_code, sd.source_model_ref,
+       sd.source_group_code, sd.source_value_code, sd.source_model_ref, sd.evidence_id AS source_evidence_id,
        sd.source_category_ref, sd.source_item_ref, sd.source_tree_path,
        sd.record_locator, sd.original_text, d.code AS dimension,
        m.value_code, dl.name AS dimension_name, dl.description AS dimension_description,
@@ -92,7 +92,7 @@ export async function handleViepsSuitability(request, env) {
   ).bind(language, language, SOURCE).all()).results || [];
   if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
       !m.value_name || !m.value_description || !m.source_language ||
-      !m.record_locator || !m.dataset_key)) {
+      !m.record_locator || !m.dataset_key || m.source_evidence_id == null)) {
     return send(empty('unavailable', selectedIds, [], q, 'mapping_language_or_provenance_unavailable'), 503);
   }
   const categoriesByCode = new Map();
@@ -156,6 +156,7 @@ export async function handleViepsSuitability(request, env) {
       `SELECT se.set_id, se.mapping_revision_id, se.verification,
          m.id AS current_id, m.status, d.code AS dimension, m.value_code,
          sd.source_namespace, sd.provenance_kind, sd.source_model_ref,
+         sd.evidence_id AS source_evidence_id, se.evidence_id AS linked_evidence_id,
          dl.name AS dimension_name, vl.name AS value_name
        FROM applicability_set_description_evidence se
        JOIN applicability_description_mapping_revision historical
@@ -184,6 +185,7 @@ export async function handleViepsSuitability(request, env) {
       const valid = tags.length > 0 && tags.every((t) =>
         t.current_id != null && t.status === 'fixture' && t.verification === 'fixture'
         && t.source_namespace === SOURCE && t.provenance_kind === 'fixture'
+        && t.source_evidence_id != null && t.source_evidence_id === t.linked_evidence_id
         && (!t.source_model_ref || t.source_model_ref === a.model_context)
         && t.dimension_name && t.value_name && published.has(facetId(t.dimension, t.value_code)));
       const complete = valid && a.verification === 'verified' && a.coverage === 'complete'
