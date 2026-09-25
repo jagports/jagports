@@ -142,6 +142,27 @@ The page must:
 
 Authorization remains an API requirement. Building an Admin login/account-management UI is outside this page specification.
 
+## Future catalogue Admin panel — Suitability Categories and source descriptions (#877)
+
+This is a future extension of the existing one-page Admin UI. It is separate from operational STOCK and `/api/stock`.
+
+An authorized operator can create or retire stable normalized category/value IDs, provide language-qualified domain names and descriptions, and map **one selected JEPC source description** to one category/value. A source record must show its namespace, dataset/version, original text, source language, locator, group/value identifiers and model/category/item/tree-path scope. Linking creates an append-only interpretation revision; it never rewrites JEPC data.
+
+The panel may list the approved fixture vocabulary—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—only as explicitly tagged synthetic source records. Fixture rows use the same provenance shape as the future importer but are not JEPC facts and cannot publish production suitability.
+
+A mapping remains proposed or unavailable when its JEPC relation, source scope, language metadata, evidence or review is missing. Raw description text, translated UI text and localized domain names are never foreign keys. There is no condition or predicate authored from this panel: every later condition must reference its persisted JEPC source-description mapping and resolvable i18n domain name/description.
+
+### Future Admin API contract
+
+| Operation | Proposed route | Required safeguard |
+|---|---|---|
+| Browse categories/values | `GET /api/admin/suitability/categories` | Authenticated stable IDs plus language-qualified domain metadata. |
+| Manage categories/values | `POST/PATCH /api/admin/suitability/categories` and `.../:id/values` | Validate codes and retire referenced values instead of deleting them. |
+| Browse descriptions | `GET /api/admin/suitability/descriptions?status=&language=&q=` | Return immutable source identity, provenance and mapping status. |
+| Map/retire | `POST /api/admin/suitability/mappings`; `POST /api/admin/suitability/mappings/:id/retire` | Append a source-qualified revision; reject ambiguous or conflicting active mappings. |
+
+All mutations require independent catalogue Admin authorization, validate on the server, and read back the persisted revision. A shared token alone does not prove an independent reviewer. The public filter consumes only published mappings with source and language metadata; it never consumes raw Admin form text.
+
 ## Future physical-stock photos
 
 Physical-stock photographs remain a future extension. A later implementation may support device files/photo library and camera capture, multiple previews and a primary image. These images belong to the physical stock record and are distinct from canonical PART/JEPC imagery.

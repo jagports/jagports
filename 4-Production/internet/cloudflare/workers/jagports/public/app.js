@@ -20,6 +20,11 @@ let cachedBrowseData = null;
 let cachedCandidatesData = null;
 let pendingCandidateId = null;
 let viewMode = "empty";
+let suitabilitySelection = new Set();
+let suitabilityRequestVersion = 0;
+let suitabilityData = null;
+let suitabilityMatchingIds = null; // Null means the source-backed filter is unavailable.
+
 
 const BROWSE_RANGE_LABELS = Object.freeze([
   "Jaguar Accessories", "Daimler Limousine", "E-Pace", "E-Type", "F-Pace",
@@ -283,7 +288,7 @@ function canonicalCandidates(parts = []) {
 
 function candidateLeaves(data) {
   const paths = Array.isArray(data.parts_tree) ? data.parts_tree : [];
-  return canonicalCandidates(data.matches || []).map((part) => ({
+  return canonicalCandidates(visibleCandidates(data.matches || [])).map((part) => ({
     part,
     paths: (part.tree_paths?.length ? part.tree_paths : paths
       .filter((path) => String(path.part_id) === String(part.id))
@@ -292,10 +297,120 @@ function candidateLeaves(data) {
   }));
 }
 
+
+function visibleCandidates(parts = []) {
+  if (!suitabilitySelection.size || suitabilityMatchingIds === null) return parts;
+  return parts.filter((part) => suitabilityMatchingIds.has(String(part.id)));
+}
+
+function showSuitability() {
+  const panel = $("variationOptions"), status = $("variationsStatus");
+  if (!panel || !status) return;
+  if (!suitabilityData?.fixture_mode) {
+    if (panel.dataset) panel.dataset.currentQuery = "";
+    panel.innerHTML = "";
+    status.textContent = t("suitability.unavailable");
+    return;
+  }
+  if (panel.dataset) panel.dataset.currentQuery = suitabilityData.query || "";
+  const choices = (suitabilityData.categories || []).flatMap((category) =>
+    (category.values || []).map((value) => ({
+      ...value, category: category.name,
+      selected: suitabilitySelection.has(value.id),
+      available: (suitabilityData.available_options || []).includes(value.id),
+    })));
+  const locale = i18n?.language || "en";
+  choices.sort((a, b) => Number(b.selected) - Number(a.selected)
+    || a.name.localeCompare(b.name, locale) || a.category.localeCompare(b.category, locale)
+    || a.id.localeCompare(b.id));
+  panel.innerHTML = choices.map((item) => {
+    const source = item.source_descriptions || [];
+    const title = source.map((s) => `${s.original_text} [${s.language}; ${s.source_namespace}; ${s.locator}]`).join(" · ");
+    return `<label class="variation-choice" title="${escapeHtml(title)}">
+      <input type="checkbox" data-suitability-facet="${escapeHtml(item.id)}"
+        aria-describedby="variationsStatus" ${item.selected ? "checked" : ""}
+        ${!item.selected && !item.available ? "disabled" : ""}>
+      <span>${escapeHtml(item.name)}</span>
+      <small>(${escapeHtml(item.category)})</small>
+    </label>`;
+  }).join("");
+  const matching = suitabilityData.matches?.length || 0;
+  status.textContent = !choices.length ? t("suitability.no_options")
+    : suitabilityData.state === "unavailable" && matching === 0
+      ? t("suitability.incomplete")
+      : suitabilitySelection.size && matching === 0 ? t("suitability.no_matches")
+      : t("suitability.fixture_count", { count: matching });
+}
+
+async function refreshSuitability(query, stockOnly, mainVersion = requestVersion) {
+  const version = ++suitabilityRequestVersion;
+  if (typeof URLSearchParams !== "function") {
+    suitabilityMatchingIds = null;
+    suitabilityData = null;
+    showSuitability();
+    return;
+  }
+  const params = new URLSearchParams({
+    q: query || "", stock_only: stockOnly ? "1" : "0",
+    ui_language: i18n?.language || "en",
+  });
+  for (const id of suitabilitySelection) params.append("facet", id);
+  try {
+    const response = await fetch("/api/vieps/suitability?" + params.toString());
+    const data = await response.json();
+    if (version !== suitabilityRequestVersion || mainVersion !== requestVersion) return;
+    if (!response.ok || data.fixture_mode !== true) {
+      // Missing mapping never makes an ordinary PART result look unsuitable.
+      suitabilityData = null;
+      suitabilityMatchingIds = null;
+      showSuitability();
+      return;
+    }
+    suitabilityData = data;
+    suitabilityMatchingIds = new Set((data.matches || []).map((m) => String(m.part_id)));
+    showSuitability();
+    if (viewMode === "candidates" && cachedCandidatesData) {
+      renderPartCandidates(cachedCandidatesData);
+      $("searchStatus").textContent = suitabilitySelection.size
+        ? t("suitability.result_count", { count: visibleCandidates(cachedCandidatesData.matches || []).length })
+        : t("search.multiple_matches", { count: cachedCandidatesData.matches?.length || 0 });
+    } else if (viewMode === "resolved" && currentData && suitabilitySelection.size) {
+      if (!suitabilityMatchingIds.has(String(currentData.part?.id))) {
+        // A selected canonical PART cannot remain selected outside the
+        // surviving occurrence-backed candidate set.
+        if (cachedCandidatesData) {
+          viewMode = "candidates";
+          renderPartCandidates(cachedCandidatesData);
+        } else {
+          resetContext();
+          renderTree([], { roots: cachedRootData?.roots || [] });
+        }
+        $("searchStatus").textContent = t("suitability.no_matches");
+      } else {
+        renderResolvedData(currentData);
+      }
+    }
+  } catch {
+    if (version === suitabilityRequestVersion && mainVersion === requestVersion) {
+      suitabilityData = null;
+      suitabilityMatchingIds = null;
+      showSuitability();
+    }
+  }
+}
+
+function clearSuitability() {
+  ++suitabilityRequestVersion;
+  suitabilitySelection.clear();
+  suitabilityData = null;
+  suitabilityMatchingIds = null;
+  showSuitability();
+}
+
 function renderSearchResults(parts = [], selectedId = null) {
   const panel = $("searchResults");
   if (!panel) return;
-  const candidates = canonicalCandidates(parts);
+  const candidates = canonicalCandidates(visibleCandidates(parts));
   panel.innerHTML = candidates.length ? `<ul class="results-list">${candidates.map((part) => {
     const selected = selectedId != null && String(part.id) === String(selectedId);
     return `<li class="result-row${selected ? " selected-result" : ""}">
@@ -319,7 +434,9 @@ function renderSearchResults(parts = [], selectedId = null) {
 
 function renderPartCandidates(data) {
   $("partCard").innerHTML = empty(t("part.no_part_selected"));
-  renderTree([], {
+  const allowed = new Set(visibleCandidates(data.matches || []).map((part) => String(part.id)));
+  const paths = (data.parts_tree || []).filter((path) => allowed.has(String(path.part_id)));
+  renderTree(paths, {
     roots: data.tree_roots || cachedRootData?.roots || [],
     partLeaves: candidateLeaves(data),
   });
@@ -390,7 +507,6 @@ function renderSelectedRange() {
   const rangeRows = fitmentRows.filter((item) => item.range_code === code);
   const selected = rangeRows.filter((item) => item.applicability_state === "applicable");
   const range = selected[0];
-  $("selectedRange").textContent = range ? `${range.range_code} — ${range.range_name}` : t("fitment.selected_none");
   $("locationStatus").textContent = range
     ? t("location.range_unavailable", { range: range.range_name })
     : t("location.verified_unavailable");
@@ -402,7 +518,7 @@ function renderSelectedRange() {
     variationStateKey = "fitment.no_match";
   }
 
-  $("fitment").innerHTML = selected.length ? `<div class="table-scroll"><table>
+  $("rangeEvidence").innerHTML = selected.length ? `<div class="table-scroll"><table>
     <thead><tr><th>${escapeHtml(t("fitment.variation"))}</th><th>${escapeHtml(t("fitment.qualifier"))}</th><th>${escapeHtml(t("fitment.verification"))}</th></tr></thead>
     <tbody>${selected.map((item) => `<tr><td>${escapeHtml(item.variation || t("common.not_specified"))}</td><td>${escapeHtml(item.qualifier || t("common.not_supplied"))}</td><td>${escapeHtml(item.verification_status || t("common.not_recorded"))}</td></tr>`).join("")}</tbody>
     </table></div>` : empty(t(variationStateKey));
@@ -434,7 +550,7 @@ function renderFitment(fitment, declaredState = null) {
     : empty(emptyLabel);
   renderSelectedRange();
   if (!ranges.length) {
-    $("fitment").innerHTML = empty(t(error ? "fitment.unavailable"
+    $("rangeEvidence").innerHTML = empty(t(error ? "fitment.unavailable"
       : confirmedNoMatch ? "fitment.no_match" : "fitment.unavailable"));
   }
 }
@@ -442,7 +558,10 @@ function renderFitment(fitment, declaredState = null) {
 function renderResolvedData(data) {
   currentData = data;
   renderPart(data.part, data.occurrences || [], data.stock || []);
-  renderTree(cachedCandidatesData?.parts_tree || data.parts_tree || [], {
+  renderTree(cachedCandidatesData
+    ? (cachedCandidatesData.parts_tree || []).filter((path) =>
+      visibleCandidates(cachedCandidatesData.matches || []).some((p) => String(p.id) === String(path.part_id)))
+    : data.parts_tree || [], {
     roots: data.tree_roots || cachedRootData?.roots || [],
     selectedPartId: data.part?.id,
     selectedNodeId: selectedTreeNodeId,
@@ -468,8 +587,7 @@ function resetContext(messageKey = "part.no_part_selected") {
   $("rangeSelect").innerHTML = `<option value="">${escapeHtml(t("ranges.no_part_selected"))}</option>`;
   $("rangeSelect").disabled = true;
   renderBrowseRangeIndex();
-  $("selectedRange").textContent = t("fitment.selected_none");
-  $("fitment").innerHTML = empty(t("fitment.browse_help"));
+  $("rangeEvidence").innerHTML = empty(t("fitment.browse_help"));
   $("vehicleLocation").innerHTML = empty(t("location.unavailable"));
   $("locationStatus").textContent = t("location.select_help");
 }
@@ -545,16 +663,26 @@ function setupViepsUi() {
     control.addEventListener("click", () => {
       i18n?.changeLanguage(control.dataset.language);
       refreshForLanguageChange();
+      void refreshSuitability($("partNumber").value.trim(),
+        Boolean($("availabilitySelect").checked));
     });
   });
-  // The heading returns to the first-level catalogue index, without changing
-  // the independently selected Stock filter.
+  // The heading restores the catalogue root index while retaining Stock only.
   $("treeRootLink")?.addEventListener("click", (event) => {
     event.preventDefault();
     $("partNumber").value = "";
     pendingCandidateId = null;
     clearSelectionUrl();
     void browseTree(null);
+  });
+  $("variationOptions")?.addEventListener("change", (event) => {
+    const id = event.target?.dataset?.suitabilityFacet;
+    if (!id) return;
+    if (event.target.checked) suitabilitySelection.add(id);
+    else suitabilitySelection.delete(id);
+    // The API recomputes facets from the same current search/stock universe.
+    void refreshSuitability($("partNumber").value.trim(),
+      Boolean($("availabilitySelect").checked));
   });
   $("rangeSelect").addEventListener("change", renderSelectedRange);
   $("visualSelect").addEventListener("change", renderSelectedVisual);
@@ -571,6 +699,7 @@ function setupViepsUi() {
       cachedCandidatesData = null;
       viewMode = "empty";
       renderTree([], { roots: data.roots || [] });
+      void refreshSuitability("", Boolean($("availabilitySelect").checked), version);
       $("searchStatus").textContent = data.stock_browse_state === "unsupported"
         ? t("tree.no_selection", { message: t("search.prompt") }) : t("search.prompt");
     } catch (error) {
@@ -591,10 +720,12 @@ function setupViepsUi() {
     cachedBrowseData = null;
     cachedCandidatesData = null;
     viewMode = "empty";
+    suitabilityMatchingIds = null;
     resetContext();
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
     if (!$("partNumber").value.trim()) {
+      clearSuitability();
       clearSelectionUrl();
       void loadRootBrowse(version);
     } else {
@@ -605,6 +736,7 @@ function setupViepsUi() {
 
   const browseTree = async (nodeId = null, options = {}) => {
     const version = ++requestVersion;
+    clearSuitability(); // Tree context has no source-qualified suitability read yet.
     resetContext();
     viewMode = "empty";
     $("searchStatus").className = "muted status-line";
@@ -644,6 +776,8 @@ function setupViepsUi() {
   const submitSearch = async (event) => {
     event.preventDefault();
     const version = ++requestVersion;
+    ++suitabilityRequestVersion; // Invalidate late responses for the previous query.
+    suitabilityMatchingIds = null; // Never apply the previous query's matches.
     const partNumber = $("partNumber").value.trim();
     const candidateId = pendingCandidateId;
     const preservedCandidates = candidateId ? cachedCandidatesData : null;
@@ -655,6 +789,7 @@ function setupViepsUi() {
     $("searchStatus").className = "muted status-line";
     if (!partNumber) {
       selectedTreeNodeId = null;
+      clearSuitability();
       clearSelectionUrl();
       await loadRootBrowse(version);
       return;
@@ -671,12 +806,14 @@ function setupViepsUi() {
         viewMode = "candidates";
         renderPartCandidates(data);
         $("searchStatus").textContent = t("search.multiple_matches", { count: data.matches?.length || 0 });
+        void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked), version);
         return;
       }
       cachedRootData = { roots: data.tree_roots || cachedRootData?.roots || [] };
       viewMode = "resolved";
       renderResolvedData(data);
       $("searchStatus").textContent = t("search.resolved");
+      void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked), version);
     } catch (error) {
       if (version !== requestVersion) return;
       resetContext("part.no_part_resolved");
