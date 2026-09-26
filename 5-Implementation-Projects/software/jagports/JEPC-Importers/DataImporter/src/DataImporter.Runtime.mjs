@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 
-const VERSION = 2;
+const VERSION = 3;
 const inside = (root, child) => {
   const relative = path.relative(root, child);
   return relative === '' || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
@@ -33,7 +33,7 @@ function alive(pid) {
 function schema(db) {
   db.exec('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;');
   const version = db.prepare('PRAGMA user_version').get().user_version;
-  if (![0, 1, VERSION].includes(version)) throw new Error(`Unsupported importer ledger version ${version}.`);
+  if (![0, 1, 2, VERSION].includes(version)) throw new Error(`Unsupported importer ledger version ${version}.`);
   transaction(db, () => {
     // Preserve the original PR #660 run/file/event ledger when upgrading v1.
     db.exec(`
@@ -65,7 +65,13 @@ function schema(db) {
         id TEXT PRIMARY KEY, source TEXT NOT NULL, scope TEXT NOT NULL,
         report_json TEXT NOT NULL, created TEXT NOT NULL
       );
-      PRAGMA user_version=2;
+      CREATE TABLE IF NOT EXISTS range_publications (
+        source TEXT NOT NULL, model TEXT NOT NULL, category TEXT NOT NULL,
+        language TEXT NOT NULL, range_slug TEXT NOT NULL, database_id TEXT NOT NULL,
+        evidence_hash TEXT NOT NULL, published_at TEXT NOT NULL,
+        PRIMARY KEY(source,model,category,language,range_slug,database_id)
+      );
+      PRAGMA user_version=3;
     `);
   });
   if (db.prepare('PRAGMA quick_check').get().quick_check !== 'ok'
@@ -135,6 +141,41 @@ export async function openLedger(source, stateDir) {
         WHERE source=? AND model=? AND category=? AND language=? ORDER BY rowid DESC LIMIT 1`)
         .get(root, model, category, language);
       return row ? JSON.parse(row.evidence_json) : null;
+    },
+    readBundleWithHash(model, category, language) {
+      const row = db.prepare(`SELECT evidence_json,evidence_hash FROM bundle_evidence
+        WHERE source=? AND model=? AND category=? AND language=? ORDER BY rowid DESC LIMIT 1`)
+        .get(root, model, category, language);
+      return row ? { staged: JSON.parse(row.evidence_json), evidenceHash: row.evidence_hash } : null;
+    },
+    latestBundles(modelIds) {
+      if (!Array.isArray(modelIds) || !modelIds.length || modelIds.some(id => !/^\d+$/.test(id))) {
+        throw new Error('Require selected numeric Model_IDs to inspect staged bundles.');
+      }
+      const placeholders = modelIds.map(() => '?').join(',');
+      const rows = db.prepare(`SELECT be.evidence_json,be.evidence_hash FROM bundle_evidence be
+        JOIN (SELECT MAX(rowid) AS newest FROM bundle_evidence
+          WHERE source=? AND model IN (${placeholders}) GROUP BY model,category,language) latest
+          ON latest.newest=be.rowid ORDER BY be.model,be.category,be.language`)
+        .all(root, ...modelIds);
+      return rows.map(row => ({ staged: JSON.parse(row.evidence_json), evidenceHash: row.evidence_hash }));
+    },
+    lastPublication({ model, category, language, rangeSlug, databaseId }) {
+      return db.prepare(`SELECT evidence_hash FROM range_publications
+        WHERE source=? AND model=? AND category=? AND language=? AND range_slug=? AND database_id=?`)
+        .get(root, model, category, language, rangeSlug, databaseId)?.evidence_hash ?? null;
+    },
+    publicationTargets(model, category, language) {
+      return db.prepare(`SELECT DISTINCT range_slug,database_id FROM range_publications
+        WHERE source=? AND model=? AND category=? AND language=?`)
+        .all(root, model, category, language);
+    },
+    recordPublication({ model, category, language, rangeSlug, databaseId, evidenceHash }) {
+      db.prepare(`INSERT INTO range_publications
+        (source,model,category,language,range_slug,database_id,evidence_hash,published_at)
+        VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(source,model,category,language,range_slug,database_id)
+        DO UPDATE SET evidence_hash=excluded.evidence_hash,published_at=excluded.published_at`)
+        .run(root, model, category, language, rangeSlug, databaseId, evidenceHash, new Date().toISOString());
     },
     storeEstimate(scope, report) {
       const id = randomUUID();

@@ -82,6 +82,7 @@ export function transformBundle(staged) {
     identity: { model, category, language },
     source: { root: staged.source.root, modelLabel: staged.source.modelLabel,
       parentModel: staged.source.parentModel, parentModelLabel: staged.source.parentModelLabel,
+      ancestorModelIds: staged.source.ancestorModelIds,
       categoryLabel: staged.source.categoryLabel, categoryParent: staged.source.categoryParent,
       breadcrumb },
     files: staged.files.map(file => ({ path: file.path, size: file.size, sha256: file.sha256 })),

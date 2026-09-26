@@ -12,9 +12,11 @@ Occurrence-bound grouped applicability and versioned source-evidence semantics a
 
 `PART` is the stable reusable product/reference identity used by VIEPS.
 
-The same canonical `part(id)` namespace contains both imported Jaguar/JEPC PARTs and manually created Jagports specified PARTs. A Jagports specified PART is canonical inside VIEPS but is not Jaguar-issued and must remain distinguishable by origin/provenance.
+Canonical PART identity must remain consistent across the operational database and Range-partitioned JEPC catalogue databases. A Jagports specified PART is canonical inside VIEPS but is not Jaguar-issued and must remain distinguishable by origin/provenance.
 
-The internal `id` is the stable PART identity. A part number can be attached later without changing that identity.
+Within one database, the internal `id` is the stable row identity. Across Range D1 databases, an imported numbered JEPC PART uses the stable `JEPC:<part_number_normalized>` canonical key; a Range-local numeric `id` must never be interpreted as a global PART identifier. A part number can be attached later to an operational/manual PART without changing its local identity. Cross-database reconciliation of that manual identity remains explicit work under Issue #555.
+
+The initial Range D1 schema stores `canonical_key`, raw/normalized part number, `source_origin='ImportJEPC'`, exact occurrence rows and source-qualified tree paths. The same normalized JEPC number in multiple Range databases has the same canonical key. Unnumbered or NSS source leaves remain provenance records until a verified canonical identity exists; they are not assigned an invented Jaguar part number. The first publication stores source branch descriptions and predicate sidecars as unverified evidence. It does not claim verified fitment or localized condition references.
 
 A PART may be created before a catalogue part number is known, allowing unidentified reference parts to be recorded and subsequently identified.
 
@@ -25,6 +27,7 @@ Unresolved physical stock does not require a PART row.
 | Field | Requirement | Meaning |
 |---|---|---|
 | `id` | required | Stable internal catalogue-part identifier. |
+| `canonical_key` | required for numbered Range-imported JEPC PARTs | Cross-Range key `JEPC:<part_number_normalized>`; local numeric IDs remain database-scoped. |
 | `part_number_raw` | optional | Original part-number representation supplied by the source, when known. |
 | `part_number_normalized` | optional, unique when present | Stable lookup identity derived from the raw part number. Multiple NULL values are allowed. |
 | `description` | optional, non-unique | Part description/name; may be empty or NULL. Descriptions are not identity because different parts can share the same description. |
@@ -220,9 +223,9 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item` is an operational record and is not a catalogue PART identity.
 
-`stock_item.part_id` is a nullable foreign key to canonical `part(id)`. When reusable identity is established it points to that canonical PART, whether the PART is an imported Jaguar/JEPC PART or a Jagports specified PART created under `MODEL_PART_THIRD_PARTY.md`.
+`stock_item.part_id` is a nullable foreign key within the operational `jagports` database only. It must never contain a numeric `part.id` from a Range D1 database, because that number is scoped to the Range partition. Real-mode VIEPS currently relates operational stock to imported numbered JEPC PARTs by conservatively normalized part number for lookup, excluding fixture stock. A durable cross-database stock-to-canonical-PART relationship still requires explicit reconciliation under Issue #555. Operational/manual PART links within `jagports` retain their existing foreign-key meaning.
 
-`stock_item.part_id = NULL` does **not** mean merely "not found in Jaguar/JEPC". It is reserved for stock whose reusable product identity is genuinely unresolved. A known reusable third-party product must first resolve to either an existing Jaguar PART (verified 1:1 case) or a Jagports specified PART (non-1:1 reusable case).
+`stock_item.part_id = NULL` does **not** mean merely "not found in Jaguar/JEPC". It may also mean that a Range-imported JEPC identity has not yet been reconciled into an operational relationship; the stock's own part-number evidence remains usable for provisional lookup. A known reusable third-party product must still resolve to the appropriate approved canonical identity rather than borrowing an unrelated Range-local row ID.
 
 The existing `stock_item.part_number` field is retained as the stocked or historical part-number reference.
 

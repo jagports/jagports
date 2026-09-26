@@ -14,7 +14,9 @@
   const visibleSiteName = (name) => isTechnicalSitePlaceholder(name) ? "" : (name || "");
 
   async function api(path, options = {}, admin = true) {
-    const response = await fetch(path, {
+    const testMode = new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1";
+    const url = testMode ? `${path}${path.includes("?") ? "&" : "?"}TEST=1` : path;
+    const response = await fetch(url, {
       ...options,
       headers: { ...(admin ? headers() : { "content-type": "application/json" }), ...(options.headers || {}) },
     });
@@ -86,7 +88,9 @@
       const number = part.part_number_raw || part.part_number_normalized || `#${part.id}`;
       button.textContent = `${number}${part.description ? ` — ${part.description}` : ""}`;
       button.addEventListener("click", () => {
-        byId("partId").value = part.id;
+        // Range D1 row IDs are not operational jagports.part IDs.
+        byId("partId").value = new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1"
+          ? part.id : "";
         byId("partNumber").value = number;
         target.replaceChildren();
         setLocalizedStatus("stock_admin.part_selected");
