@@ -39,6 +39,10 @@ WantedBy=timers.target
 
 `OnUnitActiveSec=9h45min` counts from service activation; it is **not 09:45 on a clock**. `OnActiveSec=1s` starts the agent once shortly after the timer is activated (including an intentional restart of this timer); `OnUnitActiveSec=9h45min` schedules subsequent runs from the most recent service activation. This replaces the unwanted five-minute boot-relative trigger, but intentionally starts once when the timer starts. The repository's `config.yaml` `polling.interval_minutes: 585` is descriptive: current `main.py` does not consume it to create a scheduler.
 
+## Manual updates from reviewed main
+
+The application can be installed in a `codex`-owned sparse Git checkout at `/home/codex/jagports-source`. The existing `/home/codex/jagports-lead-agent` service path links to its application subtree. Private credentials, virtual environment, state and spending ledger, reports and notifications remain outside Git. The one-time migration and later manual `git pull --ff-only` procedure are in [USAGE_UPDATER.md](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/USAGE_UPDATER.md). No separate update timer or automatic deployment is part of this procedure.
+
 ## Install or repair as `admin`
 
 First establish sudo access in the **admin** SSH session. Paste the entire block only once sudo credentials have been accepted; if your terminal interleaves multiline pastes with a password prompt, run `sudo -v` separately first. Stop on any failure rather than continuing to activation. Inspect and back up existing units before replacing an already functioning installation.
