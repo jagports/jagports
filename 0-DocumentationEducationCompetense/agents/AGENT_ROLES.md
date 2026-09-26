@@ -10,6 +10,10 @@ current requirement.
 
 Repository: `jagports/jagports`
 
+## Distinction between logical work roles and executable agents
+
+These six roles describe project work and human decisions; they do not instantiate Python agents. The executable AI OS team is `LeadAgent`, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`. See the [Lead Agent SPEC](../../6-Development/AI/agents/jagports/jagports-lead-agent/SPEC_Agent_Lead.md) and [shared service specification](../../6-Development/AI/agents/jagports/SHARED_AGENT_SERVICES_SPEC.md). Logical Research and Product / Vehicle duties remain within the normal Management workflow.
+
 ## Authority and workflow sources
 
 This file defines division of labour only. It does not create workflow states,

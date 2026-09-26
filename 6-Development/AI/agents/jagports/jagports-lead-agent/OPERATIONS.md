@@ -2,7 +2,7 @@
 
 ## Scope
 
-Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure or the AI OS business case. Current module architecture is in [README.md](README.md); the Raspberry Pi installation belongs to [Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md); business context belongs to [the implementation project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
+Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure or the AI OS business case. Current module architecture is in [README.md](README.md); the Raspberry Pi installation belongs to [Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md); business context belongs to [the implementation project](../../../../../5-Implementation-Projects/AGENT_SETUP.md).
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
@@ -469,4 +469,3 @@ The earlier system-wide service alternatives named `/etc/systemd/system/jagports
 The same tar command was used with checkpoint suffixes `split-working`, `event-working`, `agentresult-working`, `registry-working`, `multi-agent-working`, and `three-agents-working`. Those names record successive implementation stages, not interchangeable versions of the final runtime.
 
 The modular migration also proposed `git checkout -b refactor/split-lead-agent` and, later, `mv agent.py legacy_agent.py`. These were alternatives conditional on a Git checkout and a tested migration; the later directory listing still showed `agent.py`. This appendix does not claim either operation was completed or provide a full source-code installer.
-

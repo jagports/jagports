@@ -2,7 +2,7 @@
 
 ## Scope and host boundary
 
-This is the **one host-specific installation document** for the existing Raspberry Pi MyNodeBTC instance. General-purpose agent commands belong to [Development OPERATIONS.md](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/OPERATIONS.md), the architecture to its sibling [README.md](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/README.md), and the project business case to [Projects](../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
+This is the **one host-specific installation document** for the existing Raspberry Pi MyNodeBTC instance. General-purpose agent commands belong to [Development OPERATIONS.md](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/OPERATIONS.md), the architecture to its sibling [README.md](../../../../6-Development/AI/agents/jagports/jagports-lead-agent/README.md), and the project business case to [Projects](../../../../5-Implementation-Projects/AGENT_SETUP.md).
 
 Verified host context: `mynode-sby`, Debian on Raspberry Pi, `admin` for host administration, `codex` UID `1008` for the isolated Lead Agent workspace `/home/codex/jagports-lead-agent`. SSH from Windows Git Bash **runs on the Pi**, not Windows. The `codex` account does not have usable sudo credentials; use the `admin` SSH session for privileged setup. Do not change existing MyNodeBTC services or expose `.env` credentials.
 
