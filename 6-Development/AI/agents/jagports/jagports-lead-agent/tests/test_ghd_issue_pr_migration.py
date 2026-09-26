@@ -157,7 +157,7 @@ def make_issue(number=42, *, body="Bounded investigation", comments=None,
     issue = SimpleNamespace(
         number=number, title="Research question", state="open",
         body=body, html_url="https://github.com/jagports/jagports/issues/%d" % number,
-        labels=[SimpleNamespace(name="research"), SimpleNamespace(name="vehicle")],
+        labels=[SimpleNamespace(name="documentation"), SimpleNamespace(name="priority")],
         comments=len(items) if declared_comment_count is None else declared_comment_count,
         raw_data={"number": number},
         get_comments=Mock(return_value=list(items)),
@@ -184,7 +184,7 @@ class GHDBoundedDetailTests(unittest.TestCase):
         context = result["context_or_error"]
         self.assertEqual(context["number"], 42)
         self.assertEqual(context["url"], issue.html_url)
-        self.assertEqual(context["labels"], ["research", "vehicle"])
+        self.assertEqual(context["labels"], ["documentation", "priority"])
         self.assertEqual(context["body"], "Bounded investigation")
         self.assertEqual([x["id"] for x in context["comments"]], [101, 102])
         self.assertEqual(context["comments"][0]["author"], "researcher")
