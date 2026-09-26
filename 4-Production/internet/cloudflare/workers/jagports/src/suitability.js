@@ -1,3 +1,6 @@
+import { normalizePartNumber } from './part.js';
+import { findPartCandidates } from './vieps.js';
+
 // Fixture-only, source-qualified normalized suitability read contract (#641/#877).
 // Never evaluate imported JEPC descriptions as predicates until #354/#355
 // provide reviewed occurrence mapping and operator semantics.
@@ -70,7 +73,7 @@ export async function handleViepsSuitability(request, env) {
   const mappings = (await db.prepare(
     `SELECT m.id AS mapping_revision_id, sd.id AS source_description_id,
        sd.source_namespace, sd.dataset_key, sd.source_key, sd.source_language,
-       sd.source_group_code, sd.source_value_code, sd.source_model_ref,
+       sd.source_group_code, sd.source_value_code, sd.source_model_ref, sd.evidence_id AS source_evidence_id,
        sd.source_category_ref, sd.source_item_ref, sd.source_tree_path,
        sd.record_locator, sd.original_text, d.code AS dimension,
        m.value_code, dl.name AS dimension_name, dl.description AS dimension_description,
@@ -92,7 +95,7 @@ export async function handleViepsSuitability(request, env) {
   ).bind(language, language, SOURCE).all()).results || [];
   if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
       !m.value_name || !m.value_description || !m.source_language ||
-      !m.record_locator || !m.dataset_key)) {
+      !m.record_locator || !m.dataset_key || m.source_evidence_id == null)) {
     return send(empty('unavailable', selectedIds, [], q, 'mapping_language_or_provenance_unavailable'), 503);
   }
   const categoriesByCode = new Map();
@@ -126,6 +129,17 @@ export async function handleViepsSuitability(request, env) {
     if (![...values].every((v) => published.has(facetId(d, v)))) return invalid('facet_unknown');
   }
   const categories = [...categoriesByCode.values()];
+  // Match exactly the bounded candidate universe produced by /api/vieps/part.
+  // Source or occurrence free-text searches must not disappear from Suitability.
+  const searched = q ? (await findPartCandidates(env, q, normalizePartNumber(q))).candidates : null;
+  const eligibleCandidates = searched === null ? null : searched.filter((part) =>
+    stockOnly !== '1' || Number(part.has_available_stock) === 1);
+  const candidateIds = eligibleCandidates?.map((part) => Number(part.id)) || [];
+  if (searched !== null && candidateIds.length === 0) {
+    return send(empty('no_match', selectedIds, categories, q));
+  }
+  const searchClause = searched === null ? '1=1'
+    : `p.id IN (${candidateIds.map(() => '?').join(',')})`;
   const assertions = (await db.prepare(
     `SELECT a.id, a.part_occurrence_id, a.effect, a.verification, a.coverage,
        c.verification AS context_verification, c.source_model_id AS model_context,
@@ -138,12 +152,17 @@ export async function handleViepsSuitability(request, env) {
      JOIN part p ON p.id = o.part_id AND p.verification_status = 'fixture'
      JOIN applicability_model_context c ON c.id = a.model_context_id
        AND c.source_namespace = ?
-     WHERE (? = '' OR instr(upper(COALESCE(p.part_number_normalized, '')), upper(?)) > 0
-       OR instr(upper(COALESCE(p.description, '')), upper(?)) > 0)
+     WHERE ${searchClause}
        AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item st
          WHERE st.part_id = p.id AND st.available = 1 AND st.quantity > 0))
      ORDER BY p.id, o.id, a.id`
-  ).bind(SOURCE, SOURCE, SOURCE, q, q, q, stockOnly).all()).results || [];
+  ).bind(SOURCE, SOURCE, SOURCE, ...candidateIds, stockOnly).all()).results || [];
+  // A source-limited fixture evaluator cannot declare non-fixture candidates
+  // in the same public search unsuitable. Fail closed for the whole query.
+  const covered = new Set(assertions.map((row) => Number(row.part_id)));
+  if (searched !== null && candidateIds.some((id) => !covered.has(id))) {
+    return send(empty('unavailable', selectedIds, categories, q, 'non_fixture_search_context'));
+  }
   if (!assertions.length) return send(empty('no_match', selectedIds, categories, q));
   const sets = (await db.prepare(
     `SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
@@ -156,6 +175,7 @@ export async function handleViepsSuitability(request, env) {
       `SELECT se.set_id, se.mapping_revision_id, se.verification,
          m.id AS current_id, m.status, d.code AS dimension, m.value_code,
          sd.source_namespace, sd.provenance_kind, sd.source_model_ref,
+         sd.evidence_id AS source_evidence_id, se.evidence_id AS linked_evidence_id,
          dl.name AS dimension_name, vl.name AS value_name
        FROM applicability_set_description_evidence se
        JOIN applicability_description_mapping_revision historical
@@ -184,6 +204,7 @@ export async function handleViepsSuitability(request, env) {
       const valid = tags.length > 0 && tags.every((t) =>
         t.current_id != null && t.status === 'fixture' && t.verification === 'fixture'
         && t.source_namespace === SOURCE && t.provenance_kind === 'fixture'
+        && t.source_evidence_id != null && t.source_evidence_id === t.linked_evidence_id
         && (!t.source_model_ref || t.source_model_ref === a.model_context)
         && t.dimension_name && t.value_name && published.has(facetId(t.dimension, t.value_code)));
       const complete = valid && a.verification === 'verified' && a.coverage === 'complete'
