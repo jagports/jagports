@@ -118,6 +118,29 @@ For Stock Admin, verify both:
 - the page asset is served;
 - authenticated API operations use the expected remote D1 schema.
 
+
+## Suitability mapping migration verification
+
+After merging the reviewed Suitability Admin/public-filter changes, check the **actual remote** D1 ledger independently of the Worker deployment. The additive, reviewed migrations are:
+
+- `0019_suitability_description_mapping.sql` — source-qualified descriptions, append-only mapping revisions, localized normalized labels and occurrence-level evidence.
+- `0020_suitability_admin.sql` — normalized category/value retirement and immutable Admin audit history.
+
+From the active Worker root on an authenticated operator's workstation:
+
+~~~powershell
+npx wrangler whoami
+npx wrangler d1 migrations list jagports --remote
+npx wrangler d1 execute jagports --remote --command "SELECT name FROM sqlite_schema WHERE type='table' AND name IN ('applicability_source_description','applicability_description_mapping_revision','applicability_dimension_retirement','applicability_suitability_admin_audit') ORDER BY name;"
+npx wrangler d1 execute jagports --remote --command "SELECT name FROM sqlite_schema WHERE type='view' AND name='applicability_description_mapping_current';"
+~~~
+
+**PASS:** both migration filenames are recorded as applied; all four tables and the current-revision view exist in the intended D1 database. **BLOCKED/FAIL:** a pending migration, missing table or view, wrong Cloudflare account, or missing database binding. Apply outstanding reviewed migrations only through the separately authorized production migration step above, then recheck. No migration inserts synthetic Suitability fixture rows; those reside exclusively in `tests/fixtures/occurrence_applicability.sql`.
+
+The public `GET /api/vieps/suitability` intentionally returns HTTP 503 with `normalized_suitability_not_published` while fixture mode is disabled and a reviewed real JEPC consumer is not yet available. That response proves fail-closed behaviour but **does not establish** that migrations have been applied. The unauthenticated `GET /api/admin/suitability` must return HTTP 401; authenticated Admin read-back requires both a valid application Admin token and the applied remote schema.
+
+The actionable, no-credential public probes; current Admin browser checks; safe local fixture tests; remote regression commands; and required evidence record are in [VIEPS Application Functional Testing](../../../jagports/solution/vieps/SetupTesting.md), under **Suitability release and test procedure**.
+
 ## Missing-column troubleshooting
 
 If a live request fails with:

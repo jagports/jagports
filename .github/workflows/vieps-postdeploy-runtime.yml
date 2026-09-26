@@ -1,0 +1,64 @@
+name: VIEPS deployed-runtime smoke after main
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/vieps-postdeploy-runtime.yml"
+      - "4-Production/internet/cloudflare/workers/jagports/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vieps-postdeploy-main
+  cancel-in-progress: true
+
+jobs:
+  runtime:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+    env:
+      VIEPS_BASE_URL: https://vieps.parts-5ec.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: 4-Production/internet/cloudflare/workers/jagports/package-lock.json
+      - name: Wait for the external main Workers Build to finish
+        run: sleep 180
+      - name: Check remote Worker health with bounded retries
+        run: |
+          set -euo pipefail
+          healthy=0
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --max-time 10 "$VIEPS_BASE_URL/api/health" > "$RUNNER_TEMP/vieps-health.json" &&
+              node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); if(j.ok!==true||j.database!=="ok")process.exit(1)' "$RUNNER_TEMP/vieps-health.json"; then
+              healthy=1
+              break
+            fi
+            echo "Pre-production Worker not healthy on attempt $attempt/12"
+            sleep 20
+          done
+          if [ "$healthy" != 1 ]; then
+            echo "::error::VIEPS pre-production Worker/D1 health not verified after bounded deployment wait"
+            exit 1
+          fi
+      - name: Restore locked Worker dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Test the live API, stock fixtures, Suitability isolation and Admin authorization
+        run: npm run test:runtime
+      - name: Check deployed CSS and i18n assets
+        run: npm run verify:deployed-assets
+      - name: Explain incomplete Cloudflare revision/migration evidence on failure
+        if: failure()
+        run: |
+          echo "::error::Deployed VIEPS runtime check failed: inspect Cloudflare main deployment, remote D1 migration ledger and fixture availability separately"
+          echo "The job does not apply remote D1 migrations or claim that the currently active Worker matches this GitHub SHA." >> "$GITHUB_STEP_SUMMARY"
