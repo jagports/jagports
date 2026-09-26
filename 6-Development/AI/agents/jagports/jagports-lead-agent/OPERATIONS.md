@@ -1,48 +1,8 @@
 # Jagports Lead Agent — Development Command Reference
 
-## Raspberry Pi — update and run exact GitHub main
-
-The installed `/home/codex/jagports-lead-agent` directory is **not a Git checkout**. Use the pinned-main updater, not `git pull` or a manual copy of individual Python files. **Run all commands below as `codex`**, never with sudo. These commands use the GitHub public `main` branch; the updater cannot be bootstrapped until its PR is merged into `main`. Its download selects the exact commit, only the agent subtree, and refuses missing or unsafe files. It installs venv requirements and runs offline regressions before replacing any application code, temporarily stops only the existing agent timer, backs up replaced files, and restores an initially active timer. Its timer may trigger the updated agent within a second of restart. It never calls OpenAI or Telegram itself.
-
-**Initial installation of the updater (two lines, once):**
-
-```bash
-curl -fsSLo /tmp/jagports-agent-update.py https://raw.githubusercontent.com/jagports/jagports/main/6-Development/AI/agents/jagports/jagports-lead-agent/scripts/update_from_main.py
-python3 /tmp/jagports-agent-update.py
-```
-
-**Every later update (two lines):**
-
-```bash
-cd ~/jagports-lead-agent
-bash scripts/agentctl.sh update
-```
-
-**Operator commands** (after `cd ~/jagports-lead-agent`; each requires one line):
-
-```bash
-bash scripts/agentctl.sh check
-```
-
-```bash
-bash scripts/agentctl.sh status
-```
-
-```bash
-bash scripts/agentctl.sh run
-```
-
-```bash
-bash scripts/agentctl.sh telegram-test
-```
-
-`check` runs offline unit tests without GitHub/OpenAI/Telegram credentials; `run` explicitly starts `main.py` and may spend money only if local paid reasoning has separately been enabled. `telegram-test` sends one manual test message and attaches the saved `reports/lead_report.md` when present; verify receipt in the configured chat. `status` shows the installed commit and user timer status. None of these commands proves automatic scheduled Telegram delivery, which has separate acceptance criteria.
-
-**Safety and recovery:** `.env`, `venv/`, `state/`, `reports/` and `notifications/` remain local and are never uploaded or replaced. The installed `config.yaml` is refreshed to GitHub `main` defaults (paid model execution disabled); its prior version is privately backed up. Reapply only reviewed, compatible local overrides after an update. Backups are stored outside the installation under `~/.jagports-agent-backups/`. On an offline-test, download, or systemd preflight failure, the updater stops before deployment; it restores an originally active timer after any later failure. Do not enable unapproved paid execution or create a second timer. If a deployment error occurs, inspect the private backup before running again; do not print `.env` or tokens.
-
 ## Scope
 
-Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure or the AI OS business case. Current module architecture is in [README.md](README.md); the Raspberry Pi installation belongs to [Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md); business context belongs to [the implementation project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
+Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure or the AI OS business case. Current module architecture is in [README.md](README.md); the Raspberry Pi installation belongs to [Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md); business context belongs to [the implementation project](../../../../../5-Implementation-Projects/AGENT_SETUP.md).
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
@@ -509,4 +469,3 @@ The earlier system-wide service alternatives named `/etc/systemd/system/jagports
 The same tar command was used with checkpoint suffixes `split-working`, `event-working`, `agentresult-working`, `registry-working`, `multi-agent-working`, and `three-agents-working`. Those names record successive implementation stages, not interchangeable versions of the final runtime.
 
 The modular migration also proposed `git checkout -b refactor/split-lead-agent` and, later, `mv agent.py legacy_agent.py`. These were alternatives conditional on a Git checkout and a tested migration; the later directory listing still showed `agent.py`. This appendix does not claim either operation was completed or provide a full source-code installer.
-

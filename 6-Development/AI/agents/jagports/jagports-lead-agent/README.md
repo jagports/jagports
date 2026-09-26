@@ -2,17 +2,6 @@
 
 This is the **human-oriented guide** to the Jagports Lead Agent: what currently runs, how to execute and inspect it, how to verify the Raspberry Pi timer, and where to find full operational instructions. Requirements and acceptance tests are maintained only in [SPEC_Agent_Lead.md](SPEC_Agent_Lead.md).
 
-## Update this existing Pi installation from main
-
-The Raspberry Pi workspace is an installed application, **not** a Git repository. After the updater has been merged to GitHub `main`, run its two-line bootstrap once as the unprivileged `codex` user:
-
-```bash
-curl -fsSLo /tmp/jagports-agent-update.py https://raw.githubusercontent.com/jagports/jagports/main/6-Development/AI/agents/jagports/jagports-lead-agent/scripts/update_from_main.py
-python3 /tmp/jagports-agent-update.py
-```
-
-Later updates, deterministic/offline checks, one-shot execution, timer status and one-shot Telegram delivery all have short launchers in [OPERATIONS.md](OPERATIONS.md#raspberry-pi--update-and-run-exact-github-main). No Git checkout or sudo is required inside the agent workspace. The updater downloads one pinned `main` commit, validates it, backs up previous code/configuration and preserves private `.env`, virtualenv, state and reports. The upstream safe `config.yaml` replaces the installed configuration; restore only explicitly approved overrides from the private backup. The existing 585-minute timer is preserved; restarting it may invoke the updated agent promptly. This update mechanism does not itself enable paid calls or implement automatic Telegram delivery.
-
 ## Purpose and current limitation
 
 This directory contains the current Jagports Lead Agent prototype implementation.
@@ -76,7 +65,7 @@ These rules are useful for event routing and framework testing, but they do not 
 
 ## Standalone OpenAI API smoke test
 
-Reusable direct Responses API and wrapper smoke-test commands, their expected outputs, and the distinction between standalone connectivity and integrated reasoning are maintained in [Development OPERATIONS.md](OPERATIONS.md#direct-openai-responses-api-smoke-test). Historical operator-observed outcomes belong in the [implementation project record](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md). Successful connectivity does not prove model-backed specialist operation or an unattended service run.
+Reusable direct Responses API and wrapper smoke-test commands, their expected outputs, and the distinction between standalone connectivity and integrated reasoning are maintained in [Development OPERATIONS.md](OPERATIONS.md#direct-openai-responses-api-smoke-test). Historical operator-observed outcomes belong in the [implementation project record](../../../../../5-Implementation-Projects/AGENT_SETUP.md). Successful connectivity does not prove model-backed specialist operation or an unattended service run.
 
 ## Lead Agent scheduling — intended 9h45min cadence
 
@@ -94,9 +83,8 @@ For the short saved-status Telegram delivery smoke test and its two-part accepta
 | Functional contracts, event/model schemas, design, rollout stages, security and acceptance tests | [SPEC_Agent_Lead.md](SPEC_Agent_Lead.md) |
 | Reusable shell commands, manual smoke tests, diagnostics and historical engineering command variants | [OPERATIONS.md](OPERATIONS.md) |
 | Live Raspberry Pi user service, timer installation, user-bus recovery and host acceptance commands | [MyNode Deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
-| Project rationale, operator-verified evidence and delivery dependencies | [Lead Agent implementation project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md) |
+| Project rationale, operator-verified evidence and delivery dependencies | [Lead Agent implementation project](../../../../../5-Implementation-Projects/AGENT_SETUP.md) |
 | Actual source-backed research and unresolved evidence | The repository's established `7-Research/` semantic root |
-| Governed Research-to-Decision multi-role extension | Its separate Development specification, after that proposal is reviewed and merged |
 | Cross-project workflow, decision authority and agent responsibilities | [Management workflow](../../../../../00-Management/WORKFLOWS.md) and [agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) |
 
 `SPEC_Agent_Lead.md` and this README intentionally remain separate: technical requirements change through specification review, while human operation remains discoverable without scanning normative data contracts. The Operations and Deployment documents likewise remain distinct because portable test procedures are not the live host configuration.

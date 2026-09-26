@@ -63,5 +63,5 @@ For incoming Telegram questions, implement a separately enabled **one-shot** `/a
 - [ ] GET guard, shared source/provenance limits, authorized operation boundary, negative mutation tests, durable #904 events and prior security controls remain intact during migration.
 - [ ] Generalized ReasoningService preserves provider usage measurement, conservative budget, uncertain reservations, exact replay and cross-process locking with focused tests.
 - [ ] A completed original-agent report can reach authorized Telegram recipients with durable outbox, failure/replay controls and no duplicate model charge; a separate one-shot authorized `/ask` reaches an original agent and replies.
-- [ ] Current README, SPEC, OPERATIONS, Deployment and script entry points agree and do not overwrite [Agent Update PR #935](https://github.com/jagports/jagports/pull/935).
+- [ ] Current README, SPEC and script entry points agree.
 - [ ] The existing 585-minute `codex` user timer and paid-disabled defaults remain unchanged pending separately authorized manual and unattended acceptance on the Pi; neither this SPEC nor its CI implies live host deployment.

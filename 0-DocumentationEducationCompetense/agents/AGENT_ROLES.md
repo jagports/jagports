@@ -12,9 +12,7 @@ Repository: `jagports/jagports`
 
 ## Distinction between logical work roles and executable agents
 
-These six roles describe Jagports-wide project work, collaboration and human decision responsibilities. They are **not** the Python `AgentRegistry` of one deployed service. Under [#924](https://github.com/jagports/jagports/issues/924), the **only active AI OS development runtime** consists of the original `LeadAgent`, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`; the obsolete mixed two-role Vehicle pilot is to be removed, **not** extracted into a new Vehicle agent team. See the [Lead Agent SPEC](../../6-Development/AI/agents/jagports/jagports-lead-agent/SPEC_Agent_Lead.md) and [shared service specification](../../6-Development/AI/agents/jagports/SHARED_AGENT_SERVICES_SPEC.md).
-
-Existing logical Research, Product / Vehicle and other project-work duties remain governed by the normal human/AI Management workflow; these names do not themselves instantiate Python agents or authorize paid runtime execution. Vehicle research *project knowledge* and historical human research-to-decision work are not deleted when retiring the Vehicle **agent implementation**.
+These six roles describe project work and human decisions; they do not instantiate Python agents. The executable AI OS team is `LeadAgent`, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`. See the [Lead Agent SPEC](../../6-Development/AI/agents/jagports/jagports-lead-agent/SPEC_Agent_Lead.md) and [shared service specification](../../6-Development/AI/agents/jagports/SHARED_AGENT_SERVICES_SPEC.md). Logical Research and Product / Vehicle duties remain within the normal Management workflow.
 
 ## Authority and workflow sources
 
