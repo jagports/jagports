@@ -169,7 +169,7 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
       identity: { model: bundle.model, category: bundle.category, language: bundle.language },
       source: { root, modelLabel: bundle.modelLabel, categoryLabel: bundle.categoryLabel,
         parentModel: bundle.parentModel, parentModelLabel: bundle.parentModelLabel,
-        categoryParent: bundle.categoryParent },
+        ancestorModelIds: bundle.ancestorModelIds, categoryParent: bundle.categoryParent },
       status, files, missingOptionalSidecars: missingSidecars, unknown };
     if (ledger.storeBundle(runId, staged).reused) summary.reused++;
     summary.bundles++; summary.files += files.length;

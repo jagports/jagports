@@ -1,14 +1,14 @@
-# JEPC Range D1 identity setup
+# JEPC Range D1 deployment
 
-This procedure covers **database creation and identity verification only**. It does not apply schema migrations, add Worker bindings, import catalogue data, or expose a new database to VIEPS. Those steps need their own reviewed implementation. In particular, the current `4-Production/internet/cloudflare/workers/jagports/migrations/` chain includes fixture-seeding SQL and must not be applied wholesale to a Range database.
+This procedure creates and verifies a Range D1 database, applies the schema-only JEPC catalogue schema, and records its Worker binding. The importer then publishes catalogue records from its local SQLite ledger. The existing Worker migration chain includes fixtures and must never be applied to a Range database. The operational `jagports` D1 database remains separate and retains stock and fixture data.
 
-The name comes from an approved stable VIEPS Range slug: `jagports-<range_slug>`. For example, `xk` resolves to `jagports-xk`. The slug must be approved in the importer/Range mapping before creation; this command validates its syntax but cannot decide whether a catalogue model belongs to that Range.
+The name comes from an approved stable VIEPS Range slug: `jagports-<range_slug>`. For example, `xk` resolves to `jagports-xk`. `source-range-map.json` separately identifies approved JEPC source-group IDs. A `--parse` pattern never assigns a Range; the import rejects a model with zero or multiple approved matches. The XK source groups `7422` and `3175` were checked against `menus/models_l_id_0.xml`.
 
 ## Requirements
 
 - Node.js 24 or newer.
 - The Cloudflare account ID for the intended account.
-- A `CLOUDFLARE_API_TOKEN` with D1 Read and D1 Write permissions for that account for `create`; D1 Read is sufficient for `verify`. Keep the token out of the repository and command arguments.
+- A `CLOUDFLARE_API_TOKEN` with D1 Read and D1 Write permissions for that account for creation, schema application and publication; D1 Read is sufficient for identity verification. Keep the token out of the repository and command arguments.
 - Check the account's D1 plan and current capacity. [Cloudflare's D1 limits](https://developers.cloudflare.com/d1/platform/limits/) currently allow 10 databases on Workers Free, with 500 MB per database and 5 GB total. The existing `jagports` database uses one of those slots if it is in the same account. State the verified account plan as `--account-plan free` or `paid`; the command does not infer it. On Free, it refuses creation when 10 databases already exist. It also reports database count and the remaining slots *if the account is on Free*. Cloudflare may enforce other limits.
 
 ## Procedure
@@ -35,7 +35,18 @@ node 3-Deployment/internet/cloudflare/d1/ranges/setup-range-db.mjs verify --rang
 
 If creation succeeds but the process stops before `config/<range_slug>.json` is written or reviewed, **do not rerun creation expecting it to adopt the database**. Compare the remote database name/ID/account manually and record the identity in a reviewed configuration change. Never delete or recreate the database as a normal retry.
 
-The next deployment slice must provide a schema-only migration path, verify its ledger and table shape against the configured ID, and implement/test Worker routing and STOCK reconciliation. Until then, this database is an unbound resource and not a live catalogue destination.
+After reviewing `config/xk.json`, initialize and verify the schema, then generate the Worker bindings from the same reviewed identities:
+
+```text
+node 3-Deployment/internet/cloudflare/d1/ranges/apply-range-schema.mjs xk
+node 3-Deployment/internet/cloudflare/d1/ranges/sync-worker-bindings.mjs
+```
+
+`apply-range-schema.mjs` verifies the remote UUID/name before writing. It refuses an occupied database with no Range schema identity, and repeated calls verify the same schema identity. `sync-worker-bindings.mjs` updates the marked section of the Worker's `wrangler.toml` with `RANGE_BINDINGS` and the corresponding D1 bindings; review and commit that change before deployment. The binding name is derived from the slug, such as `RANGE_XK`. `config/<slug>.json` is deployment identity, not a temporary import manifest. No catalogue rows are written to `jagports` by these commands.
+
+With the reviewed schema and binding in place, the DataImporter operator runs its existing `--parse PATTERN` command on the JEPC computer. With `CLOUDFLARE_API_TOKEN` set, it publishes matching staged bundles through the [Cloudflare D1 query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/). Each category uses a D1 batch; the bundle hash is written last and read back before the local SQLite publication record is updated. Repeat runs retain previous categories and retry staged bundles that have not been recorded as published. Unknown source structures remain in SQLite and are not published.
+
+Deploy the Worker with the reviewed `wrangler.toml` once the Range database is populated. `?TEST=1` on the VIEPS page keeps the existing fixture-backed route; without it, VIEPS reads the bound Range catalogue and non-fixture operational stock. If no real Range binding is configured, the real route reports an unavailable Range instead of falling back to fixtures. The current live lookup supports one configured Range by default, or an explicit `range=<slug>` when multiple bindings are present. Global cross-Range discovery, verified applicability and cross-Range supersession remain open under Issue #555; do not mark that Issue complete from this publication step.
 
 Local checks for this procedure:
 

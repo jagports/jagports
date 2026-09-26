@@ -4,7 +4,7 @@
 
 Refinement and additive persistence implementation for review. This document specifies the required domain behavior, the logical relationships and the implemented persistence subset. The schema does not constitute an approved source translator or fitment evaluator.
 
-Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first implementation scope is the selected XK source model `3187`. Additional models require their own mapping validation. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
+Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first verified applicability mapping scope is XK source model `3187`; additional models require their own semantic validation. The DataImporter can publish source tree and predicate evidence from other approved XK source groups, but those rows remain explicitly unverified and do not become fitment assertions. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
 
 The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC catalogue/tree paths are retained as first-class occurrence/browse context and source evidence. VIEPS may browse and filter occurrences through that preserved tree, but must not treat the source navigation tree itself as the Boolean applicability evaluator; verified applicability still comes from the occurrence-bound rules, predicates and context described here.
 

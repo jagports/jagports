@@ -6,7 +6,7 @@
 
 Define the first implementation-ready operating contract for the Jagports JEPC MediaImporter.
 
-MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It is a local Windows/Node.js application that runs beside an installed JEPC source tree. Its ledger, safe-stop and reporting requirements are MediaImporter requirements; the current DataImporter v0.1a stages parsed evidence in its own SQLite ledger but does not publish a catalogue.
+MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It is a local Windows/Node.js application that runs beside an installed JEPC source tree. Its ledger, safe-stop and reporting requirements are MediaImporter requirements; DataImporter v0.1a stages source evidence in its own SQLite ledger and can publish numbered PARTs, occurrences and source tree evidence to a configured Range D1 database. It does not publish media or verified fitment.
 
 This specification does not establish hotspot coordinate conversion, redefine the canonical PART model, or make an inventory system authoritative for JEPC catalogue media.
 

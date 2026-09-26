@@ -112,6 +112,17 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
   const modelsFile = 'menus/models_l_id_0.xml';
   const modelsMenu = await menu(root, modelsFile);
   const models = new Map(rows(modelsMenu.source, 3, modelsFile).map(([id, parent, label]) => [id, { parent, label }]));
+  const ancestorsOf = id => {
+    const ancestors = [], seen = new Set([id]);
+    let parent = models.get(id)?.parent;
+    while (models.has(parent)) {
+      if (seen.has(parent)) throw new Error(`Cyclic source model hierarchy at ${id}.`);
+      seen.add(parent);
+      ancestors.push(parent);
+      parent = models.get(parent).parent;
+    }
+    return ancestors;
+  };
   const matched = matchingLeafModels(modelsMenu.source, modelPattern);
   const modelIds = matched.map(model => model.id);
   const menuChecksums = [{ path: modelsFile, sha256: modelsMenu.sha256 }];
@@ -130,7 +141,7 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
         ].filter(Boolean) });
         continue;
       }
-      candidates.push({ model, parentModel: models.get(model).parent,
+      candidates.push({ model, ancestorModelIds: ancestorsOf(model), parentModel: models.get(model).parent,
         parentModelLabel: models.get(models.get(model).parent)?.label ?? null,
         modelLabel: models.get(model).label, category, categoryParent, categoryLabel, language: String(language),
         paths: [bundle.cat, bundle.tl, ...bundle.items.sort((a, b) => Number(a.item) - Number(b.item))

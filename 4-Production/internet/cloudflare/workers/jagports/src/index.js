@@ -1,5 +1,6 @@
 import { normalizePartNumber } from "./part.js";
 import { handleViepsPart, handleViepsTree } from "./vieps.js";
+import { handleLivePart, handleLiveTree, liveRangeDatabase } from "./vieps-live.js";
 import { handleViepsSuitability } from "./suitability.js";
 import { handleSuitabilityAdmin } from "./suitability-admin.js";
 
@@ -177,10 +178,13 @@ function stockError(error) {
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
+  const testMode = url.searchParams.get("TEST") === "1";
 
-  if (path === "/api/vieps/part") return handleViepsPart(request, env);
-  if (path === "/api/vieps/tree") return handleViepsTree(request, env);
-  if (path === "/api/vieps/suitability") return handleViepsSuitability(request, env);
+  if (path === "/api/vieps/part") return testMode ? handleViepsPart(request, env) : handleLivePart(request, env);
+  if (path === "/api/vieps/tree") return testMode ? handleViepsTree(request, env) : handleLiveTree(request, env);
+  if (path === "/api/vieps/suitability") return testMode ? handleViepsSuitability(request, env)
+    : json({ state: "unavailable", error: "applicability_unavailable",
+      error_code: "applicability_unavailable" }, 503);
   if (path.startsWith("/api/admin/suitability")) {
     const denied = requireAdmin(request, env);
     if (denied) return denied;
@@ -199,6 +203,19 @@ async function handleApi(request, env) {
   if (path === "/api/parts" && request.method === "GET") {
     const q = text(url.searchParams.get("q"));
     const normalized = normalizePartNumber(q);
+    if (!testMode) {
+      const { db } = liveRangeDatabase(url, env);
+      const stmt = q
+        ? db.prepare(`SELECT * FROM part p WHERE EXISTS
+            (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+            AND (p.part_number_raw LIKE ? OR p.part_number_normalized LIKE ?)
+            ORDER BY p.part_number_normalized LIMIT 100`).bind(`%${q}%`, `%${normalized}%`)
+        : db.prepare(`SELECT * FROM part p WHERE EXISTS
+            (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+            ORDER BY p.part_number_normalized LIMIT 100`);
+      const { results } = await stmt.all();
+      return json({ results });
+    }
     const stmt = q
       ? env.DB.prepare(
           "SELECT * FROM part WHERE part_number_raw LIKE ? OR part_number_normalized LIKE ? OR description LIKE ? ORDER BY part_number_normalized LIMIT 100"
@@ -234,7 +251,7 @@ async function handleApi(request, env) {
       LEFT JOIN stock_site site ON site.id = l.site_id
       LEFT JOIN stock_source_party party ON party.id = s.source_party_id
       LEFT JOIN vehicle v ON v.id = s.donor_vehicle_id`;
-    const where = [];
+    const where = testMode ? [] : ["s.verification_status <> 'fixture'"];
     const binds = [];
     if (q) {
       const pattern = `%${q}%`;
@@ -381,7 +398,8 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
       try { return await handleApi(request, env); }
-      catch (error) { return json({ error: String(error.message || error) }, 500); }
+      catch (error) { return json({ error: String(error.message || error),
+        error_code: error.code || "persistence_failed" }, error.status || 500); }
     }
     return env.ASSETS.fetch(request);
   },
