@@ -6,7 +6,7 @@
 
 Define the first implementation-ready operating contract for the Jagports JEPC MediaImporter.
 
-MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It is a local Windows/Node.js application that runs beside an installed JEPC source tree. It follows the restart, checksum, ledger, safe-stop and reporting conventions established by DataImporter while owning a separate process and state database.
+MediaImporter incrementally discovers or receives references to JEPC illustrations, preserves the source assets and hotspot evidence, validates them, and publishes usable media plus catalogue references for VIEPS. It is a local Windows/Node.js application that runs beside an installed JEPC source tree. Its ledger, safe-stop and reporting requirements are MediaImporter requirements; the current DataImporter v0.1a stages parsed evidence in its own SQLite ledger but does not publish a catalogue.
 
 This specification does not establish hotspot coordinate conversion, redefine the canonical PART model, or make an inventory system authoritative for JEPC catalogue media.
 
@@ -101,7 +101,7 @@ The importer must not merge logical illustrations solely because their filenames
 
 ## DataImporter coordination
 
-DataImporter owns interpretation of catalogue files and discovery of logical illustration IDs. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and eventual publication. The applications keep separate writable SQLite ledgers. The current MediaImporter accepts an explicit `--media-id` for bounded local work; any future automated hand-off requires a separately specified, reviewed contract.
+Later DataImporter catalogue transformation is expected to interpret catalogue files and discover logical illustration IDs. MediaImporter owns media-file resolution, byte validation, preservation, conversion status and eventual publication. The applications keep separate writable SQLite ledgers. The current DataImporter v0.1a has no automated media hand-off. The current MediaImporter accepts an explicit `--media-id` for bounded local work; any future automated hand-off requires a separately specified, reviewed contract.
 
 ## Source resolution
 
@@ -206,7 +206,7 @@ The application must not build a complete in-memory installation inventory. It u
 
 ## Ledger requirements
 
-MediaImporter owns a local SQLite ledger separate from DataImporter. At minimum it records:
+MediaImporter owns a local SQLite ledger separate from the DataImporter ledger. The MediaImporter ledger records at minimum:
 
 - run ID, state, owner PID, timestamps and application version;
 - source root and non-secret source fingerprint;
@@ -373,7 +373,7 @@ Backup and restore must include both object bytes and the catalogue/ledger metad
 
 ## CLI and operator contract
 
-The first executable should align with DataImporter where semantics match:
+The intended MediaImporter commands are specified independently of the DataImporter v0.1a command (`--parse PATTERN [--estimate]`):
 
 ```text
 MediaImporter inspect --media-id <id> --source <root> --state-dir <dir> [source context]
@@ -414,7 +414,7 @@ One logical illustration is the operator-visible checkpoint boundary. Provider u
 
 Every stage is replay-safe. A crash at any boundary resumes by checking existing deterministic results rather than blindly repeating side effects.
 
-Only one writer may own a state directory. Read-only `status`, `report` and `doctor` commands may operate under the same safety rules as DataImporter.
+Only one writer may own a MediaImporter state directory. Read-only `status`, `report` and `doctor` commands may operate under the same MediaImporter state-directory safety rules.
 
 ## Versioning and reprocessing
 
@@ -532,7 +532,7 @@ Real installed XK data is a bounded smoke/evidence test. It is not committed as 
 ## Acceptance criteria
 
 - [ ] One selected XK illustration can be processed without enumerating the full JEPC installation.
-- [ ] DataImporter and MediaImporter use separate writable ledgers; their future hand-off contract is specified before automated integration.
+- [ ] DataImporter and MediaImporter use separate writable ledgers in a future integrated workflow; their hand-off contract is specified before automated integration.
 - [ ] All found media candidates retain source path, checksum, size, verified type, dimensions and provenance.
 - [ ] Multiple references and representations do not create uncontrolled duplicate bytes or catalogue identities.
 - [ ] Original bytes and raw hotspot evidence survive conversion/parser changes.

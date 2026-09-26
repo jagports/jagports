@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { parseJepcFile, parseSelection } from '../src/DataImporter.Parse.mjs';
+import { openLedger } from '../src/DataImporter.Runtime.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 
@@ -64,7 +65,11 @@ test('stages forty bundles, reuses identical evidence and rejects source drift',
     assert.equal(first.reused, 0);
     const second = await parseSelection({ selection, stateDir });
     assert.equal(second.reused, 40);
-    const staged = JSON.parse(await readFile(path.join(first.outputDir, 'M3187_C1_L0.json')));
+    const overlap = await parseSelection({ selection: { ...selection, modelPattern: 'XK8', bundles: [bundles[0]] }, stateDir });
+    assert.equal(overlap.reused, 1);
+    const ledger = await openLedger(source, stateDir);
+    const staged = ledger.readBundle('3187', '1', '0');
+    ledger.close();
     assert.equal(staged.files.find(file => file.kind === 'attributes').records[0].key, '142207');
     await writeFile(path.join(source, 'drilldown', 'pl_id_3187', 'L0', 'cat_M3187_C1_L0.xml'), 'changed');
     await assert.rejects(parseSelection({ selection, stateDir }), /checksum changed/);

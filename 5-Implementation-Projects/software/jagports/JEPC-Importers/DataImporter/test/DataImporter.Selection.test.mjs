@@ -5,13 +5,15 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { matchingLeafModels, selectModelBundles } from '../src/DataImporter.Selection.mjs';
+import { openLedger } from '../src/DataImporter.Runtime.mjs';
 
 const TEST_MODEL_IDS = ['3187', '3183', '3178', '3173', '7420'];
 
 async function fixture(t) {
   const parent = await mkdtemp(path.join(tmpdir(), 'jepc-select-'));
   t.after(() => rm(parent, { recursive: true, force: true }));
-  const source = path.join(parent, 'source'), stateDir = path.join(parent, 'state');
+  const source = path.join(parent, 'source'), appData = path.join(parent, 'state');
+  const stateDir = path.join(appData, 'Jagports', 'JEPC-Importer');
   const put = async (relative, value) => {
     const filename = path.join(source, relative);
     await mkdir(path.dirname(filename), { recursive: true });
@@ -35,7 +37,7 @@ async function fixture(t) {
     }
     await put(`menus/L0/pl_id_${model}_l_id_0.xml`, wrapper(entries));
   }
-  return { source, stateDir, put };
+  return { source, stateDir, appData, put };
 }
 
 test('model pattern selects XML leaves and matching parent descendants without fixed IDs', () => {
@@ -48,7 +50,7 @@ test('model pattern selects XML leaves and matching parent descendants without f
   assert.throws(() => matchingLeafModels(source, 'F-Type'), /No leaf source models/);
 });
 
-test('selection caps complete categories at forty, covers matched models and records incomplete ones', async t => {
+test('selection caps random model/category picks at forty and records incomplete ones', async t => {
   const options = await fixture(t);
   const first = await selectModelBundles({ ...options, pattern: 'XK' });
   assert.equal(first.modelPattern, 'XK');
@@ -56,12 +58,8 @@ test('selection caps complete categories at forty, covers matched models and rec
   assert.equal(first.eligibleCategories, 45);
   assert.equal(first.categoryLimit, 40);
   assert.equal(first.bundles.length, 40);
-  assert.deepEqual(new Set(first.bundles.map(bundle => bundle.model)), new Set(TEST_MODEL_IDS));
-  assert.deepEqual((await selectModelBundles({ ...options, pattern: 'xk' })).bundles, first.bundles);
-  const other = await selectModelBundles({ ...options, pattern: 'XK', seed: 'another-sample' });
-  assert.equal(other.bundles.length, 40);
-  assert.notDeepEqual(other.bundles.map(bundle => `${bundle.model}/${bundle.category}`),
-    first.bundles.map(bundle => `${bundle.model}/${bundle.category}`));
+  assert.ok(first.bundles.every(bundle => TEST_MODEL_IDS.includes(bundle.model)));
+  assert.equal(new Set(first.bundles.map(bundle => `${bundle.model}/${bundle.category}`)).size, 40);
   assert.equal(first.incompleteCategories.length, 0);
   await assert.rejects(readdir(options.stateDir), /ENOENT/);
   await rm(path.join(options.source, 'drilldown/pl_id_3187/L0/tl_M3187_C318701_L0.xml'));
@@ -78,27 +76,56 @@ test('unknown menu structures and state inside the source are rejected', async t
   await assert.rejects(selectModelBundles({ ...options, pattern: 'XK', stateDir: path.join(options.source, 'state') }), /outside/);
 });
 
-test('--parse stages forty matched bundles and reuses evidence without saving a selection file', async t => {
+test('--parse stages forty random bundles and reuses overlapping evidence without saving a selection file', async t => {
   const options = await fixture(t);
   const cli = path.resolve('src/DataImporter.CLI.mjs');
   const run = (pattern, extra = []) => spawnSync(process.execPath, [cli, '--parse', pattern,
-    '--source', options.source, '--state-dir', options.stateDir, ...extra, '--json'], { encoding: 'utf8' });
+    ...extra], { encoding: 'utf8', env: { ...process.env, JEPC_SOURCE: options.source, LOCALAPPDATA: options.appData } });
   const first = run('XK');
   assert.equal(first.status, 0, first.stderr);
   const summary = JSON.parse(first.stdout);
+  assert.equal(summary.version, 'v0.1a');
   assert.equal(summary.eligible, 45);
   assert.equal(summary.limit, 40);
   assert.equal(summary.selected, 40);
+  assert.equal(summary.sampledCategories.length, 40);
+  assert.equal(new Set(summary.sampledCategories.map(row => `${row.model}/${row.category}/L${row.language}`)).size, 40);
   assert.deepEqual(summary.modelIds, TEST_MODEL_IDS);
   assert.equal(summary.staging.bundles, 40);
   assert.equal(summary.staging.reused, 0);
+  assert.deepEqual(await readdir(options.stateDir), ['ledger.sqlite']);
   assert.equal((await readdir(options.stateDir)).some(name => name.includes('selection')), false);
   const second = run('xk');
   assert.equal(second.status, 0, second.stderr);
-  assert.equal(JSON.parse(second.stdout).staging.reused, 40);
+  const secondSummary = JSON.parse(second.stdout);
+  assert.equal(secondSummary.selected, 40);
+  assert.ok(secondSummary.staging.reused >= 35 && secondSummary.staging.reused <= 40);
+  assert.equal(run('XK', ['--seed', 'not-supported']).status, 1);
   const estimated = run('XK', ['--estimate']);
   assert.equal(estimated.status, 0, estimated.stderr);
-  const estimateReport = JSON.parse(await readFile(JSON.parse(estimated.stdout).estimate.report, 'utf8'));
+  const estimateSummary = JSON.parse(estimated.stdout).estimate;
+  assert.ok(estimateSummary.files > 0);
+  assert.ok(estimateSummary.bytes > 0);
+  assert.ok(estimateSummary.elapsedSeconds >= 0);
+  const ledger = await openLedger(options.source, options.stateDir);
+  const estimateReport = ledger.readEstimate(estimateSummary.reportId);
+  ledger.close();
   assert.equal(estimateReport.modelPattern, 'XK');
   assert.equal(estimateReport.range, null);
+});
+
+test('CLI exposes parsing and estimation commands only', () => {
+  const cli = path.resolve('src/DataImporter.CLI.mjs');
+  const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+  const help = call([]);
+  assert.equal(help.status, 1);
+  for (const command of ['inspect', 'status', 'report', 'doctor']) {
+    assert.equal(call([command]).status, 1);
+  }
+  assert.match(help.stderr, /--parse PATTERN \[--estimate\]/);
+  assert.equal(call(['--estimate']).status, 1);
+  assert.equal(call(['estimate-range']).status, 1);
+  for (const option of ['--range', '--models', '--sample-size', '--calibration', '--source', '--state-dir', '--language', '--json', '--help']) {
+    assert.equal(call([option, 'value']).status, 1);
+  }
 });

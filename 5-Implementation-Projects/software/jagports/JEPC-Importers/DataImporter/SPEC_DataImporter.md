@@ -1,16 +1,38 @@
-# Jagports JEPC Data Importer v0.1
+# Jagports JEPC DataImporter specification
 
 (C)2026 by tlindi and ChatGPT
 
 ## Purpose
 
-Define the v0.1/MVP operating specification for a restartable, discovery-driven JEPC data importer.
+Define the current v0.1a command and evidence-staging behavior, followed by requirements for later catalogue transformation and publication. The runnable v0.1a procedure is in the [DataImporter README](README.md).
+
+**Implementation boundary:** v0.1a is a local Windows/Node.js parser. It stages up to 40 complete source-category bundles per run in `ledger.sqlite`, preserves source evidence and run history, and optionally inventories the matched source files into the same ledger. It does not maintain a normalized catalogue database, transform source rows into VIEPS entities, publish to D1, provide the progress screen described below, or implement the future safe-stop and recovery controls. Requirements below for those capabilities are future targets, not claims about v0.1a.
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
 This specification complements the existing JEPC source-structure and importer documents. It does not replace the approved VIEPS Parts Data Model.
 
+## v0.1a command contract
+
+```text
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse PATTERN [--estimate]
+```
+
+Run this command from the repository root. `--parse PATTERN` is required for every importer run. `PATTERN` must contain at least two characters and is matched as a source model-name fragment. `--estimate` is optional and valid only with `--parse`; it adds a source inventory to that run. The CLI rejects all other flags and all positional commands. An invocation without `--parse PATTERN` fails and prints the usage line.
+
+The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence and run history go into `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters. Current runs write no separate source copies, category JSON files or estimate-report files. Earlier JSON staging output is left untouched and is not a second active store.
+
+## Local and production persistence boundary
+
+The local SQLite ledger is importer-owned source evidence, run history and recovery state. It is not the live VIEPS catalogue. Accepted PARTs, occurrences, tree paths, localized descriptions and verified applicability must eventually be published idempotently to the approved Range D1 database. An accepted Range slug determines the database name as `jagports-<range_slug>`; `xk` resolves to `jagports-xk`. The fixture-backed `jagports` database is not a JEPC importer write target. `--parse PATTERN` selects source models only; it does not assign a Range or destination.
+
+Before remote publication, the repository-controlled [Range D1 setup procedure](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) must verify account/name/ID. A schema-only migration path, source-model-to-Range verification, Worker routing and cross-Range identity/search behavior remain required under [Issue #555](https://github.com/jagports/jagports/issues/555). A successful local parse cannot be reported as a published import. The Range setup command is a separate deployment tool and adds no parameters or subcommands to DataImporter.
+
+Kit, nested-kit and NSS source observations must be preserved with provenance when encountered, including an unnumbered constituent; no Jaguar part number or verified composition may be invented. Kit composition is not required to complete the current 40-bundle parsing run. The approved [PART model](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md) governs the distinction between catalogue PART identity, occurrence evidence and verified composition.
+
 ## Core operating principle
+
+The remainder of this specification describes the intended importer unless a paragraph explicitly says it describes the current v0.1a implementation.
 
 The importer must not require the complete JEPC installation to be reverse-engineered before useful import work can begin.
 
@@ -118,6 +140,23 @@ Language-qualified source trees must be preserved independently when JEPC struct
 
 Canonical PART identity may be shared across languages. Source node/path identity remains language-qualified unless deterministic equivalence is proven. Cross-language node or occurrence reconciliation is derived data, not an import assumption.
 
+### Applicability and JEPC branch descriptions
+
+These are separate layers, and each must be represented explicitly:
+
+| Layer | Meaning | Required representation |
+| --- | --- | --- |
+| Source branch | A JEPC non-PART row on an item's parent-child path, with a source node ID, parent ID, order, language and text such as `To VIN (A36873)`, `RHD`, `LH side`, `Except Japan`, `assembly` or `Supercharged`. | Preserve the exact row, source location and language-qualified ancestry. A branch can be a condition, catalogue role, presentation grouping or still unresolved. Do not classify every branch as a vehicle predicate. |
+| Source application | The PART leaf's source application ID and the matching keyed row in an available `Itm_*_attributes.xml` sidecar, together with model, category and top-level scope. | Join by exact application ID within the exact item sidecar; preserve raw tuples and report absent sidecars. One application can appear on multiple tree paths. |
+| Normalized applicability | A verified assertion for one occurrence and model context, expressed as complete alternative condition sets with typed dimensions, VIN/serial bounds, operators and evidence. | Produce only when the relevant source scopes, branch meanings and predicate mapping have been verified. Missing information yields an explicit unavailable/unresolved state, never unrestricted applicability. |
+| Fitment | Evaluation of normalized applicability against a supplied vehicle/configuration. | Return applicable, not applicable or unavailable with the supporting occurrence and reasons; it is a query result, not a permanent PART field. |
+
+The importer must keep source branch nodes as catalogue evidence and must **not** copy JEPC's decision-tree navigation as the VIEPS applicability engine. `LH side` and `RHD` are separate source terms; the former is not silently rewritten as vehicle steering. Sibling branches may be alternatives, and repeated application IDs do not alone determine Boolean `AND` or `OR`. The sidecar's tuple order is not a description dictionary. A part-number search must return all its occurrences and their source paths; a filtered browse must evaluate occurrence-level assertions, then project surviving PARTs.
+
+For a branch whose condition meaning is resolved, VIEPS shall store a stable normalized **description reference** for that meaning and present its localized label through an i18n mapping. The reference identifies the verified concept (for example steering/right-hand-drive), while the JEPC text remains a language-qualified source label with file/row provenance. The reference must not be minted from label spelling or treated as proof that all identically worded branches mean the same thing. Catalogue role descriptions that are not applicability conditions still receive source-language display records without being forced into a condition dimension. The UI may show a source label when a normalized reference is unresolved, but must expose its source/uncertain status and must not use it as a verified filter.
+
+For each selected bundle, look first for the corresponding JEPC language files under that same model/category/item scope. Match localized branch descriptions to a canonical occurrence only after comparing source row/node structure, PART number, application ID, ancestry and role; record the matched source file and line. Do **not** assume that identical node IDs across languages have identical meaning: in installed model `3173`, category `10036`, item `1`, node `11001` in `L0` heads an `LH side` path to `LJA3705AB`, while the `L-2` file uses that node for the opposite-side part `LJA3704AE`. If a localized label is absent or the local row differs, search other language files and nearby item/category files **within the selected model/category scope** for the PART/application and candidate wording. Record search scope, candidates and outcome in SQLite; do not scan the entire installation, invent a translation, or treat a failed search as an empty condition. Any unresolved mapping remains source text plus a missing/ambiguous localization state for later review.
+
 ## Catalogue occurrence-tree persistence target
 
 Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
@@ -208,26 +247,26 @@ missing source       -> retain ledger history and mark MISSING/REMOVED
 
 A complete million-file scan must not be required for **any normal processing loop**. Each loop processes one bundle and then determines the next bundle.
 
-### Optional pre-import Range estimate
+### Optional source estimate
 
-An operator may explicitly run a slow, exhaustive **source inventory** for selected Range Model_IDs before import. This remains separate from the incremental selection/processing loop: no estimate is required before a useful import, and a failed or interrupted estimate must not alter importer ledger state or D1 data. The command retains the exact Range slug, Model_ID set, source scope, start/end time, file/byte counts, errors and random-sample seed in a durable report outside the source installation. It streams discovery instead of materializing the complete source file list in memory, and allows a safe partial report on cancellation.
+An operator may explicitly run a slow, exhaustive **selected-model inventory** for the models matched by `--parse`. It traverses their drilldown directories and model menus, excluding shared media and other models. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed estimate must not alter parsed evidence. The report is stored in `ledger.sqlite` and retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and sample details. The scan streams discovery instead of materializing the complete source file list in memory. The estimator function supports cooperative stopping, but the v0.1a CLI does not expose a stop control or guarantee a partial report when its process is interrupted.
 
-The importer exposes this as an opt-in `--estimate` flag at its pre-import selection step and, when the catalogue import `run` command exists, on that command too. The flag is off by default and invokes the estimator on the current source and Range scope; no earlier installation's figures are built in or used as calibration. The standalone `estimate-range` command may use the same estimator for explicit operator checks. An estimate failure is reported separately from selection/import work and must not erase accepted progress.
+Every importer run requires `--parse PATTERN`. The source inventory is enabled only by adding the optional `--estimate` flag to that run; `--estimate` alone is invalid. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress.
 
-The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts and bytes are measurements; D1 storage and import duration are projections only after a calibration sample has actually been transformed and published into the intended Range schema. Until then, those projections are unavailable rather than inferred from fixture data or raw XML byte size. A calibrated projection states the observed denominator and assumptions, and must not claim that an incomplete source scan covers the Range. Shared media belongs to a separate MediaImporter estimate.
+The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts, bytes and elapsed scan time are measurements. D1 storage and import duration would be projections only after a calibration sample has actually been transformed and published; v0.1a does not provide those projections. No duration or D1 size is inferred from fixture data or raw XML byte size. Shared media belongs to MediaImporter.
 
 ## Configurable import scope
 
-The operator's parsing input is a case-insensitive model-name pattern, for example `--parse XK`, `--parse XJ`, `--parse XJS`, `--parse X-Type`, `--parse X300` or `--parse X3`. Match it as a literal substring against the installed `models_l_id_0.xml` names and parent relationships, then identify complete category bundles in the matching leaf models. A parent name match includes its descendant leaves. Thus `X3` selects both X300 and X308, while the broader `XJ` also selects XJS; `XJS` selects only its own matching family. Stage at most 40 complete bundles per invocation. Use a stable hash ranking over source model/category identities and an optional `--seed`, choosing one per model first when the cap permits, then filling the remaining places by rank. The default seed is stable; another seed selects another repeatable sample. Report eligible, selected and incomplete category counts. Selection remains in memory. There is no embedded Range-to-Model_ID mapping. This path stages locally and does not publish to D1.
+The operator's parsing input is a case-insensitive model-name pattern, for example `--parse XK`. Match it as a literal substring against the installed `models_l_id_0.xml` names and parent relationships, then identify complete category bundles in the matching leaf models. A parent name match includes its descendant leaves. Stage at most 40 complete bundles per invocation. For each pick, randomly choose a matched model with remaining complete categories, then randomly choose one of that model's categories. Remove the chosen category from the current run's pool so it cannot be picked twice. A later run makes fresh picks without an operator-supplied seed. Report eligible, selected and incomplete category counts. Selection remains in memory. Evidence reuse is keyed by each category's content rather than the whole random selection, so overlapping runs reuse unchanged evidence. This path stages locally and does not publish to D1.
 
-The model-name pattern is a **source selector**, never a destination Range name or database slug. Existing VIEPS Range identities survive selection: X300 and X308 models selected by `--parse X3` both belong to `XJ Range`; a broad `--parse XJ` may also stage XJS models, which must retain their separate `XJS` Range identity. Before publication, resolve each source model against the canonical VIEPS Range registry and group progress and writes by that identity. If a model has no verified destination Range association, keep its staged evidence but block publication of that model. A pattern-scoped `--estimate` measures only source files and records `range: null`; it cannot make a D1 projection from a Range calibration until those identities are resolved.
+A pattern-scoped `--estimate` measures the matched source files. D1 storage and import-time projections require measured published calibration and remain outside v0.1a.
 
 The importer must allow selection below the broad VIEPS Range level when JEPC exposes distinct model/sub-range/market variants.
 
-The import scope therefore needs configurable profiles based on source facts such as:
+Later transformation may need source context based on facts such as:
 
 - JEPC Model_ID;
-- JEPC `parent_id` from the model hierarchy in `models_l_id_0.xml` / `menus/models_I_id_0.xml` source hierarchy data;
+- JEPC `parent_id` from the model hierarchy in `menus/models_l_id_0.xml`;
 - parent model/family source description;
 - selected JEPC model/sub-range description;
 - normalized Region/market context;
@@ -235,7 +274,7 @@ The import scope therefore needs configurable profiles based on source facts suc
 
 JEPC model hierarchy records are of the form `[model_id,parent_id,model_name]`. Both `model_id` and `parent_id` must be preserved because the hierarchy relationship can distinguish a selected model/sub-range from its parent model/family even when display names are not unique. Source menu paths such as `pl_id_<model_id>` remain source linkage for the selected JEPC model and must not be confused with a separate VIEPS vehicle identity.
 
-Verified examples from `menus/models_I_id_0.xml` include:
+Verified examples from `menus/models_l_id_0.xml` include:
 
 ```text
 [3175,10001,'Jaguar XK8 Coupe/Convertible']
@@ -247,13 +286,7 @@ Verified examples from `menus/models_I_id_0.xml` include:
 
 For importer/operator presentation, the selected model shall therefore retain and expose both its own `Model_ID` and its immediate `Parent_ID`, together with the source descriptions for both levels. The parent level may act as a model/family grouping in JEPC, but the importer must preserve the source hierarchy rather than assuming a stronger domain label than the source establishes.
 
-Initial v0.1/MVP validation profiles:
-
-1. `XK8 Coupe/Convertible up to (V) 042775` — Region `Rest of world excluding Americas`.
-2. `XJ Series From (V)812317 to (V)F59525 (X308)` — Region `Rest of world excluding Americas`.
-3. F-Type — representative modern JEPC source dataset.
-
-Related durable source knowledge establishes that the corresponding Canada/USA XK8 and Canada/Mexico/USA X308 source variants represent `Region = Americas`.
+The current `--parse` selector applies the same model-name matching rule to every source model; it does not load a fixed list of validation profiles or assign a VIEPS Range. Later Region mappings require explicit source evidence and remain separate from model selection.
 
 Where a short region token such as `Region=NA` is used, it must be represented as a Region/market value and kept semantically distinct from the engine-option abbreviation `N/A`, meaning Non-Aspirated/non-Supercharged. Region and aspiration/supercharger state are separate dimensions.
 
@@ -470,7 +503,7 @@ The screen should be redrawn in place rather than producing an endlessly scrolli
 Example:
 
 ```text
-Jagports JEPC Data Importer v0.1
+Jagports JEPC DataImporter — future processing screen
 (C)2026 by tlindi and ChatGPT
 
 JEPC Parent_ID #3175 — Jaguar XK8 Coupe/Convertible
@@ -595,9 +628,9 @@ whether normalized schema change appears necessary
 
 The operator should not be expected to follow this high-volume log visually during normal processing.
 
-## v0.1/MVP acceptance direction
+## Future catalogue-import acceptance direction
 
-The importer v0.1/MVP should demonstrate that:
+Later catalogue-import implementation should demonstrate that:
 
 - no complete pre-existing million-file index is required before useful import begins;
 - the processing ledger is built incrementally bundle by bundle;
