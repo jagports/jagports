@@ -1,4 +1,4 @@
-"""Budgeted, model-neutral JSON reasoning boundary for the read-only P7 pilot.
+"""Budgeted, model-neutral JSON reasoning boundary for original specialists.
 
 Reserve costs under a cross-process ledger lock *before* every provider call.
 An uncertain attempt remains charged until explicitly reconciled; no automatic
@@ -78,7 +78,7 @@ def _ledger_lock(path):
 
 
 class ReasoningService:
-    """Two independently identified, approved role calls per pilot event."""
+    """Durable, budgeted calls for approved specialist roles."""
 
     def __init__(self, config, client=None):
         self.config = dict(config)
@@ -97,13 +97,13 @@ class ReasoningService:
                     "max_total_cost_usd",
                     "input_usd_per_million_tokens", "output_usd_per_million_tokens")
         if any(not c.get(key) for key in required):
-            raise ReasoningError("Pilot model, token and approved cost limits are required.")
+            raise ReasoningError("Model, token and approved cost limits are required.")
         if not isinstance(c["model"], str) or not c["model"].strip():
             raise ReasoningError("An approved model name is required.")
-        if type(c["max_calls_per_run"]) is not int or c["max_calls_per_run"] != 2:
-            raise BudgetExceeded("The pilot permits exactly two role calls per run.")
-        if self.calls >= 2:
-            raise BudgetExceeded("The pilot permits at most two role calls per run.")
+        if type(c["max_calls_per_run"]) is not int or not 1 <= c["max_calls_per_run"] <= 3:
+            raise BudgetExceeded("One to three specialist calls per run must be approved.")
+        if self.calls >= c["max_calls_per_run"]:
+            raise BudgetExceeded("Approved per-run call limit reached.")
         if any(type(c[k]) is not int or c[k] < 1
                for k in ("max_input_tokens", "max_output_tokens")):
             raise ReasoningError("Positive integer token caps are required.")
@@ -134,8 +134,7 @@ class ReasoningService:
 
     @staticmethod
     def _run_key(role, request_key):
-        # P7 supplies '<issue>:<source_revision>:<role>'; direct tests use
-        # another stable namespace but must still end with the approved role.
+        # Stable IDs end with the approved role; old ledger entries are retained.
         if (not isinstance(request_key, str) or
                 not request_key.endswith(":" + role) or
                 not request_key[:-(len(role) + 1)]):
@@ -159,8 +158,8 @@ class ReasoningService:
                 entry for key, entry in attempts.items()
                 if entry.get("run_key", key.rsplit(":", 1)[0]) == run_key
             ]
-            if len(same_run) >= 2:
-                raise BudgetExceeded("Approved two-role run is already fully reserved.")
+            if len(same_run) >= c["max_calls_per_run"]:
+                raise BudgetExceeded("Approved per-run call limit reached.")
             if any(entry.get("role") == role for entry in same_run):
                 raise BudgetExceeded("This role already has a reservation for the run.")
             run_reserved = sum(float(entry.get("reserved_usd", 0))
@@ -215,7 +214,7 @@ class ReasoningService:
 
     def analyse_json(self, role, instructions, context, request_key):
         self._validate()
-        if role not in ("research", "product_vehicle"):
+        if role not in ("documentation", "deployment", "knowledge"):
             raise ReasoningError("Unapproved specialist role.")
         if not isinstance(context, dict) or not isinstance(instructions, str):
             raise ReasoningError("Valid bounded context and instructions required.")

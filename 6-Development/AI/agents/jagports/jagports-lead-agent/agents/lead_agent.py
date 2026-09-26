@@ -16,13 +16,14 @@ from agents.knowledge_agent import KnowledgeAgent
 class LeadAgent:
     """Deterministic coordinator plus model-free #904 Issue enrichment."""
 
-    def __init__(self, github_service, ghd_store=None, enable_ghd=True):
+    def __init__(self, github_service, ghd_store=None, enable_ghd=True,
+                 reasoning=None, reasoning_config=None):
         self.github = GitHubAgent(github_service)
         self.ghd_store = (GHDPendingStore() if enable_ghd and ghd_store is None
                           else ghd_store)
 
         self.registry = AgentRegistry()
-        self.registry.register(DocumentationAgent())
+        self.registry.register(DocumentationAgent(reasoning, reasoning_config))
         self.registry.register(DeploymentAgent())
         self.registry.register(KnowledgeAgent())
 
@@ -153,6 +154,11 @@ class LeadAgent:
         # Original specialists remain the sole execution path with no model calls by default.
         # If analysis raises, pending stays unacknowledged for restart replay.
         documentation_results = self.registry.analyse_all(event)
+        return issues, event, documentation_results
+
+    def acknowledge_pending(self, event):
+        """Acknowledge only after the caller has persisted its report/outbox."""
+        pending = (event.context.get("ghd") or {}).get("pending_event")
         if pending is not None and self.ghd_store is not None:
             try:
                 self.ghd_store.acknowledge(pending["event_key"])
@@ -160,5 +166,3 @@ class LeadAgent:
             except PendingStoreError as exc:
                 event.context["ghd"]["acknowledged"] = False
                 event.context["ghd"]["ack_error_type"] = type(exc).__name__
-
-        return issues, event, documentation_results
