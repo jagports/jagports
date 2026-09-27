@@ -24,7 +24,7 @@ The actual PAT is a secret credential. It must never be written into Jagports re
 
 Authorization and exposed connector capabilities remain separate verification points. Successful connector configuration or authentication does not by itself prove that the current Claude session can perform every GitHub operation required by a task. The specific operation must be tested or otherwise verified before claiming completion.
 
-The Claude connector configuration is an external product configuration and must not become a competing Jagports workflow authority. Current Jagports Management workflow remains defined by `00-Management/WORKFLOWS.md`.
+The Claude connector configuration is an external product configuration and must not become a competing Jagports workflow authority. Current Jagports Management workflow remains defined by `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
 For Jagports, treat Claude/GitHub connector behavior as separate external-agent environment knowledge. Do not infer ChatGPT connector capabilities from Claude connector documentation, and do not infer Claude connector capabilities from ChatGPT connector documentation.
 
