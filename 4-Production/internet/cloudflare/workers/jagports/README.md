@@ -36,6 +36,8 @@ Cloudflare Worker: vieps (pre-production)
       `-- real JEPC catalogue by reviewed Range slug --> D1: jagports-<range_slug>
 ```
 
+`?TEST=1` activates synthetic catalogue and Suitability fixtures without an environment feature flag. The Suitability endpoint uses the existing source-qualified D1 test mappings when available, or its clearly marked, embedded synthetic fallback linked only to existing fixture PARTs. Normal URLs use the reviewed real Range D1 through `js/vieps-parts.js`; absent Range bindings or unpublished verified JEPC suitability produce an explicit error and never fall back to test data.
+
 The later production Worker identity is `jagports`. It is reserved for the production phase and is not established by this pre-production configuration.
 
 ## VIEPS UI styling
