@@ -14,14 +14,19 @@ export function liveRangeDatabase(url, env) {
     throw error;
   }
   const names = Object.keys(bindings);
-  const requested = text(url.searchParams.get('range'));
-  const slug = requested || (names.length === 1 ? names[0] : '');
-  if (!slug || !Object.hasOwn(bindings, slug)) {
-    const error = new Error(names.length ? 'Select an available Range.' : 'No real Range database is bound.');
-    error.status = names.length ? 400 : 503;
-    error.code = names.length ? 'range_required' : 'range_unavailable';
+  // Cross-Range discovery belongs to #555. Do not substitute a caller-provided Range
+  // for a global index or silently select one of several Range databases.
+  if (names.length !== 1 || url.searchParams.has('range')) {
+    const error = new Error(names.length > 1
+      ? 'Cross-Range catalogue discovery is not available.'
+      : names.length === 0
+        ? 'No real Range database is bound.'
+        : 'Per-request Range selection is not supported.');
+    error.status = 503;
+    error.code = 'range_unavailable';
     throw error;
   }
+  const slug = names[0];
   const db = env[bindings[slug]];
   if (!db) {
     const error = new Error(`Range ${slug} D1 binding is unavailable.`);

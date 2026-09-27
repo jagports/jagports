@@ -10,11 +10,18 @@ test('real routing uses a reviewed Range binding and never falls back to fixture
     { ...env, RANGE_XK: undefined }), error => error.code === 'range_unavailable');
 });
 
-test('multiple real Ranges require an explicit selected Range', () => {
+test('multiple real Ranges fail visibly until global index is available', () => {
   const env = { DB: {}, RANGE_BINDINGS: '{"xk":"RANGE_XK","xj":"RANGE_XJ"}',
     RANGE_XK: { name: 'xk' }, RANGE_XJ: { name: 'xj' } };
-  assert.throws(() => liveRangeDatabase(new URL('https://example.test/api/vieps/part?q=ABC'), env),
-    error => error.code === 'range_required');
-  assert.equal(liveRangeDatabase(new URL('https://example.test/api/vieps/part?q=ABC&range=xj'), env).db,
-    env.RANGE_XJ);
+  for (const url of ['https://example.test/api/vieps/part?q=ABC',
+    'https://example.test/api/vieps/part?q=ABC&range=xj']) {
+    assert.throws(() => liveRangeDatabase(new URL(url), env),
+      error => error.code === 'range_unavailable' && error.status === 503);
+  }
+});
+
+test('a single Range does not accept an unsupported per-request selector', () => {
+  const env = { DB: {}, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: {} };
+  assert.throws(() => liveRangeDatabase(new URL('https://example.test/api/vieps/part?range=xj'), env),
+    error => error.code === 'range_unavailable');
 });
