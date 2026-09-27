@@ -133,7 +133,7 @@ These categories may reference each other but should not be collapsed into one c
 Jagports AI OS is not intended to:
 
 - replace Product Owner authority with autonomous agent voting or model preference;
-- create a second workflow authority beside `00-Management/WORKFLOWS.md`;
+- create a second workflow authority beside `0-DocumentationEducationCompetense/WORKFLOWS.md`;
 - make a coordinator service, chat platform, notification channel, or local database the project system of record;
 - maximize the number of agents or model calls;
 - grant autonomous merge/deploy authority merely because an integration technically supports it;

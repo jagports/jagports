@@ -58,7 +58,7 @@ This prompt is the recommended bootstrap mechanism for a new chat. `KNOWLEDGE.md
 
 ## Current Management Workflow Sources
 
-`00-Management/WORKFLOWS.md` is the canonical normative source for Management workflows.
+`0-DocumentationEducationCompetense/WORKFLOWS.md` is the canonical normative source for Management workflows.
 
 `00-Management/RULES.md` contains human-readable governance and rationale.
 
@@ -335,7 +335,7 @@ Reusable knowledge-flow visualizations belong with documentation/knowledge topic
 
 `0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md` defines the detailed communication protocol for agents and humans working on Jagports AI OS.
 
-Agents should follow that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `00-Management/WORKFLOWS.md`.
+Agents should follow that protocol when handling Issue communication, acknowledgements, hand-offs, escalations, decisions and implementation traceability. Current Management workflow rules remain in `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
 ## Repository Structure Placement Rules
 

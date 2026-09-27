@@ -10,7 +10,7 @@ This document is the reusable setup and verification procedure for the Jagports 
 
 The document consolidates the previously separate setup steps into a small number of repeatable procedures. It contains reusable technical knowledge and verification rules, not a chronological execution log.
 
-`KNOWLEDGE.md` remains the repository-wide durable knowledge entry point. `00-Management/WORKFLOWS.md` remains the canonical normative Management workflow. This document must not redefine those authorities.
+`KNOWLEDGE.md` remains the repository-wide durable knowledge entry point. `0-DocumentationEducationCompetense/WORKFLOWS.md` remains the canonical normative Management workflow. This document must not redefine those authorities.
 
 ## 1. Repository and Project discovery
 
@@ -376,7 +376,7 @@ Historical logs are not authoritative configuration. Always discover the current
 ## 16. Source-of-truth boundaries
 
 - `KNOWLEDGE.md` — repository-wide durable knowledge and generalized lessons.
-- `00-Management/WORKFLOWS.md` — canonical normative Management workflow.
+- `0-DocumentationEducationCompetense/WORKFLOWS.md` — canonical normative Management workflow.
 - `00-Management/RULES.md` — human governance and rationale.
 - `00-Management/GITHUB_OPERATING_RULES.md` — GitHub record and field ownership rules.
 - `00-Management/PRIORITIZATION.md` — priority scoring, Issue Priority mapping and Rank semantics.

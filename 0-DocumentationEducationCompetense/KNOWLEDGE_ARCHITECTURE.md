@@ -45,7 +45,7 @@ Use the following separation:
 |---|---|
 | Repository-wide durable knowledge | Root `KNOWLEDGE.md` |
 | Domain/subdomain durable knowledge | Nearest appropriate nested `KNOWLEDGE.md` |
-| Management workflow authority | `00-Management/WORKFLOWS.md` |
+| Management workflow authority | `0-DocumentationEducationCompetense/WORKFLOWS.md` |
 | Human governance and rationale | `00-Management/RULES.md` |
 | Agent execution instructions | `SKILL.md` and applicable `.codex/skills/*` |
 | Research evidence and unresolved investigation | `7-Research` and appropriate research records |
@@ -126,7 +126,7 @@ Validation should check at minimum:
 - root `KNOWLEDGE.md`;
 - `SKILL.md`;
 - `00-Management/RULES.md`;
-- `00-Management/WORKFLOWS.md`;
+- `0-DocumentationEducationCompetense/WORKFLOWS.md`;
 - this architecture document; and
 - any other Markdown document that explicitly defines repository organization or knowledge discovery.
 
