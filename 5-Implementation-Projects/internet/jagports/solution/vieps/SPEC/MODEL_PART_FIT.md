@@ -1,4 +1,4 @@
-# PART applicability requirements
+# PART fit requirements
 
 ## Status and scope
 
@@ -6,33 +6,33 @@ Refinement and additive persistence implementation for review. This document spe
 
 Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first implementation scope is the selected XK source model `3187`. Additional models require their own mapping validation. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
 
-The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC catalogue/tree paths are retained as first-class occurrence/browse context and source evidence. VIEPS may browse and filter occurrences through that preserved tree, but must not treat the source navigation tree itself as the Boolean applicability evaluator; verified applicability still comes from the occurrence-bound rules, predicates and context described here.
+The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC catalogue/tree paths are retained as first-class occurrence/browse context and source evidence. VIEPS may browse and filter occurrences through that preserved tree, but must not treat the source navigation tree itself as the Boolean fit evaluator; verified fit still comes from the occurrence-bound rules, predicates and context described here.
 
 ## Required distinctions
 
 ### Terms explained
 
-In this specification, **applicability** describes the supported vehicle/configuration contexts of a catalogue part. **Fitment** is the evaluation of that applicability for a particular vehicle and catalogue role, returning applicable, not applicable or unavailable. Catalogue usage sometimes treats these words as synonyms; this distinction clarifies the data versus the query result. A fitment result does not by itself certify mechanical installation, modification safety or interchangeability.
+In this specification, **fit** describes the supported vehicle/configuration contexts of a catalogue part. **Fitment** is the evaluation of that fit for a particular vehicle and catalogue role, returning applicable, not applicable or unavailable. Catalogue usage sometimes treats these words as synonyms; this distinction clarifies the data versus the query result. A fitment result does not by itself certify mechanical installation, modification safety or interchangeability.
 
-**Conditions** are the requirements and exclusions that define an applicability assertion. An **attribute** is a dimension/value describing a vehicle or catalogue context; a condition applies an operator to it, such as `steering = RHD` or `market != Japan`. Preserve verified combinations, not just a bag of labels.
+**Conditions** are the requirements and exclusions that define an fit assertion. An **attribute** is a dimension/value describing a vehicle or catalogue context; a condition applies an operator to it, such as `steering = RHD` or `market != Japan`. Preserve verified combinations, not just a bag of labels.
 
 | Source term/example | What it describes | Example condition / boundary |
 |---|---|---|
 | Supercharged | Engine configuration: a supercharger is specified. | Requires the verified supercharged configuration. Do not infer it from an unknown group code or assume this attribute occurs in the headlamp examples. |
 | Other option / headlamp levelling / headlamp powerwash | A particular equipment feature or option. | Requires headlamp levelling; or excludes vehicles with it. `Other option` without an identified feature/value is unresolved, not a defined universal flag. |
 | LHD / RHD | Left-hand-drive / right-hand-drive steering configuration of the vehicle. | Requires RHD. |
-| LH / RH source path descriptions | Observed JEPC language descriptions on decision-tree nodes that are distinct from the LHD/RHD descriptions. Their exact semantic role and applicability encoding are still under investigation. | Preserve the descriptions and path evidence without assuming that they are presentation-only, a physical installation-side dimension, or absent from applicability semantics. |
+| LH / RH source path descriptions | Observed JEPC language descriptions on decision-tree nodes that are distinct from the LHD/RHD descriptions. Their exact semantic role and fit encoding are still under investigation. | Preserve the descriptions and path evidence without assuming that they are presentation-only, a physical installation-side dimension, or absent from fit semantics. |
 | Region | A source market grouping used to scope a catalogue model/profile. | A Canada/USA model grouping scopes the catalogue; a USA branch adds a more specific market condition. Region, country/market and steering remain separate dimensions. |
 | `($)` in a category title | An observed source marker, retained verbatim. | In the examined later-XK headlamp category it accompanies Canada and USA branches. Market scope can occur below a shared model. Do not globally equate this marker with an approved geographic vocabulary without further mapping evidence. |
 | Except Japan | An exclusion of the stated market within the surrounding scope. | `market != Japan`; unknown market does not prove this condition true. It does not mean every non-Japanese vehicle worldwide is covered. |
 | Assembly | The supplied component/assembly description or catalogue role. | Not every heading is a vehicle-selection condition. |
 | Bundle | A logical set of related source files and references needed to interpret one selected catalogue context together. | Identified by source namespace plus model/category/item/language as appropriate; not a ZIP file, a PART, or necessarily all files in one folder. |
 
-A bundle includes the relevant model/category menu ancestry, category popup and illustration reference, numbered-item list, item/application rows and available applicability sidecars. Shared parent files and referenced media can serve several bundles. Record their dependencies once and link them; report missing dependencies explicitly. The precise transaction/checkpoint boundary remains an importer contract. Referenced media may be processed separately by MediaImporter without losing the bundle relationship.
+A bundle includes the relevant model/category menu ancestry, category popup and illustration reference, numbered-item list, item/application rows and available fit sidecars. Shared parent files and referenced media can serve several bundles. Record their dependencies once and link them; report missing dependencies explicitly. The precise transaction/checkpoint boundary remains an importer contract. Referenced media may be processed separately by MediaImporter without losing the bundle relationship.
 
 ### Relationship to the preserved catalogue tree
 
-Applicability assertions are bound to source occurrences, and source occurrences retain their complete catalogue/tree path.
+Fit assertions are bound to source occurrences, and source occurrences retain their complete catalogue/tree path.
 
 The tree serves three purposes that are distinct from predicate evaluation:
 
@@ -67,14 +67,14 @@ The later model `3178` has category `8059`, `HEADLAMP ASSEMBLY-NON POWERWASH ($)
 | Occurrence | A source application of one PART in a particular catalogue context. A matching part number does not merge separate occurrences. |
 | Catalogue role | The contextual item/function fulfilled by an occurrence. Category/item/diagram scope identifies it where evidence supports that mapping. This term does not mandate a new role table. |
 | Model context | A source-qualified model/subrange and its established relationship to a canonical model range. Source model ID, parent ID and market profile remain distinguishable. A source model ID is not automatically a globally canonical model/variant. |
-| Applicability assertion | A positive or explicitly negative statement about one occurrence in a model context, conditional on a complete combination of constraints. |
+| Fit assertion | A positive or explicitly negative statement about one occurrence in a model context, conditional on a complete combination of constraints. |
 | Evaluation | A result for a supplied vehicle context: `applicable`, `not_applicable` or `unavailable`, with reasons and evidence. It is not a permanent property of a PART or an individual attribute. |
 
 Do not equate the existing presentation `vehicle_range` with canonical `model_range`. Preserve unmapped source contexts without inventing their canonical relationship. Source region/market text, engine attributes and model names must not be substituted for one another.
 
 ## JEPC source-attribute interpretation contract
 
-JEPC applicability attributes are an open source vocabulary, not a fixed five-column vehicle schema. The historical VIN/search client hard-codes five editable groups, but the VIN response and local applicability sidecars support additional group IDs. Therefore production normalization must preserve the raw JEPC group/value identity even when a human-readable mapping is available.
+JEPC fit attributes are an open source vocabulary, not a fixed five-column vehicle schema. The historical VIN/search client hard-codes five editable groups, but the VIN response and local fit sidecars support additional group IDs. Therefore production normalization must preserve the raw JEPC group/value identity even when a human-readable mapping is available.
 
 A verified mapping can be established from several evidence forms:
 
@@ -82,23 +82,23 @@ A verified mapping can be established from several evidence forms:
 - repeated joins between an application ID in an item-tree leaf and the matching `*_attributes.xml` sidecar row;
 - consistent catalogue ancestry across independent occurrences.
 
-One observed X100 example has the tree ancestry `main floor → RH → Coffee → LHD → GJA9460BJSDC` and sidecar `142207,[A155,2932,0,0][A23,154,0,0]`. This supports `A155=2932` as Coffee and `A23=154` as LHD in that source context. It also demonstrates that `RH` and `LHD` are separate source-path descriptions. The example does not establish the semantic role of `RH` or prove that it is absent from applicability semantics elsewhere.
+One observed X100 example has the tree ancestry `main floor → RH → Coffee → LHD → GJA9460BJSDC` and sidecar `142207,[A155,2932,0,0][A23,154,0,0]`. This supports `A155=2932` as Coffee and `A23=154` as LHD in that source context. It also demonstrates that `RH` and `LHD` are separate source-path descriptions. The example does not establish the semantic role of `RH` or prove that it is absent from fit semantics elsewhere.
 
 Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display descriptions in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
 
 ## Admin-curated semantic categories and source-description mapping (#877)
 
-A normalized suitability category is a stable domain identifier backed by the existing `applicability_dimension` and `applicability_dimension_value` relations. It is not a JEPC navigation category or a display string.
+A normalized fit category is a stable domain identifier backed by the existing `fit_dimension` and `fit_dimension_value` relations. It is not a JEPC navigation category or a display string.
 
-A value can enter the public suitability contract only through a source-qualified JEPC description mapping. The mapping must retain the JEPC namespace, dataset/version, language, original text, record/group/value locator and model/category/item/tree-path scope. Equal text from two JEPC records remains two source records until an approved mapping establishes their shared normalized meaning.
+A value can enter the public fit contract only through a source-qualified JEPC description mapping. The mapping must retain the JEPC namespace, dataset/version, language, original text, record/group/value locator and model/category/item/tree-path scope. Equal text from two JEPC records remains two source records until an approved mapping establishes their shared normalized meaning.
 
 The mapping relation is additive and versioned:
 
 | Relation | Required purpose |
 |---|---|
-| `applicability_source_description` | Immutable JEPC description identity and provenance: namespace, dataset/revision, language, raw text, locator, group/value identifiers and source scope. |
-| `applicability_description_mapping_revision` | Append-only mapping from one source description to one normalized dimension/value, with evidence, reviewer/status and effective/retired state. |
-| `applicability_dimension_label` and `applicability_dimension_value_label` | Language-qualified domain names for the stable normalized IDs. UI chrome uses EN/FI i18next resources; imported JEPC wording remains catalogue data. |
+| `fit_source_description` | Immutable JEPC description identity and provenance: namespace, dataset/revision, language, raw text, locator, group/value identifiers and source scope. |
+| `fit_description_mapping_revision` | Append-only mapping from one source description to one normalized dimension/value, with evidence, reviewer/status and effective/retired state. |
+| `fit_dimension_label` and `fit_dimension_value_label` | Language-qualified domain names for the stable normalized IDs. UI chrome uses EN/FI i18next resources; imported JEPC wording remains catalogue data. |
 
 There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
 
@@ -114,7 +114,7 @@ Facet counts and selectable values come from the surviving occurrence universe u
 
 ## Occurrence and combination requirements
 
-1. Bind every applicability assertion to exactly one occurrence and one explicit model context. Model/VIN/attribute conditions must stay attached to that same assertion. Never combine independent PART-to-model and PART-to-VIN lists into their Cartesian product.
+1. Bind every fit assertion to exactly one occurrence and one explicit model context. Model/VIN/attribute conditions must stay attached to that same assertion. Never combine independent PART-to-model and PART-to-VIN lists into their Cartesian product.
 2. An occurrence can have several alternative complete condition sets. Sets are alternatives (`OR`); all predicates within one set must hold together (`AND`). An explicit exclusion within a set is a negative predicate, not a global exclusion of the PART.
 3. Only a verified source mapping may establish set boundaries and operators. Duplicate source IDs are not sufficient evidence for either `AND` or `OR`; category, top-level item and application scopes behave differently.
 4. A condition set can contain typed model/context constraints, serial bounds and verified attribute membership/nonmembership constraints. Known domain dimensions use typed relationships. Unknown source groups stay in evidence; do not turn arbitrary source descriptions or generic EAV rows into verified domain facts.
@@ -128,7 +128,7 @@ The logical form is a finite collection of relational condition sets, not a pers
 
 - Preserve exact raw serial/boundary text, including leading spaces and zeros. Store normalized comparison values separately, with the parser/mapping version and evidence for the normalization.
 - Support lower-only, upper-only and two-sided serial constraints. Do not fabricate a VIN prefix, a zero start, a maximum end or a model-year interval to satisfy a SQL `NOT NULL` constraint.
-- Derive effective applicability by intersecting the verified model/subrange interval with the occurrence's verified conditions. A one-sided item condition does not imply a one-sided effective interval: model breadcrumbs and authoritative production/VIN documents may supply the other endpoint. Preserve the source condition, inherited model bounds and derived intersection separately, with evidence for each.
+- Derive effective fit by intersecting the verified model/subrange interval with the occurrence's verified conditions. A one-sided item condition does not imply a one-sided effective interval: model breadcrumbs and authoritative production/VIN documents may supply the other endpoint. Preserve the source condition, inherited model bounds and derived intersection separately, with evidence for each.
 - Model boundary inheritance requires an explicit occurrence-to-model-context relationship. Use only compatible serial domains and market scopes. The next model's start can corroborate an endpoint, but deriving a predecessor requires verified ordering, adjacency and no-gap assumptions; do not universally subtract one or bridge different serial formats.
 - Distinguish a known unbounded endpoint from an endpoint whose meaning or value is unknown. For a required-but-unknown endpoint, the constraint remains unresolved.
 - Store boundary direction and inclusivity explicitly. For the audited C comparison, type `0` rejects smaller serials and type `1` rejects larger serials; equality survives. This is not an attribute-exclusion flag.
@@ -142,7 +142,7 @@ The source model list separately identifies `3178` as `A00083` through `A30644` 
 
 ### Parts spanning sub-model boundaries
 
-A catalogue sub-model boundary is not a PART identity boundary or necessarily a change of part. One PART may have applicability evidence on both sides through distinct occurrences. Return the union of those scoped assertions under the same canonical PART; retain their separate provenance and conditions.
+A catalogue sub-model boundary is not a PART identity boundary or necessarily a change of part. One PART may have fit evidence on both sides through distinct occurrences. Return the union of those scoped assertions under the same canonical PART; retain their separate provenance and conditions.
 
 The observed passenger-airbag records illustrate this. Effective intervals below intersect the displayed item conditions with the source model bounds; final verified fitment also requires validation of remaining parent/category/attribute constraints.
 
@@ -178,11 +178,11 @@ These truth rules apply only to established predicates and grouping. Unresolved 
 | `not_applicable` | A verified explicit negative assertion matches, or all positive alternatives in a declared complete relevant scope evaluate false. State which basis was used. |
 | `unavailable` | No evidence; incomplete scope; missing required vehicle values; unsupported interpretation/comparator; or conflicting relevant assertions. Return specific reason codes and retained evidence. |
 
-When querying a PART across occurrences, a verified applicable occurrence establishes applicability for that role/context. Retain other unresolved contexts in the response and report coverage separately. If none matches, any unresolved relevant occurrence/coverage prevents a blanket negative result.
+When querying a PART across occurrences, a verified applicable occurrence establishes fit for that role/context. Retain other unresolved contexts in the response and report coverage separately. If none matches, any unresolved relevant occurrence/coverage prevents a blanket negative result.
 
 The response must retain occurrence IDs, model contexts, complete condition-set grouping, exclusions, evidence/mapping version, availability reasons and coverage. Summary model/VIN lists may be returned for navigation but cannot replace the grouped facts used for fitment. Reverse lookup returns conditional contexts, not a fabricated exhaustive list of individual vehicles.
 
-Keep candidate browsing separate from verified fitment. A source UI leaving a candidate visible when vehicle input is absent does not authorize an `applicable` result. Existing `part_fitment.applicability_state` values describe stored rows; they must not be silently renamed or exposed as this new evaluation contract without an explicit adapter/migration.
+Keep candidate browsing separate from verified fitment. A source UI leaving a candidate visible when vehicle input is absent does not authorize an `applicable` result. Existing `part_fitment.fit_state` values describe stored rows; they must not be silently renamed or exposed as this new evaluation contract without an explicit adapter/migration.
 
 ## Recommended relational refinement
 
@@ -191,7 +191,7 @@ These are logical entities for schema design, not executable DDL. Reuse existing
 | Relation | Required contents and cardinality |
 |---|---|
 | Source model context | Stable source-qualified identity; source model/parent IDs and profile evidence; optional verified canonical `model_range` relationship. One context has many assertions. |
-| Applicability assertion | Stable identity; exactly one occurrence and model context; positive/explicit-negative effect; verification and coverage state. One assertion has zero or more condition sets; zero means unresolved. |
+| Fit assertion | Stable identity; exactly one occurrence and model context; positive/explicit-negative effect; verification and coverage state. One assertion has zero or more condition sets; zero means unresolved. |
 | Condition set | Belongs to exactly one assertion; alternative-set identity; completeness/unconditional state. Contains zero or more typed predicates; zero predicates require verified unconditional status. |
 | Serial constraint | Belongs to one set; serial domain/comparator; optional established VIN prefix; separate endpoint states, values and inclusivity; raw-evidence links. Effective intervals retain links to both model bounds and occurrence constraints used in their derivation. |
 | Attribute constraint | Belongs to one set; verified dimension/value-domain reference; membership/nonmembership operator and values; cardinality semantics; raw-evidence links. |
@@ -213,7 +213,7 @@ Repeated leaf rows for the same source application, PART and context may represe
 
 If a unique logical occurrence mapping cannot be established, quarantine the unresolved identity rather than merging by part number, description, filename checksum or row position. A changed PART association requires explicit reconciliation and retained history.
 
-Reprocessing replaces/supersedes the complete derived assertion set for the affected source scope atomically, retaining prior evidence. It must remove stale active relationships as well as upsert current ones. Preserve stable existing entity IDs; do not append duplicates on rerun. Missing or failed source files cannot imply deleted applicability until the relevant discovery/reconciliation scope is known complete.
+Reprocessing replaces/supersedes the complete derived assertion set for the affected source scope atomically, retaining prior evidence. It must remove stale active relationships as well as upsert current ones. Preserve stable existing entity IDs; do not append duplicates on rerun. Missing or failed source files cannot imply deleted fit until the relevant discovery/reconciliation scope is known complete.
 
 ### Current model gaps and migration obligations
 
@@ -238,7 +238,7 @@ The three airbag cases and headlamp case below are observed source examples; the
 | XK 3187/category 11096/item 1, application 93491 HNA9670BA through 023699; 151439 HJB9670AA from 023700 | Preserve separate occurrences and source constraints. Intersect with model bounds: the latter ends at 042775, not infinity; the former begins at the cited model start. With a verified comparator and otherwise complete context, 023699 selects the former and 023700 the latter; neither applies outside the model interval. Do not make a single impossible interval. |
 | HJB9670AA in applications 151439 and 151441 | One canonical PART; two model-scoped occurrences and intervals (023700–042775 and A00083–A00115). Reverse lookup returns both without asserting cross-format continuity. |
 | HJE9042AB in applications 171081 and 171082 | One canonical PART across sub-models 3178 and 3173. With complete verified context, coverage includes both A30644 and A30645; retain model ownership/evidence and do not infer the final model endpoint or unconditional fitment from an unqualified item row. |
-| LJA4513AF/application 145240 and LJA4501AG/application 145251 each repeat under several source paths | Preserve all path evidence, reconcile each common application to its occurrence, and retain alternative condition sets. Keep steering (LHD/RHD), `LH/RH` source-path descriptions, market and equipment evidence separate. Do not assign a physical-position meaning to `LH/RH` until verified. Do not infer the entire applicability chain from the application sidecar alone. |
+| LJA4513AF/application 145240 and LJA4501AG/application 145251 each repeat under several source paths | Preserve all path evidence, reconcile each common application to its occurrence, and retain alternative condition sets. Keep steering (LHD/RHD), `LH/RH` source-path descriptions, market and equipment evidence separate. Do not assign a physical-position meaning to `LH/RH` until verified. Do not infer the entire fit chain from the application sidecar alone. |
 | LJA4511AG/application 145267 under model 3178/category 8059 `($)` | Retain the shared model identity and raw category marker; represent Canada/USA market conditions in occurrence alternatives. Do not require a separate North America model or derive a global meaning of `($)` from this sample. Preserve the `LH` source-path description separately from steering; do not assign it a physical-position semantic until verified. |
 | Same PART: context M1 through S100, context M2 from S200 | Return only those two context/bound combinations; never M1/from S200 or M2/through S100. |
 | Same occurrence: (body B1 AND engine E1) OR (body B2 AND engine E2) | Match B1/E1 and B2/E2; reject B1/E2 and B2/E1 when scope is complete. |
@@ -260,18 +260,18 @@ Migration `0016_occurrence_applicability.sql` adds the following relations witho
 
 | Relation | Fields and meaning |
 |---|---|
-| `applicability_bundle` | `id`; nonblank `source_namespace`, `bundle_key`, unique together. Logical selected source scope, not checksum identity. The verified importer owns the exact filename/application-to-key mapping. |
-| `applicability_snapshot` | `id`; `bundle_id`; positive integer `revision`, unique per bundle; nonblank `parser_version`, `mapping_version`; `coverage` complete/incomplete, default incomplete; `state` staged/active/superseded, default staged. At most one active snapshot per bundle. |
-| `applicability_evidence` | `id`; `snapshot_id`; nonblank `relative_path`, lowercase 64-hex `file_sha256`, `record_locator`; required `raw_record` text. Unique snapshot/path/hash/locator. Different paths or row locators preserve repeated application evidence. A fingerprint format check is not verification of the source bytes. |
-| `applicability_serial_range` | `id`; nonblank `serial_domain`, `comparator`; independent lower/upper state known/unbounded/unknown, default unknown; each known endpoint requires nonblank value and explicit inclusive 0/1, each other state requires both NULL; verification verified/unverified/conflict, default unverified; optional `vin_range_id` links an established complete legacy VIN range. Raw/source or normalized meaning is established by evidence plus mapping version, not string shape. |
-| `applicability_model_context` | `id`; nonblank source namespace/model ID/context version, unique together; optional source parent ID and region reference; optional canonical `model_range_id`; optional `serial_range_id` for model bounds; verification with unverified default. Shared models can leave region absent and constrain market in condition sets. |
-| `applicability_context_evidence` | Composite key `context_id`, `evidence_id`. Many source records can establish a context and its inherited bounds. |
-| `occurrence_applicability` | `id`; `snapshot_id`; nonblank `source_key`, unique per snapshot; exactly one `part_occurrence_id` and `model_context_id`; include/exclude `effect`, default include; verification default unverified; coverage default incomplete. PART ownership is derived solely through occurrence, avoiding inconsistent duplicated PART IDs. Include is an assertion kind, not a positive evaluation. |
-| `applicability_condition_set` | `id`; `assertion_id`; nonblank `set_key`, unique per assertion; coverage default incomplete; unconditional 0/1 default 0; optional `serial_range_id` for the item/source constraint; optional `effective_serial_range_id` for a separately verified model-intersection result. Set evidence and context evidence retain both derivation inputs. |
-| `applicability_dimension` | `id`; unique nonblank `code`; verification default unverified. A controlled scalar dimension definition; does not automatically map JEPC attribute groups. |
-| `applicability_dimension_value` | Composite key `dimension_id`, nonblank `value_code`. The permitted values for that specific dimension. |
-| `applicability_attribute_condition` | `id`; `set_id`; dimension/value composite FK; equals/not_equals `operator`; unique set/dimension/operator/value. Only scalar equality/inequality is implemented. Multiple allowed values use verified alternative sets, not implicit array semantics. |
-| `applicability_set_evidence` | Composite key `set_id`, `evidence_id`. Many source paths may support one set; one source record may support multiple sets. Predicate-level attribution can be made through the evidence locator/raw record, but a dedicated per-predicate evidence relation is not implemented. |
+| `fit_bundle` | `id`; nonblank `source_namespace`, `bundle_key`, unique together. Logical selected source scope, not checksum identity. The verified importer owns the exact filename/application-to-key mapping. |
+| `fit_snapshot` | `id`; `bundle_id`; positive integer `revision`, unique per bundle; nonblank `parser_version`, `mapping_version`; `coverage` complete/incomplete, default incomplete; `state` staged/active/superseded, default staged. At most one active snapshot per bundle. |
+| `fit_evidence` | `id`; `snapshot_id`; nonblank `relative_path`, lowercase 64-hex `file_sha256`, `record_locator`; required `raw_record` text. Unique snapshot/path/hash/locator. Different paths or row locators preserve repeated application evidence. A fingerprint format check is not verification of the source bytes. |
+| `fit_serial_range` | `id`; nonblank `serial_domain`, `comparator`; independent lower/upper state known/unbounded/unknown, default unknown; each known endpoint requires nonblank value and explicit inclusive 0/1, each other state requires both NULL; verification verified/unverified/conflict, default unverified; optional `vin_range_id` links an established complete legacy VIN range. Raw/source or normalized meaning is established by evidence plus mapping version, not string shape. |
+| `fit_model_context` | `id`; nonblank source namespace/model ID/context version, unique together; optional source parent ID and region reference; optional canonical `model_range_id`; optional `serial_range_id` for model bounds; verification with unverified default. Shared models can leave region absent and constrain market in condition sets. |
+| `fit_context_evidence` | Composite key `context_id`, `evidence_id`. Many source records can establish a context and its inherited bounds. |
+| `occurrence_fit` | `id`; `snapshot_id`; nonblank `source_key`, unique per snapshot; exactly one `part_occurrence_id` and `model_context_id`; include/exclude `effect`, default include; verification default unverified; coverage default incomplete. PART ownership is derived solely through occurrence, avoiding inconsistent duplicated PART IDs. Include is an assertion kind, not a positive evaluation. |
+| `fit_condition_set` | `id`; `assertion_id`; nonblank `set_key`, unique per assertion; coverage default incomplete; unconditional 0/1 default 0; optional `serial_range_id` for the item/source constraint; optional `effective_serial_range_id` for a separately verified model-intersection result. Set evidence and context evidence retain both derivation inputs. |
+| `fit_dimension` | `id`; unique nonblank `code`; verification default unverified. A controlled scalar dimension definition; does not automatically map JEPC attribute groups. |
+| `fit_dimension_value` | Composite key `dimension_id`, nonblank `value_code`. The permitted values for that specific dimension. |
+| `fit_attribute_condition` | `id`; `set_id`; dimension/value composite FK; equals/not_equals `operator`; unique set/dimension/operator/value. Only scalar equality/inequality is implemented. Multiple allowed values use verified alternative sets, not implicit array semantics. |
+| `fit_set_evidence` | Composite key `set_id`, `evidence_id`. Many source paths may support one set; one source record may support multiple sets. Predicate-level attribution can be made through the evidence locator/raw record, but a dedicated per-predicate evidence relation is not implemented. |
 
 Sets within an assertion are alternatives; attribute predicates and the item serial predicate within a set are conjunctive, subject to the asserted model context. SQL stores this grouping, not a Boolean evaluator. A set marked unconditional must have complete coverage and cannot contain item serial or attribute predicates. A missing/empty conditional set remains incomplete evidence, not universal truth. A derived effective range may still bound an unconditional-in-model set.
 
@@ -287,7 +287,7 @@ Contexts, ranges and vocabulary entries referenced by historical snapshots must 
 
 ### Internal read contract and compatibility
 
-`src/applicability.js` exports `readPartApplicability(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
+`src/fit.js` exports `readPartFit(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
 
 The response always declares `evaluation: unavailable`, `reason: evidence_only_no_evaluator`, and `catalogue_coverage: not_established`. Stored verification and coverage claims are returned separately. This internal reader is not routed to an HTTP endpoint and does not change the existing VIEPS API/UI contract. It cannot certify complete catalogue coverage, interpret serials, resolve conflicts or determine fitment. Reverse context lookup is supported by the context index and occurrence relationship; a public vehicle-to-PART evaluator is not implemented here.
 

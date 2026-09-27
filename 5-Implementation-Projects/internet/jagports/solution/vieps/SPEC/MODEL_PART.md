@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document defines canonical catalogue `PART` identity and the catalogue-side relationships needed by VIEPS part search, part detail, EPC context, applicability, diagrams, hotspots, supersession and operational stock linkage.
+This document defines canonical catalogue `PART` identity and the catalogue-side relationships needed by VIEPS part search, part detail, EPC context, fit, diagrams, hotspots, supersession and operational stock linkage.
 
 Operational stock semantics are defined separately in [`MODEL_STOCK.md`](MODEL_STOCK.md).
 
-Occurrence-bound grouped applicability and versioned source-evidence semantics are defined in [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md).
+Occurrence-bound grouped fit and versioned source-evidence semantics are defined in [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md).
 
 ## Canonical PART identity
 
@@ -92,7 +92,7 @@ model/catalogue ancestry
     -> PART occurrence
 ```
 
-The tree provides browse structure, human-readable occurrence context and source filter candidates. It is not itself the Boolean applicability evaluator.
+The tree provides browse structure, human-readable occurrence context and source filter candidates. It is not itself the Boolean fit evaluator.
 
 Migration `0017_part_tree_occurrence.sql` extends the existing tree storage additively. It preserves legacy browse rows while allowing source-qualified imported nodes to retain source namespace, model/category/item scope, source language, stable source node identity, parent source node identity, source description, source order, source reference and verification state.
 
@@ -102,21 +102,21 @@ Description text and flattened full-description paths are not structural identit
 
 `part_occurrence_tree_path` is the exact occurrence/path relation. It links a `part_occurrence` to the source tree node/path evidence and preserves source namespace, stable source path identity, optional application ID, source reference and verification state. One occurrence may have multiple path rows where the source does so.
 
-Filtering is occurrence-first: select the branch, retain occurrences satisfying requested description/VIN/applicability filters, then project distinct PART identities. Reverse PART-number search can therefore return every occurrence with its complete retained tree context.
+Filtering is occurrence-first: select the branch, retain occurrences satisfying requested description/VIN/fit filters, then project distinct PART identities. Reverse PART-number search can therefore return every occurrence with its complete retained tree context.
 
 JEPC language trees are not assumed to be structurally identical. Language-qualified source nodes are preserved independently and canonical PART identity is shared across them. Cross-language path equivalence is not inferred from matching labels.
 
-Source-description-to-domain mappings are a separate enrichment layer and do not alter source tree identity or raw applicability evidence.
+Source-description-to-domain mappings are a separate enrichment layer and do not alter source tree identity or raw fit evidence.
 
-## PART vehicle and VIN applicability
+## PART vehicle and VIN fit
 
-Migration `0016_occurrence_applicability.sql` adds occurrence-bound model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain intact. The companion [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md#implemented-persistence-contract) defines these additive relations and their verification limits; no legacy fitment row is automatically promoted into them.
+Migration `0016_occurrence_applicability.sql` adds occurrence-bound model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain intact. The companion [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#implemented-persistence-contract) defines these additive relations and their verification limits; no legacy fitment row is automatically promoted into them.
 
-Vehicle applicability is represented outside the canonical `part` row.
+Vehicle fit is represented outside the canonical `part` row.
 
 `model_range` and `vin_range` are distinct concepts.
 
-Model-range and VIN-range applicability are not collapsed into one entity.
+Model-range and VIN-range fit are not collapsed into one entity.
 
 A PART can link to multiple ranges through `part_model_range` and `part_vin_range`.
 
@@ -144,7 +144,7 @@ Only direct self-links are prohibited; multi-hop cycles and effective-date order
 
 Representative evidence fixture: `MNA7691AA → XR847031`.
 
-## PART fitment and attribute applicability
+## PART fitment and attribute fit
 
 `part_fitment` stores source occurrence constraints and retained PART/range qualifiers in one domain table.
 
@@ -161,13 +161,13 @@ Opaque JEPC attribute groups remain source data until semantic interpretation is
 
 The original source representation of `exceptFlag` is retained in `except_flag`.
 
-The database does not translate that value or check consistency with `applicability_state`; a verified importer must supply the state.
+The database does not translate that value or check consistency with `fit_state`; a verified importer must supply the state.
 
 | Field | Requirement | Meaning |
 |---|---|---|
 | `id` | required | Stable fitment-record identifier. |
 | `part_occurrence_id` | required for occurrence scope | FK to the EPC/application occurrence; NULL only for a PART/range row. |
-| `applicability_state` | required | `applicable`, `excluded`, or `unavailable`. |
+| `fit_state` | required | `applicable`, `excluded`, or `unavailable`. |
 | `attribute_group` | optional | Original/source attribute group identifier. |
 | `attribute_key` | optional | Original/source attribute key. |
 | `source_value` | optional | Original/source attribute value; not interpreted unless established. |
@@ -176,7 +176,7 @@ The database does not translate that value or check consistency with `applicabil
 | `verification_status` | required | Verification state. |
 | `confidence` | optional | Confidence where appropriate. |
 
-The occurrence-bound grouped applicability extension is additive to `part_fitment`. Its internal reader returns evidence with evaluation explicitly unavailable; it does not silently reinterpret existing stored `applicability_state` rows as the richer evaluator contract.
+The occurrence-bound grouped fit extension is additive to `part_fitment`. Its internal reader returns evidence with evaluation explicitly unavailable; it does not silently reinterpret existing stored `fit_state` rows as the richer evaluator contract.
 
 ## PART diagram and hotspot
 
@@ -232,7 +232,7 @@ One canonical PART may have multiple stock records.
 
 Donor vehicle identity is represented separately by nullable `stock_item.donor_vehicle_id → vehicle(id)`.
 
-This is distinct from catalogue vehicle/model/VIN applicability and from physical stock/storage location.
+This is distinct from catalogue vehicle/model/VIN fit and from physical stock/storage location.
 
 Unresolved stock is representable without fabricating a canonical PART. Conversely, known reusable third-party products must not be kept unresolved merely because Jaguar did not issue the vendor product number.
 
@@ -242,11 +242,11 @@ The stock relationship does not implement warehouse transaction history, reserva
 
 `PART` contains catalogue/reference identity only.
 
-It has no direct vehicle applicability field and no mutable stock state.
+It has no direct vehicle fit field and no mutable stock state.
 
 `PART_IMAGE` is evidence associated with that stable identity.
 
-Applicability belongs to occurrence/fitment/context relationships.
+Fit belongs to occurrence/fitment/context relationships.
 
 Diagram/hotspot/location evidence belongs to explicit relationships.
 
@@ -284,7 +284,7 @@ All standalone `id` fields are `INTEGER PRIMARY KEY AUTOINCREMENT` unless a tabl
 | `part_occurrence` | `id`; `part_id`; `source`; `source_ref`; `context_type`; `context_ref`; `category_ref`; `item_number`; `diagram_ref`; `diagram_item_number`; `verification_status`. |
 | `part_image` | `id`; `part_id`; `image_ref`; `image_kind`; `description`; `source`; `source_ref`; `verification_status`; `availability_status`. |
 
-### Applicability and supersession
+### Fit and supersession
 
 | Entity | Fields and purposes |
 |---|---|
@@ -293,9 +293,9 @@ All standalone `id` fields are `INTEGER PRIMARY KEY AUTOINCREMENT` unless a tabl
 | `part_model_range` | Composite PK `part_id`, `model_range_id`; evidence fields describe the relationship. |
 | `part_vin_range` | Composite PK `part_id`, `vin_range_id`; evidence fields describe the relationship. |
 | `part_supersession` | Composite PK `superseded_part_id`, `superseding_part_id`; `source`; `source_ref`; `verification_status`; `confidence`; `effective_from`; `effective_to`. |
-| `part_fitment` | `id`; `part_occurrence_id`; `part_id`; `vehicle_range_id`; `variation`; `qualifier`; `applicability_state`; `attribute_group`; `attribute_key`; `source_value`; `except_flag`; `source`; `source_ref`; `verification_status`; `confidence`. |
+| `part_fitment` | `id`; `part_occurrence_id`; `part_id`; `vehicle_range_id`; `variation`; `qualifier`; `fit_state`; `attribute_group`; `attribute_key`; `source_value`; `except_flag`; `source`; `source_ref`; `verification_status`; `confidence`. |
 
-The implemented occurrence applicability persistence dictionary is maintained in [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md#implemented-persistence-contract) rather than duplicated here.
+The implemented occurrence fit persistence dictionary is maintained in [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#implemented-persistence-contract) rather than duplicated here.
 
 ### Diagrams, hotspots and catalogue location
 
@@ -372,14 +372,14 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
-| occurrence applicability | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
-| source-qualified suitability descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
-| source-to-occurrence description evidence (`0019`) | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
-| Suitability catalogue Admin audit (`0020`) | `idx_suitability_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
+| occurrence fit | `idx_fit_snapshot_active`; `idx_fit_serial_domain`; `idx_fit_context_range`; `idx_occurrence_fit_occurrence`; `idx_occurrence_fit_context`; `idx_fit_attribute_lookup`. |
+| source-qualified fit descriptions and mappings (`0019`) | `idx_fit_source_description_group`; `idx_fit_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
+| source-to-occurrence description evidence (`0019`) | `idx_fit_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
+| Fit catalogue Admin audit (`0020`) | `idx_fit_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
 
 `0019` adds immutable source-qualified description text, language-qualified normalized labels, append-only mapping revisions and a current-revision view. Separately evidenced source-to-condition-set links keep occurrence contexts distinct and allow coexisting seat-equipment values without inferring a condition operator. Production migrations seed no synthetic fixture records.
 
-`0020_suitability_admin.sql` adds separate category/value retirement tables and an immutable catalogue-Admin audit. Their additive structure preserves existing `0016` inserts. Normalized codes are stable while EN/FI labels may be renamed; description-to-value interpretation changes append mapping revisions. A retired category/value is excluded from newly published suitability without deleting historical source or occurrence evidence.
+`0020_fit_admin.sql` adds separate category/value retirement tables and an immutable catalogue-Admin audit. Their additive structure preserves existing `0016` inserts. Normalized codes are stable while EN/FI labels may be renamed; description-to-value interpretation changes append mapping revisions. A retired category/value is excluded from newly published fit without deleting historical source or occurrence evidence.
 
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID.
@@ -404,7 +404,7 @@ SQLite execution is not remote D1 deployment evidence.
 
 Synthetic fixtures demonstrate occurrences, unidentified images, model/VIN links, positive/excluded/unavailable fitment, mapped/unmapped hotspots, verified/unavailable locations, `MNA7691AA → XR847031`, a longer synthetic supersession chain, many-to-one replacement, multiple stock records, donor identity and unresolved stock.
 
-Occurrence-applicability fixtures additionally exercise grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, active snapshot replacement/rollback and retained history. Catalogue-tree fixtures additionally exercise source-qualified node identity, ordered parentage, multiple occurrence paths, language-specific structural divergence and idempotent source identities. These are persistence/evidence tests; they do not claim a complete fitment evaluator or production JEPC import.
+Occurrence-fit fixtures additionally exercise grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, active snapshot replacement/rollback and retained history. Catalogue-tree fixtures additionally exercise source-qualified node identity, ordered parentage, multiple occurrence paths, language-specific structural divergence and idempotent source identities. These are persistence/evidence tests; they do not claim a complete fitment evaluator or production JEPC import.
 
 Provenance is explicitly fixture evidence. Never present synthetic vehicle zones or VINs as verified domain facts.
 
@@ -412,14 +412,14 @@ Provenance is explicitly fixture evidence. Never present synthetic vehicle zones
 
 These remain open boundaries, not silently selected product rules.
 
-The companion [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md) records the detailed persistence dictionary, evaluation requirements and remaining importer/evaluator boundaries. Supporting source validation is recorded in [`7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`](../../../../../../7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md).
+The companion [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md) records the detailed persistence dictionary, evaluation requirements and remaining importer/evaluator boundaries. Supporting source validation is recorded in [`7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`](../../../../../../7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md).
 
 The `0016` persistence extension resolves storage of occurrence/context pairing, grouped conditions, evidence multiplicity and incomplete endpoint states. Approved source mappings, serial comparison/normalization, effective-range computation, fitment evaluation, importer execution and API/UI integration remain separate work. The internal evidence reader returns `evaluation = unavailable` and is not exposed as a fitment endpoint.
 
 | Decision / gap | Current representation |
 |---|---|
 | Catalogue tree / occurrence linkage | `0017_part_tree_occurrence.sql` provides source-qualified node identity plus exact `part_occurrence_tree_path` linkage. `part_tree_part` remains only a broad browse summary. Flattened descriptions are not identity and cross-language path equivalence is not inferred. |
-| Dedicated model/variant and occurrence-scoped range links | Legacy PART-level links remain; `0016` adds source-qualified occurrence applicability through model context and grouped predicates without claiming a complete global model/variant ontology. |
+| Dedicated model/variant and occurrence-scoped range links | Legacy PART-level links remain; `0016` adds source-qualified occurrence fit through model context and grouped predicates without claiming a complete global model/variant ontology. |
 | VIN ordering, inclusion, decoding and derived provenance | Source TEXT fields only, no ordered-boundary CHECK or decoder, no confidence/derivation column. KOVuosi is not an inference source. |
 | Confidence and verification vocabularies | Uncontrolled text, with REAL affinity only on stock confidence. |
 | Nullable identity / import idempotency | NULL-bearing diagram/location keys allow repeats; evidence identity/deduplication needs an explicit approved rule before stronger uniqueness is imposed. |
@@ -427,8 +427,8 @@ The `0016` persistence extension resolves storage of occurrence/context pairing,
 | Vehicle zone/system/category taxonomy | Opaque references with explicit mapping state, not authoritative geometry/classification. |
 | Fitment semantic interpretation | Source attributes/except flag retained; grouped occurrence evidence is stored separately but no production evaluator maps it to final fitment. |
 | Supersession cycles, chronology and evidence multiplicity | Directed pair, no multi-hop cycle/date ordering checks; one evidence tuple per pair. Traversal must bound/track visited IDs. |
-| Occurrence versus PART/range fitment | Existing `part_fitment` remains; occurrence-applicability adds grouped evidence without silently replacing stored fitment states. |
-| JEPC source/release/snapshot identity | `0016` adds bundle/snapshot/evidence identity for occurrence applicability; broader importer/source-release policy remains governed by the importer contract. |
+| Occurrence versus PART/range fitment | Existing `part_fitment` remains; occurrence-fit adds grouped evidence without silently replacing stored fitment states. |
+| JEPC source/release/snapshot identity | `0016` adds bundle/snapshot/evidence identity for occurrence fit; broader importer/source-release policy remains governed by the importer contract. |
 | Stock status, quantities and price | PART model documents only the stock relationship boundary; detailed stock semantics are in `MODEL_STOCK.md`. |
 | Canonical normalization and raw agreement | Import/application responsibility; SQL accepts independently supplied values. Universal Unicode normalization and collision policy require explicit approval before broadening existing ASCII catalogue behavior. |
 
