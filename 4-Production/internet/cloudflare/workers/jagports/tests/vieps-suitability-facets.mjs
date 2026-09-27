@@ -22,9 +22,8 @@ const keys = (result) => result.matches.map((row) => row.occurrence_key).sort();
 
 test('fixture endpoint requires TEST=1 rather than a feature flag', async (t) => {
   const { db, env } = fixture(t);
-  const real = await handleApi(new Request('https://test.example/api/vieps/suitability'), env);
-  assert.equal(real.status, 503);
-  assert.equal((await real.json()).error_code, 'range_unavailable');
+  await assert.rejects(() => handleApi(new Request('https://test.example/api/vieps/suitability'), env),
+    (error) => error.status === 503 && error.code === 'range_unavailable');
   const fixtureResponse = await handleApi(new Request('https://test.example/api/vieps/suitability?TEST=1'), env);
   assert.equal(fixtureResponse.status, 200);
   const fixtureBody = await fixtureResponse.json();
