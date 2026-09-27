@@ -37,6 +37,14 @@ When repository implementation work requires capabilities not exposed by the cur
 
 If an expected repository is not available through the ChatGPT GitHub connection, verify the GitHub app installation/authorization and repository selection or approval applicable to the account or organization, following the current OpenAI documentation.
 
+## GitHub repository setting: automatic Issue closure
+
+GitHub documents **Auto-close issues with merged linked pull requests** as a **repository-level** setting, enabled by default; it is not an organization Project setting. [GitHub instructions](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-auto-closing-issues) · [GitHub feature announcement (2025-04-23)](https://github.blog/changelog/2025-04-23-users-can-now-choose-whether-merging-linked-pull-requests-automatically-closes-the-issue/).
+
+To inspect the setting in Jagports, open [`jagports/jagports` repository Settings](https://github.com/jagports/jagports/settings), stay on **General**, scroll to **Issues** (below Pushes), and inspect the checkbox. The repository owner supplied a screenshot showing it checked and reported unchecking it on 2026-09-27. Reopen or refresh the Settings page to verify the current checkbox state; ordinary repository REST metadata does not expose this setting.
+
+The desired Jagports setting and the rules for non-closing PR references and explicit Issue acceptance/closure are maintained in [`GITHUB_OPERATING_RULES.md`](GITHUB_OPERATING_RULES.md), under Issue Closure and Pull Request Rules. GitHub's native auto-close option and Jagports' Issue-to-Project Actions are separate mechanisms.
+
 ## Project synchronization and configuration
 
 During ordinary Issue/PR work, existing repository GitHub Actions handle the documented Project synchronization events and approved work-control triggers. The single agent execution/reporting rule is in `Projects/PROJECT_CAPABILITY_BOUNDARY.md`; workflow semantics are in `Projects/GITHUB_PROJECT_WORKFLOWS.md`. Do not repeat their instructions here.
