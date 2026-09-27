@@ -1,0 +1,109 @@
+{
+  "target": "https://vieps.parts-5ec.workers.dev",
+  "main_sha": "1d262586de75c05f6b845e691ce18c25e96821d8",
+  "deployed_app_sha256": "bfe235bfa73f3cd159b9be705ac75b1287020986a1c61f93961294c0f4c4ab0c",
+  "captured_at": "2026-09-27T18:46:39.775Z",
+  "provenance": "live deployed Worker / shared D1, not an API mock or Suitability fixture-mode demo",
+  "part_number": "MJB7703AA",
+  "views": [
+    {
+      "name": "desktop",
+      "width": 1366,
+      "height": 900,
+      "filename": "desktop.png",
+      "sha256": "e2cc0a5f6b3675e083b94511112192060c220e84e8c2cf612a2c7a409e50ddc2",
+      "bytes": 152632,
+      "geometry": {
+        "page_width": 1366,
+        "body_width": 1366,
+        "viewport_width": 1366,
+        "upper_suitability_present": true,
+        "obsolete_dropdown_count": 0,
+        "lower_duplicate_count": 0,
+        "right_applicable_models_present": true,
+        "ranges_text": "X100 — XK8 / X100X150 — XK / X150",
+        "evidence_text": "VariationQualifierVerification\n    4.0 ConvertibleRepresentative fixture applicabilityfixture4.0 CoupeRepresentative fixture applicabilityfixture",
+        "suitability_status": "Normalized suitability is unavailable for this catalogue context.",
+        "option_count": 0
+      }
+    },
+    {
+      "name": "tablet",
+      "width": 900,
+      "height": 800,
+      "filename": "tablet.png",
+      "sha256": "e5f295750cf50c153be12b0f4a633924894829717ffaa033477b229a3a1c4be8",
+      "bytes": 135913,
+      "geometry": {
+        "page_width": 900,
+        "body_width": 900,
+        "viewport_width": 900,
+        "upper_suitability_present": true,
+        "obsolete_dropdown_count": 0,
+        "lower_duplicate_count": 0,
+        "right_applicable_models_present": true,
+        "ranges_text": "X100 — XK8 / X100X150 — XK / X150",
+        "evidence_text": "VariationQualifierVerification\n    4.0 ConvertibleRepresentative fixture applicabilityfixture4.0 CoupeRepresentative fixture applicabilityfixture",
+        "suitability_status": "Normalized suitability is unavailable for this catalogue context.",
+        "option_count": 0
+      }
+    },
+    {
+      "name": "mobile-320",
+      "width": 320,
+      "height": 780,
+      "filename": "mobile-320.png",
+      "sha256": "b8800ebe934c9ac5dfc896f1a37b22015101fdd96872b485908aabd90dd15ec7",
+      "bytes": 62817,
+      "geometry": {
+        "page_width": 320,
+        "body_width": 320,
+        "viewport_width": 320,
+        "upper_suitability_present": true,
+        "obsolete_dropdown_count": 0,
+        "lower_duplicate_count": 0,
+        "right_applicable_models_present": true,
+        "ranges_text": "X100 — XK8 / X100X150 — XK / X150",
+        "evidence_text": "VariationQualifierVerification\n    4.0 ConvertibleRepresentative fixture applicabilityfixture4.0 CoupeRepresentative fixture applicabilityfixture",
+        "suitability_status": "Normalized suitability is unavailable for this catalogue context.",
+        "option_count": 0
+      }
+    }
+  ],
+  "suitability": {
+    "http_status": 503,
+    "state": "unavailable",
+    "reason": "normalized_suitability_not_published",
+    "fixture_mode": false,
+    "source_namespace": null,
+    "query": "",
+    "selected": [],
+    "categories": [],
+    "available_options": [],
+    "matches": [],
+    "excluded_occurrences": [],
+    "unavailable_occurrences": []
+  },
+  "applicable_model_evidence": [
+    {
+      "range_code": "X100",
+      "range_name": "XK8 / X100",
+      "verification_status": "fixture"
+    },
+    {
+      "range_code": "X100",
+      "range_name": "XK8 / X100",
+      "verification_status": "fixture"
+    },
+    {
+      "range_code": "X150",
+      "range_name": "XK / X150",
+      "verification_status": "fixture"
+    },
+    {
+      "range_code": "X150",
+      "range_name": "XK / X150",
+      "verification_status": "fixture"
+    }
+  ]
+}
