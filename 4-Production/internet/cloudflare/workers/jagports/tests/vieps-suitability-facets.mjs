@@ -10,7 +10,7 @@ function fixture(t, enabled = true) {
   t.after(() => db.close());
   const env = { DB: d1(db), ...(enabled ? { ENABLE_SUITABILITY_FIXTURES: '1' } : {}) };
   async function request(facets = [], opts = {}) {
-    const url = new URL('https://test.example/api/vieps/suitability');
+    const url = new URL('https://test.example/api/vieps/suitability?TEST=1');
     for (const facet of facets) url.searchParams.append('facet', facet);
     for (const [key, value] of Object.entries(opts)) url.searchParams.set(key, value);
     const response = await handleApi(new Request(url), env);
@@ -22,7 +22,7 @@ const keys = (result) => result.matches.map((row) => row.occurrence_key).sort();
 
 test('fixture endpoint is unavailable by default and never reads synthetic facts', async (t) => {
   const { db, env } = fixture(t, false);
-  const response = await handleApi(new Request('https://test.example/api/vieps/suitability'), env);
+  const response = await handleApi(new Request('https://test.example/api/vieps/suitability?TEST=1'), env);
   assert.equal(response.status, 503);
   const body = await response.json();
   assert.equal(body.state, 'unavailable');
@@ -132,7 +132,7 @@ test('invalid facet IDs, unsupported query, stock-only filtering, and non-GET ar
   assert.equal(stock.status, 200);
   assert.deepEqual(stock.body.matches, []);
   assert.equal(stock.body.state, 'no_match');
-  const post = await handleApi(new Request('https://test.example/api/vieps/suitability', { method: 'POST' }), env);
+  const post = await handleApi(new Request('https://test.example/api/vieps/suitability?TEST=1', { method: 'POST' }), env);
   assert.equal(post.status, 405);
 });
 
