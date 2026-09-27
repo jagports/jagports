@@ -96,7 +96,7 @@ FitmentResult
   provenance/unavailable information
 ```
 
-Do not add a second domain taxonomy for the 13 fixture labels. Use normalized existing IDs where verified, or clearly isolated fixture IDs until imported/source-mapped evidence exists. Preserve `part_fitment.fit_state` and the #666 positive/negative/unavailable distinctions across UI and API.
+Do not add a second domain taxonomy for the 13 fixture labels. Use normalized existing IDs where verified, or clearly isolated fixture IDs until imported/source-mapped evidence exists. Preserve `part_fitment.applicability_state` and the #666 positive/negative/unavailable distinctions across UI and API.
 
 ## Deterministic fixtures
 Cover all 13 exact browse/index fixture display labels independently of selected-PART fitment, a single PART applicable to only some Ranges, an excluded Range not presented as suitable, verified source qualifiers, VIN-range match/exclusion, selected row with multiple source occurrences, unavailable evidence, context-only search and API error. The later multi-range filter test matrix must include **ANY/OR** across two or more ranges, empty-selection pass-through, exclusions/unknowns and conjunction with an approved normalized variation filter. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.

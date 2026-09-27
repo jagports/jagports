@@ -161,13 +161,13 @@ Opaque JEPC attribute groups remain source data until semantic interpretation is
 
 The original source representation of `exceptFlag` is retained in `except_flag`.
 
-The database does not translate that value or check consistency with `fit_state`; a verified importer must supply the state.
+The database does not translate that value or check consistency with `applicability_state`; a verified importer must supply the state.
 
 | Field | Requirement | Meaning |
 |---|---|---|
 | `id` | required | Stable fitment-record identifier. |
 | `part_occurrence_id` | required for occurrence scope | FK to the EPC/application occurrence; NULL only for a PART/range row. |
-| `fit_state` | required | `applicable`, `excluded`, or `unavailable`. |
+| `applicability_state` | required | `applicable`, `excluded`, or `unavailable`. |
 | `attribute_group` | optional | Original/source attribute group identifier. |
 | `attribute_key` | optional | Original/source attribute key. |
 | `source_value` | optional | Original/source attribute value; not interpreted unless established. |
@@ -176,7 +176,7 @@ The database does not translate that value or check consistency with `fit_state`
 | `verification_status` | required | Verification state. |
 | `confidence` | optional | Confidence where appropriate. |
 
-The occurrence-bound grouped fit extension is additive to `part_fitment`. Its internal reader returns evidence with evaluation explicitly unavailable; it does not silently reinterpret existing stored `fit_state` rows as the richer evaluator contract.
+The occurrence-bound grouped fit extension is additive to `part_fitment`. Its internal reader returns evidence with evaluation explicitly unavailable; it does not silently reinterpret existing stored `applicability_state` rows as the richer evaluator contract.
 
 ## PART diagram and hotspot
 
@@ -293,7 +293,7 @@ All standalone `id` fields are `INTEGER PRIMARY KEY AUTOINCREMENT` unless a tabl
 | `part_model_range` | Composite PK `part_id`, `model_range_id`; evidence fields describe the relationship. |
 | `part_vin_range` | Composite PK `part_id`, `vin_range_id`; evidence fields describe the relationship. |
 | `part_supersession` | Composite PK `superseded_part_id`, `superseding_part_id`; `source`; `source_ref`; `verification_status`; `confidence`; `effective_from`; `effective_to`. |
-| `part_fitment` | `id`; `part_occurrence_id`; `part_id`; `vehicle_range_id`; `variation`; `qualifier`; `fit_state`; `attribute_group`; `attribute_key`; `source_value`; `except_flag`; `source`; `source_ref`; `verification_status`; `confidence`. |
+| `part_fitment` | `id`; `part_occurrence_id`; `part_id`; `vehicle_range_id`; `variation`; `qualifier`; `applicability_state`; `attribute_group`; `attribute_key`; `source_value`; `except_flag`; `source`; `source_ref`; `verification_status`; `confidence`. |
 
 The implemented occurrence fit persistence dictionary is maintained in [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#implemented-persistence-contract) rather than duplicated here.
 
@@ -372,14 +372,16 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
-| occurrence fit | `idx_fit_snapshot_active`; `idx_fit_serial_domain`; `idx_fit_context_range`; `idx_occurrence_fit_occurrence`; `idx_occurrence_fit_context`; `idx_fit_attribute_lookup`. |
-| source-qualified fit descriptions and mappings (`0019`) | `idx_fit_source_description_group`; `idx_fit_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
-| source-to-occurrence description evidence (`0019`) | `idx_fit_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
-| Fit catalogue Admin audit (`0020`) | `idx_fit_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
+Physical SQLite column, migration and index identifiers retain their historical names while migration `0021_fit_contract_aliases.sql` adds read-only Fit views. Fit terminology in headings does not rename storage.
+
+| occurrence fit | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
+| source-qualified fit descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
+| source-to-occurrence description evidence (`0019`) | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
+| Fit catalogue Admin audit (`0020`) | `idx_suitability_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
 
 `0019` adds immutable source-qualified description text, language-qualified normalized labels, append-only mapping revisions and a current-revision view. Separately evidenced source-to-condition-set links keep occurrence contexts distinct and allow coexisting seat-equipment values without inferring a condition operator. Production migrations seed no synthetic fixture records.
 
-`0020_fit_admin.sql` adds separate category/value retirement tables and an immutable catalogue-Admin audit. Their additive structure preserves existing `0016` inserts. Normalized codes are stable while EN/FI labels may be renamed; description-to-value interpretation changes append mapping revisions. A retired category/value is excluded from newly published fit without deleting historical source or occurrence evidence.
+`0020_suitability_admin.sql` adds separate category/value retirement tables and an immutable catalogue-Admin audit. Their additive structure preserves existing `0016` inserts. Normalized codes are stable while EN/FI labels may be renamed; description-to-value interpretation changes append mapping revisions. A retired category/value is excluded from newly published fit without deleting historical source or occurrence evidence.
 
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID.

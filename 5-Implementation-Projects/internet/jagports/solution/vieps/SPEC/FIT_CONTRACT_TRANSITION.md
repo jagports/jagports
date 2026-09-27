@@ -22,6 +22,10 @@ The canonical administrator URL is `/admin-fit`. `/admin-suitability` and `/stoc
 
 The public and administrator Fit API transition must publish Fit-named paths and payload labels while accepting legacy paths only as documented compatibility aliases. A later removal migration may happen only after every deployed consumer has moved and a data/contract review has confirmed that no compatibility reader remains.
 
+## Historical storage boundary
+
+The read-only `fit_mapping_revision` alias is distinct from its physical `applicability_description_mapping_revision` table. Migration `0021` does **not** rename `part_fitment.applicability_state`, the occurrence source-evidence tables (`applicability_*` / `occurrence_applicability`), historical migrations or physical SQL indexes. Active Fit terminology must not be mistaken for physical schema names or permission to write through these views.
+
 ## Safety boundary
 
 Fit is a presentation and active-contract name. It does not turn a fixture into JEPC evidence, does not infer a source condition, does not change an unavailable or excluded result, and does not authorize rewriting raw source descriptions. Write operations continue to enforce the existing server-side authorization, source provenance, immutable history, and independent-review requirements.

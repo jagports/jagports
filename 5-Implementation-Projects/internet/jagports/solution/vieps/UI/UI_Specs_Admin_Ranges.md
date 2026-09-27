@@ -85,7 +85,7 @@ The illustrative `XK_RANGE` / `XK Range` creation values above represent an admi
 
 ## Data and API contract
 
-Use the **existing canonical** `model_range` identity from #354. The present persistence subset also has `fit_model_context` with source-qualified `(source_namespace, source_model_id, context_version)` and a nullable `model_range_id`. These are a starting bridge, not permission to invent an independent global JEPC Model taxonomy. #354 and #355 must approve the final source-Model identity, original-description persistence, import reconciliation and mapping-history representation.
+Use the **existing canonical** `model_range` identity from #354. The present persistence subset also has `applicability_model_context` with source-qualified `(source_namespace, source_model_id, context_version)` and a nullable `model_range_id`. These are a starting bridge, not permission to invent an independent global JEPC Model taxonomy. #354 and #355 must approve the final source-Model identity, original-description persistence, import reconciliation and mapping-history representation.
 
 Minimum normalized Admin read shape:
 
