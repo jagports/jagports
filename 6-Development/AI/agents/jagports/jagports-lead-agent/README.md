@@ -24,7 +24,7 @@ The working prototype runs as the unprivileged `codex` user on the Raspberry Pi.
 
 3. Inspect `reports/lead_report.md` and `state/agent_state.json`. Repeat the run only when a second lifecycle-comparison check is intended; an unchanged repository ordinarily produces no new/closed/reopened records.
 4. For reusable diagnostics, one-shot API/Telegram tests and troubleshooting, follow [OPERATIONS.md](OPERATIONS.md). A standalone API result and a manually delivered message do not demonstrate integrated model-backed specialist processing.
-5. For installed user-service and timer checks, use the [MyNode installation and verification guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Confirm an actual *timer-triggered* invocation through its journal and report rather than relying only on timer activation or a manually started service.
+5. For installed user-service and timer checks, use the [MyNode installation and verification guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/AGENT_SETUP.md). Confirm an actual *timer-triggered* invocation through its journal and report rather than relying only on timer activation or a manually started service.
 
 Keep local `.env` credentials out of the repository, copied shell output and notifications. Enable a paid or unattended pilot only after the relevant specification gates, budget and Product Owner authorization have been satisfied.
 
@@ -69,7 +69,7 @@ Reusable direct Responses API and wrapper smoke-test commands, their expected ou
 
 ## Lead Agent scheduling — intended 9h45min cadence
 
-The host's existing `systemd --user` timer, not a `config.yaml` polling value, is the actual scheduling authority. The intended 585-minute interval and service installation/verification are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Reusable one-shot status and diagnostic commands belong in [Development OPERATIONS.md](OPERATIONS.md). An enabled timer and a successful manual service run do not prove that a later timer-triggered unattended run succeeded; verify that run from the journal, state and report.
+The host's existing `systemd --user` timer, not a `config.yaml` polling value, is the actual scheduling authority. The intended 585-minute interval and service installation/verification are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/AGENT_SETUP.md). Reusable one-shot status and diagnostic commands belong in [Development OPERATIONS.md](OPERATIONS.md). An enabled timer and a successful manual service run do not prove that a later timer-triggered unattended run succeeded; verify that run from the journal, state and report.
 
 ## Current specialist and Telegram communication test
 
@@ -82,7 +82,7 @@ For the short saved-status Telegram delivery smoke test and its two-part accepta
 | Human startup, current capabilities, usage sequence, navigation and limitations | This `README.md` |
 | Functional contracts, event/model schemas, design, rollout stages, security and acceptance tests | [SPEC_Agent_Lead.md](SPEC_Agent_Lead.md) |
 | Reusable shell commands, manual smoke tests, diagnostics and historical engineering command variants | [OPERATIONS.md](OPERATIONS.md) |
-| Live Raspberry Pi user service, timer installation, user-bus recovery and host acceptance commands | [MyNode Deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
+| Live Raspberry Pi user service, timer installation, user-bus recovery and host acceptance commands | [MyNode Deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/AGENT_SETUP.md) |
 | Project rationale, operator-verified evidence and delivery dependencies | [Lead Agent implementation project](../../../../../5-Implementation-Projects/AGENT_SETUP.md) |
 | Actual source-backed research and unresolved evidence | The repository's established `7-Research/` semantic root |
 | Cross-project workflow, decision authority and agent responsibilities | [Management workflow](../../../../../00-Management/WORKFLOWS.md) and [agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) |

@@ -17,7 +17,7 @@ Each responsibility has one canonical location:
 | Business case, evidence, dependencies and project direction | This Projects document |
 | Architecture, implementation status and capability evolution | [Lead Agent README](../6-Development/AI/agents/jagports/jagports-lead-agent/README.md) |
 | Reusable execution, diagnostics, API smoke tests and original engineering command variants | [Development OPERATIONS.md](../6-Development/AI/agents/jagports/jagports-lead-agent/OPERATIONS.md) |
-| MyNodeBTC Raspberry Pi installation, host-specific user-bus recovery, 9h45min timer and verification | [Deployment installation](../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
+| MyNodeBTC Raspberry Pi installation, host-specific user-bus recovery, 9h45min timer and verification | [Deployment installation](../3-Deployment/hardware/RaspberryPI/MyNodeBTC/AGENT_SETUP.md) |
 
 Commands and installation material are **not copied into this project record**. Original source history remains available through Git and linked work records.
 
