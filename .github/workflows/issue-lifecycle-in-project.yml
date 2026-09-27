@@ -49,6 +49,26 @@ jobs:
             exit 1
           fi
 
+          # A GitHub closing reference can close a governing Issue after only
+          # one partial PR merges. Check the complete Issue checklist before DONE.
+          if [ "$ISSUE_ACTION" = "closed" ]; then
+            issue_json="$(gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER")"
+            issue_body="$(jq -r '.body // ""' <<<"$issue_json")"
+            checklist_count="$(printf '%s\n' "$issue_body" | grep -Ec '^[[:space:]]*[-*][[:space:]]+\\[[ xX]\\]' || true)"
+            incomplete_count="$(printf '%s\n' "$issue_body" | grep -Ec '^[[:space:]]*[-*][[:space:]]+\\[[[:space:]]\\]' || true)"
+
+            if [ "$checklist_count" -eq 0 ] || [ "$incomplete_count" -gt 0 ]; then
+              echo "Issue #$ISSUE_NUMBER closure rejected: $incomplete_count unchecked criteria; $checklist_count total checkboxes."
+              gh api --method PATCH "repos/$REPOSITORY/issues/$ISSUE_NUMBER" -f state=open >/dev/null
+              issue_state="$(gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER" --jq '.state')"
+              [ "$issue_state" = "open" ] || { echo "Issue reopen verification failed."; false; }
+              echo "PASS: Incomplete Issue #$ISSUE_NUMBER is verified open; DONE was not applied."
+              trap - ERR
+              exit 0
+            fi
+            echo "Issue #$ISSUE_NUMBER has $checklist_count completed checklist criteria; allowing the existing DONE synchronization."
+          fi
+
           case "$ISSUE_ACTION" in
             opened)
               TARGET_LABEL="BACKLOG"
