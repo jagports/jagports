@@ -2,7 +2,7 @@ name: VIEPS deployed-runtime smoke after main
 
 on:
   push:
-    branches: [main]
+    branches: [main, docs/633-suitability-deployed-test-steps]
     paths:
       - ".github/workflows/vieps-postdeploy-runtime.yml"
       - "4-Production/internet/cloudflare/workers/jagports/**"
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: vieps-postdeploy-main
+  group: vieps-postdeploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -62,3 +62,72 @@ jobs:
         run: |
           echo "::error::Deployed VIEPS runtime check failed: inspect Cloudflare main deployment, remote D1 migration ledger and fixture availability separately"
           echo "The job does not apply remote D1 migrations or claim that the currently active Worker matches this GitHub SHA." >> "$GITHUB_STEP_SUMMARY"
+
+  screenshots:
+    # One same-repository branch trigger captures real post-#939 main before this PR merges.
+    # The browser compares deployed app.js to main, never to undeployed PR assets.
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/docs/633-suitability-deployed-test-steps'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      issues: write
+    concurrency:
+      group: vieps-deployed-main-screenshots
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: 4-Production/internet/cloudflare/workers/jagports
+    env:
+      VIEPS_BROWSER_URL: https://vieps.parts-5ec.workers.dev
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: 4-Production/internet/cloudflare/workers/jagports/package-lock.json
+      - name: Extract the real main app.js from an independent ref
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            main_sha="$GITHUB_SHA"
+          else
+            git fetch --no-tags --depth=1 origin main
+            main_sha="$(git rev-parse FETCH_HEAD)"
+          fi
+          git show "$main_sha:4-Production/internet/cloudflare/workers/jagports/public/app.js" > "$RUNNER_TEMP/main-app.js"
+          echo "VIEPS_MAIN_SHA=$main_sha" >> "$GITHUB_ENV"
+          echo "VIEPS_MAIN_ASSET=$RUNNER_TEMP/main-app.js" >> "$GITHUB_ENV"
+          echo "Testing actual deployed site against main $main_sha"
+      - name: Install Chromium on the GitHub-hosted runner
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm install --no-save --package-lock=false playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Validate actual deployed main and capture desktop, tablet, mobile PNGs
+        run: node scripts/deployed-suitability-screenshots.mjs
+      - name: Preserve screenshots even after test failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vieps-deployed-main-screenshots
+          path: 4-Production/internet/cloudflare/workers/jagports/browser-evidence/deployed-main/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish immutable direct PNGs and attach to PR #939 and Issue #895
+        id: publish
+        run: bash scripts/publish-deployed-screenshots.sh
+      - name: Embed directly rendered images in the Actions summary
+        run: |
+          {
+            echo "## #895 — real deployed-main screenshots"
+            echo "Tested main revision: $VIEPS_MAIN_SHA"
+            echo ""
+            echo "![Desktop](${{ steps.publish.outputs.images_base }}/desktop.png)"
+            echo "![Tablet](${{ steps.publish.outputs.images_base }}/tablet.png)"
+            echo "![Mobile](${{ steps.publish.outputs.images_base }}/mobile-320.png)"
+          } >> "$GITHUB_STEP_SUMMARY"
