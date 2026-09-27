@@ -7,7 +7,12 @@ const text = value => typeof value === 'string' ? value.trim() : '';
 export function liveRangeDatabase(url, env) {
   let bindings;
   try { bindings = JSON.parse(env.RANGE_BINDINGS || '{}'); }
-  catch { throw new Error('Invalid reviewed Range binding registry.'); }
+  catch {
+    const error = new Error('Invalid reviewed Range binding registry.');
+    error.status = 503;
+    error.code = 'range_unavailable';
+    throw error;
+  }
   const names = Object.keys(bindings);
   const requested = text(url.searchParams.get('range'));
   const slug = requested || (names.length === 1 ? names[0] : '');

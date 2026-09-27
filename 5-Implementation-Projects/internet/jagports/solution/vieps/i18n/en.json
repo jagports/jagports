@@ -100,6 +100,8 @@
     "not_found": "Part not found.",
     "prompt": "Enter a Jaguar part number or fixture identifier to begin.",
     "prompt_with_action": "Enter a Jaguar part number or fixture identifier and press Find.",
+    "range_required": "Select a Range to search the imported catalogue.",
+    "range_unavailable": "The imported Range catalogue is unavailable.",
     "resolved": "PART resolved.",
     "resolving": "Resolving PART…"
   },

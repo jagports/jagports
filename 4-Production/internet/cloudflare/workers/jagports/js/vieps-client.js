@@ -101,8 +101,13 @@ async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
 
 async function resolveTreeRoots(stockOnly = false) {
   const response = await fetch(apiUrl(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`));
-  if (!response.ok) throw new Error("tree roots unavailable");
-  return response.json();
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || `${response.status} ${response.statusText}`);
+    error.code = data.error_code;
+    throw error;
+  }
+  return data;
 }
 
 function clearSelectionUrl() {
@@ -596,9 +601,11 @@ function resetContext(messageKey = "part.no_part_selected") {
   $("locationStatus").textContent = t("location.select_help");
 }
 
-function localizeError(error) {
+function localizeError(error, fallback = "search.error") {
+  if (error?.code === "range_required") return t("search.range_required");
+  if (error?.code === "range_unavailable") return t("search.range_unavailable");
   if (error?.code === "stock_filter_no_match") return t("search.no_stock_match");
-  return String(error?.message || "") === "part not found" ? t("search.not_found") : t("search.error");
+  return String(error?.message || "") === "part not found" ? t("search.not_found") : t(fallback);
 }
 
 function refreshForLanguageChange() {
@@ -709,8 +716,8 @@ function setupViepsUi() {
     } catch (error) {
       if (version !== requestVersion) return;
       cachedRootData = null;
-      $("tree").innerHTML = empty(t("tree.browse_error"));
-      $("searchStatus").textContent = t("tree.browse_error");
+      $("tree").innerHTML = empty(localizeError(error, "tree.browse_error"));
+      $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
@@ -770,7 +777,7 @@ function setupViepsUi() {
       if (version !== requestVersion) return;
       resetContext();
       renderTree([], { roots: cachedRootData?.roots || [] });
-      $("searchStatus").textContent = t("tree.browse_error");
+      $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");

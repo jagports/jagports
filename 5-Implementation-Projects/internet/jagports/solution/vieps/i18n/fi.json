@@ -100,6 +100,8 @@
     "not_found": "Osaa ei löytynyt.",
     "prompt": "Aloita syöttämällä Jaguar-osanumero tai testitunniste.",
     "prompt_with_action": "Syötä Jaguar-osanumero tai testitunniste ja paina Etsi.",
+    "range_required": "Valitse mallisarja tuodusta luettelosta hakemista varten.",
+    "range_unavailable": "Tuodun mallisarjan luettelo ei ole saatavilla.",
     "resolved": "OSA ratkaistu.",
     "resolving": "Ratkaistaan OSAA…"
   },
