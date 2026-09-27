@@ -15,9 +15,9 @@ Use the smallest practical amount of testing process needed to produce reliable 
 - Do not require a separate Test Issue merely because testing exists.
 - Do not make humans repeat deterministic checks that automation can perform reliably.
 - Do not manipulate GitHub Issue/PR state solely to manufacture a test case unless that state transition is itself the behavior under test.
-- Do not create a testing/review lifecycle parallel to `00-Management/WORKFLOWS.md` or GitHub's native PR review/check mechanisms.
+- Do not create a testing/review lifecycle parallel to `0-DocumentationEducationCompetense/WORKFLOWS.md` or GitHub's native PR review/check mechanisms.
 
-The required review, testing, acceptance, and merge gates are defined by `00-Management/WORKFLOWS.md`. This file explains development-specific testing practice; it does not redefine the workflow.
+The required review, testing, acceptance, and merge gates are defined by `0-DocumentationEducationCompetense/WORKFLOWS.md`. This file explains development-specific testing practice; it does not redefine the workflow.
 
 ### Evidence before ceremony
 

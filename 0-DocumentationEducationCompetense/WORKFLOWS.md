@@ -14,6 +14,7 @@ Other documents may explain, implement, or reference these workflows, but must n
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
 - `00-Management/RULES.md` — human-readable governance and rationale.
+- `5-Implementation-Projects/WORKFLOW.md` — scoped visual research-to-implementation workflow, incorporated by reference for explanation; no independent change to Management review, approval, or merge rules.
 - `SKILL.md` — machine/agent execution instructions.
 - `.codex/skills/*` — specialized operational instructions.
 - `KNOWLEDGE.md` — durable knowledge, decisions, and lessons learned.
@@ -402,7 +403,7 @@ When multiple Issues are resolved, include an explicit closing/traceability refe
 
 If documents disagree about a Management workflow:
 
-1. `00-Management/WORKFLOWS.md` is the top-level normative workflow authority.
+1. `0-DocumentationEducationCompetense/WORKFLOWS.md` is the top-level normative workflow authority.
 2. `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` is the scoped Project/Kanban workflow source incorporated by reference from this file.
 3. `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` defines the current ChatGPT/GitHub Project capability boundary.
 4. `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` contains GitHub connection and environment knowledge.

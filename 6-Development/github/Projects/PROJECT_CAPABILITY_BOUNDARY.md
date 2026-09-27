@@ -7,7 +7,7 @@ This file defines only the current ChatGPT/GitHub connection capability boundary
 It must not duplicate GitHub Project/Kanban lifecycle, Project Item Status meaning, checklist, review, or workflow-transition rules. Those rules belong in:
 
 - `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` for Project/Kanban workflow meaning, Project Item Status meanings, lifecycle, evidence rules, and Product Owner Project rulings;
-- `00-Management/WORKFLOWS.md` for the top-level Management workflow, review, testing, acceptance, checklist, merge, and record-integrity rules;
+- `0-DocumentationEducationCompetense/WORKFLOWS.md` for the top-level Management workflow, review, testing, acceptance, checklist, merge, and record-integrity rules;
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` for durable GitHub connection and environment knowledge.
 
 ## Ordinary execution: repository-owned synchronization

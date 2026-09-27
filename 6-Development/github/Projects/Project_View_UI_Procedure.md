@@ -4,7 +4,7 @@
 
 This document is the practical execution procedure for configuring the required GitHub Project views with the repository script.
 
-It is an operational companion to [`Setting_up_Kanban.md`](Setting_up_Kanban.md). The canonical Project-view requirements, Workstream values, Rank semantics, verification requirements, and Management workflow remain defined by that existing documentation and `00-Management/WORKFLOWS.md`. This procedure must not become a competing specification.
+It is an operational companion to [`Setting_up_Kanban.md`](Setting_up_Kanban.md). The canonical Project-view requirements, Workstream values, Rank semantics, verification requirements, and Management workflow remain defined by that existing documentation and `0-DocumentationEducationCompetense/WORKFLOWS.md`. This procedure must not become a competing specification.
 
 ## Current Jagports Project
 
