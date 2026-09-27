@@ -253,7 +253,7 @@ function renderTree(paths = [], options = {}) {
     const query = encodeURIComponent(partSearchValue(part));
     const context = contextNodeId !== null && contextNodeId !== undefined
       ? `&tree=${encodeURIComponent(contextNodeId)}` : "";
-    return `?part=${query}${context}`;
+    return apiUrl(`?part=${query}${context}`);
   };
   let markedPartLeaf = false;
   const renderPartLeaf = (part, depth, contextNodeId) => {
@@ -270,7 +270,7 @@ function renderTree(paths = [], options = {}) {
     const selected = selectedPartId === null && selectedNodeId !== null &&
       node.nodeId !== null && String(node.nodeId) === selectedNodeId;
     const label = node.nodeId !== null
-      ? `<a href="?tree=${encodeURIComponent(node.nodeId)}" data-tree-node-id="${escapeHtml(node.nodeId)}"
+      ? `<a href="${apiUrl(`?tree=${encodeURIComponent(node.nodeId)}`)}" data-tree-node-id="${escapeHtml(node.nodeId)}"
             ${selected ? 'aria-current="location"' : ''}>${escapeHtml(node.label)}</a>`
       : `<span>${escapeHtml(node.label)}</span>`;
     const children = sortNodes(node.children.values());
@@ -452,7 +452,7 @@ function renderSearchResults(parts = [], selectedId = null) {
   panel.innerHTML = candidates.length ? `<ul class="results-list">${candidates.map((part) => {
     const selected = selectedId != null && String(part.id) === String(selectedId);
     return `<li class="result-row${selected ? " selected-result" : ""}">
-      <a href="?part=${encodeURIComponent(partSearchValue(part))}&candidate_id=${encodeURIComponent(part.id)}"
+      <a href="${apiUrl(`?part=${encodeURIComponent(partSearchValue(part))}&candidate_id=${encodeURIComponent(part.id)}`)}"
          data-result-part-id="${escapeHtml(part.id)}" ${selected ? 'aria-current="page"' : ""}>${escapeHtml(partDisplayLabel(part))}</a>
       <label class="bookmark-label"><input type="checkbox" disabled aria-label="${escapeHtml(`${t("search.bookmark_pending")}: ${partDisplayLabel(part)}`)}" title="${escapeHtml(t("search.bookmark_pending"))}"><span class="bookmark-caption">${escapeHtml(t("search.bookmark_pending"))}</span></label>
     </li>`;
@@ -695,6 +695,7 @@ function setupStockHelp() {
 function setupViepsUi() {
   if (!$("partSearch")) return;
   const testMode = isTestMode();
+  $("treeRootLink").href = testMode ? "?TEST=1" : "?";
   $("fixtureModeHelp").hidden = !testMode;
   $("realModeHelp").hidden = testMode;
   $("helpGuide").setAttribute("data-i18n-aria-label",
