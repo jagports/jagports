@@ -144,3 +144,20 @@ test('real-mode stock labels and evidence never claim fixture inventory', () => 
   assert.match(live.get('partCard').innerHTML, /No operational stock shown/);
   assert.doesNotMatch(live.get('partCard').innerHTML, /fixture/i);
 });
+
+test('fixture examples and search prompts remain restricted to TEST=1', () => {
+  const fetchRoots = async () => new Response(JSON.stringify({ state: 'root', roots: [] }),
+    { headers: { 'content-type': 'application/json' } });
+  const fixture = uiHarness(fetchRoots);
+  assert.equal(fixture.get('fixtureModeHelp').hidden, false);
+  assert.equal(fixture.get('realModeHelp').hidden, true);
+  assert.equal(fixture.get('partNumber').attrs['data-i18n-placeholder'], 'search.input_placeholder');
+  assert.match(fixture.get('searchStatus').textContent, /fixture identifier/);
+
+  const live = uiHarness(fetchRoots, { testMode: false });
+  assert.equal(live.get('fixtureModeHelp').hidden, true);
+  assert.equal(live.get('realModeHelp').hidden, false);
+  assert.equal(live.get('partNumber').attrs['data-i18n-placeholder'], 'search.input_placeholder_real');
+  assert.match(live.get('searchStatus').textContent, /Jaguar part number to begin/);
+  assert.doesNotMatch(live.get('searchStatus').textContent, /fixture/i);
+});
