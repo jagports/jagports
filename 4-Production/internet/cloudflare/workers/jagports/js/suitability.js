@@ -52,6 +52,122 @@ function stillPossible(tags, selected) {
   return true;
 }
 
+// The shared operational D1 contains the legacy searchable TEST parts, but the
+// richer #877 SQL-only fixture assertions are loaded only by isolated test DBs.
+// Supply their same eight *synthetic* dimensions from a self-contained fallback
+// when those optional rows have not been published. Never enter this path in
+// real mode and never represent these records as JEPC fitment evidence.
+const EMBEDDED_SOURCE = 'fixture:embedded-suitability:v1';
+const EMBEDDED_VALUES = [
+  ['body', 'Body', 'Kori', 'Vehicle body style', 'Ajoneuvon korimalli', [
+    ['coupe', 'Coupe', 'Coupé'], ['convertible', 'Convertible', 'Avoauto']]],
+  ['engine_aspiration', 'Engine aspiration', 'Moottorin ahtaminen',
+    'Engine aspiration type', 'Moottorin ahtamistapa', [
+      ['na', 'NA', 'Vapaasti hengittävä'],
+      ['supercharged', 'Supercharged', 'Mekaanisesti ahdettu']]],
+  ['seat_equipment', 'Seat equipment', 'Istuinvarusteet',
+    'Seat equipment features', 'Istuinten varustelu', [
+      ['memory_seat', 'Memory Seat', 'Muisti-istuin'],
+      ['powered_seats', 'Powered Seats', 'Sähkösäätöiset istuimet']]],
+  ['steering', 'Steering', 'Ohjauspuoli', 'Steering side', 'Ohjauspuoli', [
+    ['LHD', 'LHD', 'Vasemmalta ohjattava'],
+    ['RHD', 'RHD', 'Oikealta ohjattava']]],
+];
+const EMBEDDED_OCCURRENCES = [
+  ['MJB7703AA', 'TEST-O-A', 'FIX-TEST-X100', 'include', 'complete',
+    ['body:coupe', 'steering:LHD', 'engine_aspiration:supercharged',
+      'seat_equipment:memory_seat', 'seat_equipment:powered_seats']],
+  ['MJB7703AA', 'TEST-O-B', 'FIX-TEST-X100', 'include', 'complete',
+    ['body:convertible', 'steering:RHD', 'engine_aspiration:na',
+      'seat_equipment:powered_seats']],
+  ['MNA7691AA', 'TEST-O-C', 'FIX-TEST-X100', 'include', 'complete',
+    ['body:coupe', 'steering:RHD', 'engine_aspiration:na']],
+  ['XR847031', 'TEST-O-D', 'FIX-TEST-X100', 'exclude', 'complete',
+    ['body:convertible', 'steering:LHD']],
+  ['FIX538C', 'TEST-O-E', 'FIX-TEST-X100', 'include', 'incomplete',
+    ['body:coupe']],
+  ['MJB7703AA', 'TEST-O-F', 'FIX-TEST-X150', 'include', 'complete',
+    ['body:coupe', 'steering:RHD', 'engine_aspiration:supercharged']],
+];
+
+async function embeddedFixtureSuitability(db, { q, stockOnly, language, selected, selectedIds }) {
+  const categories = EMBEDDED_VALUES.map(([code, en, fi, descriptionEn, descriptionFi, values]) => ({
+    code, name: language === 'fi' ? fi : en,
+    description: language === 'fi' ? descriptionFi : descriptionEn,
+    values: values.map(([valueCode, valueEn, valueFi]) => ({
+      id: facetId(code, valueCode), code: valueCode,
+      name: language === 'fi' ? valueFi : valueEn,
+      description: language === 'fi' ? valueFi : valueEn,
+      source_descriptions: [{
+        id: 'embedded:' + facetId(code, valueCode), mapping_revision_id: 'embedded:v1',
+        source_namespace: EMBEDDED_SOURCE, dataset: 'embedded-v1',
+        source_key: facetId(code, valueCode), language: 'en',
+        locator: 'embedded/' + code + '/' + valueCode,
+        original_text: valueEn, provenance: 'synthetic_fixture',
+      }],
+    })),
+  }));
+  const valid = new Set(categories.flatMap(c => c.values.map(v => v.id)));
+  for (const facet of selectedIds) if (!valid.has(facet)) return invalid('facet_unknown');
+  // The fallback only connects to already seeded fixture PARTs, never to any
+  // operational/imported PART with a coincidentally similar description.
+  const rows = (await db.prepare(
+    "SELECT id,part_number_normalized,description FROM part WHERE verification_status='fixture' "
+    + "AND part_number_normalized IN ('MJB7703AA','MNA7691AA','XR847031','FIX538C')"
+  ).all()).results || [];
+  const byNumber = new Map(rows.map(row => [row.part_number_normalized, row]));
+  if (!byNumber.size) return missingData('test_fixture_data_missing', true);
+  const candidates = EMBEDDED_OCCURRENCES.filter(([number]) => byNumber.has(number));
+  const normalizedQuery = q.toUpperCase();
+  let stocked = null;
+  if (stockOnly === '1') {
+    const ids = rows.map(row => row.id);
+    const result = await db.prepare(
+      'SELECT DISTINCT part_id FROM stock_item WHERE verification_status=? AND available=1 '
+      + 'AND quantity>0 AND part_id IN (' + ids.map(() => '?').join(',') + ')'
+    ).bind('fixture', ...ids).all();
+    stocked = new Set((result.results || []).map(row => row.part_id));
+  }
+  const matches = [], excluded = [], unavailable = [], available = new Set();
+  for (const [number, occurrenceKey, context, effect, coverage, facets] of candidates) {
+    const part = byNumber.get(number);
+    if (normalizedQuery && !number.includes(normalizedQuery)
+        && !(part.description || '').toUpperCase().includes(normalizedQuery)) continue;
+    if (stocked && !stocked.has(part.id)) continue;
+    const tags = facets.map(id => {
+      const [dimension, value_code] = id.split(':');
+      return { dimension, value_code };
+    });
+    if (coverage !== 'complete') {
+      if (stillPossible(tags, selected)) unavailable.push({
+        part_id: part.id, occurrence_id: occurrenceKey,
+        reason: 'incomplete_synthetic_fixture_evidence',
+      });
+      continue;
+    }
+    if (!match(tags, selected)) continue;
+    if (effect === 'exclude') {
+      excluded.push({ part_id: part.id, occurrence_id: occurrenceKey, model_context: context });
+      continue;
+    }
+    matches.push({
+      part_id: part.id, part_number: number, description: part.description,
+      occurrence_id: occurrenceKey, occurrence_key: occurrenceKey,
+      model_context: context, condition_set_id: 'embedded:' + occurrenceKey,
+      values: facets, applicability_state: 'applicable', provenance: 'synthetic_fixture',
+    });
+    for (const facet of facets) available.add(facet);
+  }
+  return send({
+    state: matches.length ? 'applicable' : unavailable.length ? 'unavailable'
+      : excluded.length ? 'excluded' : 'no_match',
+    fixture_mode: true, fixture_provider: 'embedded', source_namespace: EMBEDDED_SOURCE,
+    query: q, selected: selectedIds, categories,
+    available_options: [...available].sort(), matches,
+    excluded_occurrences: excluded, unavailable_occurrences: unavailable,
+  });
+}
+
 export async function handleViepsSuitability(request, env) {
   if (new URL(request.url).searchParams.get('TEST') !== '1') {
     return send({ error_code: 'test_mode_required' }, 400);
@@ -85,7 +201,9 @@ async function readSuitability(request, db, { fixtureMode, hasRealStock, range =
   const sourceClause = fixtureMode ? 'sd.source_namespace = ? AND ' : '';
   // Publish only source-qualified current mappings with complete translated
   // metadata. Verified JEPC mappings require a recorded independent reviewer.
-  const mappings = (await db.prepare(
+  let mappings;
+  try {
+    mappings = (await db.prepare(
     `SELECT m.id AS mapping_revision_id, sd.id AS source_description_id,
        sd.source_namespace, sd.dataset_key, sd.source_key, sd.source_language,
        sd.source_group_code, sd.source_value_code, sd.source_model_ref,
@@ -109,8 +227,15 @@ async function readSuitability(request, db, { fixtureMode, hasRealStock, range =
      ORDER BY d.code, m.value_code, sd.id`
   ).bind(language, language, ...(fixtureMode ? [SOURCE] : []),
     provenanceKind, mappingStatus).all()).results || [];
-  if (!mappings.length) return missingData(
-    fixtureMode ? 'test_fixture_data_missing' : 'real_suitability_data_missing', fixtureMode);
+  } catch (error) {
+    if (!fixtureMode || !/no such (?:table|view)/i.test(String(error?.message || error))) throw error;
+    return embeddedFixtureSuitability(db, { q, stockOnly, language, selected, selectedIds });
+  }
+  if (!mappings.length) {
+    if (fixtureMode) return embeddedFixtureSuitability(db,
+      { q, stockOnly, language, selected, selectedIds });
+    return missingData('real_suitability_data_missing', false);
+  }
   if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
       !m.value_name || !m.value_description || !m.source_language ||
       !m.record_locator || !m.dataset_key)) {
