@@ -10,6 +10,9 @@ const $ = (id) => {
 const i18n = globalThis.viepsI18n;
 const t = (key, options) => i18n?.t(key, options) ?? key;
 const isTestMode = () => new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1";
+const searchPrompt = (withAction = false) => t(isTestMode()
+  ? (withAction ? "search.prompt_with_action" : "search.prompt")
+  : (withAction ? "search.prompt_with_action_real" : "search.prompt_real"));
 const apiUrl = (path) => {
   if (!isTestMode()) return path;
   return `${path}${path.includes("?") ? "&" : "?"}TEST=1`;
@@ -622,10 +625,10 @@ function refreshForLanguageChange() {
     $("searchStatus").textContent = t("tree.browse_parts", { count: cachedBrowseData.parts?.length || 0 });
   } else if (cachedRootData) {
     renderTree([], { roots: cachedRootData.roots || [] });
-    $("searchStatus").textContent = t("search.prompt");
+    $("searchStatus").textContent = searchPrompt();
   } else {
     resetContext();
-    $("searchStatus").textContent = t("search.prompt");
+    $("searchStatus").textContent = searchPrompt();
   }
 }
 
@@ -666,10 +669,21 @@ function setupStockHelp() {
 
 function setupViepsUi() {
   if (!$("partSearch")) return;
+  const testMode = isTestMode();
+  $("fixtureModeHelp").hidden = !testMode;
+  $("realModeHelp").hidden = testMode;
+  $("helpGuide").setAttribute("data-i18n-aria-label",
+    testMode ? "fixture.test_guidance_aria" : "header.instructions");
+  $("partNumberLabel").setAttribute("data-i18n",
+    testMode ? "search.input_aria" : "search.input_aria_real");
+  $("partNumber").setAttribute("data-i18n-placeholder",
+    testMode ? "search.input_placeholder" : "search.input_placeholder_real");
+  $("partNumber").setAttribute("data-i18n-aria-label",
+    testMode ? "search.input_aria" : "search.input_aria_real");
   i18n?.init();
   setupStockHelp();
   resetContext();
-  $("searchStatus").textContent = t("search.prompt");
+  $("searchStatus").textContent = searchPrompt();
 
   document.querySelectorAll?.("[data-language]").forEach((control) => {
     control.addEventListener("click", () => {
@@ -700,7 +714,7 @@ function setupViepsUi() {
   $("visualSelect").addEventListener("change", renderSelectedVisual);
   const loadRootBrowse = async (version, options = {}) => {
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
+    $("searchStatus").textContent = options.defaultLoad ? searchPrompt() : t("tree.browse_loading");
     $("result").setAttribute("aria-busy", "true");
     try {
       const data = await resolveTreeRoots(Boolean($("availabilitySelect").checked));
@@ -713,7 +727,7 @@ function setupViepsUi() {
       renderTree([], { roots: data.roots || [] });
       void refreshSuitability("", Boolean($("availabilitySelect").checked), version);
       $("searchStatus").textContent = data.stock_browse_state === "unsupported"
-        ? t("tree.no_selection", { message: t("search.prompt") }) : t("search.prompt");
+        ? t("tree.no_selection", { message: searchPrompt() }) : searchPrompt();
     } catch (error) {
       if (version !== requestVersion) return;
       cachedRootData = null;
@@ -742,7 +756,7 @@ function setupViepsUi() {
       void loadRootBrowse(version);
     } else {
       renderTree([], { roots: cachedRootData?.roots || [] });
-      $("searchStatus").textContent = t("search.prompt_with_action");
+      $("searchStatus").textContent = searchPrompt(true);
     }
   });
 
@@ -752,7 +766,7 @@ function setupViepsUi() {
     resetContext();
     viewMode = "empty";
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
+    $("searchStatus").textContent = options.defaultLoad ? searchPrompt() : t("tree.browse_loading");
     $("result").setAttribute("aria-busy", "true");
     try {
       if (nodeId === null || nodeId === undefined || nodeId === "") {
