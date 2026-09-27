@@ -87,7 +87,9 @@ async function localServer() {
     const requestUrl = new URL(request.url, "http://localhost");
     const pathname = decodeURIComponent(requestUrl.pathname);
     // Synthetic catalogue endpoints only exist in TEST=1.
-    if (pathname.startsWith("/api/vieps/") && requestUrl.searchParams.get("TEST") !== "1") {
+    const testFlags = [...requestUrl.searchParams].filter(([key]) => key.toLowerCase() === "test");
+    const fixtureMode = testFlags.length === 1 && testFlags[0][1] === "1";
+    if (pathname.startsWith("/api/vieps/") && !fixtureMode) {
       response.writeHead(503, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "No real Range database is bound.", error_code: "range_unavailable" }));
       return;
@@ -604,6 +606,31 @@ try {
       console.log("PASS: 320px emulated touch toggles occurrence-backed Suitability without page overflow");
     } finally {
       await touchContext.close();
+    }
+    // Regression: the lowercase URL in the deployed-site screenshot must
+    // activate exactly the same fixture UI and API mode as canonical TEST=1.
+    const lowercasePage = await context.newPage();
+    try {
+      await lowercasePage.goto(local.url + "?test=1", { waitUntil: "load" });
+      await lowercasePage.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      assert.equal(await lowercasePage.locator("#fixtureModeHelp")
+        .evaluate(node => node.hidden), false, "?test=1 must expose fixture instructions");
+      assert.equal(await lowercasePage.locator("#realModeHelp")
+        .evaluate(node => node.hidden), true, "?test=1 must hide real-mode help");
+      assert.equal(await lowercasePage.locator("#variationsStatus.error").count(), 0,
+        "lowercase TEST URL must not display the missing real Range error");
+      await lowercasePage.screenshot({
+        path: evidenceDir + "web-lowercase-test1-desktop.png", fullPage: true,
+      });
+      await lowercasePage.setViewportSize({ width: 320, height: 780 });
+      assert.ok(await lowercasePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        "lowercase TEST=1 mobile layout must not overflow");
+      await lowercasePage.screenshot({
+        path: evidenceDir + "web-lowercase-test1-mobile-320.png", fullPage: true,
+      });
+      console.log("PASS: lowercase ?test=1 shows Suitability fixture checkboxes on desktop/mobile");
+    } finally {
+      await lowercasePage.close();
     }
     // #956: real mode must reject an unavailable Range without fixture fallback.
     const realPage = await context.newPage();
