@@ -14,6 +14,7 @@
   const visibleSiteName = (name) => isTechnicalSitePlaceholder(name) ? "" : (name || "");
   // Keep Admin part lookup consistent with public Web TEST-mode URLs.
   const isTestMode = () => {
+    if (typeof URLSearchParams !== "function") return false;
     const flags = [...new URLSearchParams(globalThis.location?.search || "")]
       .filter(([key]) => key.toLowerCase() === "test");
     return flags.length === 1 && flags[0][1] === "1";
