@@ -4,7 +4,7 @@
 
 This file defines the human/contributor governance rules for VIEPS UI/application internationalization.
 
-It is referenced by `00-Management/RULES.md` and complements the canonical Management workflow in `00-Management/WORKFLOWS.md`. It does not redefine Issue/PR lifecycle, review, testing, or merge workflow.
+It is referenced by `00-Management/RULES.md` and complements the canonical Management workflow in `0-DocumentationEducationCompetense/WORKFLOWS.md`. It does not redefine Issue/PR lifecycle, review, testing, or merge workflow.
 
 The machine/agent execution procedure is defined in:
 
@@ -120,6 +120,6 @@ CI/static analysis should detect newly introduced hard-coded localizable UI stri
 
 ## Conflict and precedence
 
-`00-Management/WORKFLOWS.md` remains authoritative for Management workflow.
+`0-DocumentationEducationCompetense/WORKFLOWS.md` remains authoritative for Management workflow.
 
 This file is the canonical repository-wide i18n governance rule for VIEPS UI/application implementation. More specific specifications may refine an i18n behavior but must not create a competing translation-file convention or bypass the human approval boundary without an explicit superseding decision.
