@@ -94,14 +94,18 @@ if [[ "$old_comment" != *"## Post-merge #895: real deployed-main browser screens
     echo "Added direct PNG links to the existing #939 review comment."
   else
     echo "GitHub Actions cannot edit author's review comment; posting a linked PR Conversation comment."
-    gh api -X POST "repos/$GITHUB_REPOSITORY/issues/939/comments" \
-      -f "body=$(cat "$comment")" --jq '.html_url'
+    if ! gh api -X POST "repos/$GITHUB_REPOSITORY/issues/939/comments" \
+      -f "body=$(cat "$comment")" --jq '.html_url'; then
+      echo "::warning::GITHUB_TOKEN cannot post PR #939 comment; immutable direct PNG links remain published in Actions output."
+    fi
   fi
 else
   echo "Existing #939 review comment already contains deployed screenshot links."
 fi
 
-gh api -X POST "repos/$GITHUB_REPOSITORY/issues/895/comments" \
+if ! gh api -X POST "repos/$GITHUB_REPOSITORY/issues/895/comments" \
   -f "body=Automated deployed-main screenshot test passed. Direct PNG evidence is on PR #939: [desktop]($base/desktop.png), [tablet]($base/tablet.png), [mobile]($base/mobile-320.png). GitHub Actions: $run_url. Source app.js matched main $VIEPS_MAIN_SHA; the fixture-only public suitability API remained intentionally unavailable." \
-  --jq '.html_url'
+  --jq '.html_url'; then
+  echo "::warning::GITHUB_TOKEN cannot post Issue #895 comment; immutable PNG evidence is still published."
+fi
 echo "Published and verified direct PNG links: $base"
