@@ -180,7 +180,7 @@ async function findFreeTextPartCandidates(env, query) {
   return result.results || [];
 }
 
-async function findPartCandidates(env, query, normalized) {
+export async function findPartCandidates(env, query, normalized) {
   const deterministic = await findDeterministicPartCandidates(env, query, normalized);
   if (deterministic.length) return { searchPath: "deterministic", candidates: deterministic };
   const freeText = await findFreeTextPartCandidates(env, query);
