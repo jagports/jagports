@@ -3,11 +3,11 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { readRangeConfiguration, readSourceRangeMap } from './range-d1-client.mjs';
 
-const workerConfig = fileURLToPath(new URL('../../../../4-Production/internet/cloudflare/workers/jagports/wrangler.toml', import.meta.url));
+export const defaultWorkerConfigPath = fileURLToPath(new URL('../../../../../4-Production/internet/cloudflare/workers/jagports/wrangler.toml', import.meta.url));
 const begin = '# BEGIN REVIEWED JEPC RANGE BINDINGS';
 const end = '# END REVIEWED JEPC RANGE BINDINGS';
 
-export async function syncWorkerBindings(filename = workerConfig) {
+export async function syncWorkerBindings(filename = defaultWorkerConfigPath) {
   const ranges = await readSourceRangeMap();
   const bindings = [];
   for (const range of ranges) {
