@@ -11,7 +11,7 @@ on:
       - "5-Implementation-Projects/internet/jagports/solution/vieps/i18n/**"
       - "4-Production/internet/cloudflare/workers/jagports/scripts/browser-evidence.mjs"
   push:
-    branches: [main]
+    branches: [main, evidence/965-deployed-29f6d8e]
     paths:
       - ".github/workflows/vieps-browser-evidence.yml"
       - "4-Production/internet/cloudflare/workers/jagports/public/**"
@@ -48,6 +48,74 @@ jobs:
         run: |
           npm ci
           npm run build
+      - name: Verify merged deployed-main assets and URL-routed Suitability
+        if: github.ref == 'refs/heads/evidence/965-deployed-29f6d8e'
+        env:
+          VIEPS_BASE_URL: https://vieps.parts-5ec.workers.dev
+        run: |
+          set -euo pipefail
+          expected="$(sha256sum public/app.js | awk '{print $1}')"
+          temp="$(mktemp)"
+          trap 'rm -f "$temp"' EXIT
+          ready=0
+          for attempt in $(seq 1 18); do
+            if curl --fail --silent --show-error --max-time 25 "$VIEPS_BASE_URL/app.js" -o "$temp"; then
+              actual="$(sha256sum "$temp" | awk '{print $1}')"
+              if [ "$expected" = "$actual" ]; then
+                ready=1
+                echo "PASS: live app.js is the expected merged main asset ($actual)"
+                break
+              fi
+              echo "Deployment not at tested main revision (attempt $attempt; current $actual)"
+            fi
+            sleep 15
+          done
+          test "$ready" -eq 1
+          curl --fail --silent --show-error --max-time 25 \
+            "$VIEPS_BASE_URL/api/vieps/suitability?TEST=1" |
+              node -e "let data=''; process.stdin.on('data',c=>data+=c).on('end',()=>{
+                const result=JSON.parse(data);
+                if(result.fixture_mode!==true || result.categories.length!==4 ||
+                   result.categories.flatMap(c=>c.values).length!==8) process.exit(1);
+                console.log('PASS: deployed TEST=1 provides four fixture Suitability categories and eight values');
+              });"
+          # Regression for #965: the actual Cloudflare Worker must recognize lowercase
+          # and mixed-case query keys, not just the pre-fix uppercase spelling.
+          for key in test TeSt; do
+            curl --fail --silent --show-error --max-time 25 \
+              "$VIEPS_BASE_URL/api/vieps/suitability?${key}=1" | \
+              node -e "let data=''; process.stdin.on('data',c=>data+=c).on('end',()=>{
+                const x=JSON.parse(data);
+                if(x.fixture_mode!==true || x.categories.length!==4 ||
+                   x.categories.flatMap(c=>c.values).length!==8) process.exit(1);
+                console.log('PASS: deployed '+process.argv[1]+'=1 returns fixture Suitability');
+              });" "$key"
+            curl --fail --silent --show-error --max-time 25 \
+              "$VIEPS_BASE_URL/api/vieps/part?q=MJB7703AA&${key}=1" | \
+              node -e "let data=''; process.stdin.on('data',c=>data+=c).on('end',()=>{
+                const x=JSON.parse(data);
+                if(x.part?.part_number_normalized!=='MJB7703AA') process.exit(1);
+                console.log('PASS: deployed '+process.argv[1]+'=1 fixture PART');
+              });" "$key"
+          done
+          duplicate_status="$(curl -sS --max-time 25 -o "$temp" -w '%{http_code}' \
+            "$VIEPS_BASE_URL/api/vieps/suitability?TEST=1&test=1")"
+          test "$duplicate_status" -eq 503
+          node -e "const x=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+            if(x.error_code!=='range_unavailable') process.exit(1);
+            console.log('PASS: deployed duplicate TEST keys fail closed to real unavailable');" "$temp"
+          real_status="$(curl -sS --max-time 25 -o "$temp" -w '%{http_code}' "$VIEPS_BASE_URL/api/vieps/suitability")"
+          if [ "$real_status" = 503 ]; then
+            node -e "const data=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+              if(data.error_code!=='range_unavailable') process.exit(1);
+              console.log('PASS: bare URL explicitly rejects missing real Range without fixture fallback')" "$temp"
+          elif [ "$real_status" = 200 ]; then
+            node -e "const data=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+              if(data.fixture_mode!==false || data.matches.some(m=>m.provenance==='synthetic_fixture')) process.exit(1);
+              console.log('PASS: real Suitability uses no fixture evidence')" "$temp"
+          else
+            echo "Unexpected real Suitability status $real_status"; exit 1
+          fi
       - name: Install isolated browser runner
         run: |
           npm install --no-save --package-lock=false playwright@1.55.1
@@ -55,7 +123,7 @@ jobs:
       - name: Exercise Web TEST/real modes and Stock/Suitability Admin; capture screenshots
         run: node scripts/browser-evidence.mjs
         env:
-          VIEPS_BROWSER_URL: ${{ inputs.deployed_url || '' }}
+          VIEPS_BROWSER_URL: ${{ github.ref == 'refs/heads/evidence/965-deployed-29f6d8e' && 'https://vieps.parts-5ec.workers.dev/' || inputs.deployed_url || '' }}
       - name: Preserve browser screenshots even if an assertion fails
         if: always()
         uses: actions/upload-artifact@v4
