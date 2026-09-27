@@ -6,6 +6,8 @@ This is the **human-oriented guide** to the Jagports Lead Agent: what currently 
 
 This directory contains the current Jagports Lead Agent prototype implementation.
 
+The executable agents own specialist behavior. Modules under `services/` provide shared infrastructure such as GitHub access, reasoning, state, reports and Telegram transport; they are not additional agents or specialist roles.
+
 The implementation retains the original Lead, Documentation, Deployment and Knowledge agent roles and their design scope. It is a prototype, not a production autonomous development system. Deterministic routing is the default; a bounded Documentation-agent reasoning path is available only with explicit local opt-in.
 
 The Deployment and Knowledge agents remain registered and deterministic until their own role-specific reasoning prompts and tests are reviewed. No capability or design responsibility of those original roles is removed by this implementation. Production autonomy and recurring expenditure remain subject to explicit authorization and existing review gates.
