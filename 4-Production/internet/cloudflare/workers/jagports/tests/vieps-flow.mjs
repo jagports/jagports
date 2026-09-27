@@ -11,7 +11,7 @@ const i18nCode = readFileSync(new URL('../js/vieps-i18n-runtime.js', import.meta
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
-function uiHarness(fetch) {
+function uiHarness(fetch, { testMode = true } = {}) {
   const nodes = new Map();
   for (const [, id] of html.matchAll(/id="([^"]+)"/g)) {
     nodes.set(id, {
@@ -32,13 +32,14 @@ function uiHarness(fetch) {
     querySelectorAll: () => [],
   };
   const context = { document, fetch, Intl, URLSearchParams,
-    location: { pathname: '/', search: '?TEST=1', hash: '' },
+    location: { pathname: '/', search: testMode ? '?TEST=1' : '', hash: '' },
     VIEPS_I18N_RESOURCES: { en, fi } };
   vm.runInNewContext(i18nCode, context);
   vm.runInNewContext(code, context);
   const get = id => nodes.get(id);
   return {
     get,
+    renderPart: (...args) => context.renderPart(...args),
     async search(query, { stockOnly = false } = {}) {
       get('partNumber').value = query;
       get('availabilitySelect').checked = stockOnly;
@@ -124,4 +125,22 @@ test('Concept-11 acceptance regions remain visibly represented in the production
   assert.match(html, /id="rangeEvidence"/);
   assert.doesNotMatch(html, /class="fitment-panel"/);
   assert.match(html, /data-i18n="visual\.heading"/);
+});
+
+test('real-mode stock labels and evidence never claim fixture inventory', () => {
+  const stock = [{ quantity: 1, available: 1, condition_code: 'A',
+    location: 'Shelf A', source: 'operational', verification_status: 'verified' }];
+  const part = { id: 1, part_number_normalized: 'TEST123', description: 'Test part' };
+  const fixture = uiHarness(async () => { throw new Error('fetch not expected'); });
+  fixture.renderPart(part, [], stock);
+  assert.match(fixture.get('partCard').innerHTML, /Fixture stock/);
+  assert.match(fixture.get('partCard').innerHTML, /Synthetic fixture stock values/);
+
+  const live = uiHarness(async () => { throw new Error('fetch not expected'); }, { testMode: false });
+  live.renderPart(part, [], stock);
+  assert.match(live.get('partCard').innerHTML, /1 operational stock record/);
+  assert.doesNotMatch(live.get('partCard').innerHTML, /Fixture stock|Synthetic fixture stock values/);
+  live.renderPart(part, [], []);
+  assert.match(live.get('partCard').innerHTML, /No operational stock shown/);
+  assert.doesNotMatch(live.get('partCard').innerHTML, /fixture/i);
 });
