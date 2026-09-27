@@ -212,3 +212,16 @@ test('TEST=1 displays deterministic fallback suitabilities from the normal migra
   assert.equal(invalid.status, 400);
   assert.equal(invalid.body.error_code, 'facet_unknown');
 });
+
+test('TEST=1 still serves embedded fixtures with missing normalized fixture schema', async (t) => {
+  const db = database({ fixtures: false }); t.after(() => db.close());
+  db.exec('DROP VIEW applicability_description_mapping_current');
+  const response = await handleViepsSuitability(new Request(
+    'https://test.example/api/vieps/suitability?TEST=1'), { DB: d1(db) });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.fixture_provider, 'embedded');
+  assert.equal(body.fixture_mode, true);
+  assert.equal(body.categories.length, 4);
+  assert.ok(body.matches.every(row => row.provenance === 'synthetic_fixture'));
+});
