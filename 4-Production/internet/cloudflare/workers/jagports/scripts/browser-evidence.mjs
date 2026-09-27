@@ -700,6 +700,31 @@ try {
       await deployed.setViewportSize({ width: 320, height: 780 });
       await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-mobile-320.png", fullPage: true });
       await deployed.setViewportSize({ width: 1366, height: 900 });
+      // Verify the actual lowercased URL emitted by external links/proxies. Unlike
+      // local mocks, these responses come from the deployed Cloudflare Worker.
+      const lowercaseFixtureUrl = new URL(base);
+      lowercaseFixtureUrl.searchParams.set("test", "1");
+      await deployed.goto(lowercaseFixtureUrl.href, { waitUntil: "load" });
+      assert.equal(await deployed.locator("#fixtureModeHelp").evaluate(node => node.hidden), false,
+        "deployed ?test=1 must show fixture controls");
+      await deployed.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
+        "deployed ?test=1 must show synthetic suitability, not real Range errors");
+      const lowercaseTree = await deployed.request.get(
+        new URL("/api/vieps/tree?root=1&test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercaseTree.status(), 200, "deployed lowercase TEST tree must work");
+      const lowercasePart = await deployed.request.get(
+        new URL("/api/vieps/part?q=MJB7703AA&test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercasePart.status(), 200, "deployed lowercase TEST parts must work");
+      const lowercaseSuitability = await deployed.request.get(
+        new URL("/api/vieps/suitability?test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercaseSuitability.status(), 200,
+        "deployed lowercase TEST suitability must work");
+      assert.equal((await lowercaseSuitability.json()).fixture_mode, true);
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-desktop.png", fullPage: true });
+      await deployed.setViewportSize({ width: 320, height: 780 });
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-mobile-320.png", fullPage: true });
+      await deployed.setViewportSize({ width: 1366, height: 900 });
       await deployed.goto(realUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "deployed real mode must not show fixture controls");
