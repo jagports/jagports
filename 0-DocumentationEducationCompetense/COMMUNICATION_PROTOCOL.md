@@ -277,7 +277,7 @@ Use GitHub UI terminology for human-facing communication:
 - The durable mapping is: **Review conversation (GitHub UI / human-facing)** ↔ **review thread (API / GraphQL / tool object)**.
 - Agents must translate API/tool vocabulary into the human-facing UI term before reporting review state to users.
 
-Review communication follows the canonical semantics in `00-Management/WORKFLOWS.md`:
+Review communication follows the canonical semantics in `0-DocumentationEducationCompetense/WORKFLOWS.md`:
 
 - A GitHub `PENDING` review is a reviewer-private draft until submission. Line-level and file-level comments created inside the normal pending-review flow remain pending and therefore cannot be relied upon for reviewer↔maker discussion.
 - `Line comment` or `file comment` alone does not mean immediately visible. Visibility depends on whether the comment is pending or independently submitted.
