@@ -2,7 +2,7 @@
 
 ## Scope
 
-Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure or the AI OS business case. Current module architecture is in [README.md](README.md); the Raspberry Pi installation belongs to [Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/AGENT_SETUP.md); business context belongs to [the implementation project](../../../../../5-Implementation-Projects/AGENT_SETUP.md).
+Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure. Current module architecture is in [README.md](README.md); host installation, project background and operator evidence are consolidated in the [MyNodeBTC deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md).
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
@@ -460,7 +460,7 @@ WorkingDirectory=/home/codex/jagports-lead-agent
 ExecStart=/home/codex/jagports-lead-agent/run-agent.sh
 ```
 
-The superseded prototype hourly timer example is intentionally omitted: it is not an installation or troubleshooting template. Use the current 9h45min timer in the canonical [MyNode Deployment procedure](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/AGENT_SETUP.md), and inspect the installed unit and drop-ins before assuming it matches the repository.
+The superseded prototype hourly timer example is intentionally omitted: it is not an installation or troubleshooting template. Use the current 9h45min timer in the canonical [MyNode Deployment procedure](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md), and inspect the installed unit and drop-ins before assuming it matches the repository.
 
 The earlier system-wide service alternatives named `/etc/systemd/system/jagports-lead.service` and later `/etc/systemd/system/jagports-lead-agent.service`; neither had a complete verified installation. User-service startup across logout/reboot was not demonstrated. Manual execution alongside a timer was identified as a possible cause of overlapping runs, so verify timer state before interpreting duplicate notifications.
 
