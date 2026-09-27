@@ -272,7 +272,7 @@ test('#641 suitability groups use localized alphabetical headings and checked-fi
     < group('Seat equipment').indexOf('Powered Seats</span>'));
   assert.equal((ui.get('variationOptions').innerHTML.match(/<legend /g) || []).length, 2,
     'each normalized category is shown once as a heading');
-  assert.doesNotMatch(ui.get('variationOptions').innerHTML, /<small>\\(Body\\)/);
+  assert.doesNotMatch(ui.get('variationOptions').innerHTML, /<small>\(Body\)/);
 
   ui.get('variationOptions').listeners.change({
     target: { dataset: { suitabilityFacet: 'body:coupe' }, checked: true },
@@ -290,7 +290,7 @@ test('#641 suitability groups use localized alphabetical headings and checked-fi
     'Finnish domain category names determine category ordering');
   assert.match(group('Kori'), /data-suitability-facet="body:coupe"[^>]*checked/);
   assert.match(group('Kori'), /Coupé/);
-  assert.match(group('Kori'), /Coupe \\[en; fixture; test\\/body\\/coupe\\]/);
+  assert.ok(group('Kori').includes('Coupe [en; fixture; test/body/coupe]'));
 });
 
 test('#875 selected PART never promotes browse vocabulary, excluded or unavailable rows into fitment', async () => {
