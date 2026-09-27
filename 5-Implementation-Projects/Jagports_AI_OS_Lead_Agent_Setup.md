@@ -2,7 +2,7 @@
 
 ## Business case
 
-The Lead Agent prototype tests whether a small, low-cost coordinator can detect relevant GitHub changes, distribute work to specialists and surface actionable results without keeping project state in private chat or replacing human-governed decisions. The AI OS vision and authority boundaries remain in [VISION_AI-OS.md](../00-Management/VISION_AI-OS.md) and [WORKFLOWS.md](../00-Management/WORKFLOWS.md).
+The Lead Agent prototype tests whether a small, low-cost coordinator can detect relevant GitHub changes, distribute work to specialists and surface actionable results without keeping project state in private chat or replacing human-governed decisions. The AI OS vision and authority boundaries remain in [VISION_AI-OS.md](../00-Management/VISION_AI-OS.md) and [WORKFLOWS.md](../0-DocumentationEducationCompetense/WORKFLOWS.md).
 
 The investment hypothesis is incremental: retain deterministic GitHub collection, state comparison, specialist routing and reporting; add paid model reasoning only when it demonstrably improves classification or decisions. Reuse the existing Raspberry Pi where practical, avoid unnecessary recurring cost and keep the model/provider and orchestration runtime replaceable.
 
