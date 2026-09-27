@@ -13,8 +13,9 @@ const empty = (state, selected = [], categories = [], query = '', reason = null,
   source_namespace: fixtureMode ? SOURCE : null, query, selected, categories,
   available_options: [], matches: [], excluded_occurrences: [], unavailable_occurrences: [],
 });
-const missingData = (reason, fixtureMode = false) => send({
+const missingData = (reason, fixtureMode = false, range = null) => send({
   ...empty('error', [], [], '', reason, fixtureMode),
+  ...(range ? { range } : {}),
   error_code: reason,
   error: fixtureMode
     ? 'Deterministic Suitability test data has not been loaded.'
@@ -234,13 +235,13 @@ async function readSuitability(request, db, { fixtureMode, hasRealStock, range =
   if (!mappings.length) {
     if (fixtureMode) return embeddedFixtureSuitability(db,
       { q, stockOnly, language, selected, selectedIds });
-    return missingData('real_suitability_data_missing', false);
+    return missingData('real_suitability_data_missing', false, range);
   }
   if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
       !m.value_name || !m.value_description || !m.source_language ||
       !m.record_locator || !m.dataset_key)) {
     return missingData(fixtureMode ? 'test_fixture_data_incomplete' :
-      'real_suitability_data_incomplete', fixtureMode);
+      'real_suitability_data_incomplete', fixtureMode, range);
   }
   const categoriesByCode = new Map();
   const published = new Set();
@@ -320,10 +321,10 @@ async function readSuitability(request, db, { fixtureMode, hasRealStock, range =
             WHERE sd.source_namespace=b.source_namespace AND sd.provenance_kind='jepc'
               AND m.status='verified' AND TRIM(COALESCE(m.reviewer_ref,'')) <> '')
         LIMIT 1`).first();
-      if (!any) return missingData('real_suitability_data_missing');
+      if (!any) return missingData('real_suitability_data_missing', false, range);
     }
     if (stockOnly === '1') {
-      if (!hasRealStock) return missingData('real_stock_data_unavailable');
+      if (!hasRealStock) return missingData('real_stock_data_unavailable', false, range);
       const available = new Map();
       for (const number of new Set(assertions.map((a) => a.part_number))) {
         available.set(number, await hasRealStock(number));
@@ -331,7 +332,10 @@ async function readSuitability(request, db, { fixtureMode, hasRealStock, range =
       assertions = assertions.filter((a) => available.get(a.part_number));
     }
   }
-  if (!assertions.length) return send(empty('no_match', selectedIds, categories, q));
+  if (!assertions.length) return send({
+    ...empty('no_match', selectedIds, categories, q, null, fixtureMode),
+    ...(range ? { range } : {}),
+  });
   const sets = (await db.prepare(
     `SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
        FROM applicability_condition_set WHERE assertion_id IN (${assertions.map(() => '?').join(',')})`
