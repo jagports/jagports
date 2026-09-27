@@ -1,6 +1,6 @@
 import { normalizePartNumber } from "./part.js";
 import { handleViepsPart, handleViepsTree } from "./vieps-fixtures.js";
-import { handleLivePart, handleLiveTree, liveRangeDatabase } from "./vieps-parts.js";
+import { handleLivePart, handleLiveTree, handleLiveSuitability, liveRangeDatabase } from "./vieps-parts.js";
 import { handleViepsSuitability } from "./suitability.js";
 import { handleSuitabilityAdmin } from "./vieps-admin-suitability.js";
 
@@ -182,9 +182,8 @@ async function handleApi(request, env) {
 
   if (path === "/api/vieps/part") return testMode ? handleViepsPart(request, env) : handleLivePart(request, env);
   if (path === "/api/vieps/tree") return testMode ? handleViepsTree(request, env) : handleLiveTree(request, env);
-  if (path === "/api/vieps/suitability") return testMode ? handleViepsSuitability(request, env)
-    : json({ state: "unavailable", error: "applicability_unavailable",
-      error_code: "applicability_unavailable" }, 503);
+  if (path === "/api/vieps/suitability") return testMode
+    ? handleViepsSuitability(request, env) : handleLiveSuitability(request, env);
   if (path.startsWith("/api/admin/suitability")) {
     const denied = requireAdmin(request, env);
     if (denied) return denied;
