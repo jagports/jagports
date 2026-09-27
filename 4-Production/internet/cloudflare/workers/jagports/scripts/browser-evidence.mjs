@@ -562,13 +562,22 @@ try {
       } else await route.continue();
     });
     await page.setViewportSize({ width: 1240, height: 860 });
-    await page.goto(local.url + "stock-admin.html?TEST=1", { waitUntil: "load" });
+    // Admin Stock and Admin Suitability are separate canonical pages on main.
+    // The old stock-admin.html address now redirects in Workers and is not
+    // shipped as a static asset; the local evidence server serves static files.
+    const stockPage = await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
+    assert.equal(stockPage?.status(), 200, "canonical Stock Admin page must exist");
     await page.locator("#adminToken").fill("browser-admin-test");
     await page.locator("#accessForm button[type=submit]").click();
-    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
     assert.equal(await page.locator("#stockSearch").count(), 1, "Stock Admin search is present");
     assert.equal(await page.locator("#stockForm").count(), 1, "Stock Admin editor is present");
     await page.screenshot({ path: evidenceDir + "admin-stock-desktop.png", fullPage: true });
+
+    const fitPage = await page.goto(local.url + "admin-fit.html?TEST=1", { waitUntil: "load" });
+    assert.equal(fitPage?.status(), 200, "canonical Suitability Admin page must exist");
+    await page.locator("#adminToken").fill("browser-admin-test");
+    await page.locator("#accessForm button[type=submit]").click();
+    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
     assert.match(await page.locator("#suitabilitySourceDetails").textContent(),
       /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
       "Admin must show raw text and its distinct source namespace and group");
@@ -594,6 +603,7 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
       "Admin must not cause horizontal overflow on 320px mobile");
     await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
     await page.locator("#stockForm").scrollIntoViewIfNeeded();
     await page.screenshot({ path: evidenceDir + "admin-stock-mobile-320.png" });
     // Existing browser workflow also exercises a touch-emulated 320px device.
