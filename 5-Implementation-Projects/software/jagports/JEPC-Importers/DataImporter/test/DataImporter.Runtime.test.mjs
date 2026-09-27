@@ -33,7 +33,7 @@ test('upgrades and preserves the original SQLite inspector ledger', async t => {
   const ledger = await openLedger(source, state);
   ledger.close();
   const upgraded = new DatabaseSync(path.join(state, 'ledger.sqlite'), { readOnly: true });
-  assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 2);
+  assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 3);
   assert.equal(upgraded.prepare("SELECT state FROM runs WHERE id='old'").get().state, 'COMPLETED');
   assert.equal(upgraded.prepare('SELECT count(*) AS count FROM bundle_evidence').get().count, 0);
   upgraded.close();
