@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { databaseNameForRange, setupRangeDatabase } from '../setup-range-db.mjs';
+import { defaultWorkerConfigPath } from '../sync-worker-bindings.mjs';
 
 const accountId = 'a'.repeat(32);
 const databaseId = '12345678-1234-1234-1234-123456789abc';
@@ -82,4 +83,10 @@ test('Workers Free capacity is checked before creation', async () => {
   };
   await assert.rejects(setupRangeDatabase({ mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: await configDirectory() }), /limit/);
   assert.equal(post, false);
+});
+
+test('Range binding synchronization targets the existing Worker configuration', async () => {
+  const config = await readFile(defaultWorkerConfigPath, 'utf8');
+  assert.match(config, /^name = "vieps"$/m);
+  assert.match(config, /^binding = "DB"$/m);
 });
