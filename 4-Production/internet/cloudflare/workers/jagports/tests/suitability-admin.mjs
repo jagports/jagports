@@ -136,8 +136,7 @@ test("verified JEPC mappings require recorded reviewer and never mutate source w
 
 test("retiring a normalized value hides it from published fixtures, not source evidence", async t => {
   const { db, env } = fixture(true); t.after(() => db.close());
-  const requestSuitability = () => handleViepsSuitability(request("/api/vieps/suitability"),
-    { ...env, ENABLE_SUITABILITY_FIXTURES: "1" });
+  const requestSuitability = () => handleViepsSuitability(request("/api/vieps/suitability?TEST=1"), env);
   assert.equal((await requestSuitability()).status, 200);
   const dim = db.prepare("SELECT id FROM applicability_dimension WHERE code='body'").get().id;
   assert.equal((await call(env, base + "/values/" + dim + "/coupe", "PATCH",
