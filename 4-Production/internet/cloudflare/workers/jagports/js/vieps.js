@@ -12,6 +12,7 @@ const t = (key, options) => i18n?.t(key, options) ?? key;
 // Query keys are case-insensitive for the URL switch: ?TEST=1 and ?test=1
 // must select the same catalogue mode. Conflicting duplicates fail closed.
 const isTestMode = () => {
+  if (typeof URLSearchParams !== "function") return false;
   const flags = [...new URLSearchParams(globalThis.location?.search || "")]
     .filter(([key]) => key.toLowerCase() === "test");
   return flags.length === 1 && flags[0][1] === "1";
