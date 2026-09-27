@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { database, d1 } from './helpers/model-db.mjs';
-import { handleViepsPart } from '../src/vieps.js';
+import { handleViepsPart } from '../js/vieps.js';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-const code = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
-const i18nCode = readFileSync(new URL('../public/i18n-runtime.js', import.meta.url), 'utf8');
+const code = readFileSync(new URL('../js/vieps-client.js', import.meta.url), 'utf8');
+const i18nCode = readFileSync(new URL('../js/vieps-i18n-runtime.js', import.meta.url), 'utf8');
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
@@ -31,7 +31,9 @@ function uiHarness(fetch) {
     getElementById: id => nodes.get(id),
     querySelectorAll: () => [],
   };
-  const context = { document, fetch, Intl, VIEPS_I18N_RESOURCES: { en, fi } };
+  const context = { document, fetch, Intl, URLSearchParams,
+    location: { pathname: '/', search: '?TEST=1', hash: '' },
+    VIEPS_I18N_RESOURCES: { en, fi } };
   vm.runInNewContext(i18nCode, context);
   vm.runInNewContext(code, context);
   const get = id => nodes.get(id);

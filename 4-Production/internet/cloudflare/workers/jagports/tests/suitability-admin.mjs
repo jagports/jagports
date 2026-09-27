@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { database } from "./helpers/model-db.mjs";
-import { handleApi } from "../src/index.js";
-import { handleViepsSuitability } from "../src/suitability.js";
+import { handleApi } from "../js/vieps-worker.js";
+import { handleViepsSuitability } from "../js/suitability.js";
 
 function fixture(withData = false) {
   const db = database({ fixtures: withData });

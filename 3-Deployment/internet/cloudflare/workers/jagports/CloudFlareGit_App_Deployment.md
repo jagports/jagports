@@ -117,7 +117,7 @@ pre-deploy check npm run verify:generated-assets
 post-deploy test npm run verify:deployed-assets
 ```
 
-`npm run build` compiles the Tailwind source and then verifies that the generated CSS exists and is non-empty. The generated `public/vieps-tailwind.css` is a deployment artifact and is not source-controlled.
+`npm run build` compiles the Tailwind source, copies the three browser JavaScript sources from `js/` into `public/`, and verifies that the generated assets exist and are non-empty. The generated `public/vieps-tailwind.css`, `public/app.js`, `public/stock-admin.js`, and `public/i18n-runtime.js` are deployment artifacts and are not source-controlled. The Worker entry point is `js/vieps-worker.js`; it is never copied to `public/`.
 
 This rule was introduced after the PR #647 deployment incident, where the Worker deployed successfully while the generated stylesheet was absent and the live page rendered essentially unstyled. A successful Worker deployment therefore does not by itself prove that generated frontend assets were built or served.
 

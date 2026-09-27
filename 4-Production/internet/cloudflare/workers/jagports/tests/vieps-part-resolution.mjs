@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handleViepsPart } from "../src/vieps.js";
+import { handleViepsPart } from "../js/vieps.js";
 
 function makeDb({ part = null, parts = null, occurrences = [], tree = [], images = [], diagrams = [], fitment = [], stock = [], onPrepare = () => {}, onBind = () => {} } = {}) {
   const partRows = parts ?? (part ? [part] : []);

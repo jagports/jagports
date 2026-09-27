@@ -287,7 +287,7 @@ Contexts, ranges and vocabulary entries referenced by historical snapshots must 
 
 ### Internal read contract and compatibility
 
-`src/applicability.js` exports `readPartApplicability(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
+`js/applicability.js` exports `readPartApplicability(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
 
 The response always declares `evaluation: unavailable`, `reason: evidence_only_no_evaluator`, and `catalogue_coverage: not_established`. Stored verification and coverage claims are returned separately. This internal reader is not routed to an HTTP endpoint and does not change the existing VIEPS API/UI contract. It cannot certify complete catalogue coverage, interpret serials, resolve conflicts or determine fitment. Reverse context lookup is supported by the context index and occurrence relationship; a public vehicle-to-PART evaluator is not implemented here.
 

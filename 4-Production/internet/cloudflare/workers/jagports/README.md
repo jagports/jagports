@@ -32,9 +32,8 @@ Public Internet
       |
       v
 Cloudflare Worker: vieps (pre-production)
-      |
-      v
-Cloudflare D1: jagports
+      |-- operational stock and TEST=1 fixture catalogue --> D1: jagports
+      `-- real JEPC catalogue by reviewed Range slug --> D1: jagports-<range_slug>
 ```
 
 The later production Worker identity is `jagports`. It is reserved for the production phase and is not established by this pre-production configuration.
@@ -89,7 +88,13 @@ The Wrangler configuration is in this directory:
 
 The configuration uses local paths for the Worker entry point, public assets, and D1 migrations. No `/base` path is deployed.
 
+The single checked-in JavaScript source directory is `js/`. `js/vieps-worker.js` is the Worker entry point. Browser sources `js/vieps-client.js`, `js/stock-admin-client.js`, and `js/vieps-i18n-runtime.js` are copied by `npm run build:js` to the `public/` filenames referenced by the HTML. Those generated browser copies are ignored by Git; Worker code is never copied into public assets. `npm run build` performs this step before deployment.
+
 Worker deployment and D1 migration application remain separate operational steps.
+
+The Range D1 procedure at `3-Deployment/internet/cloudflare/d1/ranges/README.md` creates and verifies a separate catalogue database, applies its schema-only SQL, and adds reviewed `RANGE_<SLUG>` bindings plus `RANGE_BINDINGS` to `wrangler.toml`. The existing mixed Worker migration chain must not be applied to a Range database. The importer writes only to the reviewed Range D1 identity; `jagports` retains operational stock and the fixtures.
+
+VIEPS defaults to real mode. Part search and Parts Tree read the bound Range D1 database; stock lookup uses `jagports` but excludes stock rows marked `verification_status='fixture'`. `?TEST=1` on the page propagates that parameter to its API calls and uses the existing fixture-backed catalogue behavior. A missing real Range binding fails visibly instead of falling back to fixture rows. With several Range bindings, API callers supply `range=<slug>` until a global part-number-to-Range index is implemented. Real suitability remains unavailable until occurrence applicability is verified and published; the fixture suitability route remains available in test mode.
 
 ## Administrator security
 

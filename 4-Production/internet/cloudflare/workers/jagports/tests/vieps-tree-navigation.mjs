@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handleViepsTree } from "../src/vieps.js";
+import { handleViepsTree } from "../js/vieps.js";
 
 function makeDb({ selected = null, path = [], roots = [], children = [], parts = [], onPrepare = () => {} } = {}) {
   return {
