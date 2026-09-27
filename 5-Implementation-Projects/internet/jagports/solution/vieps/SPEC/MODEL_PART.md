@@ -6,7 +6,7 @@ This document defines canonical catalogue `PART` identity and the catalogue-side
 
 Operational stock semantics are defined separately in [`MODEL_STOCK.md`](MODEL_STOCK.md).
 
-Occurrence-bound grouped applicability and versioned source-evidence semantics are defined in [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md).
+Occurrence-bound grouped applicability and versioned source-evidence semantics are defined in [Applicability requirements](#applicability-requirements) below.
 
 ## Canonical PART identity
 
@@ -113,7 +113,7 @@ Source-description-to-domain mappings are a separate enrichment layer and do not
 
 ## PART vehicle and VIN applicability
 
-Migration `0016_occurrence_applicability.sql` adds occurrence-bound model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain intact. The companion [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md#implemented-persistence-contract) defines these additive relations and their verification limits; no legacy fitment row is automatically promoted into them.
+Migration `0016_occurrence_applicability.sql` adds occurrence-bound model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain intact. The [implemented persistence contract](#implemented-persistence-contract) defines these additive relations and their verification limits; no legacy fitment row is automatically promoted into them.
 
 Vehicle applicability is represented outside the canonical `part` row.
 
@@ -298,7 +298,7 @@ All standalone `id` fields are `INTEGER PRIMARY KEY AUTOINCREMENT` unless a tabl
 | `part_supersession` | Composite PK `superseded_part_id`, `superseding_part_id`; `source`; `source_ref`; `verification_status`; `confidence`; `effective_from`; `effective_to`. |
 | `part_fitment` | `id`; `part_occurrence_id`; `part_id`; `vehicle_range_id`; `variation`; `qualifier`; `applicability_state`; `attribute_group`; `attribute_key`; `source_value`; `except_flag`; `source`; `source_ref`; `verification_status`; `confidence`. |
 
-The implemented occurrence applicability persistence dictionary is maintained in [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md#implemented-persistence-contract) rather than duplicated here.
+The implemented occurrence applicability persistence dictionary is documented in [Implemented persistence contract](#implemented-persistence-contract) below.
 
 ### Diagrams, hotspots and catalogue location
 
