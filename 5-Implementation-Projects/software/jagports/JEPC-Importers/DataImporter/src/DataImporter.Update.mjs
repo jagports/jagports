@@ -27,7 +27,7 @@ function insertNode({ language, model, category = '', item = '', node, parent = 
   parent?.[3] ?? null, label, order, sourceRef);
 }
 
-export function publicationStatements(projection, evidenceHash) {
+export function d1ImportStatements(projection, evidenceHash) {
   const { identity, source, occurrences, unresolvedLeaves } = projection;
   const { model, category, language } = identity;
   const context = `${model}/${category}/L${language}`;
@@ -103,18 +103,18 @@ export function publicationStatements(projection, evidenceHash) {
   }
   queries.push(statement(`INSERT INTO jepc_bundle
     (model_id,category_id,language_id,evidence_hash,source_parent_id,
-     source_model_label,source_category_label,source_breadcrumb,published_at)
+     source_model_label,source_category_label,source_breadcrumb,imported_at)
     VALUES(?,?,?,?,?,?,?,?,strftime('%Y-%m-%dT%H:%M:%fZ','now'))
     ON CONFLICT(model_id,category_id,language_id) DO UPDATE SET
       evidence_hash=excluded.evidence_hash,source_parent_id=excluded.source_parent_id,
       source_model_label=excluded.source_model_label,source_category_label=excluded.source_category_label,
-      source_breadcrumb=excluded.source_breadcrumb,published_at=excluded.published_at`,
+      source_breadcrumb=excluded.source_breadcrumb,imported_at=excluded.imported_at`,
   model, category, language, evidenceHash, source.parentModel, source.modelLabel,
   source.categoryLabel, source.breadcrumb));
   return queries;
 }
 
-export async function publishSelection({ selection, stateDir, token, fetchImpl = fetch, onProgress }) {
+export async function importSelectionToD1({ selection, stateDir, token, fetchImpl = fetch, onProgress }) {
   const ledger = await openLedger(selection.source, stateDir);
   try {
     const ranges = await readSourceRangeMap();
@@ -138,17 +138,17 @@ export async function publishSelection({ selection, stateDir, token, fetchImpl =
       await verifyRangeSchema(client, config);
       clients.set(rangeSlug, { config, client });
     }
-    const result = { phase: 'RANGE_D1_PUBLICATION', selected: selected.size,
-      stagedBundles: prepared.length, skippedUnknown, published: 0,
+    const result = { phase: 'RANGE_D1_IMPORT', selected: selected.size,
+      stagedBundles: prepared.length, skippedUnknown, imported: 0,
       reused: 0, occurrences: 0, ranges: [...clients.keys()] };
     for (const [index, item] of prepared.entries()) {
       const { config, client } = clients.get(item.rangeSlug);
       const { model, category, language } = item.row.staged.identity;
-      if (ledger.publicationTargets(model, category, language).some(target =>
+      if (ledger.d1ImportTargets(model, category, language).some(target =>
         target.range_slug !== item.rangeSlug || target.database_id !== config.databaseId)) {
-        throw new Error(`Reviewed Range target changed for ${model}/${category}/L${language}; reconcile the previous publication first.`);
+        throw new Error(`Reviewed Range target changed for ${model}/${category}/L${language}; reconcile the previous D1 import first.`);
       }
-      const recorded = ledger.lastPublication({ model, category, language,
+      const recorded = ledger.lastD1Import({ model, category, language,
         rangeSlug: item.rangeSlug, databaseId: config.databaseId });
       if (recorded === item.row.evidenceHash && !item.selected) {
         result.reused++;
@@ -159,18 +159,18 @@ export async function publishSelection({ selection, stateDir, token, fetchImpl =
       if (previous[0]?.evidence_hash === item.row.evidenceHash) result.reused++;
       else {
         const projection = transformBundle(item.row.staged);
-        await client.batch(publicationStatements(projection, item.row.evidenceHash));
+        await client.batch(d1ImportStatements(projection, item.row.evidenceHash));
         const confirmed = await client.query(`SELECT evidence_hash FROM jepc_bundle
           WHERE model_id=? AND category_id=? AND language_id=?`, [model, category, language]);
         if (confirmed[0]?.evidence_hash !== item.row.evidenceHash) {
-          throw new Error(`Remote D1 did not confirm publication of ${model}/${category}/L${language}.`);
+          throw new Error(`Remote D1 did not confirm import of ${model}/${category}/L${language}.`);
         }
-        result.published++;
+        result.imported++;
         result.occurrences += projection.occurrences.length;
       }
-      ledger.recordPublication({ model, category, language, rangeSlug: item.rangeSlug,
+      ledger.recordD1Import({ model, category, language, rangeSlug: item.rangeSlug,
         databaseId: config.databaseId, evidenceHash: item.row.evidenceHash });
-      onProgress?.({ phase: 'publication', completed: index + 1, total: prepared.length, model });
+      onProgress?.({ phase: 'd1_import', completed: index + 1, total: prepared.length, model });
     }
     return result;
   } finally { ledger.close(); }

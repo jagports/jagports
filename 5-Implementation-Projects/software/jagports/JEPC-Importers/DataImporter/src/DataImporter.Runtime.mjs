@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 
-const VERSION = 3;
+const VERSION = 4;
 const inside = (root, child) => {
   const relative = path.relative(root, child);
   return relative === '' || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
@@ -33,7 +33,7 @@ function alive(pid) {
 function schema(db) {
   db.exec('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;');
   const version = db.prepare('PRAGMA user_version').get().user_version;
-  if (![0, 1, 2, VERSION].includes(version)) throw new Error(`Unsupported importer ledger version ${version}.`);
+  if (![0, 1, 2, 3, VERSION].includes(version)) throw new Error(`Unsupported importer ledger version ${version}.`);
   transaction(db, () => {
     // Preserve the original PR #660 run/file/event ledger when upgrading v1.
     db.exec(`
@@ -65,13 +65,19 @@ function schema(db) {
         id TEXT PRIMARY KEY, source TEXT NOT NULL, scope TEXT NOT NULL,
         report_json TEXT NOT NULL, created TEXT NOT NULL
       );
-      CREATE TABLE IF NOT EXISTS range_publications (
+    `);
+    if (db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='range_publications'").get()) {
+      db.exec('ALTER TABLE range_publications RENAME TO range_d1_imports');
+      db.exec('ALTER TABLE range_d1_imports RENAME COLUMN published_at TO imported_at');
+    }
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS range_d1_imports (
         source TEXT NOT NULL, model TEXT NOT NULL, category TEXT NOT NULL,
         language TEXT NOT NULL, range_slug TEXT NOT NULL, database_id TEXT NOT NULL,
-        evidence_hash TEXT NOT NULL, published_at TEXT NOT NULL,
+        evidence_hash TEXT NOT NULL, imported_at TEXT NOT NULL,
         PRIMARY KEY(source,model,category,language,range_slug,database_id)
       );
-      PRAGMA user_version=3;
+      PRAGMA user_version=4;
     `);
   });
   if (db.prepare('PRAGMA quick_check').get().quick_check !== 'ok'
@@ -160,21 +166,21 @@ export async function openLedger(source, stateDir) {
         .all(root, ...modelIds);
       return rows.map(row => ({ staged: JSON.parse(row.evidence_json), evidenceHash: row.evidence_hash }));
     },
-    lastPublication({ model, category, language, rangeSlug, databaseId }) {
-      return db.prepare(`SELECT evidence_hash FROM range_publications
+    lastD1Import({ model, category, language, rangeSlug, databaseId }) {
+      return db.prepare(`SELECT evidence_hash FROM range_d1_imports
         WHERE source=? AND model=? AND category=? AND language=? AND range_slug=? AND database_id=?`)
         .get(root, model, category, language, rangeSlug, databaseId)?.evidence_hash ?? null;
     },
-    publicationTargets(model, category, language) {
-      return db.prepare(`SELECT DISTINCT range_slug,database_id FROM range_publications
+    d1ImportTargets(model, category, language) {
+      return db.prepare(`SELECT DISTINCT range_slug,database_id FROM range_d1_imports
         WHERE source=? AND model=? AND category=? AND language=?`)
         .all(root, model, category, language);
     },
-    recordPublication({ model, category, language, rangeSlug, databaseId, evidenceHash }) {
-      db.prepare(`INSERT INTO range_publications
-        (source,model,category,language,range_slug,database_id,evidence_hash,published_at)
+    recordD1Import({ model, category, language, rangeSlug, databaseId, evidenceHash }) {
+      db.prepare(`INSERT INTO range_d1_imports
+        (source,model,category,language,range_slug,database_id,evidence_hash,imported_at)
         VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(source,model,category,language,range_slug,database_id)
-        DO UPDATE SET evidence_hash=excluded.evidence_hash,published_at=excluded.published_at`)
+        DO UPDATE SET evidence_hash=excluded.evidence_hash,imported_at=excluded.imported_at`)
         .run(root, model, category, language, rangeSlug, databaseId, evidenceHash, new Date().toISOString());
     },
     storeEstimate(scope, report) {

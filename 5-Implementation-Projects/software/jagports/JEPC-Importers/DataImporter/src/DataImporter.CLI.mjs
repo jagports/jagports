@@ -5,7 +5,7 @@ import path from 'node:path';
 import { selectModelBundles } from './DataImporter.Selection.mjs';
 import { parseSelection } from './DataImporter.Parse.mjs';
 import { estimateSource } from './DataImporter.Estimate.mjs';
-import { publishSelection } from './DataImporter.Update.mjs';
+import { importSelectionToD1 } from './DataImporter.Update.mjs';
 
 const usage = 'Usage: node src/DataImporter.CLI.mjs --parse PATTERN [--estimate]';
 
@@ -50,8 +50,8 @@ async function main() {
       } catch (error) { summary.estimate = { state: 'FAILED', error: safe(error.message) }; }
     }
     summary.staging = await parseSelection({ selection, stateDir, onProgress });
-    summary.publication = process.env.CLOUDFLARE_API_TOKEN
-      ? await publishSelection({ selection, stateDir, token: process.env.CLOUDFLARE_API_TOKEN, onProgress })
+    summary.d1Import = process.env.CLOUDFLARE_API_TOKEN
+      ? await importSelectionToD1({ selection, stateDir, token: process.env.CLOUDFLARE_API_TOKEN, onProgress })
       : { phase: 'NOT_CONFIGURED', reason: 'CLOUDFLARE_API_TOKEN is absent; SQLite staging only.' };
     console.log(JSON.stringify(summary, null, 2));
 }

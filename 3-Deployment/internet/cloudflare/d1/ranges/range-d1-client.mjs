@@ -43,7 +43,7 @@ export function rangeForSource(source, ranges) {
 }
 
 export function d1Client(config, token, fetchImpl = fetch) {
-  if (!token) throw new Error('CLOUDFLARE_API_TOKEN is required for Range D1 publication.');
+  if (!token) throw new Error('CLOUDFLARE_API_TOKEN is required for Range D1 import.');
   const url = `https://api.cloudflare.com/client/v4/accounts/${config.accountId}/d1/database/${config.databaseId}`;
   const request = async (suffix, method = 'GET', body) => {
     const response = await fetchImpl(`${url}${suffix}`, {

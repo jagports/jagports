@@ -107,6 +107,6 @@ CREATE TABLE IF NOT EXISTS jepc_bundle (
   source_model_label TEXT NOT NULL,
   source_category_label TEXT NOT NULL,
   source_breadcrumb TEXT,
-  published_at TEXT NOT NULL,
+  imported_at TEXT NOT NULL,
   PRIMARY KEY(model_id,category_id,language_id)
 );

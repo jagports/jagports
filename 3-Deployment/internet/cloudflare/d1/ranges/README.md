@@ -8,7 +8,7 @@ The name comes from an approved stable VIEPS Range slug: `jagports-<range_slug>`
 
 - Node.js 24 or newer.
 - The Cloudflare account ID for the intended account.
-- A `CLOUDFLARE_API_TOKEN` with D1 Read and D1 Write permissions for that account for creation, schema application and publication; D1 Read is sufficient for identity verification. Keep the token out of the repository and command arguments.
+- A `CLOUDFLARE_API_TOKEN` with D1 Read and D1 Write permissions for that account for creation, schema application and import; D1 Read is sufficient for identity verification. Keep the token out of the repository and command arguments.
 - Check the account's D1 plan and current capacity. [Cloudflare's D1 limits](https://developers.cloudflare.com/d1/platform/limits/) currently allow 10 databases on Workers Free, with 500 MB per database and 5 GB total. The existing `jagports` database uses one of those slots if it is in the same account. State the verified account plan as `--account-plan free` or `paid`; the command does not infer it. On Free, it refuses creation when 10 databases already exist. It also reports database count and the remaining slots *if the account is on Free*. Cloudflare may enforce other limits.
 
 ## Procedure
