@@ -60,7 +60,7 @@ test("#888 moves one expandable fixture guide into the branded banner", () => {
   assert.equal((html.match(/class="fixture-guide"/g) || []).length, 1);
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf("</header>"));
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf('class="panel tree-panel"'));
-  assert.match(html, /<details class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
+  assert.match(html, /<details [^>]*class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
   assert.match(html, /data-i18n="fixture\.randomized_note"/);
   assert.match(rule(".banner-block .fixture-guide"), /overflow:\s*auto/);
 });
