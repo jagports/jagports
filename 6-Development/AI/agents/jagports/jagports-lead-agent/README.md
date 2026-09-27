@@ -65,7 +65,7 @@ These rules are useful for event routing and framework testing, but they do not 
 
 ## Standalone OpenAI API smoke test
 
-Reusable direct Responses API and wrapper smoke-test commands, their expected outputs, and the distinction between standalone connectivity and integrated reasoning are maintained in [Development OPERATIONS.md](OPERATIONS.md#direct-openai-responses-api-smoke-test). Historical operator-observed outcomes belong in the [implementation project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Successful connectivity does not prove model-backed specialist operation or an unattended service run.
+Reusable direct Responses API and wrapper smoke-test commands, their expected outputs, and the distinction between standalone connectivity and integrated reasoning are maintained in [Development OPERATIONS.md](OPERATIONS.md#direct-openai-responses-api-smoke-test). Historical operator-observed outcomes belong in the consolidated [MyNode installation and project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Successful connectivity does not prove model-backed specialist operation or an unattended service run.
 
 ## Lead Agent scheduling — intended 9h45min cadence
 
@@ -82,8 +82,7 @@ For the short saved-status Telegram delivery smoke test and its two-part accepta
 | Human startup, current capabilities, usage sequence, navigation and limitations | This `README.md` |
 | Functional contracts, event/model schemas, design, rollout stages, security and acceptance tests | [SPEC_Agent_Lead.md](SPEC_Agent_Lead.md) |
 | Reusable shell commands, manual smoke tests, diagnostics and historical engineering command variants | [OPERATIONS.md](OPERATIONS.md) |
-| Live Raspberry Pi user service, timer installation, user-bus recovery and host acceptance commands | [MyNode Deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
-| Project rationale, operator-verified evidence and delivery dependencies | [Lead Agent implementation project](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
+| Live Raspberry Pi service/timer procedure, project rationale, prototype history and operator evidence | [MyNode deployment and project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
 | Actual source-backed research and unresolved evidence | The repository's established `7-Research/` semantic root |
 | Cross-project workflow, decision authority and agent responsibilities | [Management workflow](../../../../../00-Management/WORKFLOWS.md) and [agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) |
 
