@@ -1,6 +1,6 @@
 # VIEPS UI — Applicable Models / Suitability Model Ranges contract
 
-**Status:** #875 proposed target layout; independent specification review required  
+**Status:** #875 layout merged; source-derived Range browse refinement in #949; advanced OR filter deferred  
 **Controlling UI issue:** #468  
 **Enhancement:** #875  
 **Priority issue:** #477  
@@ -9,7 +9,7 @@
 
 ## Objective
 
-Define the model/range browse and verified applicability presentation inside the right-hand **Applicable Models** panel of the proposed Concept-11v1 layout. The previous Concept-11 full centre/right Model Ranges row remains the deployed baseline until #875 is reviewed and implemented.
+Define the model/range browse and verified applicability presentation inside the right-hand **Applicable Models** panel of the merged #875 three-column layout. The production transition from the temporary browse test index to source-derived model/Range relations remains a separate implementation task.
 
 This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_APPLICABILITY.md` and #354 own the underlying evidence and identities. Do not create a competing model/range taxonomy or applicability evaluator in UI code.
 
@@ -17,7 +17,7 @@ This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detai
 
 The right column places independently scrollable **Applicable Models** below the independently scrollable **Search Results PART List**.
 
-- **No PART selected:** show a model/range browse index and approved filter controls. Display choices do not imply that a model fits any PART.
+- **No PART selected:** show only source-derived Ranges backed by persisted imported JEPC Model-to-Range relations and approved public browse evidence. If the import or relationships are not yet available, show a truthful empty/unavailable state. Existing temporary browse-test labels in deployed code are a compatibility fixture, not production authority; remove them when the source-backed read contract replaces them.
 - **One canonical PART selected, verified context available:** display only the model/range combinations supported as applicable by the approved occurrence/application/fitment evidence for that PART and the selected vehicle/context constraints. Preserve qualifiers, exclusions and provenance.
 - **One canonical PART selected, several source occurrences:** do not combine different occurrence-specific evidence into an invented universal fitment. Ask for context when needed, or show distinct verified contexts with their evidence.
 - **Insufficient or unresolved evidence:** display `unavailable`, not a positive fitment claim. A confirmed nonmatch is `no_match`; a service or processing failure is `error`.
@@ -25,31 +25,19 @@ The right column places independently scrollable **Applicable Models** below the
 
 The browse index and the selected-PART applicable set are different UI states. A checked browse filter is not itself a verified fitment indicator.
 
-## Deterministic model-range fixture index
+## Source-derived Range browse and test isolation
 
-Before JEPC import, the browse/index fixture has these **13 exact display labels**, in order:
+The former hard-coded 13-label browse index is **superseded as the target product contract**. An authorized Admin creates normalized Ranges and explicitly assigns each imported JEPC Model at most one Range, preserving the Model's original source-qualified identity and description under #884 / merged PR #885. The public browse adapter consumes these persisted relationships from #354/#355 plus approved occurrence evidence; it does not create Range memberships from display strings, market-name fixtures or Part descriptions.
 
-1. Jaguar Accessories
-2. Daimler Limousine
-3. E-Pace
-4. E-Type
-5. F-Pace
-6. F-Type
-7. S-Type
-8. X-Type
-9. XE Range
-10. XF Range
-11. XJ Range
-12. XJS
-13. XK Range
+JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are input evidence only until they are actually imported and explicitly mapped. An imported but unassigned Model remains visible by its original description in Admin; it is not invented as a member of any public Range. With no source-backed Ranges yet, the public panel reports unavailable/empty data rather than exposing a normative static list. Explicitly synthetic, source-qualified Model and Range records can test the same contract in isolated CI without ever claiming real Jaguar fitment.
 
-These are fixture/browse vocabulary, **not** a claim that every displayed model is applicable to a selected PART. Reuse verified existing normalized range/model identities where they exist; otherwise keep fixture-only identifiers explicitly synthetic and isolated from production evidence. The `XK Range` browse label does not replace its separate approved model/variant relationships.
+**Migration boundary:** the currently deployed HTML/JS still contains a legacy 13-label browse-only fixture and tests. This documentation correction does not pretend those runtime files have been removed. Replace that fixture only together with the new importer-backed public read adapter and updated model/browser regressions; preserve current application functionality until then.
 
 ## Filter controls and coordinated state
 
 **Approved #875 interaction:** select multiple normalized model/range identities with **ANY (OR)** semantics. A canonical PART qualifies when **at least one surviving verified source occurrence** is positively applicable to **at least one selected range**, while satisfying all other active supported constraints. Multiple chosen ranges widen this one dimension; they do not negate VIN, stock or normalized variation constraints. When no ranges are checked, the range filter imposes no constraint. Explicit exclusions and unresolved/unavailable evaluation are never positive matches.
 
-**Phase split:** the current increment installs the right-hand Applicable Models layout, a 13-label browse fixture/index and verified selected-PART presentation where supported. Advanced multi-range filtering requires its approved read adapter and tests and is deferred. A visible filter that cannot yet work must be disabled with an accessible explanation; it must not silently pretend to apply the OR rule.
+**Phase split:** the merged #875 increment installed the right-hand Applicable Models layout and retained a temporary browse-only compatibility fixture. The next source-backed implementation must replace that fixture with imported JEPC Model–Range relations. Advanced multi-range filtering requires its approved read adapter and tests and is deferred. A visible filter that cannot yet work must be disabled with an accessible explanation; it must not silently pretend to apply the OR rule.
 
 The centre-top Suitability / Variations filter consumes the normalized #641 categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
 
@@ -68,7 +56,7 @@ ApplicableModelsRequest
 
 ApplicableModelsResult
   state                     # browse | applicable | no_match | unavailable | error
-  browse_ranges[]?          # available fixture/source-backed index, not fitment
+  browse_ranges[]?          # source-derived explicit Model–Range index; test fixtures isolated
   applicable_ranges[]?      # verified selected-PART/context matches only
   selected_range_ids[]?     # future enabled filter; do not expose an effective filter before support
   qualifiers[]?
@@ -81,7 +69,7 @@ The public read adapter must preserve #354/#666 distinctions between stored appl
 
 ## Deterministic fixtures and tests
 
-Cover all 13 exact browse labels and stable identities; one PART applicable to only a subset of the browse index; several genuine occurrences of one canonical PART; one verified qualifier; one explicit exclusion; no match; unavailable/incomplete evidence; error; and coordination with Parts Tree, Search Results selection and centre normalized variations. Verify current visible **disabled** bookmark checkboxes cannot change selection or fitment. For the deferred model filter, test two selected ranges matching either range (OR), no selection (unconstrained), an excluded range, unavailable evidence and conjunction with other active supported filters. Fixtures are test inputs, not Jaguar source facts.
+Cover explicitly created test Ranges, two distinct source-qualified JEPC Model examples with separate original descriptions and independently saved mappings, an unassigned Model kept visible by its original description, and empty/unavailable pre-import states. Include one PART applicable to only a verified subset, several source occurrences of one canonical PART, a verified qualifier, exclusion, no match, incomplete evidence, error, and coordination with Parts Tree, Search Results and centre normalized variations. Keep regression coverage for the deployed legacy browse-only fixture until its source-backed replacement is implemented. Verify disabled bookmarks remain independent. The deferred OR filter needs two selected Ranges, unconstrained empty selection, exclusions, unavailable evidence and other supported filters. Synthetic tests never become Jaguar source facts.
 
 ## Viewport and accessibility
 
@@ -94,7 +82,7 @@ VIN evaluation and VIN-range reconstruction are governed by #478 and approved so
 ## Acceptance criteria
 
 - [ ] The right-hand Applicable Models panel is independent of the scrollable Search Results panel in the #875 layout.
-- [ ] All 13 exact fixture browse labels appear without any implied per-PART applicability.
+- [ ] Source-derived browse returns only explicitly linked imported Model/Range identities; before import or assignment, report empty/unavailable and never infer membership from fixture labels.
 - [ ] A selected PART/context shows only verified applicable ranges; explicit exclusions do not appear as suitable.
 - [ ] Multi-occurrence results preserve separate context/evidence rather than inventing combined positive fitment.
 - [ ] Browse filters and verified fitment indicators remain semantically distinct.

@@ -532,7 +532,7 @@ At review hand-off, testing hand-off, merge/closure, and any audit that evaluate
 4. route correction through the applicable authorized human or verified repository automation;
 5. independently verify the corrected Project Item Status.
 
-If Project Item state cannot be read, record the capability limitation; absence of read capability does not make the intended state verified and does not by itself create a new workflow state.
+When expected synchronization evidence is missing or inconsistent, investigate the relevant GitHub Actions run, jobs, logs, and managed snapshot before diagnosing the defect. Do not report missing direct connector access as a normal workflow blocker.
 
 Any future automation that assumes a new automatic intermediate-state transition must have persistent end-to-end test evidence covering the real trigger, resulting Project Item identity/status, and independent read-back verification before it is treated as authoritative.
 
@@ -621,7 +621,6 @@ A contradiction in a secondary document is a process defect and should be raised
 - After supported mutations, perform an independent read/verification.
 - Distinguish capability, authentication, permission, mutation, and verification failures where observable.
 - Never expose credentials, tokens, or secret values.
-- Direct connector inability to mutate Project Items does not prohibit an independently reviewed and verified GitHub Actions workflow from doing so within its documented authority.
 - Use repository-owned Project automation only where an authoritative workflow assigns it, and claim success only after the automation's independent verification/read-back succeeds.
 
 If a required GitHub operation is unavailable, follow the current capability-alert wording defined by `../../00-Management/WORKFLOWS.md` and applicable agent instructions.

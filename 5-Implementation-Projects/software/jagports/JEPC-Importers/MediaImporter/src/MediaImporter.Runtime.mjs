@@ -3,12 +3,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { mkdir, realpath, stat, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import readline from 'node:readline';
 import { FilesystemDestination, objectKey } from './MediaImporter.Destination.mjs';
 
 export const CONTRACT_VERSION = 1;
-export const MANIFEST_CONTRACT = 'jagports.jepc.media-work';
-export const MANIFEST_VERSION = 1;
 const IMAGE_LIMIT = 64 * 1024 * 1024;
 
 const inside = (root, child) => {
@@ -33,22 +30,6 @@ function canonical(value) {
 }
 
 function sha(value) { return createHash('sha256').update(value).digest('hex'); }
-
-export function referenceId(header, record) {
-  const identity = {
-    version: MANIFEST_VERSION,
-    sourceNamespace: header.sourceNamespace,
-    sourceRelease: header.sourceRelease,
-    logicalMediaId: record.logicalMediaId,
-    modelId: record.modelId,
-    categoryId: record.categoryId,
-    itemId: record.itemId,
-    languageId: record.languageId,
-    referringPath: record.referringPath,
-    referringRecord: record.referringRecord,
-  };
-  return `jepc-media-ref-v1:${sha(canonical(identity))}`;
-}
 
 export function logicalMediaKey(sourceNamespace, sourceRelease, mediaId) {
   return `jepc-logical-media-v1:${sha(canonical({ version: 1, sourceNamespace, sourceRelease, mediaId }))}`;
@@ -151,20 +132,10 @@ function schema(db) {
       source TEXT, started TEXT NOT NULL, updated TEXT NOT NULL, processed INTEGER NOT NULL DEFAULT 0,
       missing INTEGER NOT NULL DEFAULT 0, corrupt INTEGER NOT NULL DEFAULT 0, unchanged INTEGER NOT NULL DEFAULT 0, error TEXT
     );
-    CREATE TABLE IF NOT EXISTS manifests (
-      id TEXT PRIMARY KEY, checksum TEXT NOT NULL, contract TEXT NOT NULL, version INTEGER NOT NULL,
-      source_namespace TEXT NOT NULL, source_release TEXT NOT NULL, producer_version TEXT NOT NULL,
-      imported_at TEXT NOT NULL, UNIQUE(id, checksum)
-    );
     CREATE TABLE IF NOT EXISTS media_work (
       id TEXT PRIMARY KEY, media_id TEXT NOT NULL, source_namespace TEXT NOT NULL, source_release TEXT NOT NULL,
       state TEXT NOT NULL, conversion_state TEXT NOT NULL, source_root TEXT, last_run_id TEXT REFERENCES runs(id),
       last_error TEXT, UNIQUE(source_namespace, source_release, media_id)
-    );
-    CREATE TABLE IF NOT EXISTS media_reference (
-      reference_id TEXT PRIMARY KEY, work_id TEXT NOT NULL REFERENCES media_work(id), manifest_id TEXT REFERENCES manifests(id),
-      model_id TEXT, category_id TEXT, item_id TEXT, language_id TEXT, referring_path TEXT NOT NULL,
-      referring_record TEXT NOT NULL, source_provenance TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS candidates (
       work_id TEXT NOT NULL REFERENCES media_work(id), role TEXT NOT NULL, source_path TEXT NOT NULL,
@@ -250,71 +221,6 @@ function closeRun(db, id, state, error = null) {
   });
 }
 
-function ensureHeader(value) {
-  if (!value || value.recordType !== 'manifest' || value.contract !== MANIFEST_CONTRACT || value.version !== MANIFEST_VERSION) throw new Error('Unsupported media-work manifest header.');
-  for (const key of ['manifestId', 'sourceNamespace', 'sourceRelease', 'producerVersion']) if (typeof value[key] !== 'string' || !value[key]) throw new Error(`Manifest header requires ${key}.`);
-  return value;
-}
-
-function ensureRecord(header, value) {
-  if (!value || value.recordType !== 'mediaReference' || value.mediaRole !== 'diagram') throw new Error('Unsupported media-work manifest record.');
-  for (const key of ['referenceId', 'logicalMediaId', 'referringPath', 'referringRecord', 'sourceProvenance']) if (value[key] === undefined || value[key] === null || value[key] === '') throw new Error(`Media reference requires ${key}.`);
-  candidatePaths(value.logicalMediaId);
-  if (path.isAbsolute(value.referringPath) || value.referringPath.split(/[\\/]/).includes('..')) throw new Error('Media reference path must be relative and contained.');
-  if (value.referenceId !== referenceId(header, value)) throw new Error('Media reference ID does not match its required stable identity.');
-  return value;
-}
-
-export async function importManifest(options) {
-  const file = await realpath(path.resolve(options.manifest));
-  const { db, id, stateDir } = await open(options, 'IMPORT_MANIFEST');
-  try {
-    const checksum = await hashFile(file);
-    let header = null, lineNumber = 0, imported = 0;
-    const input = readline.createInterface({ input: createReadStream(file), crlfDelay: Infinity });
-    for await (const line of input) {
-      lineNumber += 1;
-      if (!line.trim()) throw new Error(`Manifest line ${lineNumber} is blank.`);
-      let value;
-      try { value = JSON.parse(line); } catch { throw new Error(`Manifest line ${lineNumber} is not JSON.`); }
-      if (lineNumber === 1) {
-        header = ensureHeader(value);
-        transaction(db, () => {
-          db.prepare(`INSERT INTO manifests VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(id,checksum) DO NOTHING`)
-            .run(header.manifestId, checksum, header.contract, header.version, header.sourceNamespace, header.sourceRelease, header.producerVersion, new Date().toISOString());
-          event(db, id, { type: 'MANIFEST', manifestId: header.manifestId, checksum });
-        });
-        continue;
-      }
-      const record = ensureRecord(header, value);
-      const workId = logicalMediaKey(header.sourceNamespace, header.sourceRelease, record.logicalMediaId);
-      transaction(db, () => {
-        db.prepare(`INSERT INTO media_work(id,media_id,source_namespace,source_release,state,conversion_state) VALUES(?,?,?,?,?,?)
-          ON CONFLICT(source_namespace,source_release,media_id) DO NOTHING`)
-          .run(workId, record.logicalMediaId, header.sourceNamespace, header.sourceRelease, 'DISCOVERED', 'BLOCKED_UNVERIFIED');
-        db.prepare(`INSERT INTO media_reference VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(reference_id) DO NOTHING`)
-          .run(record.referenceId, workId, header.manifestId, record.modelId ?? null, record.categoryId ?? null, record.itemId ?? null,
-            record.languageId ?? null, record.referringPath, canonical(record.referringRecord), canonical(record.sourceProvenance));
-        event(db, id, { type: 'REFERENCE_IMPORTED', referenceId: record.referenceId, workId });
-      });
-      imported += 1;
-    }
-    if (!header || lineNumber < 2) throw new Error('Manifest must contain a header and at least one media reference.');
-    closeRun(db, id, 'COMPLETED');
-    return { ...snapshot(db, id), imported, stateDir };
-  } catch (error) {
-    closeRun(db, id, 'FAILED', error.message); throw error;
-  } finally { db.close(); }
-}
-
-function explicitRecord(options) {
-  const header = { sourceNamespace: options.sourceNamespace ?? 'JEPC', sourceRelease: options.sourceRelease ?? 'unknown' };
-  const record = { logicalMediaId: options.mediaId, modelId: options.modelId ?? null, categoryId: options.categoryId ?? null,
-    itemId: options.itemId ?? null, languageId: options.languageId ?? null, referringPath: `explicit/${options.mediaId}`,
-    referringRecord: { mode: 'explicit-media-id' }, sourceProvenance: { mode: 'explicit-media-id' } };
-  return { header, record: { ...record, recordType: 'mediaReference', mediaRole: 'diagram', referenceId: referenceId(header, record) } };
-}
-
 async function inspectWork(db, runId, source, work, onProgress) {
   let missing = 0, corrupt = 0, unchanged = 0;
   for (const candidate of candidatePaths(work.media_id)) {
@@ -367,15 +273,15 @@ async function inspectWork(db, runId, source, work, onProgress) {
 }
 
 export async function inspectMedia(options, { onProgress = () => {}, shouldStop = () => false } = {}) {
-  const { header, record } = explicitRecord(options);
+  candidatePaths(options.mediaId);
+  const sourceNamespace = options.sourceNamespace ?? 'JEPC';
+  const sourceRelease = options.sourceRelease ?? 'unknown';
   const { db, id, source, stateDir } = await open(options, 'INSPECT');
   try {
-    const workId = logicalMediaKey(header.sourceNamespace, header.sourceRelease, record.logicalMediaId);
+    const workId = logicalMediaKey(sourceNamespace, sourceRelease, options.mediaId);
     transaction(db, () => {
       db.prepare(`INSERT INTO media_work(id,media_id,source_namespace,source_release,state,conversion_state) VALUES(?,?,?,?,?,?)
-        ON CONFLICT(source_namespace,source_release,media_id) DO NOTHING`).run(workId, record.logicalMediaId, header.sourceNamespace, header.sourceRelease, 'DISCOVERED', 'BLOCKED_UNVERIFIED');
-      db.prepare(`INSERT INTO media_reference VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(reference_id) DO NOTHING`)
-        .run(record.referenceId, workId, null, record.modelId, record.categoryId, record.itemId, record.languageId, record.referringPath, canonical(record.referringRecord), canonical(record.sourceProvenance));
+        ON CONFLICT(source_namespace,source_release,media_id) DO NOTHING`).run(workId, options.mediaId, sourceNamespace, sourceRelease, 'DISCOVERED', 'BLOCKED_UNVERIFIED');
     });
     const work = db.prepare('SELECT * FROM media_work WHERE id=?').get(workId);
     if (shouldStop()) { closeRun(db, id, 'STOPPED_BY_USER'); return { ...snapshot(db, id), stateDir }; }

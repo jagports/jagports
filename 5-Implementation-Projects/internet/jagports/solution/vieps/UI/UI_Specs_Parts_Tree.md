@@ -31,6 +31,18 @@ Required presentation:
 
 `show only relevant path(s)` in the SVG means relevant descendant paths are the ones expanded/emphasized. It does **not** mean replacing the main-level index with one isolated path.
 
+## Parts Tree heading: return to root index (#897)
+
+The **Parts Tree** heading is a real, keyboard-accessible link that resets tree navigation to the root browse state. Activating it:
+
+- displays only evidenced first-level catalogue branches, with deeper branches collapsed and no active underline;
+- clears the active tree/category/PART selection, search input, dependent PART details and related `part`, `tree` and `candidate_id` deep-link parameters while retaining unrelated URL parameters;
+- retains the current Stock checkbox and requests roots using that existing availability constraint; never claims filtering is supported where the API reports it unsupported;
+- invalidates outstanding browse/search responses so an obsolete result cannot repopulate the tree after reset;
+- uses existing root loading, empty, unavailable and error states rather than introducing a second reset implementation.
+
+The link remains usable with mouse, keyboard or touch on desktop and mobile. Ordinary category hyperlinks continue navigating to the selected branch.
+
 ## Empty-search / browse state
 Initial load without a deep link, explicit search clearing and empty/whitespace-only submission enter the same root browse state: available first-level/root categories remain visible, descendants are collapsed, and no category, occurrence or PART is selected or underlined. Clear removes previous query candidates, match highlights and selected-path expansion; it must not leave the permanent tree at a no-selection placeholder when roots are available.
 

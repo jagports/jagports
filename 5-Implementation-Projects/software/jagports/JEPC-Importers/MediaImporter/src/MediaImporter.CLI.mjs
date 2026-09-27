@@ -1,13 +1,12 @@
 import { parseArgs } from 'node:util';
 import { moveCursor, cursorTo, clearScreenDown } from 'node:readline';
-import { importManifest, inspectMedia, preserveMedia, readState, run } from './MediaImporter.Runtime.mjs';
+import { inspectMedia, preserveMedia, readState, run } from './MediaImporter.Runtime.mjs';
 
 const help = `
 Jagports JEPC MediaImporter v0.1 — bounded local preservation
 (C)2026 by tlindi and ChatGPT
 
 Node.js 24+; run locally beside a JEPC installation.
-  import-manifest --manifest <file> --state-dir <directory>
   inspect --source <JEPC root> --state-dir <directory> --media-id <id> [--json]
   preserve --source <JEPC root> --state-dir <directory> --destination-dir <directory> --media-id <id> [--json]
   run --source <JEPC root> --state-dir <directory> [--json]
@@ -37,14 +36,13 @@ export function screen(snapshot) {
 
 async function main() {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
-  source: { type: 'string' }, 'state-dir': { type: 'string' }, 'destination-dir': { type: 'string' }, manifest: { type: 'string' }, 'media-id': { type: 'string' },
+  source: { type: 'string' }, 'state-dir': { type: 'string' }, 'destination-dir': { type: 'string' }, 'media-id': { type: 'string' },
     json: { type: 'boolean' }, full: { type: 'boolean' }, help: { type: 'boolean', short: 'h' },
   } });
   if (values.help || !positionals.length) { console.log(help); return; }
   const [command] = positionals;
-  if (positionals.length !== 1 || !['import-manifest', 'inspect', 'preserve', 'run', 'status', 'report', 'doctor'].includes(command)) throw new Error('Unknown command. Use --help.');
-  const allowed = command === 'import-manifest' ? ['manifest', 'state-dir']
-    : command === 'inspect' ? ['source', 'state-dir', 'media-id', 'json'] : command === 'preserve' ? ['source', 'state-dir', 'destination-dir', 'media-id', 'json']
+  if (positionals.length !== 1 || !['inspect', 'preserve', 'run', 'status', 'report', 'doctor'].includes(command)) throw new Error('Unknown command. Use --help.');
+  const allowed = command === 'inspect' ? ['source', 'state-dir', 'media-id', 'json'] : command === 'preserve' ? ['source', 'state-dir', 'destination-dir', 'media-id', 'json']
       : command === 'run' ? ['source', 'state-dir', 'json']
         : command === 'doctor' ? ['state-dir', 'full'] : command === 'status' ? ['state-dir', 'json'] : ['state-dir'];
   for (const key of Object.keys(values)) if (!allowed.includes(key)) throw new Error(`--${key} is not valid for ${command}.`);
@@ -52,10 +50,6 @@ async function main() {
   if (command === 'status' || command === 'report' || command === 'doctor') {
     const result = readState(values['state-dir'], { report: command === 'report', doctor: command === 'doctor', full: values.full });
     console.log(command === 'status' && !values.json ? screen(result) : JSON.stringify(result, null, 2)); return;
-  }
-  if (command === 'import-manifest') {
-    if (!values.manifest) throw new Error('--manifest is required.');
-    console.log(JSON.stringify(await importManifest({ manifest: values.manifest, stateDir: values['state-dir'] }), null, 2)); return;
   }
   if (!values.source) throw new Error('--source is required.');
   if ((command === 'inspect' || command === 'preserve') && !values['media-id']) throw new Error('--media-id is required.');

@@ -52,8 +52,6 @@ The normal Management lifecycle states defined by `00-Management/WORKFLOWS.md` h
 
 A state is not established merely by an Issue comment. When the work is represented in GitHub Project, the Project Item and its **Project Item Status** are the authoritative Kanban representation and must be verified according to this file by a capable actor/tool.
 
-For the current ChatGPT/GitHub connection, Project Item Status cannot be read or verified. Use the current capability-boundary reporting sentence instead of claiming Project state.
-
 ### Project operation rule
 
 A Project operation has two distinct phases:
@@ -78,7 +76,7 @@ If mutation fails, the Project Item cannot be found, the expected field/value ca
 - state that **no successful Project operation is claimed**;
 - never convert an intended state into a claimed actual state.
 
-This rule applies to automated and manual Project operations by capable actors/tools. It is not executable through the current ChatGPT/GitHub connection.
+This rule applies to automated and authorized manual Project operations. Agent execution and reporting follow `PROJECT_CAPABILITY_BOUNDARY.md`; normal lifecycle synchronization uses the existing repository Actions.
 
 ### Issue creation
 

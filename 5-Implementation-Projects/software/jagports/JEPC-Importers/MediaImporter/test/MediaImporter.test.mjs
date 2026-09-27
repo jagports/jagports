@@ -6,8 +6,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import {
-  candidatePaths, inspectImage, inspectMedia, importManifest, logicalMediaKey,
-  parseHotspots, preserveMedia, readState, referenceId, run,
+  candidatePaths, inspectImage, inspectMedia, parseHotspots, preserveMedia, readState, run,
 } from '../src/MediaImporter.Runtime.mjs';
 import { FilesystemDestination, objectKey } from '../src/MediaImporter.Destination.mjs';
 
@@ -22,17 +21,13 @@ const hotspot = `<image><originalwidth>1544</originalwidth><originalheight>1965<
 async function fixture(t) {
   const root = await mkdtemp(path.join(tmpdir(), 'jepc-media-importer-'));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const source = path.join(root, 'source'), stateDir = path.join(root, 'state'), manifest = path.join(root, 'work.jsonl');
+  const source = path.join(root, 'source'), stateDir = path.join(root, 'state');
   for (const [relative, contents] of [
     ['flash/images/tu6333.jpg', jpeg], ['illustrations/png/tu6333.png', png], ['flash/xml/tu6333.xml', hotspot],
   ]) {
     const target = path.join(source, relative); await mkdir(path.dirname(target), { recursive: true }); await writeFile(target, contents);
   }
-  const header = { recordType: 'manifest', contract: 'jagports.jepc.media-work', version: 1, manifestId: 'fixture-1', createdAt: '2026-09-23T00:00:00Z', sourceNamespace: 'JEPC', sourceRelease: 'unknown', sourceRootFingerprint: 'fixture', producerVersion: 'fixture-1' };
-  const base = { logicalMediaId: 'tu6333', mediaRole: 'diagram', modelId: '3187', categoryId: '11096', itemId: null, languageId: '0', referringPath: 'drilldown/pl_id_3187/L0/cat_M3187_C11096_L0.xml', referringRecord: { row: 2 }, sourceProvenance: { fixture: true } };
-  const record = { recordType: 'mediaReference', ...base, referenceId: referenceId(header, base) };
-  await writeFile(manifest, `${JSON.stringify(header)}\n${JSON.stringify(record)}\n`);
-  return { root, source, stateDir, manifest, header, record };
+  return { root, source, stateDir };
 }
 
 test('candidate paths and parsers are bounded and retain raw hotspot rectangles', () => {
@@ -70,20 +65,14 @@ test('preserve creates physical image and private XML objects and reuses them', 
   assert.equal(files.toString(), hotspot);
 });
 
-test('manifest import is replay-safe and bounded run preserves images and raw XML', async t => {
+test('direct media inspection is replay-safe and preserves images and raw XML', async t => {
   const options = await fixture(t);
-  const first = await importManifest(options);
-  assert.equal(first.imported, 1);
-  await importManifest(options);
-  let db = new DatabaseSync(path.join(options.stateDir, 'media-ledger.sqlite'));
-  assert.equal(db.prepare('SELECT count(*) n FROM media_reference').get().n, 1);
-  db.close();
   const original = await readFile(path.join(options.source, 'flash/images/tu6333.jpg'));
-  const result = await run(options);
+  const result = await inspectMedia({ ...options, mediaId: 'tu6333' });
   assert.equal(result.run.state, 'COMPLETED');
   assert.equal(result.work.PROCESSED, 1);
   assert.deepEqual(await readFile(path.join(options.source, 'flash/images/tu6333.jpg')), original);
-  db = new DatabaseSync(path.join(options.stateDir, 'media-ledger.sqlite'));
+  const db = new DatabaseSync(path.join(options.stateDir, 'media-ledger.sqlite'));
   const candidates = db.prepare('SELECT role,media_type,width,height,state FROM candidates ORDER BY role').all().map(row => ({ ...row }));
   assert.deepEqual(candidates, [
     { role: 'hotspot_xml', media_type: null, width: null, height: null, state: 'FOUND' },
@@ -113,7 +102,9 @@ test('missing and corrupt candidates are explicit and source root/state safety i
 
 test('safe-stop retains committed work and dead owners are recovered', async t => {
   const options = await fixture(t);
-  await importManifest(options);
+  await inspectMedia({ ...options, mediaId: 'tu6333' });
+  const db0 = new DatabaseSync(path.join(options.stateDir, 'media-ledger.sqlite'));
+  db0.prepare("UPDATE media_work SET state='DISCOVERED'").run(); db0.close();
   let stop = false;
   const result = await run(options, { onProgress: () => { stop = true; }, shouldStop: () => stop });
   assert.equal(result.run.state, 'STOPPED_BY_USER');
@@ -139,6 +130,6 @@ test('CLI supports bounded inspect and rejects incomplete commands', async t => 
   const result = call(['inspect', '--source', options.source, '--state-dir', options.stateDir, '--media-id', 'tu6333', '--json']);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(JSON.parse(result.stdout).run.state, 'COMPLETED');
-  assert.equal(call(['status', '--state-dir', options.stateDir, '--manifest', options.manifest]).status, 1);
+  assert.equal(call(['unknown-command', '--state-dir', options.stateDir]).status, 1);
 });
 

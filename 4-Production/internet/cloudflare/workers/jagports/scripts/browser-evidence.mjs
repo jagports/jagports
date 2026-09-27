@@ -27,6 +27,61 @@ const browserPaths = [
   ] },
 ];
 
+
+// Synthetic source-qualified API fixture for the browser layout harness.
+// Independent D1/endpoint assertions are exercised on implementation PR #892.
+const browserSuitability = [
+  ["body", [["coupe", "Coupe", "Coupé"], ["convertible", "Convertible", "Avoauto"]], "Body", "Kori"],
+  ["engine_aspiration", [["na", "NA", "Vapaasti hengittävä"], ["supercharged", "Supercharged", "Mekaanisesti ahdettu"]], "Engine aspiration", "Moottorin ahtaminen"],
+  ["seat_equipment", [["memory_seat", "Memory Seat", "Muisti-istuin"], ["powered_seats", "Powered Seats", "Sähkösäätöiset istuimet"]], "Seat equipment", "Istuinvarusteet"],
+  ["steering", [["LHD", "LHD", "Vasemmalta ohjattava"], ["RHD", "RHD", "Oikealta ohjattava"]], "Steering", "Ohjaus"],
+];
+const browserOccurrences = [
+  { part_id: 101, occurrence_id: 1001, occurrence_key: "BR-O-A", values: [
+    "body:coupe", "steering:LHD", "engine_aspiration:supercharged",
+    "seat_equipment:memory_seat", "seat_equipment:powered_seats",
+  ] },
+  { part_id: 102, occurrence_id: 1002, occurrence_key: "BR-O-B", values: [
+    "body:convertible", "steering:RHD", "engine_aspiration:na",
+    "seat_equipment:powered_seats",
+  ] },
+];
+function browserSuitabilityResponse(params) {
+  const fi = params.get("ui_language") === "fi";
+  const categories = browserSuitability.map(([code, values, en, fin]) => ({
+    code, name: fi ? fin : en, description: fi ? fin : en,
+    values: values.map(([value, english, finnish], i) => ({
+      id: code + ":" + value, code: value,
+      name: fi ? finnish : english, description: fi ? finnish : english,
+      source_descriptions: [{
+        id: 9000 + i, mapping_revision_id: 10000 + i,
+        source_namespace: "fixture:pre-jepc-suitability:v1",
+        dataset: "browser-v1", language: "en", locator: "browser/" + code + "/" + value,
+        original_text: english, provenance: "synthetic_fixture",
+      }],
+    })),
+  }));
+  const selected = params.getAll("facet");
+  const grouped = new Map();
+  for (const id of selected) {
+    const [dimension] = id.split(":");
+    if (!grouped.has(dimension)) grouped.set(dimension, new Set());
+    grouped.get(dimension).add(id);
+  }
+  const matches = params.get("stock_only") === "1" ||
+    (params.get("q") && !["BRTEST", "BRTEST1", "BRTEST2"].includes(params.get("q")))
+    ? [] : browserOccurrences.filter((item) => [...grouped].every(([dimension, choices]) =>
+      dimension === "seat_equipment"
+        ? [...choices].every((id) => item.values.includes(id))
+        : [...choices].some((id) => item.values.includes(id))));
+  return {
+    state: matches.length ? "applicable" : "no_match", fixture_mode: true,
+    source_namespace: "fixture:pre-jepc-suitability:v1",
+    selected, query: params.get("q") || "", categories, matches, excluded_occurrences: [], unavailable_occurrences: [],
+    available_options: [...new Set(matches.flatMap((m) => m.values))].sort(),
+  };
+}
+
 async function localServer() {
   const server = createServer(async (request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
@@ -36,6 +91,12 @@ async function localServer() {
         roots: [{ node_id: 1, label: "XK Range (browser fixture)", sort_order: 1 }],
         stock_browse_state: "unsupported",
       }));
+      return;
+    }
+    if (pathname === "/api/vieps/suitability") {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify(browserSuitabilityResponse(
+        new URL(request.url, "http://localhost").searchParams)));
       return;
     }
     if (pathname === "/api/vieps/part") {
@@ -99,7 +160,7 @@ async function geometry(page) {
       contentScrollable: content.scrollHeight > content.clientHeight,
       contentScrollTop: content.scrollTop,
       locationHeight: rect(".location-panel").height,
-      fitmentHeight: rect(".fitment-panel").height,
+      rangesHeight: rect(".ranges-panel").height,
       visualHeight: rect(".visual-panel").height,
     };
   });
@@ -246,6 +307,44 @@ try {
     assert.match(await page.locator("#ranges").textContent(), /XK Range/,
       "selected-PART Applicable Models must come from positive fixture evidence");
     await page.screenshot({ path: evidenceDir + "desktop-synchronized-selection.png", fullPage: true });
+
+    // #895 source-qualified fixture-backed filter uses the existing three
+    // columns and synchronizes BOTH results surfaces without guessing fitment.
+    const coupe = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+    await coupe.waitFor();
+    await coupe.check();
+    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    await page.locator('#searchResults [data-result-part-id="101"]').waitFor();
+    await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
+    assert.equal(await page.locator("#searchResults [data-result-part-id]").count(), 1,
+      "Suitability checkbox must actually narrow the right Search Results");
+    assert.equal(await page.locator('#tree [data-part-id="102"]').count(), 0,
+      "Suitability must filter left Parts Tree leaves in the same way");
+    assert.equal(await page.locator('#partCard').textContent().then((v) => v.includes("BRTEST2")), false,
+      "out-of-filter selected PART must be cleared");
+    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:memory_seat"]').check();
+    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]').check();
+    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]:checked').waitFor();
+    assert.deepEqual(await page.locator('#variationOptions input:checked').evaluateAll((nodes) =>
+      nodes.map((node) => node.closest("label").querySelector("span").textContent.trim())),
+    ["Coupe", "Memory Seat", "Powered Seats"], "checked options appear first alphabetically");
+    const groupScroll = await page.locator("#variationOptions").evaluate((node) => ({
+      viewport: node.clientWidth, content: node.scrollWidth, overflowX: getComputedStyle(node).overflowX,
+    }));
+    assert.equal(groupScroll.overflowX, "auto");
+    assert.ok(groupScroll.content >= groupScroll.viewport);
+    await page.screenshot({ path: evidenceDir + "desktop-suitability-filter.png", fullPage: true });
+    await page.locator('[data-language="fi"]').click();
+    await page.locator("#variationOptions").filter({ hasText: "Coupé" }).waitFor();
+    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
+    assert.match(await page.locator('#variationOptions label:has([data-suitability-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
+    await page.screenshot({ path: evidenceDir + "desktop-suitability-fi.png", fullPage: true });
+    await page.locator('[data-language="en"]').click();
+    await page.locator("#partNumber").fill("");
+    await page.locator("#tree .tree-node-row").first().waitFor();
+    assert.equal(await page.locator("#variationOptions input:checked").count(), 0,
+      "clearing search clears active suitability selections");
   }
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
@@ -287,8 +386,15 @@ try {
   await page.locator("#partNumber").focus();
   assert.equal(await page.evaluate(() => document.activeElement?.id), "partNumber",
     "Find must remain keyboard focusable on tablet");
-  assert.ok(await page.locator("#vinInput").isDisabled() && await page.locator("#variationsSelect").isDisabled(),
-    "unsupported VIN and advanced variation controls stay explicitly disabled");
+  assert.ok(await page.locator("#vinInput").isDisabled(),
+    "unsupported VIN lookup stays explicitly disabled");
+  assert.equal(await page.locator("#variationsSelect").count(), 0,
+    "#895 removed the obsolete disabled variation dropdown");
+  const variationGroup = page.locator("#variationOptions");
+  assert.equal(await variationGroup.getAttribute("role"), "group",
+    "#895 upper variation controls retain a labelled accessibility group");
+  assert.equal(await variationGroup.getAttribute("aria-labelledby"), "variationsHeading",
+    "upper variation controls use the visible heading");
   await page.screenshot({ path: evidenceDir + "tablet-900.png", fullPage: true });
 
   // Mobile snapshots prove the upper controls stay put while lower panels scroll.
@@ -300,9 +406,35 @@ try {
     assert.ok(g.pageWidth <= width + 1 && g.bodyWidth <= width + 1, width + "px horizontal overflow");
     assert.ok(g.contentScrollable, width + "px lower content must be independently scrollable");
     assert.ok(g.content.height >= 50, width + "px lower content is trapped");
-    assert.ok(g.locationHeight >= 170 && g.fitmentHeight >= 170 && g.visualHeight >= 300,
+    assert.ok(g.locationHeight >= 170 && g.rangesHeight >= 170 && g.visualHeight >= 300,
       width + "px reserved content panels shrank");
     await page.screenshot({ path: evidenceDir + "mobile-" + width + ".png" });
+    if (!base) {
+      await page.locator("#partNumber").fill("BRTEST");
+      await page.locator("#partSearch").press("Enter");
+      await page.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
+      const facet = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+      await facet.waitFor();
+      if (width === 220) {
+        await facet.focus();
+        await facet.press("Space");
+      } else {
+        await facet.check();
+      }
+      await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
+      const facetScroll = await page.locator("#variationOptions").evaluate((node) => ({
+        overflowX: getComputedStyle(node).overflowX,
+        viewport: node.clientWidth,
+        content: node.scrollWidth,
+      }));
+      assert.equal(facetScroll.overflowX, "auto", width + "px facet row must scroll horizontally");
+      assert.ok(facetScroll.content > facetScroll.viewport,
+        width + "px long source-backed descriptions must stay inside the horizontal scroller");
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        width + "px facet row must not widen the page");
+      await page.screenshot({ path: evidenceDir + "mobile-" + width + "-suitability.png" });
+    }
     const topBefore = g.top.top;
     const findBefore = g.find.top;
     await page.locator("#result").evaluate((node) => { node.scrollTop = 500; });
@@ -333,6 +465,119 @@ try {
   assert.ok(g.pageWidth <= g.viewport.width + 1, "landscape horizontal overflow");
   assert.ok(g.content.height >= 40, "landscape content became inaccessible");
   await page.screenshot({ path: evidenceDir + "mobile-landscape.png" });
+  // The same existing #893 browser workflow also verifies the real one-page
+  // Admin layout and source-qualified mapping controls without publishing fixtures.
+  if (!base) {
+    const auditWrites = [];
+    const originalSource = {
+      id: 87709, original_text: "Coupe", source_language: "en",
+      source_namespace: "fixture:pre-jepc-suitability:v1",
+      dataset_key: "browser", source_key: "body/group-2",
+      source_group_code: "Body-2", source_model_ref: "X100",
+      record_locator: "browser/body/group-2", provenance_kind: "fixture",
+      status: "proposed", revision: 1, dimension_id: 87701,
+      value_code: "coupe", mapping_version: "browser-v1",
+      evidence_note: "Unresolved source sample",
+    };
+    let currentSource = { ...originalSource };
+    const fulfil = (route, body) => route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify(body),
+    });
+    await page.route("**/api/**", async (route) => {
+      const request = route.request(), url = new URL(request.url()), path = url.pathname;
+      if (path === "/api/stock-meta") {
+        await fulfil(route, { locations: [], source_parties: [], vehicles: [] });
+      } else if (path === "/api/stock") {
+        await fulfil(route, { results: [] });
+      } else if (path === "/api/admin/suitability" && request.method() === "GET") {
+        await fulfil(route, {
+          categories: [{
+            id: 87701, code: "body", name_en: "Body", name_fi: "Kori",
+            description_en: "Body shape", description_fi: "Korin muoto",
+          }],
+          values: [{
+            dimension_id: 87701, value_code: "coupe",
+            name_en: "Coupe", name_fi: "Coupé",
+            description_en: "Coupe body", description_fi: "Coupé-kori",
+          }],
+          sources: [currentSource], next_offset: null,
+        });
+      } else if (path === "/api/admin/suitability/mappings" && request.method() === "POST") {
+        const body = JSON.parse(request.postData());
+        auditWrites.push(body);
+        currentSource = { ...currentSource, status: body.status,
+          revision: currentSource.revision + 1, mapping_version: body.mapping_version,
+          evidence_note: body.evidence_note, reviewer_ref: body.reviewer_ref };
+        await fulfil(route, { mapping: { revision: currentSource.revision,
+          status: currentSource.status } });
+      } else if (path === "/api/admin/suitability/history") {
+        await fulfil(route, { source_description_id: currentSource.id, audit: [],
+          revisions: [
+            { revision: 1, status: "proposed", mapping_version: "browser-v1",
+              evidence_note: "Unresolved source sample" },
+            { revision: 2, status: currentSource.status,
+              mapping_version: currentSource.mapping_version,
+              evidence_note: currentSource.evidence_note },
+          ] });
+      } else await route.continue();
+    });
+    await page.setViewportSize({ width: 1240, height: 860 });
+    await page.goto(local.url + "stock-admin.html", { waitUntil: "load" });
+    await page.locator("#adminToken").fill("browser-admin-test");
+    await page.locator("#accessForm button[type=submit]").click();
+    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
+    assert.match(await page.locator("#suitabilitySourceDetails").textContent(),
+      /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
+      "Admin must show raw text and its distinct source namespace and group");
+    await page.locator("#suitabilityMappingStatus").selectOption("conflict");
+    await page.locator("#suitabilityMappingVersion").fill("browser-v2");
+    await page.locator("#suitabilityEvidenceNote").fill("Group requires separate verification");
+    await page.locator("#suitabilityMappingForm button[type=submit]").click();
+    await page.locator("#suitabilityAdminStatus").filter({ hasText: "Catalogue change saved" }).waitFor();
+    assert.equal(auditWrites.length, 1, "Admin must submit exactly one new mapping revision");
+    assert.equal(auditWrites[0].source_description_id, 87709,
+      "mapping must use immutable source ID, not display text");
+    assert.equal(auditWrites[0].status, "conflict",
+      "unverified fixture description must not become verified JEPC");
+    assert.equal(currentSource.original_text, "Coupe");
+    await page.locator("#suitabilityShowHistory").click();
+    await page.locator("#suitabilityHistory li").last().waitFor();
+    assert.equal(await page.locator("#suitabilityHistory li").count(), 2,
+      "Admin must show historic and current interpretation separately");
+    await page.screenshot({ path: evidenceDir + "admin-suitability-desktop.png", fullPage: true });
+    await page.locator('[data-language="fi"]').click();
+    assert.match(await page.locator("#suitabilityAdminHeading").textContent(), /Soveltuvuusluokat/);
+    await page.setViewportSize({ width: 320, height: 780 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
+      "Admin must not cause horizontal overflow on 320px mobile");
+    await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    // Existing browser workflow also exercises a touch-emulated 320px device.
+    // Actual hardware testing remains a separate optional manual check.
+    const touchContext = await browser.newContext({
+      viewport: { width: 320, height: 780 }, hasTouch: true, isMobile: true,
+    });
+    try {
+      const touchPage = await touchContext.newPage();
+      await touchPage.goto(local.url, { waitUntil: "load" });
+      await touchPage.locator("#tree .tree-node-row").first().waitFor();
+      await touchPage.locator("#partNumber").fill("BRTEST");
+      await touchPage.locator("#partSearch").press("Enter");
+      await touchPage.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
+      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]').tap();
+      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await touchPage.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
+      assert.equal(await touchPage.locator('#searchResults [data-result-part-id]').count(), 1,
+        "touch-selected suitability must narrow canonical results");
+      assert.ok(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        "touch device must not acquire page-level horizontal overflow");
+      await touchPage.screenshot({ path: evidenceDir + "mobile-320-suitability-touch.png", fullPage: true });
+      console.log("PASS: 320px emulated touch toggles occurrence-backed Suitability without page overflow");
+    } finally {
+      await touchContext.close();
+    }
+    console.log("PASS: one-page Admin source-qualified mappings, history, EN/FI, mobile and screenshots");
+  }
+
   console.log("PASS: #875 desktop/tablet/mobile geometry, synchronized PART selection, independent scrolling, accessibility and screenshots");
   console.log("Evidence directory: " + evidenceDir);
   if (!base) console.log("Scope: built local UI, not a verified deployed Worker or real device soft keyboard");

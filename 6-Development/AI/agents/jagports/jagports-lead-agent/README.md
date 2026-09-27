@@ -84,7 +84,7 @@ For the short saved-status Telegram delivery smoke test and its two-part accepta
 | Reusable shell commands, manual smoke tests, diagnostics and historical engineering command variants | [OPERATIONS.md](OPERATIONS.md) |
 | Live Raspberry Pi service/timer procedure, project rationale, prototype history and operator evidence | [MyNode deployment and project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
 | Actual source-backed research and unresolved evidence | The repository's established `7-Research/` semantic root |
-| Cross-project workflow, decision authority and agent responsibilities | [Management workflow](../../../../../00-Management/WORKFLOWS.md) and [agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) |
+| Cross-project workflow, decision authority and agent responsibilities | [Management workflow](../../../../../0-DocumentationEducationCompetense/WORKFLOWS.md) and [agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) |
 
 `SPEC_Agent_Lead.md` and this README intentionally remain separate: technical requirements change through specification review, while human operation remains discoverable without scanning normative data contracts. The Operations and Deployment documents likewise remain distinct because portable test procedures are not the live host configuration.
 

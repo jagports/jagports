@@ -1,52 +1,60 @@
-# JEPC Data Importer runtime skeleton
+# JEPC DataImporter v0.1a
 
-Implements the first runtime slice of issue #355 and [importer specification v0.1](SPEC_DataImporter_v0.1.md). Run this application **locally on Windows**, beside the installed JEPC files, using **Node.js 24 or later**. It uses Node's built-in SQLite module; no package installation, server, cloud deployment or browser is required. Node may print an experimental SQLite warning on stderr.
+DataImporter runs on the Windows computer that has the JEPC installation. **The current command parses source categories into its local SQLite ledger; it does not create VIEPS catalogue records or upload anything to D1.** The [operating specification](SPEC_DataImporter.md) covers the later transformation and publication stages.
 
-This version performs real, bounded **source inspection**, not catalogue import. It reads eight expected paths for one explicitly selected model/category/item/language bundle, records SHA-256 evidence in its own SQLite ledger, and reports missing files. It does not enumerate the million-file installation. This path template is the initial XK inspection recipe, not a claim that every JEPC bundle has exactly these eight files. Missing sidecars are evidence to investigate, not an inferred absence of conditions.
+## Agent and operator procedure
 
-## Start on this computer
-
-Open PowerShell in `5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/`. This application and its specification are Jagports software; the future `MediaImporter/` will live alongside it under `JEPC-Importers/`.
+Run on the Windows computer with the JEPC installation. From the Jagports repository root, the Product Owner needs one command:
 
 ```powershell
-node src/DataImporter.CLI.mjs --help
-node src/DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
-node src/DataImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
-node src/DataImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
-node src/DataImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --full
-npm test
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse XK
 ```
 
-The source directory is read-only to this application. Put state outside the installation; paths resolving through junctions into the source are rejected. Keep the source stable during inspection. Do not share one ledger between computers: the single-writer check uses local process IDs. One state directory supports different profiles and source roots; `status` and `report` show its latest run. State remains local and must not be committed.
+The computer needs Node.js 24 or later and the JEPC source root containing `menus/models_l_id_0.xml` and `drilldown/`. The default source root is `C:\Program Files\JEPC\applications\JEPC`; the local output goes under `$env:LOCALAPPDATA\Jagports\JEPC-Importer`. No `npm install` is needed. The application does not change the JEPC installation. When asked to run or investigate DataImporter, an agent with access to this computer should execute the command and report its findings instead of asking the human to transcribe chat instructions.
 
-## CLI contract v1
+## Agent inspection of a run
 
-| Command | Contract |
-| --- | --- |
-| `inspect` | Requires `--source`, `--state-dir`, `--model`, `--category`, `--item`; optional `--language` defaults to `0`. IDs must be numeric. Reads the English model menu for exact parent/model labels. |
-| `inspect --json` | One final JSON snapshot on stdout; diagnostics on stderr. No terminal control sequences. |
-| `status` | Read-only latest persisted snapshot; `--json` returns its machine representation. |
-| `report` | Read-only JSON with latest run and ordered detailed events, including paths/checksums. Redirect stdout to save a report. |
-| `doctor` | Read-only `quick_check` and `foreign_key_check`; `--full` selects `integrity_check`. Requires an existing ledger. |
+From the repository root, run the same command **once** and keep its JSON result in `$result`:
 
-Exit codes: `0` successful inspection/read command, `1` invalid invocation or failure, `2` completed inspection with missing paths, `130` user stop/emergency exit. `COMPLETED` means the inspection recipe finished; it never means parts were imported. Unknown options and commands fail, including an unimplemented `run`/`migrate` command.
+```powershell
+$result = node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse XK | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw 'DataImporter failed; inspect its error above.' }
+$result | Select-Object modelPattern, modelIds, eligible, selected, incompleteCategories
+$result.sampledCategories | Format-Table model, category, categoryLabel
+$result.staging | Select-Object bundles, reused, files, records, unknown, missingOptionalSidecars, database, runId
+```
 
-## Progress-screen contract v1
+`XK` is matched case-insensitively against the model names in the installed XML menu. A matching parent includes its leaf models. The command identifies complete categories in those models, then makes up to **40 fresh random picks per run**. Each pick chooses a model with remaining categories and one category in that model. A category cannot be picked twice in the same run. Progress appears while selection and parsing run. Repeat the command only when another random set is wanted. Different runs may overlap, and repeated random runs do not guarantee eventual coverage of every category.
 
-Interactive stdout is redrawn in place with the application name, copyright, source parent/model labels, language, phase, run state and aggregate files checked/total, unchanged and missing. Filenames, bundle keys and deep breadcrumbs appear only in the persistent detailed events/report. Region explicitly says it is not interpreted; neither `($)` nor labels automatically become a market restriction.
+The read sequence starts with `menus/models_l_id_0.xml`. For each matched leaf Model_ID, selection reads `menus/L0/pl_id_<Model_ID>_l_id_0.xml` and lists `drilldown/pl_id_<Model_ID>/L0/` to find complete categories. It then reads and checksums the randomly selected category's `cat_*`, `tl_*`, and `Itm_*` files. The parser rereads those selected files and checks for matching optional `_attributes.xml` sidecars. The exact category filenames vary with each random selection. `--estimate`, when present, scans all files under the matched model directories and their model menus after selection and before parsing; it does not inventory the whole JEPC installation or shared media.
 
-The screen explicitly states that catalogue import, content/translation counts and media processing are not implemented. Future content tables will distinguish canonical parts from source occurrences and translations as specified in v0.1; this skeleton supplies no fabricated part counters. There is no percentage for the full installation: the denominator is only the eight selected paths. Piped output prints one final screen or JSON snapshot.
+`reused` counts unchanged categories already present in `ledger.sqlite` from an earlier run. The `bundle_evidence` table stores the parsed category evidence, including `status`, `source`, `files`, `records`, `unknown`, and `missingOptionalSidecars`. Each file record includes its source path, checksum, raw bytes encoded as base64, and parsed or unrecognized lines. Agents can inspect `evidence_json` for a selected model/category/language with a SQLite reader; the Product Owner only needs the one command above. Review unknown records against the preserved source evidence before proposing a parser change.
 
-`Q` in an interactive terminal or the first Ctrl+C requests stopping after the current file's checksum and SQLite checkpoint commit. A second Ctrl+C exits immediately. Completed checkpoints survive. On the next `inspect`, a dead owner's `RUNNING` record becomes `CRASH_RECOVERED` after a full integrity check. A live owner blocks concurrent inspection. PID reuse may conservatively block recovery until that unrelated process exits; no force-unlock command is supplied.
+For development follow-up, record the command and model pattern, the matched Model_IDs, eligible/selected/incomplete counts, the selected model/category IDs, staging totals, and any unknown records or missing sidecars in the relevant Issue or PR. Include the local ledger path and run ID so an agent on the installation computer can inspect the exact source bytes and line-numbered records. A successful parse does not imply catalogue import or D1 publication.
 
-## Persistence and incremental boundary
+The SQLite ledger retains source bytes, checksums, ordered records, line numbers, available applicability sidecars, run history and unknown record locations. Missing sidecars and incomplete categories are reported rather than treated as unrestricted applicability. Selection is held only in memory; there is no selection file to save or pass to another command. Earlier JSON staging files, if present from a previous build, are not moved or deleted; current runs do not create more of them.
 
-`ledger.sqlite` uses controlled schema/contract version 1. Each file result and event are committed together with run counters. Run states are `RUNNING`, `COMPLETED`, `STOPPED_BY_USER`, `FAILED`, and `CRASH_RECOVERED`. Inspection-file states are `INSPECTED` and `MISSING`; they deliberately do not mark importer-spec bundles `PROCESSED`. Startup checks database health and rejects unsupported ledger versions.
+For a JEPC installation in a different location, set its source root in the environment before running the same command:
 
-Repeating the same command rehashes just these eight paths, identifies unchanged bytes using source root + relative path + SHA-256 + inspector version, and refreshes evidence. It does not trust mtime as identity. This is restartable inspection, not yet incremental parsing or source-to-destination publication. The ledger is the continuously updated development record; `report` exports the latest run at any checkpoint. Nothing is written to VIEPS or to the source installation.
+```powershell
+$env:JEPC_SOURCE = 'D:\JEPC\applications\JEPC'
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse XK
+```
 
-Next slices: bounded bundle discovery, lossless parsing/raw preservation and unknown-structure reports, atomic whole-bundle transformations with occurrence-level applicability and grouped conditions, destination staging/publication, content/translation counters, and incremental MediaImporter with hotspot provenance. MediaImporter can share these operating conventions but has no executable implementation here. The separate applicability proposal PR #659 is not a runtime dependency.
+`--parse` matches model names from the source XML.
+The pattern must contain at least two characters.
+The CLI accepts no other flags or positional commands. Progress appears on standard error; the final JSON result appears on standard output.
 
-## Verification
+## Optional import estimates
 
-`npm test` uses temporary synthetic fixtures to exercise checksum reuse/change/missing handling, source preservation, safe stopping/resumption, writer exclusion/dead-owner recovery, failed runs, schema guards and CLI exit contracts. The installed XK bundle is a separate smoke check, not proof of full catalogue coverage. No recursive source traversal or production migration is required.
+Add the optional `--estimate` flag to a parse command if you want a separate file/byte inventory for the matched models. `--estimate` cannot run without `--parse PATTERN`:
+
+```powershell
+$result = node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse XK --estimate | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw 'DataImporter failed; inspect its error above.' }
+$result.estimate
+```
+
+The estimate inventories source files for the matched models, beyond the 40 parsed categories. Check `$result.estimate.state`: `COMPLETED` means the scoped scan finished without recorded errors; `INCOMPLETE` or `FAILED` needs investigation. `$result.estimate.reportId` identifies the report in `ledger.sqlite`'s `source_estimates` table, with measured file and byte counts, elapsed scan time, scan errors, and a sample of source-file read statistics. An interrupted CLI process may not save a partial estimate report. D1 storage and import-time projections require calibration from an actual published import; they are unavailable in v0.1a.
+
+Agents changing importer code should run `npm test` from the DataImporter directory to execute the synthetic parser, selection, safety and CLI tests. The sibling MediaImporter handles images and hotspots separately.

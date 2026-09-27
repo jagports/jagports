@@ -21,7 +21,7 @@ permissions, approval rights, or a parallel operating model.
 
 Use the current authoritative sources:
 
-- `00-Management/WORKFLOWS.md` — workflow states, transitions, Repository Change Gate, review/testing boundaries, and decision precedence.
+- `0-DocumentationEducationCompetense/WORKFLOWS.md` — workflow states, transitions, Repository Change Gate, review/testing boundaries, and decision precedence.
 - `00-Management/RULES.md` — human governance and authority rationale.
 - `0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md` — escalation, decision, acknowledgement, and hand-off communication.
 - `0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md` — separation between durable knowledge, research evidence, implementation work, and operating rules.
@@ -108,5 +108,5 @@ human governance sources. This file exists to make the division of labour and
 research-to-specification hand-off explicit, not to create new authority.
 
 Escalation, decision, state-transition, review, testing, merge, and closure
-rules remain governed by `00-Management/WORKFLOWS.md` and the applicable
+rules remain governed by `0-DocumentationEducationCompetense/WORKFLOWS.md` and the applicable
 communication protocol.

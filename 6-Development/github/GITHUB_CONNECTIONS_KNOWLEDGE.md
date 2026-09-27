@@ -37,43 +37,13 @@ When repository implementation work requires capabilities not exposed by the cur
 
 If an expected repository is not available through the ChatGPT GitHub connection, verify the GitHub app installation/authorization and repository selection or approval applicable to the account or organization, following the current OpenAI documentation.
 
-## GitHub Project configuration and UI settings
+## Project synchronization and configuration
 
-GitHub Project configuration is a special capability boundary.
+During ordinary Issue/PR work, existing repository GitHub Actions handle the documented Project synchronization events and approved work-control triggers. The single agent execution/reporting rule is in `Projects/PROJECT_CAPABILITY_BOUNDARY.md`; workflow semantics are in `Projects/GITHUB_PROJECT_WORKFLOWS.md`. Do not repeat their instructions here.
 
-The current ChatGPT GitHub connector may expose repository Issues, Pull Requests, branches and files while not exposing equivalent mutation operations for GitHub Project configuration such as saved views, layouts, filters, sorting, fields, options, or other Project-level settings.
+When synchronization or other failures need diagnosis, inspect the relevant GitHub Actions runs, jobs, and logs, plus verified snapshots or failure comments where applicable. Do not turn a direct connector limitation into a routine status message or a prerequisite for unrelated work.
 
-Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.
-
-When the connector does not expose a required Project mutation:
-
-- do not repeatedly attempt unsupported connector/API operations;
-- do not claim that the Project was mutated;
-- do not claim that Project state was verified;
-- prepare a reviewed repository artifact, script, or owner-run procedure when that is the supported path;
-- record the limitation in the relevant Issue/PR.
-
-This is a connector capability boundary, not a Product Owner decision.
-
-A repository script may therefore be the normal implementation artifact for Project settings that cannot be mutated through the ChatGPT connector. The script remains subject to the normal Issue → branch → PR → review → testing/verification workflow.
-
-## Current ChatGPT/GitHub Project capability boundary
-
-For the current ChatGPT/GitHub connection, the following operations are unavailable and must not be attempted as normal executable workflow steps:
-
-- Project View read operations;
-- Project Item read operations;
-- Project Item Status read operations;
-- Project Item mutation operations;
-- Project Item Status mutation operations;
-- Project Item archive/unarchive operations;
-- Project field, view, or option management.
-
-When a repository document, Issue, PR, workflow, or script mentions Project Item Status, Project views, Project transitions, Project verification, Project mutations, Project archival state, or Project management, the current ChatGPT/GitHub connection must interpret that text only as context for a capable external actor, human, automation, or future tool. It is not permission or instruction for this connection to attempt Project operations.
-
-Required reporting sentence:
-
-`Project management/read capability is unavailable through this connection; no Project operation or Project state is claimed.`
+When the user separately requests Project layout, view, or other administrative configuration, use an explicitly authorized and reviewed repository script or the owner's authenticated GitHub CLI if the active connector does not support that specific requested operation. Such configuration is not an implicit step in ordinary Issue/PR execution.
 
 ## Jagports task hierarchy: do not use native GitHub sub-issues
 

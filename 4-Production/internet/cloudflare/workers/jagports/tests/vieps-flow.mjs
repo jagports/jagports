@@ -66,12 +66,12 @@ test('coordinated MVP flow keeps canonical PART through tree, suitable Range, va
   ui.get('rangeSelect').value = 'X100';
   ui.get('rangeSelect').listeners.change();
 
-  assert.match(ui.get('selectedRange').textContent, /X100/);
+  assert.match(ui.get('locationStatus').textContent, /X100/);
   assert.match(ui.get('partCard').innerHTML, /MJB7703AA/);
-  assert.match(ui.get('fitment').innerHTML, /4\.0 Coupe/);
-  assert.match(ui.get('fitment').innerHTML, /4\.0 Convertible/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Excluded fixture variation/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Unavailable fixture variation/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /4\.0 Coupe/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /4\.0 Convertible/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Excluded fixture variation/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Unavailable fixture variation/);
   assert.match(ui.get('visuals').innerHTML, /\/fixtures\/mjb7703aa\.svg/);
   assert.match(ui.get('visuals').innerHTML, /Representative verified fixture Part Image/);
   assert.match(ui.get('locationStatus').textContent, /unavailable/i);
@@ -81,10 +81,10 @@ test('variation panel distinguishes confirmed no-match from unavailable applicab
   const { ui } = productionPath(t);
 
   await ui.search('MNA7691AA');
-  assert.match(ui.get('fitment').innerHTML, /No applicable variation matches the selected PART\/context/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /No applicable variation matches the selected PART\/context/);
 
   await ui.search('XR847031');
-  assert.match(ui.get('fitment').innerHTML, /Variation applicability data is unavailable/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Variation applicability data is unavailable/);
 });
 
 test('public stock-only filter distinguishes stocked PARTs from stock-filtered empty results', async (t) => {
@@ -112,13 +112,14 @@ test('Part Image path keeps unavailable and non-numbered states explicit', async
 test('Concept-11 acceptance regions remain visibly represented in the production shell', () => {
   for (const id of [
     'partSearch', 'availabilitySelect', 'tree', 'rangeSelect', 'ranges',
-    'vehicleLocation', 'locationStatus', 'selectedRange', 'fitment', 'partCard',
+    'vehicleLocation', 'locationStatus', 'rangeEvidence', 'partCard',
     'visualChooser', 'visualSelect', 'visuals',
   ]) {
     assert.match(html, new RegExp(`id="${id}"`), id);
   }
   assert.match(html, /data-i18n="stock\.filter_on_stock"/);
   assert.match(html, /data-i18n="location\.heading"/);
-  assert.match(html, /data-i18n="fitment\.heading"/);
+  assert.match(html, /id="rangeEvidence"/);
+  assert.doesNotMatch(html, /class="fitment-panel"/);
   assert.match(html, /data-i18n="visual\.heading"/);
 });
