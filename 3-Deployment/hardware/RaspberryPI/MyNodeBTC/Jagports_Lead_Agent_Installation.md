@@ -204,4 +204,4 @@ The current modular Lead Agent remains deterministic and does not call `openai_s
 
 ## Source records and document consolidation
 
-This guide absorbs the project background and evidence previously maintained in `5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md`; active links are redirected here and the duplicate project-document path is removed by this PR. Closed Issue #594 and merged PR #595 remain historical records and are not edited. Merged PR #899 supplies the current timer procedure; open Issue #900 supplies the latest live-host evidence; open Issue #924 remains the active implementation and acceptance umbrella.
+This guide consolidates the former project background and evidence with the MyNodeBTC host procedure; the separate implementation-project setup document is removed from the active tree and all active links point here. Closed Issue #594 and merged PR #595 remain historical records and are not edited. Merged PR #899 supplies the current timer procedure; open Issue #900 supplies the latest live-host evidence; open Issue #924 remains the active implementation and acceptance umbrella.
