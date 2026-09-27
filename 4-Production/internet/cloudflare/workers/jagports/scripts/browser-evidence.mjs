@@ -613,7 +613,7 @@ try {
       await realPage.locator("#searchStatus.error").waitFor();
       await realPage.locator("#variationsStatus.error").waitFor();
       assert.match(await realPage.locator("#variationsStatus").textContent(),
-        /real Range database is unavailable/i,
+        /real Range database is unavailable|Oikean mallisarjan tietokantaa ei ole saatavilla/i,
         "missing live Range must also show an explicit Suitability error");
       assert.equal(await realPage.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "real mode must hide fixture help");
