@@ -9,8 +9,9 @@ const $ = (id) => {
 };
 const i18n = globalThis.viepsI18n;
 const t = (key, options) => i18n?.t(key, options) ?? key;
+const isTestMode = () => new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1";
 const apiUrl = (path) => {
-  if (new URLSearchParams(globalThis.location?.search || "").get("TEST") !== "1") return path;
+  if (!isTestMode()) return path;
   return `${path}${path.includes("?") ? "&" : "?"}TEST=1`;
 };
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
@@ -65,7 +66,7 @@ function formatMoney(value, currency) {
 
 function formatStockLocationSummary(stock) {
   const locations = [...new Set(stock.map((item) => item.location).filter(Boolean))];
-  return locations.length ? locations.join(", ") : t("stock.no_fixture_location");
+  return locations.length ? locations.join(", ") : t(isTestMode() ? "stock.no_fixture_location" : "common.not_supplied");
 }
 
 function formatStockQuality(item) {
@@ -137,7 +138,7 @@ async function resolveTreeNode(nodeId, stockOnly = false) {
 function renderStockRows(stock) {
   if (!stock.length) return "";
   return `<div class="stock-section">
-    <p class="compact-note stock-note">${escapeHtml(t("stock.note"))}</p>
+    ${isTestMode() ? `<p class="compact-note stock-note">${escapeHtml(t("stock.note"))}</p>` : ""}
     <div class="table-scroll"><table class="stock-table">
       <thead><tr><th>${escapeHtml(t("stock.qty"))}</th><th>${escapeHtml(t("stock.status"))}</th><th>${escapeHtml(t("stock.condition"))}</th><th>${escapeHtml(t("stock.location"))}</th><th>${escapeHtml(t("stock.price"))}</th><th>${escapeHtml(t("stock.evidence"))}</th></tr></thead>
       <tbody>${stock.map((item) => `<tr>
@@ -146,7 +147,7 @@ function renderStockRows(stock) {
         <td>${escapeHtml(formatStockQuality(item))}</td>
         <td>${escapeHtml(item.location || t("common.not_supplied"))}</td>
         <td>${formatMoney(item.price, item.currency)}</td>
-        <td>${escapeHtml(item.source_ref || item.source || t("stock.fixture_evidence"))}</td>
+        <td>${escapeHtml(item.source_ref || item.source || t(isTestMode() ? "stock.fixture_evidence" : "common.not_supplied"))}</td>
       </tr>`).join("")}</tbody>
     </table></div>
   </div>`;
@@ -157,8 +158,8 @@ function renderPart(part, occurrences = [], stock = []) {
     ? t("part.epc_occurrence", { count: occurrences.length })
     : t("part.no_epc_context");
   const stockText = stock.length
-    ? t("part.fixture_stock_record", { count: stock.length })
-    : t("part.no_fixture_stock");
+    ? t(isTestMode() ? "part.fixture_stock_record" : "part.stock_record", { count: stock.length })
+    : t(isTestMode() ? "part.no_fixture_stock" : "part.no_stock");
   $("partCard").innerHTML = `
     <strong>${escapeHtml(part.part_number_normalized || t("part.no_jaguar_part_number"))}</strong>
     <p>${escapeHtml(part.description || t("part.no_description"))}</p>
@@ -167,7 +168,7 @@ function renderPart(part, occurrences = [], stock = []) {
       <dt>${escapeHtml(t("part.verification"))}</dt><dd>${escapeHtml(part.verification_status || t("common.not_recorded"))}</dd>
       <dt>${escapeHtml(t("part.source"))}</dt><dd>${escapeHtml(part.source || t("common.not_recorded"))}</dd>
       <dt>${escapeHtml(t("part.epc_context"))}</dt><dd>${escapeHtml(occurrenceText)}</dd>
-      <dt>${escapeHtml(t("part.fixture_stock"))}</dt><dd>${escapeHtml(stockText)}</dd>
+      <dt>${escapeHtml(t(isTestMode() ? "part.fixture_stock" : "part.stock"))}</dt><dd>${escapeHtml(stockText)}</dd>
       <dt>${escapeHtml(t("stock.location"))}</dt><dd>${escapeHtml(formatStockLocationSummary(stock))}</dd>
     </dl>
     ${renderStockRows(stock)}`;
