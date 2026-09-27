@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { liveRangeDatabase } from '../js/vieps-live.js';
+import { liveRangeDatabase } from '../js/vieps-range.js';
 
 test('real routing uses a reviewed Range binding and never falls back to fixture DB', () => {
   const fixture = { name: 'fixture' }, xk = { name: 'xk' };

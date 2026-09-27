@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { database, d1, migrate, migrations, sql } from './helpers/model-db.mjs';
-import { handleViepsPart } from '../js/vieps.js';
+import { handleViepsPart } from '../js/vieps-fixtures.js';
 
 const quote = (name) => `"${name.replaceAll('"', '""')}"`;
 function withDatabase(t, options) {

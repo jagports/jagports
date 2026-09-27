@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { database, d1, migrate, migrations, root } from './helpers/model-db.mjs';
-import { handleViepsPart } from '../js/vieps.js';
+import { handleViepsPart } from '../js/vieps-fixtures.js';
 
 const fixturePartNumbers = ['MJB7703AA', 'MNA7691AA', 'XR847031', 'FIX538C'];
 const fixtureDescriptiveIdentifiers = ['firtree1', 'firtree2'];

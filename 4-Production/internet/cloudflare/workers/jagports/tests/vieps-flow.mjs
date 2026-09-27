@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { database, d1 } from './helpers/model-db.mjs';
-import { handleViepsPart } from '../js/vieps.js';
+import { handleViepsPart } from '../js/vieps-fixtures.js';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const code = readFileSync(new URL('../js/vieps-client.js', import.meta.url), 'utf8');
