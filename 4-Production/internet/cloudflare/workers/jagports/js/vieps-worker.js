@@ -1,6 +1,6 @@
 import { normalizePartNumber } from "./part.js";
 import { handleViepsPart, handleViepsTree } from "./vieps-fixtures.js";
-import { handleLivePart, handleLiveTree, liveRangeDatabase } from "./vieps-range.js";
+import { handleLivePart, handleLiveTree, liveRangeDatabase } from "./vieps-parts.js";
 import { handleViepsSuitability } from "./suitability.js";
 import { handleSuitabilityAdmin } from "./vieps-admin-suitability.js";
 
