@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { mkdtemp, mkdir, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, realpath, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -54,7 +54,7 @@ test('preserves confirmed D1 bundle hashes when upgrading an existing v3 ledger'
   db.prepare(`INSERT INTO range_publications
     (source,model,category,language,range_slug,database_id,evidence_hash,published_at)
     VALUES(?,?,?,?,?,?,?,?)`)
-    .run(source, '3187', '42', '0', 'xk', 'd1-id', 'hash-1', '2026-09-01T00:00:00Z');
+    .run(await realpath(source), '3187', '42', '0', 'xk', 'd1-id', 'hash-1', '2026-09-01T00:00:00Z');
   db.close();
 
   const ledger = await openLedger(source, state);
