@@ -16,6 +16,8 @@ Real mode returns available imported catalogue evidence and non-fixture operatio
 
 When real-mode data is unavailable, the response must identify that unavailable state. It must not fall back to fixtures.
 
+Real-mode part-number search must discover matching Ranges without requiring a caller-supplied `range=<slug>` parameter. With one reviewed Range binding, that Range may be read directly. With several bindings, cross-Range discovery is required; until the approved discovery/index design in #555 is implemented, the website reports an explicit unavailable state. A manual Range selector is not a substitute.
+
 ## URL propagation
 
 The page URL's `TEST=1` value is retained in its catalogue and stock API requests. Direct API requests use the same parameter.
