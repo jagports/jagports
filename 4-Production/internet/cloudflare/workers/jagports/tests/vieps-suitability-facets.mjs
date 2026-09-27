@@ -174,16 +174,41 @@ test('missing required domain language labels produces an explicit fixture error
   assert.deepEqual(body.matches, []);
 });
 
-test('a clean database cannot publish synthetic facts even with TEST=1', async (t) => {
+test('TEST=1 displays deterministic fallback suitabilities from the normal migrated D1 without an environment flag', async (t) => {
+  // Simulates the shared Worker D1, whose production migrations contain the
+  // searchable #607 fixture PARTs but not the isolated #877 assertion rows.
   const db = database({ fixtures: false }); t.after(() => db.close());
-  const response = await handleViepsSuitability(
-    new Request('https://test.example/api/vieps/suitability?TEST=1'),
-    { DB: d1(db) },
-  );
-  assert.equal(response.status, 503);
-  const body = await response.json();
-  assert.equal(body.state, 'error');
-  assert.equal(body.reason, 'test_fixture_data_missing');
-  assert.deepEqual(body.categories, []);
-  assert.deepEqual(body.matches, []);
+  const env = { DB: d1(db) };
+  assert.equal(db.prepare(
+    "SELECT COUNT(*) AS n FROM applicability_source_description WHERE provenance_kind='fixture'"
+  ).get().n, 0);
+  const call = async (suffix = '') => {
+    const response = await handleApi(new Request(
+      'https://test.example/api/vieps/suitability?TEST=1' + suffix), env);
+    return { status: response.status, body: await response.json() };
+  };
+  const { status, body } = await call();
+  assert.equal(status, 200);
+  assert.equal(body.fixture_mode, true);
+  assert.equal(body.fixture_provider, 'embedded');
+  assert.equal(body.source_namespace, 'fixture:embedded-suitability:v1');
+  assert.equal(body.categories.length, 4);
+  assert.equal(body.categories.flatMap(c => c.values).length, 8);
+  assert.deepEqual(keys(body), ['TEST-O-A', 'TEST-O-B', 'TEST-O-C', 'TEST-O-F']);
+  assert.ok(body.matches.every(m => m.provenance === 'synthetic_fixture'));
+  assert.ok(body.categories.flatMap(c => c.values)
+    .every(v => v.source_descriptions.every(d => d.provenance === 'synthetic_fixture')));
+  const narrowed = await call('&facet=body%3Acoupe&facet=steering%3ALHD');
+  assert.equal(narrowed.status, 200);
+  assert.deepEqual(keys(narrowed.body), ['TEST-O-A']);
+  const finnish = await call('&ui_language=fi');
+  assert.equal(finnish.body.categories.find(c => c.code === 'body').name, 'Kori');
+  assert.equal(finnish.body.categories.find(c => c.code === 'body')
+    .values.find(v => v.code === 'coupe').name, 'Coupé');
+  const missing = await call('&q=NONEXISTENT');
+  assert.equal(missing.body.state, 'no_match');
+  assert.deepEqual(missing.body.matches, []);
+  const invalid = await call('&facet=body%3Aunknown');
+  assert.equal(invalid.status, 400);
+  assert.equal(invalid.body.error_code, 'facet_unknown');
 });
