@@ -170,7 +170,9 @@ async function embeddedFixtureSuitability(db, { q, stockOnly, language, selected
 }
 
 export async function handleViepsSuitability(request, env) {
-  if (new URL(request.url).searchParams.get('TEST') !== '1') {
+  const testFlags = [...new URL(request.url).searchParams]
+    .filter(([key]) => key.toLowerCase() === 'test');
+  if (testFlags.length !== 1 || testFlags[0][1] !== '1') {
     return send({ error_code: 'test_mode_required' }, 400);
   }
   if (!env.DB) return missingData('test_fixture_data_missing', true);

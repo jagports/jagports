@@ -87,7 +87,9 @@ async function localServer() {
     const requestUrl = new URL(request.url, "http://localhost");
     const pathname = decodeURIComponent(requestUrl.pathname);
     // Synthetic catalogue endpoints only exist in TEST=1.
-    if (pathname.startsWith("/api/vieps/") && requestUrl.searchParams.get("TEST") !== "1") {
+    const testFlags = [...requestUrl.searchParams].filter(([key]) => key.toLowerCase() === "test");
+    const fixtureMode = testFlags.length === 1 && testFlags[0][1] === "1";
+    if (pathname.startsWith("/api/vieps/") && !fixtureMode) {
       response.writeHead(503, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "No real Range database is bound.", error_code: "range_unavailable" }));
       return;
@@ -605,6 +607,39 @@ try {
     } finally {
       await touchContext.close();
     }
+    // Regression: the lowercase URL in the deployed-site screenshot must
+    // activate exactly the same fixture UI and API mode as canonical TEST=1.
+    const lowercasePage = await context.newPage();
+    try {
+      await lowercasePage.goto(local.url + "?test=1", { waitUntil: "load" });
+      await lowercasePage.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      assert.equal(await lowercasePage.locator("#fixtureModeHelp")
+        .evaluate(node => node.hidden), false, "?test=1 must expose fixture instructions");
+      assert.equal(await lowercasePage.locator("#realModeHelp")
+        .evaluate(node => node.hidden), true, "?test=1 must hide real-mode help");
+      assert.equal(await lowercasePage.locator("#variationsStatus.error").count(), 0,
+        "lowercase TEST URL must not display the missing real Range error");
+      await lowercasePage.screenshot({
+        path: evidenceDir + "web-lowercase-test1-desktop.png", fullPage: true,
+      });
+      await lowercasePage.locator("#partNumber").fill("BRTEST");
+      await lowercasePage.locator("#partSearch").press("Enter");
+      const lowercaseResult = lowercasePage.locator("#searchResults [data-result-part-id]").first();
+      await lowercaseResult.waitFor();
+      assert.match(await lowercaseResult.getAttribute("href"), /[?&]TEST=1/,
+        "new-tab result links must preserve fixture mode");
+      assert.match(await lowercasePage.locator("#treeRootLink").getAttribute("href"), /TEST=1/,
+        "root links must preserve fixture mode");
+      await lowercasePage.setViewportSize({ width: 320, height: 780 });
+      assert.ok(await lowercasePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        "lowercase TEST=1 mobile layout must not overflow");
+      await lowercasePage.screenshot({
+        path: evidenceDir + "web-lowercase-test1-mobile-320.png", fullPage: true,
+      });
+      console.log("PASS: lowercase ?test=1 shows Suitability fixture checkboxes on desktop/mobile");
+    } finally {
+      await lowercasePage.close();
+    }
     // #956: real mode must reject an unavailable Range without fixture fallback.
     const realPage = await context.newPage();
     try {
@@ -664,6 +699,31 @@ try {
       await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
       await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-mobile-320.png", fullPage: true });
+      await deployed.setViewportSize({ width: 1366, height: 900 });
+      // Verify the actual lowercased URL emitted by external links/proxies. Unlike
+      // local mocks, these responses come from the deployed Cloudflare Worker.
+      const lowercaseFixtureUrl = new URL(base);
+      lowercaseFixtureUrl.searchParams.set("test", "1");
+      await deployed.goto(lowercaseFixtureUrl.href, { waitUntil: "load" });
+      assert.equal(await deployed.locator("#fixtureModeHelp").evaluate(node => node.hidden), false,
+        "deployed ?test=1 must show fixture controls");
+      await deployed.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
+        "deployed ?test=1 must show synthetic suitability, not real Range errors");
+      const lowercaseTree = await deployed.request.get(
+        new URL("/api/vieps/tree?root=1&test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercaseTree.status(), 200, "deployed lowercase TEST tree must work");
+      const lowercasePart = await deployed.request.get(
+        new URL("/api/vieps/part?q=MJB7703AA&test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercasePart.status(), 200, "deployed lowercase TEST parts must work");
+      const lowercaseSuitability = await deployed.request.get(
+        new URL("/api/vieps/suitability?test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercaseSuitability.status(), 200,
+        "deployed lowercase TEST suitability must work");
+      assert.equal((await lowercaseSuitability.json()).fixture_mode, true);
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-desktop.png", fullPage: true });
+      await deployed.setViewportSize({ width: 320, height: 780 });
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-mobile-320.png", fullPage: true });
       await deployed.setViewportSize({ width: 1366, height: 900 });
       await deployed.goto(realUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,

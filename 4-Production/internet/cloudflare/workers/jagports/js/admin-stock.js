@@ -12,9 +12,16 @@
   const nullableNumber = (id) => byId(id).value ? Number(byId(id).value) : null;
   const isTechnicalSitePlaceholder = (name) => /name not recorded in xlsx/i.test(name || "");
   const visibleSiteName = (name) => isTechnicalSitePlaceholder(name) ? "" : (name || "");
+  // Keep Admin part lookup consistent with public Web TEST-mode URLs.
+  const isTestMode = () => {
+    if (typeof URLSearchParams !== "function") return false;
+    const flags = [...new URLSearchParams(globalThis.location?.search || "")]
+      .filter(([key]) => key.toLowerCase() === "test");
+    return flags.length === 1 && flags[0][1] === "1";
+  };
 
   async function api(path, options = {}, admin = true) {
-    const testMode = new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1";
+    const testMode = isTestMode();
     const url = testMode ? `${path}${path.includes("?") ? "&" : "?"}TEST=1` : path;
     const response = await fetch(url, {
       ...options,
@@ -89,7 +96,7 @@
       button.textContent = `${number}${part.description ? ` — ${part.description}` : ""}`;
       button.addEventListener("click", () => {
         // Range D1 row IDs are not operational jagports.part IDs.
-        byId("partId").value = new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1"
+        byId("partId").value = isTestMode()
           ? part.id : "";
         byId("partNumber").value = number;
         target.replaceChildren();

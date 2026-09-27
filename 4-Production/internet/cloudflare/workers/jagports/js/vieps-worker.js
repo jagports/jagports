@@ -178,7 +178,8 @@ function stockError(error) {
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
-  const testMode = url.searchParams.get("TEST") === "1";
+  const testFlags = [...url.searchParams].filter(([key]) => key.toLowerCase() === "test");
+  const testMode = testFlags.length === 1 && testFlags[0][1] === "1";
 
   if (path === "/api/vieps/part") return testMode ? handleViepsPart(request, env) : handleLivePart(request, env);
   if (path === "/api/vieps/tree") return testMode ? handleViepsTree(request, env) : handleLiveTree(request, env);

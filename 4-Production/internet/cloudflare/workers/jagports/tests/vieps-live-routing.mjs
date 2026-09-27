@@ -57,3 +57,37 @@ test('real mode with an unbound Range fails rather than reading the fixture D1',
     'https://test.example/api/vieps/suitability'), { DB: d1(db) }),
   error => error.status === 503 && error.code === 'range_unavailable');
 });
+
+test('case-insensitive TEST URL enables fixtures on Web APIs and does not depend on a real Range', async (t) => {
+  const db = database({ fixtures: false }); t.after(() => db.close());
+  const env = { DB: d1(db) };
+  for (const key of ['TEST', 'test', 'TeSt']) {
+    const query = key + '=1';
+    const suitability = await handleApi(new Request(
+      'https://test.example/api/vieps/suitability?' + query), env);
+    assert.equal(suitability.status, 200, query);
+    const body = await suitability.json();
+    assert.equal(body.fixture_mode, true, query);
+    assert.equal(body.categories.length, 4, query);
+    assert.equal(body.categories.flatMap(category => category.values).length, 8, query);
+    const parts = await handleApi(new Request(
+      'https://test.example/api/vieps/part?q=MJB7703AA&' + query), env);
+    assert.equal(parts.status, 200, query);
+    const part = await parts.json();
+    assert.equal(part.part?.part_number_normalized, 'MJB7703AA', query);
+    const tree = await handleApi(new Request(
+      'https://test.example/api/vieps/tree?root=1&' + query), env);
+    assert.equal(tree.status, 200, query);
+  }
+});
+
+test('missing or conflicting TEST URL flags never expose fixture data', async (t) => {
+  const db = database({ fixtures: false }); t.after(() => db.close());
+  const env = { DB: d1(db) };
+  for (const flags of ['', '?TEST=0', '?test=2', '?TEST=1&test=0', '?test=1&TEST=1']) {
+    await assert.rejects(() => handleApi(new Request(
+      'https://test.example/api/vieps/suitability' + flags), env),
+    error => error.status === 503 && error.code === 'range_unavailable',
+    'unbound real Range must reject URL flags: ' + flags);
+  }
+});
