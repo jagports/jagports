@@ -640,8 +640,8 @@ try {
   }
 
   if (base) {
-    // Run after deployment by dispatching this existing workflow with deployed_url.
-    // Remote endpoints are never mocked; real D1 root browsing must succeed.
+    // Run after deployment with deployed_url. Importer #954 is not required:
+    // an unbound Range must fail explicitly; once imported data exists, check its roots.
     const deployed = await context.newPage();
     try {
       const fixtureUrl = new URL(base);
@@ -652,23 +652,53 @@ try {
       await deployed.goto(fixtureUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
         "deployed TEST=1 must show fixture controls");
+      const fixtureTreeResponse = await deployed.request.get(
+        new URL("/api/vieps/tree?root=1&TEST=1", fixtureUrl).href);
+      assert.equal(fixtureTreeResponse.status(), 200, "deployed TEST=1 fixture tree must work");
+      const fixtureTree = await fixtureTreeResponse.json();
+      assert.ok(Array.isArray(fixtureTree.roots) && fixtureTree.roots.length > 0,
+        "deployed TEST=1 must return fixture roots");
+      const fixturePartResponse = await deployed.request.get(
+        new URL("/api/vieps/part?q=MJB7703AA&TEST=1", fixtureUrl).href);
+      assert.equal(fixturePartResponse.status(), 200, "deployed TEST=1 fixture search must work");
       await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-desktop.png", fullPage: true });
+      await deployed.setViewportSize({ width: 320, height: 780 });
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-mobile-320.png", fullPage: true });
+      await deployed.setViewportSize({ width: 1366, height: 900 });
       await deployed.goto(realUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "deployed real mode must not show fixture controls");
-      await deployed.screenshot({ path: evidenceDir + "deployed-web-real-desktop.png", fullPage: true });
       const result = await deployed.request.get(new URL("/api/vieps/tree?root=1", realUrl).href);
-      assert.equal(result.status(), 200, "deployed real Range read must succeed");
-      const tree = await result.json();
-      assert.ok(Array.isArray(tree.roots) && tree.roots.length > 0, "deployed real catalogue needs sourced roots");
+      if (result.status() === 503) {
+        const unavailable = await result.json();
+        assert.equal(unavailable.error_code, "range_unavailable",
+          "without #954, deployed real mode must fail explicitly, never expose fixture data");
+        await deployed.locator("#searchStatus.error").waitFor();
+      } else {
+        assert.equal(result.status(), 200, "reviewed live Range must return sourced roots");
+        const tree = await result.json();
+        assert.ok(Array.isArray(tree.roots) && tree.roots.length > 0,
+          "deployed real catalogue needs sourced roots");
+        assert.ok(tree.roots.every(root => !/fixture/i.test(root.label || "")),
+          "real catalogue roots must never disclose synthetic fixture data");
+      }
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-real-desktop.png", fullPage: true });
+      await deployed.setViewportSize({ width: 320, height: 780 });
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-real-mobile-320.png", fullPage: true });
+      await deployed.setViewportSize({ width: 1366, height: 900 });
       await deployed.goto(adminUrl.href, { waitUntil: "load" });
       await deployed.locator("#accessForm").waitFor();
-      await deployed.screenshot({ path: evidenceDir + "deployed-admin-desktop.png", fullPage: true });
+      await deployed.locator("#suitabilityAdminHeading").waitFor();
+      await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-desktop.png", fullPage: true });
+      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
       assert.ok(await deployed.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "deployed mobile Admin must fit");
-      await deployed.screenshot({ path: evidenceDir + "deployed-admin-mobile-320.png", fullPage: true });
-      console.log("PASS: deployed TEST/real VIEPS, live Range D1, and Admin screenshots");
+      await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-mobile-320.png", fullPage: true });
+      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-mobile-320.png", fullPage: true });
+      console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed real Range, and Web/Admin screenshots");
     } finally {
       await deployed.close();
     }
