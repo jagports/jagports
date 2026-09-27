@@ -25,6 +25,8 @@ The website's existing Worker HTTP entrypoint and browser client own this read-t
 
 Website JavaScript source files belong under `4-Production/internet/cloudflare/workers/jagports/js`, with distinct filenames for Worker and browser roles. Move superseded JavaScript source files out of `src/` and `public/` rather than retaining a second checked-in implementation. Keep the static-asset build/deployment path safe: only the intended browser assets may be public, and Worker/server source must not be exposed as an asset. Do not add deeper directories for this work.
 
+The Worker entry point is `js/vieps-worker.js`. The build copies uniquely named browser sources from `js/` to the existing asset URLs used by the HTML; those output files are generated and ignored by Git. Tests read the checked-in source files, and deployment verifies that the browser assets were generated. There is no second checked-in JavaScript implementation in `public/`.
+
 ## Deployment and verification
 
 The real-mode website requires the reviewed Range D1 identity, schema, binding and imported records. Database creation/schema setup and the CLI import are governed by the Range D1 and DataImporter records. The website deployment must verify its Range bindings before claiming real imported data is available. The existing `jagports` fixture data stays available through `TEST=1`.
