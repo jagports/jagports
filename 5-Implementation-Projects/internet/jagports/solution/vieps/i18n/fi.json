@@ -221,13 +221,19 @@
     "unresolved_source_required": "Ratkaisematon varasto tarvitsee lähdetiedon tai lähdeosapuolen."
   },
   "suitability": {
+    "data_error": "Sopivuustietoja ei voitu ladata ({{code}}).",
     "fixture_count_one": "{{count}} synteettinen esiintymä; ei vahvistettua Jaguar-sopivuutta.",
     "fixture_count_other": "{{count}} synteettistä esiintymää; ei vahvistettua Jaguar-sopivuutta.",
     "incomplete": "Osa lähdemäärityksistä tai esiintymien tiedoista ei ole saatavilla.",
     "no_matches": "Mikään vahvistettu esiintymä ei vastaa näitä suodattimia.",
     "no_options": "Nykyiseen hakuun ei löydy lähdetietoon perustuvia sopivuusarvoja.",
+    "real_count_one": "{{count}} vahvistettu JEPC-esiintymä.",
+    "real_count_other": "{{count}} vahvistettua JEPC-esiintymää.",
+    "real_data_missing": "Tälle mallisarjalle ei ole julkaistu vahvistettuja JEPC-sopivuustietoja.",
+    "real_range_missing": "Oikean mallisarjan tietokantaa ei ole saatavilla. Sopivuustietoja ei voida ladata.",
     "result_count_one": "{{count}} hakua vastaava OSA sopivuussuodatuksen jälkeen.",
     "result_count_other": "{{count}} hakua vastaavaa OSAA sopivuussuodatuksen jälkeen.",
+    "test_data_missing": "Sopivuuden testitiedot puuttuvat tai ovat keskeneräiset.",
     "unavailable": "Normalisoitua sopivuustietoa ei ole tässä luettelokontekstissa saatavilla."
   },
   "suitability_admin": {
