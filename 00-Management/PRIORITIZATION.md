@@ -6,7 +6,7 @@ This document defines the repeatable Jagports method for scoring and ordering ac
 
 It complements, and does not redefine:
 
-- `00-Management/WORKFLOWS.md` — canonical workflow states, transitions, gates and invariants.
+- `0-DocumentationEducationCompetense/WORKFLOWS.md` — canonical workflow states, transitions, gates and invariants.
 - `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub record handling and priority authority.
 - `00-Management/AUDIT-Common-Daily.md` — audit processing categories and audit-specific selection rules.
 
@@ -68,7 +68,7 @@ For current work:
 
 - **Issue `Priority`** is the authoritative organization-wide current priority metadata. The supported GitHub values are `Urgent`, `High`, `Medium`, and `Low`.
 - **Project `Rank`** is a unique positive integer that gives exact order inside one declared Project/backlog scope. Lower numbers execute earlier; `1` is the highest-ranked active item.
-- **Project `Status`** is the workflow stage of that Issue inside that Project and uses the canonical states defined by `WORKFLOWS.md`.
+- **Project `Status`** is the workflow stage of that Issue inside that Project and uses the canonical states defined by `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 - **Project `Workstream`** is the queue boundary when more than one operational queue shares the same Project. Current values are `AI OS` and `VIEPS`.
 - **Priority score** is a comparison aid used to explain priority and rank. It is not itself authoritative metadata.
 - **Project `Band`** stores the `P0...P5` prioritization review band on both Issue and Pull Request Project Items. It remains decision evidence and a compact prioritization classification; it maps to the record's authoritative Priority but does not replace Priority.
@@ -131,7 +131,7 @@ Issue Rank and PR Rank are separate queues within each Workstream. The same nume
 
 Before scoring an item:
 
-1. Resolve the active Issue/work identity under `WORKFLOWS.md` and exclude duplicate, completed, superseded or invalid work.
+1. Resolve the active Issue/work identity under `0-DocumentationEducationCompetense/WORKFLOWS.md` and exclude duplicate, completed, superseded or invalid work.
 2. Identify material dependencies, blockers, required decisions and current readiness.
 3. Ensure enough evidence exists to score the item without inventing facts.
 4. Keep workflow gates separate from priority. A high priority does not authorize work that is blocked, unapproved or outside scope.
