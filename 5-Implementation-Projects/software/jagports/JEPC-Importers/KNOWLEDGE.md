@@ -2,7 +2,7 @@
 
 JEPC importer applications are Jagports software. Their implementation, tests and operating specifications belong under `5-Implementation-Projects/software/jagports/JEPC-Importers/`. Jaguar Land Rover source research and evidence belong under the corresponding `7-Research/jlr/` domain rather than inside Jagports application implementation directories.
 
-- [DataImporter](DataImporter/README.md): executable local Windows/Node.js v0.1a parser and Range D1 publisher for issues #355 and #555. Its README is the agent/operator run procedure; its [operating specification](DataImporter/SPEC_DataImporter.md) separates current source-evidence publication from later verified applicability. A model-name pattern selects complete category bundles for parsing.
+- [DataImporter](DataImporter/README.md): one executable local Windows/Node.js v0.1a CLI for issues #355 and #555. The same run reads JEPC, records SQLite evidence and updates reviewed Range D1 when configured. Its README is the agent/operator run procedure; its [operating and infrastructure specification](DataImporter/SPEC_DataImporter.md) separates current source-evidence updates from later verified applicability. A model-name pattern selects complete category bundles for parsing.
 - [MediaImporter](MediaImporter/README.md): separate local Windows/Node.js application for bounded illustration inspection and preservation.
 
 Keep application-specific code, tests and specifications inside the named application directory. Standard package metadata and README filenames remain scoped by that directory; executable modules and tests also carry the application name.

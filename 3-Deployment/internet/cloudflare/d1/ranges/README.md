@@ -1,6 +1,6 @@
 # JEPC Range D1 deployment
 
-This procedure creates and verifies a Range D1 database, applies the schema-only JEPC catalogue schema, and records its Worker binding. The importer then publishes catalogue records from its local SQLite ledger. The existing Worker migration chain includes fixtures and must never be applied to a Range database. The operational `jagports` D1 database remains separate and retains stock and fixture data.
+This procedure creates and verifies a Range D1 database and applies the schema-only JEPC catalogue schema. The same DataImporter CLI run that reads JEPC and records its local SQLite ledger then updates that Range D1 when the reviewed identity and Cloudflare token are available. The existing Worker migration chain includes fixtures and must never be applied to a Range database. The operational `jagports` D1 database remains separate and retains stock and fixture data. Website reads and its `TEST=1` URL mode are separate work under Issues #955 and #956.
 
 The name comes from an approved stable VIEPS Range slug: `jagports-<range_slug>`. For example, `xk` resolves to `jagports-xk`. `source-range-map.json` separately identifies approved JEPC source-group IDs. A `--parse` pattern never assigns a Range; the import rejects a model with zero or multiple approved matches. The XK source groups `7422` and `3175` were checked against `menus/models_l_id_0.xml`.
 
@@ -35,18 +35,17 @@ node 3-Deployment/internet/cloudflare/d1/ranges/setup-range-db.mjs verify --rang
 
 If creation succeeds but the process stops before `config/<range_slug>.json` is written or reviewed, **do not rerun creation expecting it to adopt the database**. Compare the remote database name/ID/account manually and record the identity in a reviewed configuration change. Never delete or recreate the database as a normal retry.
 
-After reviewing `config/xk.json`, initialize and verify the schema, then generate the Worker bindings from the same reviewed identities:
+After reviewing `config/xk.json`, initialize and verify the schema:
 
 ```text
 node 3-Deployment/internet/cloudflare/d1/ranges/apply-range-schema.mjs xk
-node 3-Deployment/internet/cloudflare/d1/ranges/sync-worker-bindings.mjs
 ```
 
-`apply-range-schema.mjs` verifies the remote UUID/name before writing. It refuses an occupied database with no Range schema identity, and repeated calls verify the same schema identity. `sync-worker-bindings.mjs` updates the marked section of the Worker's `wrangler.toml` with `RANGE_BINDINGS` and the corresponding D1 bindings; review and commit that change before deployment. The binding name is derived from the slug, such as `RANGE_XK`. `config/<slug>.json` is deployment identity, not a temporary import manifest. No catalogue rows are written to `jagports` by these commands.
+`apply-range-schema.mjs` verifies the remote UUID/name before writing. It refuses an occupied database with no Range schema identity, and repeated calls verify the same schema identity. `config/<slug>.json` is deployment identity, not a temporary import manifest. No catalogue rows are written to `jagports` by these commands. Worker bindings for website reads are specified separately by #955 and implemented under #956.
 
-With the reviewed schema and binding in place, the DataImporter operator runs its existing `--parse PATTERN` command on the JEPC computer. With `CLOUDFLARE_API_TOKEN` set, it publishes matching staged bundles through the [Cloudflare D1 query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/). Each category uses a D1 batch; the bundle hash is written last and read back before the local SQLite publication record is updated. Repeat runs retain previous categories and retry staged bundles that have not been recorded as published. Unknown source structures remain in SQLite and are not published.
+With the reviewed schema in place, the DataImporter operator runs its existing `--parse PATTERN` command on the JEPC computer. With `CLOUDFLARE_API_TOKEN` set, that same process updates matching staged bundles through the [Cloudflare D1 query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/). Each category uses a D1 batch; the bundle hash is written last and read back before the local SQLite update record is saved. Repeat runs retain previous categories and retry staged bundles that have not been recorded as updated. Unknown source structures remain in SQLite and are not sent to D1.
 
-Deploy the Worker with the reviewed `wrangler.toml` once the Range database is populated. `?TEST=1` on the VIEPS page keeps the existing fixture-backed route; without it, VIEPS reads the bound Range catalogue and non-fixture operational stock. If no real Range binding is configured, the real route reports an unavailable Range instead of falling back to fixtures. The current live lookup supports one configured Range by default, or an explicit `range=<slug>` when multiple bindings are present. Global cross-Range discovery, verified applicability and cross-Range supersession remain open under Issue #555; do not mark that Issue complete from this publication step.
+This procedure ends when the reviewed Range database can receive DataImporter updates. Website deployment and its fixture/real URL routing belong to Issues #955 and #956. Global cross-Range discovery, verified applicability and cross-Range supersession remain open under Issue #555; do not mark that Issue complete from this D1 update step.
 
 Local checks for this procedure:
 

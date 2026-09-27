@@ -9,10 +9,6 @@ const $ = (id) => {
 };
 const i18n = globalThis.viepsI18n;
 const t = (key, options) => i18n?.t(key, options) ?? key;
-const apiUrl = (path) => {
-  if (new URLSearchParams(globalThis.location?.search || "").get("TEST") !== "1") return path;
-  return `${path}${path.includes("?") ? "&" : "?"}TEST=1`;
-};
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
 let currentData = null;
 let fitmentRows = [];
@@ -89,7 +85,7 @@ function partDisplayLabel(part) {
 async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
   const candidateFilter = candidateId === null ? "" : `&candidate_id=${encodeURIComponent(candidateId)}`;
-  const response = await fetch(apiUrl(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`));
+  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -100,7 +96,7 @@ async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
 }
 
 async function resolveTreeRoots(stockOnly = false) {
-  const response = await fetch(apiUrl(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`));
+  const response = await fetch(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`);
   if (!response.ok) throw new Error("tree roots unavailable");
   return response.json();
 }
@@ -119,7 +115,7 @@ function clearSelectionUrl() {
 
 async function resolveTreeNode(nodeId, stockOnly = false) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
-  const response = await fetch(apiUrl(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`));
+  const response = await fetch(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -360,7 +356,7 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
   });
   for (const id of suitabilitySelection) params.append("facet", id);
   try {
-    const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
+    const response = await fetch("/api/vieps/suitability?" + params.toString());
     const data = await response.json();
     if (version !== suitabilityRequestVersion || mainVersion !== requestVersion) return;
     if (!response.ok || data.fixture_mode !== true) {

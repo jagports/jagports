@@ -1,6 +1,6 @@
 # JEPC DataImporter v0.1a
 
-DataImporter runs on the Windows computer that has the JEPC installation. The required `--parse PATTERN` command stages source categories in its local SQLite ledger and, when a reviewed Range D1 target and Cloudflare token are configured, publishes parsed catalogue records to that Range database. The [operating specification](SPEC_DataImporter.md) defines the current publication boundary and later verified-applicability requirements.
+DataImporter runs on the Windows computer that has the JEPC installation. One required `--parse PATTERN` command reads JEPC files, records source evidence and run state in its local SQLite ledger, and then updates the reviewed Range D1 database when that target and a Cloudflare token are configured. There is no second importer program or web-based importer step. The [operating and infrastructure specification](SPEC_DataImporter.md) defines the current D1 update boundary and later verified-applicability requirements.
 
 ## Agent and operator procedure
 
@@ -12,7 +12,7 @@ node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\s
 
 The computer needs Node.js 24 or later and the JEPC source root containing `menus/models_l_id_0.xml` and `drilldown/`. The default source root is `C:\Program Files\JEPC\applications\JEPC`; the local output goes under `$env:LOCALAPPDATA\Jagports\JEPC-Importer`. No `npm install` is needed. The application does not change the JEPC installation. When asked to run or investigate DataImporter, an agent with access to this computer should execute the command and report its findings instead of asking the human to transcribe chat instructions.
 
-For **D1 publication**, an agent first follows the repository [Range D1 deployment procedure](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md): review the source-group mapping, create and review `config/<slug>.json`, apply `schema.sql`, and bind the Worker. Set `CLOUDFLARE_API_TOKEN` in the local environment; do not pass it as a CLI argument or commit it. The Product Owner's importer command remains the one shown above. With no token, the command still stages locally and reports `publication.phase=NOT_CONFIGURED`; it must not be called a completed D1 import. With a token but missing or mismatched reviewed Range identity, it fails closed after retaining local staging.
+For a **D1 update**, an agent first follows the repository [Range D1 deployment procedure](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md): review the source-group mapping, create and review `config/<slug>.json`, and apply `schema.sql`. Set `CLOUDFLARE_API_TOKEN` in the local environment; do not pass it as a CLI argument or commit it. The Product Owner's importer command remains the one shown above. With no token, the command still stages locally and reports `publication.phase=NOT_CONFIGURED`; it must not be called a completed D1 import. With a token but missing or mismatched reviewed Range identity, it fails closed after retaining local staging.
 
 ## Agent inspection of a run
 
@@ -64,4 +64,4 @@ The estimate inventories source files for the matched models, beyond the 40 pars
 
 Agents changing importer code should run `npm test` from the DataImporter directory to execute the synthetic parser, selection, safety and CLI tests. The sibling MediaImporter handles images and hotspots separately.
 
-For the Worker, open VIEPS with `?TEST=1` to use the preserved fixture experience. Without `TEST=1`, the Parts Tree and part search use the Range D1 binding and stock rows marked `fixture` are excluded. When several Ranges are bound, supply `range=<slug>` in API requests until cross-Range discovery is implemented. A missing binding is an error, not a fixture fallback.
+The VIEPS website's `TEST=1` behavior is separate from DataImporter and is governed by Issues #955 and #956. This CLI has no URL parameter and does not serve web requests.
