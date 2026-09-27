@@ -31,6 +31,7 @@ let viewMode = "empty";
 let suitabilitySelection = new Set();
 let suitabilityRequestVersion = 0;
 let suitabilityData = null;
+let suitabilityError = null;
 let suitabilityMatchingIds = null; // Null means the source-backed filter is unavailable.
 
 
@@ -319,12 +320,24 @@ function visibleCandidates(parts = []) {
 function showSuitability() {
   const panel = $("variationOptions"), status = $("variationsStatus");
   if (!panel || !status) return;
-  if (!suitabilityData?.fixture_mode) {
+  if (!suitabilityData || !Array.isArray(suitabilityData.categories)) {
     if (panel.dataset) panel.dataset.currentQuery = "";
     panel.innerHTML = "";
-    status.textContent = t("suitability.unavailable");
+    status.className = suitabilityError ? "error status-line" : "muted status-line";
+    status.textContent = suitabilityError === "real_suitability_data_missing"
+      || suitabilityError === "real_suitability_data_incomplete"
+        ? t("suitability.real_data_missing")
+      : suitabilityError === "range_unavailable"
+        ? t("suitability.real_range_missing")
+      : suitabilityError === "test_fixture_data_missing"
+        || suitabilityError === "test_fixture_data_incomplete"
+        ? t("suitability.test_data_missing")
+      : suitabilityError
+        ? t("suitability.data_error", { code: suitabilityError })
+        : t("suitability.unavailable");
     return;
   }
+  status.className = "muted status-line";
   if (panel.dataset) panel.dataset.currentQuery = suitabilityData.query || "";
   const choices = (suitabilityData.categories || []).flatMap((category) =>
     (category.values || []).map((value) => ({
@@ -352,7 +365,8 @@ function showSuitability() {
     : suitabilityData.state === "unavailable" && matching === 0
       ? t("suitability.incomplete")
       : suitabilitySelection.size && matching === 0 ? t("suitability.no_matches")
-      : t("suitability.fixture_count", { count: matching });
+      : t(suitabilityData.fixture_mode ? "suitability.fixture_count"
+        : "suitability.real_count", { count: matching });
 }
 
 async function refreshSuitability(query, stockOnly, mainVersion = requestVersion) {
@@ -372,13 +386,16 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
     const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
     const data = await response.json();
     if (version !== suitabilityRequestVersion || mainVersion !== requestVersion) return;
-    if (!response.ok || data.fixture_mode !== true) {
-      // Missing mapping never makes an ordinary PART result look unsuitable.
+    if (!response.ok || !Array.isArray(data?.categories)
+        || data.fixture_mode !== isTestMode()) {
+      // Never disguise missing real data as an empty list or fall back to fixtures.
+      suitabilityError = data?.error_code || "suitability_mode_mismatch";
       suitabilityData = null;
       suitabilityMatchingIds = null;
       showSuitability();
       return;
     }
+    suitabilityError = null;
     suitabilityData = data;
     suitabilityMatchingIds = new Set((data.matches || []).map((m) => String(m.part_id)));
     showSuitability();
@@ -405,6 +422,7 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
     }
   } catch {
     if (version === suitabilityRequestVersion && mainVersion === requestVersion) {
+      suitabilityError = "suitability_request_failed";
       suitabilityData = null;
       suitabilityMatchingIds = null;
       showSuitability();
@@ -416,6 +434,7 @@ function clearSuitability() {
   ++suitabilityRequestVersion;
   suitabilitySelection.clear();
   suitabilityData = null;
+  suitabilityError = null;
   suitabilityMatchingIds = null;
   showSuitability();
 }
@@ -734,6 +753,8 @@ function setupViepsUi() {
       $("tree").innerHTML = empty(localizeError(error, "tree.browse_error"));
       $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
+      // Report a missing real Suitability source even when root loading failed.
+      void refreshSuitability("", Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }
