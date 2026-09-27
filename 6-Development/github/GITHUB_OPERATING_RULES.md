@@ -198,6 +198,20 @@ Before closure, verify the completion obligations defined by `../../0-Documentat
 
 A merged PR does not by itself prove that the Issue is complete.
 
+### 2.7.1 Native auto-close repository setting
+
+For `jagports/jagports`, **disable** GitHub's **Auto-close issues with merged linked pull requests**. This is a repository-level control, not an organization Project setting. GitHub enables it by default; when enabled, merging a PR with a GitHub closing relationship may close its Issue before the governing Issue's acceptance is complete.
+
+Repository administrator/maintainer setup and verification:
+
+1. Open [repository Settings](https://github.com/jagports/jagports/settings) → **General**.
+2. Scroll to **Issues** (below **Pushes**); **uncheck** `Auto-close issues with merged linked pull requests`.
+3. Refresh/revisit the page and confirm the checkbox remains unchecked. Ordinary repository REST metadata does not expose this option, so do not claim API verification of its current state.
+
+The owner showed the previously **checked** control in a screenshot and reported disabling it on 2026-09-27. Keep the acceptance-check guard in `.github/workflows/issue-lifecycle-in-project.yml` as independent protection; Issue closure remains an explicit, acceptance-verified action even when the GitHub setting is off.
+
+Official GitHub reference: [Managing the automatic closing of issues](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-auto-closing-issues).
+
 ### 2.8 Jagports task hierarchy: do not use native GitHub sub-issues
 
 Do **not** use native GitHub sub-issues for Jagports AI OS or VIEPS task hierarchy.
@@ -222,7 +236,7 @@ Repository changes must use a Pull Request as the normal integration path, as re
 
 A PR must maintain explicit traceability to every Issue it implements or resolves.
 
-Before an implementation branch is created or repository content is modified, the executor must already have resolved a valid owning Issue under the discovery/reuse rules in `../../0-DocumentationEducationCompetense/WORKFLOWS.md`. Before PR creation, the executor must verify that ownership again and include at least one GitHub-native same-repository closing relationship in the PR description, using `Closes #123`, `Fixes #123`, or `Resolves #123`.
+Before an implementation branch is created or repository content is modified, the executor must already have resolved a valid owning Issue under the discovery/reuse rules in `../../0-DocumentationEducationCompetense/WORKFLOWS.md`. Before PR creation, verify that ownership again and include at least one explicit, validated same-repository Issue reference in the PR description: use `Refs #123` on its own line for partial work; reserve `Closes #123` / `Fixes #123` / `Resolves #123` for a fully acceptance-ready governing Issue. With repository auto-close disabled, closing keywords do not replace the explicit acceptance-verified Issue closure step.
 
 Arbitrary Issue mentions, title text, branch names, labels, repository paths, or semantic similarity are not ownership evidence. Do not create an implementation PR first and add its Issue afterward.
 
@@ -234,7 +248,7 @@ The PR title and description must accurately represent the current implementatio
 
 When an open PR materially expands or changes scope, its title may be updated. GitHub preserves the previous title through its event history. Do not use title changes to obscure history.
 
-For PRs targeting `main`, the repository check **Validate PR Issue Traceability** independently verifies that at least one same-repository native closing Issue relationship exists and fails closed when none exists. Repository/ruleset governance should require that check before merge.
+For PRs targeting `main`, the required **Validate PR Issue Traceability** check accepts an explicit `Refs #123` line pointing to an existing same-repository Issue, or a valid native same-repository closing relationship. Arbitrary Issue mentions and nonexistent Issues do not qualify. Preserve the required status check in the repository ruleset.
 
 A deliberately invalid negative-test PR is permitted only when an already-existing owning test Issue explicitly requires verification of the failure path; that fixture must remain non-mergeable and be closed after evidence is recorded.
 
@@ -516,11 +530,11 @@ Use `../../0-DocumentationEducationCompetense/WORKFLOWS.md` for:
 
 Current verified mechanisms are:
 
-- Issue `opened` / `reopened` → `BACKLOG`: `.github/workflows/issue-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
+- Issue `opened` → `BACKLOG` / `reopened` → `RESEARCH`: `.github/workflows/issue-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status;
 - open Pull Request with a same-repository GitHub closing relationship → `IMPLEMENTATION`: `.github/workflows/sync-closing-pr-to-project.yml` owns that deterministic implementation-start synchronization, preserves protected later/blocking/decision states, and independently verifies the resulting Project Item/status;
-- Issue `closed` → `DONE`: `.github/workflows/issue-lifecycle-in-project.yml` owns the Project Item operation and independently verifies the resulting item/status.
+- Issue `closed` with all acceptance checkboxes checked → `DONE`: `.github/workflows/issue-lifecycle-in-project.yml` checks the complete Issue checklist, reopens an Issue with incomplete or absent checklists rather than applying `DONE`, and independently verifies the resulting Project Item/status.
 
-The closing-linked-PR automation is the authoritative automatic owner of the `IMPLEMENTATION` transition. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
+The closing-linked-PR automation only reacts to native closing relationships; an ordinary non-closing `Refs #123` PR does **not** trigger that automation. Apply any required `IMPLEMENTATION` transition for such partial PRs through the existing authorized, verified work-control mechanism. The closing-linked-PR automation is the automatic owner of `IMPLEMENTATION` only for its actual closing-linked trigger. The controlled work-control workflow is a transport for an explicit authorized transition; it does not infer `REVIEW`, `TESTING`, `BLOCKED`, `DECISION NEEDED`, or another state merely from repository activity. Those states still require the canonical `WORKFLOWS.md` transition decision/evidence and an authorized, verified Project mutation.
 
 The legacy `CODING` option has been migrated to canonical `IMPLEMENTATION`; current operating rules must not reintroduce `CODING` as an active state.
 
@@ -562,7 +576,7 @@ Maintain the traceability chain:
 
 Historical references used to justify active work should be explicitly linked in the active record.
 
-When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
+When multiple Issues are addressed, include an explicit `Refs #123` reference for partial work or an appropriate closing reference for each fully acceptance-ready Issue.
 
 ---
 
