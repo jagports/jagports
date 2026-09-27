@@ -8,7 +8,7 @@ Enables mapping work in [#355 — IMPL / JEPC Data Importer](https://github.com/
 
 The Product Owner authorized applicability requirements/model refinement on 2026-09-14 and paused the separate hotspot investigation to conserve usage. This work does not resume [#352](https://github.com/jagports/jagports/issues/352).
 
-Proposal: [PART applicability requirements](../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART_APPLICABILITY.md).
+Proposal: [PART applicability requirements](../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md#applicability-requirements).
 
 Repository baseline: `168a720` on main. Historical model implementation includes merged PRs #535 and #550. Their flat source fitment representation remains valid for retained evidence but does not satisfy the grouped transformation requirements below. This amendment reuses open #354; it does not complete that whole issue.
 
@@ -188,9 +188,9 @@ The storage fixture uses observed PART/application identifiers alongside clearly
 
 [PR #655 — SPEC / Move VIEPS part and stock models to SPEC](https://github.com/jagports/jagports/pull/655)
 
-That separate open PR relocates `PART_MODEL.md` to `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md`. This refinement adds a companion specification in that destination area and a short link from the current model. At integration, retain the link in the relocated model using `MODEL_PART_APPLICABILITY.md`; retain the evidence link using `../../../../../../7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`. Do not keep two model authorities. This work does not edit PR #655 or claim its approval.
+PR #655 relocated `PART_MODEL.md` to `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md`. The applicability requirements are now consolidated into that canonical model; the former companion file was deleted. This research record remains supporting evidence rather than a second model authority.
 
-The existing VIEPS `KNOWLEDGE.md` already records the accepted identity/context, no-source-tree, exclusion, alternative and unknown-data boundaries. No proposed schema decision is promoted to accepted knowledge before review. Detailed new evidence stays in this record; the companion SPEC owns the proposed field/relationship requirements.
+The existing VIEPS `KNOWLEDGE.md` already records the accepted identity/context, no-source-tree, exclusion, alternative and unknown-data boundaries. No proposed schema decision is promoted to accepted knowledge before review. Detailed new evidence stays in this record; `MODEL_PART.md` owns the proposed field/relationship requirements.
 
 Independent review and specification acceptance remain pending. Project Item mutation/read is unavailable through the current connector; no Project Status transition is claimed.
 

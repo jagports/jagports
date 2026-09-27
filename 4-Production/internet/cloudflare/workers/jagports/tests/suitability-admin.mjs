@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { database } from "./helpers/model-db.mjs";
-import { handleApi } from "../src/index.js";
-import { handleViepsSuitability } from "../src/suitability.js";
+import { handleApi } from "../js/vieps-worker.js";
+import { handleViepsSuitability } from "../js/suitability.js";
 
 function fixture(withData = false) {
   const db = database({ fixtures: withData });
@@ -136,8 +136,7 @@ test("verified JEPC mappings require recorded reviewer and never mutate source w
 
 test("retiring a normalized value hides it from published fixtures, not source evidence", async t => {
   const { db, env } = fixture(true); t.after(() => db.close());
-  const requestSuitability = () => handleViepsSuitability(request("/api/vieps/suitability"),
-    { ...env, ENABLE_SUITABILITY_FIXTURES: "1" });
+  const requestSuitability = () => handleViepsSuitability(request("/api/vieps/suitability?TEST=1"), env);
   assert.equal((await requestSuitability()).status, 200);
   const dim = db.prepare("SELECT id FROM applicability_dimension WHERE code='body'").get().id;
   assert.equal((await call(env, base + "/values/" + dim + "/coupe", "PATCH",

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { database } from "./helpers/model-db.mjs";
-import { handleApi } from "../src/index.js";
+import { handleApi } from "../js/vieps-worker.js";
 
 function d1(db) {
   return {

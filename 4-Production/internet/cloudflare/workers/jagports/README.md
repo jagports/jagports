@@ -32,10 +32,11 @@ Public Internet
       |
       v
 Cloudflare Worker: vieps (pre-production)
-      |
-      v
-Cloudflare D1: jagports
+      |-- operational stock and TEST=1 fixture catalogue --> D1: jagports
+      `-- real JEPC catalogue by reviewed Range slug --> D1: jagports-<range_slug>
 ```
+
+`?TEST=1` activates synthetic catalogue and Suitability fixtures without an environment feature flag. The Suitability endpoint uses the existing source-qualified D1 test mappings when available, or its clearly marked, embedded synthetic fallback linked only to existing fixture PARTs. Normal URLs use the reviewed real Range D1 through `js/vieps-parts.js`; absent Range bindings or unpublished verified JEPC suitability produce an explicit error and never fall back to test data.
 
 The later production Worker identity is `jagports`. It is reserved for the production phase and is not established by this pre-production configuration.
 
@@ -89,7 +90,7 @@ The Wrangler configuration is in this directory:
 
 The configuration uses local paths for the Worker entry point, public assets, and D1 migrations. No `/base` path is deployed.
 
-Worker deployment and D1 migration application remain separate operational steps.
+The checked-in JavaScript source is maintained in `js/`. See `scripts/build-js-assets.mjs` for the browser asset build and [`SPEC/URL.md`](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/URL.md) for TEST-mode behavior. Range database provisioning is documented in `3-Deployment/internet/cloudflare/d1/ranges/README.md`.
 
 ## Administrator security
 

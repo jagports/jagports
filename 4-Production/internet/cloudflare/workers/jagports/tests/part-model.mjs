@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizePartNumber } from "../src/part.js";
+import { normalizePartNumber } from "../js/part.js";
 
 const migration = await import("node:fs/promises").then(({ readFile }) =>
   readFile(new URL("../migrations/0002_part_model.sql", import.meta.url), "utf8")

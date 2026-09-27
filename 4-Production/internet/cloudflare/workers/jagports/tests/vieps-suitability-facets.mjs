@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { database, d1 } from './helpers/model-db.mjs';
-import { handleViepsSuitability } from '../src/suitability.js';
-import { handleApi } from '../src/index.js';
+import { handleViepsSuitability } from '../js/suitability.js';
+import { handleApi } from '../js/vieps-worker.js';
 
 const namespace = 'fixture:pre-jepc-suitability:v1';
-function fixture(t, enabled = true) {
+function fixture(t) {
   const db = database();
   t.after(() => db.close());
-  const env = { DB: d1(db), ...(enabled ? { ENABLE_SUITABILITY_FIXTURES: '1' } : {}) };
+  const env = { DB: d1(db) };
   async function request(facets = [], opts = {}) {
-    const url = new URL('https://test.example/api/vieps/suitability');
+    const url = new URL('https://test.example/api/vieps/suitability?TEST=1');
     for (const facet of facets) url.searchParams.append('facet', facet);
     for (const [key, value] of Object.entries(opts)) url.searchParams.set(key, value);
     const response = await handleApi(new Request(url), env);
@@ -20,17 +20,18 @@ function fixture(t, enabled = true) {
 }
 const keys = (result) => result.matches.map((row) => row.occurrence_key).sort();
 
-test('fixture endpoint is unavailable by default and never reads synthetic facts', async (t) => {
-  const { db, env } = fixture(t, false);
-  const response = await handleApi(new Request('https://test.example/api/vieps/suitability'), env);
-  assert.equal(response.status, 503);
-  const body = await response.json();
-  assert.equal(body.state, 'unavailable');
-  assert.equal(body.fixture_mode, false);
-  assert.deepEqual(body.categories, []);
-  assert.deepEqual(body.matches, []);
-  const empty = await handleViepsSuitability(new Request('https://test.example/api/vieps/suitability'), {});
+test('fixture endpoint requires TEST=1 rather than a feature flag', async (t) => {
+  const { db, env } = fixture(t);
+  await assert.rejects(() => handleApi(new Request('https://test.example/api/vieps/suitability'), env),
+    (error) => error.status === 503 && error.code === 'range_unavailable');
+  const fixtureResponse = await handleApi(new Request('https://test.example/api/vieps/suitability?TEST=1'), env);
+  assert.equal(fixtureResponse.status, 200);
+  const fixtureBody = await fixtureResponse.json();
+  assert.equal(fixtureBody.fixture_mode, true);
+  assert.ok(fixtureBody.categories.length > 0);
+  const empty = await handleViepsSuitability(new Request('https://test.example/api/vieps/suitability?TEST=1'), {});
   assert.equal(empty.status, 503);
+  assert.equal((await empty.json()).reason, 'test_fixture_data_missing');
   assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 13);
 });
 
@@ -132,7 +133,7 @@ test('invalid facet IDs, unsupported query, stock-only filtering, and non-GET ar
   assert.equal(stock.status, 200);
   assert.deepEqual(stock.body.matches, []);
   assert.equal(stock.body.state, 'no_match');
-  const post = await handleApi(new Request('https://test.example/api/vieps/suitability', { method: 'POST' }), env);
+  const post = await handleApi(new Request('https://test.example/api/vieps/suitability?TEST=1', { method: 'POST' }), env);
   assert.equal(post.status, 405);
 });
 
@@ -163,24 +164,64 @@ test('Finnish domain labels do not change canonical facet identities or raw sour
   assert.deepEqual(keys(body), ['O-A', 'O-C', 'O-F']);
 });
 
-test('missing required domain language labels produces an explicit unavailable response', async (t) => {
+test('missing required domain language labels produces an explicit fixture error', async (t) => {
   const { db, request } = fixture(t);
   db.exec("DELETE FROM applicability_dimension_value_label WHERE dimension_id=87703 AND value_code='powered_seats' AND language='fi'");
   const { status, body } = await request([], { ui_language: 'fi' });
   assert.equal(status, 503);
-  assert.equal(body.state, 'unavailable');
-  assert.equal(body.reason, 'mapping_language_or_provenance_unavailable');
+  assert.equal(body.state, 'error');
+  assert.equal(body.reason, 'test_fixture_data_incomplete');
   assert.deepEqual(body.matches, []);
 });
 
-test('a clean database never publishes synthetic facts even when the fixture flag is enabled', async (t) => {
+test('TEST=1 displays deterministic fallback suitabilities from the normal migrated D1 without an environment flag', async (t) => {
+  // Simulates the shared Worker D1, whose production migrations contain the
+  // searchable #607 fixture PARTs but not the isolated #877 assertion rows.
   const db = database({ fixtures: false }); t.after(() => db.close());
-  const response = await handleViepsSuitability(
-    new Request('https://test.example/api/vieps/suitability'),
-    { DB: d1(db), ENABLE_SUITABILITY_FIXTURES: '1' },
-  );
+  const env = { DB: d1(db) };
+  assert.equal(db.prepare(
+    "SELECT COUNT(*) AS n FROM applicability_source_description WHERE provenance_kind='fixture'"
+  ).get().n, 0);
+  const call = async (suffix = '') => {
+    const response = await handleApi(new Request(
+      'https://test.example/api/vieps/suitability?TEST=1' + suffix), env);
+    return { status: response.status, body: await response.json() };
+  };
+  const { status, body } = await call();
+  assert.equal(status, 200);
+  assert.equal(body.fixture_mode, true);
+  assert.equal(body.fixture_provider, 'embedded');
+  assert.equal(body.source_namespace, 'fixture:embedded-suitability:v1');
+  assert.equal(body.categories.length, 4);
+  assert.equal(body.categories.flatMap(c => c.values).length, 8);
+  assert.deepEqual(keys(body), ['TEST-O-A', 'TEST-O-B', 'TEST-O-C', 'TEST-O-F']);
+  assert.ok(body.matches.every(m => m.provenance === 'synthetic_fixture'));
+  assert.ok(body.categories.flatMap(c => c.values)
+    .every(v => v.source_descriptions.every(d => d.provenance === 'synthetic_fixture')));
+  const narrowed = await call('&facet=body%3Acoupe&facet=steering%3ALHD');
+  assert.equal(narrowed.status, 200);
+  assert.deepEqual(keys(narrowed.body), ['TEST-O-A']);
+  const finnish = await call('&ui_language=fi');
+  assert.equal(finnish.body.categories.find(c => c.code === 'body').name, 'Kori');
+  assert.equal(finnish.body.categories.find(c => c.code === 'body')
+    .values.find(v => v.code === 'coupe').name, 'Coupé');
+  const missing = await call('&q=NONEXISTENT');
+  assert.equal(missing.body.state, 'no_match');
+  assert.deepEqual(missing.body.matches, []);
+  const invalid = await call('&facet=body%3Aunknown');
+  assert.equal(invalid.status, 400);
+  assert.equal(invalid.body.error_code, 'facet_unknown');
+});
+
+test('TEST=1 still serves embedded fixtures with missing normalized fixture schema', async (t) => {
+  const db = database({ fixtures: false }); t.after(() => db.close());
+  db.exec('DROP VIEW applicability_description_mapping_current');
+  const response = await handleViepsSuitability(new Request(
+    'https://test.example/api/vieps/suitability?TEST=1'), { DB: d1(db) });
+  assert.equal(response.status, 200);
   const body = await response.json();
-  assert.equal(body.state, 'no_match');
-  assert.deepEqual(body.categories, []);
-  assert.deepEqual(body.matches, []);
+  assert.equal(body.fixture_provider, 'embedded');
+  assert.equal(body.fixture_mode, true);
+  assert.equal(body.categories.length, 4);
+  assert.ok(body.matches.every(row => row.provenance === 'synthetic_fixture'));
 });

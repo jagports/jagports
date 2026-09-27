@@ -4,6 +4,9 @@ import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const expectedAssets = [
+  "public/app.js",
+  "public/stock-admin.js",
+  "public/i18n-runtime.js",
   "public/i18n-resources.js",
   "public/vieps-tailwind.css",
 ];

@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
-const source = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
-const i18nSource = readFileSync(new URL("../public/i18n-runtime.js", import.meta.url), "utf8");
+const source = readFileSync(new URL("../js/vieps.js", import.meta.url), "utf8");
+const i18nSource = readFileSync(new URL("../js/vieps-i18n-runtime.js", import.meta.url), "utf8");
 const en = JSON.parse(readFileSync(new URL("../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json", import.meta.url), "utf8"));
 const fi = JSON.parse(readFileSync(new URL("../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json", import.meta.url), "utf8"));
 
