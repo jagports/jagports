@@ -6,7 +6,7 @@ This skill is the machine/agent execution procedure for the VIEPS i18n governanc
 
 `00-Management/RULES_i18n.md`
 
-It supplements `0-DocumentationEducationCompetense/SKILL.md` and the canonical Management workflow in `00-Management/WORKFLOWS.md`. It does not redefine Issue/PR lifecycle, review, testing, or merge rules.
+It supplements `0-DocumentationEducationCompetense/SKILL.md` and the canonical Management workflow in `0-DocumentationEducationCompetense/WORKFLOWS.md`. It does not redefine Issue/PR lifecycle, review, testing, or merge rules.
 
 ## When this skill applies
 
@@ -154,7 +154,7 @@ Human/Weblate review may alter wording without changing the stable i18n key or a
 
 ## Precedence
 
-`00-Management/WORKFLOWS.md` remains authoritative for workflow.
+`0-DocumentationEducationCompetense/WORKFLOWS.md` remains authoritative for workflow.
 
 `00-Management/RULES_i18n.md` is authoritative for VIEPS i18n governance.
 
