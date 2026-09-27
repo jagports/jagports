@@ -9,7 +9,7 @@ const $ = (id) => {
 };
 const i18n = globalThis.viepsI18n;
 const t = (key, options) => i18n?.t(key, options) ?? key;
-const apiUrl = (path) => new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1"
+const apiUrl = (path) => new URLSearchParams(typeof location === "undefined" ? "" : location.search).get("TEST") === "1"
   ? `${path}${path.includes("?") ? "&" : "?"}TEST=1` : path;
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
 let currentData = null;
