@@ -31,7 +31,9 @@ function uiHarness(fetch) {
     getElementById: id => nodes.get(id),
     querySelectorAll: () => [],
   };
-  const context = { document, fetch, Intl, VIEPS_I18N_RESOURCES: { en, fi } };
+  const context = { document, fetch, Intl, URLSearchParams,
+    location: { pathname: '/', search: '?TEST=1', hash: '' },
+    VIEPS_I18N_RESOURCES: { en, fi } };
   vm.runInNewContext(i18nCode, context);
   vm.runInNewContext(code, context);
   const get = id => nodes.get(id);
