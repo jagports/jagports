@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
-const app = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
+const app = readFileSync(new URL("../js/vieps.js", import.meta.url), "utf8");
 const desktop = css.slice(0, css.indexOf("@media (max-width: 1100px)"));
 const tablet = css.slice(css.indexOf("@media (max-width: 1100px)"), css.indexOf("@media (max-width: 760px)"));
 const mobile = css.slice(css.indexOf("@media (max-width: 760px)"), css.indexOf("@media (max-width: 320px)"));
@@ -60,7 +60,7 @@ test("#888 moves one expandable fixture guide into the branded banner", () => {
   assert.equal((html.match(/class="fixture-guide"/g) || []).length, 1);
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf("</header>"));
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf('class="panel tree-panel"'));
-  assert.match(html, /<details class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
+  assert.match(html, /<details [^>]*class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
   assert.match(html, /data-i18n="fixture\.randomized_note"/);
   assert.match(rule(".banner-block .fixture-guide"), /overflow:\s*auto/);
 });

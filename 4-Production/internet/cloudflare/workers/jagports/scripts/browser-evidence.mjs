@@ -84,7 +84,14 @@ function browserSuitabilityResponse(params) {
 
 async function localServer() {
   const server = createServer(async (request, response) => {
-    const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+    const requestUrl = new URL(request.url, "http://localhost");
+    const pathname = decodeURIComponent(requestUrl.pathname);
+    // Synthetic catalogue endpoints only exist in TEST=1.
+    if (pathname.startsWith("/api/vieps/") && requestUrl.searchParams.get("TEST") !== "1") {
+      response.writeHead(503, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ error: "No real Range database is bound.", error_code: "range_unavailable" }));
+      return;
+    }
     if (pathname === "/api/vieps/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({
@@ -175,9 +182,15 @@ try {
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1366, height: 900 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
-  await page.goto(base || local.url, { waitUntil: "load" });
+  await page.goto(base || local.url + "?TEST=1", { waitUntil: "load" });
   await page.locator(".fixture-guide summary").waitFor();
-  if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
+  if (!base) {
+    await page.locator("#tree .tree-node-row").first().waitFor();
+    assert.equal(await page.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
+      "TEST=1 must expose fixture-only help");
+    assert.equal(await page.locator("#realModeHelp").evaluate((node) => node.hidden), true,
+      "TEST=1 must suppress real-mode help");
+  }
 
   if (!base) {
     // #875 browse-only vocabulary; no selected PART and no fabricated fitment.
@@ -366,8 +379,14 @@ try {
 
   // Tablet regression uses the same #893 browser mechanism and no separate workflow.
   await page.setViewportSize({ width: 900, height: 800 });
-  await page.goto(base || local.url, { waitUntil: "load" });
-  if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
+  await page.goto(base || local.url + "?TEST=1", { waitUntil: "load" });
+  if (!base) {
+    await page.locator("#tree .tree-node-row").first().waitFor();
+    assert.equal(await page.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
+      "TEST=1 must expose fixture-only help");
+    assert.equal(await page.locator("#realModeHelp").evaluate((node) => node.hidden), true,
+      "TEST=1 must suppress real-mode help");
+  }
   g = await geometry(page);
   assert.ok(g.pageWidth <= 901 && g.bodyWidth <= 901, "tablet horizontal overflow");
   const tabletAreas = await page.evaluate(() => {
@@ -400,8 +419,14 @@ try {
   // Mobile snapshots prove the upper controls stay put while lower panels scroll.
   for (const width of [220, 320]) {
     await page.setViewportSize({ width, height: 780 });
-    await page.goto(base || local.url, { waitUntil: "load" });
-    if (!base) await page.locator("#tree .tree-node-row").first().waitFor();
+    await page.goto(base || local.url + "?TEST=1", { waitUntil: "load" });
+    if (!base) {
+    await page.locator("#tree .tree-node-row").first().waitFor();
+    assert.equal(await page.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
+      "TEST=1 must expose fixture-only help");
+    assert.equal(await page.locator("#realModeHelp").evaluate((node) => node.hidden), true,
+      "TEST=1 must suppress real-mode help");
+  }
     g = await geometry(page);
     assert.ok(g.pageWidth <= width + 1 && g.bodyWidth <= width + 1, width + "px horizontal overflow");
     assert.ok(g.contentScrollable, width + "px lower content must be independently scrollable");
@@ -522,10 +547,13 @@ try {
       } else await route.continue();
     });
     await page.setViewportSize({ width: 1240, height: 860 });
-    await page.goto(local.url + "stock-admin.html", { waitUntil: "load" });
+    await page.goto(local.url + "stock-admin.html?TEST=1", { waitUntil: "load" });
     await page.locator("#adminToken").fill("browser-admin-test");
     await page.locator("#accessForm button[type=submit]").click();
     await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
+    assert.equal(await page.locator("#stockSearch").count(), 1, "Stock Admin search is present");
+    assert.equal(await page.locator("#stockForm").count(), 1, "Stock Admin editor is present");
+    await page.screenshot({ path: evidenceDir + "admin-stock-desktop.png", fullPage: true });
     assert.match(await page.locator("#suitabilitySourceDetails").textContent(),
       /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
       "Admin must show raw text and its distinct source namespace and group");
@@ -551,6 +579,8 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
       "Admin must not cause horizontal overflow on 320px mobile");
     await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    await page.locator("#stockForm").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: evidenceDir + "admin-stock-mobile-320.png" });
     // Existing browser workflow also exercises a touch-emulated 320px device.
     // Actual hardware testing remains a separate optional manual check.
     const touchContext = await browser.newContext({
@@ -558,7 +588,7 @@ try {
     });
     try {
       const touchPage = await touchContext.newPage();
-      await touchPage.goto(local.url, { waitUntil: "load" });
+      await touchPage.goto(local.url + "?TEST=1", { waitUntil: "load" });
       await touchPage.locator("#tree .tree-node-row").first().waitFor();
       await touchPage.locator("#partNumber").fill("BRTEST");
       await touchPage.locator("#partSearch").press("Enter");
@@ -575,7 +605,103 @@ try {
     } finally {
       await touchContext.close();
     }
+    // #956: real mode must reject an unavailable Range without fixture fallback.
+    const realPage = await context.newPage();
+    try {
+      await realPage.setViewportSize({ width: 1366, height: 900 });
+      await realPage.goto(local.url, { waitUntil: "load" });
+      await realPage.locator("#searchStatus.error").waitFor();
+      await realPage.locator("#variationsStatus.error").waitFor();
+      assert.match(await realPage.locator("#variationsStatus").textContent(),
+        /real Range database is unavailable|Oikean mallisarjan tietokantaa ei ole saatavilla/i,
+        "missing live Range must also show an explicit Suitability error");
+      assert.equal(await realPage.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
+        "real mode must hide fixture help");
+      assert.equal(await realPage.locator("#realModeHelp").evaluate((node) => node.hidden), false,
+        "real mode must show real-data help");
+      await realPage.locator("#partNumber").fill("BRTEST");
+      const responsePromise = realPage.waitForResponse((response) =>
+        response.url().includes("/api/vieps/part") && response.status() === 503);
+      await realPage.locator("#partSearch").press("Enter");
+      await responsePromise;
+      await realPage.locator("#searchStatus.error").waitFor();
+      assert.equal(await realPage.locator("#searchResults [data-result-part-id]").count(), 0,
+        "real mode may not return synthetic PART results");
+      await realPage.screenshot({ path: evidenceDir + "web-real-range-unavailable-desktop.png", fullPage: true });
+      await realPage.setViewportSize({ width: 320, height: 780 });
+      assert.ok(await realPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        "real-mode unavailable state must fit 320px mobile");
+      await realPage.screenshot({ path: evidenceDir + "web-real-range-unavailable-mobile-320.png", fullPage: true });
+      console.log("PASS: missing real Range stays visible without synthetic fallback");
+    } finally {
+      await realPage.close();
+    }
     console.log("PASS: one-page Admin source-qualified mappings, history, EN/FI, mobile and screenshots");
+  }
+
+  if (base) {
+    // Run after deployment with deployed_url. Importer #954 is not required:
+    // an unbound Range must fail explicitly; once imported data exists, check its roots.
+    const deployed = await context.newPage();
+    try {
+      const fixtureUrl = new URL(base);
+      fixtureUrl.searchParams.set("TEST", "1");
+      const realUrl = new URL(base);
+      realUrl.searchParams.delete("TEST");
+      const adminUrl = new URL("stock-admin.html", realUrl);
+      await deployed.goto(fixtureUrl.href, { waitUntil: "load" });
+      assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
+        "deployed TEST=1 must show fixture controls");
+      const fixtureTreeResponse = await deployed.request.get(
+        new URL("/api/vieps/tree?root=1&TEST=1", fixtureUrl).href);
+      assert.equal(fixtureTreeResponse.status(), 200, "deployed TEST=1 fixture tree must work");
+      const fixtureTree = await fixtureTreeResponse.json();
+      assert.ok(Array.isArray(fixtureTree.roots) && fixtureTree.roots.length > 0,
+        "deployed TEST=1 must return fixture roots");
+      const fixturePartResponse = await deployed.request.get(
+        new URL("/api/vieps/part?q=MJB7703AA&TEST=1", fixtureUrl).href);
+      assert.equal(fixturePartResponse.status(), 200, "deployed TEST=1 fixture search must work");
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-desktop.png", fullPage: true });
+      await deployed.setViewportSize({ width: 320, height: 780 });
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-mobile-320.png", fullPage: true });
+      await deployed.setViewportSize({ width: 1366, height: 900 });
+      await deployed.goto(realUrl.href, { waitUntil: "load" });
+      assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
+        "deployed real mode must not show fixture controls");
+      const result = await deployed.request.get(new URL("/api/vieps/tree?root=1", realUrl).href);
+      if (result.status() === 503) {
+        const unavailable = await result.json();
+        assert.equal(unavailable.error_code, "range_unavailable",
+          "without #954, deployed real mode must fail explicitly, never expose fixture data");
+        await deployed.locator("#searchStatus.error").waitFor();
+      } else {
+        assert.equal(result.status(), 200, "reviewed live Range must return sourced roots");
+        const tree = await result.json();
+        assert.ok(Array.isArray(tree.roots) && tree.roots.length > 0,
+          "deployed real catalogue needs sourced roots");
+        assert.ok(tree.roots.every(root => !/fixture/i.test(root.label || "")),
+          "real catalogue roots must never disclose synthetic fixture data");
+      }
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-real-desktop.png", fullPage: true });
+      await deployed.setViewportSize({ width: 320, height: 780 });
+      await deployed.screenshot({ path: evidenceDir + "deployed-web-real-mobile-320.png", fullPage: true });
+      await deployed.setViewportSize({ width: 1366, height: 900 });
+      await deployed.goto(adminUrl.href, { waitUntil: "load" });
+      await deployed.locator("#accessForm").waitFor();
+      await deployed.locator("#suitabilityAdminHeading").waitFor();
+      await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-desktop.png", fullPage: true });
+      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-desktop.png", fullPage: true });
+      await deployed.setViewportSize({ width: 320, height: 780 });
+      assert.ok(await deployed.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        "deployed mobile Admin must fit");
+      await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-mobile-320.png", fullPage: true });
+      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-mobile-320.png", fullPage: true });
+      console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed real Range, and Web/Admin screenshots");
+    } finally {
+      await deployed.close();
+    }
   }
 
   console.log("PASS: #875 desktop/tablet/mobile geometry, synchronized PART selection, independent scrolling, accessibility and screenshots");
