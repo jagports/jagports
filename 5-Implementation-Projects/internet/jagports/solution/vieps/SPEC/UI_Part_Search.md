@@ -108,6 +108,35 @@ Stock-quality result states include at least:
 - Do not silently invent or normalize unsupported punctuation/characters.
 - Empty/clearly invalid input produces an explicit state, not a guessed identity.
 
+## Suitability / Variations: optional composable filter (#641)
+
+The centre-top Suitability / Variations control is a **search filter**, not a list of default constraints and not the selected-PART fitment-facts view. Its normalized identity, source provenance, occurrence evidence, and unavailable semantics are governed by [the Fitment UI specification](../UI/UI_Specs_Fitment.md). It is separate from the right-hand Applicable Models panel and from Search Results bookmark checkboxes.
+
+### Initial and reset state
+
+- On a fresh page load, initialize the **selected suitability set to empty**: every offered checkbox is unchecked and no suitability condition is applied. "Empty" describes selection, not the source-backed option list: show any qualifying categories and options returned for the current search/browse context, without automatically choosing an example or first value.
+- On an empty/cleared primary search, follow the [existing clear/browse transition](#empty-search-and-clear-transition): clear suitability selection with the previous search context, then reload the available root-browse suitability choices. A deliberate user deselection removes only that suitability condition; it must not clear the primary query, Availability setting or other independently selected filters.
+- If no verified fixture/real suitability choices exist for the current source/context, show the appropriate empty or unavailable state rather than populating the control from a global list.
+
+### Available options and grouped presentation
+
+- Derive **both category groups and values exclusively from the currently published normalized suitability response** for the active candidate/occurrence universe. In `?TEST=1` mode, use only the applicable deterministic fit fixtures and their source-qualified mappings; normal mode uses only verified published suitability derived from imported **parts data**, never fixture fallback. Example fixture pairs are test coverage, not unconditional UI options or production taxonomy.
+- Present only returned nonempty categories, one labelled group per stable normalized category ID. Sort groups by the currently displayed, language-qualified category name, with a stable ID tie-break; changing selection must not reorder groups.
+- Within a group, display selected values first and remaining values alphabetically by their language-qualified names (stable ID tie-break). Show each category heading once above its checkboxes. Do not append the category label to each option. Checked and unchecked option text uses normal decoration—**no strikethrough**; selection is expressed by the native checked state.
+- Only response-backed values may become selectable. Values that have no matching surviving occurrence under the applicable other filters are not offered as active new choices. Preserve a previously selected, source-backed value visibly as checked when necessary to let the user remove a constraint that currently yields no matches; do not synthesize an absent/unmapped value. Hide groups with no displayable values. An unavailable read or incomplete provenance is not an empty verified result.
+
+### Search composition and result synchronization
+
+- With an empty suitability selection, candidate resolution is **identical to the result under the other active search/browse constraints**. Showing the option panel alone must not filter the Parts Tree or Search Results.
+- Checking an offered normalized value activates the approved source-backed suitability evaluator. Intersect its surviving occurrence contexts with the **existing** deterministic-identifier/free-text query, operational Stock only/Availability and any other *supported* active tree, VIN, or model filters. Suitability is an additional narrowing dimension, never a replacement for a query, stock constraint or search resolution path. This does not create or change the separate, deferred multi-model-range OR evaluator or infer a new within-category operator.
+- Filter occurrences before deduplicating canonical PARTs. Keep a PART visible while at least one verified matching occurrence survives all active constraints. Synchronize the resulting PART candidates in the Parts Tree and right Search Results; never combine qualifiers from different occurrences or automatically choose a PART when several survive.
+- Preserve the active suitability selection when the user changes another supported filter, **including Stock only with an empty primary query**, while recomputing available options and candidate counts against the changed context. Clear suitability only on the explicit suitability deselection/reset or the established primary-search clear/context-invalidating transition; unsupported tree scopes must not silently pretend a suitability filter was applied.
+- Unchecking the final suitability value removes only suitability narrowing and restores candidates permitted by the remaining query/stock/browse constraints. Keep distinct states for no surviving match, unavailable or incomplete suitability evidence, unsupported composition and request failure; missing evidence must not become a negative applicability assertion.
+
+### Required regression cases
+
+Exercise fixture and later verified-real-data modes separately: an initially unchecked panel with only response-backed categories; alphabetized localized group headings, checked-first alphabetized items and no struck-through labels; no hidden default filtering; suitability alone and combined with identifier/free-text and Stock only; Stock-only toggling with an empty query while a suitability remains selected; changes to another filter that remove all matching occurrences; removing the last suitability to restore only the other-constrained candidates; multiple occurrences of one canonical PART with differing qualifiers; unavailable/missing source mappings; and a source fixture value not offered in the active result universe. The UI/reader must never silently use fixtures on a normal URL.
+
 ## Empty search and clear transition
 
 This transition applies when editing makes the trimmed query empty, when an empty/whitespace-only query is submitted, and when an explicit Clear action is invoked if that control is provided. Keyboard deletion and native input clearing must work without requiring a dedicated Clear button. An empty field during selected-category browsing is not by itself a new clear event.
