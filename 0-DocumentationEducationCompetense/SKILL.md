@@ -175,7 +175,7 @@ A PR that implements only part of an Issue must use a non-closing reference on i
 
 Use the GitHub closing form `Closes #123` only when the governing Issue is ready for closure after all acceptance criteria are verified. Do not use ambiguous forms such as `Closes 123` or `Closes Issue 123`.
 
-When multiple Issues are addressed, identify each explicitly as partial (`Refs`) or complete (`Closes`). On Issue closure, the workflow must check the complete governing-Issue Acceptance list; any unchecked criterion requires reopening the Issue rather than marking it `DONE` (closure guard to be implemented in step 2 of #962).
+When multiple Issues are addressed, identify each explicitly as partial (`Refs`) or complete (`Closes`). On Issue closure, the workflow must check the complete governing-Issue Acceptance list; any unchecked criterion requires reopening the Issue rather than marking it `DONE` (enforced by `issue-lifecycle-in-project.yml`; an absent checklist also requires resolution before closure).
 
 ## Comment and Traceability Rules
 
