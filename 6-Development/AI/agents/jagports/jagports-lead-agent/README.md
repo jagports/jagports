@@ -69,7 +69,7 @@ Reusable direct Responses API and wrapper smoke-test commands, their expected ou
 
 ## Lead Agent scheduling — intended 9h45min cadence
 
-The host's existing `systemd --user` timer, not a `config.yaml` polling value, is the actual scheduling authority. The intended 585-minute interval and service installation/verification are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Reusable one-shot status and diagnostic commands belong in [Development OPERATIONS.md](OPERATIONS.md). An enabled timer and a successful manual service run do not prove that a later timer-triggered unattended run succeeded; verify that run from the journal, state and report.
+The host's existing `systemd --user` timer, not a `config.yaml` polling value, is the actual scheduling authority. The intended 585-minute interval and service installation/verification are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Reusable one-shot status and diagnostic commands belong in [Development OPERATIONS.md](OPERATIONS.md). The guide records one successful timer-triggered run with matching journal, state and report evidence; Issue #900 does not yet record the later 13:37:40 recurrence, so repeated unattended reliability remains unverified.
 
 ## Current specialist and Telegram communication test
 
