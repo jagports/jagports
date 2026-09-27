@@ -4,7 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 
 const html = fs.readFileSync(new URL("../public/stock-admin.html", import.meta.url), "utf8");
-const js = fs.readFileSync(new URL("../js/stock-admin-client.js", import.meta.url), "utf8");
+const js = fs.readFileSync(new URL("../js/admin-stock.js", import.meta.url), "utf8");
 const css = fs.readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 
 test("Stock Admin is one focused page without application navigation shell", () => {

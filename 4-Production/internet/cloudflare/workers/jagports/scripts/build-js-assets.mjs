@@ -3,8 +3,8 @@
 import { copyFile } from "node:fs/promises";
 
 const browserAssets = [
-  ["js/vieps-client.js", "public/app.js"],
-  ["js/stock-admin-client.js", "public/stock-admin.js"],
+  ["js/vieps.js", "public/app.js"],
+  ["js/admin-stock.js", "public/stock-admin.js"],
   ["js/vieps-i18n-runtime.js", "public/i18n-runtime.js"],
 ];
 
