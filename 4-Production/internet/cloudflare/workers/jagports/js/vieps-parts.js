@@ -1,4 +1,5 @@
 import { normalizePartNumber } from './part.js';
+import { handleVerifiedSuitability } from './suitability.js';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status,
   headers: { 'content-type': 'application/json; charset=utf-8' } });
@@ -85,6 +86,52 @@ async function pathsForPart(db, part) {
       path: [...nodes.map(node => node.label), partNode.label],
       nodes: [...nodes, partNode], part };
   });
+}
+
+// Real Suitability is sourced exclusively from the reviewed Range D1 that also
+// serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
+export async function handleLiveSuitability(request, env) {
+  if (request.method !== 'GET') return json({ error_code: 'method_not_allowed' }, 405);
+  const url = new URL(request.url);
+  const { slug, db } = liveRangeDatabase(url, env);
+  const required = [
+    'applicability_source_description', 'applicability_description_mapping_current',
+    'applicability_dimension', 'applicability_dimension_value',
+    'applicability_dimension_label', 'applicability_dimension_value_label',
+    'applicability_dimension_retirement', 'applicability_dimension_value_retirement',
+    'applicability_bundle', 'applicability_snapshot', 'applicability_model_context',
+    'occurrence_applicability', 'applicability_condition_set',
+    'applicability_set_description_evidence', 'part_occurrence', 'part',
+  ];
+  const schema = await db.prepare(
+    "SELECT name FROM sqlite_master WHERE type IN ('table', 'view')"
+  ).all();
+  const found = new Set((schema.results || []).map((row) => row.name));
+  if (required.some((table) => !found.has(table))) {
+    return json({
+      state: 'error', fixture_mode: false, range: slug,
+      error_code: 'real_suitability_data_missing',
+      error: 'Reviewed normalized JEPC Suitability data is not published in this Range database.',
+      categories: [], available_options: [], matches: [],
+    }, 503);
+  }
+  const hasRealStock = async (partNumber) => {
+    if (!env.DB) {
+      const error = new Error('Operational stock database is unavailable.');
+      error.code = 'operational_stock_unavailable';
+      error.status = 503;
+      throw error;
+    }
+    const normalized = normalizePartNumber(partNumber);
+    const row = await env.DB.prepare(
+      `SELECT 1 AS available FROM stock_item
+         WHERE verification_status <> 'fixture' AND available=1 AND quantity>0
+           AND UPPER(REPLACE(REPLACE(TRIM(part_number),' ',''),'-',''))=?
+         LIMIT 1`
+    ).bind(normalized).first();
+    return !!row;
+  };
+  return handleVerifiedSuitability(request, db, hasRealStock, slug);
 }
 
 export async function handleLivePart(request, env) {
