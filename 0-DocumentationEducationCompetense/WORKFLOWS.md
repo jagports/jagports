@@ -398,7 +398,7 @@ When an active Issue or PR materially changes scope, align its title with the cu
 
 When multiple Issues are addressed, include an explicit traceability reference for each: `Refs #123` for partial implementations and `Closes #123` only when the complete Issue is ready for closure. A merge must not itself claim that outstanding governing-Issue acceptance criteria are satisfied.
 
-Issue closure remains a separate controlled action. Before closing an Issue or retaining a GitHub-triggered closure, verify every governing-Issue Acceptance checkbox is `[x]` and supported by the required review evidence; if any criterion is outstanding, reopen the Issue and do not mark its Project Item `DONE`. The existing Issue lifecycle automation must implement this guard in repair step 2.
+Issue closure remains a separate controlled action. Before closing an Issue or retaining a GitHub-triggered closure, verify every governing-Issue Acceptance checkbox is `[x]` and supported by the required review evidence; if any criterion is outstanding, reopen the Issue and do not mark its Project Item `DONE`. The Issue lifecycle automation enforces this checkbox guard on `closed` events: it verifies the complete Issue checklist, reopens the Issue before `DONE` if any checkbox remains unchecked or no checklist exists, and preserves the existing `DONE` synchronization when all criteria are checked. Checkbox state is a closure prerequisite, not independent reviewer approval.
 
 ---
 
