@@ -34,7 +34,7 @@ Applicability is evaluated from approved PART occurrence/application/attribute r
 - Empty-query stock-backed model browsing is permitted only when the approved stock/catalogue and applicability contracts provide verified candidates; otherwise indicate unavailable/unsupported rather than fabricating ranges.
 
 ### Suitability / Filter dual mode
-The centre-top Suitability / Variations filter (#641) and right-bottom Applicable Models panel are distinct controls over one normalized fitment contract.
+The centre-top Suitability / Variations filter (#641) and right-bottom Applicable Models panel are distinct controls over one normalized fitment contract. The filter starts with **no selected values**; the authoritative initial-state, fixture-only option, grouped-checkbox and composable Search/Stock behavior is specified in [`UI_Part_Search.md`](../SPEC/UI_Part_Search.md#suitability--variations-optional-composable-filter-641).
 
 1. **Browse or multiple candidates:** show only verified fitting normalized variation options derived from currently surviving occurrence contexts. Selecting one narrows candidates consistently in left Parts Tree, right Search Results and right Applicable Models. Preserve exclusions and unknown/unavailable states; raw imported descriptions are not automatically typed normalized facets.
 2. **Single selected PART/context:** show evidence-backed qualifier/fact values where supported by the selected context (body, steering, engine, supercharger, market, transmission, equipment and VIN boundary). Missing values remain unknown; they never become default assumptions.
