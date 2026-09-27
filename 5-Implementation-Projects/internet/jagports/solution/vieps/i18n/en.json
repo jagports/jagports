@@ -75,8 +75,12 @@
     "no_jaguar_part_number": "No Jaguar part number",
     "no_part_resolved": "No part resolved.",
     "no_part_selected": "No part selected.",
+    "no_stock": "No operational stock shown",
     "raw_part_number": "Raw part number",
     "source": "Source",
+    "stock": "Stock",
+    "stock_record_one": "{{count}} operational stock record",
+    "stock_record_other": "{{count}} operational stock records",
     "verification": "Verification"
   },
   "ranges": {
