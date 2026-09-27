@@ -622,6 +622,14 @@ try {
       await lowercasePage.screenshot({
         path: evidenceDir + "web-lowercase-test1-desktop.png", fullPage: true,
       });
+      await lowercasePage.locator("#partNumber").fill("BRTEST");
+      await lowercasePage.locator("#partSearch").press("Enter");
+      const lowercaseResult = lowercasePage.locator("#searchResults [data-result-part-id]").first();
+      await lowercaseResult.waitFor();
+      assert.match(await lowercaseResult.getAttribute("href"), /[?&]TEST=1/,
+        "new-tab result links must preserve fixture mode");
+      assert.match(await lowercasePage.locator("#treeRootLink").getAttribute("href"), /TEST=1/,
+        "root links must preserve fixture mode");
       await lowercasePage.setViewportSize({ width: 320, height: 780 });
       assert.ok(await lowercasePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "lowercase TEST=1 mobile layout must not overflow");
