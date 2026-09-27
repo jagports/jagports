@@ -340,9 +340,19 @@ try {
     await page.locator('#variationOptions [data-suitability-facet="seat_equipment:memory_seat"]').check();
     await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]').check();
     await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]:checked').waitFor();
+    assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
+      ["Body", "Engine aspiration", "Seat equipment", "Steering"],
+      "normalized suitability categories appear once each in alphabetical order");
     assert.deepEqual(await page.locator('#variationOptions input:checked').evaluateAll((nodes) =>
       nodes.map((node) => node.closest("label").querySelector("span").textContent.trim())),
-    ["Coupe", "Memory Seat", "Powered Seats"], "checked options appear first alphabetically");
+      ["Coupe", "Memory Seat", "Powered Seats"],
+      "checked suitability values stay inside their own category");
+    assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(0)
+      .locator(".variation-choice span").allTextContents(), ["Coupe", "Convertible"],
+      "checked Body option precedes unchecked Body option");
+    assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(2)
+      .locator(".variation-choice span").allTextContents(), ["Memory Seat", "Powered Seats"],
+      "checked Seat options sort alphabetically within their category");
     const groupScroll = await page.locator("#variationOptions").evaluate((node) => ({
       viewport: node.clientWidth, content: node.scrollWidth, overflowX: getComputedStyle(node).overflowX,
     }));
@@ -351,6 +361,9 @@ try {
     await page.screenshot({ path: evidenceDir + "desktop-suitability-filter.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
     await page.locator("#variationOptions").filter({ hasText: "Coupé" }).waitFor();
+    assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
+      ["Istuinvarusteet", "Kori", "Moottorin ahtaminen", "Ohjaus"],
+      "group order uses localized Finnish category names");
     await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
     assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
     assert.match(await page.locator('#variationOptions label:has([data-suitability-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
