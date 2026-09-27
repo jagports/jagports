@@ -118,8 +118,8 @@ test("Stock Admin is isolated from Suitability administration", () => {
   assert.doesNotMatch(html, /suitabilityAdminPanel/);
 });
 
-test("Suitability Admin has three desktop columns for categories, values and sourced mappings", () => {
-  const suitabilityHtml = fs.readFileSync(new URL("../public/admin-suitability.html", import.meta.url), "utf8");
+test("Fit Admin has three desktop columns for categories, values and sourced mappings", () => {
+  const suitabilityHtml = fs.readFileSync(new URL("../public/admin-fit.html", import.meta.url), "utf8");
   for (const id of ["suitabilityAdminPanel", "suitabilityCategoryForm", "suitabilityValueForm",
     "suitabilitySourceSearch", "suitabilitySourceSelect", "suitabilityMappingForm"]) {
     assert.match(suitabilityHtml, new RegExp('id="' + id + '"'));
