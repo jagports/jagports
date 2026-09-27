@@ -15,6 +15,8 @@ function loadStockRenderer(language = "en") {
       querySelectorAll() { return []; },
     },
     Intl,
+    URLSearchParams,
+    location: { search: '?TEST=1' },
     VIEPS_I18N_RESOURCES: { en, fi },
     console,
   };
