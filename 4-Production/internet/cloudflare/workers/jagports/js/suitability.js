@@ -1,6 +1,6 @@
-// Fixture-only, source-qualified normalized suitability read contract (#641/#877).
-// Never evaluate imported JEPC descriptions as predicates until #354/#355
-// provide reviewed occurrence mapping and operator semantics.
+// Source-qualified normalized suitability reader (#641/#877). TEST=1 uses only
+// fixture rows; real mode reads only independently reviewed JEPC occurrence evidence
+// from the Range D1 selected by vieps-parts.js. No free-text inference or fallback.
 const SOURCE = 'fixture:pre-jepc-suitability:v1';
 const send = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'content-type': 'application/json; charset=utf-8' },
@@ -13,6 +13,13 @@ const empty = (state, selected = [], categories = [], query = '', reason = null,
   source_namespace: fixtureMode ? SOURCE : null, query, selected, categories,
   available_options: [], matches: [], excluded_occurrences: [], unavailable_occurrences: [],
 });
+const missingData = (reason, fixtureMode = false) => send({
+  ...empty('error', [], [], '', reason, fixtureMode),
+  error_code: reason,
+  error: fixtureMode
+    ? 'Deterministic Suitability test data has not been loaded.'
+    : 'Reviewed JEPC Suitability data has not been published for this Range.',
+}, 503);
 
 function selections(url) {
   const result = new Map();
@@ -46,11 +53,21 @@ function stillPossible(tags, selected) {
 }
 
 export async function handleViepsSuitability(request, env) {
-  if (request.method !== 'GET') return send({ error_code: 'method_not_allowed' }, 405);
-  if (env.ENABLE_SUITABILITY_FIXTURES !== '1') {
-    return send(empty('unavailable', [], [], '', 'normalized_suitability_not_published', false), 503);
+  if (new URL(request.url).searchParams.get('TEST') !== '1') {
+    return send({ error_code: 'test_mode_required' }, 400);
   }
-  if (!env.DB) return send({ error_code: 'database_unavailable' }, 503);
+  if (!env.DB) return missingData('test_fixture_data_missing', true);
+  return readSuitability(request, env.DB, { fixtureMode: true });
+}
+
+// Called only by vieps-parts.js, after that module has selected and checked a
+// real Range D1 binding; operational stock is resolved separately by part number.
+export async function handleVerifiedSuitability(request, rangeDb, hasRealStock, range) {
+  return readSuitability(request, rangeDb, { fixtureMode: false, hasRealStock, range });
+}
+
+async function readSuitability(request, db, { fixtureMode, hasRealStock, range = null }) {
+  if (request.method !== 'GET') return send({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
   const q = (url.searchParams.get('q') || '').trim();
   if (q.length > 160) return invalid('query_invalid');
@@ -63,10 +80,11 @@ export async function handleViepsSuitability(request, env) {
     return invalid('facet_invalid');
   }
   const selectedIds = [...selected].flatMap(([d, v]) => [...v].map((x) => facetId(d, x)));
-  const db = env.DB;
-
-  // Publish only current mappings with complete source and requested-domain
-  // language metadata. Same-looking source records retain distinct identities.
+  const provenanceKind = fixtureMode ? 'fixture' : 'jepc';
+  const mappingStatus = fixtureMode ? 'fixture' : 'verified';
+  const sourceClause = fixtureMode ? 'sd.source_namespace = ? AND ' : '';
+  // Publish only source-qualified current mappings with complete translated
+  // metadata. Verified JEPC mappings require a recorded independent reviewer.
   const mappings = (await db.prepare(
     `SELECT m.id AS mapping_revision_id, sd.id AS source_description_id,
        sd.source_namespace, sd.dataset_key, sd.source_key, sd.source_language,
@@ -86,14 +104,18 @@ export async function handleViepsSuitability(request, env) {
        AND dl.language = ?
      LEFT JOIN applicability_dimension_value_label vl ON vl.dimension_id = d.id
        AND vl.value_code = v.value_code AND vl.language = ?
-     WHERE sd.source_namespace = ? AND sd.provenance_kind = 'fixture'
-       AND m.status = 'fixture'
+     WHERE ${sourceClause}sd.provenance_kind = ? AND m.status = ?
+       ${fixtureMode ? '' : "AND TRIM(COALESCE(m.reviewer_ref, '')) <> ''"}
      ORDER BY d.code, m.value_code, sd.id`
-  ).bind(language, language, SOURCE).all()).results || [];
+  ).bind(language, language, ...(fixtureMode ? [SOURCE] : []),
+    provenanceKind, mappingStatus).all()).results || [];
+  if (!mappings.length) return missingData(
+    fixtureMode ? 'test_fixture_data_missing' : 'real_suitability_data_missing', fixtureMode);
   if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
       !m.value_name || !m.value_description || !m.source_language ||
       !m.record_locator || !m.dataset_key)) {
-    return send(empty('unavailable', selectedIds, [], q, 'mapping_language_or_provenance_unavailable'), 503);
+    return missingData(fixtureMode ? 'test_fixture_data_incomplete' :
+      'real_suitability_data_incomplete', fixtureMode);
   }
   const categoriesByCode = new Map();
   const published = new Set();
@@ -119,31 +141,71 @@ export async function handleViepsSuitability(request, env) {
       value_code: m.source_value_code, model: m.source_model_ref,
       category: m.source_category_ref, item: m.source_item_ref,
       tree_path: m.source_tree_path, original_text: m.original_text,
-      provenance: 'synthetic_fixture',
+      provenance: fixtureMode ? 'synthetic_fixture' : 'verified_jepc',
     });
   }
   for (const [d, values] of selected) {
     if (![...values].every((v) => published.has(facetId(d, v)))) return invalid('facet_unknown');
   }
   const categories = [...categoriesByCode.values()];
-  const assertions = (await db.prepare(
+  const assertionScope = fixtureMode
+    ? "b.source_namespace = ? AND o.source = ? AND p.verification_status = 'fixture' AND c.source_namespace = ?"
+    : `p.verification_status <> 'fixture' AND c.source_namespace = b.source_namespace
+       AND EXISTS (
+         SELECT 1 FROM applicability_source_description candidate
+         JOIN applicability_description_mapping_current approved
+           ON approved.source_description_id = candidate.id
+         WHERE candidate.source_namespace = b.source_namespace
+           AND candidate.provenance_kind = 'jepc'
+           AND approved.status = 'verified'
+           AND TRIM(COALESCE(approved.reviewer_ref, '')) <> ''
+       )`;
+  let assertions = (await db.prepare(
     `SELECT a.id, a.part_occurrence_id, a.effect, a.verification, a.coverage,
        c.verification AS context_verification, c.source_model_id AS model_context,
+       b.source_namespace AS assertion_namespace,
        p.id AS part_id, p.part_number_normalized AS part_number,
        p.description AS description, o.source_ref AS occurrence_key
      FROM occurrence_applicability a
      JOIN applicability_snapshot snap ON snap.id = a.snapshot_id AND snap.state = 'active'
-     JOIN applicability_bundle b ON b.id = snap.bundle_id AND b.source_namespace = ?
-     JOIN part_occurrence o ON o.id = a.part_occurrence_id AND o.source = ?
-     JOIN part p ON p.id = o.part_id AND p.verification_status = 'fixture'
+     JOIN applicability_bundle b ON b.id = snap.bundle_id
+     JOIN part_occurrence o ON o.id = a.part_occurrence_id
+     JOIN part p ON p.id = o.part_id
      JOIN applicability_model_context c ON c.id = a.model_context_id
-       AND c.source_namespace = ?
-     WHERE (? = '' OR instr(upper(COALESCE(p.part_number_normalized, '')), upper(?)) > 0
-       OR instr(upper(COALESCE(p.description, '')), upper(?)) > 0)
-       AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item st
-         WHERE st.part_id = p.id AND st.available = 1 AND st.quantity > 0))
+     WHERE ${assertionScope}
+       AND (? = '' OR instr(upper(COALESCE(p.part_number_normalized, '')), upper(?)) > 0
+         OR instr(upper(COALESCE(p.description, '')), upper(?)) > 0)
+       ${fixtureMode ? "AND (? = '0' OR EXISTS (SELECT 1 FROM stock_item st WHERE st.part_id = p.id AND st.available = 1 AND st.quantity > 0))" : ''}
      ORDER BY p.id, o.id, a.id`
-  ).bind(SOURCE, SOURCE, SOURCE, q, q, q, stockOnly).all()).results || [];
+  ).bind(...(fixtureMode ? [SOURCE, SOURCE, SOURCE] : []),
+    q, q, q, ...(fixtureMode ? [stockOnly] : [])).all()).results || [];
+  if (!fixtureMode) {
+    // A Range can have reviewed mappings but no verified published occurrences.
+    // This is missing source data, not a legitimate zero-match search.
+    if (!assertions.length) {
+      const any = await db.prepare(`SELECT 1 AS present
+        FROM occurrence_applicability a
+        JOIN applicability_snapshot snap ON snap.id = a.snapshot_id AND snap.state = 'active'
+        JOIN applicability_bundle b ON b.id = snap.bundle_id
+        JOIN applicability_model_context c ON c.id = a.model_context_id
+        WHERE a.verification = 'verified' AND c.verification = 'verified'
+          AND c.source_namespace = b.source_namespace
+          AND EXISTS (SELECT 1 FROM applicability_source_description sd
+            JOIN applicability_description_mapping_current m ON m.source_description_id=sd.id
+            WHERE sd.source_namespace=b.source_namespace AND sd.provenance_kind='jepc'
+              AND m.status='verified' AND TRIM(COALESCE(m.reviewer_ref,'')) <> '')
+        LIMIT 1`).first();
+      if (!any) return missingData('real_suitability_data_missing');
+    }
+    if (stockOnly === '1') {
+      if (!hasRealStock) return missingData('real_stock_data_unavailable');
+      const available = new Map();
+      for (const number of new Set(assertions.map((a) => a.part_number))) {
+        available.set(number, await hasRealStock(number));
+      }
+      assertions = assertions.filter((a) => available.get(a.part_number));
+    }
+  }
   if (!assertions.length) return send(empty('no_match', selectedIds, categories, q));
   const sets = (await db.prepare(
     `SELECT id, assertion_id, coverage, unconditional, serial_range_id, effective_serial_range_id
@@ -154,7 +216,8 @@ export async function handleViepsSuitability(request, env) {
   if (sets.length) {
     const tags = (await db.prepare(
       `SELECT se.set_id, se.mapping_revision_id, se.verification,
-         m.id AS current_id, m.status, d.code AS dimension, m.value_code,
+         m.id AS current_id, m.status, m.reviewer_ref,
+         d.code AS dimension, m.value_code,
          sd.source_namespace, sd.provenance_kind, sd.source_model_ref,
          dl.name AS dimension_name, vl.name AS value_name
        FROM applicability_set_description_evidence se
@@ -182,8 +245,10 @@ export async function handleViepsSuitability(request, env) {
     for (const set of byAssertion.get(a.id) || []) {
       const tags = tagsBySet.get(set.id) || [];
       const valid = tags.length > 0 && tags.every((t) =>
-        t.current_id != null && t.status === 'fixture' && t.verification === 'fixture'
-        && t.source_namespace === SOURCE && t.provenance_kind === 'fixture'
+        t.current_id != null && t.status === mappingStatus && t.verification === mappingStatus
+        && t.source_namespace === a.assertion_namespace
+        && t.provenance_kind === provenanceKind
+        && (fixtureMode || String(t.reviewer_ref || '').trim())
         && (!t.source_model_ref || t.source_model_ref === a.model_context)
         && t.dimension_name && t.value_name && published.has(facetId(t.dimension, t.value_code)));
       const complete = valid && a.verification === 'verified' && a.coverage === 'complete'
@@ -208,7 +273,8 @@ export async function handleViepsSuitability(request, env) {
       const item = { part_id: a.part_id, part_number: a.part_number, description: a.description,
         occurrence_id: a.part_occurrence_id, occurrence_key: a.occurrence_key,
         model_context: a.model_context, condition_set_id: set.id, values,
-        applicability_state: 'applicable', provenance: 'synthetic_fixture' };
+        applicability_state: 'applicable',
+        provenance: fixtureMode ? 'synthetic_fixture' : 'verified_jepc' };
       matches.push(item);
       for (const value of values) available.add(value);
     }
@@ -220,7 +286,8 @@ export async function handleViepsSuitability(request, env) {
   return send({
     state: matches.length ? 'applicable' : unavailable.length ? 'unavailable'
       : excluded.length ? 'excluded' : 'no_match',
-    fixture_mode: true, source_namespace: SOURCE, query: q, selected: selectedIds,
+    fixture_mode: fixtureMode, source_namespace: fixtureMode ? SOURCE : null,
+    ...(range ? { range } : {}), query: q, selected: selectedIds,
     categories, available_options: [...available].sort(), matches,
     excluded_occurrences: excluded, unavailable_occurrences: unavailable,
   });
