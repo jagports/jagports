@@ -9,7 +9,7 @@ These sections are GitHub-specific operating/execution details and therefore bel
 - `6-Development/github/GITHUB_OPERATING_RULES.md` for GitHub Issue, Pull Request, review, merge, comment, record-integrity, field, and label handling;
 - `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` for Project/Kanban workflow meaning and Project lifecycle rules;
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` for the current ChatGPT/GitHub Project capability boundary;
-- `00-Management/WORKFLOWS.md` for the top-level Management workflow state machine and gates.
+- `0-DocumentationEducationCompetense/WORKFLOWS.md` for the top-level Management workflow state machine and gates.
 
 ---
 
@@ -111,7 +111,7 @@ Rules:
 - Never treat GitHub's `mergeable` state as proof of review or approval.
 - After merge, verify repository, PR, Issue, review, test, and file state available through this connection. Do not claim Project state unless a capable actor/tool independently verifies it.
 
-A direct-main change is a process violation and requires corrective handling under `00-Management/WORKFLOWS.md`.
+A direct-main change is a process violation and requires corrective handling under `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
 ---
 
