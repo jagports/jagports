@@ -75,8 +75,12 @@
     "no_jaguar_part_number": "Ei Jaguar-osanumeroa",
     "no_part_resolved": "Osaa ei ratkaistu.",
     "no_part_selected": "Osaa ei ole valittu.",
+    "no_stock": "Operatiivista varastoa ei näytetä",
     "raw_part_number": "Alkuperäinen osanumero",
     "source": "Lähde",
+    "stock": "Varasto",
+    "stock_record_one": "{{count}} operatiivinen varastorivi",
+    "stock_record_other": "{{count}} operatiivista varastoriviä",
     "verification": "Vahvistus"
   },
   "ranges": {
