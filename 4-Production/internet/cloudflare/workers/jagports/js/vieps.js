@@ -868,6 +868,9 @@ function setupViepsUi() {
       if (String(error?.message || "") !== "part not found") renderApplicableState("error");
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
+      // A failed real catalogue lookup must also surface the Suitability
+      // provider's explicit error rather than leave the filter uninitialized.
+      void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }
