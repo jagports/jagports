@@ -184,6 +184,7 @@ Issue and PR checkboxes serve different purposes and must not duplicate the same
 - The executor/agent may check or uncheck executor-controlled Issue Acceptance and PR checklist boxes as objective implementation state changes.
 - A reviewer may require a claimed Issue Acceptance or PR checklist item to be returned to `[ ]` when evidence does not support it. Reviewer-only checklist items may be changed only by the reviewer or explicitly authorized human authority.
 - Checkbox state is not independent approval and does not replace GitHub's formal review state.
+- For a partial PR, **applicable Issue Acceptance** in the PR merge gate means the criteria addressed by that PR, not every criterion of the governing Issue. All remaining Issue criteria continue to govern the later Issue-closure decision; partial PR completion must not close the Issue.
 
 ### Review hand-off and discussion implementation chart
 
