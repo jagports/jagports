@@ -54,8 +54,8 @@ jobs:
           if [ "$ISSUE_ACTION" = "closed" ]; then
             issue_json="$(gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER")"
             issue_body="$(jq -r '.body // ""' <<<"$issue_json")"
-            checklist_count="$(printf '%s\n' "$issue_body" | grep -Ec '^[[:space:]]*[-*][[:space:]]+\\[[ xX]\\]' || true)"
-            incomplete_count="$(printf '%s\n' "$issue_body" | grep -Ec '^[[:space:]]*[-*][[:space:]]+\\[[[:space:]]\\]' || true)"
+            checklist_count="$(printf '%s\n' "$issue_body" | grep -Ec '^[[:space:]]*[-*][[:space:]]+\[[ xX]\]' || true)"
+            incomplete_count="$(printf '%s\n' "$issue_body" | grep -Ec '^[[:space:]]*[-*][[:space:]]+\[[[:space:]]\]' || true)"
 
             if [ "$checklist_count" -eq 0 ] || [ "$incomplete_count" -gt 0 ]; then
               echo "Issue #$ISSUE_NUMBER closure rejected: $incomplete_count unchecked criteria; $checklist_count total checkboxes."
