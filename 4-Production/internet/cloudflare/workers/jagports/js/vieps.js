@@ -9,6 +9,14 @@ const $ = (id) => {
 };
 const i18n = globalThis.viepsI18n;
 const t = (key, options) => i18n?.t(key, options) ?? key;
+const isTestMode = () => new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1";
+const searchPrompt = (withAction = false) => t(isTestMode()
+  ? (withAction ? "search.prompt_with_action" : "search.prompt")
+  : (withAction ? "search.prompt_with_action_real" : "search.prompt_real"));
+const apiUrl = (path) => {
+  if (!isTestMode()) return path;
+  return `${path}${path.includes("?") ? "&" : "?"}TEST=1`;
+};
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
 let currentData = null;
 let fitmentRows = [];
@@ -23,6 +31,7 @@ let viewMode = "empty";
 let suitabilitySelection = new Set();
 let suitabilityRequestVersion = 0;
 let suitabilityData = null;
+let suitabilityError = null;
 let suitabilityMatchingIds = null; // Null means the source-backed filter is unavailable.
 
 
@@ -61,7 +70,7 @@ function formatMoney(value, currency) {
 
 function formatStockLocationSummary(stock) {
   const locations = [...new Set(stock.map((item) => item.location).filter(Boolean))];
-  return locations.length ? locations.join(", ") : t("stock.no_fixture_location");
+  return locations.length ? locations.join(", ") : t(isTestMode() ? "stock.no_fixture_location" : "common.not_supplied");
 }
 
 function formatStockQuality(item) {
@@ -85,7 +94,7 @@ function partDisplayLabel(part) {
 async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
   const candidateFilter = candidateId === null ? "" : `&candidate_id=${encodeURIComponent(candidateId)}`;
-  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`);
+  const response = await fetch(apiUrl(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -96,9 +105,14 @@ async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
 }
 
 async function resolveTreeRoots(stockOnly = false) {
-  const response = await fetch(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`);
-  if (!response.ok) throw new Error("tree roots unavailable");
-  return response.json();
+  const response = await fetch(apiUrl(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`));
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || `${response.status} ${response.statusText}`);
+    error.code = data.error_code;
+    throw error;
+  }
+  return data;
 }
 
 function clearSelectionUrl() {
@@ -115,7 +129,7 @@ function clearSelectionUrl() {
 
 async function resolveTreeNode(nodeId, stockOnly = false) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
-  const response = await fetch(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`);
+  const response = await fetch(apiUrl(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -128,7 +142,7 @@ async function resolveTreeNode(nodeId, stockOnly = false) {
 function renderStockRows(stock) {
   if (!stock.length) return "";
   return `<div class="stock-section">
-    <p class="compact-note stock-note">${escapeHtml(t("stock.note"))}</p>
+    ${isTestMode() ? `<p class="compact-note stock-note">${escapeHtml(t("stock.note"))}</p>` : ""}
     <div class="table-scroll"><table class="stock-table">
       <thead><tr><th>${escapeHtml(t("stock.qty"))}</th><th>${escapeHtml(t("stock.status"))}</th><th>${escapeHtml(t("stock.condition"))}</th><th>${escapeHtml(t("stock.location"))}</th><th>${escapeHtml(t("stock.price"))}</th><th>${escapeHtml(t("stock.evidence"))}</th></tr></thead>
       <tbody>${stock.map((item) => `<tr>
@@ -137,7 +151,7 @@ function renderStockRows(stock) {
         <td>${escapeHtml(formatStockQuality(item))}</td>
         <td>${escapeHtml(item.location || t("common.not_supplied"))}</td>
         <td>${formatMoney(item.price, item.currency)}</td>
-        <td>${escapeHtml(item.source_ref || item.source || t("stock.fixture_evidence"))}</td>
+        <td>${escapeHtml(item.source_ref || item.source || t(isTestMode() ? "stock.fixture_evidence" : "common.not_supplied"))}</td>
       </tr>`).join("")}</tbody>
     </table></div>
   </div>`;
@@ -148,8 +162,8 @@ function renderPart(part, occurrences = [], stock = []) {
     ? t("part.epc_occurrence", { count: occurrences.length })
     : t("part.no_epc_context");
   const stockText = stock.length
-    ? t("part.fixture_stock_record", { count: stock.length })
-    : t("part.no_fixture_stock");
+    ? t(isTestMode() ? "part.fixture_stock_record" : "part.stock_record", { count: stock.length })
+    : t(isTestMode() ? "part.no_fixture_stock" : "part.no_stock");
   $("partCard").innerHTML = `
     <strong>${escapeHtml(part.part_number_normalized || t("part.no_jaguar_part_number"))}</strong>
     <p>${escapeHtml(part.description || t("part.no_description"))}</p>
@@ -158,7 +172,7 @@ function renderPart(part, occurrences = [], stock = []) {
       <dt>${escapeHtml(t("part.verification"))}</dt><dd>${escapeHtml(part.verification_status || t("common.not_recorded"))}</dd>
       <dt>${escapeHtml(t("part.source"))}</dt><dd>${escapeHtml(part.source || t("common.not_recorded"))}</dd>
       <dt>${escapeHtml(t("part.epc_context"))}</dt><dd>${escapeHtml(occurrenceText)}</dd>
-      <dt>${escapeHtml(t("part.fixture_stock"))}</dt><dd>${escapeHtml(stockText)}</dd>
+      <dt>${escapeHtml(t(isTestMode() ? "part.fixture_stock" : "part.stock"))}</dt><dd>${escapeHtml(stockText)}</dd>
       <dt>${escapeHtml(t("stock.location"))}</dt><dd>${escapeHtml(formatStockLocationSummary(stock))}</dd>
     </dl>
     ${renderStockRows(stock)}`;
@@ -306,12 +320,24 @@ function visibleCandidates(parts = []) {
 function showSuitability() {
   const panel = $("variationOptions"), status = $("variationsStatus");
   if (!panel || !status) return;
-  if (!suitabilityData?.fixture_mode) {
+  if (!suitabilityData || !Array.isArray(suitabilityData.categories)) {
     if (panel.dataset) panel.dataset.currentQuery = "";
     panel.innerHTML = "";
-    status.textContent = t("suitability.unavailable");
+    status.className = suitabilityError ? "error status-line" : "muted status-line";
+    status.textContent = suitabilityError === "real_suitability_data_missing"
+      || suitabilityError === "real_suitability_data_incomplete"
+        ? t("suitability.real_data_missing")
+      : suitabilityError === "range_unavailable"
+        ? t("suitability.real_range_missing")
+      : suitabilityError === "test_fixture_data_missing"
+        || suitabilityError === "test_fixture_data_incomplete"
+        ? t("suitability.test_data_missing")
+      : suitabilityError
+        ? t("suitability.data_error", { code: suitabilityError })
+        : t("suitability.unavailable");
     return;
   }
+  status.className = "muted status-line";
   if (panel.dataset) panel.dataset.currentQuery = suitabilityData.query || "";
   const choices = (suitabilityData.categories || []).flatMap((category) =>
     (category.values || []).map((value) => ({
@@ -339,7 +365,8 @@ function showSuitability() {
     : suitabilityData.state === "unavailable" && matching === 0
       ? t("suitability.incomplete")
       : suitabilitySelection.size && matching === 0 ? t("suitability.no_matches")
-      : t("suitability.fixture_count", { count: matching });
+      : t(suitabilityData.fixture_mode ? "suitability.fixture_count"
+        : "suitability.real_count", { count: matching });
 }
 
 async function refreshSuitability(query, stockOnly, mainVersion = requestVersion) {
@@ -356,16 +383,19 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
   });
   for (const id of suitabilitySelection) params.append("facet", id);
   try {
-    const response = await fetch("/api/vieps/suitability?" + params.toString());
+    const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
     const data = await response.json();
     if (version !== suitabilityRequestVersion || mainVersion !== requestVersion) return;
-    if (!response.ok || data.fixture_mode !== true) {
-      // Missing mapping never makes an ordinary PART result look unsuitable.
+    if (!response.ok || !Array.isArray(data?.categories)
+        || data.fixture_mode !== isTestMode()) {
+      // Never disguise missing real data as an empty list or fall back to fixtures.
+      suitabilityError = data?.error_code || "suitability_mode_mismatch";
       suitabilityData = null;
       suitabilityMatchingIds = null;
       showSuitability();
       return;
     }
+    suitabilityError = null;
     suitabilityData = data;
     suitabilityMatchingIds = new Set((data.matches || []).map((m) => String(m.part_id)));
     showSuitability();
@@ -392,6 +422,7 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
     }
   } catch {
     if (version === suitabilityRequestVersion && mainVersion === requestVersion) {
+      suitabilityError = "suitability_request_failed";
       suitabilityData = null;
       suitabilityMatchingIds = null;
       showSuitability();
@@ -403,6 +434,7 @@ function clearSuitability() {
   ++suitabilityRequestVersion;
   suitabilitySelection.clear();
   suitabilityData = null;
+  suitabilityError = null;
   suitabilityMatchingIds = null;
   showSuitability();
 }
@@ -592,9 +624,11 @@ function resetContext(messageKey = "part.no_part_selected") {
   $("locationStatus").textContent = t("location.select_help");
 }
 
-function localizeError(error) {
+function localizeError(error, fallback = "search.error") {
+  if (error?.code === "range_required") return t("search.range_required");
+  if (error?.code === "range_unavailable") return t("search.range_unavailable");
   if (error?.code === "stock_filter_no_match") return t("search.no_stock_match");
-  return String(error?.message || "") === "part not found" ? t("search.not_found") : t("search.error");
+  return String(error?.message || "") === "part not found" ? t("search.not_found") : t(fallback);
 }
 
 function refreshForLanguageChange() {
@@ -610,10 +644,10 @@ function refreshForLanguageChange() {
     $("searchStatus").textContent = t("tree.browse_parts", { count: cachedBrowseData.parts?.length || 0 });
   } else if (cachedRootData) {
     renderTree([], { roots: cachedRootData.roots || [] });
-    $("searchStatus").textContent = t("search.prompt");
+    $("searchStatus").textContent = searchPrompt();
   } else {
     resetContext();
-    $("searchStatus").textContent = t("search.prompt");
+    $("searchStatus").textContent = searchPrompt();
   }
 }
 
@@ -654,10 +688,21 @@ function setupStockHelp() {
 
 function setupViepsUi() {
   if (!$("partSearch")) return;
+  const testMode = isTestMode();
+  $("fixtureModeHelp").hidden = !testMode;
+  $("realModeHelp").hidden = testMode;
+  $("helpGuide").setAttribute("data-i18n-aria-label",
+    testMode ? "fixture.test_guidance_aria" : "header.instructions");
+  $("partNumberLabel").setAttribute("data-i18n",
+    testMode ? "search.input_aria" : "search.input_aria_real");
+  $("partNumber").setAttribute("data-i18n-placeholder",
+    testMode ? "search.input_placeholder" : "search.input_placeholder_real");
+  $("partNumber").setAttribute("data-i18n-aria-label",
+    testMode ? "search.input_aria" : "search.input_aria_real");
   i18n?.init();
   setupStockHelp();
   resetContext();
-  $("searchStatus").textContent = t("search.prompt");
+  $("searchStatus").textContent = searchPrompt();
 
   document.querySelectorAll?.("[data-language]").forEach((control) => {
     control.addEventListener("click", () => {
@@ -688,7 +733,7 @@ function setupViepsUi() {
   $("visualSelect").addEventListener("change", renderSelectedVisual);
   const loadRootBrowse = async (version, options = {}) => {
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
+    $("searchStatus").textContent = options.defaultLoad ? searchPrompt() : t("tree.browse_loading");
     $("result").setAttribute("aria-busy", "true");
     try {
       const data = await resolveTreeRoots(Boolean($("availabilitySelect").checked));
@@ -701,13 +746,15 @@ function setupViepsUi() {
       renderTree([], { roots: data.roots || [] });
       void refreshSuitability("", Boolean($("availabilitySelect").checked), version);
       $("searchStatus").textContent = data.stock_browse_state === "unsupported"
-        ? t("tree.no_selection", { message: t("search.prompt") }) : t("search.prompt");
+        ? t("tree.no_selection", { message: searchPrompt() }) : searchPrompt();
     } catch (error) {
       if (version !== requestVersion) return;
       cachedRootData = null;
-      $("tree").innerHTML = empty(t("tree.browse_error"));
-      $("searchStatus").textContent = t("tree.browse_error");
+      $("tree").innerHTML = empty(localizeError(error, "tree.browse_error"));
+      $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
+      // Report a missing real Suitability source even when root loading failed.
+      void refreshSuitability("", Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }
@@ -730,7 +777,7 @@ function setupViepsUi() {
       void loadRootBrowse(version);
     } else {
       renderTree([], { roots: cachedRootData?.roots || [] });
-      $("searchStatus").textContent = t("search.prompt_with_action");
+      $("searchStatus").textContent = searchPrompt(true);
     }
   });
 
@@ -740,7 +787,7 @@ function setupViepsUi() {
     resetContext();
     viewMode = "empty";
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
+    $("searchStatus").textContent = options.defaultLoad ? searchPrompt() : t("tree.browse_loading");
     $("result").setAttribute("aria-busy", "true");
     try {
       if (nodeId === null || nodeId === undefined || nodeId === "") {
@@ -766,7 +813,7 @@ function setupViepsUi() {
       if (version !== requestVersion) return;
       resetContext();
       renderTree([], { roots: cachedRootData?.roots || [] });
-      $("searchStatus").textContent = t("tree.browse_error");
+      $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
@@ -821,6 +868,9 @@ function setupViepsUi() {
       if (String(error?.message || "") !== "part not found") renderApplicableState("error");
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
+      // A failed real catalogue lookup must also surface the Suitability
+      // provider's explicit error rather than leave the filter uninitialized.
+      void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }

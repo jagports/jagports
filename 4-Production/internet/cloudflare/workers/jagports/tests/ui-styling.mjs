@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-const code = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
-const i18nCode = readFileSync(new URL('../public/i18n-runtime.js', import.meta.url), 'utf8');
+const code = readFileSync(new URL('../js/vieps.js', import.meta.url), 'utf8');
+const i18nCode = readFileSync(new URL('../js/vieps-i18n-runtime.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles/vieps-tailwind.css', import.meta.url), 'utf8');
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));

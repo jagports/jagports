@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handleViepsPart, handleViepsTree } from "../src/vieps.js";
+import { handleViepsPart, handleViepsTree } from "../js/vieps-fixtures.js";
 
 function makeDb({ partSelects = [], treePathRows = [], rootChildren = [], detailRows = {} } = {}) {
   const partQueue = partSelects.map((rows) => [...rows]);
