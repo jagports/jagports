@@ -148,7 +148,7 @@ Requirements:
 1. A suitable Issue must exist before repository modification.
 2. Work occurs on a dedicated branch; never modify `main` directly.
 3. A PR is the integration path.
-4. The PR must explicitly trace to every Issue it implements/resolves.
+4. The PR must explicitly trace to every Issue it implements/resolves. Use `Refs #123` for partial implementations; use `Closes #123` only for an Issue whose complete acceptance criteria and closure authority have been verified. Partial PRs must not create a GitHub closing relationship.
 5. Required Project/Kanban behavior is governed by `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 6. Current ChatGPT/GitHub Project capability limits are governed by `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 7. Required review and testing gates must pass before merge.
@@ -395,7 +395,9 @@ Historical references used to justify active work should be explicitly linked in
 
 When an active Issue or PR materially changes scope, align its title with the current scope. The title-change and checkbox-state exceptions do not permit unrelated modification of historical descriptions/comments.
 
-When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
+When multiple Issues are addressed, include an explicit traceability reference for each: `Refs #123` for partial implementations and `Closes #123` only when the complete Issue is ready for closure. A merge must not itself claim that outstanding governing-Issue acceptance criteria are satisfied.
+
+Issue closure remains a separate controlled action. Before closing an Issue or retaining a GitHub-triggered closure, verify every governing-Issue Acceptance checkbox is `[x]` and supported by the required review evidence; if any criterion is outstanding, reopen the Issue and do not mark its Project Item `DONE`. The existing Issue lifecycle automation must implement this guard in repair step 2.
 
 ---
 
