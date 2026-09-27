@@ -9,7 +9,13 @@ const $ = (id) => {
 };
 const i18n = globalThis.viepsI18n;
 const t = (key, options) => i18n?.t(key, options) ?? key;
-const isTestMode = () => new URLSearchParams(globalThis.location?.search || "").get("TEST") === "1";
+// Query keys are case-insensitive for the URL switch: ?TEST=1 and ?test=1
+// must select the same catalogue mode. Conflicting duplicates fail closed.
+const isTestMode = () => {
+  const flags = [...new URLSearchParams(globalThis.location?.search || "")]
+    .filter(([key]) => key.toLowerCase() === "test");
+  return flags.length === 1 && flags[0][1] === "1";
+};
 const searchPrompt = (withAction = false) => t(isTestMode()
   ? (withAction ? "search.prompt_with_action" : "search.prompt")
   : (withAction ? "search.prompt_with_action_real" : "search.prompt_real"));
