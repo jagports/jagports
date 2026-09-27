@@ -169,13 +169,13 @@ Follow `0-DocumentationEducationCompetense/WORKFLOWS.md` for the canonical rules
 
 ## GitHub Issue Closing Syntax
 
-Every PR that completes an Issue must use the GitHub closing form:
+A PR that implements only part of an Issue must use a non-closing reference on its own line in the PR body:
 
-`Closes #123`
+`Refs #123`
 
-Do not use only task identifiers or prose such as `Closes 123` or `Closes Issue 123`.
+Use the GitHub closing form `Closes #123` only when the governing Issue is ready for closure after all acceptance criteria are verified. Do not use ambiguous forms such as `Closes 123` or `Closes Issue 123`.
 
-When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
+When multiple Issues are addressed, identify each explicitly as partial (`Refs`) or complete (`Closes`). On Issue closure, the workflow must check the complete governing-Issue Acceptance list; any unchecked criterion requires reopening the Issue rather than marking it `DONE` (enforced by `issue-lifecycle-in-project.yml`; an absent checklist also requires resolution before closure).
 
 ## Comment and Traceability Rules
 
