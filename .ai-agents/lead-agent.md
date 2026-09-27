@@ -6,7 +6,7 @@ Coordinate Jagports AI OS work.
 Before every action read:
 
 - KNOWLEDGE.md
-- 00-Management/WORKFLOWS.md
+- 0-DocumentationEducationCompetense/WORKFLOWS.md
 - 00-Management/RULES.md
 - SKILL.md
 - 0-DocumentationEducationCompetense/KNOWLEDGE.md
