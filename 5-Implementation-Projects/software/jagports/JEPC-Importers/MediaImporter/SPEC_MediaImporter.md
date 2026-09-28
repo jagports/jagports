@@ -554,4 +554,3 @@ Real installed XK data is a bounded smoke/evidence test. It is not committed as 
 - Issue #664 owns broader JEPC source reverse engineering.
 - Issue #354 and `MODEL_PART.md` own the normalized Parts Data Model.
 - Issue #672 owns the separate InvenTree StockProvider proof of concept.
-
