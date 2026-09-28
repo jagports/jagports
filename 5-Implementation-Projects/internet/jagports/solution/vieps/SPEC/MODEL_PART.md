@@ -110,7 +110,7 @@ Source-description-to-domain mappings are a separate enrichment layer and do not
 
 ## PART vehicle and VIN fit
 
-Occurrence-bound fit uses model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain evidence/navigation relationships unless their occurrence scope is established. The companion [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#persistence-contract) defines these relations and verification limits; stored fitment rows are not automatically promoted into verified occurrence assertions.
+Occurrence-bound fit uses model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain evidence/navigation relationships unless their occurrence scope is established. The companion [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md) defines these relations and verification limits; stored fitment rows are not automatically promoted into verified occurrence assertions.
 
 Vehicle fit is represented outside the canonical `part` row.
 
@@ -297,7 +297,7 @@ All standalone `id` fields are `INTEGER PRIMARY KEY AUTOINCREMENT` unless a tabl
 | `part_supersession` | Composite PK `superseded_part_id`, `superseding_part_id`; `source`; `source_ref`; `verification_status`; `confidence`; `effective_from`; `effective_to`. |
 | `part_fitment` | `id`; `part_occurrence_id`; `part_id`; `vehicle_range_id`; `variation`; `qualifier`; `applicability_state`; `attribute_group`; `attribute_key`; `source_value`; `except_flag`; `source`; `source_ref`; `verification_status`; `confidence`. |
 
-The occurrence-fit persistence dictionary is maintained in [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#persistence-contract) rather than duplicated here.
+The occurrence-fit persistence dictionary is maintained in [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md) rather than duplicated here.
 
 ### Diagrams, hotspots and catalogue location
 
