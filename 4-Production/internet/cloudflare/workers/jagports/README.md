@@ -90,7 +90,7 @@ The Wrangler configuration is in this directory:
 
 The configuration uses local paths for the Worker entry point, public assets, and D1 migrations. No `/base` path is deployed.
 
-The checked-in JavaScript source is maintained in `js/`. See `scripts/build-js-assets.mjs` for the browser asset build and [`SPEC/URL.md`](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/URL.md) for TEST-mode behavior. Parts database setup and operation are documented in `3-Deployment/internet/cloudflare/d1/parts/OPERATIONS.md`.
+The checked-in JavaScript source is maintained in `js/`. See `scripts/build-js-assets.mjs` for the browser asset build and [`SPEC/URL.md`](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/URL.md) for TEST-mode behavior. Parts database setup and operation are documented in `3-Deployment/internet/cloudflare/d1/OPERATIONS.md`.
 
 ## Administrator security
 

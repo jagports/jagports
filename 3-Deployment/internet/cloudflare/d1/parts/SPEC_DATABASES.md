@@ -1,6 +1,6 @@
 # JEPC parts database deployment specification
 
-This specification governs the Cloudflare D1 **parts database** used for imported JEPC catalogue data. The parts data format is defined by [the Parts Data Model](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md) and represented by the executable [schema.sql](schema.sql). The DataImporter runtime contract is in [SPEC_DataImporter.md](../../../../../5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/SPEC_DataImporter.md). The executable database setup and operation steps are in [OPERATIONS.md](OPERATIONS.md); the [DataImporter README](../../../../../5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/README.md) explains importer usage.
+This specification governs the Cloudflare D1 **parts database** used for imported JEPC catalogue data. The parts data format is defined by [the Parts Data Model](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md) and represented by the executable [schema.sql](schema.sql). The DataImporter runtime contract is in [SPEC_DataImporter.md](../../../../../5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/SPEC_DataImporter.md). The executable database setup and operation steps are in [OPERATIONS.md](../OPERATIONS.md); the [DataImporter README](../../../../../5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/README.md) explains importer usage.
 
 ## Database identity and separation
 
@@ -14,5 +14,5 @@ Deployment must derive the database name from an approved Range slug and verify 
 
 Apply [schema.sql](schema.sql) only after identity review. The schema application verifies its identity marker and refuses an occupied database without that marker. Repeated setup and schema commands must verify and reuse the same database rather than reset data. DataImporter must verify that same identity and schema before injecting any JEPC rows. It replaces one category atomically, reads back the recorded evidence hash, and only then records the confirmed D1 import in its local SQLite ledger. Interrupted or repeated runs retry without discarding earlier imported categories.
 
-The setup commands and their exact order are specified in [OPERATIONS.md](OPERATIONS.md). They are infrastructure operations; the DataImporter remains one local CLI invocation with required `--parse PATTERN` and optional `--estimate`. Website reads and the `TEST=1` URL parameter are separate from this deployment contract.
+The setup commands and their exact order are specified in [OPERATIONS.md](../OPERATIONS.md). They are infrastructure operations; the DataImporter remains one local CLI invocation with required `--parse PATTERN` and optional `--estimate`. Website reads and the `TEST=1` URL parameter are separate from this deployment contract.
 

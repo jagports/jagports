@@ -1,8 +1,14 @@
 # JEPC parts database deployment: operation instructions
 
-This procedure creates and verifies a D1 parts database for an approved Range and applies the schema-only JEPC catalogue schema. The same DataImporter CLI run that reads JEPC and records its local SQLite ledger then updates that parts database when the reviewed identity and Cloudflare token are available. The existing Worker migration chain includes fixtures and must never be applied to a parts database. The operational `jagports` D1 database remains separate and retains stock and fixture data. The [deployment specification](SPEC_Parts_Database_Deployment.md) defines the requirements; the [Parts Data Model](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md) defines the destination data. The completed website `TEST=1` work is separate; real parts-data website reads remain in [PR #961](https://github.com/jagports/jagports/pull/961).
+This guide is the single deployment and operations authority for the Cloudflare D1 JEPC parts database. It defines database identity, separation, setup, schema application, verification and injection. The [Parts Data Model](../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md) defines the destination data and [schema.sql](parts/schema.sql) implements its D1 shape; the DataImporter runtime contract is in [SPEC_DataImporter.md](../../../../5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/SPEC_DataImporter.md). The same DataImporter CLI run that reads JEPC and records its local SQLite ledger then updates this parts database when the reviewed identity and Cloudflare token are available. The existing Worker migration chain includes fixtures and must never be applied to a parts database. The operational `jagports` D1 database remains separate and retains stock and fixture data. The completed website `TEST=1` work is separate; real parts-data website reads remain in [PR #961](https://github.com/jagports/jagports/pull/961).
 
 The parts database name comes from an approved stable VIEPS Range slug: `parts-<range_slug>`. For example, `xk` resolves to `parts-xk` and `xj` to `parts-xj`. `source-range-map.json` separately identifies approved JEPC source-group IDs. A `--parse` pattern never assigns a Range; the import rejects a model with zero or multiple approved matches. The XK source groups `7422` and `3175` were checked against `menus/models_l_id_0.xml`.
+
+## Database identity and separation
+
+Each approved VIEPS Range has a separate parts database named `parts-<range_slug>`. The approved source-group map must resolve every staged source model to exactly one Range; the Range slug selects the destination and is never selected by the operator's `--parse` text.
+
+The existing `jagports` D1 database holds operational stock and fixtures and is not a JEPC parts import target. A parts database contains only the schema-defined JEPC catalogue tables, with no fixture migrations or operational STOCK rows. Numeric row IDs are local to each database; a numbered JEPC PART uses the stable canonical key `JEPC:<part_number_normalized>`.
 
 ## Requirements
 
@@ -10,6 +16,16 @@ The parts database name comes from an approved stable VIEPS Range slug: `parts-<
 - The Cloudflare account ID for the intended account.
 - A `CLOUDFLARE_API_TOKEN` with D1 Read and D1 Write permissions for that account for creation, schema application and import; D1 Read is sufficient for identity verification. Keep the token out of the repository and command arguments.
 - Check the account's D1 plan and current capacity. [Cloudflare's D1 limits](https://developers.cloudflare.com/d1/platform/limits/) currently allow 10 databases on Workers Free, with 500 MB per database and 5 GB total. The existing `jagports` database uses one of those slots if it is in the same account. State the verified account plan as `--account-plan free` or `paid`; the command does not infer it. On Free, it refuses creation when 10 databases already exist. It also reports database count and the remaining slots *if the account is on Free*. Cloudflare may enforce other limits.
+
+Database creation must respect the account's verified D1 capacity. Credentials stay in the local environment, never in committed configuration or command arguments.
+
+## Setup and verification contract
+
+Before any catalogue write, derive the database name from the approved Range slug and verify the Cloudflare account, database name and UUID against reviewed `config/<range_slug>.json`. Reuse an existing database only when its identity matches that configuration. Never silently adopt, delete or recreate an unconfigured or mismatched database.
+
+Apply [schema.sql](parts/schema.sql) only after identity review. The schema application verifies its identity marker and refuses an occupied database without that marker. Repeated setup and schema commands verify and reuse the same database rather than resetting it. DataImporter verifies the same identity and schema before injection, replaces one category atomically, reads back its evidence hash, and only then records the confirmed D1 injection in its local SQLite ledger. Interrupted or repeated runs retry without discarding previously injected categories.
+
+The setup commands below are infrastructure operations. DataImporter remains one local CLI invocation with required `--parse PATTERN` and optional `--estimate`. Website reads and the `TEST=1` URL parameter are separate from this database procedure.
 
 ## Procedure
 
@@ -41,7 +57,7 @@ After reviewing `config/xk.json`, initialize and verify the schema:
 node 3-Deployment/internet/cloudflare/d1/parts/apply-parts-schema.mjs xk
 ```
 
-`apply-parts-schema.mjs` verifies the remote UUID/name before writing. It refuses an occupied database with no parts database identity, and repeated calls verify the same identity. `config/<slug>.json` is deployment identity, not a temporary import manifest. No catalogue rows are written to `jagports` by these commands. Worker bindings for real parts-data website reads are separate work in [PR #961](https://github.com/jagports/jagports/pull/961).
+`apply-parts-schema.mjs` verifies the remote UUID/name before writing. It refuses an occupied database with no parts database identity, and repeated calls verify the same identity. `config/<slug>.json` is deployment identity, not a temporary import manifest. No catalogue rows are written to `jagports` by these setup commands. Worker bindings for real parts-data website reads are separate work in [PR #961](https://github.com/jagports/jagports/pull/961).
 
 With the reviewed schema in place, the DataImporter operator runs its existing `--parse PATTERN` command on the JEPC computer. With `CLOUDFLARE_API_TOKEN` set, that same process updates matching staged bundles through the [Cloudflare D1 query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/). Each category uses a D1 batch; the bundle hash is written last and read back before the local SQLite update record is saved. Repeat runs retain previous categories and retry staged bundles that have not been recorded as updated. Unknown source structures remain in SQLite and are not sent to D1.
 
