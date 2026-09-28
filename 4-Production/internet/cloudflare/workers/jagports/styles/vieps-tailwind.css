@@ -457,7 +457,7 @@
   .tree-children { margin-left: .05rem; padding-left: .2rem; }
 }
 
-/* Catalogue suitability stays in the existing one-page Admin shell. */
+/* Catalogue FIT stays in the existing one-page Admin shell. */
 #suitabilityAdminPanel form + form { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-jagports-line); }
 #suitabilityAdminPanel .admin-form-grid { min-width: 0; }
 #suitabilityAdminPanel .admin-field { min-width: 0; }
@@ -467,7 +467,7 @@
 #suitabilityMoreSources { margin-top: .5rem; }
 @media (max-width: 760px) { #suitabilityAdminPanel .admin-actions { flex-direction: column; } #suitabilityMoreSources { width: 100%; } }
 
-/* Suitability administration keeps categories, values and source mappings visible
+/* FIT administration keeps categories, values and source mappings visible
    together on desktop while remaining a single column on narrow screens. */
 .fit-admin-grid {
   @apply grid gap-3;
