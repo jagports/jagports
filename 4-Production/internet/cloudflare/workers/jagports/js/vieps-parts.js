@@ -88,6 +88,14 @@ async function pathsForPart(db, part) {
   });
 }
 
+async function treeCatalogueAvailable(db) {
+  const schema = await db.prepare(
+    "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name IN ('part_tree_node','part_tree_part')"
+  ).all();
+  const names = new Set((schema.results || []).map((row) => row.name));
+  return names.has('part_tree_node') && names.has('part_tree_part');
+}
+
 // Real Suitability is sourced exclusively from the reviewed Range D1 that also
 // serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
 export async function handleLiveSuitability(request, env) {
@@ -151,16 +159,28 @@ export async function handleLivePart(request, env) {
   if (candidateId !== null && !/^[1-9]\d*$/.test(candidateId)) {
     return json({ error: 'invalid candidate id', error_code: 'candidate_id_invalid' }, 400);
   }
-  const result = await db.prepare(`SELECT p.id,p.part_number_raw,p.part_number_normalized,
-      p.description,p.source,p.source_ref,p.verification_status
-    FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
-      AND (p.part_number_normalized LIKE '%' || ? || '%'
-        OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%'
-        OR EXISTS (SELECT 1 FROM part_tree_part tp
-          JOIN part_tree_node n ON n.id=tp.tree_node_id WHERE tp.part_id=p.id
-          AND UPPER(n.label) LIKE '%' || UPPER(?) || '%'))
-    ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
-      p.part_number_normalized LIMIT 25`).bind(normalized, query, query, normalized).all();
+  const treeAvailable = await treeCatalogueAvailable(db);
+  const sql = treeAvailable
+    ? `SELECT p.id,p.part_number_raw,p.part_number_normalized,
+        p.description,p.source,p.source_ref,p.verification_status
+      FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+        AND (p.part_number_normalized LIKE '%' || ? || '%'
+          OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%'
+          OR EXISTS (SELECT 1 FROM part_tree_part tp
+            JOIN part_tree_node n ON n.id=tp.tree_node_id WHERE tp.part_id=p.id
+            AND UPPER(n.label) LIKE '%' || UPPER(?) || '%'))
+      ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
+        p.part_number_normalized LIMIT 25`
+    : `SELECT p.id,p.part_number_raw,p.part_number_normalized,
+        p.description,p.source,p.source_ref,p.verification_status
+      FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+        AND (p.part_number_normalized LIKE '%' || ? || '%'
+          OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%')
+      ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
+        p.part_number_normalized LIMIT 25`;
+  const result = treeAvailable
+    ? await db.prepare(sql).bind(normalized, query, query, normalized).all()
+    : await db.prepare(sql).bind(normalized, query, normalized).all();
   const found = result.results || [];
   const withStock = await Promise.all(found.map(async part => ({ ...part,
     stock: await realStock(env, part.part_number_normalized) })));
@@ -174,20 +194,26 @@ export async function handleLivePart(request, env) {
   if (candidateId && !chosen) return json({ error: 'candidate not in current results', error_code: 'candidate_not_found' }, 404);
   const part = chosen || candidates[0];
   if (!chosen && candidates.length > 1 && candidates.filter(item => item.part_number_normalized === normalized).length !== 1) {
-    const partsTree = (await Promise.all(candidates.map(item => pathsForPart(db, partPayload(item))))).flat();
+    const treeRoots = treeAvailable ? await roots(db) : [];
+    const partsTree = treeAvailable
+      ? (await Promise.all(candidates.map(item => pathsForPart(db, partPayload(item))))).flat()
+      : [];
     return json({ state: 'multiple_match', range: slug, query, normalized_query: normalized,
       search_path: searchPath, matches: candidates.map(partPayload),
-      tree_roots: await roots(db), parts_tree: partsTree, selected_part: null });
+      tree_state: treeAvailable ? (treeRoots.length ? 'available' : 'empty') : 'unavailable',
+      tree_roots: treeRoots, parts_tree: partsTree, selected_part: null });
   }
-  const [occurrences, treePaths] = await Promise.all([
-    db.prepare(`SELECT id,source,source_ref,context_type,context_ref,category_ref,item_number,
+  const occurrences = await db.prepare(
+    `SELECT id,source,source_ref,context_type,context_ref,category_ref,item_number,
       diagram_ref,diagram_item_number,verification_status FROM part_occurrence
-      WHERE part_id=? ORDER BY id`).bind(part.id).all(),
-    pathsForPart(db, partPayload(part)),
-  ]);
+      WHERE part_id=? ORDER BY id`
+  ).bind(part.id).all();
+  const treeRoots = treeAvailable ? await roots(db) : [];
+  const treePaths = treeAvailable ? await pathsForPart(db, partPayload(part)) : [];
   return json({ state: 'resolved', range: slug, search_path: searchPath,
-    part: partPayload(part), tree_roots: await roots(db),
-    occurrences: occurrences.results || [], parts_tree: treePaths,
+    part: partPayload(part),
+    tree_state: treeAvailable ? (treeRoots.length ? 'available' : 'empty') : 'unavailable',
+    tree_roots: treeRoots, occurrences: occurrences.results || [], parts_tree: treePaths,
     images: [], diagrams: [], fitment: [], stock: part.stock,
     applicability_state: 'unverified_source_evidence' });
 }
