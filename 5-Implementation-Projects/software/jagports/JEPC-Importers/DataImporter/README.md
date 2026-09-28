@@ -1,6 +1,6 @@
 # JEPC DataImporter v0.1a
 
-DataImporter runs on the Windows computer that has the JEPC installation. One required `--parse PATTERN` command reads JEPC files, records source evidence and run state in its local SQLite ledger, and then updates the reviewed D1 parts database when that target and a Cloudflare token are configured. There is no second importer program or web-based importer step. The [importer specification](SPEC_DataImporter.md) defines the current D1 update boundary and later verified-applicability requirements. The parts database [OPERATIONS guide](../../../../../3-Deployment/internet/cloudflare/d1/OPERATIONS.md) defines destination identity and setup.
+DataImporter runs on the Windows computer that has the JEPC installation. It retains the original v0.1 `inspect` command for scanning one explicitly selected category item, and adds model-pattern parsing through required `--parse PATTERN` with optional `--estimate`. Parsing records source evidence and run state in the local SQLite ledger, then updates the reviewed D1 parts database when that target and a Cloudflare token are configured. There is no second importer program or web-based importer step. The [importer specification](SPEC_DataImporter.md) defines both CLI paths and the D1 update boundary. The parts database [OPERATIONS guide](../../../../../3-Deployment/internet/cloudflare/d1/OPERATIONS.md) defines destination identity and setup.
 
 ## Agent and operator procedure
 
@@ -8,6 +8,22 @@ Run on the Windows computer with the JEPC installation. From the Jagports reposi
 
 ```powershell
 node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse XK
+```
+
+## Original one-category inspection command
+
+The original v0.1 inspection interface remains available from the same CLI file. From the repository root, this command scans the eight expected files for one explicit model/category/item bundle and writes checksums and run events to the same local `ledger.sqlite`:
+
+```powershell
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
+```
+
+The category and item values above are the original v0.1 example. Replace them with the IDs to inspect. This command checks only that explicit bundle, does not enumerate the full installation, and does not parse/import catalogue data. In an interactive terminal it redraws the v0.1 progress screen; `Q` or the first Ctrl+C stops after the current file checkpoint. Add `--language 0` to choose a language explicitly or `--json` for a machine-readable final snapshot. `status`, `report` and `doctor` remain available for the same ledger:
+
+```powershell
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs status --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs report --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer"
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs doctor --state-dir "$env:LOCALAPPDATA\Jagports\JEPC-Importer" --full
 ```
 
 The computer needs Node.js 24 or later and the JEPC source root containing `menus/models_l_id_0.xml` and `drilldown/`. The default source root is `C:\Program Files\JEPC\applications\JEPC`; the local output goes under `$env:LOCALAPPDATA\Jagports\JEPC-Importer`. No `npm install` is needed. The application does not change the JEPC installation. When asked to run or investigate DataImporter, an agent with access to this computer should execute the command and report its findings instead of asking the human to transcribe chat instructions.
@@ -35,9 +51,9 @@ The read sequence starts with `menus/models_l_id_0.xml`. For each matched leaf M
 
 For development follow-up, record the command and model pattern, the matched Model_IDs, eligible/selected/incomplete counts, the selected model/category IDs, staging totals, D1 import state and any unknown records or missing sidecars in the relevant Issue or PR. Include the local ledger path and run ID so an agent on the installation computer can inspect the exact source bytes and line-numbered records. `d1Import.phase=PARTS_D1_IMPORT` means the configured parts database was checked and the run completed its D1 import step. `d1Import.imported` counts newly written D1 bundles; `d1Import.reused` counts confirmed or previously recorded unchanged bundles. A successful parse with `d1Import.phase=NOT_CONFIGURED` staged locally only and did not update D1.
 
-The SQLite ledger retains source bytes, checksums, ordered records, line numbers, available applicability sidecars, run history and unknown record locations. Missing sidecars and incomplete categories are reported rather than treated as unrestricted applicability. Selection is held only in memory; there is no selection file to save or pass to another command. Earlier JSON staging files, if present from a previous build, are not moved or deleted; current runs do not create more of them.
+The SQLite ledger retains source bytes, checksums, ordered records, line numbers, available applicability sidecars, run history and unknown record locations. Missing sidecars and incomplete categories are reported rather than treated as unrestricted applicability. Parse selection is held in memory and category evidence is stored in the SQLite ledger.
 
-The D1 parts import creates numbered PART identities, exact occurrences, source tree nodes, and preserved condition/predicate evidence in `jagports-<approved_range_slug>`. It does not convert source branches into verified fitment or import media. The approved source-group mapping, rather than the `--parse` text, determines the destination. The local `range_d1_imports` table records confirmed bundle hashes and D1 IDs so repeated random runs retain earlier imported categories and retry local evidence not yet imported to D1. Current runs create no separate category or estimate-report files.
+The D1 parts import creates numbered PART identities, exact occurrences, source tree nodes, and preserved condition/predicate evidence in `jagports-<approved_range_slug>`. It does not convert source branches into verified fitment or import media. The approved source-group mapping, rather than the `--parse` text, determines the destination. The local `range_d1_imports` table records confirmed bundle hashes and D1 IDs so repeated random runs retain earlier imported categories and retry local evidence not yet imported to D1.
 
 For a JEPC installation in a different location, set its source root in the environment before running the same command:
 
@@ -48,7 +64,7 @@ node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\s
 
 `--parse` matches model names from the source XML.
 The pattern must contain at least two characters.
-The CLI accepts no other flags or positional commands. Progress appears on standard error; the final JSON result appears on standard output.
+Model-pattern parse mode accepts only required `--parse PATTERN` and optional `--estimate`. It does not accept positional commands. Its periodic progress appears on standard error and its final JSON result appears on standard output. The explicit inspection commands and their options are listed above.
 
 ## Optional import estimates
 
