@@ -91,7 +91,7 @@ async function localServer() {
     const fixtureMode = testFlags.length === 1 && testFlags[0][1] === "1";
     if (pathname.startsWith("/api/vieps/") && !fixtureMode) {
       response.writeHead(503, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: "No real Range database is bound.", error_code: "range_unavailable" }));
+      response.end(JSON.stringify({ error: "No parts database is bound.", error_code: "parts_database_unavailable" }));
       return;
     }
     if (pathname === "/api/vieps/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
@@ -646,7 +646,7 @@ try {
       assert.equal(await lowercasePage.locator("#realModeHelp")
         .evaluate(node => node.hidden), true, "?test=1 must hide real-mode help");
       assert.equal(await lowercasePage.locator("#variationsStatus.error").count(), 0,
-        "lowercase TEST URL must not display the missing real Range error");
+        "lowercase TEST URL must not display the missing parts database error");
       await lowercasePage.screenshot({
         path: evidenceDir + "web-lowercase-test1-desktop.png", fullPage: true,
       });
@@ -676,7 +676,7 @@ try {
       await realPage.locator("#searchStatus.error").waitFor();
       await realPage.locator("#variationsStatus.error").waitFor();
       assert.match(await realPage.locator("#variationsStatus").textContent(),
-        /real Range database is unavailable|Oikean mallisarjan tietokantaa ei ole saatavilla/i,
+        /parts database is unavailable|Osatietokantaa ei ole saatavilla/i,
         "missing Range must also show an explicit Suitability error");
       assert.equal(await realPage.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "real mode must hide fixture help");
@@ -695,7 +695,7 @@ try {
       assert.ok(await realPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "real-mode unavailable state must fit 320px mobile");
       await realPage.screenshot({ path: evidenceDir + "web-real-range-unavailable-mobile-320.png", fullPage: true });
-      console.log("PASS: missing real Range stays visible without synthetic fallback");
+      console.log("PASS: missing parts database stays visible without synthetic fallback");
     } finally {
       await realPage.close();
     }
@@ -738,7 +738,7 @@ try {
       // Deployment smoke accepts the previous released DOM hook until this PR is deployed.
       await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-suitability-facet="body:coupe"]').first().waitFor();
       assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
-        "deployed ?test=1 must show synthetic suitability, not real Range errors");
+        "deployed ?test=1 must show synthetic suitability, not parts database errors");
       const lowercaseTree = await deployed.request.get(
         new URL("/api/vieps/tree?root=1&test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercaseTree.status(), 200, "deployed lowercase TEST tree must work");
@@ -760,7 +760,7 @@ try {
       const result = await deployed.request.get(new URL("/api/vieps/tree?root=1", realUrl).href);
       if (result.status() === 503) {
         const unavailable = await result.json();
-        assert.equal(unavailable.error_code, "range_unavailable",
+        assert.equal(unavailable.error_code, "parts_database_unavailable",
           "without #954, deployed real mode must fail explicitly, never expose fixture data");
         await deployed.locator("#searchStatus.error").waitFor();
       } else {
@@ -787,7 +787,7 @@ try {
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-mobile-320.png", fullPage: true });
       await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
       await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-mobile-320.png", fullPage: true });
-      console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed real Range, and Web/Admin screenshots");
+      console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed parts database, and Web/Admin screenshots");
     } finally {
       await deployed.close();
     }
