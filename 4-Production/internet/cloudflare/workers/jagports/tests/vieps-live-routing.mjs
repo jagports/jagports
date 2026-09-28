@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { liveRangeDatabase } from '../js/vieps-parts.js';
@@ -56,4 +58,14 @@ test('real mode with an unbound Range fails rather than reading the fixture D1',
   await assert.rejects(() => handleApi(new Request(
     'https://test.example/api/vieps/suitability'), { DB: d1(db) }),
   error => error.status === 503 && error.code === 'range_unavailable');
+});
+
+
+test('Worker deployment config publishes the reviewed XK parts binding', async () => {
+  const filename = fileURLToPath(new URL('../wrangler.toml', import.meta.url));
+  const config = await readFile(filename, 'utf8');
+  assert.match(config, /RANGE_BINDINGS\s*=\s*'\{"xk":"RANGE_XK"\}'/);
+  assert.match(config, /binding\s*=\s*"RANGE_XK"/);
+  assert.match(config, /database_name\s*=\s*"parts-xk"/);
+  assert.match(config, /database_id\s*=\s*"55a0ebdb-6a86-4c2a-9ede-d4da2e47db00"/);
 });
