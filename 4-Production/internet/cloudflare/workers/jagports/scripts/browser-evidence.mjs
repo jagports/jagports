@@ -102,7 +102,7 @@ async function localServer() {
       }));
       return;
     }
-    if ((pathname === "/api/vieps/fit" || pathname === "/api/vieps/suitability")) {
+    if (pathname === "/api/vieps/fit") {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify(browserFitResponse(
         new URL(request.url, "http://localhost").searchParams)));
@@ -534,7 +534,7 @@ try {
         await fulfil(route, { locations: [], source_parties: [], vehicles: [] });
       } else if (path === "/api/stock") {
         await fulfil(route, { results: [] });
-      } else if (path === "/api/admin/suitability" && request.method() === "GET") {
+      } else if (path === "/api/admin/fit" && request.method() === "GET") {
         await fulfil(route, {
           categories: [{
             id: 87701, code: "body", name_en: "Body", name_fi: "Kori",
@@ -547,7 +547,7 @@ try {
           }],
           sources: [currentSource], next_offset: null,
         });
-      } else if (path === "/api/admin/suitability/mappings" && request.method() === "POST") {
+      } else if (path === "/api/admin/fit/mappings" && request.method() === "POST") {
         const body = JSON.parse(request.postData());
         auditWrites.push(body);
         currentSource = { ...currentSource, status: body.status,
@@ -555,7 +555,7 @@ try {
           evidence_note: body.evidence_note, reviewer_ref: body.reviewer_ref };
         await fulfil(route, { mapping: { revision: currentSource.revision,
           status: currentSource.status } });
-      } else if (path === "/api/admin/suitability/history") {
+      } else if (path === "/api/admin/fit/history") {
         await fulfil(route, { source_description_id: currentSource.id, audit: [],
           revisions: [
             { revision: 1, status: "proposed", mapping_version: "browser-v1",
@@ -579,7 +579,7 @@ try {
     await page.screenshot({ path: evidenceDir + "admin-stock-desktop.png", fullPage: true });
 
     const fitPage = await page.goto(local.url + "admin-fit.html?TEST=1", { waitUntil: "load" });
-    assert.equal(fitPage?.status(), 200, "canonical Suitability Admin page must exist");
+    assert.equal(fitPage?.status(), 200, "canonical Fit Admin page must exist");
     await page.locator("#adminToken").fill("browser-admin-test");
     await page.locator("#accessForm button[type=submit]").click();
     await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
@@ -601,13 +601,13 @@ try {
     await page.locator("#suitabilityHistory li").last().waitFor();
     assert.equal(await page.locator("#suitabilityHistory li").count(), 2,
       "Admin must show historic and current interpretation separately");
-    await page.screenshot({ path: evidenceDir + "admin-suitability-desktop.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "admin-fit-desktop.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
     assert.match(await page.locator("#suitabilityAdminHeading").textContent(), /Soveltuvuusluokat/);
     await page.setViewportSize({ width: 320, height: 780 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
       "Admin must not cause horizontal overflow on 320px mobile");
-    await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "admin-fit-mobile-320.png", fullPage: true });
     await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
     await page.locator("#stockForm").scrollIntoViewIfNeeded();
     await page.screenshot({ path: evidenceDir + "admin-stock-mobile-320.png" });
@@ -745,11 +745,11 @@ try {
       const lowercasePart = await deployed.request.get(
         new URL("/api/vieps/part?q=MJB7703AA&test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercasePart.status(), 200, "deployed lowercase TEST parts must work");
-      const lowercaseSuitability = await deployed.request.get(
-        new URL("/api/vieps/suitability?test=1", lowercaseFixtureUrl).href);
-      assert.equal(lowercaseSuitability.status(), 200,
+      const lowercaseFit = await deployed.request.get(
+        new URL("/api/vieps/fit?test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercaseFit.status(), 200,
         "deployed lowercase TEST suitability must work");
-      assert.equal((await lowercaseSuitability.json()).fixture_mode, true);
+      assert.equal((await lowercaseFit.json()).fixture_mode, true);
       await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
       await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-mobile-320.png", fullPage: true });
@@ -780,13 +780,13 @@ try {
       await deployed.locator("#suitabilityAdminHeading").waitFor();
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-desktop.png", fullPage: true });
       await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
-      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-desktop.png", fullPage: true });
+      await deployed.screenshot({ path: evidenceDir + "deployed-fit-admin-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
       assert.ok(await deployed.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "deployed mobile Admin must fit");
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-mobile-320.png", fullPage: true });
       await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
-      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-mobile-320.png", fullPage: true });
+      await deployed.screenshot({ path: evidenceDir + "deployed-fit-admin-mobile-320.png", fullPage: true });
       console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed real Range, and Web/Admin screenshots");
     } finally {
       await deployed.close();

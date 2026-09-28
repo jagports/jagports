@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { database } from "./helpers/model-db.mjs";
 import { handleApi } from "../js/vieps-worker.js";
-import { handleViepsSuitability } from "../js/suitability.js";
+import { handleViepsFit } from "../js/fit.js";
 
 function fixture(withData = false) {
   const db = database({ fixtures: withData });
@@ -29,7 +29,7 @@ async function call(env, path, method, body, authorized = true) {
   const response = await handleApi(request(path, method, body, authorized), env);
   return { status: response.status, body: await response.json() };
 }
-const base = "/api/admin/suitability";
+const base = "/api/admin/fit";
 const labels = (en, fi) => ({
   names: { en, fi }, descriptions: { en: en + " description", fi: fi + " kuvaus" },
 });
@@ -136,14 +136,15 @@ test("verified JEPC mappings require recorded reviewer and never mutate source w
 
 test("retiring a normalized value hides it from published fixtures, not source evidence", async t => {
   const { db, env } = fixture(true); t.after(() => db.close());
-  const requestSuitability = () => handleViepsSuitability(request("/api/vieps/suitability?TEST=1"), env);
-  assert.equal((await requestSuitability()).status, 200);
+  const requestFit = () => handleViepsFit(request("/api/vieps/fit?TEST=1"), env);
+  assert.equal((await requestFit()).status, 200);
   const dim = db.prepare("SELECT id FROM applicability_dimension WHERE code='body'").get().id;
   assert.equal((await call(env, base + "/values/" + dim + "/coupe", "PATCH",
     { retire: true })).status, 200);
-  const response = await requestSuitability();
+  const response = await requestFit();
   assert.equal(response.status, 200);
   const data = await response.json();
   assert.equal(data.categories.find(x => x.code === "body").values.some(x => x.code === "coupe"), false);
   assert.ok(db.prepare("SELECT COUNT(*) AS n FROM applicability_set_description_evidence").get().n > 0);
 });
+

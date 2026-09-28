@@ -331,8 +331,8 @@ function renderFitOptions() {
     if (panel.dataset) panel.dataset.currentQuery = "";
     panel.innerHTML = "";
     status.className = fitError ? "error status-line" : "muted status-line";
-    status.textContent = fitError === "real_suitability_data_missing"
-      || fitError === "real_suitability_data_incomplete"
+    status.textContent = fitError === "real_fit_data_missing"
+      || fitError === "real_fit_data_incomplete"
         ? t("fit.real_data_missing")
       : fitError === "range_unavailable"
         ? t("fit.real_range_missing")
@@ -398,7 +398,7 @@ async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion)
   });
   for (const id of fitSelections) params.append("facet", id);
   try {
-    // Canonical FIT route; Worker retains the older suitability route as a compatibility alias.
+    // Canonical FIT route.
     const response = await fetch(apiUrl("/api/vieps/fit?" + params.toString()));
     const data = await response.json();
     if (version !== fitRequestVersion || mainVersion !== requestVersion) return;

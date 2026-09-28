@@ -28,22 +28,22 @@ test('a single Range does not accept an unsupported per-request selector', () =>
     error => error.code === 'range_unavailable');
 });
 
-test('real mode returns an explicit error rather than publishing available synthetic Suitability', async (t) => {
+test('real mode returns an explicit error rather than publishing available synthetic Fit', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   const range = d1(db);
   const env = { DB: range, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: range };
   const response = await handleApi(new Request(
-    'https://test.example/api/vieps/suitability'), env);
+    'https://test.example/api/vieps/fit'), env);
   assert.equal(response.status, 503);
   const body = await response.json();
   assert.equal(body.state, 'error');
   assert.equal(body.fixture_mode, false);
-  assert.equal(body.error_code, 'real_suitability_data_missing');
+  assert.equal(body.error_code, 'real_fit_data_missing');
   assert.equal(body.range, 'xk');
   assert.deepEqual(body.categories, []);
   assert.deepEqual(body.matches, []);
   const fixture = await handleApi(new Request(
-    'https://test.example/api/vieps/suitability?TEST=1'), env);
+    'https://test.example/api/vieps/fit?TEST=1'), env);
   assert.equal(fixture.status, 200);
   const fixtureBody = await fixture.json();
   assert.equal(fixtureBody.fixture_mode, true);
@@ -54,7 +54,7 @@ test('real mode returns an explicit error rather than publishing available synth
 test('real mode with an unbound Range fails rather than reading the fixture D1', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   await assert.rejects(() => handleApi(new Request(
-    'https://test.example/api/vieps/suitability'), { DB: d1(db) }),
+    'https://test.example/api/vieps/fit'), { DB: d1(db) }),
   error => error.status === 503 && error.code === 'range_unavailable');
 });
 
@@ -63,10 +63,10 @@ test('case-insensitive TEST URL enables fixtures on Web APIs and does not depend
   const env = { DB: d1(db) };
   for (const key of ['TEST', 'test', 'TeSt']) {
     const query = key + '=1';
-    const suitability = await handleApi(new Request(
-      'https://test.example/api/vieps/suitability?' + query), env);
-    assert.equal(suitability.status, 200, query);
-    const body = await suitability.json();
+    const fit = await handleApi(new Request(
+      'https://test.example/api/vieps/fit?' + query), env);
+    assert.equal(fit.status, 200, query);
+    const body = await fit.json();
     assert.equal(body.fixture_mode, true, query);
     assert.equal(body.categories.length, 4, query);
     assert.equal(body.categories.flatMap(category => category.values).length, 8, query);
@@ -86,22 +86,20 @@ test('missing or conflicting TEST URL flags never expose fixture data', async (t
   const env = { DB: d1(db) };
   for (const flags of ['', '?TEST=0', '?test=2', '?TEST=1&test=0', '?test=1&TEST=1']) {
     await assert.rejects(() => handleApi(new Request(
-      'https://test.example/api/vieps/suitability' + flags), env),
+      'https://test.example/api/vieps/fit' + flags), env),
     error => error.status === 503 && error.code === 'range_unavailable',
     'unbound real Range must reject URL flags: ' + flags);
   }
 });
 
 
-test('#976 FIT route is canonical and legacy suitability API remains a compatible alias', async (t) => {
+test('#976 FIT route remains canonical', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   const env = { DB: d1(db) };
-  for (const path of ['/api/vieps/fit', '/api/vieps/suitability']) {
-    const response = await handleApi(new Request('https://test.example' + path + '?TEST=1'), env);
-    assert.equal(response.status, 200, path);
-    const data = await response.json();
-    assert.equal(data.fixture_mode, true, path);
-    assert.equal(data.categories.length, 4, path);
-    assert.ok(data.matches.length > 0, path);
-  }
+  const response = await handleApi(new Request('https://test.example/api/vieps/fit?TEST=1'), env);
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.fixture_mode, true);
+  assert.equal(data.categories.length, 4);
+  assert.ok(data.matches.length > 0);
 });

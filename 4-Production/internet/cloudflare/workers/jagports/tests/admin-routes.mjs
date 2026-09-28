@@ -12,9 +12,6 @@ test("Admin routes use the canonical stock and Fit URLs", async () => {
   assert.equal(await stockPage.text(), "/admin-stock.html");
   const fitPage = await worker.fetch(new Request("https://test.example/admin-fit"), env);
   assert.equal(await fitPage.text(), "/admin-fit.html");
-  const suitabilityLegacy = await worker.fetch(new Request("https://test.example/admin-suitability"), env);
-  assert.equal(suitabilityLegacy.status, 308);
-  assert.equal(suitabilityLegacy.headers.get("location"), "https://test.example/admin-fit");
   const legacy = await worker.fetch(new Request("https://test.example/stock-admin.html"), env);
   assert.equal(legacy.status, 308);
   assert.equal(legacy.headers.get("location"), "https://test.example/admin-stock");

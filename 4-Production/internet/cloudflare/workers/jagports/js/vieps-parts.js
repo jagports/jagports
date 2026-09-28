@@ -1,5 +1,5 @@
 import { normalizePartNumber } from './part.js';
-import { handleVerifiedSuitability } from './suitability.js';
+import { handleVerifiedFit } from './fit.js';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status,
   headers: { 'content-type': 'application/json; charset=utf-8' } });
@@ -88,9 +88,9 @@ async function pathsForPart(db, part) {
   });
 }
 
-// Real Suitability is sourced exclusively from the reviewed Range D1 that also
+// Real Fit is sourced exclusively from the reviewed Range D1 that also
 // serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
-export async function handleLiveSuitability(request, env) {
+export async function handleLiveFit(request, env) {
   if (request.method !== 'GET') return json({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
   const { slug, db } = liveRangeDatabase(url, env);
@@ -110,8 +110,8 @@ export async function handleLiveSuitability(request, env) {
   if (required.some((table) => !found.has(table))) {
     return json({
       state: 'error', fixture_mode: false, range: slug,
-      error_code: 'real_suitability_data_missing',
-      error: 'Reviewed normalized JEPC Suitability data is not published in this Range database.',
+      error_code: 'real_fit_data_missing',
+      error: 'Reviewed normalized JEPC Fit data is not published in this Range database.',
       categories: [], available_options: [], matches: [],
     }, 503);
   }
@@ -131,7 +131,7 @@ export async function handleLiveSuitability(request, env) {
     ).bind(normalized).first();
     return !!row;
   };
-  return handleVerifiedSuitability(request, db, hasRealStock, slug);
+  return handleVerifiedFit(request, db, hasRealStock, slug);
 }
 
 export async function handleLivePart(request, env) {
@@ -248,3 +248,4 @@ export async function handleLiveTree(request, env) {
     part_nodes: filtered.map(part => ({ part_id: part.id, node_id: part.tree_node_id })),
     parts_tree: partsTree });
 }
+

@@ -325,7 +325,7 @@
   }
   async function loadSuitabilityAdmin(query = suit("SourceQuery").value.trim(), overrides = {}) {
     const params=new URLSearchParams({lang:suitLang(),q:query});
-    const data=await api("/api/admin/suitability?" + params.toString());
+    const data=await api("/api/admin/fit?" + params.toString());
     suitCategories=data.categories || [];
     suitValues=data.values || [];
     suitSources=data.sources || [];
@@ -344,8 +344,8 @@
       code:suit("CategoryCode").value.trim(),...suitWords("Category"),
     };
     try {
-      const response=await api(id ? "/api/admin/suitability/categories/"+id :
-        "/api/admin/suitability/categories",{
+      const response=await api(id ? "/api/admin/fit/categories/"+id :
+        "/api/admin/fit/categories",{
           method:id?"PATCH":"POST",body:JSON.stringify(body),
         });
       await loadSuitabilityAdmin(undefined,{category:response.id,valueCategory:response.id});
@@ -360,8 +360,8 @@
       ...suitWords("Value")};
     try{
       const response=await api(code ?
-        "/api/admin/suitability/values/"+id+"/"+encodeURIComponent(code) :
-        "/api/admin/suitability/values",{
+        "/api/admin/fit/values/"+id+"/"+encodeURIComponent(code) :
+        "/api/admin/fit/values",{
           method:code?"PATCH":"POST",body:JSON.stringify(body),
         });
       await loadSuitabilityAdmin(undefined,{valueCategory:response.dimension_id,value:response.value_code});
@@ -380,7 +380,7 @@
       value_code:value,status,mapping_version:suit("MappingVersion").value.trim(),
       evidence_note:suit("EvidenceNote").value.trim(),reviewer_ref:suit("ReviewerRef").value.trim()};
     try{
-      await api("/api/admin/suitability/mappings",{method:"POST",body:JSON.stringify(body)});
+      await api("/api/admin/fit/mappings",{method:"POST",body:JSON.stringify(body)});
       await loadSuitabilityAdmin(undefined,{source:source.id,mappingCategory:categoryId});
       suitStatus("saved");
     }catch(error){suitError(error);}
@@ -390,7 +390,7 @@
     const params=new URLSearchParams({lang:suitLang(),q:suit("SourceQuery").value.trim(),
       offset:String(suitNextOffset)});
     try{
-      const data=await api("/api/admin/suitability?" + params.toString());
+      const data=await api("/api/admin/fit?" + params.toString());
       suitSources.push(...data.sources);
       suitNextOffset=data.next_offset;
       suitRenderSourceSelect();
@@ -401,7 +401,7 @@
     const source=suitSource(suit("SourceSelect").value);
     if(!source)return suitStatus("missing_source",true);
     try{
-      const data=await api("/api/admin/suitability/history?source_description_id="+source.id);
+      const data=await api("/api/admin/fit/history?source_description_id="+source.id);
       suit("History").replaceChildren();
       if(!data.revisions.length) {
         const item=document.createElement("li");
@@ -510,7 +510,7 @@
     const id=suit("CategorySelect").value;
     if(!id || !confirm(t("suitability_admin.confirm_retire_category")))return;
     try{
-      await api("/api/admin/suitability/categories/"+id,{
+      await api("/api/admin/fit/categories/"+id,{
         method:"PATCH",body:JSON.stringify({retire:true}),
       });
       await loadSuitabilityAdmin(undefined,{category:id});
@@ -525,7 +525,7 @@
     const id=suit("ValueCategory").value,code=suit("ValueSelect").value;
     if(!id||!code||!confirm(t("suitability_admin.confirm_retire_value")))return;
     try{
-      await api("/api/admin/suitability/values/"+id+"/"+encodeURIComponent(code),{
+      await api("/api/admin/fit/values/"+id+"/"+encodeURIComponent(code),{
         method:"PATCH",body:JSON.stringify({retire:true}),
       });
       await loadSuitabilityAdmin(undefined,{valueCategory:id,value:code});

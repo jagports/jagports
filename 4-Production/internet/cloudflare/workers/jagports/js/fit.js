@@ -1,4 +1,4 @@
-// Source-qualified normalized suitability reader (#641/#877). TEST=1 uses only
+// Source-qualified normalized Fit reader (#641/#877). TEST=1 uses only
 // fixture rows; real mode reads only independently reviewed JEPC occurrence evidence
 // from the Range D1 selected by vieps-parts.js. No free-text inference or fallback.
 const SOURCE = 'fixture:pre-jepc-suitability:v1';
@@ -18,8 +18,8 @@ const missingData = (reason, fixtureMode = false, range = null) => send({
   ...(range ? { range } : {}),
   error_code: reason,
   error: fixtureMode
-    ? 'Deterministic Suitability test data has not been loaded.'
-    : 'Reviewed JEPC Suitability data has not been published for this Range.',
+    ? 'Deterministic Fit test data has not been loaded.'
+    : 'Reviewed JEPC Fit data has not been published for this Range.',
 }, 503);
 
 function selections(url) {
@@ -53,12 +53,12 @@ function stillPossible(tags, selected) {
   return true;
 }
 
-// The shared operational D1 contains the legacy searchable TEST parts, but the
+// The shared operational D1 contains the searchable TEST parts, but the
 // richer #877 SQL-only fixture assertions are loaded only by isolated test DBs.
 // Supply their same eight *synthetic* dimensions from a self-contained fallback
 // when those optional rows have not been published. Never enter this path in
 // real mode and never represent these records as JEPC fitment evidence.
-const EMBEDDED_SOURCE = 'fixture:embedded-suitability:v1';
+const EMBEDDED_SOURCE = 'fixture:embedded-fit:v1';
 const EMBEDDED_VALUES = [
   ['body', 'Body', 'Kori', 'Vehicle body style', 'Ajoneuvon korimalli', [
     ['coupe', 'Coupe', 'Coupé'], ['convertible', 'Convertible', 'Avoauto']]],
@@ -91,7 +91,7 @@ const EMBEDDED_OCCURRENCES = [
     ['body:coupe', 'steering:RHD', 'engine_aspiration:supercharged']],
 ];
 
-async function embeddedFixtureSuitability(db, { q, stockOnly, language, selected, selectedIds }) {
+async function embeddedFixtureFit(db, { q, stockOnly, language, selected, selectedIds }) {
   const categories = EMBEDDED_VALUES.map(([code, en, fi, descriptionEn, descriptionFi, values]) => ({
     code, name: language === 'fi' ? fi : en,
     description: language === 'fi' ? descriptionFi : descriptionEn,
@@ -169,23 +169,23 @@ async function embeddedFixtureSuitability(db, { q, stockOnly, language, selected
   });
 }
 
-export async function handleViepsSuitability(request, env) {
+export async function handleViepsFit(request, env) {
   const testFlags = [...new URL(request.url).searchParams]
     .filter(([key]) => key.toLowerCase() === 'test');
   if (testFlags.length !== 1 || testFlags[0][1] !== '1') {
     return send({ error_code: 'test_mode_required' }, 400);
   }
   if (!env.DB) return missingData('test_fixture_data_missing', true);
-  return readSuitability(request, env.DB, { fixtureMode: true });
+  return readFit(request, env.DB, { fixtureMode: true });
 }
 
 // Called only by vieps-parts.js, after that module has selected and checked a
 // real Range D1 binding; operational stock is resolved separately by part number.
-export async function handleVerifiedSuitability(request, rangeDb, hasRealStock, range) {
-  return readSuitability(request, rangeDb, { fixtureMode: false, hasRealStock, range });
+export async function handleVerifiedFit(request, rangeDb, hasRealStock, range) {
+  return readFit(request, rangeDb, { fixtureMode: false, hasRealStock, range });
 }
 
-async function readSuitability(request, db, { fixtureMode, hasRealStock, range = null }) {
+async function readFit(request, db, { fixtureMode, hasRealStock, range = null }) {
   if (request.method !== 'GET') return send({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
   const q = (url.searchParams.get('q') || '').trim();
@@ -232,18 +232,18 @@ async function readSuitability(request, db, { fixtureMode, hasRealStock, range =
     provenanceKind, mappingStatus).all()).results || [];
   } catch (error) {
     if (!fixtureMode || !/no such (?:table|view)/i.test(String(error?.message || error))) throw error;
-    return embeddedFixtureSuitability(db, { q, stockOnly, language, selected, selectedIds });
+    return embeddedFixtureFit(db, { q, stockOnly, language, selected, selectedIds });
   }
   if (!mappings.length) {
-    if (fixtureMode) return embeddedFixtureSuitability(db,
+    if (fixtureMode) return embeddedFixtureFit(db,
       { q, stockOnly, language, selected, selectedIds });
-    return missingData('real_suitability_data_missing', false, range);
+    return missingData('real_fit_data_missing', false, range);
   }
   if (mappings.some((m) => !m.dimension_name || !m.dimension_description ||
       !m.value_name || !m.value_description || !m.source_language ||
       !m.record_locator || !m.dataset_key)) {
     return missingData(fixtureMode ? 'test_fixture_data_incomplete' :
-      'real_suitability_data_incomplete', fixtureMode, range);
+      'real_fit_data_incomplete', fixtureMode, range);
   }
   const categoriesByCode = new Map();
   const published = new Set();
@@ -323,7 +323,7 @@ async function readSuitability(request, db, { fixtureMode, hasRealStock, range =
             WHERE sd.source_namespace=b.source_namespace AND sd.provenance_kind='jepc'
               AND m.status='verified' AND TRIM(COALESCE(m.reviewer_ref,'')) <> '')
         LIMIT 1`).first();
-      if (!any) return missingData('real_suitability_data_missing', false, range);
+      if (!any) return missingData('real_fit_data_missing', false, range);
     }
     if (stockOnly === '1') {
       if (!hasRealStock) return missingData('real_stock_data_unavailable', false, range);

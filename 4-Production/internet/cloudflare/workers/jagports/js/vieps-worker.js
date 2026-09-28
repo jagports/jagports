@@ -1,8 +1,8 @@
 import { normalizePartNumber } from "./part.js";
 import { handleViepsPart, handleViepsTree } from "./vieps-fixtures.js";
-import { handleLivePart, handleLiveTree, handleLiveSuitability as handleLiveFit, liveRangeDatabase } from "./vieps-parts.js";
-import { handleViepsSuitability as handleViepsFit } from "./suitability.js";
-import { handleSuitabilityAdmin } from "./vieps-admin-suitability.js";
+import { handleLivePart, handleLiveTree, handleLiveFit, liveRangeDatabase } from "./vieps-parts.js";
+import { handleViepsFit } from "./fit.js";
+import { handleFitAdmin } from "./vieps-admin-fit.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -183,12 +183,12 @@ async function handleApi(request, env) {
 
   if (path === "/api/vieps/part") return testMode ? handleViepsPart(request, env) : handleLivePart(request, env);
   if (path === "/api/vieps/tree") return testMode ? handleViepsTree(request, env) : handleLiveTree(request, env);
-  if (path === "/api/vieps/fit" || path === "/api/vieps/suitability") return testMode
+  if (path === "/api/vieps/fit") return testMode
     ? handleViepsFit(request, env) : handleLiveFit(request, env);
-  if (path.startsWith("/api/admin/suitability")) {
+  if (/^\/api\/admin\/fit(?:\/|$)/.test(path)) {
     const denied = requireAdmin(request, env);
     if (denied) return denied;
-    return handleSuitabilityAdmin(request, env);
+    return handleFitAdmin(request, env);
   }
 
   if (path === "/api/health" && request.method === "GET") {
@@ -398,7 +398,6 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === "/stock-admin.html") return Response.redirect(new URL("/admin-stock", url), 308);
     if (url.pathname === "/admin-stock") return env.ASSETS.fetch(new Request(new URL("/admin-stock.html", url), request));
-    if (url.pathname === "/admin-suitability") return Response.redirect(new URL("/admin-fit", url), 308);
     if (url.pathname === "/admin-fit") return env.ASSETS.fetch(new Request(new URL("/admin-fit.html", url), request));
     if (url.pathname.startsWith("/api/")) {
       try { return await handleApi(request, env); }

@@ -97,7 +97,7 @@ The mapping relation is additive and versioned:
 | Relation | Required purpose |
 |---|---|
 | `fit_source_description` | Immutable JEPC description identity and provenance: namespace, dataset/revision, language, raw text, locator, group/value identifiers and source scope. |
-| `fit_mapping_revision` | Read-only alias of append-only mapping from one source description to one normalized dimension/value, with evidence, reviewer/status and effective/retired state. |
+| `fit_mapping_revision` | Read-only view of append-only mapping from one source description to one normalized dimension/value, with evidence, reviewer/status and effective/retired state. |
 | `fit_dimension_label` and `fit_dimension_value_label` | Language-qualified domain names for the stable normalized IDs. UI chrome uses EN/FI i18next resources; imported JEPC wording remains catalogue data. |
 
 There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
@@ -227,7 +227,7 @@ Reprocessing replaces/supersedes the complete derived assertion set for the affe
 | `applicable` is a stored default; missing scope/completeness is not modeled. | Explicit verification/coverage and evaluation results; never backfill positive truth from a default. |
 | Source/raw/derived values and release history lack a complete shared contract. | Link versioned evidence to interpretations and replace derived sets atomically. |
 
-Use a new controlled migration; do not rewrite already applied migrations. Preserve existing IDs, raw fitment rows, legacy range qualifiers and stock references. Existing rows without enough grouping/evidence remain unresolved. Fixtures and UI examples must not be promoted to verified source assertions. Keep API compatibility through a documented adapter until consumers support grouped results.
+Use a new controlled migration; do not rewrite already applied migrations. Preserve existing IDs, raw fitment rows, legacy range qualifiers and stock references. Existing rows without enough grouping/evidence remain unresolved. Fixtures and UI examples must not be promoted to verified source assertions. Active consumers must use the canonical Fit contract; obsolete Suitability-named route/module adapters are not retained.
 
 ## Acceptance examples
 
@@ -287,7 +287,7 @@ For a changed bundle, stage a new snapshot and its complete derived graph in a t
 
 Contexts, ranges and vocabulary entries referenced by historical snapshots must be versioned/reused according to evidence; do not edit their meaning in place during reprocessing. SQL prevents deleting referenced rows but does not enforce an append-only audit policy against arbitrary direct SQL updates. A production importer/writer must implement this policy and source dependency reconciliation; this schema does not claim that tool exists.
 
-### Internal read contract and compatibility
+### Internal read contract
 
 `src/fit.js` exports `readPartFit(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
 
