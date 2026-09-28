@@ -1,6 +1,0 @@
-{
-  "state": "BLOCKED",
-  "component": "OpenAI API",
-  "reason": "credit_balance_exhausted",
-  "timestamp": "..."
-}

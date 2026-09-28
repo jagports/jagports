@@ -14,7 +14,7 @@ Occurrence-bound grouped fit and versioned source-evidence semantics are defined
 
 Canonical PART identity must remain consistent across the operational database and JEPC parts databases separated by approved Range. A Jagports specified PART is canonical inside VIEPS but is not Jaguar-issued and must remain distinguishable by origin/provenance.
 
-Within one database, the internal `id` is the stable row identity. Across the Range-specific parts databases, an imported numbered JEPC PART uses the stable `JEPC:<part_number_normalized>` canonical key; a database-local numeric `id` must never be interpreted as a global PART identifier. A part number can be attached later to an operational/manual PART without changing its local identity. Cross-database reconciliation of that manual identity remains explicit work under Issue #555.
+Within one database, the internal `id` is the stable row identity. Across the Range-specific parts databases, an imported numbered JEPC PART uses the stable `JEPC:<part_number_normalized>` canonical key; a database-local numeric `id` must never be interpreted as a global PART identifier. A part number can be attached later to an operational/manual PART without changing its local identity. Manual identities are not globally unified across databases without an explicit reconciliation relationship.
 
 The initial parts database schema stores `canonical_key`, raw/normalized part number, `source_origin='ImportJEPC'`, exact occurrence rows and source-qualified tree paths. The same normalized JEPC number in multiple parts databases has the same canonical key. Unnumbered or NSS source leaves remain provenance records until a verified canonical identity exists; they are not assigned an invented Jaguar part number. The first D1 import stores source branch descriptions and predicate sidecars as unverified evidence. It does not claim verified fitment or localized condition references.
 
@@ -223,7 +223,7 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item` is an operational record and is not a catalogue PART identity.
 
-`stock_item.part_id` is a nullable foreign key within the operational `jagports` database only. It must never contain a numeric `part.id` from a Range-specific parts database, because that number is scoped to its database. A website read path may relate operational stock to imported numbered JEPC PARTs by conservatively normalized part number for lookup only when that behavior is specified and implemented under Issues #955 and #956; it is not an importer write. A durable cross-database stock-to-canonical-PART relationship still requires explicit reconciliation under Issue #555. Operational/manual PART links within `jagports` retain their existing foreign-key meaning.
+`stock_item.part_id` is a nullable foreign key within the operational `jagports` database only. It must never contain a numeric `part.id` from a Range-specific parts database, because that number is scoped to its database. A website read path may relate operational stock to imported numbered JEPC PARTs by conservatively normalized part number only through an explicit read adapter; it is not an importer write. A durable cross-database stock-to-canonical-PART relationship requires explicit reconciliation. Operational/manual PART links within `jagports` retain their existing foreign-key meaning.
 
 `stock_item.part_id = NULL` does **not** mean merely "not found in Jaguar/JEPC". It may also mean that a parts-database JEPC identity has not yet been reconciled into an operational relationship; the stock's own part-number evidence remains usable for provisional lookup. A known reusable third-party product must still resolve to the appropriate approved canonical identity rather than borrowing an unrelated database-local row ID.
 
@@ -239,7 +239,7 @@ This is distinct from catalogue vehicle/model/VIN fit and from physical stock/st
 
 Unresolved stock is representable without fabricating a canonical PART. Conversely, known reusable third-party products must not be kept unresolved merely because Jaguar did not issue the vendor product number.
 
-The stock relationship does not implement warehouse transaction history, reservations, sales workflow, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
+The stock relationship does not implement warehouse transaction history, reservations, sales processing, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
 
 ## Architectural boundary
 

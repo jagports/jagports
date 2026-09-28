@@ -4,9 +4,9 @@
 
 ## Purpose
 
-Define the v0.1a command, SQLite evidence staging, first D1 parts import boundary and later catalogue requirements. The runnable procedure is in the [DataImporter README](README.md).
+Define the v0.1a command, SQLite evidence staging, D1 parts-import boundary and catalogue requirements. The runnable procedure is in the [DataImporter README](README.md).
 
-**Implementation boundary:** v0.1a is one local Windows/Node.js DataImporter CLI. In one `--parse PATTERN` invocation it reads JEPC files, stages up to 40 complete source-category bundles and run history in `ledger.sqlite`, and then updates the reviewed D1 parts database when its identity, schema and Cloudflare token are available. The optional `--estimate` inventories matched source files during the same invocation. The D1 update is a step inside DataImporter, not another application, service, web tool or operator command. Missing configuration leaves an explicit `NOT_CONFIGURED` D1-update state. It does not yet interpret predicates into verified fitment, localize verified condition references, handle media, offer the future progress screen, or implement future safe-stop controls. Those requirements remain targets, not claims about this implementation.
+**Runtime boundary:** v0.1a is one local Windows/Node.js DataImporter CLI. In one `--parse PATTERN` invocation it reads JEPC files, stages up to 40 complete source-category bundles and run history in `ledger.sqlite`, and updates the approved D1 parts database when its identity, schema and Cloudflare token are available. The optional `--estimate` inventories matched source files during the same invocation. The D1 update is a step inside DataImporter, not another application, service, web tool or operator command. Missing configuration leaves an explicit `NOT_CONFIGURED` D1-update state. Verified fit evaluation, localized verified condition references, media processing, the optional processing screen and interactive safe-stop controls are outside the v0.1a capability boundary.
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
@@ -26,19 +26,19 @@ The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC
 
 ### Infrastructure contract and ownership
 
-This file is the DataImporter runtime specification; [README.md](README.md) is its operator procedure. The importer runs on the JEPC computer as the single CLI command above. Its only local persistent store is `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`, which retains source evidence, processing history, estimates and confirmed D1 update state. The accepted source model ancestry determines an approved Range; the reviewed identity resolves that Range to the parts database `jagports-<range_slug>`. DataImporter verifies the configured remote identity and schema before it writes any catalogue rows, and it never uses the operational `jagports` D1 as an import target. The [parts database deployment specification](../../../../../3-Deployment/internet/cloudflare/d1/ranges/SPEC_Parts_Database_Deployment.md) and [operation instructions](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) govern one-time database creation and schema setup under [Issue #555](https://github.com/jagports/jagports/issues/555). These setup commands are infrastructure operations, not alternate DataImporter commands. The repository's `.github/workflows/jepc-dataimporter.yml` runs automated CLI tests in CI; it is not part of the importer runtime or a web application.
+This file is the DataImporter runtime specification; [README.md](README.md) is its operator procedure. The importer runs on the JEPC computer as the single CLI command above. Its only local persistent store is `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`, which retains source evidence, processing history, estimates and confirmed D1 update state. The accepted source model ancestry determines an approved Range; the approved identity resolves that Range to the parts database `jagports-<range_slug>`. DataImporter verifies the configured remote identity and schema before it writes any catalogue rows, and it never uses the operational `jagports` D1 as an import target. The [parts database deployment specification](../../../../../3-Deployment/internet/cloudflare/d1/ranges/SPEC_Parts_Database_Deployment.md) defines database identity and schema requirements. The [operation instructions](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) contain executable setup commands; those commands are infrastructure operations, not alternate DataImporter commands.
 
 The local SQLite ledger is importer-owned source evidence, run history and recovery state. It is not the live VIEPS catalogue. The importer injects parsed PARTs, occurrences and source tree paths idempotently into the approved D1 parts database. Source conditions and sidecar predicates are preserved as **unverified evidence**, never as unrestricted or verified fitment. Localized description references and verified applicability remain future work. An accepted Range slug determines the database name as `jagports-<range_slug>`; `xk` resolves to `jagports-xk`. The fixture-backed `jagports` database is not a JEPC importer write target. `--parse PATTERN` selects source models only; it does not assign a Range or destination.
 
-Before remote D1 import, the repository-controlled [parts database deployment instructions](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) must verify account/name/ID and apply schema-only D1 tables. `source-range-map.json` maps reviewed JEPC source-group IDs to stable Range slugs; the importer checks each staged model's ancestry and refuses zero or ambiguous matches. One category is replaced atomically in its parts database using the D1 batch API; the evidence hash is read back before `range_d1_imports` is updated in local SQLite. Later runs retain earlier categories and retry locally staged bundles without a successful D1 import record. A completed remote step reports `d1Import.phase=PARTS_D1_IMPORT`; a local parse with `d1Import.phase=NOT_CONFIGURED` has not updated D1. The separate deployment tools add no DataImporter CLI flags. Cross-Range discovery, supersession and full applicability remain open under [Issue #555](https://github.com/jagports/jagports/issues/555).
+Before remote D1 import, the repository-controlled [parts database deployment instructions](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) must verify account/name/ID and apply schema-only D1 tables. `source-range-map.json` maps approved JEPC source-group IDs to stable Range slugs; the importer checks each staged model's ancestry and refuses zero or ambiguous matches. One category is replaced atomically in its parts database using the D1 batch API; the evidence hash is read back before `range_d1_imports` is updated in local SQLite. Later runs retain earlier categories and retry locally staged bundles without a successful D1 import record. A completed remote step reports `d1Import.phase=PARTS_D1_IMPORT`; a local parse with `d1Import.phase=NOT_CONFIGURED` has not updated D1. The separate deployment tools add no DataImporter CLI flags. Cross-Range discovery, supersession and full fit evaluation are outside this importer runtime contract.
 
-VIEPS website reads and its `TEST=1` URL parameter are specified separately under Issues #955 and #956. This importer has no URL mode and does not read website fixtures.
+VIEPS website reads and its `TEST=1` URL parameter are outside this importer runtime contract. This importer has no URL mode and does not read website fixtures.
 
 Kit, nested-kit and NSS source observations must be preserved with provenance when encountered, including an unnumbered constituent; no Jaguar part number or verified composition may be invented. Kit composition is not required to complete the current 40-bundle parsing run. The approved [PART model](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md) governs the distinction between catalogue PART identity, occurrence evidence and verified composition.
 
 ## Core operating principle
 
-The remainder of this specification describes the intended importer unless a paragraph explicitly says it describes the current v0.1a implementation.
+The remainder of this specification defines the importer contract; paragraphs that are v0.1a-specific state that capability boundary explicitly.
 
 The importer must not require the complete JEPC installation to be reverse-engineered before useful import work can begin.
 
@@ -509,7 +509,7 @@ The screen should be redrawn in place rather than producing an endlessly scrolli
 Example:
 
 ```text
-Jagports JEPC DataImporter — future processing screen
+Jagports JEPC DataImporter — optional processing screen
 (C)2026 by tlindi and ChatGPT
 
 JEPC Parent_ID #3175 — Jaguar XK8 Coupe/Convertible
@@ -634,9 +634,9 @@ whether normalized schema change appears necessary
 
 The operator should not be expected to follow this high-volume log visually during normal processing.
 
-## Future catalogue-import acceptance direction
+## Catalogue-import requirements
 
-Later catalogue-import implementation should demonstrate that:
+Catalogue import must preserve these properties:
 
 - no complete pre-existing million-file index is required before useful import begins;
 - the processing ledger is built incrementally bundle by bundle;
@@ -658,14 +658,7 @@ Later catalogue-import implementation should demonstrate that:
 - canonical part identity remains independent from language-specific source occurrences;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
 
-## Related work
-
-- Issue #355 — JEPC Data Importer; primary implementation owner.
-- Issue #354 — Parts Data Model; owns approved normalized persistent entities and relationships.
-- Issue #620 — multilingual JEPC catalogue-data specification; relevant to language-specific source/translation handling without duplicating canonical entities.
-- PR #621 — JEPC source Region/breadcrumb semantics used by configurable importer source selection.
-
-This specification does not authorize a parallel Parts Data Model. Importer-discovered normalized-schema changes must be reconciled with the approved model and project workflow before becoming production schema. Staging/discovery extensions may be used to preserve and accelerate analysis of source structures without silently redefining normalized VIEPS domain semantics.
+This specification does not authorize a parallel Parts Data Model. Importer-discovered normalized-schema changes must be reconciled with the approved model before becoming production schema. Staging/discovery extensions may be used to preserve and accelerate analysis of source structures without silently redefining normalized VIEPS domain semantics.
 
 ## Fixture-to-imported catalogue transition
 

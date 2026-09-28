@@ -2,9 +2,9 @@
 
 ## Status and scope
 
-Refinement and additive persistence implementation for review. This document specifies the required domain behavior, the logical relationships and the implemented persistence subset. The schema does not constitute an approved source translator or fitment evaluator.
+This document specifies required domain behavior, logical relationships and the persisted evidence subset. The schema does not by itself constitute a source translator or fitment evaluator.
 
-Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first verified applicability mapping scope is XK source model `3187`; additional models require their own semantic validation. The DataImporter can inject source tree and predicate evidence from other approved XK source groups into D1, but those rows remain explicitly unverified and do not become fitment assertions. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
+Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first verified applicability mapping scope is XK source model `3187`; additional models require their own semantic validation. The DataImporter can inject source tree and predicate evidence from other approved XK source groups into D1, but those rows remain explicitly unverified and do not become fitment assertions. Full VIN decoding, hotspot conversion, stock operations and multilingual user interfaces are outside this refinement.
 
 The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC catalogue/tree paths are retained as first-class occurrence/browse context and source evidence. VIEPS may browse and filter occurrences through that preserved tree, but must not treat the source navigation tree itself as the Boolean fit evaluator; verified fit still comes from the occurrence-bound rules, predicates and context described here.
 
@@ -86,7 +86,7 @@ One observed X100 example has the tree ancestry `main floor → RH → Coffee �
 
 Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display descriptions in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
 
-## Admin-curated semantic categories and source-description mapping (#877)
+## Admin-curated semantic categories and source-description mapping
 
 A normalized fit category is a stable domain identifier backed by the existing `fit_dimension` and `fit_dimension_value` relations. It is not a JEPC navigation category or a display string.
 
@@ -102,13 +102,13 @@ The mapping relation is additive and versioned:
 
 There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
 
-The pre-import fixture is limited to source-shaped test records: each fixture description has a stable synthetic source namespace, dataset, language, locator and mapped normalized ID. It proves the read shape and localization behavior only. It cannot be treated as a JEPC condition or published catalogue fitment. When #355 imports JEPC descriptions, it replaces the fixture provider while retaining normalized IDs and API field names.
+The pre-import fixture is limited to source-shaped test records: each fixture description has a stable synthetic source namespace, dataset, language, locator and mapped normalized ID. It proves the read shape and localization behavior only. It cannot be treated as a JEPC condition or published catalogue fitment. Imported JEPC descriptions use the same normalized IDs and API field names while replacing synthetic fixture provenance.
 
 The approved initial fixture vocabulary is Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats. Coexistence of the two seat descriptions is a source-data fact to preserve in one occurrence when JEPC source records support it. This specification does not introduce a new condition operator, set-membership schema or inferred evaluator for it.
 
 ### Public facet read boundary
 
-The #641 filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
+The normalized filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
 
 Facet counts and selectable values come from the surviving occurrence universe under active search, stock, model and other filters. A selected zero-result value remains visible as selected but is not offered as an additional choice. The fixture and imported providers share the same endpoint and payload, while fixture data is opt-in and visibly marked.
 
@@ -122,7 +122,7 @@ Facet counts and selectable values come from the surviving occurrence universe u
 6. Alternative occurrences of the same PART retain their catalogue roles, constraints and evidence when results are grouped under the PART. A negative result for one occurrence must not veto an independently applicable occurrence in another role/context.
 7. Conflicting positive and explicit negative evidence for the same occurrence and matching context produces `unavailable` with a conflict reason until resolved. There is no implicit last-write-wins or global exclusion-wins rule. Source `exceptFlag` alone is not an explicit negative assertion.
 
-The logical form is a finite collection of relational condition sets, not a persisted copy of the JEPC decision tree. If flattening verified logic would cause unbounded expansion, preserve the unresolved source case and report it; silently truncating alternatives is forbidden. Physical table names and representation optimizations remain subject to schema review.
+The logical form is a finite collection of relational condition sets, not a persisted copy of the JEPC decision tree. If flattening verified logic would cause unbounded expansion, preserve the unresolved source case and report it; silently truncating alternatives is forbidden. Physical table names and representation optimizations must preserve this logical contract.
 
 ## Serial and VIN requirements
 
@@ -229,7 +229,7 @@ Reprocessing replaces/supersedes the complete derived assertion set for the affe
 
 Use a new controlled migration; do not rewrite already applied migrations. Preserve existing IDs, raw fitment rows, legacy range qualifiers and stock references. Existing rows without enough grouping/evidence remain unresolved. Fixtures and UI examples must not be promoted to verified source assertions. Keep API compatibility through a documented adapter until consumers support grouped results.
 
-## Acceptance examples
+## Normative evaluation examples
 
 The three airbag cases and headlamp case below are observed source examples; the other combinations are deliberately synthetic requirement fixtures, not additional Jaguar facts.
 
@@ -250,7 +250,7 @@ The three airbag cases and headlamp case below are observed source examples; the
 | Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; history retained; stale active claims removed only under verified reconciliation. |
 | Two languages describe the same source application | One canonical PART. Preserve each language-specific source path/tree independently when structure differs; reconcile a shared logical occurrence only when deterministic source identity/correspondence is established. |
 
-Before implementing production transformation, review the persistence subset below and establish the source identity mapping, approved initial comparator and attribute mappings. Importer validation must exercise the complete selected bundle (menu, top-level and application evidence), not only these isolated examples. Unknown patterns can remain quarantined while verified subsets progress.
+Production transformation requires established source identity mapping, comparator semantics and attribute mappings. Importer validation exercises the complete selected bundle (menu, top-level and application evidence), not only isolated examples. Unknown patterns remain quarantined while verified subsets progress.
 
 This specification and schema do not certify production JEPC equivalence, authorize deployment or resolve hotspot conversion.
 
