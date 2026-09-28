@@ -2,17 +2,7 @@
 
 ## Purpose
 
-This document defines the base repository foundation for VIEPS UI internationalization.
-
-It implements the first repository-facing step of the architecture selected in Issue #554 without pre-implementing the stricter resource-format, governance, and validation contract owned by Issue #676.
-
-## Architecture ownership
-
-- **#554** owns the overall VIEPS UI i18n architecture, runtime locale behavior, fallback behavior, and TMS direction.
-- **#678** owns repository/application implementation in staged rounds. The first round creates the shared resource foundation defined here.
-- **#676** owns the detailed translation-resource format, deterministic ordering, governance, and structural/plural validation applied after this foundation exists.
-- **#679** owns deployment and operation of the Weblate service and its live Git integration.
-- **#620** separately owns multilingual JEPC catalogue/source data. Catalogue language is not UI translation identity.
+This document defines the canonical repository and runtime boundaries for VIEPS UI internationalization.
 
 ## Canonical resource location
 
@@ -20,94 +10,56 @@ VIEPS UI translation resources are stored under:
 
 `5-Implementation-Projects/internet/jagports/solution/vieps/i18n/`
 
-The initial resource set contains:
+The resource set contains a shared semantic key hierarchy across supported UI locales. `en.json` is the source/base UI resource and `fi.json` provides Finnish UI presentation values.
 
-```text
-i18n/
-├── README.md
-├── en.json
-└── fi.json
-```
+Translation-resource identity is the semantic key, not the rendered text.
 
-`en.json` is the source/base UI resource. `fi.json` is the initial second locale resource.
+## Resource contract
 
-Both files use the same semantic key hierarchy for the UI concepts represented in this foundation.
+Translation resources contain human-visible VIEPS UI presentation text.
 
-## Initial content boundary
+Feature/domain presentation values may be maintained with their owning domain while still using the shared i18n contract. Stable domain identifiers must not become locale-specific identities.
 
-The foundation starts with generic VIEPS UI presentation concepts already present in the application, such as Search and Availability.
-
-Feature-owned translation content is not part of the base resource seed. In particular, stock-quality A-E labels/descriptions remain stock-domain presentation content and are added by the relevant stock/i18n implementation after the shared foundation exists.
-
-This keeps the base resource layer neutral and reusable across VIEPS features.
-
-## Data versus presentation
-
-Translation resources contain human-visible UI presentation text.
-
-Language-independent domain/source identifiers remain data and are not translated identities. Examples include:
+Language-independent identifiers remain data. Examples include:
 
 - Jaguar part numbers;
 - VINs;
 - EPC/JEPC identifiers;
 - model and Range identifiers;
 - normalized stock-quality codes;
-- JEPC source-language catalogue values where modeled as source data.
+- stable normalized FIT dimension/value identifiers;
+- JEPC source-language catalogue values represented as source data.
 
-## Runtime boundary
+Locale resources must preserve compatible semantic structure so the same UI concept resolves by key rather than by matching rendered text.
 
-This foundation round creates repository resources only. It does not yet change production VIEPS runtime behavior.
+## Runtime contract
 
-The later #678 runtime round will integrate the selected i18next-compatible localization layer, locale selection, fallback, document language metadata, plural behavior, and representative localized rendering.
+VIEPS runtime localization uses the repository translation resources as authoritative build/runtime inputs.
 
-## Weblate boundary
+Locale selection, fallback, document-language metadata, plural behavior and localized rendering must operate on the shared semantic resource keys. Missing translations must follow the defined fallback behavior rather than changing domain identity or source data.
 
-Repository translation resources remain authoritative inputs to the VIEPS build.
+## Translation authoring boundary
 
-Weblate is an authoring/review integration selected by #554 and deployed under #679. It must not become a production request/runtime dependency.
+External translation-management tooling may author or review repository translation resources, but it is not a production request/runtime dependency.
 
-This foundation does not configure or deploy Weblate.
+Repository resources remain the application contract regardless of the authoring tool used.
 
-## #676 boundary
+## Data versus presentation
 
-This foundation intentionally does not define or enforce:
+UI locale and catalogue-data language are separate concerns.
 
-- recursive sibling-key ordering;
-- repository-wide i18n governance rules;
-- locale structural validation;
-- plural-family validation;
-- CI enforcement for the resource contract.
+- UI strings come from the VIEPS i18n resource contract.
+- Imported JEPC descriptions remain source-language catalogue data.
+- Semantic mappings may connect imported descriptions to normalized domain identities without rewriting either the source description or the UI translation identity.
 
-Those details belong to #676 and are applied on top of this base resource set.
-
-## Sequencing
-
-```text
-#554 architecture
-        ↓
-#678 Round 1: base repository resources
-        ↓
-#676 resource format / governance / validation
-        ↓
-#678 later runtime integration
-        ↓
-#679 live Weblate deployment/integration
-```
-
-The live Weblate deployment may be prepared independently, but its repository component must ultimately consume the canonical resource contract established by #554/#676 rather than inventing a parallel resource layout.
-
+Do not translate or normalize a source-data identifier merely to obtain a UI label.
 
 ## JEPC catalogue-language structure
 
 Multilingual JEPC catalogue data is source data, not VIEPS UI translation-resource identity.
 
-Do not assume that every JEPC language uses one identical catalogue/tree structure with only translated description strings. Some source models/languages may differ structurally.
+Do not assume that every JEPC language uses one identical catalogue/tree structure with only translated description strings. Source models/languages may differ structurally.
 
-The JEPC importer must therefore preserve language-qualified source tree nodes, parentage, ordering, descriptions and occurrence paths where the source differs. Canonical PART identity remains shared where source identity proves it is the same PART.
+The JEPC importer preserves language-qualified source tree nodes, parentage, ordering, descriptions and occurrence paths where the source differs. Canonical PART identity remains shared where source identity proves it is the same PART.
 
 Cross-language source-node or occurrence equivalence is derived data and must be established deterministically. Equal text, equal position or a shared part number alone must not force two source tree nodes to become one identity.
-
-VIEPS UI locale and JEPC catalogue-data language remain separate concerns:
-- UI strings come from the VIEPS i18n resource contract;
-- JEPC descriptions come from imported source-language catalogue trees;
-- semantic filter mappings may be layered over imported descriptions without rewriting either source tree identity or UI translation identity.

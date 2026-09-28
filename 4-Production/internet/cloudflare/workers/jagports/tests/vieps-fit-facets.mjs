@@ -4,7 +4,7 @@ import { database, d1 } from './helpers/model-db.mjs';
 import { handleViepsFit } from '../js/fit.js';
 import { handleApi } from '../js/worker.js';
 
-const namespace = 'fixture:pre-jepc-suitability:v1';
+const namespace = 'fixture:pre-jepc-fit:v1';
 function fixture(t) {
   const db = database();
   t.after(() => db.close());
@@ -23,7 +23,7 @@ const keys = (result) => result.matches.map((row) => row.occurrence_key).sort();
 test('fixture endpoint requires TEST=1 rather than a feature flag', async (t) => {
   const { db, env } = fixture(t);
   await assert.rejects(() => handleApi(new Request('https://test.example/api/fit'), env),
-    (error) => error.status === 503 && error.code === 'range_unavailable');
+    (error) => error.status === 503 && error.code === 'parts_database_unavailable');
   const fixtureResponse = await handleApi(new Request('https://test.example/api/fit?TEST=1'), env);
   assert.equal(fixtureResponse.status, 200);
   const fixtureBody = await fixtureResponse.json();
@@ -174,7 +174,7 @@ test('missing required domain language labels produces an explicit fixture error
   assert.deepEqual(body.matches, []);
 });
 
-test('TEST=1 displays deterministic fallback suitabilities from the normal migrated D1 without an environment flag', async (t) => {
+test('TEST=1 displays deterministic fallback fits from the normal migrated D1 without an environment flag', async (t) => {
   // Simulates the shared Worker D1, whose production migrations contain the
   // searchable #607 fixture PARTs but not the isolated #877 assertion rows.
   const db = database({ fixtures: false }); t.after(() => db.close());

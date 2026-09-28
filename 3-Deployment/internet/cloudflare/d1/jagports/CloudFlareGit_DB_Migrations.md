@@ -142,13 +142,13 @@ After schema verification, execute the affected application request and confirm 
 
 ## Merged Worker + D1 upgrade troubleshooting
 
-When a reviewed `main` Worker deployment is active but a live request fails with:
+When a reviewed `main` Worker deployment is active but a deployed request fails with:
 
 ```text
 D1_ERROR: no such column: <column-name>
 ```
 
-first treat it as possible Worker/D1 migration drift. Do not remove DB-specified columns from the Worker query merely to make the live error disappear unless the approved data model or schema has changed.
+first treat it as possible Worker/D1 migration drift. Do not remove DB-specified columns from the Worker query merely to make the deployed error disappear unless the approved data model or schema has changed.
 
 Minimum sequence from the Worker root:
 
@@ -172,7 +172,7 @@ If the request succeeds after applying a pending migration, record the incident 
 
 If there are no pending migrations, inspect the remote table shape with `PRAGMA table_info(...)` for the failing table before changing code. Repeated missing-column errors after a successful Worker deployment are not independent proof that multiple application columns should be deleted; they can be the same unapplied migration surfacing one selected column at a time.
 
-Seed/data migrations follow the same rule as schema migrations. If a live fixture or validation part resolves but returns no expected stock rows, check for a pending reviewed seed migration before changing the API or test contract.
+Seed/data migrations follow the same rule as schema migrations. If a fixture or validation part resolves but returns no expected stock rows, check for a pending reviewed seed migration before changing the API or test contract.
 
 ## Preview and local migration state
 

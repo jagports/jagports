@@ -338,8 +338,8 @@ function renderFitOptions() {
     status.textContent = fitError === "real_fit_data_missing"
       || fitError === "real_fit_data_incomplete"
         ? t("fit.real_data_missing")
-      : fitError === "range_unavailable"
-        ? t("fit.real_range_missing")
+      : fitError === "parts_database_unavailable"
+        ? t("fit.parts_database_missing")
       : fitError === "test_fixture_data_missing"
         || fitError === "test_fixture_data_incomplete"
         ? t("fit.test_data_missing")
@@ -651,7 +651,7 @@ function resetContext(messageKey = "part.no_part_selected") {
 
 function localizeError(error, fallback = "search.error") {
   if (error?.code === "range_required") return t("search.range_required");
-  if (error?.code === "range_unavailable") return t("search.range_unavailable");
+  if (error?.code === "parts_database_unavailable") return t("search.parts_database_unavailable");
   if (error?.code === "stock_filter_no_match") return t("search.no_stock_match");
   return String(error?.message || "") === "part not found" ? t("search.not_found") : t(fallback);
 }

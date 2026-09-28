@@ -1,7 +1,7 @@
 import { normalizePartNumber } from "./part.js";
-import { handleViepsPart, handleViepsTree } from "./vieps-fixtures.js";
-import { handleLivePart, handleLiveTree, handleLiveFit, liveRangeDatabase } from "./parts.js";
-import { handleViepsFit } from "./fit.js";
+import { handleViepsPart as handleFixturePart, handleViepsTree as handleFixtureTree } from "./vieps-fixtures.js";
+import { handlePart, handleTree, handleFit, partsDatabase } from "./parts.js";
+import { handleViepsFit as handleFixtureFit } from "./fit.js";
 import { handleFitAdmin } from "./admin-fit.js";
 
 function json(data, status = 200) {
@@ -181,11 +181,11 @@ async function handleApi(request, env) {
   const testFlags = [...url.searchParams].filter(([key]) => key.toLowerCase() === "test");
   const testMode = testFlags.length === 1 && testFlags[0][1] === "1";
 
-  if (path === "/api/part") return testMode ? handleViepsPart(request, env) : handleLivePart(request, env);
-  if (path === "/api/tree") return testMode ? handleViepsTree(request, env) : handleLiveTree(request, env);
+  if (path === "/api/part") return testMode ? handleFixturePart(request, env) : handlePart(request, env);
+  if (path === "/api/tree") return testMode ? handleFixtureTree(request, env) : handleTree(request, env);
   if (path === "/api/fit") return testMode
-    ? handleViepsFit(request, env) : handleLiveFit(request, env);
-  if (/^\/api\/admin\/fit(?:\/|$)/.test(path)) {
+    ? handleFixtureFit(request, env) : handleFit(request, env);
+  if (/^\\/api\\/admin\\/fit(?:\\/|$)/.test(path)) {
     const denied = requireAdmin(request, env);
     if (denied) return denied;
     return handleFitAdmin(request, env);
@@ -204,7 +204,7 @@ async function handleApi(request, env) {
     const q = text(url.searchParams.get("q"));
     const normalized = normalizePartNumber(q);
     if (!testMode) {
-      const { db } = liveRangeDatabase(url, env);
+      const { db } = partsDatabase(url, env);
       const stmt = q
         ? db.prepare(`SELECT * FROM part p WHERE EXISTS
             (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)

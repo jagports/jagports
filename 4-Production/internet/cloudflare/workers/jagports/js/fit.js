@@ -1,7 +1,7 @@
-// Source-qualified normalized Fit reader (#641/#877). TEST=1 uses only
+// Source-qualified normalized fit reader (#641/#877). TEST=1 uses only
 // fixture rows; real mode reads only independently reviewed JEPC occurrence evidence
-// from the Range D1 selected by parts.js. No free-text inference or fallback.
-const SOURCE = 'fixture:pre-jepc-suitability:v1';
+// from the parts database selected by parts.js. No free-text inference or fallback.
+const SOURCE = 'fixture:pre-jepc-fit:v1';
 const send = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'content-type': 'application/json; charset=utf-8' },
 });
@@ -19,7 +19,7 @@ const missingData = (reason, fixtureMode = false, range = null) => send({
   error_code: reason,
   error: fixtureMode
     ? 'Deterministic Fit test data has not been loaded.'
-    : 'Reviewed JEPC Fit data has not been published for this Range.',
+    : 'Reviewed JEPC Fit data has not been published in this parts database.',
 }, 503);
 
 function selections(url) {
@@ -53,7 +53,7 @@ function stillPossible(tags, selected) {
   return true;
 }
 
-// The shared operational D1 contains the searchable TEST parts, but the
+// The shared operational D1 contains the legacy searchable TEST parts, but the
 // richer #877 SQL-only fixture assertions are loaded only by isolated test DBs.
 // Supply their same eight *synthetic* dimensions from a self-contained fallback
 // when those optional rows have not been published. Never enter this path in
@@ -180,9 +180,9 @@ export async function handleViepsFit(request, env) {
 }
 
 // Called only by parts.js, after that module has selected and checked a
-// real Range D1 binding; operational stock is resolved separately by part number.
-export async function handleVerifiedFit(request, rangeDb, hasRealStock, range) {
-  return readFit(request, rangeDb, { fixtureMode: false, hasRealStock, range });
+// real parts database binding; operational stock is resolved separately by part number.
+export async function handleVerifiedFit(request, partsDb, hasRealStock, range) {
+  return readFit(request, partsDb, { fixtureMode: false, hasRealStock, range });
 }
 
 async function readFit(request, db, { fixtureMode, hasRealStock, range = null }) {

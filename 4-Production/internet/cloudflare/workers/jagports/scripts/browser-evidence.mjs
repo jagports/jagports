@@ -1,5 +1,5 @@
 // #891: browser-rendered evidence for the merged #888 interface.
-// Static built UI isolates layout/interaction behavior from live STOCK or catalogue data.
+// Static built UI isolates layout/interaction behavior from STOCK or catalogue data.
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
@@ -55,7 +55,7 @@ function browserFitResponse(params) {
       name: fi ? finnish : english, description: fi ? finnish : english,
       source_descriptions: [{
         id: 9000 + i, mapping_revision_id: 10000 + i,
-        source_namespace: "fixture:pre-jepc-suitability:v1",
+        source_namespace: "fixture:pre-jepc-fit:v1",
         dataset: "browser-v1", language: "en", locator: "browser/" + code + "/" + value,
         original_text: english, provenance: "synthetic_fixture",
       }],
@@ -76,7 +76,7 @@ function browserFitResponse(params) {
         : [...choices].some((id) => item.values.includes(id))));
   return {
     state: matches.length ? "applicable" : "no_match", fixture_mode: true,
-    source_namespace: "fixture:pre-jepc-suitability:v1",
+    source_namespace: "fixture:pre-jepc-fit:v1",
     selected, query: params.get("q") || "", categories, matches, excluded_occurrences: [], unavailable_occurrences: [],
     available_options: [...new Set(matches.flatMap((m) => m.values))].sort(),
   };
@@ -89,9 +89,9 @@ async function localServer() {
     // Synthetic catalogue endpoints only exist in TEST=1.
     const testFlags = [...requestUrl.searchParams].filter(([key]) => key.toLowerCase() === "test");
     const fixtureMode = testFlags.length === 1 && testFlags[0][1] === "1";
-    if (pathname.startsWith("/api/") && !fixtureMode) {
+    if (["/api/part", "/api/tree", "/api/fit"].includes(pathname) && !fixtureMode) {
       response.writeHead(503, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: "No real Range database is bound.", error_code: "range_unavailable" }));
+      response.end(JSON.stringify({ error: "No parts database is bound.", error_code: "parts_database_unavailable" }));
       return;
     }
     if (pathname === "/api/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
@@ -516,7 +516,7 @@ try {
     const auditWrites = [];
     const originalSource = {
       id: 87709, original_text: "Coupe", source_language: "en",
-      source_namespace: "fixture:pre-jepc-suitability:v1",
+      source_namespace: "fixture:pre-jepc-fit:v1",
       dataset_key: "browser", source_key: "body/group-2",
       source_group_code: "Body-2", source_model_ref: "X100",
       record_locator: "browser/body/group-2", provenance_kind: "fixture",
@@ -584,7 +584,7 @@ try {
     await page.locator("#accessForm button[type=submit]").click();
     await page.locator('#fitSourceSelect option[value="87709"]').waitFor();
     assert.match(await page.locator("#fitSourceDetails").textContent(),
-      /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
+      /Coupe.*fixture:pre-jepc-fit:v1.*Body-2/,
       "Admin must show raw text and its distinct source namespace and group");
     await page.locator("#fitMappingStatus").selectOption("conflict");
     await page.locator("#fitMappingVersion").fill("browser-v2");
@@ -646,7 +646,7 @@ try {
       assert.equal(await lowercasePage.locator("#realModeHelp")
         .evaluate(node => node.hidden), true, "?test=1 must hide real-mode help");
       assert.equal(await lowercasePage.locator("#variationsStatus.error").count(), 0,
-        "lowercase TEST URL must not display the missing real Range error");
+        "lowercase TEST URL must not display the missing parts database error");
       await lowercasePage.screenshot({
         path: evidenceDir + "web-lowercase-test1-desktop.png", fullPage: true,
       });
@@ -676,8 +676,8 @@ try {
       await realPage.locator("#searchStatus.error").waitFor();
       await realPage.locator("#variationsStatus.error").waitFor();
       assert.match(await realPage.locator("#variationsStatus").textContent(),
-        /real Range database is unavailable|Oikean mallisarjan tietokantaa ei ole saatavilla/i,
-        "missing live Range must also show an explicit Fit error");
+        /parts database is unavailable|Osatietokantaa ei ole saatavilla/i,
+        "missing parts database must also show an explicit Fit error");
       assert.equal(await realPage.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "real mode must hide fixture help");
       assert.equal(await realPage.locator("#realModeHelp").evaluate((node) => node.hidden), false,
@@ -695,7 +695,7 @@ try {
       assert.ok(await realPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "real-mode unavailable state must fit 320px mobile");
       await realPage.screenshot({ path: evidenceDir + "web-real-range-unavailable-mobile-320.png", fullPage: true });
-      console.log("PASS: missing real Range stays visible without synthetic fallback");
+      console.log("PASS: missing parts database stays visible without synthetic fallback");
     } finally {
       await realPage.close();
     }
@@ -736,9 +736,9 @@ try {
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate(node => node.hidden), false,
         "deployed ?test=1 must show fixture controls");
       // Deployment smoke accepts the previous released DOM hook until this PR is deployed.
-      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-fit-facet="body:coupe"]').first().waitFor();
+      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"]').first().waitFor();
       assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
-        "deployed ?test=1 must show synthetic Fit, not real Range errors");
+        "deployed ?test=1 must show synthetic fit, not parts database errors");
       const lowercaseTree = await deployed.request.get(
         new URL("/api/tree?root=1&test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercaseTree.status(), 200, "deployed lowercase TEST tree must work");
@@ -760,11 +760,11 @@ try {
       const result = await deployed.request.get(new URL("/api/tree?root=1", realUrl).href);
       if (result.status() === 503) {
         const unavailable = await result.json();
-        assert.equal(unavailable.error_code, "range_unavailable",
+        assert.equal(unavailable.error_code, "parts_database_unavailable",
           "without #954, deployed real mode must fail explicitly, never expose fixture data");
         await deployed.locator("#searchStatus.error").waitFor();
       } else {
-        assert.equal(result.status(), 200, "reviewed live Range must return sourced roots");
+        assert.equal(result.status(), 200, "reviewed Range must return sourced roots");
         const tree = await result.json();
         assert.ok(Array.isArray(tree.roots) && tree.roots.length > 0,
           "deployed real catalogue needs sourced roots");
@@ -787,7 +787,7 @@ try {
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-mobile-320.png", fullPage: true });
       await deployed.locator("#fitAdminHeading").scrollIntoViewIfNeeded();
       await deployed.screenshot({ path: evidenceDir + "deployed-fit-admin-mobile-320.png", fullPage: true });
-      console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed real Range, and Web/Admin screenshots");
+      console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed parts database, and Web/Admin screenshots");
     } finally {
       await deployed.close();
     }
