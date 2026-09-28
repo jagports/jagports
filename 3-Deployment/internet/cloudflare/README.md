@@ -36,11 +36,11 @@ D1 resource existence check, creation, Worker binding, and verification.
 
 Repeatable migration review, source selection, preview/local testing, production application, and verification.
 
-### JEPC Range D1 identity setup
+### JEPC D1 parts database identity setup
 
 `3-Deployment/internet/cloudflare/d1/OPERATIONS.md`
 
-Repository-controlled Range naming, capacity check, creation, identity verification, and reviewed configuration. Schema migration and Worker routing are separate steps.
+The D1 parts database name is `jagports-<approved_range_slug>`. The repository-controlled [OPERATIONS guide](d1/OPERATIONS.md) documents identity checks, capacity, creation, verification and schema setup. Worker routing is separate.
 
 ## Reduced-MVP runtime status
 
