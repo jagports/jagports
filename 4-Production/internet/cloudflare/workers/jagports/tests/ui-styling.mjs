@@ -20,7 +20,7 @@ function harness(fetch, { initialSearch = '', rootFetch, fitFetch } = {}) {
   } };
   const routedFetch = (url) => {
     requests.push(url);
-    if (url.startsWith('/api/vieps/suitability?')) return fitFetch
+    if (url.startsWith('/api/vieps/fit?')) return fitFetch
       ? Promise.resolve(fitFetch(url))
       : Promise.resolve(response({
         state: 'unavailable', fixture_mode: false, categories: [], matches: [],
@@ -87,7 +87,7 @@ function harness(fetch, { initialSearch = '', rootFetch, fitFetch } = {}) {
 
 const response = (data, ok = true) => ({ ok, json: async () => data });
 const catalogueRequests = (requests) => requests.filter((url) =>
-  !url.startsWith('/api/vieps/suitability?')); // Existing public API alias retained.
+  !url.startsWith('/api/vieps/fit?')); // Existing public API alias retained.
 const fixture = {
   part: { id: 10, part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
   tree_roots: [{ node_id: 1, label: 'Parent', sort_order: 1 }, { node_id: 8, label: 'Body', sort_order: 2 }],
@@ -774,7 +774,7 @@ test('#974 Find clear, root browse and empty-Find Stock changes preserve chosen 
   await flush();
   const currentFit = () => ui.get('variationOptions').innerHTML;
   const lastFitUrl = () => ui.requests.filter(url =>
-    url.startsWith('/api/vieps/suitability?')).at(-1);
+    url.startsWith('/api/vieps/fit?')).at(-1);
   const assertFit = (message) => {
     assert.match(currentFit(), /data-fit-facet="body:coupe"[^>]*checked/, message);
     assert.equal(new URL(lastFitUrl(), 'https://fixture.invalid').searchParams.get('facet'),
