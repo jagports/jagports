@@ -1,0 +1,594 @@
+#594 open [AI OS] Document Lead Agent setup and multi-script agent team architecture
+#593 open agent test
+#592 closed DEC KNOWLEDGE
+#591 open [Documentation] Add Cloudflare D1 storage limits and architecture guidance
+#590 closed VIEPS UI / Consolidate concepts and specifications
+#589 closed [Implement] jagports.github.io
+#588 closed Implement GitHub Pages index.html to display /docs/README.png
+#587 closed Create README.png
+#586 open [SOURCE] JEPC Code - Add JEPC data structure findings
+#585 open [STUDY] Fetch initial JEPC files for JEPC data format analysis
+#584 closed Move JEPCFiles to software path and add JEPC data spec placeholder
+#583 open [Post-MVP] Reflect current search state in URL for shareable deep links
+#582 closed Consolidate VIEPS UI specifications and synchronize open issue UI spec references
+#581 closed AGENT / Post-merge workflow test for #574
+#580 closed KNOWLEDGE / Test issue for #574 (TitleEdit Test)
+#579 closed GitHub Actions / Remove unnecessary Windows Parts Model runner
+#578 closed GitHub Actions / Remove unnecessary Windows Parts Model runner
+#577 closed VIEPS UI / Align Pico-styled page with Concept EMF and visible initial state
+#576 closed Standardize Review conversation terminology
+#575 closed GitHub Actions / Reduce category workflow trigger amplification and document Actions knowledge
+#574 closed GitHub Actions / Reduce category-convention trigger amplification and Actions-minute usage
+#573 closed VIEPS UI / Move AI visualization prompt to canonical UI directory
+#572 closed VIEPS UI / Move AI visualization prompt into canonical UI directory
+#571 closed VIEPS / Complete MVP operational stock model requirements
+#570 closed VIEPS / Complete MVP operational stock model requirements
+#569 closed GitHub Actions / Upgrade Node.js 20-based action dependencies
+#568 closed GitHub Actions / Upgrade Node.js 20-based action dependencies before removal
+#567 closed Fix D1 migration execution and image_ref verification for #566
+#566 closed Complete PART_IMAGE deployment/migration for canonical PART model
+#565 closed VIEPS UI / Adopt CSS UI kit for MVP visual styling
+#564 closed VIEPS UI / Add visualization AI prompt and reference mockup
+#563 closed Define PR review discussion before formal review submission
+#562 closed GitHub Actions / Separate Parts Model integrity test automation
+#561 closed GitHub Actions / Specify and automate Parts Model integrity tests
+#560 closed Define PR review discussion before formal review submission
+#559 open Cloudflare: prevent deployment/check noise from unrelated PR branch commits
+#558 closed Cloudflare: restrict deployment/check branches to main with explicit opt-in branch configuration
+#557 closed Define Issue Acceptance and PR checklist merge gates
+#556 closed Define Issue Acceptance and PR checklist merge gates
+#555 open [post-MVP] Split EPC imported data into separate D1 databases per vehicle Range
+#554 open [post-MVP] Add i18n support
+#553 open VIEPS UI / Fix web page language detection showing French
+#552 closed Amend @continue to give review link at every review boundary
+#551 closed Amend @continue command to always provide review link at review boundary
+#550 closed VIEPS / Finalize Parts Data Model integrity, fixtures and documentation
+#549 closed Restore VIEPS solution files to the Jagports solution hierarchy
+#548 closed Restore VIEPS solution files to the Jagports solution hierarchy
+#547 closed VIEPS UI / Implement Part-number entry and PART resolution
+#546 open VIEPS UI / Execute end-to-end MVP acceptance test
+#545 open VIEPS UI / Implement PART Part Image view
+#544 open VIEPS UI / Implement Range to all suitable variations
+#543 open VIEPS UI / Implement PART to all suitable vehicle Ranges
+#542 open VIEPS UI / Implement PART to Parts Tree branch
+#541 closed VIEPS UI / Implement Part-number entry and PART resolution
+#540 closed VIEPS UI / Add Concept View-1 MVP implementation specification
+#539 closed VIEPS / Implement catalogue PART to operational stock MVP relationship
+#536 closed VIEPS / Implement PART diagram, hotspot and vehicle-location relationships MVP step
+#535 closed VIEPS / Implement PART fitment and attribute applicability MVP step
+#538 closed VIEPS / Finalize Parts Data Model integrity, fixtures and documentation MVP step
+#537 closed VIEPS / Implement catalogue PART to operational stock MVP relationship
+#534 closed Enforce VIEPS execution evidence template
+#533 closed Enforce VIEPS execution evidence template in Issues and KNOWLEDGE
+#532 closed VIEPS / Implement PART supersession MVP step
+#531 closed VIEPS / Implement PART supersession MVP step
+#530 closed VIEPS / Implement PART vehicle and VIN range applicability MVP step
+#529 closed VIEPS / Implement PART-to-Vehicle Range and VIN Range applicability MVP step
+#528 closed VIEPS / Implement PART image and identification evidence MVP step
+#527 open VIEPS / Implement PART image and identification evidence MVP step
+#526 closed VIEPS / Implement PART occurrence and context MVP step
+#525 closed VIEPS / Parts Data Model — Implement PART occurrence and context MVP step
+#524 closed Repository Structure — Amend canonical path depth rule for final `vieps` element
+#523 closed Repository Structure — Amend canonical path depth rule for final `vieps` element
+#522 closed VIEPS / Repository Structure — Move paths to canonical locations
+#521 open Deployment Documentation — Umbrella for unresolved Cloudflare/UI and variation anomalies
+#520 closed VIEPS / Repository Structure — Move implementation, deployment, production and test paths to canonical locations
+#519 closed VIEPS / Repository Structure — Define canonical paths before removing redundant `vieps` levels
+#518 closed Repository Hygiene — Ignore generated Wrangler state
+#517 closed Repository Hygiene — Exclude generated Wrangler .wrangler state
+#516 closed VIEPS / Repository Structure — Remove redundant `vieps` production subdirectory and standardize layer paths
+#515 closed VIEPS / Deployment-1 — Replace obsolete /base hierarchy and normalize Worker layout
+#514 closed Make VIEPS the pre-production Cloudflare Worker
+#513 closed Define VIEPS Worker environment naming and preserve Deployment-1 MVP endpoint
+#512 closed Fix VIEPS Cloudflare Worker name and deployment endpoint
+#511 closed Documentation / Record Cloudflare Workers & Pages UI state and P2 integration anomalies
+#510 open Documentation / Node.js must be installed on deployment host before Cloudflare setup
+#509 open Clarify Cloudflare Account Setup procedure against current Cloudflare UI
+#508 closed VIEPS / Deployment-1 / P2 — Establish and Verify Cloudflare ↔ GitHub Integration
+#507 closed VIEPS / Deployment-1 / P1 — Establish and Verify Cloudflare Account
+#506 closed VIEPS UI / Validate Deployment-1 End-to-End
+#505 closed VIEPS UI / Build Deployment-1 VIEPS UI Integration
+#504 closed VIEPS UI / Establish Deployment-1 API Data Path
+#503 closed VIEPS UI / Establish Deployment-1 D1 Data Foundation
+#502 closed VIEPS UI / Establish Deployment-1 Cloudflare Runtime Foundation
+#501 closed VIEPS / Deployment-1 / End-to-End Validation
+#500 closed VIEPS / Deployment-1 / VIEPS UI Integration
+#499 closed VIEPS / Deployment-1 / API Data Path
+#498 closed VIEPS / Deployment-1 / D1 Data Foundation
+#497 closed VIEPS / Deployment-1 / Cloudflare Deployment Foundation
+#496 closed VIEPS / Deployment-1 — Establish the First Real End-to-End VIEPS Runtime
+#495 closed VIEPS UI / Add durable implementation boundary specification
+#494 closed VIEPS UI / Add durable MVP vertical-slice specification
+#493 closed VIEPS UI / Add durable stock separation specification
+#492 closed VIEPS UI / Add durable supersession and Classic specification
+#491 closed VIEPS UI / Add durable non-numbered parts specification
+#490 closed VIEPS UI / Add durable unavailable-data specification
+#489 closed VIEPS UI / Add durable Fitment specification
+#488 closed VIEPS UI / Add durable Suitability Ranges specification
+#487 closed VIEPS UI / Add durable Vehicle Location specification
+#486 closed VIEPS UI / Add durable Main View specification
+#485 closed VIEPS UI / Add durable Parts Tree specification
+#484 closed VIEPS UI / Specification — MVP implementation tracking and baseline boundary
+#483 closed VIEPS UI / Specification — Deterministic MVP vertical-slice contract
+#482 closed VIEPS UI / Specification — Operational stock and catalogue separation
+#481 closed VIEPS UI / Specification — Supersession and Classic indicator semantics
+#480 closed VIEPS UI / Specification — Non-numbered part identity and image contract
+#479 closed VIEPS UI / Specification — Explicit unavailable-data handling
+#478 closed VIEPS UI / Specification — Fitment qualifiers and VIN applicability contract
+#477 closed VIEPS UI / Specification — Suitability Model Ranges filtering contract
+#476 closed VIEPS UI / Specification — Vehicle location at car contract
+#475 closed VIEPS UI / Specification — Main part and diagram view synchronization contract
+#474 closed VIEPS UI / Specification — Parts Tree hierarchy and selection contract
+#473 closed VIEPS UI / Add durable Part Search specification
+#472 closed VIEPS UI / Specification — Part search resolution and UI data contract
+#471 open Amend Management Rules: permit verified acceptance-criterion completion updates on open Issues
+#470 open VIEPS UI / Alternative entry points to Part Search
+#469 closed VIEPS UI / Add durable UI specifications
+#468 closed VIEPS UI / Concept View-1 — Updated MVP UI specification
+#467 closed UI concept 1
+#466 open Treat third parties as a first-class production concept
+#465 open Explicitly map ownership of Cloudflare production resources
+#464 closed Document VIEPS production party responsibilities
+#463 closed Document VIEPS production party ownership and operational responsibilities
+#462 open Correct VIEPS production-readiness analysis: DNS is not the primary blocker
+#461 closed SKILL / Require line-specific implementation evidence in review replies
+#460 closed Require line-specific implementation evidence when responding to review change requests
+#459 open Generate setupPre-ProductionDNSAddress.md for VIEPS Cloudflare pre-production
+#458 closed Clarify AI OS and VIEPS audit scope boundaries
+#457 closed Correct AI OS and VIEPS audit scope boundaries
+#456 closed [REDESIGN] Introduce common daily audit method for AI OS and VIEPS
+#455 closed [P1 TEST] #84 Human lifecycle test v5 — async-aware full lifecycle
+#454 closed [REDESIGN] Streamline AI OS and VIEPS daily audits
+#453 closed [REDESIGN] Replace Project Audit with AI OS Showstopper & Priority Audit
+#452 closed [P12] Extend @continue through reviewed merge and close workflow
+#451 closed [P12] Define AI OS command semantics through reviewed merge and close
+#450 closed [CORRECTIVE] Generalize capability limitation vs project blocker
+#449 closed Correct production directory governance to allow technology-specific production structures
+#448 open Implement public VIEPS access with administrator stock authorization
+#447 closed Cloudflare Git integrated Jagports deployment execution and VIEPS pre-production address
+#446 closed Document Cloudflare Git integration and D1 deployment procedure
+#445 closed Split Cloudflare Worker and D1 deployment documentation
+#444 closed Add documented streaming Traficom XK range parser
+#443 closed Create streaming Get XK Range parser
+#442 closed [DATA BACKUP] Preserve VINClass v1.0 Excel function and Finnish XK Range workbook
+#441 closed [VIEPS KNOWLEDGE] Remove duplicated implementation detail
+#440 closed P10.1: consolidate MyNodeBTC Codex CLI setup
+#439 open Capture and integrate novel AI OS knowledge from current development work into the prioritized work plan
+#438 closed Consolidate Kanban setup documentation and remove v2
+#437 closed Consolidate GitHub Project/Kanban setup into tested reusable procedures
+#436 open [P1] Recover Kanban after repository transfer and establish organization ownership
+#435 closed Document PR #433 — Canonical PART model MVP implementation
+#434 closed Cloudflare placeholder
+#433 closed Implement canonical PART model MVP step
+#432 closed docs: standardize daily audit work-path formatting
+#431 closed Correct daily audit work-path rule traceability for PR #430
+#430 closed [MERGED] Update daily audit work-path formatting
+#429 closed Improve daily audits with dependency-enabling work paths
+#428 closed Fix VIEPS daily audit output references
+#427 closed temp
+#426 closed x
+#425 closed [P1] Fix daily audit procedure filenames and scheduled prompts
+#424 closed [P1] Fix daily audit procedure filenames and scheduled prompts
+#423 closed [P1] Fix daily audit procedure filenames and scheduled prompts
+#422 closed [REDESIGN] Streamline AI OS and VIEPS daily audits
+#421 closed [CORRECTIVE] Distinguish capability limitations from project blockers
+#420 open SPEC: Define third-party parts model
+#419 closed [FIX] Remove superseded daily audit scheduling document
+#418 closed [FIX] Remove superseded daily audit scheduling document
+#417 closed [DOCS] Streamline scheduled project task Markdown filenames
+#416 closed Streamline scheduled audit Markdown filenames
+#415 closed Split scheduled audits for Jagports AI OS and VIEPS App
+#414 closed Split scheduled audit PR
+#413 closed IGNORE
+#412 closed IGNORE
+#411 closed IGNORE
+#410 closed IGNORE
+#409 closed Split scheduled audit PR scope
+#408 closed placeholder
+#407 closed Split scheduled audits implementation
+#406 closed Remove redundant audit traceability issue
+#405 closed Implement split scheduled AI OS and VIEPS audits
+#404 closed VIEPS App audit — implementation traceability
+#403 closed VIEPS App audit task — implementation traceability
+#402 closed VIEPS App scheduled audit scope and source-of-truth
+#401 closed Refocus Jagports Daily Audit on AI OS project progress
+#400 closed Create scheduled VIEPS App progress audit
+#399 closed Split scheduled audits: Jagports AI OS and VIEPS App
+#398 closed Move daily audit procedure to durable management Markdown
+#397 closed Update scheduled Jagports Daily Audit with upstream connector blocker tracking
+#396 open KNOWLEDGE / Consolidate and simplify testing practices
+#395 closed KNOWLEDGE / Clarify readable Issue and PR messages
+#394 open KNOWLEDGE / Clarify readable formatting for Issue and PR descriptions and comments
+#393 closed FIX / Roll back broken #311 workflow YAML
+#392 closed TEST / #311 post-merge failure-comment formatting
+#391 closed KNOWLEDGE / Simplify testing process
+#390 closed TEST / PR-branch pre-merge / #311 comment formatting
+#389 closed [DOCS] Consolidate GitHub Issue and PR operating rules (#356)
+#388 closed [P5.1] Validate and normalize knowledge architecture
+#387 closed Implement Root dir /1-CustomerService
+#386 closed [P1] Move Kanban Project Item mutation test under Setting_up_Kanban
+#385 closed [P1] Reorganize root documentation and architecture directories
+#384 closed [P1] Audit root-level docs, test and jagports-tmp directories and relocate them
+#383 closed Implement scheduled daily Team Lead project audit
+#382 closed KNOWLEDGE: document current GitHub Project modification limitation
+#286 closed Move production implementation into approved foundation/application hierarchy
+#381 closed Open MVPv0-and-coupe for review
+#380 closed Open MVPv0-and-coupe for review
+#379 open KNOWLEDGE / TEST FIXTURE / category rename cleanup 376 — fresh
+#378 closed KNOWLEDGE / TEST FIXTURE / category rename cleanup 376
+#377 closed SKILL / Remove stale category labels on supported-prefix rename
+#376 closed SKILL / Fix stale category label removal on supported-prefix rename
+#375 closed Amend #364: consolidate supersession knowledge
+#374 open Amend #364: consolidate JEPC supersession knowledge into DocumentationEducationCompetense
+#373 closed [P0] Enforce review gate before merge
+#372 closed Fix merge-gate enforcement: CHANGES_REQUESTED must always block merge
+#371 closed Implement and document scheduled daily Team Lead audit
+#370 closed Followup test issue for #307
+#369 closed Define VIEPS stock provenance model
+#368 open VIEPS UI / Implement MVP Web UI
+#367 closed KNOWLEDGE / Record VIEPS Parts Data Model decisions
+#366 closed [VIEPS UI] Add UI concepts and X100 WDS silhouette assets
+#365 closed Define need for updated Jagports vehicle knowledge specifications
+#364 closed Document JEPC parts supersession knowledge
+#363 closed Create scheduled daily Team Lead project audit and document automation
+#362 open SPEC: Define whole-car zones and image hotspot model
+#361 open RESEARCH: Resolve Range taxonomy and whole-car zone mapping
+#360 closed VIEPS UI MVP Draft
+#359 closed Update Jagports_vehicle_knowledge 2 specifications.md
+#358 open Research WDS/UFM whole-car silhouette image pull mechanism
+#357 open Add IPS_QUESTIONS.md; extend SPEC-6.6 zone vocabulary; add SPEC-6.13 application settings
+#356 closed [CONFLICT] ISSUE_OPERATING_RULES.md redefines WORKFLOWS.md's normative content
+#355 open IMPL / JEPC Data Importer
+#354 open Define and implement Parts Data Model
+#353 closed Research Jagports stock data and operational stock model
+#352 open RESEARCH / Determine JEPC Flash hotspot coordinate conversion
+#351 closed Remove obsolete Kanban task-import skill
+#350 open [P1] KNOWLEDGE / Define the Lessons-Learned → KNOWLEDGE/SKILL update workflow
+#349 closed [P1 TEST] #84 Human lifecycle test v4 — minimal UI verification
+#348 closed [P1 TEST FIXTURE] #84 lifecycle fixture for #347
+#347 closed [P1 TEST] #84 Human lifecycle test v3 — short UI verification
+#346 closed [P1 TEST FIXTURE] #84 lifecycle fresh fixture for #345
+#345 closed [P1 TEST] #84 Human lifecycle test — fresh verification after #342
+#344 open SKILL / Investigate human-test checklist and direct-URL Markdown formatting
+#343 closed KNOWLEDGE: improve human-test preparation and handover
+#342 closed [P1 TEST] #84 Human lifecycle test — Issue ↔ Project Item
+#341 closed [P1 TEST] #84 Project Item lifecycle end-to-end validation
+#340 closed PROCESS / Prevent PR self-review and require independent review hand-off
+#339 closed KNOWLEDGE / Prevent PR self-review and require independent review hand-off
+#338 closed Fix Project Item discovery for #84 lifecycle automation
+#337 closed Import tasks: document work for #336
+#336 open KNOWLEDGE / Import Jagports AI OS tasks as Issues and native sub-issues
+#335 closed AI Agent GitHub Connections Knowledge
+#334 closed KNOWLEDGE / Record AI Agent GitHub Connections for OpenAI and Claude
+#333 closed [KNOWLEDGE] Rename communication protocol specification
+#332 closed Revert direct default-branch commit 309bb263
+#331 closed [P3.4] Add agent workflow architecture research to #57
+#330 closed Implement READMEs
+#329 closed Import Jaguar EPC files base
+#328 closed KNOWLEDGE / Define readable Issue and PR description creation and formatting
+#327 closed SKILL / Fix Issue-to-Project automation Project Item discovery
+#326 closed [KNOWLEDGE][TEST] Verify Issue-to-Project automation with current PROJECTS_TOKEN
+#325 closed [KNOWLEDGE] Separate secret-storage verification from Project capability verification
+#324 closed [KNOWLEDGE] Document safe PROJECTS_TOKEN rotation workflow
+#323 closed [TEST #291] Verify Issue-to-Project automation
+#322 closed Move tests/ files under 5-Projects-Implementation/tests
+#321 closed Fix Project Item mutation test for #313
+#320 closed Update DEPLOYMENT_KNOWLEDGE_PLACEMENT.md
+#319 closed Rename and copy jagports-mvp to jagports
+#318 closed Rename application name from jagports-mvp to jagports and move it from production to Projects for implementation
+#317 closed Reconcile Project automation credential knowledge
+#316 closed [KNOWLEDGE] Consolidate communication protocol and rename specification
+#315 closed KNOWLEDGE / Review and remove obsolete Kanban task-import skill and references
+#314 closed KNOWLEDGE / Keep only current working-set knowledge and code on Default Branch
+#313 closed KNOWLEDGE / Ensure Project operations are verified before claiming success
+#312 closed [KNOWLEDGE] Establish centralized Management workflow source of truth
+#311 closed KNOWLEDGE / Implement readable text formation for automated Issue/PR comments
+#310 open KNOWLEDGE / Create 5-Implementation-Projects/TESTING.md and consolidate testing procedures
+#309 open AGENT / TEST FIXTURE / category rename 308
+#308 closed TEST / HT: category rename fixture
+#307 closed Verify PR #267 comment formatting on merged implementation
+#306 closed KNOWLEDGE / Refine immutable-history governance references
+#305 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#304 closed [STOP]
+#303 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#302 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#301 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#300 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#299 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#298 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#297 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#296 closed [KNOWLEDGE] Enforce immutable history for merged PRs and closed Issues
+#295 closed [KNOWLEDGE] Centralize Management workflows and Issue/PR discovery
+#294 closed SKILL / Define automatic Issue/PR work-request discovery, reuse, and title-change workflow
+#293 closed [TEST][KNOWLEDGE] Superseded test record — do not execute
+#292 open KNOWLEDGE / Define pre-merge testing gate for PR-branch changes
+#291 closed KNOWLEDGE / Document and verify GitHub Project automation credential setup
+#290 closed Document deployment knowledge placement
+#289 closed Implement #285 deployment knowledge placement
+#288 closed Implement #285 deployment knowledge placement
+#287 closed P-MVP — Move production implementation into approved foundation hierarchy
+#285 closed Establish and propagate production/deployment KNOWLEDGE.md structure rules
+#284 closed Correct MVP deployment documentation placement
+#283 closed Document approved 4-Production subfolder structure
+#282 closed Document 4-Production subfolder structure in KNOWLEDGE
+#281 closed P-MVP — Add complete application MVP vertical slice
+#280 open Define and implement complete Jagports application MVP
+#279 closed Revert direct push of optional vehicle knowledge research document
+#278 open KNOWLEDGE / Revert direct push of optional vehicle knowledge research document
+#277 closed KNOWLEDGE / Add reusable ASCII workflow diagrams
+#276 closed KNOWLEDGE / Add reusable ASCII workflow diagrams
+#275 closed KNOWLEDGE / Add project management workflow charts
+#274 closed KNOWLEDGE / Improve project management workflow presentation
+#273 closed Document complete Issue-to-completion lifecycle
+#272 closed Document and enforce the complete Issue lifecycle
+#271 closed Allow ordinary Issue titles without category prefixes
+#270 closed Allow Issue creation without a known validation prefix
+#269 closed Enhance Issue-to-Project automation into lifecycle sync
+#268 closed [TEST] Verify PR #267 Issue and PR comment formatting
+#267 closed [KNOWLEDGE] Format Issue and PR comments for readability
+#266 closed [KNOWLEDGE] Define readable formatting for Issue and PR comments
+#265 closed [TEST][KNOWLEDGE] Verify KNOWLEDGE test categorization and Project automation
+#264 closed KNOWLEDGE / TEST Automation to Kanban
+#263 closed [TEST] Verify PR #262 Project automation fix
+#262 closed Fix Issue-to-Project automation workflow
+#261 closed [TEST] Verify PROJECTS_TOKEN Project automation
+#260 closed [TEST] Verify automatic Project Item creation and BACKLOG Status after PROJECTS_TOKEN setup
+#259 closed Document Project automation user and token setup
+#258 closed [TEST] Verify automatic Project Item creation and BACKLOG Status
+#257 closed [P0 TEST] Verify automatic Project Item creation and BACKLOG Status
+#256 closed TEST / #94 HT-5 — Issue/PR event and traceability evidence
+#255 closed TEST / #94 HT-4 — Kanban independence evidence
+#254 closed TEST / #94 HT-3 — invalid, conflicting and multi-prefix evidence
+#253 closed TEST / #94 HT-2 — category synchronization and rename evidence
+#252 closed TEST / #94 HT-1 — automatic category assignment evidence
+#251 closed SKILL / #94 ordinary no-prefix title must pass category handling
+#250 closed KNOWLEDGE / Fix issues found during #94 human testing
+#249 closed AUTOMATION / Automatically attach Issues and set Project Item Status
+#248 closed SKILL / Issue workflow event tes
+#247 closed SKILL / PR workflow event test
+#246 closed HT-Next: Issue → PR category consistency
+#245 closed SKILL / Issue to PR consistency test
+#244 closed SKILL / Issue to PR consistency test
+#243 closed HT-Next: category independence from Kanban
+#242 closed SKILL / Kanban independence test
+#241 closed HT-Next: conflicting category label validation
+#240 closed TEST / HT: conflicting category label #240
+#239 closed HT-Next: category order independence on Issue rename
+#238 closed KNOWLEDGE / Category order independence test
+#237 closed HT-Next: PR category label must match Issue category
+#236 closed HT-Next: rename existing SKILL category to AGENT
+#235 closed AGENT / TEST FIXTURE / category renam
+#234 closed HT-Next: Issue ordinary no-prefix title must pass
+#233 closed FEATURE / Unsupported prefix test
+#232 closed HT-Next: valid category rename cleanup
+#231 closed SKILL / Category rename test
+#230 closed HT-Next: Issue KNOWLEDGE prefix classification
+#229 closed KNOWLEDGE / Issue classification test
+#228 closed TEST FIXTURE / Issue KNOWLEDGE event assignment
+#227 closed HT-Next: Issue KNOWLEDGE prefix classification
+#226 closed TEST / HT: Issue KNOWLEDGE classification
+#225 closed HT-Next: Issue SKILL prefix classification — corrected fixture
+#224 closed SKILL / Issue classification test
+#223 closed HT-Next: Issue SKILL prefix classification
+#222 closed TEST / HT: Issue SKILL classification
+#221 closed HT-Next: Issue event automatic category assignment
+#220 closed AGENT / Issue event category test
+#219 closed HT-Next: category independent of Project workflow
+#218 closed KNOWLEDGE / Category independence test
+#217 closed HT-Next: conflicting category label validation
+#216 closed SKILL / Conflicting label test
+#215 closed HT-Next: CHORE PR category exemption
+#214 closed CHORE / Human test of category exemption
+#213 closed HT-Next: reject PR without category prefix
+#212 closed TEST / Ordinary PR without category
+#211 closed HT-Next: reject category prefix when not at title start
+#210 closed TEST / SKILL / Embedded prefix test
+#209 closed HT-Next: unsupported prefix — fixture correction
+#208 closed TEMP
+#207 closed HT-Next: ordinary no-prefix PR title must pass
+#206 closed HT-Next: ordinary no-prefix PR title must pass
+#205 closed HT-Next: single KNOWLEDGE prefix classification
+#204 closed KNOWLEDGE / Single prefix human test
+#203 closed TEST / HT: single KNOWLEDGE prefix
+#202 closed HT-Next: single AGENT prefix classification
+#201 closed AGENT / Single prefix human test
+#200 closed TEMP2
+#199 closed TEMP
+#198 closed HT-Next fixture anchor (internal)
+#197 closed HT-Next: single AGENT prefix classification
+#196 closed TEMP fixture anchor - remove
+#195 closed HT-Next: single AGENT prefix classification
+#194 closed HT-Next: single SKILL prefix classification
+#193 closed SKILL / Single prefix human test
+#192 closed [HT] Regression: reject multiple category prefixes without adding a label
+#191 closed SKILL / KNOWLEDGE / Human multi-prefix regression
+#190 closed BUG / Correct multi-category prefix detection
+#189 closed BUG / Correct multi-category prefix detection
+#188 closed TEST / Human acceptance of multiple category-prefix rejection
+#187 closed SKILL / KNOWLEDGE / Human multi-prefix rejection test
+#186 closed KNOWLEDGE / Define hierarchical KNOWLEDGE.md structure and maintenance rules
+#185 closed BUG / Reject PR titles containing multiple category prefixes
+#184 closed BUG / Reject PR titles containing multiple category prefixes
+#183 closed On test #182 Only category skill appeared.
+#182 closed TEST / Human verification of multi-category PR title handling
+#181 closed SKILL / AGENT / KNOWLEDGE — multi-category verificatio
+#180 closed KNOWLEDGE / Enforce human-test fixture preflight and handover verification
+#179 closed KNOWLEDGE / Enforce human-test fixture preflight and handover verification
+#178 closed KNOWLEDGE / Require test checklist and verified Issue links before human handover
+#177 closed TEST / Human verification of category conflict handling
+#176 closed KNOWLEDGE / Require test checklist creation and verified Issue links before human handover
+#175 closed Test PR — category conflict validation
+#174 open SKILL / Require human-test Issues to provide direct GitHub URLs
+#173 closed TEST / Human verification of conflicting PR category metadata
+#172 closed TEST / Human verification of conflicting PR category metadata
+#171 closed Test PR — invalid category metadata verification
+#170 closed TEST / Human verification of neutral PR title category state
+#169 closed TEST / Human verification of PR title rename to neutral
+#168 closed KNOWLEDGE / Human verification of neutral-title transitio
+#167 closed TEST / Human verification of PR title rename back to neutral
+#166 closed TEST / Human verification of PR title rename to KNOWLEDGE label
+#165 closed KNOWLEDGE / Human verification of PR title rename
+#164 closed Validations run and fail for all the changes
+#163 open KNOWLEDGE / Require checkbox tracking for every human-test step
+#162 closed TEST / Human verification of PR title rename to AGENT label
+#161 closed Test PR — human title category verification
+#160 closed TEST / Human verification of PR title rename to AGENT label
+#159 closed TEST / Human verification of clean PR category-label assignment
+#158 closed TEST / Human verification of PR title rename → automatic category label
+#157 open SKILL / Always when making changes to SKILL or any KNOWLEDGE file
+#156 closed KNOWLEDGE / Human-processable automatic category-label verification
+#155 closed HT-5.3 Verify event results
+#154 closed HT-5.2 Execute PR event
+#153 closed HT-5.1 Execute Issue event
+#152 closed HT-4.3 Verify category independence
+#151 closed HT-4.2 Verify Status and Priority
+#150 closed HT-4.1 Observe Kanban item
+#149 closed HT-3.3 Restore test state
+#148 closed HT-3.2 Verify validation failure
+#147 closed HT-3.1 Create invalid state
+#146 closed HT-2.3 Verify resulting label
+#145 closed HT-2.2 Verify automation after change
+#144 closed HT-2.1 Change subject
+#143 closed HT-1.3 Verify validation result
+#142 closed HT-1.2 Verify automatic label
+#141 closed HT-1.1 Create controlled test change
+#140 closed HT-5 Event coverage
+#139 closed HT-4 Kanban independence
+#138 closed HT-3 Invalid or mismatched category state
+#137 closed HT-2 Subject/category change
+#136 closed HT-1 Valid prefix / automatic label
+#135 open Establish Jagports AI OS
+#134 closed Add script to create AI OS epic issue
+#133 open KNOWLEDGE / Review file ToDo-P2.md
+#132 closed Delete Jagports_AI_OS_Prioritized_Work_Plan.md
+#131 closed KNOWLEDGE / Define hierarchical KNOWLEDGE.md structure and maintenance rules
+#130 open KNOWLEDGE / 6-Development human testing improvement
+#129 open SKILL / Draft PR workflow and Coding Project State
+#128 open SKILL / Define, create, preserve, and manage Issue/PR descriptions
+#127 closed Final category automation merge-gate verification
+#126 closed SKILL / Standard PR review conversation response and resolution
+#125 closed SKILL / Reply to PR review comments requesting changes
+#124 closed SKILL / Safe cleanup and deletion verification
+#123 open SKILL / Safe cleanup and deletion verification
+#122 open SKILL / Repository change gate follow-up
+#121 closed DOC: generalize reusable human testing knowledge
+#120 closed Remove obsolete human-testing branches
+#119 closed KNOWLEDGE / Human test category knowledge
+#118 closed AGENT / Human test category agent
+#117 closed temp cleanup 2
+#116 closed temp cleanup
+#115 closed AGENT / Human test — category label
+#114 closed cleanup-temp
+#113 closed temp
+#112 closed placeholder
+#111 closed AGENT / Human test — category label
+#110 closed SKILL / Human test category skill
+#109 closed Test PR — title-change category-label test
+#108 closed SKILL / Human test category skill
+#107 closed CHORE / Deploy category-label workflow to main
+#106 closed Deploy category-label workflow to main
+#105 closed SKILL / Human test category skill
+#104 closed TEST / SKILL category label automation
+#103 closed AGENT / Human test category agent
+#102 closed TEST / SKILL category label automation
+#101 closed KNOWLEDGE / Human test — category label
+#100 closed SKILL / Update README.md test
+#99 closed AGENT / Human test — final verification and merge gate (simplified)
+#98 closed AGENT / Human test — multi-category handling (simplified)
+#97 closed AGENT / Test issue
+#96 closed Test PR Revert/pr 66 review feedback
+#95 closed AGENT / Human test — category labels and prefixes
+#94 closed SKILL / Make change-category subject prefixes permanent practice
+#93 closed SKILL / Issues automatically to Project need research
+#92 open SKILL / Convert lessons learned to hard rules
+#91 closed SKILL / Enforce Repository Change Gate (#73)
+#90 open SKILL / Do not comment on or mark as resolved human-reviewed code marked as asked to be resolved
+#89 closed [SKILL] Apply review corrections for #67
+#88 closed Require Issue before SKILL changes
+#87 closed [SKILL] Require an Issue before changing SKILL
+#86 closed Automation / Automatically attach Issues and set Project Item Status
+#85 closed Correct Project Item Status specifications and workflow references
+#84 closed KNOWLEDGE / Correct Project Item Status specifications and workflow references repository-wide
+#83 closed Clarify mandatory Project Status transitions and GitHub capability alerts.
+#82 closed SKILL / Define mandatory Project Status execution, verification, and communication rules
+#81 closed SKILL / Read repository root subdirectories before Issue work
+#80 open SKILL / Make file-move operations preserve rename semantics
+#79 closed AGENT / Add root-level AGENTS.md repository knowledge discovery instructions
+#78 open SKILL / Make change-category subject prefixes permanent practice
+#77 closed SKILL / Enforce Repository Change Gate before every repository modification
+#76 closed AGENT / Add root-level AGENTS.md repository knowledge discovery instructions
+#75 closed Revert direct-main commit 4ec15ff
+#74 closed Revert direct-main commit 4ec15ff
+#73 closed SKILL / Enforce repository change workflow in agent SKILL
+#72 closed Project task management access is incomplete and must be reopened
+#71 open KNOWLEDGE / AGENT_ROLES.md is a standalone file outside the RES-/SPEC-/IMPL- cross-reference convention
+#70 open KNOWLEDGE / Note regarding Knowledge_fact (§26)
+#69 closed Implement P3 agent communication protocol
+#68 open Notify agent when PR review is approved
+#67 closed [SKILL] Require an Issue before changing SKILL
+#66 closed [SKILL] Require an Issue before changing SKILL or project knowledge
+#65 closed Clarify mandatory Project Item Status transitions and GitHub capability alerts
+#64 closed Document direct navigation URLs in UI instructions
+#63 closed Document GitHub access and Windows Git Bash command rules
+#62 closed Improve GitHub access and command execution rules
+#61 closed Document AI tool capability transparency
+#60 open [P3.7] PROPOSED: Evaluate coordinator agent architecture
+#59 open [P3.6] PROPOSED: Evaluate GitHub Actions event-driven agent architecture
+#58 open [P3.5] PROPOSED: Evaluate scheduled polling agent architecture
+#57 closed [P3.4] PROPOSED: Agent workflow architecture combination system planning
+#56 closed P2.4 Connect Codex to repository
+#55 closed [P2.3.1] Improve SKILL PR merge and Issue closing rules
+#54 closed Improve SKILL PR merge and Issue closing rules
+#53 closed Update SKILL with mandatory GitHub workflow rules
+#52 closed P2.3 Define permission boundaries
+#51 closed P2.2 Validate leader R/W rights
+#50 closed Jagports AI OS Initial
+#49 open [P12] Expand and govern the agent team
+#48 open [P11.2] Implement first automation
+#47 open [P11.1] Identify automation candidates
+#46 open [P11] Add autonomous automation
+#45 open [P10.3] Establish backup strategy
+#44 open [P10.2] Define persistent services
+#43 closed [P10.1] Prepare Linux environment
+#42 open [P10] Prepare Raspberry Pi infrastructure
+#41 open [P9.3] Define automated validation
+#40 open [P9.2] Define technical review gate
+#39 open [P9.1] Define acceptance criteria standard
+#38 open [P9] Establish quality gates
+#37 open [P8.3] Validate delivery loop
+#36 open [P8.2] Implement first approved task
+#35 open [P8.1] Create Codex engineering instructions
+#34 open [P8] Establish Codex engineering workflow
+#33 open [P7.3] Escalate only required decisions
+#32 open [P7.2] Convert findings to proposals
+#31 open [P7.1] Run first research cycle
+#30 open [P7] Establish research-to-decision workflow
+#29 open [P6.3] Populate first ranked backlog
+#28 open [P6.2] Define priority rules
+#27 open [P6.1] Define scoring factors
+#26 open [P6] Establish prioritization system
+#25 open [P5.3] Create decision log
+#24 open [P5.2] Record product vision and constraints
+#23 closed [P5.1] Create repository knowledge structure
+#22 open [P5] Establish Jagports product memory
+#21 open [P4.3] Define decision template
+#20 open [P4.2] Define research template
+#19 open [P4.1] Define feature template
+#18 open [P4] Create work-item templates
+#17 closed [P3.3] Define agent hand-off format
+#16 closed [P3.2] Define human decision gate
+#15 closed [P3.1] Define escalation categories
+#14 closed [P3] Define agent communication protocol
+#13 closed [P2.4] Connect Codex to repository
+#12 closed [P2.3] Define permission boundaries
+#11 closed [P1] Open Kanban
+#10 closed [P2.2] Validate leader R/W rights
+#9 closed [P2.1] Define agent identities
+#8 closed [P2] Open agent accounts/access to Kanban
+#7 closed [P1.6] Verify Kanban import and sub-issue structure
+#6 closed [P1.5] Define Kanban operating rules
+#5 closed [P1.4] Define Kanban fields and labels
+#4 closed [P1.3] Configure Kanban workflow
+#3 closed [P1.2] Create Jagports GitHub repository
+#2 closed [P1.1] Select Kanban tool
+#1 closed [P1] Open Kanban — Jagports AI OS
