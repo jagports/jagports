@@ -16,7 +16,7 @@
     "real_count_one": "{{count}} verified JEPC occurrence.",
     "real_count_other": "{{count}} verified JEPC occurrences.",
     "real_data_missing": "Reviewed JEPC FIT evidence is not published for this Range.",
-    "real_range_missing": "The real parts database is unavailable; FIT cannot be loaded.",
+    "parts_database_missing": "The parts database is unavailable; FIT cannot be loaded.",
     "result_count_one": "{{count}} matching PART after FIT filtering.",
     "result_count_other": "{{count}} matching PARTs after FIT filtering.",
     "test_data_missing": "FIT test fixture data is missing or incomplete.",
@@ -125,7 +125,7 @@
     "prompt_with_action": "Enter a Jaguar part number or fixture identifier and press Find.",
     "prompt_with_action_real": "Enter a Jaguar part number and press Find.",
     "range_required": "Select a Range to search the imported catalogue.",
-    "range_unavailable": "The imported Range catalogue is unavailable.",
+    "parts_database_unavailable": "The parts database is unavailable.",
     "real_mode_help": "Search the imported Jaguar catalogue. Available operational stock is shown separately; unverified fitment is not confirmed.",
     "resolved": "PART resolved.",
     "resolving": "Resolving PART…"
