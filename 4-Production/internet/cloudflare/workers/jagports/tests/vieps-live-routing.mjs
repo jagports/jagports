@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,6 +29,62 @@ test('a single Range does not accept an unsupported per-request selector', () =>
   const env = { DB: {}, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: {} };
   assert.throws(() => liveRangeDatabase(new URL('https://example.test/api/vieps/part?range=xj'), env),
     error => error.code === 'range_unavailable');
+});
+
+test('real PART lookup does not require tree data, FIT tables or a description', async (t) => {
+  const rangeDb = new DatabaseSync(':memory:');
+  const stockDb = database({ fixtures: false });
+  t.after(() => { rangeDb.close(); stockDb.close(); });
+  rangeDb.exec(`
+    CREATE TABLE part (
+      id INTEGER PRIMARY KEY,
+      part_number_raw TEXT NOT NULL,
+      part_number_normalized TEXT NOT NULL,
+      description TEXT,
+      source TEXT NOT NULL,
+      source_ref TEXT,
+      verification_status TEXT NOT NULL
+    );
+    CREATE TABLE part_occurrence (
+      id INTEGER PRIMARY KEY,
+      part_id INTEGER NOT NULL,
+      source TEXT NOT NULL,
+      source_ref TEXT NOT NULL,
+      context_type TEXT NOT NULL,
+      context_ref TEXT NOT NULL,
+      category_ref TEXT NOT NULL,
+      item_number TEXT NOT NULL,
+      diagram_ref TEXT,
+      diagram_item_number TEXT,
+      verification_status TEXT NOT NULL
+    );
+    INSERT INTO part VALUES
+      (1,'JLM 11716','JLM11716',NULL,'JEPC','sample/part','unverified');
+    INSERT INTO part_occurrence VALUES
+      (1,1,'JEPC','sample/occurrence','epc','3187/11096/L0','11096','1',NULL,NULL,'unverified');
+  `);
+  const env = {
+    DB: d1(stockDb),
+    RANGE_BINDINGS: '{"xk":"RANGE_XK"}',
+    RANGE_XK: d1(rangeDb),
+  };
+
+  const response = await handleApi(new Request(
+    'https://test.example/api/vieps/part?q=JLM11716'), env);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.state, 'resolved');
+  assert.equal(body.part.part_number_normalized, 'JLM11716');
+  assert.equal(body.part.description, null);
+  assert.equal(body.tree_state, 'unavailable');
+  assert.deepEqual(body.tree_roots, []);
+  assert.deepEqual(body.parts_tree, []);
+  assert.equal(body.occurrences.length, 1);
+  assert.deepEqual(body.fitment, []);
+
+  const fit = await handleApi(new Request('https://test.example/api/vieps/fit'), env);
+  assert.equal(fit.status, 503);
+  assert.equal((await fit.json()).error_code, 'real_suitability_data_missing');
 });
 
 test('real mode returns an explicit error rather than publishing available synthetic Suitability', async (t) => {
