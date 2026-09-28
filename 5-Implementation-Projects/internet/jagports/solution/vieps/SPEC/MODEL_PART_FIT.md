@@ -86,7 +86,7 @@ One observed X100 example has the tree ancestry `main floor → RH → Coffee �
 
 Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display descriptions in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
 
-## Admin-curated semantic categories and source-description mapping (#877)
+## Admin-curated semantic categories and source-description mapping
 
 A normalized fit category is a stable domain identifier backed by the existing `fit_dimension` and `fit_dimension_value` relations. It is not a JEPC navigation category or a display string.
 
@@ -102,13 +102,12 @@ The mapping relation is additive and versioned:
 
 There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
 
-The pre-import fixture is limited to source-shaped test records: each fixture description has a stable synthetic source namespace, dataset, language, locator and mapped normalized ID. It proves the read shape and localization behavior only. It cannot be treated as a JEPC condition or published catalogue fitment. When #355 imports JEPC descriptions, it replaces the fixture provider while retaining normalized IDs and API field names.
 
 The approved initial fixture vocabulary is Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats. Coexistence of the two seat descriptions is a source-data fact to preserve in one occurrence when JEPC source records support it. This specification does not introduce a new condition operator, set-membership schema or inferred evaluator for it.
 
 ### Public facet read boundary
 
-The #641 filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
+The public Fit filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
 
 Facet counts and selectable values come from the surviving occurrence universe under active search, stock, model and other filters. A selected zero-result value remains visible as selected but is not offered as an additional choice. The fixture and imported providers share the same endpoint and payload, while fixture data is opt-in and visibly marked.
 
