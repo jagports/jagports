@@ -46,7 +46,7 @@ const browserOccurrences = [
     "seat_equipment:powered_seats",
   ] },
 ];
-function browserSuitabilityResponse(params) {
+function browserFitResponse(params) {
   const fi = params.get("ui_language") === "fi";
   const categories = browserSuitability.map(([code, values, en, fin]) => ({
     code, name: fi ? fin : en, description: fi ? fin : en,
@@ -102,9 +102,9 @@ async function localServer() {
       }));
       return;
     }
-    if (pathname === "/api/vieps/suitability") {
+    if ((pathname === "/api/vieps/fit" || pathname === "/api/vieps/suitability")) {
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify(browserSuitabilityResponse(
+      response.end(JSON.stringify(browserFitResponse(
         new URL(request.url, "http://localhost").searchParams)));
       return;
     }
@@ -328,32 +328,32 @@ try {
 
     // #895 source-qualified fixture-backed filter uses the existing three
     // columns and synchronizes BOTH results surfaces without guessing fitment.
-    const coupe = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+    const coupe = page.locator('#variationOptions [data-fit-facet="body:coupe"]');
     await coupe.waitFor();
     await coupe.check();
-    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
     await page.locator('#searchResults [data-result-part-id="101"]').waitFor();
     await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
     assert.equal(await page.locator("#searchResults [data-result-part-id]").count(), 1,
-      "Suitability checkbox must actually narrow the right Search Results");
+      "FIT checkbox must actually narrow the right Search Results");
     assert.equal(await page.locator('#tree [data-part-id="102"]').count(), 0,
-      "Suitability must filter left Parts Tree leaves in the same way");
+      "FIT must filter left Parts Tree leaves in the same way");
     assert.equal(await page.locator('#partCard').textContent().then((v) => v.includes("BRTEST2")), false,
       "out-of-filter selected PART must be cleared");
-    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:memory_seat"]').check();
-    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]').check();
-    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]:checked').waitFor();
+    await page.locator('#variationOptions [data-fit-facet="seat_equipment:memory_seat"]').check();
+    await page.locator('#variationOptions [data-fit-facet="seat_equipment:powered_seats"]').check();
+    await page.locator('#variationOptions [data-fit-facet="seat_equipment:powered_seats"]:checked').waitFor();
     assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
       ["Body", "Engine aspiration", "Seat equipment", "Steering"],
-      "normalized suitability categories appear once each in alphabetical order");
+      "normalized FIT categories appear once each in alphabetical order");
     assert.deepEqual(await page.locator('#variationOptions input:checked').evaluateAll((nodes) =>
       nodes.map((node) => node.closest("label").querySelector("span").textContent.trim())),
       ["Coupe", "Memory Seat", "Powered Seats"],
-      "checked suitability values stay inside their own category");
+      "checked FIT values stay inside their own category");
     assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(0)
       .locator(".variation-choice span").allTextContents(), ["Coupe"],
       "only currently fitting Body options are displayed");
-    assert.equal(await page.locator('#variationOptions [data-suitability-facet="body:convertible"]').count(), 0,
+    assert.equal(await page.locator('#variationOptions [data-fit-facet="body:convertible"]').count(), 0,
       "fixture-backed options that do not fit the remaining candidates are hidden");
     assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(2)
       .locator(".variation-choice span").allTextContents(), ["Memory Seat", "Powered Seats"],
@@ -369,15 +369,15 @@ try {
     assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
       ["Istuinvarusteet", "Kori", "Moottorin ahtaminen", "Ohjaus"],
       "group order uses localized Finnish category names");
-    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
     assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
-    assert.match(await page.locator('#variationOptions label:has([data-suitability-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
+    assert.match(await page.locator('#variationOptions label:has([data-fit-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
     await page.screenshot({ path: evidenceDir + "desktop-suitability-fi.png", fullPage: true });
     await page.locator('[data-language="en"]').click();
     await page.locator("#partNumber").fill("");
     await page.locator("#tree .tree-node-row").first().waitFor();
-    assert.equal(await page.locator("#variationOptions input:checked").count(), 0,
-      "clearing search clears active suitability selections");
+    assert.equal(await page.locator("#variationOptions input:checked").count(), 3,
+      "clearing Find retains independently selected FIT values");
   }
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
@@ -458,7 +458,7 @@ try {
       await page.locator("#partNumber").fill("BRTEST");
       await page.locator("#partSearch").press("Enter");
       await page.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
-      const facet = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+      const facet = page.locator('#variationOptions [data-fit-facet="body:coupe"]');
       await facet.waitFor();
       if (width === 220) {
         await facet.focus();
@@ -466,7 +466,7 @@ try {
       } else {
         await facet.check();
       }
-      await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
       await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
       const facetScroll = await page.locator("#variationOptions").evaluate((node) => ({
         overflowX: getComputedStyle(node).overflowX,
@@ -623,8 +623,8 @@ try {
       await touchPage.locator("#partNumber").fill("BRTEST");
       await touchPage.locator("#partSearch").press("Enter");
       await touchPage.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
-      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]').tap();
-      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await touchPage.locator('#variationOptions [data-fit-facet="body:coupe"]').tap();
+      await touchPage.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
       await touchPage.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
       assert.equal(await touchPage.locator('#searchResults [data-result-part-id]').count(), 1,
         "touch-selected suitability must narrow canonical results");
@@ -640,7 +640,7 @@ try {
     const lowercasePage = await context.newPage();
     try {
       await lowercasePage.goto(local.url + "?test=1", { waitUntil: "load" });
-      await lowercasePage.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      await lowercasePage.locator('#variationOptions [data-fit-facet="body:coupe"]').waitFor();
       assert.equal(await lowercasePage.locator("#fixtureModeHelp")
         .evaluate(node => node.hidden), false, "?test=1 must expose fixture instructions");
       assert.equal(await lowercasePage.locator("#realModeHelp")
@@ -735,7 +735,8 @@ try {
       await deployed.goto(lowercaseFixtureUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate(node => node.hidden), false,
         "deployed ?test=1 must show fixture controls");
-      await deployed.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      // Deployment smoke accepts the previous released DOM hook until this PR is deployed.
+      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-suitability-facet="body:coupe"]').first().waitFor();
       assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
         "deployed ?test=1 must show synthetic suitability, not real Range errors");
       const lowercaseTree = await deployed.request.get(
