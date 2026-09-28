@@ -119,7 +119,7 @@ This section is the authoritative *interaction* contract for Find, VIN, Stock on
 - Preserve selected filters when zero PARTs match. Mark limiting selected filters with yellow warnings and show the **number of distinct competing option values** that would become available by clearing **that filter alone while all other constraints remain active**; a count of options is not a count of PARTs. If only clearing several filters together recovers matches, show a **combined** conflicting-filter warning identifying those filters and the number of PARTs that would become available together; do not imply one filter alone is sufficient. A combined multi-filter clear button is **not** required. Never silently clear any filter to resolve zero matches.
 - Every new interaction invalidates superseded asynchronous responses. Recompute visibility/counts from evidence-backed result contexts without circularly suppressing the selected value needed to remove or diagnose a filter. No input or option is silently changed by a late result.
 
-These are normative **target interaction rules**, not a claim that the currently deployed site or in-review #970/#972 branches already implement them. Unsupported controls remain explicitly disabled rather than simulating correct filtering.
+These are normative **target interaction rules**, not a claim that the currently deployed site implements them. Merged #970 supplies alphabetical FIT grouping; coordinated runtime filtering remains separately tracked in #974. Unsupported controls remain explicitly disabled rather than simulating correct filtering.
 
 ### Interaction verification ownership
 
