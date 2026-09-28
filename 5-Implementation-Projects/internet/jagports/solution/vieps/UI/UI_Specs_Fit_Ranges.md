@@ -83,7 +83,7 @@ VIN evaluation and VIN-range reconstruction are governed by #478 and approved so
 
 - [ ] The right-hand Applicable Models panel is independent of the scrollable Search Results panel in the #875 layout.
 - [ ] Source-derived browse returns only explicitly linked imported Model/Range identities; before import or assignment, report empty/unavailable and never infer membership from fixture labels.
-- [ ] A selected PART/context shows only verified applicable ranges; explicit exclusions do not appear as suitable.
+- [ ] A selected PART/context shows evidence-backed available choices read-only, with verified fitting ranges lit, verified nonmatching ranges unlit and unresolved values marked yellow; exclusions do not appear as suitable.
 - [ ] Multi-occurrence results preserve separate context/evidence rather than inventing combined positive fitment.
 - [ ] Browse filters, available-option indicators and read-only selected-PART verified/unknown fitment indicators remain semantically distinct.
 - [ ] Product Owner superseded multiple-range ANY/OR with a single active Range filter; no selection means unconstrained.
