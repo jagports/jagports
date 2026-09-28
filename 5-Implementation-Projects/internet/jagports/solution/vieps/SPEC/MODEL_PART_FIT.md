@@ -1,10 +1,10 @@
 # PART fit requirements
 
-## Status and scope
+## Scope
 
-Refinement and additive persistence implementation for review. This document specifies the required domain behavior, the logical relationships and the implemented persistence subset. The schema does not constitute an approved source translator or fitment evaluator.
+This document specifies required Fit domain behavior, logical relationships and persistence semantics. It does not define a source translator, vehicle decoder, hotspot conversion, stock workflow or user-interface contract.
 
-Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first implementation scope is the selected XK source model `3187`. Additional models require their own mapping validation. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
+Canonical PART identity, occurrence identity, catalogue/stock separation and source evidence remain intact. Each source model/context requires evidence-backed mapping; no model-specific sample establishes a universal mapping rule.
 
 The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC catalogue/tree paths are retained as first-class occurrence/browse context and source evidence. VIEPS may browse and filter occurrences through that preserved tree, but must not treat the source navigation tree itself as the Boolean fit evaluator; verified fit still comes from the occurrence-bound rules, predicates and context described here.
 
@@ -215,19 +215,16 @@ If a unique logical occurrence mapping cannot be established, quarantine the unr
 
 Reprocessing replaces/supersedes the complete derived assertion set for the affected source scope atomically, retaining prior evidence. It must remove stale active relationships as well as upsert current ones. Preserve stable existing entity IDs; do not append duplicates on rerun. Missing or failed source files cannot imply deleted fit until the relevant discovery/reconciliation scope is known complete.
 
-### Current model gaps and migration obligations
+### Relational requirements
 
-| Current representation | Required refinement |
-|---|---|
-| `part_model_range` and `part_vin_range` are independent PART-level links. | Existing VIN records can store complete derived intervals/discriminators, but the links do not identify which occurrence supplied each pairing. Bind the resulting model/serial/attribute assertions to occurrences. Keep existing links as evidence/navigation summaries until their scope is reconciled. |
-| No dedicated source model context relation. | Preserve source model/subrange/market identity and explicit canonical mapping without forcing a full global vehicle ontology. |
-| `vin_range` requires nonblank prefix/start/end. | Reuse it for effective intervals when all required fields are established from source plus inherited model evidence. Preserve one-sided source predicates and derivation separately; incomplete cases remain unresolved. A mandatory redesign solely because an item record has one endpoint is not justified. Review how to represent established serial intervals lacking a VIN prefix without inventing one. |
-| Flat occurrence `part_fitment` rows have no combination/group identity. | Represent complete alternatives and typed predicates; do not infer their grouping from row order. |
-| Fitment uniqueness excludes evidence reference and collapses equal tuples. | Preserve evidence multiplicity and set membership separately from semantic predicate deduplication. |
-| `applicable` is a stored default; missing scope/completeness is not modeled. | Explicit verification/coverage and evaluation results; never backfill positive truth from a default. |
-| Source/raw/derived values and release history lack a complete shared contract. | Link versioned evidence to interpretations and replace derived sets atomically. |
-
-Use a new controlled migration; do not rewrite already applied migrations. Preserve existing IDs, raw fitment rows, legacy range qualifiers and stock references. Existing rows without enough grouping/evidence remain unresolved. Fixtures and UI examples must not be promoted to verified source assertions. Keep API compatibility through a documented adapter until consumers support grouped results.
+- Bind model, serial and attribute assertions to the occurrence that supplies the evidence; PART-level model/VIN links may be retained only as evidence/navigation summaries where their scope is known.
+- Preserve source model/sub-range/market identity and explicit canonical mapping without forcing a global vehicle ontology.
+- Represent established effective serial intervals only when their required source and inherited model evidence are known; preserve one-sided predicates and derivation separately, and keep incomplete cases unresolved.
+- Represent complete alternatives and typed predicates explicitly; do not infer grouping from row order.
+- Preserve evidence multiplicity and set membership separately from semantic predicate deduplication.
+- Represent verification and coverage explicitly; missing scope or evidence never becomes positive Fit by default.
+- Link versioned source evidence to interpretations and replace derived assertion sets atomically while retaining source history.
+- Preserve fixtures and UI examples as non-authoritative test/presentation data rather than verified source assertions.
 
 ## Acceptance examples
 
@@ -250,15 +247,11 @@ The three airbag cases and headlamp case below are observed source examples; the
 | Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; history retained; stale active claims removed only under verified reconciliation. |
 | Two languages describe the same source application | One canonical PART. Preserve each language-specific source path/tree independently when structure differs; reconcile a shared logical occurrence only when deterministic source identity/correspondence is established. |
 
-Before implementing production transformation, review the persistence subset below and establish the source identity mapping, approved initial comparator and attribute mappings. Importer validation must exercise the complete selected bundle (menu, top-level and application evidence), not only these isolated examples. Unknown patterns can remain quarantined while verified subsets progress.
+Unknown source patterns remain unresolved until evidence-backed mappings establish their meaning. The model does not certify JEPC equivalence, authorize deployment or define hotspot conversion.
 
-This specification and schema do not certify production JEPC equivalence, authorize deployment or resolve hotspot conversion.
+## Persistence contract
 
-## Implemented persistence contract
-
-The following dictionary records physical tables created by the historical migrations, not proposed Fit renames. Migration `0021_fit_contract_aliases.sql` exposes a limited set of **read-only** `fit_*` views for dimensions, source descriptions, mapping history, labels, retirement and audit. Other persisted source-evidence graph tables and `part_fitment.applicability_state` retain their identifiers until a separately approved migration or adapter changes them.
-
-Migration `0016_occurrence_applicability.sql` adds the following relations without changing or backfilling existing PART, occurrence, VIN, fitment or stock data. Standalone IDs are integer primary keys; all ownership/evidence IDs below are real foreign keys. Every FK uses restrictive deletion so referenced source history cannot silently disappear. Versioned imports must insert new snapshots/contexts and switch snapshots transactionally; in-place mutation of published evidence or meaning is not a supported import operation.
+The following relations define the persisted Fit evidence graph. Standalone IDs are integer primary keys; ownership/evidence IDs are foreign keys. Restrictive deletion preserves referenced source history. Versioned imports insert new snapshots/contexts and switch snapshots transactionally; published evidence or meaning is not mutated in place.
 
 | Relation | Fields and meaning |
 |---|---|
@@ -272,8 +265,8 @@ Migration `0016_occurrence_applicability.sql` adds the following relations witho
 | `applicability_condition_set` | `id`; `assertion_id`; nonblank `set_key`, unique per assertion; coverage default incomplete; unconditional 0/1 default 0; optional `serial_range_id` for the item/source constraint; optional `effective_serial_range_id` for a separately verified model-intersection result. Set evidence and context evidence retain both derivation inputs. |
 | `applicability_dimension` | `id`; unique nonblank `code`; verification default unverified. A controlled scalar dimension definition; does not automatically map JEPC attribute groups. |
 | `applicability_dimension_value` | Composite key `dimension_id`, nonblank `value_code`. The permitted values for that specific dimension. |
-| `applicability_attribute_condition` | `id`; `set_id`; dimension/value composite FK; equals/not_equals `operator`; unique set/dimension/operator/value. Only scalar equality/inequality is implemented. Multiple allowed values use verified alternative sets, not implicit array semantics. |
-| `applicability_set_evidence` | Composite key `set_id`, `evidence_id`. Many source paths may support one set; one source record may support multiple sets. Predicate-level attribution can be made through the evidence locator/raw record, but a dedicated per-predicate evidence relation is not implemented. |
+| `applicability_attribute_condition` | `id`; `set_id`; dimension/value composite FK; equals/not_equals `operator`; unique set/dimension/operator/value. Attribute conditions use scalar equality/inequality. Multiple allowed values use verified alternative sets, not implicit array semantics. |
+| `applicability_set_evidence` | Composite key `set_id`, `evidence_id`. Many source paths may support one set; one source record may support multiple sets. Predicate-level attribution uses the evidence locator and raw record. |
 
 Sets within an assertion are alternatives; attribute predicates and the item serial predicate within a set are conjunctive, subject to the asserted model context. SQL stores this grouping, not a Boolean evaluator. A set marked unconditional must have complete coverage and cannot contain item serial or attribute predicates. A missing/empty conditional set remains incomplete evidence, not universal truth. A derived effective range may still bound an unconditional-in-model set.
 
@@ -285,12 +278,5 @@ Use the existing PART/occurrence IDs across reruns. Assertion logical identity i
 
 For a changed bundle, stage a new snapshot and its complete derived graph in a transaction. Retain stable PART/occurrence identities and previous source records. Only after required validation, supersede the previous active snapshot and activate the new snapshot in the same transaction. Failure must roll back both graph changes and the active-snapshot switch. The active snapshot determines the complete current assertion set, so old assertions omitted by verified reconciliation no longer leak into reads. A missing-file observation alone is not sufficient authorization to omit assertions or declare complete coverage.
 
-Contexts, ranges and vocabulary entries referenced by historical snapshots must be versioned/reused according to evidence; do not edit their meaning in place during reprocessing. SQL prevents deleting referenced rows but does not enforce an append-only audit policy against arbitrary direct SQL updates. A production importer/writer must implement this policy and source dependency reconciliation; this schema does not claim that tool exists.
+Contexts, ranges and vocabulary entries referenced by historical snapshots must be versioned/reused according to evidence; do not edit their meaning in place during reprocessing. Referenced historical rows are preserved. Writers must enforce append-only audit semantics and source-dependency reconciliation.
 
-### Internal read contract and compatibility
-
-`src/fit.js` exports `readPartFit(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
-
-The response always declares `evaluation: unavailable`, `reason: evidence_only_no_evaluator`, and `catalogue_coverage: not_established`. Stored verification and coverage claims are returned separately. This internal reader is not routed to an HTTP endpoint and does not change the existing VIEPS API/UI contract. It cannot certify complete catalogue coverage, interpret serials, resolve conflicts or determine fitment. Reverse context lookup is supported by the context index and occurrence relationship; a public vehicle-to-PART evaluator is not implemented here.
-
-The test fixture distinguishes observed source-inspired IDs from synthetic mapping/coverage claims. Tests exercise additive upgrade preservation, every FK column, uniqueness, separate alternatives and paths, scalar dimension membership, endpoint states, domain consistency, failed transaction rollback, active snapshot replacement, retained history and indexed queries. These storage tests do not replace the source-to-vehicle evaluation acceptance examples above.

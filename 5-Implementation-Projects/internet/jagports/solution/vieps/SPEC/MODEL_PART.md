@@ -94,7 +94,7 @@ model/catalogue ancestry
 
 The tree provides browse structure, human-readable occurrence context and source filter candidates. It is not itself the Boolean fit evaluator.
 
-Migration `0017_part_tree_occurrence.sql` extends the existing tree storage additively. It preserves legacy browse rows while allowing source-qualified imported nodes to retain source namespace, model/category/item scope, source language, stable source node identity, parent source node identity, source description, source order, source reference and verification state.
+Source-qualified imported tree nodes retain source namespace, model/category/item scope, source language, stable source node identity, parent source node identity, source description, source order, source reference and verification state.
 
 Description text and flattened full-description paths are not structural identity.
 
@@ -341,7 +341,7 @@ The implemented occurrence fit persistence dictionary is maintained in [`MODEL_P
 | Occurrence → vehicle location | 1:N required occurrence; optional model range. Deleting occurrence or a referenced model removes the mapping. |
 | PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 canonical PART and 0..1 donor. The PART may be Jaguar/JEPC-imported or Jagports specified. `part_id = NULL` is reserved for genuinely unresolved reusable identity. Deleting either parent SET NULL preserves stock identity, quantity, historical number, donor text and location. Supersession never mutates stock. |
 | Vehicle → identifiers | 1:N; cascade on vehicle deletion. Identifier text is not unique. |
-| Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. Current N:M PART membership remains a broad browse summary. |
+| Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. N:M PART membership remains a broad browse summary. |
 | Tree ↔ occurrence/path | `part_occurrence_tree_path` is N:M where necessary: one occurrence may retain multiple source paths; deleting occurrence or tree node cascades only the link rows. |
 | PART → part diagram | 1:N; cascade on PART deletion. |
 
@@ -351,7 +351,7 @@ The database does not compute normalization on new writes.
 
 ## Index inventory and query contract
 
-The executable tests inspect the actual index catalogue and column order, unique/partial flags, and EXPLAIN QUERY PLAN for principal equality/reverse lookups.
+The index contract supports principal equality and reverse lookups while preserving the documented uniqueness and partial-index semantics.
 
 Autoindexes implement composite primary keys and unique range codes; SQLite assigns their internal names.
 
@@ -390,47 +390,6 @@ Reverse range/supersession/diagram/donor queries use the reverse indexes.
 
 Stock filters have independent indexes; combined predicates and sorts require query-plan measurement with representative inventory before adding composite indexes.
 
-The current VIEPS API combines normalized/raw/description with OR and ordering; unindexed description fallback can scan `part`.
 
 Do not make descriptions unique to improve lookup.
-
-## Executable acceptance evidence and fixture usage
-
-Run `npm test` from the Worker directory using Node 24 or newer.
-
-Tests use built-in `node:sqlite` with FKs enabled, execute the ordered SQL migrations transactionally, and exercise Worker SQL via a small D1-compatible adapter.
-
-No package installation or remote database is needed for these tests.
-
-SQLite execution is not remote D1 deployment evidence.
-
-Synthetic fixtures demonstrate occurrences, unidentified images, model/VIN links, positive/excluded/unavailable fitment, mapped/unmapped hotspots, verified/unavailable locations, `MNA7691AA → XR847031`, a longer synthetic supersession chain, many-to-one replacement, multiple stock records, donor identity and unresolved stock.
-
-Occurrence-fit fixtures additionally exercise grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, active snapshot replacement/rollback and retained history. Catalogue-tree fixtures additionally exercise source-qualified node identity, ordered parentage, multiple occurrence paths, language-specific structural divergence and idempotent source identities. These are persistence/evidence tests; they do not claim a complete fitment evaluator or production JEPC import.
-
-Provenance is explicitly fixture evidence. Never present synthetic vehicle zones or VINs as verified domain facts.
-
-## Explicit unresolved decisions
-
-These remain open boundaries, not silently selected product rules.
-
-The companion [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md) records the detailed persistence dictionary, evaluation requirements and remaining importer/evaluator boundaries. Supporting source validation is recorded in [`7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`](../../../../../../7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md).
-
-The `0016` persistence extension resolves storage of occurrence/context pairing, grouped conditions, evidence multiplicity and incomplete endpoint states. Approved source mappings, serial comparison/normalization, effective-range computation, fitment evaluation, importer execution and API/UI integration remain separate work. The internal evidence reader returns `evaluation = unavailable` and is not exposed as a fitment endpoint.
-
-| Decision / gap | Current representation |
-|---|---|
-| Catalogue tree / occurrence linkage | `0017_part_tree_occurrence.sql` provides source-qualified node identity plus exact `part_occurrence_tree_path` linkage. `part_tree_part` remains only a broad browse summary. Flattened descriptions are not identity and cross-language path equivalence is not inferred. |
-| Dedicated model/variant and occurrence-scoped range links | Legacy PART-level links remain; `0016` adds source-qualified occurrence fit through model context and grouped predicates without claiming a complete global model/variant ontology. |
-| VIN ordering, inclusion, decoding and derived provenance | Source TEXT fields only, no ordered-boundary CHECK or decoder, no confidence/derivation column. KOVuosi is not an inference source. |
-| Confidence and verification vocabularies | Uncontrolled text, with REAL affinity only on stock confidence. |
-| Nullable identity / import idempotency | NULL-bearing diagram/location keys allow repeats; evidence identity/deduplication needs an explicit approved rule before stronger uniqueness is imposed. |
-| Hotspot membership and coordinate completeness | Separate FKs allow a hotspot occurrence without a corresponding occurrence-diagram link; source geometry is opaque and coordinate system may be NULL. |
-| Vehicle zone/system/category taxonomy | Opaque references with explicit mapping state, not authoritative geometry/classification. |
-| Fitment semantic interpretation | Source attributes/except flag retained; grouped occurrence evidence is stored separately but no production evaluator maps it to final fitment. |
-| Supersession cycles, chronology and evidence multiplicity | Directed pair, no multi-hop cycle/date ordering checks; one evidence tuple per pair. Traversal must bound/track visited IDs. |
-| Occurrence versus PART/range fitment | Existing `part_fitment` remains; occurrence-fit adds grouped evidence without silently replacing stored fitment states. |
-| JEPC source/release/snapshot identity | `0016` adds bundle/snapshot/evidence identity for occurrence fit; broader importer/source-release policy remains governed by the importer contract. |
-| Stock status, quantities and price | PART model documents only the stock relationship boundary; detailed stock semantics are in `MODEL_STOCK.md`. |
-| Canonical normalization and raw agreement | Import/application responsibility; SQL accepts independently supplied values. Universal Unicode normalization and collision policy require explicit approval before broadening existing ASCII catalogue behavior. |
 
