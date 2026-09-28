@@ -333,15 +333,15 @@ function renderFitOptions() {
     status.className = fitError ? "error status-line" : "muted status-line";
     status.textContent = fitError === "real_suitability_data_missing"
       || fitError === "real_suitability_data_incomplete"
-        ? t("suitability.real_data_missing")
+        ? t("fit.real_data_missing")
       : fitError === "range_unavailable"
-        ? t("suitability.real_range_missing")
+        ? t("fit.real_range_missing")
       : fitError === "test_fixture_data_missing"
         || fitError === "test_fixture_data_incomplete"
-        ? t("suitability.test_data_missing")
+        ? t("fit.test_data_missing")
       : fitError
-        ? t("suitability.data_error", { code: fitError })
-        : t("suitability.unavailable");
+        ? t("fit.data_error", { code: fitError })
+        : t("fit.unavailable");
     return;
   }
   status.className = "muted status-line";
@@ -376,12 +376,12 @@ function renderFitOptions() {
     }).join("")}</div>
   </fieldset>`).join("");
   const matching = fitData.matches?.length || 0;
-  status.textContent = !groups.length ? t("suitability.no_options")
+  status.textContent = !groups.length ? t("fit.no_options")
     : fitData.state === "unavailable" && matching === 0
-      ? t("suitability.incomplete")
-      : fitSelections.size && matching === 0 ? t("suitability.no_matches")
-      : t(fitData.fixture_mode ? "suitability.fixture_count"
-        : "suitability.real_count", { count: matching });
+      ? t("fit.incomplete")
+      : fitSelections.size && matching === 0 ? t("fit.no_matches")
+      : t(fitData.fixture_mode ? "fit.fixture_count"
+        : "fit.real_count", { count: matching });
 }
 
 async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion) {
@@ -398,8 +398,8 @@ async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion)
   });
   for (const id of fitSelections) params.append("facet", id);
   try {
-    // Compatibility boundary: legacy public API path remains until the coordinated API migration.
-    const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
+    // Canonical FIT route; Worker retains the older suitability route as a compatibility alias.
+    const response = await fetch(apiUrl("/api/vieps/fit?" + params.toString()));
     const data = await response.json();
     if (version !== fitRequestVersion || mainVersion !== requestVersion) return;
     if (!response.ok || !Array.isArray(data?.categories)
@@ -418,7 +418,7 @@ async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion)
     if (viewMode === "candidates" && cachedCandidatesData) {
       renderPartCandidates(cachedCandidatesData);
       $("searchStatus").textContent = fitSelections.size
-        ? t("suitability.result_count", { count: visibleCandidates(cachedCandidatesData.matches || []).length })
+        ? t("fit.result_count", { count: visibleCandidates(cachedCandidatesData.matches || []).length })
         : t("search.multiple_matches", { count: cachedCandidatesData.matches?.length || 0 });
     } else if (viewMode === "resolved" && currentData && fitSelections.size) {
       if (!fitMatchingPartIds.has(String(currentData.part?.id))) {
@@ -431,7 +431,7 @@ async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion)
           resetContext();
           renderTree([], { roots: cachedRootData?.roots || [] });
         }
-        $("searchStatus").textContent = t("suitability.no_matches");
+        $("searchStatus").textContent = t("fit.no_matches");
       } else {
         renderResolvedData(currentData);
       }
@@ -551,41 +551,45 @@ function renderVisuals(images, diagrams) {
   renderSelectedVisual();
 }
 
+// FIT contract alias: historical part_fitment rows may still expose applicability_state.
+// Prefer the active fit_state field when the reader publishes it.
+const readFitState = (row) => row?.fit_state ?? row?.applicability_state;
+
 function renderSelectedRange() {
   const code = $("rangeSelect").value;
   const rangeRows = fitEvidenceRows.filter((item) => item.range_code === code);
-  const selected = rangeRows.filter((item) => item.applicability_state === "applicable");
-  const range = selected[0];
+  const verifiedFits = rangeRows.filter((item) => readFitState(item) === "applicable");
+  const range = verifiedFits[0];
   $("locationStatus").textContent = range
     ? t("location.range_unavailable", { range: range.range_name })
     : t("location.verified_unavailable");
 
   let variationStateKey = "fitment.no_confirmed";
-  if (!selected.length && rangeRows.some((item) => item.applicability_state === "unavailable")) {
+  if (!verifiedFits.length && rangeRows.some((item) => readFitState(item) === "unavailable")) {
     variationStateKey = "fitment.unavailable";
-  } else if (!selected.length && rangeRows.length && rangeRows.every((item) => item.applicability_state === "excluded")) {
+  } else if (!verifiedFits.length && rangeRows.length && rangeRows.every((item) => readFitState(item) === "excluded")) {
     variationStateKey = "fitment.no_match";
   }
 
-  $("rangeEvidence").innerHTML = selected.length ? `<div class="table-scroll"><table>
+  $("rangeEvidence").innerHTML = verifiedFits.length ? `<div class="table-scroll"><table>
     <thead><tr><th>${escapeHtml(t("fitment.variation"))}</th><th>${escapeHtml(t("fitment.qualifier"))}</th><th>${escapeHtml(t("fitment.verification"))}</th></tr></thead>
-    <tbody>${selected.map((item) => `<tr><td>${escapeHtml(item.variation || t("common.not_specified"))}</td><td>${escapeHtml(item.qualifier || t("common.not_supplied"))}</td><td>${escapeHtml(item.verification_status || t("common.not_recorded"))}</td></tr>`).join("")}</tbody>
+    <tbody>${verifiedFits.map((item) => `<tr><td>${escapeHtml(item.variation || t("common.not_specified"))}</td><td>${escapeHtml(item.qualifier || t("common.not_supplied"))}</td><td>${escapeHtml(item.verification_status || t("common.not_recorded"))}</td></tr>`).join("")}</tbody>
     </table></div>` : empty(t(variationStateKey));
 }
 
-function renderFitRangeEvidence(fitment, declaredState = null) {
+function renderFitRangeEvidence(fitRows, declaredState = null) {
   // Consume only positive assertions returned by the approved PART read path.
   // The 13 synthetic browse labels never enter this selected-PART result.
-  fitEvidenceRows = Array.isArray(fitment) ? fitment : [];
+  fitEvidenceRows = Array.isArray(fitRows) ? fitRows : [];
   const verifiedFits = fitEvidenceRows.filter((item) =>
-    item.applicability_state === "applicable" && item.range_code && item.range_name);
+    readFitState(item) === "applicable" && item.range_code && item.range_name);
   const ranges = [...new Map(verifiedFits.map((item) => [item.range_code, item])).values()];
-  const error = declaredState === "error" || fitEvidenceRows.some((item) => item.applicability_state === "error");
+  const error = declaredState === "error" || fitEvidenceRows.some((item) => readFitState(item) === "error");
   const unavailable = !fitEvidenceRows.length || declaredState === "unavailable"
-    || fitEvidenceRows.some((item) => item.applicability_state === "unavailable");
+    || fitEvidenceRows.some((item) => readFitState(item) === "unavailable");
   const confirmedNoMatch = declaredState === "no_match"
     || (fitEvidenceRows.length > 0 && fitEvidenceRows.every((item) =>
-      ["excluded", "no_match"].includes(item.applicability_state)));
+      ["excluded", "no_match"].includes(readFitState(item))));
 
   const emptyState = error ? "error" : confirmedNoMatch ? "no_match" : "unavailable";
   const emptyLabel = t(emptyState === "error" ? "ranges.error"
@@ -619,7 +623,7 @@ function renderResolvedData(data) {
   });
   renderSearchResults(cachedCandidatesData?.matches || [data.part], data.part?.id);
   renderVisuals(data.images || [], data.diagrams || []);
-  renderFitRangeEvidence(data.fitment, data.fitment_state);
+  renderFitRangeEvidence(data.fitment, data.fit_state ?? data.fitment_state);
 }
 
 function resetContext(messageKey = "part.no_part_selected") {
@@ -886,7 +890,7 @@ function setupViepsUi() {
       if (String(error?.message || "") !== "part not found") renderFitRangeState("error");
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
-      // A failed real catalogue lookup must also surface the Suitability
+      // A failed real catalogue lookup must also surface the FIT
       // provider's explicit error rather than leave the filter uninitialized.
       void refreshFitOptions(partNumber, Boolean($("availabilitySelect").checked), version);
     } finally {
