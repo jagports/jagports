@@ -99,7 +99,7 @@ FitmentResult
 Do not add a second domain taxonomy for the 13 fixture labels. Use normalized existing IDs where verified, or clearly isolated fixture IDs until imported/source-mapped evidence exists. Preserve `part_fitment.applicability_state` and the #666 positive/negative/unavailable distinctions across UI and API.
 
 ## Deterministic fixtures
-Cover all 13 exact browse/index fixture display labels independently of selected-PART fitment, a single PART applicable to only some Ranges, an excluded Range not presented as suitable, verified source qualifiers, VIN-range match/exclusion, selected row with multiple source occurrences, unavailable evidence, context-only search and API error. The superseding single-range filter test matrix must include one active range, restoration of competing ranges on clear, unknowns separately from verified fits, and conjunction with normalized FIT filters. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
+Cover the isolated historical 13-label TEST browse compatibility fixture independently of production source-derived Range membership and selected-PART fitment; include a PART fitting only some Ranges, read-only applicable/nonmatching/unknown indicators, exclusions, VIN-range match/unknown/exclusion, multi-occurrence context, unavailable evidence, context-only search and API error. The superseding single-range filter test matrix must include one active range, restoration of competing ranges on clear, unknowns separately from verified fits, and conjunction with normalized FIT filters. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
 
 ### Pre-JEPC filter regression matrix (#641 / #877)
 
