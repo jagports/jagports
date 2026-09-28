@@ -1,8 +1,8 @@
 import { openLedger } from './DataImporter.Runtime.mjs';
 import { transformBundle } from './DataImporter.Transform.mjs';
 import {
-  d1Client, rangeForSource, readRangeConfiguration, readSourceRangeMap, verifyRangeSchema,
-} from '../../../../../../3-Deployment/internet/cloudflare/d1/ranges/range-d1-client.mjs';
+  d1Client, rangeForSource, readPartsDatabaseConfiguration, readSourceRangeMap, verifyPartsDatabaseSchema,
+} from '../../../../../../3-Deployment/internet/cloudflare/d1/parts/parts-d1-client.mjs';
 
 const statement = (sql, ...params) => ({ sql, params: params.map(value => String(value ?? '')) });
 const treeId = (model, category, item, node) => [model, category, item, node];
@@ -132,10 +132,10 @@ export async function importSelectionToD1({ selection, stateDir, token, fetchImp
     }
     const clients = new Map();
     for (const rangeSlug of new Set(prepared.map(item => item.rangeSlug))) {
-      const config = await readRangeConfiguration(rangeSlug);
+      const config = await readPartsDatabaseConfiguration(rangeSlug);
       const client = d1Client(config, token, fetchImpl);
       await client.verifyIdentity();
-      await verifyRangeSchema(client, config);
+      await verifyPartsDatabaseSchema(client, config);
       clients.set(rangeSlug, { config, client });
     }
     const result = { phase: 'PARTS_D1_IMPORT', selected: selected.size,

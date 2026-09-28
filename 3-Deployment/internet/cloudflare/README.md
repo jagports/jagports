@@ -38,7 +38,7 @@ Repeatable migration review, source selection, preview/local testing, production
 
 ### JEPC Range D1 identity setup
 
-`3-Deployment/internet/cloudflare/d1/ranges/README.md`
+`3-Deployment/internet/cloudflare/d1/parts/OPERATIONS.md`
 
 Repository-controlled Range naming, capacity check, creation, identity verification, and reviewed configuration. Schema migration and Worker routing are separate steps.
 

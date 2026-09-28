@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  d1Client, rangeForSource, readSourceRangeMap, verifyRangeSchema,
-} from '../../../../../../3-Deployment/internet/cloudflare/d1/ranges/range-d1-client.mjs';
+  d1Client, rangeForSource, readSourceRangeMap, verifyPartsDatabaseSchema,
+} from '../../../../../../3-Deployment/internet/cloudflare/d1/parts/parts-d1-client.mjs';
 
 test('Range comes from reviewed source ancestry, never the parse text', async () => {
   const ranges = await readSourceRangeMap();
@@ -12,7 +12,7 @@ test('Range comes from reviewed source ancestry, never the parse text', async ()
 });
 
 test('parts database writes require the reviewed D1 identity and complete batch confirmation', async () => {
-  const config = { rangeSlug: 'xk', databaseName: 'jagports-xk',
+  const config = { rangeSlug: 'xk', databaseName: 'parts-xk',
     accountId: 'a'.repeat(32), databaseId: '12345678-1234-1234-1234-123456789abc' };
   const requests = [];
   const fetchImpl = async (url, options) => {
@@ -20,13 +20,13 @@ test('parts database writes require the reviewed D1 identity and complete batch 
     requests.push({ url, body });
     const result = body?.batch ? body.batch.map(() => ({ success: true, results: [] }))
       : body?.sql ? [{ success: true, results: [{ range_slug: 'xk',
-        database_name: 'jagports-xk', schema_version: 1 }] }]
+        database_name: 'parts-xk', schema_version: 1 }] }]
         : { uuid: config.databaseId, name: config.databaseName };
     return { ok: true, status: 200, json: async () => ({ success: true, result }) };
   };
   const client = d1Client(config, 'test-token', fetchImpl);
   await client.verifyIdentity();
-  await verifyRangeSchema(client, config);
+  await verifyPartsDatabaseSchema(client, config);
   await client.batch([{ sql: 'SELECT 1', params: [] }]);
   assert.equal(requests.length, 3);
   assert.ok(requests.every(request => request.url.includes(config.databaseId)));

@@ -1,12 +1,12 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { databaseNameForRange } from './setup-range-db.mjs';
+import { databaseNameForRange } from './setup-parts-db.mjs';
 
 const directory = fileURLToPath(new URL('.', import.meta.url));
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function readRangeConfiguration(rangeSlug, configDirectory = path.join(directory, 'config')) {
+export async function readPartsDatabaseConfiguration(rangeSlug, configDirectory = path.join(directory, 'config')) {
   const databaseName = databaseNameForRange(rangeSlug);
   const config = JSON.parse(await readFile(path.join(configDirectory, `${rangeSlug}.json`), 'utf8'));
   if (config.rangeSlug !== rangeSlug || config.databaseName !== databaseName
@@ -81,7 +81,7 @@ export function d1Client(config, token, fetchImpl = fetch) {
   };
 }
 
-export async function verifyRangeSchema(client, config) {
+export async function verifyPartsDatabaseSchema(client, config) {
   const rows = await client.query('SELECT range_slug,database_name,schema_version FROM range_identity');
   if (rows.length !== 1 || rows[0].range_slug !== config.rangeSlug
       || rows[0].database_name !== config.databaseName || rows[0].schema_version !== 1) {
@@ -89,7 +89,7 @@ export async function verifyRangeSchema(client, config) {
   }
 }
 
-export async function applyRangeSchema(config, token, fetchImpl = fetch) {
+export async function applyPartsDatabaseSchema(config, token, fetchImpl = fetch) {
   const ranges = await readSourceRangeMap();
   if (!ranges.some(range => range.rangeSlug === config.rangeSlug)) {
     throw new Error(`Range ${config.rangeSlug} has no reviewed source-group mapping.`);
@@ -102,7 +102,7 @@ export async function applyRangeSchema(config, token, fetchImpl = fetch) {
     throw new Error('Parts database is not empty and has no schema identity; refusing to adopt it.');
   }
   if (tables.some(row => row.name === 'range_identity')) {
-    await verifyRangeSchema(client, config);
+    await verifyPartsDatabaseSchema(client, config);
     return { rangeSlug: config.rangeSlug, databaseName: config.databaseName,
       databaseId: config.databaseId, schemaVersion: 1, reused: true };
   }
@@ -110,6 +110,6 @@ export async function applyRangeSchema(config, token, fetchImpl = fetch) {
   await client.query(schema);
   await client.query(`INSERT INTO range_identity(range_slug,database_name,schema_version)
     VALUES(?,?,1) ON CONFLICT(range_slug) DO NOTHING`, [config.rangeSlug, config.databaseName]);
-  await verifyRangeSchema(client, config);
+  await verifyPartsDatabaseSchema(client, config);
   return { rangeSlug: config.rangeSlug, databaseName: config.databaseName, databaseId: config.databaseId, schemaVersion: 1 };
 }
