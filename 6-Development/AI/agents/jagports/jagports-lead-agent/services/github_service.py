@@ -15,7 +15,7 @@ from services.github_request_guard import GitHubRequestGuard
 class GitHubService:
     def __init__(self, token, repository, *, max_requests_per_run=12):
         if repository != "jagports/jagports":
-            raise ValueError("P7 pilot is restricted to jagports/jagports.")
+            raise ValueError("The configured repository must be jagports/jagports.")
         self.github = Github(auth=Auth.Token(token), retry=0, per_page=100)
         self.http_guard = GitHubRequestGuard(
             self.github.requester, max_requests=max_requests_per_run,

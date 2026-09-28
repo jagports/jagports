@@ -1,24 +1,24 @@
-name: P7 offline Python regression tests
+name: Lead Agent offline Python regressions
 
 on:
   push:
     branches:
-      - impl/p7-model-backed-research-product
+      - impl/924-restore-original-aios-agents
     paths:
       - '6-Development/AI/agents/jagports/jagports-lead-agent/**'
-      - '.github/workflows/p7-offline-tests.yml'
+      - '.github/workflows/lead-agent-offline-tests.yml'
   pull_request:
     paths:
       - '6-Development/AI/agents/jagports/jagports-lead-agent/**'
-      - '.github/workflows/p7-offline-tests.yml'
+      - '.github/workflows/lead-agent-offline-tests.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  mocked-p7-and-legacy:
-    name: Offline P7 and legacy Python regressions
+  offline-regressions:
+    name: Lead Agent offline regressions
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -36,5 +36,5 @@ jobs:
         run: python -m pip install 'PyGithub>=2.6,<3' 'python-dotenv>=1,<2' 'PyYAML>=6,<7'
       - name: Compile Python modules and tests
         run: python -m compileall -q agents core services tests main.py
-      - name: Mocked Research Product P7 and legacy regression suite
+      - name: Offline Python regression suite
         run: python -m unittest discover -s tests -p 'test_*.py' -v

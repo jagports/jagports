@@ -1,4 +1,4 @@
-"""Fail-closed, one-process PyGithub HTTP request gate (P7 Batch 16.2).
+"""Fail-closed, one-process PyGithub HTTP request gate.
 
 Install on the actual Requester *before* resolving a Repository. Intercept the
 lowest PyGithub request boundary, not a logical repo method: pagination,

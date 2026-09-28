@@ -4,5 +4,4 @@ cd /home/codex/jagports-lead-agent
 
 source venv/bin/activate
 
-python agent.py
-
+python main.py

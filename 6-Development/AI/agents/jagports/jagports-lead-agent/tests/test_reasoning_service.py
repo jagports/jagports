@@ -63,7 +63,7 @@ def _separate_process_attempt(config, gate, ready, output, request_key):
         output.put("timeout")
         return
     try:
-        service.analyse_json("research", "Only supplied evidence.",
+        service.analyse_json("documentation", "Only supplied evidence.",
                              {"question": "What is supported?"}, request_key)
         output.put("reserved")
     except BudgetExceeded:
@@ -78,8 +78,8 @@ class ReasoningBudgetTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.ledger = Path(self.temp.name) / "usage.json"
 
-    def run_one(self, service, request="issue:42:research"):
-        return service.analyse_json("research", "Only supplied evidence.",
+    def run_one(self, service, request="issue:42:documentation"):
+        return service.analyse_json("documentation", "Only supplied evidence.",
                                     {"question": "What is supported?"}, request)
 
     def test_mocked_success_records_measured_usage_and_atomic_ledger(self):
@@ -91,17 +91,17 @@ class ReasoningBudgetTests(unittest.TestCase):
         self.assertAlmostEqual(result["estimated_cost_usd"], 0.000168)
         self.assertEqual(client.calls[0]["max_output_tokens"], 100)
         attempts = json.loads(self.ledger.read_text())["attempts"]
-        self.assertEqual(attempts["issue:42:research"]["status"], "complete")
-        self.assertGreater(attempts["issue:42:research"]["reserved_usd"], 0)
+        self.assertEqual(attempts["issue:42:documentation"]["status"], "complete")
+        self.assertGreater(attempts["issue:42:documentation"]["reserved_usd"], 0)
 
     def test_second_role_allowed_but_third_call_blocked(self):
         client = OfflineClient()
         service = ReasoningService(configuration(self.ledger), client=client)
         self.run_one(service)
-        service.analyse_json("product_vehicle", "Validate independently.",
-                             {"question": "Evidence?"}, "issue:42:product_vehicle")
+        service.analyse_json("deployment", "Validate independently.",
+                             {"question": "Evidence?"}, "issue:42:deployment")
         with self.assertRaises(BudgetExceeded):
-            self.run_one(service, request="issue:43:research")
+            self.run_one(service, request="issue:43:documentation")
         self.assertEqual(len(client.calls), 2)
 
     def test_disabled_or_unconfigured_model_fails_without_request(self):
@@ -139,8 +139,8 @@ class ReasoningBudgetTests(unittest.TestCase):
             self.run_one(service)
             with self.assertRaises(BudgetExceeded):
                 service.analyse_json(
-                    "product_vehicle", "Domain validation.",
-                    {"question": "Is it supported?"}, "issue:42:product_vehicle")
+                    "deployment", "Domain validation.",
+                    {"question": "Is it supported?"}, "issue:42:deployment")
             self.assertEqual(len(client.calls), 1)
 
     def test_cumulative_budget_counts_prior_days_without_live_requests(self):
@@ -149,12 +149,12 @@ class ReasoningBudgetTests(unittest.TestCase):
         initial = OfflineClient()
         self.run_one(ReasoningService(cfg, client=initial))
         entries = json.loads(self.ledger.read_text(encoding="utf-8"))
-        entries["attempts"]["issue:42:research"]["day"] = "2020-01-01"
+        entries["attempts"]["issue:42:documentation"]["day"] = "2020-01-01"
         self.ledger.write_text(json.dumps(entries), encoding="utf-8")
         next_day = OfflineClient()
         with self.assertRaisesRegex(BudgetExceeded, "cumulative"):
             self.run_one(ReasoningService(cfg, client=next_day),
-                         request="issue:43:research")
+                         request="issue:43:documentation")
         self.assertEqual(len(initial.calls), 1)
         self.assertEqual(next_day.calls, [])
         self.assertEqual(len(json.loads(self.ledger.read_text())["attempts"]), 1)
@@ -165,12 +165,12 @@ class ReasoningBudgetTests(unittest.TestCase):
         with self.assertRaises(ReasoningError):
             self.run_one(ReasoningService(cfg, client=failed))
         entries = json.loads(self.ledger.read_text(encoding="utf-8"))
-        entries["attempts"]["issue:42:research"]["day"] = "2020-01-01"
+        entries["attempts"]["issue:42:documentation"]["day"] = "2020-01-01"
         self.ledger.write_text(json.dumps(entries), encoding="utf-8")
         next_attempt = OfflineClient()
         with self.assertRaisesRegex(BudgetExceeded, "cumulative"):
             self.run_one(ReasoningService(cfg, client=next_attempt),
-                         request="issue:44:research")
+                         request="issue:44:documentation")
         self.assertEqual(next_attempt.calls, [])
 
     def test_no_cumulative_budget_blocks_paid_calls(self):
@@ -188,7 +188,7 @@ class ReasoningBudgetTests(unittest.TestCase):
         service = ReasoningService(config, client=client)
         with self.assertRaises(ReasoningError):
             self.run_one(service)
-        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:research"]
+        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:documentation"]
         self.assertEqual(entry["status"], "uncertain")
         restarted = ReasoningService(config, client=client)
         with self.assertRaisesRegex(ReasoningError, "uncertain"):
@@ -203,7 +203,7 @@ class ReasoningBudgetTests(unittest.TestCase):
             with self.assertRaises(ReasoningError):
                 self.run_one(service)
             self.assertEqual(
-                json.loads(path.read_text())["attempts"]["issue:42:research"]["status"],
+                json.loads(path.read_text())["attempts"]["issue:42:documentation"]["status"],
                 "uncertain",
             )
             self.assertEqual(len(client.calls), 1)
@@ -215,7 +215,7 @@ class ReasoningBudgetTests(unittest.TestCase):
         service = ReasoningService(configuration(self.ledger), client=client)
         with self.assertRaises(KeyboardInterrupt):
             self.run_one(service)
-        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:research"]
+        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:documentation"]
         self.assertEqual(entry["status"], "started")
         restarted = ReasoningService(configuration(self.ledger),
                                      client=OfflineClient())
@@ -227,7 +227,7 @@ class ReasoningBudgetTests(unittest.TestCase):
         service = ReasoningService(configuration(self.ledger), client=client)
         with self.assertRaises(ReasoningError):
             self.run_one(service)
-        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:research"]
+        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:documentation"]
         self.assertEqual(entry["status"], "uncertain")
         self.assertEqual(entry["measured_usage"]["output_tokens"], 101)
         with self.assertRaisesRegex(ReasoningError, "uncertain"):
@@ -238,7 +238,7 @@ class ReasoningBudgetTests(unittest.TestCase):
         client = OfflineClient(response=mock_response(input_tokens=5001))
         with self.assertRaises(ReasoningError):
             self.run_one(ReasoningService(configuration(self.ledger), client=client))
-        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:research"]
+        entry = json.loads(self.ledger.read_text())["attempts"]["issue:42:documentation"]
         self.assertEqual(entry["status"], "uncertain")
         self.assertEqual(entry["measured_usage"]["input_tokens"], 5001)
 
@@ -249,9 +249,9 @@ class ReasoningBudgetTests(unittest.TestCase):
         second_client = OfflineClient()
         restarted = ReasoningService(cfg, client=second_client)
         with self.assertRaises(BudgetExceeded):
-            restarted.analyse_json("product_vehicle", "Independent validation.",
+            restarted.analyse_json("deployment", "Independent validation.",
                                    {"question": "Is it confirmed?"},
-                                   "issue:42:product_vehicle")
+                                   "issue:42:deployment")
         self.assertEqual(len(second_client.calls), 0)
         self.assertEqual(len(json.loads(self.ledger.read_text())["attempts"]), 1)
 
@@ -262,9 +262,9 @@ class ReasoningBudgetTests(unittest.TestCase):
 
         class InterleavingClient(OfflineClient):
             def create(self, **kwargs):
-                second.analyse_json("product_vehicle", "Validate separately.",
+                second.analyse_json("deployment", "Validate separately.",
                                     {"question": "Check?"},
-                                    "issue:42:product_vehicle")
+                                    "issue:42:deployment")
                 return super().create(**kwargs)
 
         first = ReasoningService(cfg, client=InterleavingClient())
@@ -296,8 +296,8 @@ class ReasoningBudgetTests(unittest.TestCase):
                 return "blocked"
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            a = executor.submit(attempt, first, "issue:42:research")
-            b = executor.submit(attempt, second, "issue:43:research")
+            a = executor.submit(attempt, first, "issue:42:documentation")
+            b = executor.submit(attempt, second, "issue:43:documentation")
             outcomes = sorted((a.result(), b.result()))
         self.assertEqual(outcomes, ["blocked", "reserved"])
         self.assertEqual(len(first.client.calls) + len(second.client.calls), 1)
@@ -307,7 +307,7 @@ class ReasoningBudgetTests(unittest.TestCase):
         gate, ready, output = ctx.Event(), ctx.Queue(), ctx.Queue()
         cfg = configuration(self.ledger, max_daily_cost_usd=0.006)
         children = [ctx.Process(target=_separate_process_attempt,
-                                args=(cfg, gate, ready, output, "issue:%d:research" % n))
+                                args=(cfg, gate, ready, output, "issue:%d:documentation" % n))
                     for n in (42, 43)]
         for child in children:
             child.start()

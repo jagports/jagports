@@ -111,7 +111,8 @@ class GHDLeadIntegrationTests(unittest.TestCase):
             fetched_at="2026-09-23T01:00:00+00:00",
         )
 
-        issues, event, results = self.agent().run()
+        agent = self.agent()
+        issues, event, results = agent.run()
         ghd = event.context["ghd"]
         pending = ghd["pending_event"]
         changed = pending["changed_event"]
@@ -121,12 +122,12 @@ class GHDLeadIntegrationTests(unittest.TestCase):
         self.assertEqual(pending["issue_context"]["body"], "Changed body")
         self.assertEqual(pending["issue_context"]["source_revision"],
                          changed["source_revision"])
-        self.assertTrue(ghd["acknowledged"])
+        self.assertNotIn("acknowledged", ghd)
         self.assertEqual([x.agent for x in results],
                          ["documentation", "deployment", "knowledge"])
         # Deterministic specialists intentionally remain lifecycle-only.
         self.assertTrue(all(x.severity == "normal" for x in results))
-        self.assertIsNone(self.store.replay_pending())
+        self.assertIsNotNone(self.store.replay_pending())
 
         report = report_service.create_report(
             issues, event.data, results, event.context)
@@ -135,6 +136,10 @@ class GHDLeadIntegrationTests(unittest.TestCase):
         self.assertIn("documentation", report)
         self.assertIn("deployment", report)
         self.assertIn("knowledge", report)
+        report_service.save_report(report)
+        agent.acknowledge_pending(event)
+        self.assertTrue(ghd["acknowledged"])
+        self.assertIsNone(self.store.replay_pending())
 
     def test_crash_before_specialist_completion_replays_without_refetch(self):
         self.agent().run()
@@ -159,9 +164,11 @@ class GHDLeadIntegrationTests(unittest.TestCase):
         self.assertEqual(event.context["ghd"]["retrieval"], "replay")
         self.assertEqual(event.context["ghd"]["pending_event"]["event_key"],
                          durable["event_key"])
-        self.assertTrue(event.context["ghd"]["acknowledged"])
+        self.assertNotIn("acknowledged", event.context["ghd"])
         self.assertEqual([x.agent for x in results],
                          ["documentation", "deployment", "knowledge"])
+        self.assertIsNotNone(self.store.replay_pending())
+        restarted.acknowledge_pending(event)
         self.assertIsNone(self.store.replay_pending())
         self.assertEqual(len(issues), 1)
 
