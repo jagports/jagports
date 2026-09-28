@@ -41,7 +41,7 @@ async function readConfiguration(path) {
 function assertConfiguration(config, expected) {
   if (!config) return;
   if (config.rangeSlug !== expected.rangeSlug || config.databaseName !== expected.databaseName || config.accountId !== expected.accountId || !/^[0-9a-f-]{36}$/i.test(config.databaseId ?? '')) {
-    throw new Error('Reviewed Range configuration does not match the requested Range/account.');
+    throw new Error('Reviewed parts database configuration does not match the requested Range/account.');
   }
 }
 

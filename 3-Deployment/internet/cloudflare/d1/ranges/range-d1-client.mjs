@@ -64,7 +64,7 @@ export function d1Client(config, token, fetchImpl = fetch) {
     async verifyIdentity() {
       const remote = await request('');
       if (remote?.uuid !== config.databaseId || remote?.name !== config.databaseName) {
-        throw new Error('Remote D1 identity differs from reviewed Range configuration.');
+        throw new Error('Remote D1 identity differs from reviewed parts database configuration.');
       }
     },
     async query(sql, params = []) {

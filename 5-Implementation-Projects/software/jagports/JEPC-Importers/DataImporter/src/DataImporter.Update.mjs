@@ -138,7 +138,7 @@ export async function importSelectionToD1({ selection, stateDir, token, fetchImp
       await verifyRangeSchema(client, config);
       clients.set(rangeSlug, { config, client });
     }
-    const result = { phase: 'RANGE_D1_IMPORT', selected: selected.size,
+    const result = { phase: 'PARTS_D1_IMPORT', selected: selected.size,
       stagedBundles: prepared.length, skippedUnknown, imported: 0,
       reused: 0, occurrences: 0, ranges: [...clients.keys()] };
     for (const [index, item] of prepared.entries()) {
@@ -146,7 +146,7 @@ export async function importSelectionToD1({ selection, stateDir, token, fetchImp
       const { model, category, language } = item.row.staged.identity;
       if (ledger.d1ImportTargets(model, category, language).some(target =>
         target.range_slug !== item.rangeSlug || target.database_id !== config.databaseId)) {
-        throw new Error(`Reviewed Range target changed for ${model}/${category}/L${language}; reconcile the previous D1 import first.`);
+        throw new Error(`Reviewed parts database target changed for ${model}/${category}/L${language}; reconcile the previous D1 import first.`);
       }
       const recorded = ledger.lastD1Import({ model, category, language,
         rangeSlug: item.rangeSlug, databaseId: config.databaseId });
