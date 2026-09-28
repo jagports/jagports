@@ -12,3 +12,11 @@ run_worker_first = ["/api/*"]
 binding = "DB"
 database_name = "jagports"
 migrations_dir = "migrations"
+
+[vars]
+RANGE_BINDINGS = '{"xk":"RANGE_XK"}'
+
+[[d1_databases]]
+binding = "RANGE_XK"
+database_name = "parts-xk"
+database_id = "55a0ebdb-6a86-4c2a-9ede-d4da2e47db00"
