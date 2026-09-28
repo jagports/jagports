@@ -7,7 +7,7 @@ This document defines how VIEPS represents third-party/vendor products and Jagpo
 It complements:
 
 - [`MODEL_PART.md`](MODEL_PART.md) — canonical PART identity and catalogue relationships;
-- [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md) — fit of Jaguar/JEPC PARTs and occurrences;
+- [`MODEL_PART.md — occurrence-bound fit and applicability`](MODEL_PART.md#occurrence-bound-fit-and-applicability-specification) — fit of Jaguar/JEPC PARTs and occurrences;
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — mutable operational stock;
 - [`MODEL_PART_THIRD_PARTY_LOCATION.md`](MODEL_PART_THIRD_PARTY_LOCATION.md) — optional visual-location evidence for third-party PARTs.
 
@@ -363,7 +363,7 @@ For a Jagports specified PART:
 
 For a verified 1:1 third-party product, fit is the fit of the existing Jaguar PART to which the vendor reference is attached.
 
-The meaning and evaluation of Jaguar fit remain defined by `MODEL_PART_FIT.md`.
+The meaning and evaluation of Jaguar fit remain defined by `MODEL_PART.md`.
 
 ## Stock Admin workflow
 
@@ -533,3 +533,4 @@ Implementation must preserve:
 - Third-party vendor/product/xref fields have explicit required/nullability and uniqueness expectations, including separate manufacturer and description fields plus multiple product/source URLs.
 - Representative deterministic fixtures cover both verified 1:1 and non-1:1 Jagports specified PART paths plus invalid cases.
 - The retained MVP boundary is explicit and separates required Stock Admin identity/linkage behavior from Post-MVP vendor/marketplace extensions.
+

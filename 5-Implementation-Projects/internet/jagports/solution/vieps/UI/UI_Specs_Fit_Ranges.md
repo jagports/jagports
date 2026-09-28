@@ -11,7 +11,7 @@
 
 Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the merged #875 three-column layout. The production transition from the temporary browse test index to source-derived model/Range relations remains a separate implementation task.
 
-This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_FIT.md` and #354 own the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
+This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART.md#occurrence-bound-fit-and-applicability-specification` and #354 own the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
 
 ## Proposed panel and modes
 
@@ -92,3 +92,4 @@ VIN evaluation and VIN-range reconstruction are governed by #478 and approved so
 - [ ] Visible current-phase bookmark checkboxes are disabled; later saved bookmarks remain independent of range filtering, PART selection, availability and fitment.
 - [ ] Deterministic fixture, accessibility, language and internal scrolling tests are specified.
 - [ ] Independent #875 specification review is completed.
+
