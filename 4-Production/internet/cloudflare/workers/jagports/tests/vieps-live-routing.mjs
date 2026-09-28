@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { liveRangeDatabase } from '../js/vieps-parts.js';
@@ -104,4 +106,14 @@ test('#976 FIT route is canonical and legacy suitability API remains a compatibl
     assert.equal(data.categories.length, 4, path);
     assert.ok(data.matches.length > 0, path);
   }
+});
+
+
+test('Worker deployment config publishes the reviewed XK parts binding', async () => {
+  const filename = fileURLToPath(new URL('../wrangler.toml', import.meta.url));
+  const config = await readFile(filename, 'utf8');
+  assert.match(config, /RANGE_BINDINGS\s*=\s*'\{"xk":"RANGE_XK"\}'/);
+  assert.match(config, /binding\s*=\s*"RANGE_XK"/);
+  assert.match(config, /database_name\s*=\s*"parts-xk"/);
+  assert.match(config, /database_id\s*=\s*"55a0ebdb-6a86-4c2a-9ede-d4da2e47db00"/);
 });
