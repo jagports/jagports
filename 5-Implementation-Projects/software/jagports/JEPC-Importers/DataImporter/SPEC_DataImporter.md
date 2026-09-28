@@ -6,21 +6,31 @@
 
 Define the v0.1a command, SQLite evidence staging, D1 parts-import boundary and catalogue requirements. The runnable procedure is in the [DataImporter README](README.md).
 
-**Runtime boundary:** v0.1a is one local Windows/Node.js DataImporter CLI. In one `--parse PATTERN` invocation it reads JEPC files, stages up to 40 complete source-category bundles and run history in `ledger.sqlite`, and updates the approved D1 parts database when its identity, schema and Cloudflare token are available. The optional `--estimate` inventories matched source files during the same invocation. The D1 update is a step inside DataImporter, not another application, service, web tool or operator command. Missing configuration leaves an explicit `NOT_CONFIGURED` D1-update state. Verified fit evaluation, localized verified condition references, media processing, the optional processing screen and interactive safe-stop controls are outside the v0.1a capability boundary.
+**Runtime boundary:** v0.1a is one local Windows/Node.js DataImporter CLI. It retains the original v0.1 explicit one-category `inspect`, `status`, `report` and `doctor` commands, including the eight-path checksum scan, local SQLite evidence, terminal progress screen, safe stop and health/report behavior. In the additive model-pattern mode, one `--parse PATTERN` invocation stages up to 40 complete source-category bundles and updates the approved D1 parts database when its identity, schema and Cloudflare token are available. Optional `--estimate` inventories matched source files during that same parse invocation. The D1 update is a step inside DataImporter, not another application, service, web tool or operator command. Missing configuration leaves an explicit `NOT_CONFIGURED` D1-update state. Verified fit evaluation, localized verified condition references and media processing remain outside the v0.1a capability boundary.
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
 This specification complements the existing JEPC source-structure and importer documents. It does not replace the approved VIEPS Parts Data Model.
 
-## v0.1a command contract
+## Model-pattern parse command contract
 
 ```text
 node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse PATTERN [--estimate]
 ```
 
-Run this command from the repository root. `--parse PATTERN` is required for every importer run. `PATTERN` must contain at least two characters and is matched as a source model-name fragment. `--estimate` is optional and valid only with `--parse`; it adds a source inventory to that run. The CLI rejects all other flags and all positional commands. An invocation without `--parse PATTERN` fails and prints the usage line.
+Run this command from the repository root. `--parse PATTERN` is required for every model-pattern parse. `PATTERN` must contain at least two characters and is matched as a source model-name fragment. `--estimate` is optional and valid only with `--parse`; it adds a source inventory to that run. This mode rejects other flags and positional commands. The original explicit inspection commands below remain available from the same CLI file and do not use `--parse`.
 
-The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence and run history go into `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters. Current runs write no separate source copies, category JSON files or estimate-report files. Earlier JSON staging output is left untouched and is not a second active store.
+The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence and run history go into `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`. The current parse uses source language `0`. Its periodic progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters. Current runs write no separate source copies, category JSON files or estimate-report files. Earlier JSON staging output is left untouched and is not a second active store.
+
+## Original single-category inspection interface
+
+From the repository root, the original v0.1 inspection command remains:
+
+```text
+node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs inspect --source "C:\Program Files\JEPC\applications\JEPC" --state-dir "%LOCALAPPDATA%\Jagports\JEPC-Importer" --model 3187 --category 11096 --item 1
+```
+
+The command accepts explicit `--source`, `--state-dir`, `--model`, `--category`, `--item`, optional `--language` (default `0`) and optional `--json`. It inspects exactly the same eight expected source paths as v0.1, uses the same `ledger.sqlite`, stores SHA-256 checksums and detailed events, reports missing paths, rejects unsafe source/state paths, and preserves safe stop/resume and ledger health checks. It does not enumerate the installation or parse/import catalogue data. In an interactive terminal it redraws the original v0.1 progress screen; piped output emits one final screen or JSON result. `status`, `report` and `doctor [--full]` read this ledger. Inspection does not accept `--estimate`.
 
 ## Local and production persistence boundary
 
@@ -257,7 +267,7 @@ A complete million-file scan must not be required for **any normal processing lo
 
 An operator may explicitly run a slow, exhaustive **selected-model inventory** for the models matched by `--parse`. It traverses their drilldown directories and model menus, excluding shared media and other models. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed estimate must not alter parsed evidence. The report is stored in `ledger.sqlite` and retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and sample details. The scan streams discovery instead of materializing the complete source file list in memory. The estimator function supports cooperative stopping, but the v0.1a CLI does not expose a stop control or guarantee a partial report when its process is interrupted.
 
-Every importer run requires `--parse PATTERN`. The source inventory is enabled only by adding the optional `--estimate` flag to that run; `--estimate` alone is invalid. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress.
+Every model-pattern parse requires `--parse PATTERN`. The source inventory is enabled only by adding the optional `--estimate` flag to that parse; `--estimate` alone is invalid. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress. The explicit one-category `inspect` command remains separate and does not accept `--estimate`.
 
 The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts, bytes and elapsed scan time are measurements. D1 storage and import duration would be projections only after a calibration sample has actually been transformed and imported to D1; v0.1a does not provide those projections. No duration or D1 size is inferred from fixture data or raw XML byte size. Shared media belongs to MediaImporter.
 
@@ -499,6 +509,8 @@ CRASH_RECOVERED
 ## Operator processing view
 
 The terminal/operator view must favor stable, understandable aggregate information rather than rapidly changing internal bundle details.
+
+The original `inspect` command redraws the v0.1 aggregate screen while checksumming its explicitly selected eight files. Model-pattern parsing remains additive and emits throttled phase-progress lines on standard error, followed by the final JSON result on standard output; it does not claim that the imported-catalogue table below is already implemented.
 
 Do not continuously display current filenames, current bundle identifiers, or deep current breadcrumb paths in the primary live view. Those details change too quickly for a human to follow and belong in the persistent detailed log/run report.
 
