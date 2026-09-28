@@ -113,3 +113,4 @@ export async function applyPartsDatabaseSchema(config, token, fetchImpl = fetch)
   await verifyPartsDatabaseSchema(client, config);
   return { rangeSlug: config.rangeSlug, databaseName: config.databaseName, databaseId: config.databaseId, schemaVersion: 1 };
 }
+

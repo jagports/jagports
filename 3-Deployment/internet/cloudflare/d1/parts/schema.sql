@@ -110,3 +110,4 @@ CREATE TABLE IF NOT EXISTS jepc_bundle (
   imported_at TEXT NOT NULL,
   PRIMARY KEY(model_id,category_id,language_id)
 );
+

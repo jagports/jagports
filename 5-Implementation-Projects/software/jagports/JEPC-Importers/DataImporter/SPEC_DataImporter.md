@@ -667,3 +667,4 @@ Fixture or manually entered catalogue-context evidence may be used by VIEPS befo
 When authoritative imported JEPC evidence becomes available for the same catalogue context, the DataImporter flow must allow that imported evidence to replace or validate the temporary fixture/manual catalogue-side evidence without changing canonical PART identity or operational STOCK records.
 
 Temporary fixture/manual evidence must remain distinguishable from imported Jaguar/JEPC evidence and must never be presented as independently verified source data.
+

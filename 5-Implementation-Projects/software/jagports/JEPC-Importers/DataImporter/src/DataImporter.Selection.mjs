@@ -173,3 +173,4 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
   return { schemaVersion: 1, modelPattern, source: root, language: String(language), modelIds,
     menuChecksums, incompleteCategories, eligibleCategories: candidates.length, categoryLimit: CATEGORY_LIMIT, bundles };
 }
+

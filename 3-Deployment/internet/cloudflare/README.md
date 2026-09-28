@@ -118,3 +118,4 @@ The implementation requirements and deployment procedures are separate from the 
 VIEPS is public/read-accessible without whole-application Cloudflare Access. Stock mutation is administrator-authorized at the application layer.
 
 The Cloudflare directory is an index/procedure layer; it does not contain the end-to-end VIEPS execution orchestrator.
+

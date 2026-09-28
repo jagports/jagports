@@ -83,3 +83,4 @@ test('Workers Free capacity is checked before creation', async () => {
   await assert.rejects(setupPartsDatabase({ mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: await configDirectory() }), /limit/);
   assert.equal(post, false);
 });
+

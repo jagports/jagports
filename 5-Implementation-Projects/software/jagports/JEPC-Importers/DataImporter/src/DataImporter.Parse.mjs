@@ -187,3 +187,4 @@ export async function parseSelection({ selection, stateDir, onProgress }) {
     throw error;
   } finally { ledger.close(); }
 }
+

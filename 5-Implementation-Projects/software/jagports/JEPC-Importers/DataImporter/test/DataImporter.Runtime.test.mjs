@@ -67,3 +67,4 @@ test('preserves confirmed D1 bundle hashes when upgrading an existing v3 ledger'
     '2026-09-01T00:00:00Z');
   upgraded.close();
 });
+

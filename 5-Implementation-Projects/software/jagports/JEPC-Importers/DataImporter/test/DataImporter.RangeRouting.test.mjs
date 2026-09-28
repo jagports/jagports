@@ -39,3 +39,4 @@ test('parts database writes require the reviewed D1 identity and complete batch 
     json: async () => ({ success: true, result: [] }) }));
   await assert.rejects(incompleteBatch.batch([{ sql: 'SELECT 1', params: [] }]), /incomplete batch/);
 });
+
