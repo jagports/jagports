@@ -335,21 +335,6 @@ The current implementation acceptance is limited to page regions/scrolling/acces
 - `UI_Specs_Fitment.md` — Model Ranges and Fit fit contract.
 - [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md) — stock/catalogue boundary and stock-quality authority.
 
-## Acceptance principles
+## Implementation acceptance tracking
 
-A conforming #875 implementation preserves:
-
-- clear/empty-submit behavior, preserved independent Stock/FIT/Range/VIN filters, clean selection URLs and race-safe filtered-root restoration under the Part Search contract;
-- browse-mode language continuity without fabricated source-tree identity or a selected PART;
-- the three-column target layout, including distinct left Availability/Parts Tree, centre VIN/Variations and one Location/PART pair, and right Search/Results/Applicable Models;
-- one canonical PART identity shared by the Parts Tree and right-hand Search Results, with genuine source-qualified occurrences and no guessed default PART for multi-match;
-- persistent tree root index, stable links, no repeated shared ancestors, expanded path to selected PART, clear indentation and underlined selection as specified under #873;
-- independently selectable PN/name result rows, with separately labelled **disabled** bookmark checkboxes until later activation/storage is approved;
-- source-derived Applicable Models choices; any retained 13-label fixture browse index is isolated TEST compatibility data and never evidence of fitment;
-- read-only Applicable Models for a selected PART/context: verified values lit, nonmatching values unlit and unresolved evidence yellow; unavailable, no-match, excluded and error remain separate;
-- normalized centre variation filters from #641 rather than a second presentation-only taxonomy;
-- evidence-backed single Location canvas and one selected PART/image/status panel;
-- UI-vs-Parts language independence, internal scrolling, keyboard/screen-reader support and #616 viewport-fit behavior;
-- existing deterministic-first/free-text-fallback, stock-only semantics, canonical PART vs occurrence boundaries and explicit missing-data states.
-
-The superseding 2026-09-28 interaction decisions above replace historical multi-Range ANY/OR and static production range fixtures. Layout/shared-selection acceptance remains separate from deferred bookmark activation and unsupported single-Range filtering runtime.
+The seven-panel implementation checklist, cross-panel integration tests and reviewed completion evidence are tracked in [#974](https://github.com/jagports/jagports/issues/974) and the relevant open panel/domain Issues; this document remains the authoritative shared layout and interaction specification.
