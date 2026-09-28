@@ -46,7 +46,7 @@ The following **Product Owner-supplied ASCII map** is the normative target deskt
 
 **Reading the map:** the centre-top VIN and normalized variations controls span the centre workspace. Directly below them, Location at car occupies centre-left and the single selected PART/Image/Status panel occupies centre-right. The permanent right column is split vertically into Search, Search Results and Applicable Models. The left Availability block remains above the persistent Parts Tree. Branding/instructions and the banner occupy the header. The illustration does not assert working language, stock, VIN or fitment controls where their read contracts are not implemented.
 
-**Exact browse fixture index:** Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These are model-range browse/test labels, not a declaration of fitment to the selected PART.
+**Legacy TEST browse index:** Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These labels document historical fixture compatibility, **not** the source-derived production catalogue or selected-PART fitment.
 
 **Current increment:** implement this shell, separately scrolling Parts Tree / Search Results / Applicable Models, accessible selectable PN/name rows and **one shared PART selection** across tree, result rows and centre detail. Bookmark checkboxes are visible but **disabled**, with no saving. Advanced model-range checkbox filtering is also deferred; its approved future semantics are **multiple selections matching ANY (OR)** with only positively evidenced surviving occurrences. The initial layout may display the 13-entry browse index and verified selected-PART applicability where an approved read contract exists, but must not invent fitment, VIN evidence or data-driven filters.
 
@@ -154,7 +154,7 @@ Fixture identifiers and values must be clearly marked as deterministic test data
 
 Representative fixture coverage for the full #368 vertical-slice contract should include:
 
-- the exact 13-label #875 Applicable Models **browse index** independently of any chosen PART, with fixture-only provenance and no inferred positive fitment;
+- isolated historical 13-label TEST browse compatibility where still present, with fixture-only provenance; production options instead use explicit source-derived Model-to-Range mappings;
 - a PART visible under multiple genuine occurrence paths but only once in the right-hand result list;
 - two linked selection surfaces that synchronize one selected PART while bookmarking remains independent;
 
@@ -193,10 +193,10 @@ Without a supporting browse contract, preserve the permanent regions and display
 
 ### Empty search, clear and browse continuity
 
-Clearing Search preserves the stock-filter setting, invalidates stale requests, clears selected PART/occurrence and old Search Results selection, removes stale `part`/`tree` URL parameters and restores evidenced collapsed roots. The right results panel returns to its empty/browse state; Applicable Models returns to an available browse index, not stale selected-PART fitment.
+Clearing Find preserves **Stock, FIT, Applicable Models and VIN** filter settings, invalidates stale requests, clears selected PART/occurrence and old Search Results selection, removes stale selection URL parameters and restores **filtered collapsed roots**. Applicable Models returns to selectable, evidence-backed browse-filter mode, not stale selected-PART fitment.
 
 
-Clearing Search or submitting an empty/whitespace-only query invalidates earlier requests, clears selected PART/occurrence and dependent context, removes stale `?part`/`?tree` state from the current URL, and restores the available collapsed root index with no active selection. Preserve the supported stock filter and permanent Concept-11v1 regions. Empty search is a browse/prompt state, not a failed PART lookup.
+Clearing Find or submitting an empty/whitespace-only query invalidates earlier requests, clears selected PART/occurrence and dependent context, removes stale `?part`/`?tree` state from the current URL, and restores the **filtered** collapsed root index with no active selection. Preserve supported independent FIT, Range, Stock and VIN filters and permanent Concept-11v1 regions. Empty Find is a filtered browse/prompt state, not a failed PART lookup.
 
 Initial root load, clear, empty submit and empty-search Availability refresh use the same root/evidence-state contract. A late PART/tree/root response must not replace a newer user action. Root unavailable/error states do not fabricate categories or revive old PART details.
 
