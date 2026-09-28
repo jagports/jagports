@@ -26,7 +26,7 @@ INSERT OR IGNORE INTO part (
   'Door mirror - US',
   'jagports-xlsx',
   'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
-  'jagports-inventory'
+  'verified'
 );
 
 -- Extend the #607 searchable fixture set with one real stocked PART.
@@ -72,12 +72,12 @@ SELECT
   id,
   1,
   'unknown',
-  'jagports-inventory',
+  'available',
   'R2A / B14',
   'jagports-xlsx',
   'repo:5-Implementation-Projects/base/jagports/excel/jagports Excels/jagports-parts-stock.xlsx#Stock!A11:J11',
   1,
-  'jagports-inventory',
+  'verified',
   NULL,
   NULL,
   84012,
