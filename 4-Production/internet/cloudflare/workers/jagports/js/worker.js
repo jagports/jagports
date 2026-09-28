@@ -181,6 +181,8 @@ async function handleApi(request, env) {
   const testFlags = [...url.searchParams].filter(([key]) => key.toLowerCase() === "test");
   const testMode = testFlags.length === 1 && testFlags[0][1] === "1";
 
+  // Canonical public catalogue routes are unnamespaced: /api/part, /api/tree and /api/fit.
+
   if (path === "/api/part") return testMode ? handleFixturePart(request, env) : handlePart(request, env);
   if (path === "/api/tree") return testMode ? handleFixtureTree(request, env) : handleTree(request, env);
   if (path === "/api/fit") return testMode
