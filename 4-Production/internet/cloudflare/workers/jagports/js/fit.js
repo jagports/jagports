@@ -1,7 +1,7 @@
 // Source-qualified normalized fit reader (#641/#877). TEST=1 uses only
 // fixture rows; real mode reads only independently reviewed JEPC occurrence evidence
 // from the parts database selected by parts.js. No free-text inference or fallback.
-const SOURCE = 'fixture:pre-jepc-fit:v1';
+const SOURCE = 'fixture:pre-jepc-suitability:v1';
 const send = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'content-type': 'application/json; charset=utf-8' },
 });

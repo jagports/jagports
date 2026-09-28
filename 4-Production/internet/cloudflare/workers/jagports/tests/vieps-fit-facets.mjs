@@ -4,7 +4,7 @@ import { database, d1 } from './helpers/model-db.mjs';
 import { handleViepsFit } from '../js/fit.js';
 import { handleApi } from '../js/worker.js';
 
-const namespace = 'fixture:pre-jepc-fit:v1';
+const namespace = 'fixture:pre-jepc-suitability:v1';
 function fixture(t) {
   const db = database();
   t.after(() => db.close());
