@@ -1,6 +1,6 @@
 # VIEPS UI — Part Search Specification
 
-## Status
+## Scope
 This document defines VIEPS search resolution and its UI/data contract.
 
 Durable specification authorities:
@@ -10,10 +10,10 @@ Durable specification authorities:
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — operational stock model and normalized stock-quality contract.
 - [`../i18n/README.md`](../i18n/README.md) — VIEPS UI translation-resource contract and canonical resource path.
 
-The #875 target layout authority is `../UI_CONCEPTS/Concept-11v1.svg` together with the three-column normative map in `../UI/UI_Specs.md`. The merged Concept-11 remains the runtime baseline until this enhanced layout is reviewed and implemented.
+The visual layout authority is `../UI_CONCEPTS/Concept-11v1.svg` together with the three-column normative map in `../UI/UI_Specs.md`.
 
 ## Search / Availability placement
-The #875 layout separates controls while preserving the approved deterministic-first/free-text and stock-filter contracts:
+The three-column layout separates controls while preserving the approved deterministic-first/free-text and stock-filter contracts:
 
 ```text
 LEFT   Availability: supported stock/quality constraints above the Parts Tree
@@ -27,22 +27,22 @@ Availability remains operational stock state, separate from catalogue identity.
 
 For the reduced MVP, the public Availability control is a boolean **Show only parts on stock** filter applied after a supported part-number, deterministic-identifier or free-text candidate set exists. A PART satisfies this public stock-backed filter only when at least one operational `stock_item` linked to that canonical PART has `available = 1` and `quantity > 0`.
 
-The boolean filter exposes the stock-backed eligibility needed to narrow visible PART results. It does not authorize stock add, edit or delete operations. The #448 authorization boundary is a mutation boundary unless another specification explicitly defines a read/display restriction for a specific field.
+The boolean filter exposes the stock-backed eligibility needed to narrow visible PART results. It does not authorize stock add, edit or delete operations. Stock mutation authorization is separate from this read/display contract unless another specification explicitly defines a field restriction.
 
 Do not invent a `public-safe`, hidden-stock-detail or admin-only-result taxonomy merely because stock data is operational data. Searchable and displayable stock fields are governed by this search/result contract and the implemented data path.
 
 Normalized A–E stock-quality filtering remains governed by the stock-quality contract below and is not required to be silently simulated when a richer browse/filter contract is unavailable.
 
-### Stock-only information control (#888)
+### Stock-only information control
 
-Present a small, separately focusable information button beside—not inside the label of—the operational **Show only parts on stock** checkbox, including at the top of #875's left desktop workspace and in the persistent mobile banner/Find region. The button explains the existing `available = 1 AND quantity > 0` eligibility without changing selection, stock-only state, search resolution or API behavior. Exact English help text:
+Present a small, separately focusable information button beside—not inside the label of—the operational **Show only parts on stock** checkbox, including at the top of the left desktop workspace and in the persistent mobile banner/Find region. The button explains the existing `available = 1 AND quantity > 0` eligibility without changing selection, stock-only state, search resolution or API behavior. Exact English help text:
 
 > Filters identifier-search results to PARTs with available operational stock and positive quantity.
 
-- Translate the help body and accessible button name **About Stock only** through existing UI EN/FI resources. This must not undo merged #894's count-aware translations for `search.multiple_matches`.
+- Translate the help body and accessible button name **About Stock only** through existing UI EN/FI resources. Preserve the count-aware `search.multiple_matches` translations.
 - Desktop hover/focus reveals help, and click/Enter/Space toggles it; mobile tap toggles it. Outside activation and Escape dismiss the popover without toggling the checkbox or trapping keyboard focus.
 - Position the explanation as an in-viewport overlay, not a permanently expanded header. At 220–320px and with longer translations, expanded banner, orientation or on-screen keyboard, it must not cover or disable Find; keep the popup reachable inside the viewport.
-- The same mobile banner/Find/Stock help region from #888 persists when #875's three-column desktop geometry is introduced. Desktop Availability remains separately above the left Parts Tree, while Search/Results/Applicable Models occupy the right workspace.
+- The same mobile banner/Find/Stock help region persists in the three-column desktop geometry. Desktop Availability remains separately above the left Parts Tree, while Search/Results/Applicable Models occupy the right workspace.
 
 ## Stock-quality filter and presentation contract
 
@@ -119,32 +119,15 @@ This section is the authoritative *interaction* contract for Find, VIN, Stock on
 - Preserve selected filters when zero PARTs match. Mark limiting selected filters with yellow warnings and show the **number of distinct competing option values** that would become available by clearing **that filter alone while all other constraints remain active**; a count of options is not a count of PARTs. If only clearing several filters together recovers matches, show a **combined** conflicting-filter warning identifying those filters and the number of PARTs that would become available together; do not imply one filter alone is sufficient. A combined multi-filter clear button is **not** required. Never silently clear any filter to resolve zero matches.
 - Every new interaction invalidates superseded asynchronous responses. Recompute visibility/counts from evidence-backed result contexts without circularly suppressing the selected value needed to remove or diagnose a filter. No input or option is silently changed by a late result.
 
-These are normative **target interaction rules**, not a claim that the currently deployed site or in-review #970/#972 branches already implement them. Unsupported controls remain explicitly disabled rather than simulating correct filtering.
-
-### Interaction regression matrix
-
-| Case | Required outcome |
-| --- | --- |
-| Initial catalogue browse; Find/VIN empty | Only evidenced browsable FIT/Range options are shown; none explicitly filtered; stock input is not result-driven. |
-| Branch/Find/Stock/VIN change | Recompute result-derived FIT/Range options and surviving paths; preserve independent constraints and valid manual tree expansion. |
-| One FIT value, then another FIT group | Competing values in selected group hidden; group constraints combine with AND; shared multi-fit PARTs remain eligible. |
-| Single Range filter | Competing ranges hidden; cleared range restores evidence-backed choices under remaining filters. |
-| Selected PART | FIT/Applicable Models read-only; verified matches lit, other available options unlit, unknown value yellow; no implicit filter selection. |
-| New Find still matches / misses selected PART | Retain selection on supported match; otherwise deselect without auto-picking; preserve independently selected filters. |
-| Explicit Find clear | Deselect PART and show filtered collapsed root index with existing FIT/Range/VIN/Stock retained. |
-| Filter removes current manual branch | Select and expand deepest common surviving branch, but never override a still-valid manual branch. |
-| No result, then filter relaxed | Retain last selected branch and filter state in empty view; restore qualifying manual branch when results return. |
-| Stock excludes selected PART | Retain warned selected detail/tree context only while its parent has normal matches; omit from normal Search Results. |
-| Unknown/explicit exclusion across occurrences | Separate verified vs unresolved results; exclude confirmed incompatible PARTs without fabricating positive fit. |
-| Single and jointly limiting constraints | Compute other-filter-preserving alternative-value counts; combined recovery warning when multiple clears needed. |
+These are normative interaction requirements. Controls without an approved source-backed read contract remain disabled; never simulate filtering.
 
 ## Search input
 - The search area uses one primary query field for a Jaguar part number, deterministic identifier or free text; it must not expose competing part-number and free-text fields.
 - Deterministic identifiers mean exact/normalized lookup values that are intended to resolve deterministically before generic free-text matching, including Jaguar part numbers, raw part-number strings, normalized part-number strings, and approved deterministic non-numbered identifiers where the current read contract supports them.
 - Deterministic identifiers are not excluded from search. They are handled first because their behavior is stricter than free-text matching: they should resolve the intended identity before the same query is allowed to fall back to general text matching.
 - Search resolution is part-number / deterministic-identifier first: attempt the approved part-number / deterministic-identifier lookup first; only when it produces no match may the same query fall back to an available approved free-text search capability.
-- Hybrid reduced-MVP free-text search is required before #280 closure. It is limited to the implemented searchable fields and result presentation in this document.
-- Full multilingual/global free-text indexing/search remains owned by post-MVP #622. The reduced-MVP free-text path does not need to implement the complete #622 corpus, ranking, multilingual indexing, cross-Range search, or search architecture.
+- Hybrid reduced-MVP free-text search is required in the reduced-MVP search contract. It is limited to the implemented searchable fields and result presentation in this document.
+- Full multilingual/global free-text indexing/search is outside the reduced-MVP contract. The reduced-MVP free-text path does not include the complete multilingual corpus, ranking, cross-Range search or global search architecture.
 - If reduced-MVP free-text capability is unavailable in a runtime that exposes the general `Find` control, the runtime must not silently ignore the query and return ordinary `not_found` for descriptive text.
 - Primary deterministic MVP behavior remains Jaguar part-number / deterministic-identifier search plus the limited free-text fallback defined here.
 - Approved deterministic non-numbered identifiers may also be accepted where the current read contract supports them.
@@ -161,13 +144,13 @@ This transition applies when editing makes the trimmed query empty, when an empt
 
 1. Immediately invalidate outstanding PART/search, tree-browse and dependent context requests from the previous state. Late success, failure and completion callbacks must not restore old data, selection, URL, status text or loading state. Cancellation alone is insufficient if an already-completed callback can still update the UI.
 2. Clear the selected canonical PART, occurrence/item, Find-associated category/tree path selection, query-result candidates and match highlights. Clear previous PART details/status, image/diagram, selected-PART range/FIT facts and vehicle-location context. **Retain independent active FIT, Applicable Models, VIN and Stock filters.** Keep permanent regions visible in their filtered no-selected-PART/browse states.
-3. Remove all stale `part` and `tree` query parameters from the current URL, including duplicate values, before a reload can re-enter the cleared selection. Replace the current history entry rather than adding a clear-only navigation entry. Preserve unrelated URL parameters and supported stock/language state. This does not erase older intentional browser-history entries or define the wider #583 deep-link scheme.
+3. Remove all stale `part` and `tree` query parameters from the current URL, including duplicate values, before a reload can re-enter the cleared selection. Replace the current history entry rather than adding a clear-only navigation entry. Preserve unrelated URL parameters and supported stock/language state. This does not erase older intentional browser-history entries or define the wider deep-link scheme.
 4. Enter filtered root browse with no active category, occurrence or PART selection. Restore evidenced first-level/root categories **under retained active filters**, collapsed, with no selected-node underline or previous search-result expansion. Use the same root-loading contract as initial load under identical filters and source language.
 5. Preserve supported Availability/Stock, VIN, FIT and Applicable Models filter settings; **clearing Find is not a global filter reset**. Root browse applies only supported backed filters. PART / Image / Status stays unselected even if browse yields exactly one PART.
 
 Every input edit invalidates superseded requests. For a non-empty edit, keep the selected PART provisionally only until the submitted query is evaluated; preserve it if it still matches and otherwise clear it without selecting another PART. An unsubmitted edit does not trigger empty-query PART resolution. Editing Find to empty executes the explicit clear transition above.
 
-The latest user action owns the visible state. A root load started by clear must not overwrite a subsequent query, selected tree node, stock-filter change or language change. Current root loading, empty, unavailable and error outcomes follow [Parts Tree](../UI/UI_Specs_Parts_Tree.md#empty-search--browse-state); an empty search never invokes deterministic or free-text PART lookup and never produces `Part not found` merely for being empty.
+The latest user action owns the visible state. A root load started by clear must not overwrite a subsequent query, selected tree node, stock-filter change or language change. Current root loading, empty, unavailable and error outcomes follow [Parts Tree](SPEC_SEARCH_TREE.md#empty-search--browse-state); an empty search never invokes deterministic or free-text PART lookup and never produces `Part not found` merely for being empty.
 
 ### Stock-filter invariants
 
@@ -185,26 +168,9 @@ After clear, UI language switching preserves the collapsed root state and clean 
 
 When supported Parts/catalogue-data language changes, load that language's evidenced source tree. Preserve a selected context only where an explicit stable identity/mapping supports it; never match nodes by label or assume identical source-tree structure. Otherwise remove the invalid tree/occurrence selection and stale selection URL state, return to that language's available collapsed roots, and expose unavailable mapping/context explicitly. Do not resurrect a previously cleared PART. Preserve the stock constraint and canonical identity boundary.
 
-## Clear/browse regression acceptance
-
-These are required implementation regression cases under #873, not claims that tests have been added or passed by a specification change. Use controlled deferred responses and distinguish immediate reset from the eventual root result.
-
-| Case | Action / controlled order | Required result |
-|---|---|---|
-| Clear a resolved PART | Delete Find to empty; repeat with whitespace-only submit and any provided Find Clear control. | Selected PART/occurrence and dependent PART facts/highlights disappear immediately; active independent FIT/Range/Stock/VIN filters survive. Permanent regions remain; eventual **filtered** roots are collapsed with no PART selection. No empty PART/free-text request occurs. |
-| Pending PART/search | Start PART resolution (including free-text fallback), clear, complete root loading, then deliver the old success; repeat with failure and finalization. | Neither old data nor old error/status/loading state replaces the clear/root state. |
-| Pending tree browse | Start a category request, clear, then deliver the old category response or failure after the root result. | No selected branch/PART or old expansion reappears; roots remain collapsed. |
-| Root response superseded | Clear, then start a new non-empty search or select a tree node before the root response completes; deliver responses out of order. | The latest action wins; the obsolete root result/error/finalization cannot erase the new search/selection or its loading state. |
-| Direct-link clearing | Enter through `?part=<id>`, through `?tree=<id>` with an empty query, and with both/duplicate selection parameters; explicitly clear or empty-submit, then reload the resulting URL. | All `part`/`tree` parameters are removed from the current entry; unrelated parameters survive; reload cannot restore the cleared selection. Intentional fresh deep links still restore supported selection normally. |
-| Independent-filter preservation and parity | Run initial browse, Find clear, empty submit and empty-Find Availability refresh under identical FIT/Range/Stock/VIN and language settings; delay a response from an obsolete filter state. | Equivalent filtered root states for the same supported constraints/language; independent selections persist, obsolete results are ignored, and stock-backed eligibility/stock-empty semantics remain unchanged. |
-| Root evidence outcomes | Supply roots, a verified empty browse result, supported stock-filtered-empty, unavailable root evidence, unsupported filtering and a processing failure. | Each outcome has its own appropriate localized state; no fabricated roots, zero-stock inference, stale PART or ordinary search `not_found`; current loading completes. |
-| UI language in browse | Switch EN↔FI in collapsed roots, selected-category browse and multi-candidate browse, without a selected PART. | Browse mode, stable selected path/expansion and stock filter survive; no guessed PART; UI text updates while source-language labels remain separate. |
-| Language after clear / pending read | Clear a direct-linked selection, switch UI language while root loading is pending, then complete old and current reads out of order. | Cleared PART and selection URL stay cleared; current-language status and collapsed roots win, including error/loading presentation. |
-| Catalogue-language structure | Switch supported catalogue language with an evidenced mapping, then without one; include equal labels with distinct source identities. | Preserve only verified mapped context; otherwise clear invalid context/URL and show target-language roots plus explicit unavailable context. No label-based identity or fitment inference. |
-
 ## Reduced-MVP limited free-text search
 
-Reduced-MVP free-text search is a pragmatic, current-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without waiting for the full post-MVP #622 multilingual/global search architecture.
+Reduced-MVP free-text search is a pragmatic, current-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring the full multilingual/global search architecture.
 
 Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and deterministic identifiers are not excluded from search; they are resolved first by deterministic lookup. Generic free-text fallback runs only when that deterministic lookup produces no match.
 
@@ -227,7 +193,7 @@ Searchable stock text does not make stock the catalogue identity. When a stock-t
 
 A free-text match fragment must be highlighted where the matched text is visible in an existing UI region. Highlighting is fragment-level, meaning the matched substring inside the visible value is highlighted, not merely the whole row.
 
-Do not create an additional search-results page, modal or explanation view. The dedicated #875 right-hand Search Results PART List and clickable Parts Tree leaves represent the same canonical PART candidates. The centre PART / Image / Status region shows exactly one selected PART at a time.
+Do not create an additional search-results page, modal or explanation view. The dedicated right-hand Search Results PART List and clickable Parts Tree leaves represent the same canonical PART candidates. The centre PART / Image / Status region shows exactly one selected PART at a time.
 
 ## Canonical PART and occurrence resolution
 A successful Jaguar part-number lookup resolves one canonical `PART` identity. A non-numbered supported deterministic identifier resolves the approved non-numbered item/context without fabricating a Jaguar number.
@@ -250,7 +216,7 @@ A part-number search returns all matching occurrences and their complete source 
 
 The Parts Tree and dedicated right-hand Search Results PART List are two coordinated selection surfaces over the same canonical PART candidates.
 
-By default the Parts Tree shows its persistent first-level/root index. A selected branch or PART preserves that index, expands the root-to-selected path and shows immediate children of the active branch. Shared stable ancestors appear only once; unrelated descendants remain collapsed (#873).
+By default the Parts Tree shows its persistent first-level/root index. A selected branch or PART preserves that index, expands the root-to-selected path and shows immediate children of the active branch. Shared stable ancestors appear only once; unrelated descendants remain collapsed .
 
 Progressive tree navigation remains distinct from search-result filtering. Search may filter/highlight branches and PART leaf nodes, and the designated right-hand Search Results PART List shows the same candidates. The centre PART / Image / Status region never becomes a multi-PART list.
 
@@ -260,21 +226,15 @@ When multiple PARTs match, no PART is selected by default. Matching PARTs appear
 
 When exactly one PART is resolved deterministically or by free text, that PART may populate PART / Image / Status according to the single-result contract.
 
-## #875 implementation phase split
-
-**Current implementation target:** retain deterministic-first/free-text fallback and existing stock-only contracts; render the right-hand independently scrolling PN/name result list and synchronize its selected canonical PART with the left #873 Parts Tree and one centre detail panel. Show separate **disabled** bookmark checkboxes. Preserve explicit result states and occurrence context, rather than changing search resolution.
-
-**Deferred implementation:** bookmark activation/storage and any unsupported model-range filtering runtime. The approved interaction target now permits **one active model range at a time**, combined with other filter groups as defined above; the former multiple-range ANY/OR proposal is superseded. Unsupported future controls may be visually present but must be disabled and clearly explained.
-
-## Right-hand Search Results and bookmarks (#875)
+## Right-hand Search Results and bookmarks
 
 - One independently scrollable PN/name result row appears per distinct canonical PART in the current candidate set. Use stable canonical identity, not label text, as the result key. Preserve each real EPC occurrence in the Parts Tree without duplicating one canonical PART as separate result rows.
 - A result row and a tree PART leaf update the **same** selected PART and visible selection. A tree leaf can additionally carry its verified source occurrence. If a selected result has multiple source occurrences, retain all paths and require explicit context before showing occurrence-specific location, diagram-item or VIN fit.
 - Rows are real keyboard-accessible PART links/actions and highlight matching text fragments where visible. A supported non-numbered identifier does not acquire an invented Jaguar PN.
-- **Current layout increment:** show a separate, properly labelled bookmark checkbox beside each result row, but leave it **disabled** with an accessible future-feature explanation. Do not simulate saving, a checked persistence state or account authorization. **Later increment:** activate bookmarking only after storage scope, authorization and saved-list behavior are separately specified; a bookmark toggle must never select a PART or alter stock filtering, model filtering or fitment.
-- Stock-only, VIN and normalized #641 fit/variation inputs constrain supported candidate occurrences; a canonical PART remains while at least one verified occurrence survives.
+- Show a separate, properly labelled bookmark checkbox beside each result row, but leave it **disabled** while bookmark storage, authorization and saved-list behavior are unsupported. Do not simulate saving, a checked persistence state or account authorization. When bookmark support exists, a bookmark toggle must never select a PART or alter stock filtering, model filtering or fitment.
+- Stock-only, VIN and normalized FIT/variation inputs constrain supported candidate occurrences; a canonical PART remains while at least one verified occurrence survives.
 - Context-only matches remain in the owning tree/range region. The results panel has explicit empty, no-match, stock-filtered-empty, unsupported, unavailable and error states and never fabricates a PART row.
-- The distinct right-hand Applicable Models panel derives available range choices from the current evidenced candidate context when no PART is selected; with one selected PART/context it becomes read-only and marks that PART's verified and unknown applicability without making an excluded range look suitable. **Approved target model filter:** one active normalized range at a time, combined with other active constraints. Until the required read path is implemented, keep unsupported controls disabled rather than falsely filtering.
+- The distinct right-hand Applicable Models panel derives available range choices from the current evidenced candidate context when no PART is selected; with one selected PART/context it becomes read-only and marks that PART's verified and unknown applicability without making an excluded range look suitable. **Model filter:** one active normalized range at a time, combined with other active constraints. When the required read path is unavailable, keep the control disabled rather than falsely filtering.
 
 ## Occurrence-first tree filtering
 
@@ -398,8 +358,8 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 
 Stock-quality presentation may additionally distinguish explicit stock-detail states such as classified, unclassified, unavailable/unresolved, and not included in current result presentation without changing canonical PART result identity.
 
-## Result distribution into merged Concept-11
-The #875 target distribution changes presentation while preserving search resolution, canonical identity and stock/catalogue boundaries.
+## Result distribution into Concept-11
+The target distribution changes presentation while preserving search resolution, canonical identity and stock/catalogue boundaries.
 
 ```text
 resolved identity/context or candidate set
@@ -415,7 +375,7 @@ resolved identity/context or candidate set
 Both selection surfaces share canonical PART selection. Tree leaves may additionally select a verified source occurrence; result rows must not guess an occurrence for a multi-occurrence PART. Bookmark state never changes selection, stock, fitment or filters. Match fragments are highlighted where visible and missing secondary evidence remains explicitly unavailable.
 
 ## Empty-search stock browsing
-The merged SVG states that when Search is empty, a supported Availability/quality constraint may update both the Parts Tree and Model Ranges to contexts represented by matching stock.
+The SVG contract states that when Search is empty, a supported Availability/quality constraint may update both the Parts Tree and Model Ranges to contexts represented by matching stock.
 
 That behavior is valid only when an approved stock/catalogue browse contract resolves stock through canonical catalogue/fitment relationships. The illustrated A–E stock qualities are not defined by the artwork itself.
 
@@ -441,7 +401,7 @@ PartSearchResult
   tree context                    # complete source path, language-qualified where relevant
   tree_part_leafs[]?              # clickable matching PART leaves under genuine branch/path ancestors
   result_list[]?                  # UI-derived canonical candidates, NOT new PART entities
-  bookmark_state?                 # deferred: no active bookmark state in current layout phase
+  bookmark_state?                 # absent while bookmark support is unavailable
   diagram/item context when available
   fitment/fit context when available
   model_range/body-style context when available
@@ -476,7 +436,7 @@ Cover at least:
 - all matching Parts Tree branches where matching PARTs occur, with matching PARTs presented as clickable last leaf nodes and without expanding unrelated child leaves;
 - multiple-PART search results with no default selected PART;
 - synchronized tree leaves and right-hand deduplicated PN/name result rows;
-- current-phase visible but disabled bookmark checkboxes that neither select a PART nor claim saved state; later-phase independent bookmark toggling when approved;
+- visible but disabled bookmark checkboxes that neither select a PART nor claim saved state; independent bookmark toggling only when bookmark support is available;
 - no multi-PART presentation inside the centre PART / Image / Status region;
 - PART / Image / Status showing one selected PART after either surface is used;
 - Model Ranges reflecting matched model/range/body-style context where available without special Coupe/Convertible behavior;
@@ -495,10 +455,10 @@ Cover at least:
 
 Fixture values are test data, not verified Jaguar catalogue facts.
 
-The legacy #875 TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST compatibility only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled current-phase bookmark placeholders and all results-panel states. Later activation/storage needs its own interaction tests.
+The legacy TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST compatibility only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled bookmark placeholders and all results-panel states. Bookmark storage, when supported, requires independent interaction coverage.
 
 ## Viewport and language
-The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search remains post-MVP #622.
+The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search is outside this reduced-MVP contract.
 
 ## Error/unavailable semantics
 - Missing context is not no PART.
@@ -515,40 +475,3 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Multiple PART matches are selectable as tree leaves and right-hand results rows. The centre selected-PART panel never presents multiple PARTs.
 - Multiple-PART search results do not select any PART by default.
 
-## Acceptance criteria
-- [x] Search/result states and canonical identity boundaries are documented.
-- [x] One primary query field supports deterministic part-number / identifier-first resolution with free-text fallback only after deterministic miss.
-- [x] Deterministic identifiers are defined and are not excluded from search; they are resolved first because their behavior is stricter than generic free-text matching.
-- [x] Reduced-MVP limited free-text search is required before #280 closure.
-- [x] Full multilingual/global free-text indexing/search remains post-MVP under #622.
-- [x] Default Parts Tree view shows first-level branches only.
-- [x] Selecting a Parts Tree branch shows all available next-level branches under that branch.
-- [ ] Multiple canonical search candidates are selectable as tree leaves and distinct right-hand results rows, without guessed selection.
-- [x] Multiple-PART search results do not select any PART by default.
-- [ ] Free-text candidates appear in #875 right-hand Search Results and clickable tree leaves over one shared selection state.
-- [x] PART / Image / Status shows exactly one selected PART and must not present many PARTs.
-- [x] Matching text fragments are highlighted where visible.
-- [x] `stock_filtered_empty` is distinct from a total `not_found` result and uses `No matching parts currently on stock.` wording.
-- [x] Search-path/match provenance may cross the API boundary without redefining canonical PART identity.
-- [x] Multiple EPC occurrences remain distinct from canonical PART identity.
-- [x] Part-number search can return every occurrence with its complete source tree path.
-- [x] Free-text PART matches show all matching Parts Tree branches where matching PARTs occur without expanding unrelated child leaves.
-- [x] Context-only free-text matches are shown through existing owning regions and do not fabricate PART selection.
-- [x] Catalogue/filter narrowing is occurrence-first; a PART remains while any occurrence survives.
-- [x] Catalogue-data language may select structurally different imported source trees without conflating them with UI i18n.
-- [x] Reduced-MVP free-text may search selected-language i18n text where it is part of the current searchable read path.
-- [x] Non-numbered fixture identifiers are not presented as Jaguar part numbers.
-- [ ] Search/Availability placement follows #875: right Search, left Availability, centre VIN/normalized variations.
-- [x] Reduced-MVP public `stock_only` filtering is defined over canonical PART candidates using operational STOCK availability plus positive quantity without redefining catalogue identity.
-- [ ] Result distribution follows #875: right Applicable Models, centre Location and one selected PART.
-- [x] Generic model/range/body-style free-text matches are reflected in Model Ranges where available, without special Coupe/Convertible behavior.
-- [x] Searchable stock text includes the current data-path stock fields specified for reduced-MVP free-text, without inventing an unspecified admin-only field taxonomy.
-- [x] Unsupported stock-driven empty-search behavior is not fabricated.
-- [x] UI-vs-Parts language separation is preserved.
-- [x] Presentation does not redefine the Parts Data Model.
-- [x] Normalized stock-quality codes A–E from `MODEL_STOCK.md` are the search/filter identity when stock-quality filtering is supported.
-- [x] Available-part quality presentation uses localized label/description resources and preserves code identity.
-- [x] The explicit `NULL` / unclassified quality state is represented without creating a sixth quality class.
-- [x] Static A–E explanatory presentation is required to consume the same i18n resource contract.
-- [x] Unavailable, unresolved and not-included stock-quality states are explicit and must not fabricate a confirmed classification.
-- [x] Catalogue/reference versus operational-stock separation is preserved through the search/result contract.
