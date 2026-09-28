@@ -26,7 +26,7 @@ const apiUrl = (path) => {
 };
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
 let currentData = null;
-let fitmentRows = [];
+let fitEvidenceRows = [];
 let visualItems = [];
 let requestVersion = 0;
 let selectedTreeNodeId = null;
@@ -35,11 +35,11 @@ let cachedBrowseData = null;
 let cachedCandidatesData = null;
 let pendingCandidateId = null;
 let viewMode = "empty";
-let suitabilitySelection = new Set();
-let suitabilityRequestVersion = 0;
-let suitabilityData = null;
-let suitabilityError = null;
-let suitabilityMatchingIds = null; // Null means the source-backed filter is unavailable.
+let fitSelections = new Set();
+let fitRequestVersion = 0;
+let fitData = null;
+let fitError = null;
+let fitMatchingPartIds = null; // Null means the source-backed filter is unavailable.
 
 
 const BROWSE_RANGE_LABELS = Object.freeze([
@@ -54,7 +54,7 @@ function renderBrowseRangeIndex() {
       `<li><label><input type="checkbox" disabled aria-describedby="rangeBrowseNote"
         data-browse-range-index="${index}"> ${escapeHtml(label)}</label></li>`).join("")}</ul>`;
 }
-function renderApplicableState(state) {
+function renderFitRangeState(state) {
   const message = state === "error" ? t("ranges.error")
     : state === "no_match" ? t("ranges.no_match")
     : t("ranges.unavailable");
@@ -320,42 +320,42 @@ function candidateLeaves(data) {
 
 
 function visibleCandidates(parts = []) {
-  if (!suitabilitySelection.size || suitabilityMatchingIds === null) return parts;
-  return parts.filter((part) => suitabilityMatchingIds.has(String(part.id)));
+  if (!fitSelections.size || fitMatchingPartIds === null) return parts;
+  return parts.filter((part) => fitMatchingPartIds.has(String(part.id)));
 }
 
-function showSuitability() {
+function renderFitOptions() {
   const panel = $("variationOptions"), status = $("variationsStatus");
   if (!panel || !status) return;
-  if (!suitabilityData || !Array.isArray(suitabilityData.categories)) {
+  if (!fitData || !Array.isArray(fitData.categories)) {
     if (panel.dataset) panel.dataset.currentQuery = "";
     panel.innerHTML = "";
-    status.className = suitabilityError ? "error status-line" : "muted status-line";
-    status.textContent = suitabilityError === "real_suitability_data_missing"
-      || suitabilityError === "real_suitability_data_incomplete"
+    status.className = fitError ? "error status-line" : "muted status-line";
+    status.textContent = fitError === "real_suitability_data_missing"
+      || fitError === "real_suitability_data_incomplete"
         ? t("suitability.real_data_missing")
-      : suitabilityError === "range_unavailable"
+      : fitError === "range_unavailable"
         ? t("suitability.real_range_missing")
-      : suitabilityError === "test_fixture_data_missing"
-        || suitabilityError === "test_fixture_data_incomplete"
+      : fitError === "test_fixture_data_missing"
+        || fitError === "test_fixture_data_incomplete"
         ? t("suitability.test_data_missing")
-      : suitabilityError
-        ? t("suitability.data_error", { code: suitabilityError })
+      : fitError
+        ? t("suitability.data_error", { code: fitError })
         : t("suitability.unavailable");
     return;
   }
   status.className = "muted status-line";
-  if (panel.dataset) panel.dataset.currentQuery = suitabilityData.query || "";
+  if (panel.dataset) panel.dataset.currentQuery = fitData.query || "";
   const locale = i18n?.language || "en";
-  const availableOptions = new Set(suitabilityData.available_options || []);
+  const availableOptions = new Set(fitData.available_options || []);
   // Keep normalized category identities separate even when translated names match.
   // Alphabetize categories; retain checked-first alphabetical ordering within each.
-  const groups = suitabilityData.categories.map((category) => ({
+  const groups = fitData.categories.map((category) => ({
     ...category,
     values: (category.values || []).filter((value) =>
-      availableOptions.has(value.id) || suitabilitySelection.has(value.id)).map((value) => ({
+      availableOptions.has(value.id) || fitSelections.has(value.id)).map((value) => ({
       ...value,
-      selected: suitabilitySelection.has(value.id),
+      selected: fitSelections.has(value.id),
       available: availableOptions.has(value.id),
     })).sort((a, b) => Number(b.selected) - Number(a.selected)
       || a.name.localeCompare(b.name, locale) || a.id.localeCompare(b.id)),
@@ -368,59 +368,59 @@ function showSuitability() {
       const source = item.source_descriptions || [];
       const title = source.map((s) => `${s.original_text} [${s.language}; ${s.source_namespace}; ${s.locator}]`).join(" · ");
       return `<label class="variation-choice" title="${escapeHtml(title)}">
-        <input type="checkbox" data-suitability-facet="${escapeHtml(item.id)}"
+        <input type="checkbox" data-fit-facet="${escapeHtml(item.id)}"
           aria-describedby="variationsStatus" ${item.selected ? "checked" : ""}
           ${!item.selected && !item.available ? "disabled" : ""}>
         <span>${escapeHtml(item.name)}</span>
       </label>`;
     }).join("")}</div>
   </fieldset>`).join("");
-  const matching = suitabilityData.matches?.length || 0;
+  const matching = fitData.matches?.length || 0;
   status.textContent = !groups.length ? t("suitability.no_options")
-    : suitabilityData.state === "unavailable" && matching === 0
+    : fitData.state === "unavailable" && matching === 0
       ? t("suitability.incomplete")
-      : suitabilitySelection.size && matching === 0 ? t("suitability.no_matches")
-      : t(suitabilityData.fixture_mode ? "suitability.fixture_count"
+      : fitSelections.size && matching === 0 ? t("suitability.no_matches")
+      : t(fitData.fixture_mode ? "suitability.fixture_count"
         : "suitability.real_count", { count: matching });
 }
 
-async function refreshSuitability(query, stockOnly, mainVersion = requestVersion) {
-  const version = ++suitabilityRequestVersion;
+async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion) {
+  const version = ++fitRequestVersion;
   if (typeof URLSearchParams !== "function") {
-    suitabilityMatchingIds = null;
-    suitabilityData = null;
-    showSuitability();
+    fitMatchingPartIds = null;
+    fitData = null;
+    renderFitOptions();
     return;
   }
   const params = new URLSearchParams({
     q: query || "", stock_only: stockOnly ? "1" : "0",
     ui_language: i18n?.language || "en",
   });
-  for (const id of suitabilitySelection) params.append("facet", id);
+  for (const id of fitSelections) params.append("facet", id);
   try {
-    const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
+    // Compatibility boundary: legacy public API path remains until the coordinated API migration.\n    const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
     const data = await response.json();
-    if (version !== suitabilityRequestVersion || mainVersion !== requestVersion) return;
+    if (version !== fitRequestVersion || mainVersion !== requestVersion) return;
     if (!response.ok || !Array.isArray(data?.categories)
         || data.fixture_mode !== isTestMode()) {
       // Never disguise missing real data as an empty list or fall back to fixtures.
-      suitabilityError = data?.error_code || "suitability_mode_mismatch";
-      suitabilityData = null;
-      suitabilityMatchingIds = null;
-      showSuitability();
+      fitError = data?.error_code || "fit_mode_mismatch";
+      fitData = null;
+      fitMatchingPartIds = null;
+      renderFitOptions();
       return;
     }
-    suitabilityError = null;
-    suitabilityData = data;
-    suitabilityMatchingIds = new Set((data.matches || []).map((m) => String(m.part_id)));
-    showSuitability();
+    fitError = null;
+    fitData = data;
+    fitMatchingPartIds = new Set((data.matches || []).map((m) => String(m.part_id)));
+    renderFitOptions();
     if (viewMode === "candidates" && cachedCandidatesData) {
       renderPartCandidates(cachedCandidatesData);
-      $("searchStatus").textContent = suitabilitySelection.size
+      $("searchStatus").textContent = fitSelections.size
         ? t("suitability.result_count", { count: visibleCandidates(cachedCandidatesData.matches || []).length })
         : t("search.multiple_matches", { count: cachedCandidatesData.matches?.length || 0 });
-    } else if (viewMode === "resolved" && currentData && suitabilitySelection.size) {
-      if (!suitabilityMatchingIds.has(String(currentData.part?.id))) {
+    } else if (viewMode === "resolved" && currentData && fitSelections.size) {
+      if (!fitMatchingPartIds.has(String(currentData.part?.id))) {
         // A selected canonical PART cannot remain selected outside the
         // surviving occurrence-backed candidate set.
         if (cachedCandidatesData) {
@@ -436,23 +436,23 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
       }
     }
   } catch {
-    if (version === suitabilityRequestVersion && mainVersion === requestVersion) {
-      suitabilityError = "suitability_request_failed";
-      suitabilityData = null;
-      suitabilityMatchingIds = null;
-      showSuitability();
+    if (version === fitRequestVersion && mainVersion === requestVersion) {
+      fitError = "fit_request_failed";
+      fitData = null;
+      fitMatchingPartIds = null;
+      renderFitOptions();
     }
   }
 }
 
 // Invalidate source-backed results, never an independently chosen FIT constraint.
 // A new query, root browse or Stock change will fetch the fresh candidate universe.
-function invalidateSuitabilityView() {
-  ++suitabilityRequestVersion;
-  suitabilityData = null;
-  suitabilityError = null;
-  suitabilityMatchingIds = null;
-  showSuitability();
+function invalidateFitView() {
+  ++fitRequestVersion;
+  fitData = null;
+  fitError = null;
+  fitMatchingPartIds = null;
+  renderFitOptions();
 }
 
 function renderSearchResults(parts = [], selectedId = null) {
@@ -552,7 +552,7 @@ function renderVisuals(images, diagrams) {
 
 function renderSelectedRange() {
   const code = $("rangeSelect").value;
-  const rangeRows = fitmentRows.filter((item) => item.range_code === code);
+  const rangeRows = fitEvidenceRows.filter((item) => item.range_code === code);
   const selected = rangeRows.filter((item) => item.applicability_state === "applicable");
   const range = selected[0];
   $("locationStatus").textContent = range
@@ -572,18 +572,18 @@ function renderSelectedRange() {
     </table></div>` : empty(t(variationStateKey));
 }
 
-function renderFitment(fitment, declaredState = null) {
+function renderFitRangeEvidence(fitment, declaredState = null) {
   // Consume only positive assertions returned by the approved PART read path.
   // The 13 synthetic browse labels never enter this selected-PART result.
-  fitmentRows = Array.isArray(fitment) ? fitment : [];
-  const applicable = fitmentRows.filter((item) =>
+  fitEvidenceRows = Array.isArray(fitment) ? fitment : [];
+  const verifiedFits = fitEvidenceRows.filter((item) =>
     item.applicability_state === "applicable" && item.range_code && item.range_name);
-  const ranges = [...new Map(applicable.map((item) => [item.range_code, item])).values()];
-  const error = declaredState === "error" || fitmentRows.some((item) => item.applicability_state === "error");
-  const unavailable = !fitmentRows.length || declaredState === "unavailable"
-    || fitmentRows.some((item) => item.applicability_state === "unavailable");
+  const ranges = [...new Map(verifiedFits.map((item) => [item.range_code, item])).values()];
+  const error = declaredState === "error" || fitEvidenceRows.some((item) => item.applicability_state === "error");
+  const unavailable = !fitEvidenceRows.length || declaredState === "unavailable"
+    || fitEvidenceRows.some((item) => item.applicability_state === "unavailable");
   const confirmedNoMatch = declaredState === "no_match"
-    || (fitmentRows.length > 0 && fitmentRows.every((item) =>
+    || (fitEvidenceRows.length > 0 && fitEvidenceRows.every((item) =>
       ["excluded", "no_match"].includes(item.applicability_state)));
 
   const emptyState = error ? "error" : confirmedNoMatch ? "no_match" : "unavailable";
@@ -618,12 +618,12 @@ function renderResolvedData(data) {
   });
   renderSearchResults(cachedCandidatesData?.matches || [data.part], data.part?.id);
   renderVisuals(data.images || [], data.diagrams || []);
-  renderFitment(data.fitment, data.fitment_state);
+  renderFitRangeEvidence(data.fitment, data.fitment_state);
 }
 
 function resetContext(messageKey = "part.no_part_selected") {
   currentData = null;
-  fitmentRows = [];
+  fitEvidenceRows = [];
   visualItems = [];
   const message = t(messageKey);
   $("partCard").innerHTML = empty(message);
@@ -725,7 +725,7 @@ function setupViepsUi() {
     control.addEventListener("click", () => {
       i18n?.changeLanguage(control.dataset.language);
       refreshForLanguageChange();
-      void refreshSuitability($("partNumber").value.trim(),
+      void refreshFitOptions($("partNumber").value.trim(),
         Boolean($("availabilitySelect").checked));
     });
   });
@@ -738,12 +738,12 @@ function setupViepsUi() {
     void browseTree(null);
   });
   $("variationOptions")?.addEventListener("change", (event) => {
-    const id = event.target?.dataset?.suitabilityFacet;
+    const id = event.target?.dataset?.fitFacet;
     if (!id) return;
-    if (event.target.checked) suitabilitySelection.add(id);
-    else suitabilitySelection.delete(id);
+    if (event.target.checked) fitSelections.add(id);
+    else fitSelections.delete(id);
     // The API recomputes facets from the same current search/stock universe.
-    void refreshSuitability($("partNumber").value.trim(),
+    void refreshFitOptions($("partNumber").value.trim(),
       Boolean($("availabilitySelect").checked));
   });
   $("rangeSelect").addEventListener("change", renderSelectedRange);
@@ -761,7 +761,7 @@ function setupViepsUi() {
       cachedCandidatesData = null;
       viewMode = "empty";
       renderTree([], { roots: data.roots || [] });
-      void refreshSuitability("", Boolean($("availabilitySelect").checked), version);
+      void refreshFitOptions("", Boolean($("availabilitySelect").checked), version);
       $("searchStatus").textContent = data.stock_browse_state === "unsupported"
         ? t("tree.no_selection", { message: searchPrompt() }) : searchPrompt();
     } catch (error) {
@@ -770,8 +770,8 @@ function setupViepsUi() {
       $("tree").innerHTML = empty(localizeError(error, "tree.browse_error"));
       $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
-      // Report a missing real Suitability source even when root loading failed.
-      void refreshSuitability("", Boolean($("availabilitySelect").checked), version);
+      // Report a missing real FIT source even when root loading failed.
+      void refreshFitOptions("", Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }
@@ -784,12 +784,12 @@ function setupViepsUi() {
     cachedBrowseData = null;
     cachedCandidatesData = null;
     viewMode = "empty";
-    suitabilityMatchingIds = null;
+    fitMatchingPartIds = null;
     resetContext();
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
     if (!$("partNumber").value.trim()) {
-      invalidateSuitabilityView();
+      invalidateFitView();
       clearSelectionUrl();
       void loadRootBrowse(version);
     } else {
@@ -800,7 +800,7 @@ function setupViepsUi() {
 
   const browseTree = async (nodeId = null, options = {}) => {
     const version = ++requestVersion;
-    invalidateSuitabilityView(); // Preserve FIT selections; this tree context has no source-qualified FIT read yet.
+    invalidateFitView(); // Preserve FIT selections; this tree context has no source-qualified FIT read yet.
     resetContext();
     viewMode = "empty";
     $("searchStatus").className = "muted status-line";
@@ -840,8 +840,8 @@ function setupViepsUi() {
   const submitSearch = async (event) => {
     event.preventDefault();
     const version = ++requestVersion;
-    ++suitabilityRequestVersion; // Invalidate late responses for the previous query.
-    suitabilityMatchingIds = null; // Never apply the previous query's matches.
+    ++fitRequestVersion; // Invalidate late responses for the previous query.
+    fitMatchingPartIds = null; // Never apply the previous query's matches.
     const partNumber = $("partNumber").value.trim();
     const candidateId = pendingCandidateId;
     const preservedCandidates = candidateId ? cachedCandidatesData : null;
@@ -853,7 +853,7 @@ function setupViepsUi() {
     $("searchStatus").className = "muted status-line";
     if (!partNumber) {
       selectedTreeNodeId = null;
-      invalidateSuitabilityView();
+      invalidateFitView();
       clearSelectionUrl();
       await loadRootBrowse(version);
       return;
@@ -870,24 +870,24 @@ function setupViepsUi() {
         viewMode = "candidates";
         renderPartCandidates(data);
         $("searchStatus").textContent = t("search.multiple_matches", { count: data.matches?.length || 0 });
-        void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked), version);
+        void refreshFitOptions(partNumber, Boolean($("availabilitySelect").checked), version);
         return;
       }
       cachedRootData = { roots: data.tree_roots || cachedRootData?.roots || [] };
       viewMode = "resolved";
       renderResolvedData(data);
       $("searchStatus").textContent = t("search.resolved");
-      void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked), version);
+      void refreshFitOptions(partNumber, Boolean($("availabilitySelect").checked), version);
     } catch (error) {
       if (version !== requestVersion) return;
       resetContext("part.no_part_resolved");
       renderTree([], { roots: cachedRootData?.roots || [] });
-      if (String(error?.message || "") !== "part not found") renderApplicableState("error");
+      if (String(error?.message || "") !== "part not found") renderFitRangeState("error");
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
       // A failed real catalogue lookup must also surface the Suitability
       // provider's explicit error rather than leave the filter uninitialized.
-      void refreshSuitability(partNumber, Boolean($("availabilitySelect").checked), version);
+      void refreshFitOptions(partNumber, Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }
