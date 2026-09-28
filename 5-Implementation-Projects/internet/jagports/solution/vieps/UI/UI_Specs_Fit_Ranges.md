@@ -1,6 +1,6 @@
 # VIEPS UI — Applicable Models / Fit Model Ranges contract
 
-**Status:** #875 layout merged; source-derived Range browse refinement in #949; advanced OR filter deferred  
+**Status:** #875 layout merged; source-derived Range browse refinement in #949; superseding single-range filter target documented, runtime evidence gate remains  
 **Controlling UI issue:** #468  
 **Enhancement:** #875  
 **Priority issue:** #477  
@@ -17,13 +17,13 @@ This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detai
 
 The right column places independently scrollable **Applicable Models** below the independently scrollable **Search Results PART List**.
 
-- **No PART selected:** show only source-derived Ranges backed by persisted imported JEPC Model-to-Range relations and approved public browse evidence. If the import or relationships are not yet available, show a truthful empty/unavailable state. Existing temporary browse-test labels in deployed code are a compatibility fixture, not production authority; remove them when the source-backed read contract replaces them.
-- **One canonical PART selected, verified context available:** display only the model/range combinations supported as applicable by the approved occurrence/application/fitment evidence for that PART and the selected vehicle/context constraints. Preserve qualifiers, exclusions and provenance.
+- **No PART selected:** show source-derived Ranges represented by current evidenced browse/search candidates, backed by persisted JEPC Model-to-Range relations and approved public browse evidence. Initial empty-Find browse can include all supported browsable candidate ranges. Displaying a range is not selecting its filter. If evidence is unavailable, show a truthful empty/unavailable state; existing static browse labels are TEST compatibility only.
+- **One canonical PART selected:** the panel becomes read-only. Preserve evidenced available context options where backed by current results; illuminate only the PART's verified applicable ranges, leave evidenced nonmatching options unlit and display a yellow unknown warning for unresolved applicability. Never render a confirmed exclusion as a positive fit; preserve qualifiers, exclusions and provenance.
 - **One canonical PART selected, several source occurrences:** do not combine different occurrence-specific evidence into an invented universal fitment. Ask for context when needed, or show distinct verified contexts with their evidence.
 - **Insufficient or unresolved evidence:** display `unavailable`, not a positive fitment claim. A confirmed nonmatch is `no_match`; a service or processing failure is `error`.
 - **Explicitly excluded ranges:** never present them as fitting choices. Preserve their exclusion evidence in the supported detail/diagnostic view when appropriate.
 
-The browse index and the selected-PART applicable set are different UI states. A checked browse filter is not itself a verified fitment indicator.
+The browse/filter options and selected-PART applicable facts are different UI states over the same panel. Displayed availability is not a filter selection, and an explicit range filter is not itself evidence that any selected PART fits it. See the shared interaction rules in [Part Search](../SPEC/UI_Part_Search.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28).
 
 ## Source-derived Range browse and test isolation
 
@@ -35,9 +35,9 @@ JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are 
 
 ## Filter controls and coordinated state
 
-**Approved #875 interaction:** select multiple normalized model/range identities with **ANY (OR)** semantics. A canonical PART qualifies when **at least one surviving verified source occurrence** is positively applicable to **at least one selected range**, while satisfying all other active supported constraints. Multiple chosen ranges widen this one dimension; they do not negate VIN, stock or normalized variation constraints. When no ranges are checked, the range filter imposes no constraint. Explicit exclusions and unresolved/unavailable evaluation are never positive matches.
+**Superseding approved interaction (2026-09-28):** select **at most one** normalized model/range identity at a time. Competing ranges are hidden while selected, then restored from the current evidenced search context when cleared. Combine the active range with Find, VIN, Stock, branch and FIT group constraints. New Find submissions preserve the selected range. Only verified positive occurrences qualify as verified matches; otherwise eligible unknown-applicability PARTs appear under separate unresolved candidates with warnings, not as verified fits. Explicitly incompatible PARTs are excluded.
 
-**Phase split:** the merged #875 increment installed the right-hand Applicable Models layout and retained a temporary browse-only compatibility fixture. The next source-backed implementation must replace that fixture with imported JEPC Model–Range relations. Advanced multi-range filtering requires its approved read adapter and tests and is deferred. A visible filter that cannot yet work must be disabled with an accessible explanation; it must not silently pretend to apply the OR rule.
+**Phase split:** the merged #875 increment installed the right-hand Applicable Models layout and retained a temporary browse-only compatibility fixture. The next source-backed implementation must replace that fixture with imported JEPC Model–Range relations. Single-range filtering and the shared read-only selected-PART interaction require the approved read adapter and tests and remain unimplemented where unavailable. A visible filter that cannot yet work must be disabled with an accessible explanation; it must not silently pretend to apply the OR rule.
 
 The centre-top Fit / Variations filter consumes the normalized #641 categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
 
@@ -50,7 +50,7 @@ ApplicableModelsRequest
   canonical_part_id?         # absent means browse/index mode
   occurrence_context_id?
   vehicle_context?
-  selected_range_ids[]?     # future enabled filter: several normalized IDs; ANY/OR; [] = unconstrained
+  selected_range_id?         # future enabled filter: zero or one normalized ID; absent = unconstrained
   approved_variation_filters?
   stock_constraint?         # only where stock/catalogue browse is supported
 
@@ -58,7 +58,7 @@ ApplicableModelsResult
   state                     # browse | applicable | no_match | unavailable | error
   browse_ranges[]?          # source-derived explicit Model–Range index; test fixtures isolated
   applicable_ranges[]?      # verified selected-PART/context matches only
-  selected_range_ids[]?     # future enabled filter; do not expose an effective filter before support
+  selected_range_id?         # future enabled filter; do not expose an effective filter before support
   qualifiers[]?
   exclusions[]?
   evidence/provenance?
@@ -85,9 +85,9 @@ VIN evaluation and VIN-range reconstruction are governed by #478 and approved so
 - [ ] Source-derived browse returns only explicitly linked imported Model/Range identities; before import or assignment, report empty/unavailable and never infer membership from fixture labels.
 - [ ] A selected PART/context shows only verified applicable ranges; explicit exclusions do not appear as suitable.
 - [ ] Multi-occurrence results preserve separate context/evidence rather than inventing combined positive fitment.
-- [ ] Browse filters and verified fitment indicators remain semantically distinct.
-- [x] Product Owner approved multiple model-range selection with ANY/OR combination and no constraint when none is selected.
-- [ ] Advanced ANY/OR filtering remains deferred until the approved occurrence-level read path and tests are implemented; unsupported controls are visibly disabled.
+- [ ] Browse filters, available-option indicators and read-only selected-PART verified/unknown fitment indicators remain semantically distinct.
+- [ ] Product Owner superseded multiple-range ANY/OR with a single active Range filter; no selection means unconstrained.
+- [ ] Single-range filtering remains disabled wherever the approved occurrence-level read path/tests do not support it.
 - [ ] `no_match`, `unavailable` and `error` remain distinct.
 - [ ] Visible current-phase bookmark checkboxes are disabled; later saved bookmarks remain independent of range filtering, PART selection, availability and fitment.
 - [ ] Deterministic fixture, accessibility, language and internal scrolling tests are specified.
