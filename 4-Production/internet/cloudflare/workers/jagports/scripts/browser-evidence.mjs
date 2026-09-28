@@ -1,5 +1,5 @@
 // #891: browser-rendered evidence for the merged #888 interface.
-// Static built UI isolates layout/interaction behavior from live STOCK or catalogue data.
+// Static built UI isolates layout/interaction behavior from STOCK or catalogue data.
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
@@ -677,7 +677,7 @@ try {
       await realPage.locator("#variationsStatus.error").waitFor();
       assert.match(await realPage.locator("#variationsStatus").textContent(),
         /real Range database is unavailable|Oikean mallisarjan tietokantaa ei ole saatavilla/i,
-        "missing live Range must also show an explicit Suitability error");
+        "missing Range must also show an explicit Suitability error");
       assert.equal(await realPage.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "real mode must hide fixture help");
       assert.equal(await realPage.locator("#realModeHelp").evaluate((node) => node.hidden), false,
@@ -764,7 +764,7 @@ try {
           "without #954, deployed real mode must fail explicitly, never expose fixture data");
         await deployed.locator("#searchStatus.error").waitFor();
       } else {
-        assert.equal(result.status(), 200, "reviewed live Range must return sourced roots");
+        assert.equal(result.status(), 200, "reviewed Range must return sourced roots");
         const tree = await result.json();
         assert.ok(Array.isArray(tree.roots) && tree.roots.length > 0,
           "deployed real catalogue needs sourced roots");
