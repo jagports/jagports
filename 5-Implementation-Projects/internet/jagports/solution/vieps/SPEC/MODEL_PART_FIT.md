@@ -1,10 +1,10 @@
 # PART fit requirements
 
-## Status and scope
+## Scope
 
-Refinement and additive persistence implementation for review. This document specifies the required domain behavior, the logical relationships and the implemented persistence subset. The schema does not constitute an approved source translator or fitment evaluator.
+This document defines FIT domain behavior, logical relationships and the persistence contract. The persistence schema is evidence storage; it is not by itself a source translator or fitment evaluator.
 
-Canonical PART identity, occurrence identity, catalogue/stock separation and existing evidence remain intact. The first implementation scope is the selected XK source model `3187`. Additional models require their own mapping validation. Full VIN decoding, hotspot conversion, stock workflows and multilingual user interfaces are outside this refinement.
+Canonical PART identity, occurrence identity, catalogue/stock separation and source evidence remain intact. Source-qualified examples use observed XK contexts, but FIT semantics are not limited to one model. Full VIN decoding, hotspot conversion, stock workflows and multilingual presentation are separate domains.
 
 The production model must answer both vehicle-context-to-PART and PART-to-applicable-context queries using the same relationships. JEPC catalogue/tree paths are retained as first-class occurrence/browse context and source evidence. VIEPS may browse and filter occurrences through that preserved tree, but must not treat the source navigation tree itself as the Boolean fit evaluator; verified fit still comes from the occurrence-bound rules, predicates and context described here.
 
@@ -86,7 +86,7 @@ One observed X100 example has the tree ancestry `main floor → RH → Coffee �
 
 Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display descriptions in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
 
-## Admin-curated semantic categories and source-description mapping (#877)
+## Admin-curated semantic categories and source-description mapping
 
 A normalized fit category is a stable domain identifier backed by the existing `fit_dimension` and `fit_dimension_value` relations. It is not a JEPC navigation category or a display string.
 
@@ -102,13 +102,13 @@ The mapping relation is additive and versioned:
 
 There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
 
-The pre-import fixture is limited to source-shaped test records: each fixture description has a stable synthetic source namespace, dataset, language, locator and mapped normalized ID. It proves the read shape and localization behavior only. It cannot be treated as a JEPC condition or published catalogue fitment. When #355 imports JEPC descriptions, it replaces the fixture provider while retaining normalized IDs and API field names.
+The pre-import fixture is limited to source-shaped test records: each fixture description has a stable synthetic source namespace, dataset, language, locator and mapped normalized ID. It proves the read shape and localization behavior only. It cannot be treated as a JEPC condition or published catalogue fitment. When imported JEPC descriptions are available, the imported provider replaces the fixture provider while retaining normalized IDs and API field names.
 
 The approved initial fixture vocabulary is Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats. Coexistence of the two seat descriptions is a source-data fact to preserve in one occurrence when JEPC source records support it. This specification does not introduce a new condition operator, set-membership schema or inferred evaluator for it.
 
 ### Public facet read boundary
 
-The #641 filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
+The public FIT filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
 
 Facet counts and selectable values come from the surviving occurrence universe under active search, stock, model and other filters. A selected zero-result value remains visible as selected but is not offered as an additional choice. The fixture and imported providers share the same endpoint and payload, while fixture data is opt-in and visibly marked.
 
@@ -215,21 +215,13 @@ If a unique logical occurrence mapping cannot be established, quarantine the unr
 
 Reprocessing replaces/supersedes the complete derived assertion set for the affected source scope atomically, retaining prior evidence. It must remove stale active relationships as well as upsert current ones. Preserve stable existing entity IDs; do not append duplicates on rerun. Missing or failed source files cannot imply deleted fit until the relevant discovery/reconciliation scope is known complete.
 
-### Current model gaps and migration obligations
+### Persistence evolution
 
-| Current representation | Required refinement |
-|---|---|
-| `part_model_range` and `part_vin_range` are independent PART-level links. | Existing VIN records can store complete derived intervals/discriminators, but the links do not identify which occurrence supplied each pairing. Bind the resulting model/serial/attribute assertions to occurrences. Keep existing links as evidence/navigation summaries until their scope is reconciled. |
-| No dedicated source model context relation. | Preserve source model/subrange/market identity and explicit canonical mapping without forcing a full global vehicle ontology. |
-| `vin_range` requires nonblank prefix/start/end. | Reuse it for effective intervals when all required fields are established from source plus inherited model evidence. Preserve one-sided source predicates and derivation separately; incomplete cases remain unresolved. A mandatory redesign solely because an item record has one endpoint is not justified. Review how to represent established serial intervals lacking a VIN prefix without inventing one. |
-| Flat occurrence `part_fitment` rows have no combination/group identity. | Represent complete alternatives and typed predicates; do not infer their grouping from row order. |
-| Fitment uniqueness excludes evidence reference and collapses equal tuples. | Preserve evidence multiplicity and set membership separately from semantic predicate deduplication. |
-| `applicable` is a stored default; missing scope/completeness is not modeled. | Explicit verification/coverage and evaluation results; never backfill positive truth from a default. |
-| Source/raw/derived values and release history lack a complete shared contract. | Link versioned evidence to interpretations and replace derived sets atomically. |
+Persistence changes must preserve stable PART/occurrence identities, raw source evidence, stock references and unresolved semantics. Existing rows without enough grouping or evidence remain unresolved rather than being promoted to verified FIT. Fixtures and UI examples are never promoted to verified source assertions.
 
-Use a new controlled migration; do not rewrite already applied migrations. Preserve existing IDs, raw fitment rows, legacy range qualifiers and stock references. Existing rows without enough grouping/evidence remain unresolved. Fixtures and UI examples must not be promoted to verified source assertions. Keep API compatibility through a documented adapter until consumers support grouped results.
+Applied migrations are immutable records. Forward persistence changes must not reinterpret historical source evidence in place.
 
-## Acceptance examples
+## Evaluation examples
 
 The three airbag cases and headlamp case below are observed source examples; the other combinations are deliberately synthetic requirement fixtures, not additional Jaguar facts.
 
@@ -250,15 +242,13 @@ The three airbag cases and headlamp case below are observed source examples; the
 | Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; history retained; stale active claims removed only under verified reconciliation. |
 | Two languages describe the same source application | One canonical PART. Preserve each language-specific source path/tree independently when structure differs; reconcile a shared logical occurrence only when deterministic source identity/correspondence is established. |
 
-Before implementing production transformation, review the persistence subset below and establish the source identity mapping, approved initial comparator and attribute mappings. Importer validation must exercise the complete selected bundle (menu, top-level and application evidence), not only these isolated examples. Unknown patterns can remain quarantined while verified subsets progress.
+Source transformation must establish source identity, comparator and attribute mappings from complete selected-bundle evidence. Unknown patterns remain unresolved/quarantined rather than being inferred from isolated examples.
 
-This specification and schema do not certify production JEPC equivalence, authorize deployment or resolve hotspot conversion.
+## Persistence contract
 
-## Implemented persistence contract
+The persisted source-evidence graph uses the relations below. Physical `applicability_*`, `occurrence_applicability` and `part_fitment.applicability_state` identifiers are storage/source-evidence names; active application terminology is FIT.
 
-The following dictionary records physical tables created by the historical migrations, not proposed Fit renames. Migration `0021_fit_contract_aliases.sql` exposes a limited set of **read-only** `fit_*` views for dimensions, source descriptions, mapping history, labels, retirement and audit. Other persisted source-evidence graph tables and `part_fitment.applicability_state` retain their identifiers until a separately approved migration or adapter changes them.
-
-Migration `0016_occurrence_applicability.sql` adds the following relations without changing or backfilling existing PART, occurrence, VIN, fitment or stock data. Standalone IDs are integer primary keys; all ownership/evidence IDs below are real foreign keys. Every FK uses restrictive deletion so referenced source history cannot silently disappear. Versioned imports must insert new snapshots/contexts and switch snapshots transactionally; in-place mutation of published evidence or meaning is not a supported import operation.
+Standalone IDs are integer primary keys; all ownership/evidence IDs below are real foreign keys. Every FK uses restrictive deletion so referenced source history cannot silently disappear. Versioned imports insert new snapshots/contexts and switch snapshots transactionally; in-place mutation of published evidence or meaning is not supported.
 
 | Relation | Fields and meaning |
 |---|---|
@@ -287,10 +277,10 @@ For a changed bundle, stage a new snapshot and its complete derived graph in a t
 
 Contexts, ranges and vocabulary entries referenced by historical snapshots must be versioned/reused according to evidence; do not edit their meaning in place during reprocessing. SQL prevents deleting referenced rows but does not enforce an append-only audit policy against arbitrary direct SQL updates. A production importer/writer must implement this policy and source dependency reconciliation; this schema does not claim that tool exists.
 
-### Internal read contract and compatibility
+### Internal read contract
 
 `src/fit.js` exports `readPartFit(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
 
 The response always declares `evaluation: unavailable`, `reason: evidence_only_no_evaluator`, and `catalogue_coverage: not_established`. Stored verification and coverage claims are returned separately. This internal reader is not routed to an HTTP endpoint and does not change the existing VIEPS API/UI contract. It cannot certify complete catalogue coverage, interpret serials, resolve conflicts or determine fitment. Reverse context lookup is supported by the context index and occurrence relationship; a public vehicle-to-PART evaluator is not implemented here.
 
-The test fixture distinguishes observed source-inspired IDs from synthetic mapping/coverage claims. Tests exercise additive upgrade preservation, every FK column, uniqueness, separate alternatives and paths, scalar dimension membership, endpoint states, domain consistency, failed transaction rollback, active snapshot replacement, retained history and indexed queries. These storage tests do not replace the source-to-vehicle evaluation acceptance examples above.
+Fixture evidence must distinguish observed source-inspired IDs from synthetic mapping/coverage claims. Storage validation must cover ownership/FK integrity, uniqueness, separate alternatives and paths, scalar dimension membership, endpoint states, domain consistency, atomic snapshot replacement, retained history and indexed queries. Storage validation does not replace the source-to-vehicle evaluation examples above.
