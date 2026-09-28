@@ -14,7 +14,6 @@ Mutable operational stock remains separate from canonical `PART` / JEPC catalogu
 | [`MODEL_PART_THIRD_PARTY.md`](MODEL_PART_THIRD_PARTY.md) | Third-party/vendor references and Jagports specified PART identity rules. |
 | [`SPEC_SEARCH.md`](SPEC_SEARCH.md) | User-facing search controls and available-part presentation. |
 | [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md) | Operational stock create/edit workflow and validation UI. |
-| [`../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md`](../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md) | D1 database creation/migration execution and environment verification procedure. |
 
 ## Stock/catalogue separation
 
@@ -50,23 +49,11 @@ One `PART` may have multiple independent stock records.
 
 Stock does not assign a distinct persistent identity to every physical unit. `quantity` is the integer count of physical items represented by the stock record.
 
-## Native D1 persistence contract
+## Persistence boundary
 
-For the native VIEPS MVP path, `stock_item` and its supporting STOCK tables are persisted in Cloudflare D1 through the Worker `DB` binding.
+Operational STOCK persistence may be physically co-located with catalogue/reference data, but physical storage does not merge domain ownership: mutable STOCK facts remain operational data and canonical PART/JEPC facts remain reference data.
 
-The current D1 database may physically contain both catalogue/reference tables and operational STOCK tables. Physical co-location does not merge their domain ownership: mutable STOCK facts remain operational data and canonical PART/JEPC facts remain reference data.
-
-The executable schema authority is the ordered reviewed SQL migration chain under:
-
-`4-Production/internet/cloudflare/workers/jagports/migrations/`
-
-This document defines stock semantics; it must not become a second hand-maintained DDL source. An already-applied migration is not rewritten to change current semantics. A schema or integrity change is introduced by a new reviewed migration.
-
-A clean local/test database is reproducible from an empty target by applying the complete ordered migration chain. Local, preview and production D1 targets have independent state and migration ledgers; evidence from one environment must not be claimed for another.
-
-Repository fixture and seed data may prove schema and application behavior, but synthetic fixture rows are not real Jagports inventory. The repository-controlled `jagports-parts.xlsx` plus `jagports-parts-stock.xlsx` linked workbook pair is accepted as the current live Jagports inventory source. A live-stock validation record must retain exact workbook/row provenance, preserve unknown fields as NULL/unclassified rather than inventing values, and persist the mapped record through the approved stock path. No synthetic value may be relabeled as real inventory merely to satisfy acceptance testing.
-
-D1-specific SQL access belongs at the persistence/provider boundary. Canonical PART resolution, JEPC/reference semantics, fitment and supersession remain outside that boundary so the native D1 implementation can later be wrapped by a thin stock provider without redesigning this model.
+Persistence/provider access remains behind the STOCK boundary. Canonical PART resolution, JEPC/reference semantics, Fit and supersession remain outside that boundary so storage providers can change without redefining this model.
 
 ## Normalized stock quality / condition code
 
@@ -303,7 +290,7 @@ Availability does not imply a sale transaction, reservation state, positive quan
 
 ## Search/filter indexes
 
-The stock model uses the complete current stock index set listed below.
+The stock model uses the following index contract.
 
 | Table | Named indexes |
 |---|---|
@@ -311,31 +298,10 @@ The stock model uses the complete current stock index set listed below.
 | `stock_location` | `idx_stock_location_root_identity`; `idx_stock_location_child_identity`; `idx_stock_location_site`; `idx_stock_location_parent`. |
 | `stock_source_party` | `idx_stock_source_party_type_name`. |
 
-These indexes support the documented stock relationships and current principal filters.
+These indexes support the documented stock relationships and principal filters.
 
 Combined predicates, ordering, language-aware search and production-scale selectivity require query-plan measurement against representative inventory before adding composite indexes.
 
-## Integrity and fixtures
-
-Executable stock model tests verify:
-
-- named multi-site storage;
-- optional rack/shelf/box hierarchy and recursive box nesting;
-- controlled A-E condition values and their deterministic fixture meanings;
-- explicit unclassified stock-quality state;
-- independence of stock availability from stock-quality classification;
-- vendor/person/organization/tenant/other source-party vocabulary;
-- integer quantity enforcement;
-- donor vehicle and source party as separate relationships;
-- currency and non-negative price;
-- availability/location integrity;
-- unresolved stock source requirement;
-- canonical `part_id` resolution across Jaguar/JEPC PARTs and Jagports specified PARTs, with explicit NULL-only unresolved semantics;
-- canonical linkage of reusable third-party stock through Jaguar or Jagports specified PART identity without duplicating third-party PART semantics in STOCK;
-- multiple stock records for one canonical `PART`;
-- relevant stock indexes and invalid cases.
-
-Deterministic fixtures must cover multiple stock records for one part, stock under a historical part number with supersession, unresolved stock, zero/unavailable stock, representative stock quality classifications from the normalized `A` through `E` set, and an available record whose quality is explicitly unclassified where that state is needed for behavior coverage.
 
 ## Boundary
 
