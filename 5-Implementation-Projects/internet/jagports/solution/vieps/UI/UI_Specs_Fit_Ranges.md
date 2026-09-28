@@ -2,11 +2,11 @@
 
 ## Objective
 
-Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the merged #875 three-column layout. Production Range options require verified source-derived Model/Range relations; the temporary browse index is TEST compatibility only.
+Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the three-column layout. Production Range options require verified source-derived Model/Range relations; the temporary browse index is TEST compatibility only.
 
-This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_FIT.md` and #354 own the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
+This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_FIT.md` owns the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
 
-## Proposed panel and modes
+## Panel and modes
 
 The right column places independently scrollable **Applicable Models** below the independently scrollable **Search Results PART List**.
 
@@ -20,11 +20,11 @@ The browse/filter options and selected-PART applicable facts are different UI st
 
 ## Source-derived Range browse and test isolation
 
-The former hard-coded 13-label browse index is **superseded as the target product contract**. An authorized Admin creates normalized Ranges and explicitly assigns each imported JEPC Model at most one Range, preserving the Model's original source-qualified identity and description under #884 / merged PR #885. The public browse adapter consumes these persisted relationships from #354/#355 plus approved occurrence evidence; it does not create Range memberships from display strings, market-name fixtures or Part descriptions.
+The former hard-coded 13-label browse index is **superseded as the target product contract**. An authorized Admin creates normalized Ranges and explicitly assigns each imported JEPC Model at most one Range, preserving the Model's original source-qualified identity and description through the normalized Range mapping contract. The public browse adapter consumes these persisted relationships from persisted catalogue relations plus approved occurrence evidence; it does not create Range memberships from display strings, market-name fixtures or Part descriptions.
 
 JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are input evidence only until they are actually imported and explicitly mapped. An imported but unassigned Model remains visible by its original description in Admin; it is not invented as a member of any public Range. With no source-backed Ranges yet, the public panel reports unavailable/empty data rather than exposing a normative static list. Explicitly synthetic, source-qualified Model and Range records can test the same contract in isolated CI without ever claiming real Jaguar fitment.
 
-**Migration boundary:** the currently deployed HTML/JS still contains a legacy 13-label browse-only fixture and tests. This documentation correction does not pretend those runtime files have been removed. Replace that fixture only together with the new importer-backed public read adapter and updated model/browser regressions; preserve current application functionality until then.
+**Compatibility boundary:** the legacy 13-label browse-only fixture is TEST compatibility data only. Production reads use the source-backed public adapter; fixture data must not leak into normal mode.
 
 ## Filter controls and coordinated state
 
@@ -32,7 +32,7 @@ JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are 
 
 **Source-backed behavior:** Only explicit imported JEPC Model-to-Range evidence supplies production Range options and read-only selected-PART facts. Single-Range filtering requires an approved occurrence-level read contract; otherwise disable the control with an accessible explanation.
 
-The centre-top Fit / Variations filter consumes the normalized #641 categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
+The centre-top Fit / Variations filter consumes the normalized the normalized FIT contract categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
 
 Search-result row selection and Parts Tree PART-leaf selection share **one canonical selected PART**. A result row representing several EPC occurrences does not guess the active occurrence; range fit dependent on occurrence remains pending context selection. Availability/stock filters may constrain the candidate set only through approved stock-to-catalogue relationships, never by rewriting fitment facts.
 
@@ -58,7 +58,7 @@ ApplicableModelsResult
   unavailable_reason?
 ```
 
-The public read adapter must preserve #354/#666 distinctions between stored fit assertions and evaluated vehicle fitment. This UI result contract is presentation-oriented and does not itself create or certify a new fitment evaluator.
+The public read adapter must preserve the PART fit evidence contract distinctions between stored fit assertions and evaluated vehicle fitment. This UI result contract is presentation-oriented and does not itself create or certify a new fitment evaluator.
 
 ## Deterministic fixture contract
 
@@ -66,9 +66,9 @@ Synthetic identities and mappings remain separate from production Model-to-Range
 
 ## Viewport and accessibility
 
-The panel scrolls internally in the fitted #616 desktop shell, independently of the Search Results list and Parts Tree. Use accessible region headings, labelled filter controls, visible keyboard focus and non-colour-only fit indications. On narrow layouts, regions may reflow while preserving state. UI locale (#554) and source catalogue language (#620) remain independently governed.
+The panel scrolls internally in the fitted the viewport-fit contract desktop shell, independently of the Search Results list and Parts Tree. Use accessible region headings, labelled filter controls, visible keyboard focus and non-colour-only fit indications. On narrow layouts, regions may reflow while preserving state. UI locale (the UI-language contract) and source catalogue language (the Parts-language contract) remain independently governed.
 
 ## Boundaries
 
-VIN evaluation and VIN-range reconstruction are governed by #478 and approved source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
+VIN evaluation and VIN-range reconstruction are governed by the VIN evidence contract and approved source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
 
