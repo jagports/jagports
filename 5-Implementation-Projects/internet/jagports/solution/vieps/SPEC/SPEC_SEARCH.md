@@ -91,7 +91,7 @@ Stock-quality result states include at least:
 - quality unavailable/unresolved;
 - quality not included in the current result presentation.
 
-## Coordinated search/filter interaction — Product Owner decisions (2026-09-28)
+## Coordinated search/filter interaction
 
 This section is the authoritative *interaction* contract for Find, VIN, Stock only, FIT, Parts Tree, Applicable Models, Search Results, and selected-PART presentation. The fitment/stock models remain the authority for evidence and identities; an interaction rule never upgrades unknown evidence to verified fit.
 
@@ -100,7 +100,7 @@ This section is the authoritative *interaction* contract for Find, VIN, Stock on
 - Find, VIN and **Show only parts on stock** are one-way user inputs. Search results never fill, change or automatically select their values. Stock only remains the existing operational boolean; it is **not** a result-derived stock-facet panel.
 - FIT, Parts Tree and Applicable Models are result-derived indicators **and** selectable filters when no individual PART is selected. An option's presence means an evidenced candidate/result context contains it; presence is not an active filter selection. Initial empty-Find browse derives options from all supported browsable PARTs in the current catalogue. All FIT filter checkboxes start unchecked; presenting a source-backed option does not select it. As Find, VIN, Stock, branch, FIT or range constraints change, recalculate options from the current supported search/browse result context, not a global static list. Never invent an unsupported option or turn missing evidence into verified compatibility.
 - FIT presents normalized, source-backed values grouped by category and alphabetically ordered. An available FIT option is selectable. For grouping presentation, render one labelled fieldset per normalized category, sort groups alphabetically by localized name (stable normalized-ID tie-break), and sort selected values first then the remaining available values alphabetically within each group. Offer only currently fitting values supplied by the approved source-qualified response; retain a previously selected response-backed value so it can be unchecked, and hide empty groups. Every label uses normal text decoration (no strikethrough). TEST=1 uses only applicable synthetic fixtures and normal mode only verified imported parts data; never insert the fixture example list as hard-coded options. **At most one explicit filter value is active in each competing FIT group** (including VIN ranges and colours). Activating a value hides competing values in that group; clearing it immediately reveals/recalculates all available competing values under the remaining constraints. Active selections in different FIT groups combine with **AND**, and they combine with Find, VIN, Stock, Parts Tree branch and the model-range filter. An occurrence/PART matching the selected value may also match other values; shared PARTs remain eligible.
-- Applicable Models follows the same single-selection visibility rule: at most **one** explicit normalized Range filter at a time; competing ranges are hidden until the selected range is cleared. This supersedes the earlier proposed multiple-range ANY/OR selection behavior. Only imported, explicitly mapped and evidenced public ranges are authoritative; historical 13-label fixtures are test compatibility data, not production range membership.
+- Applicable Models follows the same single-selection visibility rule: at most **one** explicit normalized Range filter at a time; competing ranges are hidden until the selected range is cleared. Only imported, explicitly mapped and evidenced public ranges are authoritative; static Range fixtures are TEST data only, not production range membership.
 - A branch selection constrains catalogue occurrences; selecting an individual tree leaf or Search Results row instead opens one canonical PART for inspection. Distinct canonical PARTs appear once in normal Search Results; their genuine source-qualified occurrence paths remain separate in Parts Tree. A branch or filter must not auto-select a PART.
 - Selecting an individual PART makes FIT and Applicable Models **read-only**. Keep their evidenced result-derived display options visible where backed by the current context, illuminate only that PART's verified values, leave its verified nonmatching options unlit, and mark unresolved selected/model values with yellow unknown-evidence warnings. Selected-PART facts do **not** silently activate filters. Deselecting the PART returns the panels to filter mode. Do not infer fitment from a source label, model name, or an occurrence that has not been resolved.
 
@@ -131,7 +131,7 @@ These are normative interaction requirements. Controls without an approved sourc
 - If reduced-MVP free-text capability is unavailable in a runtime that exposes the general `Find` control, the runtime must not silently ignore the query and return ordinary `not_found` for descriptive text.
 - Primary deterministic MVP behavior remains Jaguar part-number / deterministic-identifier search plus the limited free-text fallback defined here.
 - Approved deterministic non-numbered identifiers may also be accepted where the current read contract supports them.
-- Current main-branch fixtures `firtree1` and `firtree2` are descriptive fixture identifiers, **not Jaguar part numbers**.
+- Descriptive fixture identifiers such as `firtree1` and `firtree2` are **not Jaguar part numbers**.
 - Leading/trailing whitespace is ignored.
 - Part-number matching is case-insensitive; canonical value comes from catalogue data.
 - Original entered value remains available for UI/error reporting and visible fragment highlighting.
@@ -168,7 +168,7 @@ After clear, UI language switching preserves the collapsed root state and clean 
 
 When supported Parts/catalogue-data language changes, load that language's evidenced source tree. Preserve a selected context only where an explicit stable identity/mapping supports it; never match nodes by label or assume identical source-tree structure. Otherwise remove the invalid tree/occurrence selection and stale selection URL state, return to that language's available collapsed roots, and expose unavailable mapping/context explicitly. Do not resurrect a previously cleared PART. Preserve the stock constraint and canonical identity boundary.
 
-## Reduced-MVP limited free-text search
+## Limited free-text search
 
 Reduced-MVP free-text search is a pragmatic, current-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring the full multilingual/global search architecture.
 
@@ -350,7 +350,7 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 | `not_found` | Valid search has no supported deterministic match and no available free-text match after all active search modes have been evaluated |
 | `stock_filtered_empty` | Search matches exist, but the selected supported stock constraint removes all visible results; display `No matching parts currently on stock.` |
 | `multiple_matches` | Multiple canonical PART candidates are presented as clickable tree leaves and deduplicated right-hand PN/name result rows; no PART is selected by default |
-| `unsupported` | Requested search/filter capability is unavailable in the current runtime and must not be silently ignored |
+| `unsupported` | Requested search/filter capability is unavailable and must not be silently ignored |
 | `resolved` | Identity/context resolved |
 | `context_only` | Free text matched a browse/tree/range/model/context value and is shown through the existing region that owns that context; no PART is selected unless the match resolves to a PART candidate |
 | `context_unavailable` | Identity resolved but secondary EPC context unavailable |
@@ -358,7 +358,7 @@ Free-text search infrastructure or query-processing failure returns `error` or a
 
 Stock-quality presentation may additionally distinguish explicit stock-detail states such as classified, unclassified, unavailable/unresolved, and not included in current result presentation without changing canonical PART result identity.
 
-## Result distribution into Concept-11
+## Result distribution
 The target distribution changes presentation while preserving search resolution, canonical identity and stock/catalogue boundaries.
 
 ```text
@@ -455,7 +455,7 @@ Cover at least:
 
 Fixture values are test data, not verified Jaguar catalogue facts.
 
-The legacy TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST compatibility only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled bookmark placeholders and all results-panel states. Bookmark storage, when supported, requires independent interaction coverage.
+The TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST fixture data only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled bookmark placeholders and all results-panel states. Bookmark storage, when supported, requires independent interaction coverage.
 
 ## Viewport and language
 The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search is outside this reduced-MVP contract.
