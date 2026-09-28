@@ -35,7 +35,7 @@ node 3-Deployment/internet/cloudflare/d1/ranges/setup-range-db.mjs verify --rang
 
 If creation succeeds but the process stops before `config/<range_slug>.json` is written or reviewed, **do not rerun creation expecting it to adopt the database**. Compare the remote database name/ID/account manually and record the identity in a reviewed configuration change. Never delete or recreate the database as a normal retry.
 
-The next deployment slice must provide a schema-only migration path, verify its ledger and table shape against the configured ID, and implement/test Worker routing and STOCK reconciliation. Until then, this database is an unbound resource and not a live catalogue destination.
+The next deployment slice must provide a schema-only migration path, verify its ledger and table shape against the configured ID, and implement/test Worker routing and STOCK reconciliation. Until then, this database is an unbound resource and not a catalogue destination.
 
 Local checks for this procedure:
 
