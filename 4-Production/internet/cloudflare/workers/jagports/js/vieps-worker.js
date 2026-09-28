@@ -1,7 +1,7 @@
 import { normalizePartNumber } from "./part.js";
-import { handleViepsPart, handleViepsTree } from "./vieps-fixtures.js";
-import { handleLivePart, handleLiveTree, handleLiveSuitability as handleLiveFit, liveRangeDatabase } from "./vieps-parts.js";
-import { handleViepsSuitability as handleViepsFit } from "./suitability.js";
+import { handleViepsPart as handleFixturePart, handleViepsTree as handleFixtureTree } from "./vieps-fixtures.js";
+import { handlePart, handleTree, handleSuitability as handleFit, partsDatabase } from "./vieps-parts.js";
+import { handleViepsSuitability as handleFixtureFit } from "./suitability.js";
 import { handleSuitabilityAdmin } from "./vieps-admin-suitability.js";
 
 function json(data, status = 200) {
@@ -181,10 +181,10 @@ async function handleApi(request, env) {
   const testFlags = [...url.searchParams].filter(([key]) => key.toLowerCase() === "test");
   const testMode = testFlags.length === 1 && testFlags[0][1] === "1";
 
-  if (path === "/api/vieps/part") return testMode ? handleViepsPart(request, env) : handleLivePart(request, env);
-  if (path === "/api/vieps/tree") return testMode ? handleViepsTree(request, env) : handleLiveTree(request, env);
+  if (path === "/api/vieps/part") return testMode ? handleFixturePart(request, env) : handlePart(request, env);
+  if (path === "/api/vieps/tree") return testMode ? handleFixtureTree(request, env) : handleTree(request, env);
   if (path === "/api/vieps/fit" || path === "/api/vieps/suitability") return testMode
-    ? handleViepsFit(request, env) : handleLiveFit(request, env);
+    ? handleFixtureFit(request, env) : handleFit(request, env);
   if (path.startsWith("/api/admin/suitability")) {
     const denied = requireAdmin(request, env);
     if (denied) return denied;
@@ -204,7 +204,7 @@ async function handleApi(request, env) {
     const q = text(url.searchParams.get("q"));
     const normalized = normalizePartNumber(q);
     if (!testMode) {
-      const { db } = liveRangeDatabase(url, env);
+      const { db } = partsDatabase(url, env);
       const stmt = q
         ? db.prepare(`SELECT * FROM part p WHERE EXISTS
             (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
