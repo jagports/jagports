@@ -14,7 +14,7 @@ export function databaseNameForRange(rangeSlug) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rangeSlug ?? '')) {
     throw new Error('Range slug must use lowercase letters, digits and internal hyphens.');
   }
-  return `parts-${rangeSlug}`;
+  return `jagports-${rangeSlug}`;
 }
 
 function assertAccountId(accountId) {
