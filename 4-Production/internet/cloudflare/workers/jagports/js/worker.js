@@ -185,7 +185,7 @@ async function handleApi(request, env) {
   if (path === "/api/tree") return testMode ? handleFixtureTree(request, env) : handleTree(request, env);
   if (path === "/api/fit") return testMode
     ? handleFixtureFit(request, env) : handleFit(request, env);
-  if (/^\\/api\\/admin\\/fit(?:\\/|$)/.test(path)) {
+  if (/^\/api\/admin\/fit(?:\/|$)/.test(path)) {
     const denied = requireAdmin(request, env);
     if (denied) return denied;
     return handleFitAdmin(request, env);
