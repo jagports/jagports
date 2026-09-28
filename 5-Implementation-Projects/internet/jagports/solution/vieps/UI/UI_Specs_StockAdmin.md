@@ -2,17 +2,17 @@
 
 ## Purpose
 
-This document defines the minimum UI required by Issue #612 to manage operational stock records.
+This document defines the minimum UI for managing operational stock records.
 
 The target is **one functional Stock Admin page** supporting search/list, Add, Edit and Delete. Navigation, menus, dashboards, account UI, decorative application shell, and visual polish are not requirements for this increment.
 
-The operational stock model remains authoritative in [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md), and workflow behavior remains governed by [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md).
+The operational stock model in [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md) remains authoritative.
 
 ## Visual reference
 
 The concept image under `../UI_CONCEPTS/AdminUI-PartAdd.png` is an informative visual reference for the minimum page. It is not normative. Navigation, menus, branding, account controls, decorative layout details and example values shown in concept artwork are not implementation requirements.
 
-The implementation should prefer the simplest page that completes the workflows below.
+The page uses the simplest controls that satisfy the operations below.
 
 ## Minimum page
 
@@ -50,7 +50,7 @@ The implementation should prefer the simplest page that completes the workflows 
 
 A separate page, wizard or visual stepper is not required. Search/list and the Add/Edit form may coexist on the same page.
 
-## Add workflow
+## Add operation
 
 ```text
 Add Part
@@ -62,7 +62,7 @@ Add Part
 ```
 
 
-## Edit workflow
+## Edit operation
 
 ```text
 search/list existing stock
@@ -76,7 +76,7 @@ search/list existing stock
 
 Edit operates on the mutable stock record. It does not redefine canonical PART identity or catalogue/reference data.
 
-## Delete workflow
+## Delete operation
 
 ```text
 search/list existing stock
@@ -101,7 +101,7 @@ Add must provide an explicit identity decision before save:
 3. select an existing Jagports specified canonical PART for a non-1:1 reusable vendor product; or
 4. explicitly choose unresolved stock with `part_id = NULL` only when reusable product identity is genuinely not yet established.
 
-If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the third-party PART workflow defined by `../SPEC/MODEL_PART_THIRD_PARTY.md` before STOCK is linked. The minimum #612 page does not silently fabricate that identity.
+If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the canonical third-party PART contract in `../SPEC/MODEL_PART_THIRD_PARTY.md` before STOCK is linked. The minimum Stock Admin page does not silently fabricate that identity.
 
 For an existing PART, search results need only enough information to select the intended record: part number, description and available applicability/context. A separate contextual information panel is optional.
 
@@ -109,7 +109,7 @@ A failed PART search must remain a failed canonical lookup. It must not automati
 
 ## Stock details
 
-The Add/Edit form must expose the current #612 `/api/stock` mutable fields supported by the approved model:
+The Add/Edit form must expose the current `/api/stock` mutable fields supported by the approved model:
 
 - `part_id` when resolved, otherwise `NULL`;
 - integer `quantity`;
@@ -124,7 +124,7 @@ The Add/Edit form must expose the current #612 `/api/stock` mutable fields suppo
 - three-letter `currency`;
 - `notes`.
 
-The UI may use simple inputs/selects. Rich pickers, visual location browsers, modal workflows and other convenience controls are not required.
+The UI may use simple inputs/selects. Rich pickers, visual location browsers, modal interaction flows and other convenience controls are not required.
 
 ## Validation, authorization and persistence
 
@@ -142,9 +142,9 @@ The page must:
 
 Authorization remains an API requirement. Building an Admin login/account-management UI is outside this page specification.
 
-## Future catalogue Admin panel — Suitability Categories and source descriptions (#877)
+## Catalogue Admin panel — Suitability Categories and source descriptions
 
-This is a future extension of the existing one-page Admin UI. It is separate from operational STOCK and `/api/stock`.
+This catalogue-data panel is separate from operational STOCK and `/api/stock`.
 
 An authorized operator can create or retire stable normalized category/value IDs, provide language-qualified domain names and descriptions, and map **one selected JEPC source description** to one category/value. A source record must show its namespace, dataset/version, original text, source language, locator, group/value identifiers and model/category/item/tree-path scope. Linking creates an append-only interpretation revision; it never rewrites JEPC data.
 
@@ -152,7 +152,7 @@ The panel may list the approved fixture vocabulary—Body: Coupe/Convertible; St
 
 A mapping remains proposed or unavailable when its JEPC relation, source scope, language metadata, evidence or review is missing. Raw description text, translated UI text and localized domain names are never foreign keys. There is no condition or predicate authored from this panel: every later condition must reference its persisted JEPC source-description mapping and resolvable i18n domain name/description.
 
-### Future Admin API contract
+### Admin API contract
 
 | Operation | Proposed route | Required safeguard |
 |---|---|---|
@@ -163,13 +163,13 @@ A mapping remains proposed or unavailable when its JEPC relation, source scope, 
 
 All mutations require independent catalogue Admin authorization, validate on the server, and read back the persisted revision. A shared token alone does not prove an independent reviewer. The public filter consumes only published mappings with source and language metadata; it never consumes raw Admin form text.
 
-## Future physical-stock photos
+## Physical-stock photos
 
-Physical-stock photographs remain a future extension. A later implementation may support device files/photo library and camera capture, multiple previews and a primary image. These images belong to the physical stock record and are distinct from canonical PART/JEPC imagery.
+Physical-stock photographs, when supported, belong to the physical stock record and are distinct from canonical PART/JEPC imagery. Device files/photo library, camera capture, multiple previews and a primary image are outside the minimum Stock Admin contract.
 
-Photo upload, storage and media-provider work **must not block #612 MVP Stock Admin UI**.
+Photo upload, storage and media-provider support is outside the minimum Stock Admin contract.
 
-## Not required for #612 minimum UI
+## Outside the minimum Stock Admin contract
 
 - navigation or menus;
 - sidebar;
@@ -181,10 +181,10 @@ Photo upload, storage and media-provider work **must not block #612 MVP Stock Ad
 - exact reproduction of concept artwork;
 - responsive/mobile optimization beyond basic usability;
 - stock-item photo persistence;
-- provider abstraction or #671 completion;
+- provider abstraction;
 - reservations, sales, shipping, payment or warehouse ledger;
 - individual physical-unit identity.
 
-## Completion criterion
+## Minimum Stock Admin functional boundary
 
-The minimum Stock Admin UI is complete when an authorized operator can use the single Admin page to find stock records and perform Add, Edit and Delete operations through the approved `/api/stock` path; Add supports an existing canonical Jaguar/JEPC or Jagports specified PART, verified 1:1 vendor products reuse the existing Jaguar PART, genuinely unresolved stock is explicitly selected, Edit preserves valid existing values when fields are omitted, Delete removes only the selected mutable stock record, and every operation produces persisted success evidence or a deterministic error.
+The minimum Stock Admin UI allows an authorized operator can use the single Admin page to find stock records and perform Add, Edit and Delete operations through the approved `/api/stock` path; Add supports an existing canonical Jaguar/JEPC or Jagports specified PART, verified 1:1 vendor products reuse the existing Jaguar PART, genuinely unresolved stock is explicitly selected, Edit preserves valid existing values when fields are omitted, Delete removes only the selected mutable stock record, and every operation produces persisted success evidence or a deterministic error.

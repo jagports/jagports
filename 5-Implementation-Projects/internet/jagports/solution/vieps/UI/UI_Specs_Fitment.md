@@ -1,16 +1,10 @@
 # VIEPS UI — Fitment qualifiers and VIN applicability contract
 
-**Status:** #875 target geometry proposed for review; existing fitment contract retained  
-**Layout enhancement issue:** #875 (follows #468)  
-**Priority issue:** #478  
-**Implementation parent:** #368  
-**Domain owner:** #354
-
 ## Objective
-Specify how the right-hand #875 Applicable Models panel and centre-top normalized Suitability / Variations filter consume the existing approved PART occurrence/fitment and VIN-applicability contract. Geometry changes do not invent domain semantics or expand the current reduced-MVP gate.
+Specify how the right-hand Applicable Models panel and centre-top normalized Suitability / Variations filter consume the existing approved PART occurrence/fitment and VIN-applicability contract. Geometry changes do not invent domain semantics or expand the current reduced-MVP gate.
 
 ## Merged Concept-11 presentation
-The #875 target replaces the merged Concept-11 full centre/right Model Ranges row and right-middle Suitability area:
+The target layout replaces the legacy Concept-11 full centre/right Model Ranges row and right-middle Suitability area:
 
 ```text
 LEFT                    CENTRE                                   RIGHT
@@ -34,35 +28,30 @@ Applicability is evaluated from approved PART occurrence/application/attribute r
 - Empty-query stock-backed model browsing is permitted only when the approved stock/catalogue and applicability contracts provide verified candidates; otherwise indicate unavailable/unsupported rather than fabricating ranges.
 
 ### Suitability / Filter dual mode
-The centre-top Suitability / Variations filter (#641) and right-bottom Applicable Models panel are distinct controls over one normalized fitment contract.
+The centre-top Suitability / Variations filter and right-bottom Applicable Models panel are distinct controls over one normalized fitment contract.
 
 1. **Browse or multiple candidates:** show only verified fitting normalized variation options derived from currently surviving occurrence contexts. Selecting one narrows candidates consistently in left Parts Tree, right Search Results and right Applicable Models. Preserve exclusions and unknown/unavailable states; raw imported descriptions are not automatically typed normalized facets.
 2. **Single selected PART/context:** show evidence-backed qualifier/fact values where supported by the selected context (body, steering, engine, supercharger, market, transmission, equipment and VIN boundary). Missing values remain unknown; they never become default assumptions.
 
 VIN applicability uses approved source VIN ranges, not inferred model years or KOVuosi. Result-row bookmark checkboxes are **visible but disabled** in the current layout increment; later bookmarking cannot select a model, apply a filter or assert fitment.
 
-### Normalized categories, JEPC descriptions and the fixture bridge (#641 / #877)
+### Normalized categories, JEPC descriptions and the fixture bridge
 
 A category/value shown by Suitability is a normalized ID with an explicit source-qualified description mapping. The mapping retains JEPC namespace, dataset/version, record locator, language, original text and source scope. Equal displayed words are never used as identity.
 
 UI headings, prompts and states use EN/FI i18next keys. Each published category/value also has language-qualified domain name/description metadata. Imported JEPC text remains catalogue-language data and is not translated through UI keys.
 
-Before #355 import, the fixture provider may expose source-shaped test descriptions for Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; and Seat equipment: Memory Seat/Powered Seats. Every fixture row must carry its synthetic namespace, dataset, language, locator and normalized mapping. It validates the public read and localization contract only; it cannot become a JEPC condition or production fitment fact.
+Before imported JEPC descriptions are available, the fixture provider may expose source-shaped test descriptions for Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; and Seat equipment: Memory Seat/Powered Seats. Every fixture row must carry its synthetic namespace, dataset, language, locator and normalized mapping. It validates the public read and localization contract only; it cannot become a JEPC condition or production fitment fact.
 
-The filter reads published mappings at occurrence scope. It never treats a raw description as a predicate, derives a condition from its text, or joins same-looking values across occurrences. If source relation, i18n domain metadata or occurrence scope is absent, return `unavailable`. Memory Seat and Powered Seats may appear together only when their separately sourced records identify that coexisting occurrence; this PR specifies no membership condition or evaluator.
+The filter reads published mappings at occurrence scope. It never treats a raw description as a predicate, derives a condition from its text, or joins same-looking values across occurrences. If source relation, i18n domain metadata or occurrence scope is absent, return `unavailable`. Memory Seat and Powered Seats may appear together only when their separately sourced records identify that coexisting occurrence; this contract specifies no membership condition or evaluator.
 
-The merged #883 layout places the control at centre-top and keeps right-hand Applicable Models separate. Its 13 model-range browse labels are not suitability values.
+The control is placed at centre-top and remains separate from right-hand Applicable Models. Its 13 model-range browse labels are not suitability values.
 
-### UI integration plan and active-work reconciliation
+### FIT presentation contract
 
-The merged #883 specification is the layout authority: persistent Parts Tree on the left; central search and upper Suitability / Variations controls; and a right column containing Search Results above Applicable Models. Search-result rows and tree leaves select one canonical PART. Applicable Models remains evidence display, not the suitability filter.
+The persistent Parts Tree remains on the left; Search and upper FIT / Variations controls occupy the centre/top interaction area; Search Results and Applicable Models remain distinct on the right. Search-result rows and tree leaves share one canonical PART selection. Applicable Models displays evidence and does not become the FIT filter.
 
-Implementation follows this order:
-
-1. **Description mapping read contract (#877 / #879).** Publish only normalized category/value entries that carry a persisted source-qualified description mapping, language-qualified domain name/description metadata and an occurrence scope. Return a deterministic unavailable state when any required relation is absent. Raw JEPC text is presentation evidence, never an API key or filter predicate.
-2. **Persistence and fixture correction (draft PR #892).** Replace its proposed set-membership/cardinality path with source-shaped fixture descriptions and mapping revisions. Fixtures require synthetic namespace, dataset, language, locator and mapping identity, but remain test data and cannot become JEPC fitment facts.
-3. **Upper filter and lower-panel removal (Issue #895 / draft PR #939).** Keep removal of the lower duplicate panel and retain selected-PART range evidence in the right Applicable Models region. Implement the upper control as the requested horizontal, keyboard-accessible checkbox row with checked-first alphabetical ordering and horizontal overflow. Its options and filtering must consume the mapping read contract; do not retain a hard-coded variation list or an independent evaluator based on labels, namespace alone, or inferred conditions.
-4. **Evidence.** Add browser screenshots at desktop, tablet and narrow widths for empty/unavailable, source-backed available options, source-mapping failure, EN/FI UI chrome with catalogue-language source description, fixture isolation, checked ordering and synchronized Search Results/Parts Tree selection. Captions must state whether an image uses fixture or imported data.
+Only normalized category/value entries with a persisted source-qualified description mapping, language-qualified domain metadata and occurrence scope are publishable. Missing required relations produce `unavailable`; raw JEPC text is presentation evidence, never an API key or filter predicate. Synthetic fixtures require namespace, dataset, language, locator and mapping identity and never become JEPC fitment facts. The upper FIT control is keyboard-accessible, uses grouped checkboxes, and consumes this mapping contract without a hard-coded taxonomy or label-derived evaluator.
 
 The known fixture labels—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—are examples of mapped descriptions. The two seat labels may appear together only when separately sourced description records identify the same occurrence. They do not justify a new condition operator or hard-coded suitability logic.
 
@@ -96,29 +85,18 @@ FitmentResult
   provenance/unavailable information
 ```
 
-Do not add a second domain taxonomy for the 13 fixture labels. Use normalized existing IDs where verified, or clearly isolated fixture IDs until imported/source-mapped evidence exists. Preserve `part_fitment.applicability_state` and the #666 positive/negative/unavailable distinctions across UI and API.
+Do not add a second domain taxonomy for the 13 fixture labels. Use normalized existing IDs where verified, or clearly isolated fixture IDs until imported/source-mapped evidence exists. Preserve `part_fitment.applicability_state` and the positive/negative/unavailable distinctions across UI and API.
 
 ## Deterministic fixtures
 Cover all 13 exact browse/index fixture display labels independently of selected-PART fitment, a single PART applicable to only some Ranges, an excluded Range not presented as suitable, verified source qualifiers, VIN-range match/exclusion, selected row with multiple source occurrences, unavailable evidence, context-only search and API error. The later multi-range filter test matrix must include **ANY/OR** across two or more ranges, empty-selection pass-through, exclusions/unknowns and conjunction with an approved normalized variation filter. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
 
-### Pre-JEPC filter regression matrix (#641 / #877)
+### Source-qualified fixture behavior
 
-Once the normalized reader is implemented, test that each fixture value is returned only with its source namespace, dataset, locator, language and published mapping; that UI EN/FI chrome and language-qualified domain metadata resolve without changing the mapping ID; and that the fixture provider cannot leak into normal production reads. Test that same text from two source records remains distinct until separately mapped, that incomplete source relation returns `unavailable`, and that Body/Steering/Engine/Seat filters stay within one occurrence. Test coexistence of Memory Seat and Powered Seats only as two sourced descriptions of the same fixture occurrence, with no inferred condition or fabricated fitment.
+The normalized reader requires that each fixture value is returned only with its source namespace, dataset, locator, language and published mapping; that UI EN/FI chrome and language-qualified domain metadata resolve without changing the mapping ID; and that the fixture provider cannot leak into normal production reads. Test that same text from two source records remains distinct until separately mapped, that incomplete source relation returns `unavailable`, and that Body/Steering/Engine/Seat filters stay within one occurrence. Test coexistence of Memory Seat and Powered Seats only as two sourced descriptions of the same fixture occurrence, with no inferred condition or fabricated fitment.
 
 ## Viewport and language
-Applicable Models is independently scrollable in the persistent right column below the separate Search Results list; centre VIN/Variations remain above Location and one selected PART. Keep #616 fitted desktop behavior with inner scroll and accessible links/labelled checkboxes. On narrow layouts reflow without mixing bookmark, model filter and verified fit indicators. UI text and source Parts-language remain independently governed by #554 and #620.
+Applicable Models is independently scrollable in the persistent right column below the separate Search Results list; centre VIN/Variations remain above Location and one selected PART. Keep fitted desktop behavior with inner scroll and accessible links/labelled checkboxes. On narrow layouts reflow without mixing bookmark, model filter and verified fit indicators. UI text and source Parts-language remain independently governed by their UI-language and Parts-language contracts.
 
 ## Boundaries
-VIN decoding and VIN-range reconstruction are separate enabling work. Do not invent VIN ranges or use KOVuosi as a substitute for VIN/evidence-based applicability. This specification consumes #354 semantics and does not redefine them.
+VIN decoding and VIN-range reconstruction are separate enabling work. Do not invent VIN ranges or use KOVuosi as a substitute for VIN/evidence-based applicability. This specification consumes the canonical PART/fit semantics and does not redefine them.
 
-## Acceptance criteria
-- [ ] #875 right-hand Applicable Models panel and centre-top normalized Suitability / Variations Filter replace the old full centre/right range row.
-- [ ] No-PART browse index has all 13 specified fixture labels with no implicit per-PART positive applicability.
-- [ ] Selected-PART/context view displays only verified applicable Ranges and excludes confirmed nonmatching/excluded Ranges.
-- [ ] `no_match`, `unavailable`, `error` and unresolved qualifiers are distinguished and never guessed into positive fitment.
-- [ ] Right model filter and centre normalized variation filter semantics are distinct and consume the approved #641/#354/#666 contract.
-- [x] Multiple normalized range selections with ANY/OR semantics approved by the Product Owner.
-- [ ] Advanced multiple-range filtering deferred until its read contract and fixtures are implemented; unsupported checkboxes remain disabled.
-- [ ] VIN applicability preserves source evidence and excludes KOVuosi-based guessing.
-- [ ] Shared PART selection, multi-occurrence handling, fixture tests, viewport fit and language boundaries are covered.
-- [ ] Independent #875 specification review is complete.
