@@ -91,3 +91,17 @@ test('missing or conflicting TEST URL flags never expose fixture data', async (t
     'unbound real Range must reject URL flags: ' + flags);
   }
 });
+
+
+test('#976 FIT route is canonical and legacy suitability API remains a compatible alias', async (t) => {
+  const db = database({ fixtures: false }); t.after(() => db.close());
+  const env = { DB: d1(db) };
+  for (const path of ['/api/vieps/fit', '/api/vieps/suitability']) {
+    const response = await handleApi(new Request('https://test.example' + path + '?TEST=1'), env);
+    assert.equal(response.status, 200, path);
+    const data = await response.json();
+    assert.equal(data.fixture_mode, true, path);
+    assert.equal(data.categories.length, 4, path);
+    assert.ok(data.matches.length > 0, path);
+  }
+});
