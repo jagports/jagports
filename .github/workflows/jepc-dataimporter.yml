@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - '5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/**'
-      - '3-Deployment/internet/cloudflare/d1/ranges/**'
+      - '3-Deployment/internet/cloudflare/d1/parts/**'
       - '.github/workflows/jepc-dataimporter.yml'
   push:
     branches: [main]
     paths:
       - '5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter/**'
-      - '3-Deployment/internet/cloudflare/d1/ranges/**'
+      - '3-Deployment/internet/cloudflare/d1/parts/**'
       - '.github/workflows/jepc-dataimporter.yml'
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
         with:
           sparse-checkout: |
             5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter
-            3-Deployment/internet/cloudflare/d1/ranges
+            3-Deployment/internet/cloudflare/d1/parts
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
@@ -35,3 +35,4 @@ jobs:
       - name: Test runtime and CLI contracts without source installation
         working-directory: 5-Implementation-Projects/software/jagports/JEPC-Importers/DataImporter
         run: npm test
+
