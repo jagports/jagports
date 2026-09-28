@@ -1,0 +1,4 @@
+run
+
+python resolve_range_ids.py models_l_id_0.xml "XK" > xk_range_ids.tsv
+cut -f1 xk_range_ids.tsv > xk_range_ids.txt

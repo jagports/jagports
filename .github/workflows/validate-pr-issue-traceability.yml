@@ -1,0 +1,91 @@
+name: Validate PR Issue Traceability
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, edited, synchronize]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  validate-pr-issue-traceability:
+    name: Validate PR Issue Traceability
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require same-repository Issue reference
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          OWNER="${REPOSITORY%%/*}"
+          NAME="${REPOSITORY##*/}"
+
+          QUERY='
+          query($owner:String!, $name:String!, $number:Int!) {
+            repository(owner:$owner, name:$name) {
+              pullRequest(number:$number) {
+                number
+                baseRefName
+                body
+                closingIssuesReferences(first:50) {
+                  nodes {
+                    number
+                    state
+                    repository { nameWithOwner }
+                  }
+                }
+              }
+            }
+          }'
+
+          pr_json="$(gh api graphql             -f query="$QUERY"             -f owner="$OWNER"             -f name="$NAME"             -F number="$PR_NUMBER")"
+
+          base_ref="$(jq -r '.data.repository.pullRequest.baseRefName // empty' <<<"$pr_json")"
+          [ "$base_ref" = "main" ] || {
+            echo "PR #$PR_NUMBER does not target main; traceability validation is not applicable."
+            exit 0
+          }
+
+          mapfile -t owning_issues < <(
+            jq -r --arg repo "$REPOSITORY" '
+              .data.repository.pullRequest.closingIssuesReferences.nodes[]?
+              | select(.repository.nameWithOwner == $repo)
+              | "#\(.number) (\(.state))"
+            ' <<<"$pr_json"
+          )
+
+          # Explicit non-closing references allow partial implementation PRs
+          # without making GitHub close their governing Issue on merge.
+          pr_body="$(jq -r '.data.repository.pullRequest.body // ""' <<<"$pr_json")"
+          mapfile -t referenced_numbers < <(
+            printf '%s\n' "$pr_body" |
+              grep -Ei '^[[:space:]]*Refs[[:space:]]+#[0-9]+([[:space:][:punct:]]|$)' |
+              sed -E 's/^[[:space:]]*[Rr][Ee][Ff][Ss][[:space:]]+#([0-9]+).*/\1/' |
+              sort -un
+          )
+
+          for issue_number in "${referenced_numbers[@]}"; do
+            # Verify the reference is an Issue (not a PR) in this repository.
+            actual_number="$(gh api "repos/$REPOSITORY/issues/$issue_number"               --jq 'if has("pull_request") then empty else .number end')"
+            if [ "$actual_number" != "$issue_number" ]; then
+              echo "::error::Refs #$issue_number does not identify an Issue in this repository."
+              exit 1
+            fi
+            owning_issues+=("#$issue_number (non-closing)")
+          done
+
+          if [ "${#owning_issues[@]}" -eq 0 ]; then
+            echo "::error::PR #$PR_NUMBER lacks an explicit same-repository Issue relationship."
+            echo "Use 'Refs #123' for partial work; use 'Closes #123' only when full Issue acceptance is verified."
+            exit 1
+          fi
+
+          printf 'PASS: PR #%s has verified same-repository Issue relationship(s):\n' "$PR_NUMBER"
+          printf ' - %s\n' "${owning_issues[@]}"
