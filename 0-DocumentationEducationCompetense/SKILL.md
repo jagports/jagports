@@ -2,7 +2,7 @@
 
 ## Canonical Management Workflow
 
-The normative Management workflows are defined in [`00-Management/WORKFLOWS.md`](00-Management/WORKFLOWS.md).
+The normative Management workflows are defined in [`0-DocumentationEducationCompetense/WORKFLOWS.md`](../0-DocumentationEducationCompetense/WORKFLOWS.md).
 
 `SKILL.md` is the machine/agent execution layer. It must execute and reference the canonical workflows and must not independently redefine them.
 
@@ -29,7 +29,7 @@ For VIEPS UI/application changes that create, modify, review, or refactor human-
 Before doing Jagports work:
 
 1. Verify GitHub repository access.
-2. Read the current `SKILL.md` and the canonical `00-Management/WORKFLOWS.md`.
+2. Read the current `SKILL.md` and the canonical `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 3. Verify that the GitHub operations required for the task are available.
 4. Rely on the existing repository Actions for ordinary Project synchronization; follow the canonical execution/reporting boundary without adding a separate access gate.
 5. Resolve the Issue/PR identity using the canonical discovery workflow before substantive repository modification.
@@ -121,7 +121,7 @@ Use:
 
 ## Review and Testing Boundary
 
-When review is required, execute the canonical native GitHub hand-off defined in `00-Management/WORKFLOWS.md`.
+When review is required, execute the canonical native GitHub hand-off defined in `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
 Required human validation follows:
 
@@ -165,17 +165,17 @@ This rule applies regardless of whether the requested change is large, small, do
 
 ## Record Integrity and Active Record Changes
 
-Follow `00-Management/WORKFLOWS.md` for the canonical rules.
+Follow `0-DocumentationEducationCompetense/WORKFLOWS.md` for the canonical rules.
 
 ## GitHub Issue Closing Syntax
 
-Every PR that completes an Issue must use the GitHub closing form:
+A PR that implements only part of an Issue must use a non-closing reference on its own line in the PR body:
 
-`Closes #123`
+`Refs #123`
 
-Do not use only task identifiers or prose such as `Closes 123` or `Closes Issue 123`.
+Use the GitHub closing form `Closes #123` only when the governing Issue is ready for closure after all acceptance criteria are verified. Do not use ambiguous forms such as `Closes 123` or `Closes Issue 123`.
 
-When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
+When multiple Issues are addressed, identify each explicitly as partial (`Refs`) or complete (`Closes`). On Issue closure, the workflow must check the complete governing-Issue Acceptance list; any unchecked criterion requires reopening the Issue rather than marking it `DONE` (enforced by `issue-lifecycle-in-project.yml`; an absent checklist also requires resolution before closure).
 
 ## Comment and Traceability Rules
 
@@ -278,7 +278,7 @@ These semantics describe agent interpretation of equivalent short commands. Repo
 
 ## Separation of Responsibilities
 
-- `00-Management/WORKFLOWS.md` — top-level canonical normative Management workflows.
+- `0-DocumentationEducationCompetense/WORKFLOWS.md` — top-level canonical normative Management workflows.
 - `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` — scoped canonical GitHub Project/Kanban workflows incorporated by reference from `WORKFLOWS.md`.
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.

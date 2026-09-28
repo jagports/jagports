@@ -22,7 +22,7 @@ test("fitment is an explicit occurrence-level relationship", () => {
   assert.match(migration, /part_occurrence_id IS NULL AND part_id IS NOT NULL AND vehicle_range_id IS NOT NULL/i);
   assert.match(migration, /applicability_state TEXT NOT NULL/i);
   assert.match(migration, /applicability_state IN \('applicable', 'excluded', 'unavailable'\)/i);
-  assert.match(partModel, /PART fitment and attribute applicability/i);
+  assert.match(partModel, /PART fitment and attribute fit/i);
 });
 
 test("fitment preserves source attribute and exclusion representation", () => {

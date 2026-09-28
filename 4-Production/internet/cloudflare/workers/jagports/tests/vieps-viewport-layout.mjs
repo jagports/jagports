@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
-const app = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
+const app = readFileSync(new URL("../js/vieps.js", import.meta.url), "utf8");
 const desktop = css.slice(0, css.indexOf("@media (max-width: 1100px)"));
 const tablet = css.slice(css.indexOf("@media (max-width: 1100px)"), css.indexOf("@media (max-width: 760px)"));
 const mobile = css.slice(css.indexOf("@media (max-width: 760px)"), css.indexOf("@media (max-width: 320px)"));
@@ -60,7 +60,7 @@ test("#888 moves one expandable fixture guide into the branded banner", () => {
   assert.equal((html.match(/class="fixture-guide"/g) || []).length, 1);
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf("</header>"));
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf('class="panel tree-panel"'));
-  assert.match(html, /<details class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
+  assert.match(html, /<details [^>]*class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
   assert.match(html, /data-i18n="fixture\.randomized_note"/);
   assert.match(rule(".banner-block .fixture-guide"), /overflow:\s*auto/);
 });
@@ -112,8 +112,10 @@ test("#895 centre-top suitability is an independently scrollable, accessible che
   assert.match(rule(".variation-options"), /display:\s*flex/);
   assert.match(rule(".variation-options"), /overflow-x:\s*auto/);
   assert.match(rule(".variation-options"), /max-width:\s*100%/);
+  assert.match(rule(".variation-group"), /flex:\s*0 0 auto/);
+  assert.match(rule(".variation-group-values"), /display:\s*flex/);
   assert.match(rule(".variation-choice"), /white-space:\s*nowrap/);
-  assert.match(app, /data-suitability-facet/);
+  assert.match(app, /data-fit-facet/);
   assert.match(app, /ui_language/);
   assert.match(app, /visibleCandidates/);
   assert.doesNotMatch(app, /FIXTURE_VARIATIONS/);

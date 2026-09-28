@@ -1,5 +1,5 @@
 name = "vieps"
-main = "src/index.js"
+main = "js/vieps-worker.js"
 compatibility_date = "2026-09-10"
 workers_dev = true
 

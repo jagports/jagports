@@ -20,7 +20,7 @@ Use these existing sources rather than copying their normative rules:
 
 - [Shared Lead Agent architecture and roadmap](SPEC_Agent_Lead.md): the current deterministic coordinator, Event, AgentRegistry, AgentResult, StateService, ReportService, specialist boundaries, and model-integration direction.
 - [Shared Issue reasoning and notification specification](SPEC_Agent_Lead.md#staged-advisory-issue-reasoning-and-telegram-specification): meaningful Issue changes, bounded lazy detail retrieval, a model-neutral reasoning service, usage accounting, retry/deduplication, and optional Telegram delivery. **Review and merge the shared specification before implementing dependent interfaces.**
-- [Management workflows](../../../../../00-Management/WORKFLOWS.md): state transitions, historical work discovery, the repository change gate, independent review, testing, and merge authority.
+- [Management workflows](../../../../../0-DocumentationEducationCompetense/WORKFLOWS.md): state transitions, historical work discovery, the repository change gate, independent review, testing, and merge authority.
 - [Prioritization method](../../../../../00-Management/PRIORITIZATION.md): existing priority evidence and controlled queue changes. This document creates no separate scoring model.
 - [Agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md): logical Research, Product / Vehicle, Team Lead, and other responsibilities.
 - [Communication protocol](../../../../../0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md): durable hand-offs, escalation classes, decisions, and acknowledgements.

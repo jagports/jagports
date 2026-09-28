@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { database, d1 } from './helpers/model-db.mjs';
-import { handleViepsPart } from '../src/vieps.js';
+import { handleViepsPart } from '../js/vieps-fixtures.js';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-const code = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
-const i18nCode = readFileSync(new URL('../public/i18n-runtime.js', import.meta.url), 'utf8');
+const code = readFileSync(new URL('../js/vieps.js', import.meta.url), 'utf8');
+const i18nCode = readFileSync(new URL('../js/vieps-i18n-runtime.js', import.meta.url), 'utf8');
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
-function uiHarness(fetch) {
+function uiHarness(fetch, { testMode = true } = {}) {
   const nodes = new Map();
   for (const [, id] of html.matchAll(/id="([^"]+)"/g)) {
     nodes.set(id, {
@@ -31,12 +31,15 @@ function uiHarness(fetch) {
     getElementById: id => nodes.get(id),
     querySelectorAll: () => [],
   };
-  const context = { document, fetch, Intl, VIEPS_I18N_RESOURCES: { en, fi } };
+  const context = { document, fetch, Intl, URLSearchParams,
+    location: { pathname: '/', search: testMode ? '?TEST=1' : '', hash: '' },
+    VIEPS_I18N_RESOURCES: { en, fi } };
   vm.runInNewContext(i18nCode, context);
   vm.runInNewContext(code, context);
   const get = id => nodes.get(id);
   return {
     get,
+    renderPart: (...args) => context.renderPart(...args),
     async search(query, { stockOnly = false } = {}) {
       get('partNumber').value = query;
       get('availabilitySelect').checked = stockOnly;
@@ -77,14 +80,14 @@ test('coordinated MVP flow keeps canonical PART through tree, suitable Range, va
   assert.match(ui.get('locationStatus').textContent, /unavailable/i);
 });
 
-test('variation panel distinguishes confirmed no-match from unavailable applicability', async (t) => {
+test('FIT panel distinguishes confirmed no-match from unavailable FIT evidence', async (t) => {
   const { ui } = productionPath(t);
 
   await ui.search('MNA7691AA');
   assert.match(ui.get('rangeEvidence').innerHTML, /No applicable variation matches the selected PART\/context/);
 
   await ui.search('XR847031');
-  assert.match(ui.get('rangeEvidence').innerHTML, /Variation applicability data is unavailable/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Vehicle FIT evidence is unavailable/);
 });
 
 test('public stock-only filter distinguishes stocked PARTs from stock-filtered empty results', async (t) => {
@@ -122,4 +125,39 @@ test('Concept-11 acceptance regions remain visibly represented in the production
   assert.match(html, /id="rangeEvidence"/);
   assert.doesNotMatch(html, /class="fitment-panel"/);
   assert.match(html, /data-i18n="visual\.heading"/);
+});
+
+test('real-mode stock labels and evidence never claim fixture inventory', () => {
+  const stock = [{ quantity: 1, available: 1, condition_code: 'A',
+    location: 'Shelf A', source: 'operational', verification_status: 'verified' }];
+  const part = { id: 1, part_number_normalized: 'TEST123', description: 'Test part' };
+  const fixture = uiHarness(async () => { throw new Error('fetch not expected'); });
+  fixture.renderPart(part, [], stock);
+  assert.match(fixture.get('partCard').innerHTML, /Fixture stock/);
+  assert.match(fixture.get('partCard').innerHTML, /Synthetic fixture stock values/);
+
+  const live = uiHarness(async () => { throw new Error('fetch not expected'); }, { testMode: false });
+  live.renderPart(part, [], stock);
+  assert.match(live.get('partCard').innerHTML, /1 operational stock record/);
+  assert.doesNotMatch(live.get('partCard').innerHTML, /Fixture stock|Synthetic fixture stock values/);
+  live.renderPart(part, [], []);
+  assert.match(live.get('partCard').innerHTML, /No operational stock shown/);
+  assert.doesNotMatch(live.get('partCard').innerHTML, /fixture/i);
+});
+
+test('fixture examples and search prompts remain restricted to TEST=1', () => {
+  const fetchRoots = async () => new Response(JSON.stringify({ state: 'root', roots: [] }),
+    { headers: { 'content-type': 'application/json' } });
+  const fixture = uiHarness(fetchRoots);
+  assert.equal(fixture.get('fixtureModeHelp').hidden, false);
+  assert.equal(fixture.get('realModeHelp').hidden, true);
+  assert.equal(fixture.get('partNumber').attrs['data-i18n-placeholder'], 'search.input_placeholder');
+  assert.match(fixture.get('searchStatus').textContent, /fixture identifier/);
+
+  const live = uiHarness(fetchRoots, { testMode: false });
+  assert.equal(live.get('fixtureModeHelp').hidden, true);
+  assert.equal(live.get('realModeHelp').hidden, false);
+  assert.equal(live.get('partNumber').attrs['data-i18n-placeholder'], 'search.input_placeholder_real');
+  assert.match(live.get('searchStatus').textContent, /Jaguar part number to begin/);
+  assert.doesNotMatch(live.get('searchStatus').textContent, /fixture/i);
 });

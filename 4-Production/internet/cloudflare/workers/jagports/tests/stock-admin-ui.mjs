@@ -3,8 +3,8 @@ import fs from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 
-const html = fs.readFileSync(new URL("../public/stock-admin.html", import.meta.url), "utf8");
-const js = fs.readFileSync(new URL("../public/stock-admin.js", import.meta.url), "utf8");
+const html = fs.readFileSync(new URL("../public/admin-stock.html", import.meta.url), "utf8");
+const js = fs.readFileSync(new URL("../js/admin-stock.js", import.meta.url), "utf8");
 const css = fs.readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 
 test("Stock Admin is one focused page without application navigation shell", () => {
@@ -113,22 +113,22 @@ test("Stock Admin does not expose technical placeholder site names to operators"
 });
 
 
-test("Suitability Admin reuses one page, exposes sourced mapping and retains STOCK controls", () => {
-  for (const id of ["suitabilityAdminPanel","suitabilityCategoryForm","suitabilityValueForm",
-    "suitabilitySourceSearch","suitabilitySourceSelect","suitabilitySourceDetails",
-    "suitabilityMappingForm","suitabilityReviewerRef","suitabilityEvidenceNote",
-    "suitabilityShowHistory","suitabilityMoreSources"]) {
-    assert.match(html, new RegExp('id="' + id + '"'));
-  }
-  assert.ok(js.includes('/api/admin/suitability/mappings'));
-  assert.match(js, /source_namespace/);
-  assert.match(js, /source_group_code/);
-  assert.match(js, /loadSuitabilityAdmin/);
-  assert.match(js, /renderSuitabilityAdmin/);
-  assert.ok(css.includes('max-width: 100%'));
-  assert.ok(css.includes('overflow-wrap: anywhere'));
+test("Stock Admin is isolated from Suitability administration", () => {
   assert.match(html, /id="stockForm"/);
-  assert.doesNotMatch(html, /<nav\b/i);
+  assert.doesNotMatch(html, /suitabilityAdminPanel/);
+});
+
+test("Fit Admin has three desktop columns for categories, values and sourced mappings", () => {
+  const suitabilityHtml = fs.readFileSync(new URL("../public/admin-fit.html", import.meta.url), "utf8");
+  for (const id of ["suitabilityAdminPanel", "suitabilityCategoryForm", "suitabilityValueForm",
+    "suitabilitySourceSearch", "suitabilitySourceSelect", "suitabilityMappingForm"]) {
+    assert.match(suitabilityHtml, new RegExp('id="' + id + '"'));
+  }
+  assert.match(suitabilityHtml, /class="suitability-admin-grid"/);
+  assert.match(suitabilityHtml, /class="suitability-admin-column"/);
+  assert.match(js, /if \(adminPage === "suitability"\)/);
+  assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(css, /@media \(max-width: 960px\)/);
 });
 
 // Exercise the actual browser script using stock API response shapes.

@@ -31,7 +31,7 @@ if (!baseUrl) {
   });
 
   test("canonical part search returns VIEPS context", async () => {
-    const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(partNumber)}`);
+    const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(partNumber)}&TEST=1`);
     assert.equal(response.status, 200);
     const data = await response.json();
     assert.equal(data.part.part_number_normalized, partNumber.replace(/[\s-]+/gu, "").toUpperCase());
@@ -44,7 +44,7 @@ if (!baseUrl) {
 
   test("deployed VIEPS fixture parts return stock locations", async () => {
     for (const fixturePartNumber of fixturePartNumbers) {
-      const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(fixturePartNumber)}`);
+      const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(fixturePartNumber)}&TEST=1`);
       assert.equal(response.status, 200, fixturePartNumber);
       const data = await response.json();
       assert.equal(data.part.part_number_normalized, fixturePartNumber);
@@ -54,7 +54,7 @@ if (!baseUrl) {
 
   test("deployed VIEPS non-numbered fixture identifiers return stock locations", async () => {
     for (const identifier of fixtureDescriptiveIdentifiers) {
-      const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(identifier)}`);
+      const response = await fetch(`${baseUrl}/api/vieps/part?q=${encodeURIComponent(identifier)}&TEST=1`);
       assert.equal(response.status, 200, identifier);
       const data = await response.json();
       assert.equal(data.part.part_number_normalized, null);
@@ -64,7 +64,7 @@ if (!baseUrl) {
   });
 
   test("unknown part returns explicit not-found response", async () => {
-    const response = await fetch(`${baseUrl}/api/vieps/part?q=NOT-A-REAL-PART`);
+    const response = await fetch(`${baseUrl}/api/vieps/part?q=NOT-A-REAL-PART&TEST=1`);
     assert.equal(response.status, 404);
     const data = await response.json();
     assert.equal(data.error, "part not found");

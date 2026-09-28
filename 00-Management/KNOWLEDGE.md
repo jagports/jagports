@@ -7,7 +7,7 @@ The durable vision documents are:
 - [`VISION_AI-OS.md`](VISION_AI-OS.md) — Jagports AI OS operating/product vision, including the GitHub-centered human-governed agent model, durable-memory direction, automation principles, and baseline cost/infrastructure constraints.
 - [`VISION_VIEPS.md`](VISION_VIEPS.md) — VIEPS product vision, including canonical Jaguar/parts knowledge, evidence-backed applicability, catalogue/stock separation, provider direction, and long-term platform direction.
 
-These vision documents state intended direction and durable boundaries. They do not replace `WORKFLOWS.md`, `RULES.md`, detailed specifications, roadmaps, or implementation acceptance criteria.
+These vision documents state intended direction and durable boundaries. They do not replace `0-DocumentationEducationCompetense/WORKFLOWS.md`, `RULES.md`, detailed specifications, roadmaps, or implementation acceptance criteria.
 
 ## Decision Records
 

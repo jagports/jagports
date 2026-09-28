@@ -8,13 +8,23 @@
   let statusIsError = false;
 
   const byId = (id) => document.getElementById(id);
+  const adminPage = document.documentElement?.dataset?.adminPage || "stock";
   const headers = () => ({ "content-type": "application/json", "x-admin-token": token });
   const nullableNumber = (id) => byId(id).value ? Number(byId(id).value) : null;
   const isTechnicalSitePlaceholder = (name) => /name not recorded in xlsx/i.test(name || "");
   const visibleSiteName = (name) => isTechnicalSitePlaceholder(name) ? "" : (name || "");
+  // Keep Admin part lookup consistent with public Web TEST-mode URLs.
+  const isTestMode = () => {
+    if (typeof URLSearchParams !== "function") return false;
+    const flags = [...new URLSearchParams(globalThis.location?.search || "")]
+      .filter(([key]) => key.toLowerCase() === "test");
+    return flags.length === 1 && flags[0][1] === "1";
+  };
 
   async function api(path, options = {}, admin = true) {
-    const response = await fetch(path, {
+    const testMode = isTestMode();
+    const url = testMode ? `${path}${path.includes("?") ? "&" : "?"}TEST=1` : path;
+    const response = await fetch(url, {
       ...options,
       headers: { ...(admin ? headers() : { "content-type": "application/json" }), ...(options.headers || {}) },
     });
@@ -45,8 +55,8 @@
 
   function refreshForLanguageChange() {
     i18n?.applyDocument();
-    render();
-    renderSuitabilityAdmin();
+    if (adminPage === "stock") render();
+    if (adminPage === "suitability") renderSuitabilityAdmin();
     if (statusTranslationKey) setLocalizedStatus(statusTranslationKey, statusIsError);
   }
 
@@ -86,7 +96,9 @@
       const number = part.part_number_raw || part.part_number_normalized || `#${part.id}`;
       button.textContent = `${number}${part.description ? ` — ${part.description}` : ""}`;
       button.addEventListener("click", () => {
-        byId("partId").value = part.id;
+        // Range D1 row IDs are not operational jagports.part IDs.
+        byId("partId").value = isTestMode()
+          ? part.id : "";
         byId("partNumber").value = number;
         target.replaceChildren();
         setLocalizedStatus("stock_admin.part_selected");
@@ -180,7 +192,7 @@
     byId("currency").value = "EUR";
     byId("available").checked = true;
     byId("identityMode").value = "canonical";
-    setIdentityMode("canonical");
+    if (adminPage === "stock") setIdentityMode("canonical");
     byId("partLookupResults").replaceChildren();
     byId("deleteStock").disabled = true;
   }
@@ -414,6 +426,7 @@
     });
   });
 
+  if (adminPage === "stock") {
   byId("identityMode").addEventListener("change", (event) => {
     setIdentityMode(event.target.value);
     byId("partNumber").value = "";
@@ -423,8 +436,10 @@
   byId("accessForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     token = byId("adminToken").value;
-    try { await loadMeta(); await loadStock(); setLocalizedStatus("stock_admin.connected");
-      try { await loadSuitabilityAdmin(""); } catch (error) { suitError(error); }
+    try {
+      if (adminPage === "stock") { await loadMeta(); await loadStock(); }
+      if (adminPage === "suitability") await loadSuitabilityAdmin("");
+      setLocalizedStatus("stock_admin.connected");
     }
     catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
@@ -477,6 +492,14 @@
   });
 
 
+  }
+  if (adminPage === "suitability") {
+  byId("accessForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    token = byId("adminToken").value;
+    try { await loadSuitabilityAdmin(""); setLocalizedStatus("stock_admin.connected"); }
+    catch (error) { suitError(error); }
+  });
   suit("CategorySelect").addEventListener("change",suitShowCategory);
   suit("CategoryForm").addEventListener("submit",suitSaveCategory);
   suit("NewCategory").addEventListener("click",()=>{
@@ -522,6 +545,7 @@
   });
   suit("MappingForm").addEventListener("submit",suitSaveMapping);
   suit("ShowHistory").addEventListener("click",suitShowHistory);
+  }
 
-  setIdentityMode("canonical");
+  if (adminPage === "stock") setIdentityMode("canonical");
 })();

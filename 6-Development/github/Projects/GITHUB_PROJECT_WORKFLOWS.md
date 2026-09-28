@@ -4,11 +4,11 @@
 
 This file is the scoped canonical source for GitHub Project / Kanban workflow behavior.
 
-It is incorporated by reference from `00-Management/WORKFLOWS.md`.
+It is incorporated by reference from `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
 It defines Project Item representation, Project mutation and verification meaning, Issue Project Item initialization, Pull Request Project Item lifecycle, Workstream inheritance behavior, and Project-specific lifecycle invariants.
 
-It does not redefine the general Management lifecycle, repository change gate, review/testing/merge gate, record-integrity rules, or human authority. Those remain defined in `00-Management/WORKFLOWS.md`.
+It does not redefine the general Management lifecycle, repository change gate, review/testing/merge gate, record-integrity rules, or human authority. Those remain defined in `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
 Current ChatGPT/GitHub Project capability limits are defined in `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 
@@ -35,7 +35,7 @@ A Pull Request Project Item must retain traceability to its owning/closing Issue
 
 ### State meaning
 
-The normal Management lifecycle states defined by `00-Management/WORKFLOWS.md` have the following meaning when represented as GitHub Project Item Status values:
+The normal Management lifecycle states defined by `0-DocumentationEducationCompetense/WORKFLOWS.md` have the following meaning when represented as GitHub Project Item Status values:
 
 | State | Meaning |
 |---|---|
@@ -128,7 +128,7 @@ The `PR ` prefix is an implementation/storage distinction required to avoid coll
 
 ### Pull Request Project Item lifecycle
 
-A Pull Request that belongs to Jagports work may be represented by its own Project Item so that the Kanban shows the concrete integration artifact as well as the owning Issue. The Pull Request Project Item uses the controlled workflow meanings defined in `00-Management/WORKFLOWS.md`; Pull Request events do not create a parallel lifecycle.
+A Pull Request that belongs to Jagports work may be represented by its own Project Item so that the Kanban shows the concrete integration artifact as well as the owning Issue. The Pull Request Project Item uses the controlled workflow meanings defined in `0-DocumentationEducationCompetense/WORKFLOWS.md`; Pull Request events do not create a parallel lifecycle.
 
 **Product Owner ruling — no Pull Request Project Item archiving:** No Pull Request Project Item shall ever be archived until further notice. This rule applies to open, merged, and closed-unmerged Pull Requests and supersedes every earlier workflow, implementation, test expectation, or audit rule that required or permitted archiving a Pull Request Project Item. A later change requires a new explicit Product Owner ruling.
 
@@ -143,7 +143,7 @@ The Pull Request Project Item follows these deterministic rules:
 
 1. **Opened** → add the Pull Request itself to the Project and set its Project Item Status to `IMPLEMENTATION`, whether draft or non-draft. If Workstream is deterministically inherited/classified, set and verify it. Otherwise keep Workstream unassigned without guessing and create a durable human-facing notification containing the direct Pull Request URL plus the filtered all-items Project View 1 URL for that PR number so a human can immediately set `AI OS` or `VIEPS`; later prioritization may then rank it. The canonical Project view numbers and URLs are maintained in `6-Development/github/Projects/Setting_up_Kanban.md`.
 2. **Converted to draft** → set the Pull Request Project Item Status to `IMPLEMENTATION`. Draft state is evidence that the integration artifact is not currently at the independent-review boundary; it does not move repository work backwards to `RESEARCH`.
-3. **Marked ready for review / opened non-draft** → being non-draft is a prerequisite for review but does not by itself establish `REVIEW`. Keep `IMPLEMENTATION` until the canonical review hand-off in `00-Management/WORKFLOWS.md` has been completed and verified.
+3. **Marked ready for review / opened non-draft** → being non-draft is a prerequisite for review but does not by itself establish `REVIEW`. Keep `IMPLEMENTATION` until the canonical review hand-off in `0-DocumentationEducationCompetense/WORKFLOWS.md` has been completed and verified.
 4. **Independent review requested** → after the PR is open, non-draft, the authorized independent reviewer has been selected, and the native GitHub review request has been made, set the Pull Request Project Item Status to `REVIEW`, verify it, and stop implementation at the canonical review boundary.
 5. **Review request removed or Pull Request returned to active implementation** → return the Pull Request Project Item Status to `IMPLEMENTATION` when the canonical review hand-off no longer applies and implementation work resumes.
 6. **Reopened** → inspect the current PR and review-handoff state. Use `IMPLEMENTATION` unless the canonical independent review hand-off has been re-established and verified; only then use `REVIEW`. If a historical PR Project Item is archived, unarchive and independently verify it before applying the active lifecycle state.
@@ -154,7 +154,7 @@ For Pull Request Project Items, `DONE` is therefore a terminal-lifecycle state, 
 
 Every Pull Request Project Item add, unarchive, or Status change follows the same **MUTATE → VERIFY** rule. Automation must verify that the resulting Project Item contains the intended Pull Request, belongs to the intended Project, remains unarchived, and has the exact expected Status before success is claimed. An archive mutation is prohibited for Pull Request Project Items under the current ruling.
 
-The Pull Request Project Item lifecycle does not replace the owning Issue lifecycle. In particular, a qualifying closing-linked Pull Request may synchronize the owning Issue to `IMPLEMENTATION`, while the Pull Request's own Project Item also remains `IMPLEMENTATION` until the review hand-off defined in `00-Management/WORKFLOWS.md`. At the verified review boundary, the applicable Project Item or Items transition to `REVIEW`; the two items continue to represent different objects.
+The Pull Request Project Item lifecycle does not replace the owning Issue lifecycle. In particular, a qualifying closing-linked Pull Request may synchronize the owning Issue to `IMPLEMENTATION`, while the Pull Request's own Project Item also remains `IMPLEMENTATION` until the review hand-off defined in `0-DocumentationEducationCompetense/WORKFLOWS.md`. At the verified review boundary, the applicable Project Item or Items transition to `REVIEW`; the two items continue to represent different objects.
 
 ### IMPLEMENTATION transition from a closing-linked Pull Request
 
@@ -168,4 +168,4 @@ The automatic transition must not overwrite `DECISION NEEDED`, `BLOCKED`, `REVIE
 
 ## 2. Conflict handling
 
-If this file conflicts with `00-Management/WORKFLOWS.md` on a general workflow boundary, `00-Management/WORKFLOWS.md` controls. Within the Project/Kanban scope delegated here, this file is the normative source and secondary documents must reference rather than redefine it.
+If this file conflicts with `0-DocumentationEducationCompetense/WORKFLOWS.md` on a general workflow boundary, `0-DocumentationEducationCompetense/WORKFLOWS.md` controls. Within the Project/Kanban scope delegated here, this file is the normative source and secondary documents must reference rather than redefine it.

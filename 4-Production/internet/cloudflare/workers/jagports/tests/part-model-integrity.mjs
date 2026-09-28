@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { database, d1, migrate, migrations, sql } from './helpers/model-db.mjs';
-import { handleViepsPart } from '../src/vieps.js';
+import { handleViepsPart } from '../js/vieps-fixtures.js';
 
 const quote = (name) => `"${name.replaceAll('"', '""')}"`;
 function withDatabase(t, options) {
@@ -20,7 +20,8 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 21);
+  assert.equal(migrations.length, 22);
+  assert.ok(migrations.includes('0021_fit_contract_aliases.sql'));
   assert.ok(migrations.includes('0019_suitability_description_mapping.sql'));
   assert.ok(migrations.includes('0020_suitability_admin.sql'));
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);

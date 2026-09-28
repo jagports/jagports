@@ -11,7 +11,7 @@ It does not define workflow states, review semantics, merge rules, Issue lifecyc
 Read and apply the current repository sources that actually exist for the work being performed:
 
 1. `KNOWLEDGE.md` — repository entry point.
-2. `00-Management/WORKFLOWS.md` — single canonical normative Management workflow authority.
+2. `0-DocumentationEducationCompetense/WORKFLOWS.md` — single canonical normative Management workflow authority.
 3. `6-Development/github/GITHUB_OPERATING_RULES.md` — GitHub-specific operating requirements.
 4. `00-Management/RULES.md` — human governance and authority.
 5. `0-DocumentationEducationCompetense/SKILL.md` — general agent execution rules.
@@ -35,7 +35,7 @@ Before editing:
 
 ## Change execution
 
-Branching, repository-change gates, review boundaries, merge rules, record-integrity rules, and general agent/API execution behavior are not repeated here. Execute the current rules in `00-Management/WORKFLOWS.md`, `6-Development/github/GITHUB_OPERATING_RULES.md`, and `0-DocumentationEducationCompetense/SKILL.md`.
+Branching, repository-change gates, review boundaries, merge rules, record-integrity rules, and general agent/API execution behavior are not repeated here. Execute the current rules in `0-DocumentationEducationCompetense/WORKFLOWS.md`, `6-Development/github/GITHUB_OPERATING_RULES.md`, and `0-DocumentationEducationCompetense/SKILL.md`.
 
 Codex-specific implementation expectations are:
 
@@ -77,7 +77,7 @@ For hand-off, record durable evidence in the PR and/or linked test Issue as appl
 - manual verification where automation is insufficient;
 - relationship between validation and the Issue acceptance criteria.
 
-Required pre-merge validation must exercise the proposed implementation. Testing chronology and merge eligibility remain defined by `00-Management/WORKFLOWS.md` and `6-Development/KNOWLEDGE.md`.
+Required pre-merge validation must exercise the proposed implementation. Testing chronology and merge eligibility remain defined by `0-DocumentationEducationCompetense/WORKFLOWS.md` and `6-Development/KNOWLEDGE.md`.
 
 ## Documentation and durable knowledge
 
