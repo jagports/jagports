@@ -164,28 +164,28 @@ async function addMapping(db,env,body) {
   await audit(db,env,"mapping_revision",id,code,sourceId,revisionId,{status,version,evidence_note:note,reviewer_ref:reviewer});
   return reply({mapping:row,source_identity:{namespace:source.source_namespace,dataset:source.dataset_key,key:source.source_key,language:source.source_language}},201);
 }
-export async function handleSuitabilityAdmin(request,env) {
+export async function handleFitAdmin(request,env) {
   if(!env.DB) return reply({error_code:"database_unavailable"},503);
   const url=new URL(request.url),path=url.pathname,method=request.method,db=env.DB;
   try {
-    if(method==="GET" && path==="/api/admin/suitability") return await listing(db,url);
-    if(method==="GET" && path==="/api/admin/suitability/categories") {
+    if(method==="GET" && path==="/api/admin/fit") return await listing(db,url);
+    if(method==="GET" && path==="/api/admin/fit/categories") {
       const data = await (await listing(db,url)).json();
       return reply({language:data.language,categories:data.categories,values:data.values});
     }
-    if(method==="GET" && path==="/api/admin/suitability/descriptions") {
+    if(method==="GET" && path==="/api/admin/fit/descriptions") {
       const data = await (await listing(db,url)).json();
       return reply({sources:data.sources,next_offset:data.next_offset});
     }
-    if(method==="GET" && path==="/api/admin/suitability/history") return await history(db,url);
-    if(method==="POST" && path==="/api/admin/suitability/categories") return await createCategory(db,env,await responseBody(request));
-    let match=path.match(/^\/api\/admin\/suitability\/categories\/([0-9]+)$/);
+    if(method==="GET" && path==="/api/admin/fit/history") return await history(db,url);
+    if(method==="POST" && path==="/api/admin/fit/categories") return await createCategory(db,env,await responseBody(request));
+    let match=path.match(/^\/api\/admin\/fit\/categories\/([0-9]+)$/);
     if(method==="PATCH" && match) return await editCategory(db,env,positive(match[1],"dimension_id"),await responseBody(request));
-    if(method==="POST" && path==="/api/admin/suitability/values") return await createValue(db,env,await responseBody(request));
-    match=path.match(/^\/api\/admin\/suitability\/values\/([0-9]+)\/([A-Za-z][A-Za-z0-9_]*)$/);
+    if(method==="POST" && path==="/api/admin/fit/values") return await createValue(db,env,await responseBody(request));
+    match=path.match(/^\/api\/admin\/fit\/values\/([0-9]+)\/([A-Za-z][A-Za-z0-9_]*)$/);
     if(method==="PATCH" && match) return await editValue(db,env,positive(match[1],"dimension_id"),match[2],await responseBody(request));
-    if(method==="POST" && path==="/api/admin/suitability/mappings") return await addMapping(db,env,await responseBody(request));
-    match=path.match(/^\/api\/admin\/suitability\/mappings\/([0-9]+)\/retire$/);
+    if(method==="POST" && path==="/api/admin/fit/mappings") return await addMapping(db,env,await responseBody(request));
+    match=path.match(/^\/api\/admin\/fit\/mappings\/([0-9]+)\/retire$/);
     if(method==="POST" && match) {
       const revisionId=positive(match[1],"mapping_revision_id");
       const mapping=await one(db,"SELECT source_description_id FROM applicability_description_mapping_revision WHERE id=?",revisionId);

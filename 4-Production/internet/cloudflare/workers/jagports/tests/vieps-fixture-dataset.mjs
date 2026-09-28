@@ -18,7 +18,7 @@ const expectedStockLocations = new Map([
 
 async function resolve(env, partNumber) {
   const response = await handleViepsPart(
-    new Request(`https://example.test/api/vieps/part?q=${partNumber}`),
+    new Request(`https://example.test/api/part?q=${partNumber}`),
     env,
   );
   assert.equal(response.status, 200, partNumber);
@@ -131,7 +131,7 @@ test('0018 repairs lost fixture stock and restores stock-only resolution', async
   assert.equal(restored.location, 'Fixture Shelf XK / Box A14');
 
   const response = await handleViepsPart(
-    new Request('https://example.test/api/vieps/part?q=MJB7703AA&stock_only=1'),
+    new Request('https://example.test/api/part?q=MJB7703AA&stock_only=1'),
     { DB: d1(db) },
   );
   assert.equal(response.status, 200);

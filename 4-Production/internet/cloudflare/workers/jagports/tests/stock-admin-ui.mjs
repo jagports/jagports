@@ -113,20 +113,20 @@ test("Stock Admin does not expose technical placeholder site names to operators"
 });
 
 
-test("Stock Admin is isolated from Suitability administration", () => {
+test("Stock Admin is isolated from Fit administration", () => {
   assert.match(html, /id="stockForm"/);
-  assert.doesNotMatch(html, /suitabilityAdminPanel/);
+  assert.doesNotMatch(html, /fitAdminPanel/);
 });
 
 test("Fit Admin has three desktop columns for categories, values and sourced mappings", () => {
-  const suitabilityHtml = fs.readFileSync(new URL("../public/admin-fit.html", import.meta.url), "utf8");
-  for (const id of ["suitabilityAdminPanel", "suitabilityCategoryForm", "suitabilityValueForm",
-    "suitabilitySourceSearch", "suitabilitySourceSelect", "suitabilityMappingForm"]) {
-    assert.match(suitabilityHtml, new RegExp('id="' + id + '"'));
+  const fitHtml = fs.readFileSync(new URL("../public/admin-fit.html", import.meta.url), "utf8");
+  for (const id of ["fitAdminPanel", "fitCategoryForm", "fitValueForm",
+    "fitSourceSearch", "fitSourceSelect", "fitMappingForm"]) {
+    assert.match(fitHtml, new RegExp('id="' + id + '"'));
   }
-  assert.match(suitabilityHtml, /class="suitability-admin-grid"/);
-  assert.match(suitabilityHtml, /class="suitability-admin-column"/);
-  assert.match(js, /if \(adminPage === "suitability"\)/);
+  assert.match(fitHtml, /class="fit-admin-grid"/);
+  assert.match(fitHtml, /class="fit-admin-column"/);
+  assert.match(js, /if \(adminPage === "fit"\)/);
   assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /@media \(max-width: 960px\)/);
 });

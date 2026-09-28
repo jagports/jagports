@@ -107,7 +107,7 @@ test("#875 tablet and keyboard-scroll regions remain available", () => {
   }
 });
 
-test("#895 centre-top suitability is an independently scrollable, accessible checkbox row", () => {
+test("#895 centre-top FIT is an independently scrollable, accessible checkbox row", () => {
   assert.match(html, /id="variationOptions"[^>]*role="group"/);
   assert.match(rule(".variation-options"), /display:\s*flex/);
   assert.match(rule(".variation-options"), /overflow-x:\s*auto/);

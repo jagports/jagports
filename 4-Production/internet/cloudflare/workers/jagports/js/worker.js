@@ -1,8 +1,8 @@
 import { normalizePartNumber } from "./part.js";
 import { handleViepsPart as handleFixturePart, handleViepsTree as handleFixtureTree } from "./vieps-fixtures.js";
-import { handlePart, handleTree, handleSuitability as handleFit, partsDatabase } from "./vieps-parts.js";
-import { handleViepsSuitability as handleFixtureFit } from "./suitability.js";
-import { handleSuitabilityAdmin } from "./vieps-admin-suitability.js";
+import { handlePart, handleTree, handleFit, partsDatabase } from "./parts.js";
+import { handleViepsFit as handleFixtureFit } from "./fit.js";
+import { handleFitAdmin } from "./admin-fit.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -181,14 +181,16 @@ async function handleApi(request, env) {
   const testFlags = [...url.searchParams].filter(([key]) => key.toLowerCase() === "test");
   const testMode = testFlags.length === 1 && testFlags[0][1] === "1";
 
-  if (path === "/api/vieps/part") return testMode ? handleFixturePart(request, env) : handlePart(request, env);
-  if (path === "/api/vieps/tree") return testMode ? handleFixtureTree(request, env) : handleTree(request, env);
-  if (path === "/api/vieps/fit" || path === "/api/vieps/suitability") return testMode
+  // Canonical public catalogue routes are unnamespaced: /api/part, /api/tree and /api/fit.
+
+  if (path === "/api/part") return testMode ? handleFixturePart(request, env) : handlePart(request, env);
+  if (path === "/api/tree") return testMode ? handleFixtureTree(request, env) : handleTree(request, env);
+  if (path === "/api/fit") return testMode
     ? handleFixtureFit(request, env) : handleFit(request, env);
-  if (path.startsWith("/api/admin/suitability")) {
+  if (/^\/api\/admin\/fit(?:\/|$)/.test(path)) {
     const denied = requireAdmin(request, env);
     if (denied) return denied;
-    return handleSuitabilityAdmin(request, env);
+    return handleFitAdmin(request, env);
   }
 
   if (path === "/api/health" && request.method === "GET") {
@@ -398,7 +400,6 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === "/stock-admin.html") return Response.redirect(new URL("/admin-stock", url), 308);
     if (url.pathname === "/admin-stock") return env.ASSETS.fetch(new Request(new URL("/admin-stock.html", url), request));
-    if (url.pathname === "/admin-suitability") return Response.redirect(new URL("/admin-fit", url), 308);
     if (url.pathname === "/admin-fit") return env.ASSETS.fetch(new Request(new URL("/admin-fit.html", url), request));
     if (url.pathname.startsWith("/api/")) {
       try { return await handleApi(request, env); }

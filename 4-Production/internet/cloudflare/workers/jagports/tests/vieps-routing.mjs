@@ -3,23 +3,23 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { partsDatabase } from '../js/vieps-parts.js';
-import { handleApi } from '../js/vieps-worker.js';
+import { partsDatabase } from '../js/parts.js';
+import { handleApi } from '../js/worker.js';
 import { database, d1 } from './helpers/model-db.mjs';
 
 test('real routing uses a reviewed parts database binding and never falls back to fixture DB', () => {
   const fixture = { name: 'fixture' }, xk = { name: 'xk' };
   const env = { DB: fixture, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: xk };
-  assert.equal(partsDatabase(new URL('https://example.test/api/vieps/tree'), env).db, xk);
-  assert.throws(() => partsDatabase(new URL('https://example.test/api/vieps/tree'),
+  assert.equal(partsDatabase(new URL('https://example.test/api/tree'), env).db, xk);
+  assert.throws(() => partsDatabase(new URL('https://example.test/api/tree'),
     { ...env, PARTS_XK: undefined }), error => error.code === 'parts_database_unavailable');
 });
 
 test('multiple configured Ranges fail visibly until global index is available', () => {
   const env = { DB: {}, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK","xj":"PARTS_XJ"}',
     PARTS_XK: { name: 'xk' }, PARTS_XJ: { name: 'xj' } };
-  for (const url of ['https://example.test/api/vieps/part?q=ABC',
-    'https://example.test/api/vieps/part?q=ABC&range=xj']) {
+  for (const url of ['https://example.test/api/part?q=ABC',
+    'https://example.test/api/part?q=ABC&range=xj']) {
     assert.throws(() => partsDatabase(new URL(url), env),
       error => error.code === 'parts_database_unavailable' && error.status === 503);
   }
@@ -27,7 +27,7 @@ test('multiple configured Ranges fail visibly until global index is available', 
 
 test('a single Range does not accept an unsupported per-request selector', () => {
   const env = { DB: {}, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: {} };
-  assert.throws(() => partsDatabase(new URL('https://example.test/api/vieps/part?range=xj'), env),
+  assert.throws(() => partsDatabase(new URL('https://example.test/api/part?range=xj'), env),
     error => error.code === 'parts_database_unavailable');
 });
 
@@ -70,7 +70,7 @@ test('real PART lookup does not require tree data, FIT tables or a description',
   };
 
   const response = await handleApi(new Request(
-    'https://test.example/api/vieps/part?q=JLM11716'), env);
+    'https://test.example/api/part?q=JLM11716'), env);
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.state, 'resolved');
@@ -82,27 +82,27 @@ test('real PART lookup does not require tree data, FIT tables or a description',
   assert.equal(body.occurrences.length, 1);
   assert.deepEqual(body.fitment, []);
 
-  const fit = await handleApi(new Request('https://test.example/api/vieps/fit'), env);
+  const fit = await handleApi(new Request('https://test.example/api/fit'), env);
   assert.equal(fit.status, 503);
-  assert.equal((await fit.json()).error_code, 'real_suitability_data_missing');
+  assert.equal((await fit.json()).error_code, 'real_fit_data_missing');
 });
 
-test('real mode returns an explicit error rather than publishing available synthetic Suitability', async (t) => {
+test('real mode returns an explicit error rather than publishing available synthetic Fit', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   const partsDb = d1(db);
   const env = { DB: partsDb, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: partsDb };
   const response = await handleApi(new Request(
-    'https://test.example/api/vieps/suitability'), env);
+    'https://test.example/api/fit'), env);
   assert.equal(response.status, 503);
   const body = await response.json();
   assert.equal(body.state, 'error');
   assert.equal(body.fixture_mode, false);
-  assert.equal(body.error_code, 'real_suitability_data_missing');
+  assert.equal(body.error_code, 'real_fit_data_missing');
   assert.equal(body.range, 'xk');
   assert.deepEqual(body.categories, []);
   assert.deepEqual(body.matches, []);
   const fixture = await handleApi(new Request(
-    'https://test.example/api/vieps/suitability?TEST=1'), env);
+    'https://test.example/api/fit?TEST=1'), env);
   assert.equal(fixture.status, 200);
   const fixtureBody = await fixture.json();
   assert.equal(fixtureBody.fixture_mode, true);
@@ -113,29 +113,29 @@ test('real mode returns an explicit error rather than publishing available synth
 test('real mode with an unbound parts database fails rather than reading the fixture D1', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   await assert.rejects(() => handleApi(new Request(
-    'https://test.example/api/vieps/suitability'), { DB: d1(db) }),
+    'https://test.example/api/fit'), { DB: d1(db) }),
   error => error.status === 503 && error.code === 'parts_database_unavailable');
 });
 
-test('case-insensitive TEST URL enables fixtures on Web APIs and does not depend on a real Range', async (t) => {
+test('case-insensitive TEST URL enables fixtures on Web APIs and does not depend on a parts database', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   const env = { DB: d1(db) };
   for (const key of ['TEST', 'test', 'TeSt']) {
     const query = key + '=1';
-    const suitability = await handleApi(new Request(
-      'https://test.example/api/vieps/suitability?' + query), env);
-    assert.equal(suitability.status, 200, query);
-    const body = await suitability.json();
+    const fit = await handleApi(new Request(
+      'https://test.example/api/fit?' + query), env);
+    assert.equal(fit.status, 200, query);
+    const body = await fit.json();
     assert.equal(body.fixture_mode, true, query);
     assert.equal(body.categories.length, 4, query);
     assert.equal(body.categories.flatMap(category => category.values).length, 8, query);
     const parts = await handleApi(new Request(
-      'https://test.example/api/vieps/part?q=MJB7703AA&' + query), env);
+      'https://test.example/api/part?q=MJB7703AA&' + query), env);
     assert.equal(parts.status, 200, query);
     const part = await parts.json();
     assert.equal(part.part?.part_number_normalized, 'MJB7703AA', query);
     const tree = await handleApi(new Request(
-      'https://test.example/api/vieps/tree?root=1&' + query), env);
+      'https://test.example/api/tree?root=1&' + query), env);
     assert.equal(tree.status, 200, query);
   }
 });
@@ -145,24 +145,22 @@ test('missing or conflicting TEST URL flags never expose fixture data', async (t
   const env = { DB: d1(db) };
   for (const flags of ['', '?TEST=0', '?test=2', '?TEST=1&test=0', '?test=1&TEST=1']) {
     await assert.rejects(() => handleApi(new Request(
-      'https://test.example/api/vieps/suitability' + flags), env),
+      'https://test.example/api/fit' + flags), env),
     error => error.status === 503 && error.code === 'parts_database_unavailable',
     'unbound parts database must reject URL flags: ' + flags);
   }
 });
 
 
-test('#976 FIT route is canonical and legacy suitability API remains a compatible alias', async (t) => {
+test('#976 FIT route remains canonical', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   const env = { DB: d1(db) };
-  for (const path of ['/api/vieps/fit', '/api/vieps/suitability']) {
-    const response = await handleApi(new Request('https://test.example' + path + '?TEST=1'), env);
-    assert.equal(response.status, 200, path);
-    const data = await response.json();
-    assert.equal(data.fixture_mode, true, path);
-    assert.equal(data.categories.length, 4, path);
-    assert.ok(data.matches.length > 0, path);
-  }
+  const response = await handleApi(new Request('https://test.example/api/fit?TEST=1'), env);
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.fixture_mode, true);
+  assert.equal(data.categories.length, 4);
+  assert.ok(data.matches.length > 0);
 });
 
 

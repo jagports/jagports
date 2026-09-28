@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { database, d1, migrate, migrations } from './helpers/model-db.mjs';
 import { DatabaseSync } from 'node:sqlite';
-import { readPartApplicability } from '../js/applicability.js';
+import { readPartApplicability } from '../js/fit-evidence.js';
 
 function open(t) { const db=database(); t.after(()=>db.close()); return db; }
 function rejects(db,statement,pattern=/constraint|incompatible|unconditional|conditional/i) {

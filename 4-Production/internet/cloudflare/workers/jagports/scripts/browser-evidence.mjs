@@ -30,7 +30,7 @@ const browserPaths = [
 
 // Synthetic source-qualified API fixture for the browser layout harness.
 // Independent D1/endpoint assertions are exercised on implementation PR #892.
-const browserSuitability = [
+const browserFit = [
   ["body", [["coupe", "Coupe", "Coupé"], ["convertible", "Convertible", "Avoauto"]], "Body", "Kori"],
   ["engine_aspiration", [["na", "NA", "Vapaasti hengittävä"], ["supercharged", "Supercharged", "Mekaanisesti ahdettu"]], "Engine aspiration", "Moottorin ahtaminen"],
   ["seat_equipment", [["memory_seat", "Memory Seat", "Muisti-istuin"], ["powered_seats", "Powered Seats", "Sähkösäätöiset istuimet"]], "Seat equipment", "Istuinvarusteet"],
@@ -48,14 +48,14 @@ const browserOccurrences = [
 ];
 function browserFitResponse(params) {
   const fi = params.get("ui_language") === "fi";
-  const categories = browserSuitability.map(([code, values, en, fin]) => ({
+  const categories = browserFit.map(([code, values, en, fin]) => ({
     code, name: fi ? fin : en, description: fi ? fin : en,
     values: values.map(([value, english, finnish], i) => ({
       id: code + ":" + value, code: value,
       name: fi ? finnish : english, description: fi ? finnish : english,
       source_descriptions: [{
         id: 9000 + i, mapping_revision_id: 10000 + i,
-        source_namespace: "fixture:pre-jepc-suitability:v1",
+        source_namespace: "fixture:pre-jepc-fit:v1",
         dataset: "browser-v1", language: "en", locator: "browser/" + code + "/" + value,
         original_text: english, provenance: "synthetic_fixture",
       }],
@@ -76,7 +76,7 @@ function browserFitResponse(params) {
         : [...choices].some((id) => item.values.includes(id))));
   return {
     state: matches.length ? "applicable" : "no_match", fixture_mode: true,
-    source_namespace: "fixture:pre-jepc-suitability:v1",
+    source_namespace: "fixture:pre-jepc-fit:v1",
     selected, query: params.get("q") || "", categories, matches, excluded_occurrences: [], unavailable_occurrences: [],
     available_options: [...new Set(matches.flatMap((m) => m.values))].sort(),
   };
@@ -89,12 +89,12 @@ async function localServer() {
     // Synthetic catalogue endpoints only exist in TEST=1.
     const testFlags = [...requestUrl.searchParams].filter(([key]) => key.toLowerCase() === "test");
     const fixtureMode = testFlags.length === 1 && testFlags[0][1] === "1";
-    if (pathname.startsWith("/api/vieps/") && !fixtureMode) {
+    if (["/api/part", "/api/tree", "/api/fit"].includes(pathname) && !fixtureMode) {
       response.writeHead(503, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "No parts database is bound.", error_code: "parts_database_unavailable" }));
       return;
     }
-    if (pathname === "/api/vieps/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
+    if (pathname === "/api/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({
         roots: [{ node_id: 1, label: "XK Range (browser fixture)", sort_order: 1 }],
@@ -102,13 +102,13 @@ async function localServer() {
       }));
       return;
     }
-    if ((pathname === "/api/vieps/fit" || pathname === "/api/vieps/suitability")) {
+    if (pathname === "/api/fit") {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify(browserFitResponse(
         new URL(request.url, "http://localhost").searchParams)));
       return;
     }
-    if (pathname === "/api/vieps/part") {
+    if (pathname === "/api/part") {
       const params = new URL(request.url, "http://localhost").searchParams;
       if (params.get("q") === "BRTEST") {
         const id = params.get("candidate_id");
@@ -363,7 +363,7 @@ try {
     }));
     assert.equal(groupScroll.overflowX, "auto");
     assert.ok(groupScroll.content >= groupScroll.viewport);
-    await page.screenshot({ path: evidenceDir + "desktop-suitability-filter.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "desktop-fit-filter.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
     await page.locator("#variationOptions").filter({ hasText: "Coupé" }).waitFor();
     assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
@@ -372,7 +372,7 @@ try {
     await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
     assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
     assert.match(await page.locator('#variationOptions label:has([data-fit-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
-    await page.screenshot({ path: evidenceDir + "desktop-suitability-fi.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "desktop-fit-fi.png", fullPage: true });
     await page.locator('[data-language="en"]').click();
     await page.locator("#partNumber").fill("");
     await page.locator("#tree .tree-node-row").first().waitFor();
@@ -478,7 +478,7 @@ try {
         width + "px long source-backed descriptions must stay inside the horizontal scroller");
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         width + "px facet row must not widen the page");
-      await page.screenshot({ path: evidenceDir + "mobile-" + width + "-suitability.png" });
+      await page.screenshot({ path: evidenceDir + "mobile-" + width + "-fit.png" });
     }
     const topBefore = g.top.top;
     const findBefore = g.find.top;
@@ -516,7 +516,7 @@ try {
     const auditWrites = [];
     const originalSource = {
       id: 87709, original_text: "Coupe", source_language: "en",
-      source_namespace: "fixture:pre-jepc-suitability:v1",
+      source_namespace: "fixture:pre-jepc-fit:v1",
       dataset_key: "browser", source_key: "body/group-2",
       source_group_code: "Body-2", source_model_ref: "X100",
       record_locator: "browser/body/group-2", provenance_kind: "fixture",
@@ -534,7 +534,7 @@ try {
         await fulfil(route, { locations: [], source_parties: [], vehicles: [] });
       } else if (path === "/api/stock") {
         await fulfil(route, { results: [] });
-      } else if (path === "/api/admin/suitability" && request.method() === "GET") {
+      } else if (path === "/api/admin/fit" && request.method() === "GET") {
         await fulfil(route, {
           categories: [{
             id: 87701, code: "body", name_en: "Body", name_fi: "Kori",
@@ -547,7 +547,7 @@ try {
           }],
           sources: [currentSource], next_offset: null,
         });
-      } else if (path === "/api/admin/suitability/mappings" && request.method() === "POST") {
+      } else if (path === "/api/admin/fit/mappings" && request.method() === "POST") {
         const body = JSON.parse(request.postData());
         auditWrites.push(body);
         currentSource = { ...currentSource, status: body.status,
@@ -555,7 +555,7 @@ try {
           evidence_note: body.evidence_note, reviewer_ref: body.reviewer_ref };
         await fulfil(route, { mapping: { revision: currentSource.revision,
           status: currentSource.status } });
-      } else if (path === "/api/admin/suitability/history") {
+      } else if (path === "/api/admin/fit/history") {
         await fulfil(route, { source_description_id: currentSource.id, audit: [],
           revisions: [
             { revision: 1, status: "proposed", mapping_version: "browser-v1",
@@ -567,7 +567,7 @@ try {
       } else await route.continue();
     });
     await page.setViewportSize({ width: 1240, height: 860 });
-    // Admin Stock and Admin Suitability are separate canonical pages on main.
+    // Admin Stock and Admin Fit are separate canonical pages on main.
     // The old stock-admin.html address now redirects in Workers and is not
     // shipped as a static asset; the local evidence server serves static files.
     const stockPage = await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
@@ -579,35 +579,35 @@ try {
     await page.screenshot({ path: evidenceDir + "admin-stock-desktop.png", fullPage: true });
 
     const fitPage = await page.goto(local.url + "admin-fit.html?TEST=1", { waitUntil: "load" });
-    assert.equal(fitPage?.status(), 200, "canonical Suitability Admin page must exist");
+    assert.equal(fitPage?.status(), 200, "canonical Fit Admin page must exist");
     await page.locator("#adminToken").fill("browser-admin-test");
     await page.locator("#accessForm button[type=submit]").click();
-    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
-    assert.match(await page.locator("#suitabilitySourceDetails").textContent(),
-      /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
+    await page.locator('#fitSourceSelect option[value="87709"]').waitFor();
+    assert.match(await page.locator("#fitSourceDetails").textContent(),
+      /Coupe.*fixture:pre-jepc-fit:v1.*Body-2/,
       "Admin must show raw text and its distinct source namespace and group");
-    await page.locator("#suitabilityMappingStatus").selectOption("conflict");
-    await page.locator("#suitabilityMappingVersion").fill("browser-v2");
-    await page.locator("#suitabilityEvidenceNote").fill("Group requires separate verification");
-    await page.locator("#suitabilityMappingForm button[type=submit]").click();
-    await page.locator("#suitabilityAdminStatus").filter({ hasText: "Catalogue change saved" }).waitFor();
+    await page.locator("#fitMappingStatus").selectOption("conflict");
+    await page.locator("#fitMappingVersion").fill("browser-v2");
+    await page.locator("#fitEvidenceNote").fill("Group requires separate verification");
+    await page.locator("#fitMappingForm button[type=submit]").click();
+    await page.locator("#fitAdminStatus").filter({ hasText: "Catalogue change saved" }).waitFor();
     assert.equal(auditWrites.length, 1, "Admin must submit exactly one new mapping revision");
     assert.equal(auditWrites[0].source_description_id, 87709,
       "mapping must use immutable source ID, not display text");
     assert.equal(auditWrites[0].status, "conflict",
       "unverified fixture description must not become verified JEPC");
     assert.equal(currentSource.original_text, "Coupe");
-    await page.locator("#suitabilityShowHistory").click();
-    await page.locator("#suitabilityHistory li").last().waitFor();
-    assert.equal(await page.locator("#suitabilityHistory li").count(), 2,
+    await page.locator("#fitShowHistory").click();
+    await page.locator("#fitHistory li").last().waitFor();
+    assert.equal(await page.locator("#fitHistory li").count(), 2,
       "Admin must show historic and current interpretation separately");
-    await page.screenshot({ path: evidenceDir + "admin-suitability-desktop.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "admin-fit-desktop.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
-    assert.match(await page.locator("#suitabilityAdminHeading").textContent(), /Soveltuvuusluokat/);
+    assert.match(await page.locator("#fitAdminHeading").textContent(), /Soveltuvuusluokat/);
     await page.setViewportSize({ width: 320, height: 780 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
       "Admin must not cause horizontal overflow on 320px mobile");
-    await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "admin-fit-mobile-320.png", fullPage: true });
     await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
     await page.locator("#stockForm").scrollIntoViewIfNeeded();
     await page.screenshot({ path: evidenceDir + "admin-stock-mobile-320.png" });
@@ -627,11 +627,11 @@ try {
       await touchPage.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
       await touchPage.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
       assert.equal(await touchPage.locator('#searchResults [data-result-part-id]').count(), 1,
-        "touch-selected suitability must narrow canonical results");
+        "touch-selected fit must narrow canonical results");
       assert.ok(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "touch device must not acquire page-level horizontal overflow");
-      await touchPage.screenshot({ path: evidenceDir + "mobile-320-suitability-touch.png", fullPage: true });
-      console.log("PASS: 320px emulated touch toggles occurrence-backed Suitability without page overflow");
+      await touchPage.screenshot({ path: evidenceDir + "mobile-320-fit-touch.png", fullPage: true });
+      console.log("PASS: 320px emulated touch toggles occurrence-backed Fit without page overflow");
     } finally {
       await touchContext.close();
     }
@@ -664,7 +664,7 @@ try {
       await lowercasePage.screenshot({
         path: evidenceDir + "web-lowercase-test1-mobile-320.png", fullPage: true,
       });
-      console.log("PASS: lowercase ?test=1 shows Suitability fixture checkboxes on desktop/mobile");
+      console.log("PASS: lowercase ?test=1 shows Fit fixture checkboxes on desktop/mobile");
     } finally {
       await lowercasePage.close();
     }
@@ -677,14 +677,14 @@ try {
       await realPage.locator("#variationsStatus.error").waitFor();
       assert.match(await realPage.locator("#variationsStatus").textContent(),
         /parts database is unavailable|Osatietokantaa ei ole saatavilla/i,
-        "missing Range must also show an explicit Suitability error");
+        "missing parts database must also show an explicit Fit error");
       assert.equal(await realPage.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "real mode must hide fixture help");
       assert.equal(await realPage.locator("#realModeHelp").evaluate((node) => node.hidden), false,
         "real mode must show real-data help");
       await realPage.locator("#partNumber").fill("BRTEST");
       const responsePromise = realPage.waitForResponse((response) =>
-        response.url().includes("/api/vieps/part") && response.status() === 503);
+        response.url().includes("/api/part") && response.status() === 503);
       await realPage.locator("#partSearch").press("Enter");
       await responsePromise;
       await realPage.locator("#searchStatus.error").waitFor();
@@ -716,13 +716,13 @@ try {
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
         "deployed TEST=1 must show fixture controls");
       const fixtureTreeResponse = await deployed.request.get(
-        new URL("/api/vieps/tree?root=1&TEST=1", fixtureUrl).href);
+        new URL("/api/tree?root=1&TEST=1", fixtureUrl).href);
       assert.equal(fixtureTreeResponse.status(), 200, "deployed TEST=1 fixture tree must work");
       const fixtureTree = await fixtureTreeResponse.json();
       assert.ok(Array.isArray(fixtureTree.roots) && fixtureTree.roots.length > 0,
         "deployed TEST=1 must return fixture roots");
       const fixturePartResponse = await deployed.request.get(
-        new URL("/api/vieps/part?q=MJB7703AA&TEST=1", fixtureUrl).href);
+        new URL("/api/part?q=MJB7703AA&TEST=1", fixtureUrl).href);
       assert.equal(fixturePartResponse.status(), 200, "deployed TEST=1 fixture search must work");
       await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
@@ -736,20 +736,20 @@ try {
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate(node => node.hidden), false,
         "deployed ?test=1 must show fixture controls");
       // Deployment smoke accepts the previous released DOM hook until this PR is deployed.
-      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-suitability-facet="body:coupe"]').first().waitFor();
+      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"]').first().waitFor();
       assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
-        "deployed ?test=1 must show synthetic suitability, not parts database errors");
+        "deployed ?test=1 must show synthetic fit, not parts database errors");
       const lowercaseTree = await deployed.request.get(
-        new URL("/api/vieps/tree?root=1&test=1", lowercaseFixtureUrl).href);
+        new URL("/api/tree?root=1&test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercaseTree.status(), 200, "deployed lowercase TEST tree must work");
       const lowercasePart = await deployed.request.get(
-        new URL("/api/vieps/part?q=MJB7703AA&test=1", lowercaseFixtureUrl).href);
+        new URL("/api/part?q=MJB7703AA&test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercasePart.status(), 200, "deployed lowercase TEST parts must work");
-      const lowercaseSuitability = await deployed.request.get(
-        new URL("/api/vieps/suitability?test=1", lowercaseFixtureUrl).href);
-      assert.equal(lowercaseSuitability.status(), 200,
-        "deployed lowercase TEST suitability must work");
-      assert.equal((await lowercaseSuitability.json()).fixture_mode, true);
+      const lowercaseFit = await deployed.request.get(
+        new URL("/api/fit?test=1", lowercaseFixtureUrl).href);
+      assert.equal(lowercaseFit.status(), 200,
+        "deployed lowercase TEST fit must work");
+      assert.equal((await lowercaseFit.json()).fixture_mode, true);
       await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
       await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-mobile-320.png", fullPage: true });
@@ -757,7 +757,7 @@ try {
       await deployed.goto(realUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "deployed real mode must not show fixture controls");
-      const result = await deployed.request.get(new URL("/api/vieps/tree?root=1", realUrl).href);
+      const result = await deployed.request.get(new URL("/api/tree?root=1", realUrl).href);
       if (result.status() === 503) {
         const unavailable = await result.json();
         assert.equal(unavailable.error_code, "parts_database_unavailable",
@@ -777,16 +777,16 @@ try {
       await deployed.setViewportSize({ width: 1366, height: 900 });
       await deployed.goto(adminUrl.href, { waitUntil: "load" });
       await deployed.locator("#accessForm").waitFor();
-      await deployed.locator("#suitabilityAdminHeading").waitFor();
+      await deployed.locator("#fitAdminHeading").waitFor();
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-desktop.png", fullPage: true });
-      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
-      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-desktop.png", fullPage: true });
+      await deployed.locator("#fitAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.screenshot({ path: evidenceDir + "deployed-fit-admin-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
       assert.ok(await deployed.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "deployed mobile Admin must fit");
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-mobile-320.png", fullPage: true });
-      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
-      await deployed.screenshot({ path: evidenceDir + "deployed-suitability-admin-mobile-320.png", fullPage: true });
+      await deployed.locator("#fitAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.screenshot({ path: evidenceDir + "deployed-fit-admin-mobile-320.png", fullPage: true });
       console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed parts database, and Web/Admin screenshots");
     } finally {
       await deployed.close();

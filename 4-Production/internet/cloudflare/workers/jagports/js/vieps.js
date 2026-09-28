@@ -1,3 +1,7 @@
+// Browser application controller for the VIEPS parts UI.
+// Owns client-side search, Parts Tree, FIT, Stock, URL-state and panel synchronization.
+// Server routing and persistence belong to worker.js and the dedicated data modules; this file is not the Worker entry point.
+
 const $ = (id) => {
   if (typeof document !== "undefined" && typeof document.getElementById === "function") {
     return document.getElementById(id);
@@ -101,7 +105,7 @@ function partDisplayLabel(part) {
 async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
   const candidateFilter = candidateId === null ? "" : `&candidate_id=${encodeURIComponent(candidateId)}`;
-  const response = await fetch(apiUrl(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`));
+  const response = await fetch(apiUrl(`/api/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -112,7 +116,7 @@ async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
 }
 
 async function resolveTreeRoots(stockOnly = false) {
-  const response = await fetch(apiUrl(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`));
+  const response = await fetch(apiUrl(`/api/tree?root=1${stockOnly ? "&stock_only=1" : ""}`));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -136,7 +140,7 @@ function clearSelectionUrl() {
 
 async function resolveTreeNode(nodeId, stockOnly = false) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
-  const response = await fetch(apiUrl(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`));
+  const response = await fetch(apiUrl(`/api/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -331,8 +335,8 @@ function renderFitOptions() {
     if (panel.dataset) panel.dataset.currentQuery = "";
     panel.innerHTML = "";
     status.className = fitError ? "error status-line" : "muted status-line";
-    status.textContent = fitError === "real_suitability_data_missing"
-      || fitError === "real_suitability_data_incomplete"
+    status.textContent = fitError === "real_fit_data_missing"
+      || fitError === "real_fit_data_incomplete"
         ? t("fit.real_data_missing")
       : fitError === "parts_database_unavailable"
         ? t("fit.parts_database_missing")
@@ -398,8 +402,8 @@ async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion)
   });
   for (const id of fitSelections) params.append("facet", id);
   try {
-    // Canonical FIT route; Worker retains the older suitability route as a compatibility alias.
-    const response = await fetch(apiUrl("/api/vieps/fit?" + params.toString()));
+    // Canonical FIT route.
+    const response = await fetch(apiUrl("/api/fit?" + params.toString()));
     const data = await response.json();
     if (version !== fitRequestVersion || mainVersion !== requestVersion) return;
     if (!response.ok || !Array.isArray(data?.categories)

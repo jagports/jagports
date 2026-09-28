@@ -7,7 +7,7 @@ function renderRanges(result) {
   return result.ranges.map((range) => range.name).join(", ");
 }
 
-test("PART suitability displays only approved applicable ranges", () => {
+test("PART fit displays only approved applicable ranges", () => {
   const result = {
     status: "available",
     ranges: [

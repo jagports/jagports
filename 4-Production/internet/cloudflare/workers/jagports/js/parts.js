@@ -1,5 +1,5 @@
 import { normalizePartNumber } from './part.js';
-import { handleVerifiedSuitability } from './suitability.js';
+import { handleVerifiedFit } from './fit.js';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status,
   headers: { 'content-type': 'application/json; charset=utf-8' } });
@@ -96,9 +96,9 @@ async function treeCatalogueAvailable(db) {
   return names.has('part_tree_node') && names.has('part_tree_part');
 }
 
-// Real Suitability is sourced exclusively from the reviewed parts database that also
-// serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
-export async function handleSuitability(request, env) {
+// Real Fit is sourced exclusively from the reviewed parts database that also
+// serves /api/part and /api/tree. Operational stock is a separate DB.
+export async function handleFit(request, env) {
   if (request.method !== 'GET') return json({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
   const { slug, db } = partsDatabase(url, env);
@@ -118,8 +118,8 @@ export async function handleSuitability(request, env) {
   if (required.some((table) => !found.has(table))) {
     return json({
       state: 'error', fixture_mode: false, range: slug,
-      error_code: 'real_suitability_data_missing',
-      error: 'Reviewed normalized JEPC Suitability data is not published in this parts database.',
+      error_code: 'real_fit_data_missing',
+      error: 'Reviewed normalized JEPC Fit data is not published in this parts database.',
       categories: [], available_options: [], matches: [],
     }, 503);
   }
@@ -139,7 +139,7 @@ export async function handleSuitability(request, env) {
     ).bind(normalized).first();
     return !!row;
   };
-  return handleVerifiedSuitability(request, db, hasRealStock, slug);
+  return handleVerifiedFit(request, db, hasRealStock, slug);
 }
 
 export async function handlePart(request, env) {

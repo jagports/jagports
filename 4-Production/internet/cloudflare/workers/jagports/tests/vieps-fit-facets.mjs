@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { database, d1 } from './helpers/model-db.mjs';
-import { handleViepsSuitability } from '../js/suitability.js';
-import { handleApi } from '../js/vieps-worker.js';
+import { handleViepsFit } from '../js/fit.js';
+import { handleApi } from '../js/worker.js';
 
 const namespace = 'fixture:pre-jepc-suitability:v1';
 function fixture(t) {
@@ -10,7 +10,7 @@ function fixture(t) {
   t.after(() => db.close());
   const env = { DB: d1(db) };
   async function request(facets = [], opts = {}) {
-    const url = new URL('https://test.example/api/vieps/suitability?TEST=1');
+    const url = new URL('https://test.example/api/fit?TEST=1');
     for (const facet of facets) url.searchParams.append('facet', facet);
     for (const [key, value] of Object.entries(opts)) url.searchParams.set(key, value);
     const response = await handleApi(new Request(url), env);
@@ -22,14 +22,14 @@ const keys = (result) => result.matches.map((row) => row.occurrence_key).sort();
 
 test('fixture endpoint requires TEST=1 rather than a feature flag', async (t) => {
   const { db, env } = fixture(t);
-  await assert.rejects(() => handleApi(new Request('https://test.example/api/vieps/suitability'), env),
+  await assert.rejects(() => handleApi(new Request('https://test.example/api/fit'), env),
     (error) => error.status === 503 && error.code === 'parts_database_unavailable');
-  const fixtureResponse = await handleApi(new Request('https://test.example/api/vieps/suitability?TEST=1'), env);
+  const fixtureResponse = await handleApi(new Request('https://test.example/api/fit?TEST=1'), env);
   assert.equal(fixtureResponse.status, 200);
   const fixtureBody = await fixtureResponse.json();
   assert.equal(fixtureBody.fixture_mode, true);
   assert.ok(fixtureBody.categories.length > 0);
-  const empty = await handleViepsSuitability(new Request('https://test.example/api/vieps/suitability?TEST=1'), {});
+  const empty = await handleViepsFit(new Request('https://test.example/api/fit?TEST=1'), {});
   assert.equal(empty.status, 503);
   assert.equal((await empty.json()).reason, 'test_fixture_data_missing');
   assert.equal(db.prepare('SELECT count(*) n FROM applicability_source_description WHERE provenance_kind=\'fixture\'').get().n, 13);
@@ -133,7 +133,7 @@ test('invalid facet IDs, unsupported query, stock-only filtering, and non-GET ar
   assert.equal(stock.status, 200);
   assert.deepEqual(stock.body.matches, []);
   assert.equal(stock.body.state, 'no_match');
-  const post = await handleApi(new Request('https://test.example/api/vieps/suitability?TEST=1', { method: 'POST' }), env);
+  const post = await handleApi(new Request('https://test.example/api/fit?TEST=1', { method: 'POST' }), env);
   assert.equal(post.status, 405);
 });
 
@@ -174,7 +174,7 @@ test('missing required domain language labels produces an explicit fixture error
   assert.deepEqual(body.matches, []);
 });
 
-test('TEST=1 displays deterministic fallback suitabilities from the normal migrated D1 without an environment flag', async (t) => {
+test('TEST=1 displays deterministic fallback fits from the normal migrated D1 without an environment flag', async (t) => {
   // Simulates the shared Worker D1, whose production migrations contain the
   // searchable #607 fixture PARTs but not the isolated #877 assertion rows.
   const db = database({ fixtures: false }); t.after(() => db.close());
@@ -184,14 +184,14 @@ test('TEST=1 displays deterministic fallback suitabilities from the normal migra
   ).get().n, 0);
   const call = async (suffix = '') => {
     const response = await handleApi(new Request(
-      'https://test.example/api/vieps/suitability?TEST=1' + suffix), env);
+      'https://test.example/api/fit?TEST=1' + suffix), env);
     return { status: response.status, body: await response.json() };
   };
   const { status, body } = await call();
   assert.equal(status, 200);
   assert.equal(body.fixture_mode, true);
   assert.equal(body.fixture_provider, 'embedded');
-  assert.equal(body.source_namespace, 'fixture:embedded-suitability:v1');
+  assert.equal(body.source_namespace, 'fixture:embedded-fit:v1');
   assert.equal(body.categories.length, 4);
   assert.equal(body.categories.flatMap(c => c.values).length, 8);
   assert.deepEqual(keys(body), ['TEST-O-A', 'TEST-O-B', 'TEST-O-C', 'TEST-O-F']);
@@ -216,8 +216,8 @@ test('TEST=1 displays deterministic fallback suitabilities from the normal migra
 test('TEST=1 still serves embedded fixtures with missing normalized fixture schema', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   db.exec('DROP VIEW applicability_description_mapping_current');
-  const response = await handleViepsSuitability(new Request(
-    'https://test.example/api/vieps/suitability?TEST=1'), { DB: d1(db) });
+  const response = await handleViepsFit(new Request(
+    'https://test.example/api/fit?TEST=1'), { DB: d1(db) });
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.fixture_provider, 'embedded');

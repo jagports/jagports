@@ -117,7 +117,7 @@ pre-deploy check npm run verify:generated-assets
 post-deploy test npm run verify:deployed-assets
 ```
 
-`npm run build` generates the required browser assets, compiles the local Tailwind stylesheet, and verifies the output. The Worker entry point is `js/vieps-worker.js`.
+`npm run build` generates the required browser assets, compiles the local Tailwind stylesheet, and verifies the output. The Worker entry point is `js/worker.js`.
 
 This rule was introduced after the PR #647 deployment incident, where the Worker deployed successfully while the generated stylesheet was absent and the live page rendered essentially unstyled. A successful Worker deployment therefore does not by itself prove that generated frontend assets were built or served.
 
