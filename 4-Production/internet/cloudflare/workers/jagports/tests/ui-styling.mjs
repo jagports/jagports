@@ -807,3 +807,22 @@ test('#974 Find clear, root browse and empty-Find Stock changes preserve chosen 
   await flush();
   assertFit('root-index navigation retains the chosen FIT');
 });
+
+
+test('#976 FIT-named row state takes precedence over legacy applicability state', async () => {
+  const ui = harness(async () => response({ ...fixture, fitment: [
+    { range_code: 'F', range_name: 'FIT confirmed', fit_state: 'applicable',
+      applicability_state: 'excluded', variation: 'Verified' },
+    { range_code: 'L', range_name: 'Legacy verified',
+      applicability_state: 'applicable', variation: 'Legacy' },
+    { range_code: 'X', range_name: 'Excluded by FIT', fit_state: 'excluded',
+      applicability_state: 'applicable', variation: 'Never expose' },
+  ] }));
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /FIT confirmed/);
+  assert.match(ui.get('ranges').innerHTML, /Legacy verified/);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /Excluded by FIT/,
+    'new FIT evidence overrides the deprecated wire field');
+  assert.match(ui.get('rangeEvidence').innerHTML, /Verified/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Never expose/);
+});
