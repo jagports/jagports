@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines canonical catalogue `PART` identity and the catalogue-side relationships needed by VIEPS part search, part detail, EPC context, fit, diagrams, hotspots, supersession and operational stock linkage.
+This document defines canonical catalogue `PART` identity and the catalogue-side relationships used by VIEPS part search, part detail, EPC context, fit, diagrams, hotspots, supersession and operational stock linkage.
 
 Operational stock semantics are defined separately in [`MODEL_STOCK.md`](MODEL_STOCK.md).
 
