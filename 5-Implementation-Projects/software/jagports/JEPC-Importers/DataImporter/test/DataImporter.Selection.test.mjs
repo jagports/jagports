@@ -114,18 +114,20 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.equal(estimateReport.range, null);
 });
 
-test('CLI exposes parsing and estimation commands only', () => {
+test('CLI exposes model-pattern parsing and the retained inspection commands', () => {
   const cli = path.resolve('src/DataImporter.CLI.mjs');
   const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
   const help = call([]);
-  assert.equal(help.status, 1);
+  assert.equal(help.status, 0, help.stderr);
   for (const command of ['inspect', 'status', 'report', 'doctor']) {
     assert.equal(call([command]).status, 1);
+    assert.match(help.stdout, new RegExp(command));
   }
-  assert.match(help.stderr, /--parse PATTERN \[--estimate\]/);
+  assert.match(help.stdout, /--parse PATTERN \[--estimate\]/);
   assert.equal(call(['--estimate']).status, 1);
   assert.equal(call(['estimate-range']).status, 1);
-  for (const option of ['--range', '--models', '--sample-size', '--calibration', '--source', '--state-dir', '--language', '--json', '--help']) {
+  for (const option of ['--range', '--models', '--sample-size', '--calibration', '--source', '--state-dir', '--language', '--json']) {
     assert.equal(call([option, 'value']).status, 1);
   }
 });
+
