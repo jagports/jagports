@@ -16,7 +16,7 @@
     "real_count_one": "{{count}} vahvistettu JEPC-esiintymä.",
     "real_count_other": "{{count}} vahvistettua JEPC-esiintymää.",
     "real_data_missing": "Tälle mallisarjalle ei ole julkaistu vahvistettuja JEPC-sopivuustietoja.",
-    "real_range_missing": "Oikean mallisarjan tietokantaa ei ole saatavilla. Sopivuustietoja ei voida ladata.",
+    "parts_database_missing": "Osatietokantaa ei ole saatavilla. Sopivuustietoja ei voida ladata.",
     "result_count_one": "{{count}} hakua vastaava OSA sopivuussuodatuksen jälkeen.",
     "result_count_other": "{{count}} hakua vastaavaa OSAA sopivuussuodatuksen jälkeen.",
     "test_data_missing": "Sopivuuden testitiedot puuttuvat tai ovat keskeneräiset.",
@@ -125,7 +125,7 @@
     "prompt_with_action": "Syötä Jaguar-osanumero tai testitunniste ja paina Etsi.",
     "prompt_with_action_real": "Syötä Jaguar-osanumero ja paina Etsi.",
     "range_required": "Valitse mallisarja tuodusta luettelosta hakemista varten.",
-    "range_unavailable": "Tuodun mallisarjan luettelo ei ole saatavilla.",
+    "parts_database_unavailable": "Osatietokantaa ei ole saatavilla.",
     "real_mode_help": "Hae tuodusta Jaguar-osaluettelosta. Saatavilla olevat operatiiviset varastotiedot näytetään erikseen; vahvistamatonta soveltuvuutta ei esitetä vahvistettuna.",
     "resolved": "OSA ratkaistu.",
     "resolving": "Ratkaistaan OSAA…"
