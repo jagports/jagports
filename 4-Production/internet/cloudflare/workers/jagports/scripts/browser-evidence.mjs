@@ -46,7 +46,7 @@ const browserOccurrences = [
     "seat_equipment:powered_seats",
   ] },
 ];
-function browserSuitabilityResponse(params) {
+function browserFitResponse(params) {
   const fi = params.get("ui_language") === "fi";
   const categories = browserSuitability.map(([code, values, en, fin]) => ({
     code, name: fi ? fin : en, description: fi ? fin : en,
@@ -104,7 +104,7 @@ async function localServer() {
     }
     if ((pathname === "/api/vieps/fit" || pathname === "/api/vieps/suitability")) {
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify(browserSuitabilityResponse(
+      response.end(JSON.stringify(browserFitResponse(
         new URL(request.url, "http://localhost").searchParams)));
       return;
     }
@@ -335,9 +335,9 @@ try {
     await page.locator('#searchResults [data-result-part-id="101"]').waitFor();
     await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
     assert.equal(await page.locator("#searchResults [data-result-part-id]").count(), 1,
-      "Suitability checkbox must actually narrow the right Search Results");
+      "FIT checkbox must actually narrow the right Search Results");
     assert.equal(await page.locator('#tree [data-part-id="102"]').count(), 0,
-      "Suitability must filter left Parts Tree leaves in the same way");
+      "FIT must filter left Parts Tree leaves in the same way");
     assert.equal(await page.locator('#partCard').textContent().then((v) => v.includes("BRTEST2")), false,
       "out-of-filter selected PART must be cleared");
     await page.locator('#variationOptions [data-fit-facet="seat_equipment:memory_seat"]').check();
@@ -345,11 +345,11 @@ try {
     await page.locator('#variationOptions [data-fit-facet="seat_equipment:powered_seats"]:checked').waitFor();
     assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
       ["Body", "Engine aspiration", "Seat equipment", "Steering"],
-      "normalized suitability categories appear once each in alphabetical order");
+      "normalized FIT categories appear once each in alphabetical order");
     assert.deepEqual(await page.locator('#variationOptions input:checked').evaluateAll((nodes) =>
       nodes.map((node) => node.closest("label").querySelector("span").textContent.trim())),
       ["Coupe", "Memory Seat", "Powered Seats"],
-      "checked suitability values stay inside their own category");
+      "checked FIT values stay inside their own category");
     assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(0)
       .locator(".variation-choice span").allTextContents(), ["Coupe"],
       "only currently fitting Body options are displayed");
@@ -376,8 +376,8 @@ try {
     await page.locator('[data-language="en"]').click();
     await page.locator("#partNumber").fill("");
     await page.locator("#tree .tree-node-row").first().waitFor();
-    assert.equal(await page.locator("#variationOptions input:checked").count(), 0,
-      "clearing search clears active suitability selections");
+    assert.equal(await page.locator("#variationOptions input:checked").count(), 3,
+      "clearing Find retains independently selected FIT values");
   }
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
