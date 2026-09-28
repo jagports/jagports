@@ -12,7 +12,7 @@ test('Range comes from reviewed source ancestry, never the parse text', async ()
 });
 
 test('parts database writes require the reviewed D1 identity and complete batch confirmation', async () => {
-  const config = { rangeSlug: 'xk', databaseName: 'parts-xk',
+  const config = { rangeSlug: 'xk', databaseName: 'jagports-xk',
     accountId: 'a'.repeat(32), databaseId: '12345678-1234-1234-1234-123456789abc' };
   const requests = [];
   const fetchImpl = async (url, options) => {
@@ -20,7 +20,7 @@ test('parts database writes require the reviewed D1 identity and complete batch 
     requests.push({ url, body });
     const result = body?.batch ? body.batch.map(() => ({ success: true, results: [] }))
       : body?.sql ? [{ success: true, results: [{ range_slug: 'xk',
-        database_name: 'parts-xk', schema_version: 1 }] }]
+        database_name: 'jagports-xk', schema_version: 1 }] }]
         : { uuid: config.databaseId, name: config.databaseName };
     return { ok: true, status: 200, json: async () => ({ success: true, result }) };
   };
