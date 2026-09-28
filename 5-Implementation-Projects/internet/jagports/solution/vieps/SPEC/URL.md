@@ -12,7 +12,7 @@ The parameter is request-scoped. It does not change persisted data.
 
 Fixture mode returns fixture provenance and the established fixture behaviour.
 
-Real mode returns available imported catalogue evidence and non-fixture operational stock. It must not present unverified applicability as confirmed fitment. Unavailable images, hotspots, or applicability remain unavailable.
+Real mode returns available imported catalogue evidence and non-fixture operational stock. It must not present unverified fit as confirmed fitment. Unavailable images, hotspots, or fit remain unavailable.
 
 When real-mode data is unavailable, the response must identify that unavailable state. It must not fall back to fixtures.
 

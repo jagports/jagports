@@ -25,15 +25,15 @@ Desktop relationships:
 
 ```text
 Branding / instructions | Search + Availability (centre/right)
-Parts Tree              | Suitability Model Ranges (centre/right)
-Parts Tree              | Location at car | Suitability / Filter
+Parts Tree              | Fit Model Ranges (centre/right)
+Parts Tree              | Location at car | Fit / Filter
 Parts Tree              | PART / Image / Status (centre/right)
 ```
 
 Important consequences:
 - Search + Availability spans the top centre/right workspace.
 - Model Ranges is a distinct row spanning centre/right below Search.
-- Location and Suitability are side-by-side in the middle row.
+- Location and Fit are side-by-side in the middle row.
 - PART / Image / Status spans the full lower centre/right workspace.
 - Parts Tree remains the scrolling left region below the branding/instructions block.
 - Location uses one canvas, not permanent Top/Side panels.
@@ -42,7 +42,7 @@ Important consequences:
 Concept controls/sample facts must remain disabled/unavailable or absent until supported by approved contracts. Styling must never manufacture business data.
 
 ## Tailwind implementation principles
-- Use reusable VIEPS tokens/components for colour, typography, spacing, panels, controls, tree selection, applicability, status and visual regions.
+- Use reusable VIEPS tokens/components for colour, typography, spacing, panels, controls, tree selection, fit, status and visual regions.
 - Preserve semantic IDs/data hooks and API/domain boundaries.
 - Preserve PR #616 viewport-fit behavior: fitted desktop shell with internal region scrolling; narrower layouts may scroll normally.
 - Keep Parts Tree main-level context and selected/relevant path visually clear.

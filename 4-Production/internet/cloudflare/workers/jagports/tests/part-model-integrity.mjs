@@ -20,7 +20,8 @@ function rejected(db, statement, reason = /constraint failed/i) {
 
 test('complete migration chain and representative graph have no integrity failures', (t) => {
   const db = withDatabase(t);
-  assert.equal(migrations.length, 21);
+  assert.equal(migrations.length, 22);
+  assert.ok(migrations.includes('0021_fit_contract_aliases.sql'));
   assert.ok(migrations.includes('0019_suitability_description_mapping.sql'));
   assert.ok(migrations.includes('0020_suitability_admin.sql'));
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
