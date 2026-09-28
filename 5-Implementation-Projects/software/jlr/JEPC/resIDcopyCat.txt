@@ -1,0 +1,1 @@
+loop over every cat_*_L0.xml

@@ -1,0 +1,11 @@
+{
+  "name": "jagports-jepc-data-importer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "start": "node src/DataImporter.CLI.mjs",
+    "test": "node --test"
+  }
+}
