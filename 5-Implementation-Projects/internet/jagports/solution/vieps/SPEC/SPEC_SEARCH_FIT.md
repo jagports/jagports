@@ -49,7 +49,7 @@ FitResult
   provenance/unavailable information
 ```
 
-Preserve existing historical `part_fitment.applicability_state` values through the documented compatibility adapter; do not infer verified FIT from missing source evidence.
+Stored `part_fitment.applicability_state` values remain source/persistence evidence; active FIT must not infer verified FIT from missing source evidence or expose storage terminology as a separate application contract.
 
 ## Source-qualified fixture semantics
 Synthetic FIT values require independent source descriptions and occurrence-specific mapping identities. Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats are fixture vocabulary, never verified Jaguar facts. Different descriptions may coexist only when separately evidenced on the same occurrence. TEST data cannot leak into real parts-data responses.
