@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { mkdtemp, mkdir, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, realpath, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -33,8 +33,37 @@ test('upgrades and preserves the original SQLite inspector ledger', async t => {
   const ledger = await openLedger(source, state);
   ledger.close();
   const upgraded = new DatabaseSync(path.join(state, 'ledger.sqlite'), { readOnly: true });
-  assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 2);
+  assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 4);
   assert.equal(upgraded.prepare("SELECT state FROM runs WHERE id='old'").get().state, 'COMPLETED');
   assert.equal(upgraded.prepare('SELECT count(*) AS count FROM bundle_evidence').get().count, 0);
+  upgraded.close();
+});
+
+test('preserves confirmed D1 bundle hashes when upgrading an existing v3 ledger', async t => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), 'jepc-ledger-'));
+  t.after(() => rm(parent, { recursive: true, force: true }));
+  const source = path.join(parent, 'source'), state = path.join(parent, 'state');
+  await mkdir(source); await mkdir(state);
+  const db = new DatabaseSync(path.join(state, 'ledger.sqlite'));
+  db.exec(`CREATE TABLE range_publications (
+    source TEXT NOT NULL, model TEXT NOT NULL, category TEXT NOT NULL,
+    language TEXT NOT NULL, range_slug TEXT NOT NULL, database_id TEXT NOT NULL,
+    evidence_hash TEXT NOT NULL, published_at TEXT NOT NULL,
+    PRIMARY KEY(source,model,category,language,range_slug,database_id)
+  ); PRAGMA user_version=3;`);
+  db.prepare(`INSERT INTO range_publications
+    (source,model,category,language,range_slug,database_id,evidence_hash,published_at)
+    VALUES(?,?,?,?,?,?,?,?)`)
+    .run(await realpath(source), '3187', '42', '0', 'xk', 'd1-id', 'hash-1', '2026-09-01T00:00:00Z');
+  db.close();
+
+  const ledger = await openLedger(source, state);
+  assert.equal(ledger.lastD1Import({ model: '3187', category: '42', language: '0',
+    rangeSlug: 'xk', databaseId: 'd1-id' }), 'hash-1');
+  ledger.close();
+  const upgraded = new DatabaseSync(path.join(state, 'ledger.sqlite'), { readOnly: true });
+  assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 4);
+  assert.equal(upgraded.prepare('SELECT imported_at FROM range_d1_imports').get().imported_at,
+    '2026-09-01T00:00:00Z');
   upgraded.close();
 });

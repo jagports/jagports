@@ -14,7 +14,7 @@ export function databaseNameForRange(rangeSlug) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rangeSlug ?? '')) {
     throw new Error('Range slug must use lowercase letters, digits and internal hyphens.');
   }
-  return `jagports-${rangeSlug}`;
+  return `parts-${rangeSlug}`;
 }
 
 function assertAccountId(accountId) {
@@ -41,7 +41,7 @@ async function readConfiguration(path) {
 function assertConfiguration(config, expected) {
   if (!config) return;
   if (config.rangeSlug !== expected.rangeSlug || config.databaseName !== expected.databaseName || config.accountId !== expected.accountId || !/^[0-9a-f-]{36}$/i.test(config.databaseId ?? '')) {
-    throw new Error('Reviewed Range configuration does not match the requested Range/account.');
+    throw new Error('Reviewed parts database configuration does not match the requested Range/account.');
   }
 }
 
@@ -81,7 +81,7 @@ async function listDatabases(options) {
   return databases;
 }
 
-export async function setupRangeDatabase({ mode, rangeSlug, accountId, accountPlan, token, fetchImpl = fetch, configDirectory = defaultConfigDirectory }) {
+export async function setupPartsDatabase({ mode, rangeSlug, accountId, accountPlan, token, fetchImpl = fetch, configDirectory = defaultConfigDirectory }) {
   const databaseName = databaseNameForRange(rangeSlug);
   const configPath = join(configDirectory, `${rangeSlug}.json`);
   const expected = { rangeSlug, databaseName, accountId };
@@ -106,7 +106,7 @@ export async function setupRangeDatabase({ mode, rangeSlug, accountId, accountPl
   if (database && !config) {
     throw new Error('A database with this name already exists but has no reviewed configuration; refusing to adopt it.');
   }
-  if (mode === 'verify' && !database) throw new Error('Range database does not exist.');
+  if (mode === 'verify' && !database) throw new Error('Parts database does not exist.');
 
   let created = false;
   if (mode === 'create' && !database) {
@@ -137,7 +137,7 @@ function parseArguments(argv) {
     const flag = remaining[index];
     const value = remaining[index + 1];
     if (!value || !['--range', '--account-id', '--account-plan', '--confirm-name'].includes(flag) || args[flag]) {
-      throw new Error('Usage: setup-range-db.mjs <plan|create|verify> --range <slug> [--account-id <id> --account-plan <free|paid>] [--confirm-name <derived-name> for create]');
+      throw new Error('Usage: setup-parts-db.mjs <plan|create|verify> --range <slug> [--account-id <id> --account-plan <free|paid>] [--confirm-name <derived-name> for create]');
     }
     args[flag] = value;
   }
@@ -150,7 +150,7 @@ function parseArguments(argv) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
-    const result = await setupRangeDatabase({ ...parseArguments(process.argv.slice(2)), token: process.env.CLOUDFLARE_API_TOKEN });
+    const result = await setupPartsDatabase({ ...parseArguments(process.argv.slice(2)), token: process.env.CLOUDFLARE_API_TOKEN });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } catch (error) {
     process.stderr.write(`${error.message}\n`);
