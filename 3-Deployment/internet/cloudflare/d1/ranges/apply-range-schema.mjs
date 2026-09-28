@@ -10,7 +10,7 @@ if (process.argv.length !== 3) {
     const config = await readRangeConfiguration(rangeSlug);
     console.log(JSON.stringify(await applyRangeSchema(config, process.env.CLOUDFLARE_API_TOKEN), null, 2));
   } catch (error) {
-    console.error(`Range D1 schema: ${error.message}`);
+    console.error(`Parts database schema: ${error.message}`);
     process.exitCode = 1;
   }
 }

@@ -1,8 +1,8 @@
-# JEPC Range D1 deployment
+# JEPC parts database deployment: operation instructions
 
-This procedure creates and verifies a Range D1 database and applies the schema-only JEPC catalogue schema. The same DataImporter CLI run that reads JEPC and records its local SQLite ledger then updates that Range D1 when the reviewed identity and Cloudflare token are available. The existing Worker migration chain includes fixtures and must never be applied to a Range database. The operational `jagports` D1 database remains separate and retains stock and fixture data. Website reads and its `TEST=1` URL mode are separate work under Issues #955 and #956.
+This procedure creates and verifies a D1 parts database for an approved Range and applies the schema-only JEPC catalogue schema. The same DataImporter CLI run that reads JEPC and records its local SQLite ledger then updates that parts database when the reviewed identity and Cloudflare token are available. The existing Worker migration chain includes fixtures and must never be applied to a parts database. The operational `jagports` D1 database remains separate and retains stock and fixture data. The [deployment specification](SPEC_Parts_Database_Deployment.md) defines the requirements; the [Parts Data Model](../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md) defines the destination data. Website reads and its `TEST=1` URL mode are separate work under Issues #955 and #956.
 
-The name comes from an approved stable VIEPS Range slug: `jagports-<range_slug>`. For example, `xk` resolves to `jagports-xk`. `source-range-map.json` separately identifies approved JEPC source-group IDs. A `--parse` pattern never assigns a Range; the import rejects a model with zero or multiple approved matches. The XK source groups `7422` and `3175` were checked against `menus/models_l_id_0.xml`.
+The parts database name comes from an approved stable VIEPS Range slug: `jagports-<range_slug>`. For example, `xk` resolves to `jagports-xk`. `source-range-map.json` separately identifies approved JEPC source-group IDs. A `--parse` pattern never assigns a Range; the import rejects a model with zero or multiple approved matches. The XK source groups `7422` and `3175` were checked against `menus/models_l_id_0.xml`.
 
 ## Requirements
 
@@ -45,7 +45,7 @@ node 3-Deployment/internet/cloudflare/d1/ranges/apply-range-schema.mjs xk
 
 With the reviewed schema in place, the DataImporter operator runs its existing `--parse PATTERN` command on the JEPC computer. With `CLOUDFLARE_API_TOKEN` set, that same process updates matching staged bundles through the [Cloudflare D1 query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/). Each category uses a D1 batch; the bundle hash is written last and read back before the local SQLite update record is saved. Repeat runs retain previous categories and retry staged bundles that have not been recorded as updated. Unknown source structures remain in SQLite and are not sent to D1.
 
-This procedure ends when the reviewed Range database can receive DataImporter updates. Website deployment and its fixture/real URL routing belong to Issues #955 and #956. Global cross-Range discovery, verified applicability and cross-Range supersession remain open under Issue #555; do not mark that Issue complete from this D1 update step.
+This procedure ends when the reviewed parts database can receive DataImporter updates. Website deployment and its fixture/real URL routing belong to Issues #955 and #956. Global cross-Range discovery, verified applicability and cross-Range supersession remain open under Issue #555; do not mark that Issue complete from this D1 update step.
 
 Local checks for this procedure:
 

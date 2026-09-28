@@ -106,7 +106,7 @@ export async function setupRangeDatabase({ mode, rangeSlug, accountId, accountPl
   if (database && !config) {
     throw new Error('A database with this name already exists but has no reviewed configuration; refusing to adopt it.');
   }
-  if (mode === 'verify' && !database) throw new Error('Range database does not exist.');
+  if (mode === 'verify' && !database) throw new Error('Parts database does not exist.');
 
   let created = false;
   if (mode === 'create' && !database) {

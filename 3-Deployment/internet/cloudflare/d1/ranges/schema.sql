@@ -1,6 +1,6 @@
 PRAGMA foreign_keys = ON;
 
--- JEPC Range partition. This is schema only: no fixtures or operational STOCK.
+-- JEPC parts database for one approved Range. Schema only: no fixtures or operational STOCK.
 CREATE TABLE IF NOT EXISTS range_identity (
   range_slug TEXT PRIMARY KEY,
   database_name TEXT NOT NULL,

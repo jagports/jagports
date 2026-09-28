@@ -43,7 +43,7 @@ export function rangeForSource(source, ranges) {
 }
 
 export function d1Client(config, token, fetchImpl = fetch) {
-  if (!token) throw new Error('CLOUDFLARE_API_TOKEN is required for Range D1 import.');
+  if (!token) throw new Error('CLOUDFLARE_API_TOKEN is required for parts database import.');
   const url = `https://api.cloudflare.com/client/v4/accounts/${config.accountId}/d1/database/${config.databaseId}`;
   const request = async (suffix, method = 'GET', body) => {
     const response = await fetchImpl(`${url}${suffix}`, {
@@ -85,7 +85,7 @@ export async function verifyRangeSchema(client, config) {
   const rows = await client.query('SELECT range_slug,database_name,schema_version FROM range_identity');
   if (rows.length !== 1 || rows[0].range_slug !== config.rangeSlug
       || rows[0].database_name !== config.databaseName || rows[0].schema_version !== 1) {
-    throw new Error('Range D1 schema identity is missing or disagrees with reviewed configuration.');
+    throw new Error('Parts database schema identity is missing or disagrees with reviewed configuration.');
   }
 }
 
@@ -99,7 +99,7 @@ export async function applyRangeSchema(config, token, fetchImpl = fetch) {
   const tables = await client.query(`SELECT name FROM sqlite_master WHERE type='table'
     AND name NOT LIKE 'sqlite_%' AND name NOT IN ('_cf_KV','d1_migrations')`);
   if (tables.length && !tables.some(row => row.name === 'range_identity')) {
-    throw new Error('Range D1 is not empty and has no schema identity; refusing to adopt it.');
+    throw new Error('Parts database is not empty and has no schema identity; refusing to adopt it.');
   }
   if (tables.some(row => row.name === 'range_identity')) {
     await verifyRangeSchema(client, config);
