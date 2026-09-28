@@ -749,3 +749,61 @@ test('switching language retains multiple-candidate leaves and avoids another se
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
   assert.equal(catalogueRequests(ui.requests).length, before);
 });
+
+
+test('#974 Find clear, root browse and empty-Find Stock changes preserve chosen FIT filters', async () => {
+  const suitabilityFetch = (url) => {
+    const params = new URL(url, 'https://fixture.invalid').searchParams;
+    return response({
+      state: 'applicable', fixture_mode: true, query: params.get('q') || '',
+      categories: [{ code: 'body', name: 'Body', values: [
+        { id: 'body:coupe', name: 'Coupe' },
+        { id: 'body:convertible', name: 'Convertible' },
+      ] }],
+      available_options: ['body:coupe', 'body:convertible'],
+      matches: [{ part_id: 10, occurrence_key: 'TEST-O-A' }],
+    });
+  };
+  const ui = harness(async () => response(fixture),
+    { initialSearch: '?TEST=1', suitabilityFetch });
+  await ui.search('TEST1');
+  await flush();
+  ui.get('variationOptions').listeners.change({
+    target: { dataset: { suitabilityFacet: 'body:coupe' }, checked: true },
+  });
+  await flush();
+  const currentFit = () => ui.get('variationOptions').innerHTML;
+  const lastFitUrl = () => ui.requests.filter(url =>
+    url.startsWith('/api/vieps/suitability?')).at(-1);
+  const assertFit = (message) => {
+    assert.match(currentFit(), /data-suitability-facet="body:coupe"[^>]*checked/, message);
+    assert.equal(new URL(lastFitUrl(), 'https://fixture.invalid').searchParams.get('facet'),
+      'body:coupe', message);
+  };
+  assertFit('the initial explicit FIT selection is active');
+
+  // Empty Find submit restores filtered roots without deleting independent FIT.
+  await ui.search('');
+  await flush();
+  assertFit('empty submission retains the chosen FIT');
+  assert.match(ui.get('tree').innerHTML, /Suspension|Parent/);
+
+  // The Stock checkbox is independent even without a Find query.
+  ui.get('availabilitySelect').checked = true;
+  ui.get('availabilitySelect').listeners.change();
+  await flush();
+  assertFit('empty-Find Stock refresh retains the chosen FIT');
+  assert.equal(new URL(lastFitUrl(), 'https://fixture.invalid')
+    .searchParams.get('stock_only'), '1');
+
+  // Native deletion and the root-index heading have the same persistence rule.
+  await ui.search('TEST1');
+  await flush();
+  ui.get('partNumber').value = '';
+  ui.get('partNumber').listeners.input();
+  await flush();
+  assertFit('native input deletion retains the chosen FIT');
+  ui.get('treeRootLink').listeners.click({ preventDefault() {} });
+  await flush();
+  assertFit('root-index navigation retains the chosen FIT');
+});
