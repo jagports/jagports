@@ -398,7 +398,8 @@ async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion)
   });
   for (const id of fitSelections) params.append("facet", id);
   try {
-    // Compatibility boundary: legacy public API path remains until the coordinated API migration.\n    const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
+    // Compatibility boundary: legacy public API path remains until the coordinated API migration.
+    const response = await fetch(apiUrl("/api/vieps/suitability?" + params.toString()));
     const data = await response.json();
     if (version !== fitRequestVersion || mainVersion !== requestVersion) return;
     if (!response.ok || !Array.isArray(data?.categories)
