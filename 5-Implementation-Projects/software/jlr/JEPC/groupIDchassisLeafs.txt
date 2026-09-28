@@ -1,0 +1,16 @@
+Confirmed mapping (group_id → chassis code)
+Group ID	Group name	Chassis code	Leaves under it
+3175	Jaguar XK8 Coupe/Convertible	X100	3187, 3183, 3178, 3173
+7422	XK Range (From (V) B00379)	X150	7420
+1004	S-TYPE	X200	1002
+6819	X-TYPE	X400	6817
+2233	XJ Series (From (V)720125...)	X300	2231
+3215	XJ Series (From (V)812317...(X308))	X308	3218, 3213
+4443	XJ Range (From (V) G00442 to H32732)	X350 (also seen as X358)	4441
+12830	XJ Range (From (V) V00001)	X351	12831
+1689	XF Range	X250	1687
+16231	ALL NEW XF	X260	16261
+15472	XE Range	X760	15483
+14260	F-TYPE	X152	14261
+17281	F-Pace	X761	17282
+19451	E-Pace	X540	19452

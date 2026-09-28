@@ -1,0 +1,37 @@
+name: VIEPS i18n integrity
+
+on:
+  pull_request:
+    paths:
+      - '5-Implementation-Projects/internet/jagports/solution/vieps/i18n/**'
+      - '00-Management/RULES_i18n.md'
+      - '0-DocumentationEducationCompetense/SKILL_i18n.md'
+      - '3-Deployment/internet/github/actions/tests/validate_vieps_i18n.mjs'
+      - '.github/workflows/integrity_vieps-i18n.yml'
+  push:
+    branches: [main]
+    paths:
+      - '5-Implementation-Projects/internet/jagports/solution/vieps/i18n/**'
+      - '00-Management/RULES_i18n.md'
+      - '0-DocumentationEducationCompetense/SKILL_i18n.md'
+      - '3-Deployment/internet/github/actions/tests/validate_vieps_i18n.mjs'
+      - '.github/workflows/integrity_vieps-i18n.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            5-Implementation-Projects/internet/jagports/solution/vieps/i18n
+            3-Deployment/internet/github/actions/tests/validate_vieps_i18n.mjs
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Validate i18next v4 locale resources
+        run: node 3-Deployment/internet/github/actions/tests/validate_vieps_i18n.mjs
