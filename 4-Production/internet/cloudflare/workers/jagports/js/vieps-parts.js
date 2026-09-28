@@ -5,7 +5,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), { status
   headers: { 'content-type': 'application/json; charset=utf-8' } });
 const text = value => typeof value === 'string' ? value.trim() : '';
 
-export function liveRangeDatabase(url, env) {
+export function rangeDatabase(url, env) {
   let bindings;
   try { bindings = JSON.parse(env.RANGE_BINDINGS || '{}'); }
   catch {
@@ -98,10 +98,10 @@ async function treeCatalogueAvailable(db) {
 
 // Real Suitability is sourced exclusively from the reviewed Range D1 that also
 // serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
-export async function handleLiveSuitability(request, env) {
+export async function handleSuitability(request, env) {
   if (request.method !== 'GET') return json({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = rangeDatabase(url, env);
   const required = [
     'applicability_source_description', 'applicability_description_mapping_current',
     'applicability_dimension', 'applicability_dimension_value',
@@ -142,10 +142,10 @@ export async function handleLiveSuitability(request, env) {
   return handleVerifiedSuitability(request, db, hasRealStock, slug);
 }
 
-export async function handleLivePart(request, env) {
+export async function handlePart(request, env) {
   if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = rangeDatabase(url, env);
   const query = text(url.searchParams.get('q'));
   if (!query) return json({ error: 'part-number query is required' }, 400);
   const normalized = normalizePartNumber(query);
@@ -218,10 +218,10 @@ export async function handleLivePart(request, env) {
     applicability_state: 'unverified_source_evidence' });
 }
 
-export async function handleLiveTree(request, env) {
+export async function handleTree(request, env) {
   if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = rangeDatabase(url, env);
   const treeRoots = await roots(db);
   const rawNode = url.searchParams.get('node_id');
   const stockOnlyParam = text(url.searchParams.get('stock_only'));
