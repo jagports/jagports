@@ -1,0 +1,6 @@
+.wrangler/
+
+4-Production/internet/cloudflare/workers/jagports/public/vieps-tailwind.css
+4-Production/internet/cloudflare/workers/jagports/public/app.js
+4-Production/internet/cloudflare/workers/jagports/public/stock-admin.js
+4-Production/internet/cloudflare/workers/jagports/public/i18n-runtime.js

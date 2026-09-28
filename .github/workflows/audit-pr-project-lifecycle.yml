@@ -1,0 +1,45 @@
+name: Audit Pull Request Project Lifecycle
+
+# Intentionally manual-only: one workflow invocation runs one job that scans the
+# complete repository PR population. There is no per-PR matrix and no automatic
+# pull_request trigger, preventing this audit from creating repeated Action runs.
+on:
+  workflow_dispatch:
+    inputs:
+      fail_on_drift:
+        description: Fail the run when definite lifecycle drift is found
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+env:
+  PROJECT_ORG: jagports
+  PROJECT_NUMBER: "9"
+  PROJECT_TITLE: Jagports AI OS
+
+jobs:
+  audit-pr-project-lifecycle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Audit all Pull Request Project Items in one run
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          FAIL_ON_DRIFT: ${{ inputs.fail_on_drift && 'true' || 'false' }}
+        run: bash 6-Development/github/audit-pr-project-lifecycle.sh
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-project-lifecycle-audit-${{ github.run_id }}
+          path: pr-project-lifecycle-audit.tsv
+          if-no-files-found: warn
