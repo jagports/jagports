@@ -63,7 +63,7 @@ The following **Product Owner-supplied ASCII map** is the normative target deskt
 | Centre lower right | Selected PART | One canonical PART with verified name/status and image/diagram where available; never a candidate list. |
 | Right top | Search | Part-number/deterministic-identifier-first search with reduced-MVP free-text fallback. |
 | Right middle | Search Results PART List | Independent scrolling; one selectable PN/name row per distinct canonical PART, synchronized with tree selection. |
-| Right bottom | Applicable Models | Independent scrolling; unselected browse index of 13 exact requested fixture labels or verified fit for selected PART/context. |
+| Right bottom | Applicable Models | Independent scrolling; current candidate-derived source-backed ranges in filter mode, and read-only verified/nonmatching/unknown indicators for a selected PART. Legacy 13-label fixtures are TEST compatibility only. |
 
 ### Geometry rules
 
@@ -339,7 +339,7 @@ The current implementation acceptance is limited to page regions/scrolling/acces
 
 A conforming #875 implementation preserves:
 
-- clear/empty-submit behavior, preserved stock-filter state, clean selection URLs and race-safe root restoration under the Part Search contract;
+- clear/empty-submit behavior, preserved independent Stock/FIT/Range/VIN filters, clean selection URLs and race-safe filtered-root restoration under the Part Search contract;
 - browse-mode language continuity without fabricated source-tree identity or a selected PART;
 - the three-column target layout, including distinct left Availability/Parts Tree, centre VIN/Variations and one Location/PART pair, and right Search/Results/Applicable Models;
 - one canonical PART identity shared by the Parts Tree and right-hand Search Results, with genuine source-qualified occurrences and no guessed default PART for multi-match;
