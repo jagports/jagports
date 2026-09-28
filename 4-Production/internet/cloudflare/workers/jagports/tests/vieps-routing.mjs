@@ -89,8 +89,8 @@ test('real PART lookup does not require tree data, FIT tables or a description',
 
 test('real mode returns an explicit error rather than publishing available synthetic Suitability', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
-  const range = d1(db);
-  const env = { DB: range, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: range };
+  const partsDb = d1(db);
+  const env = { DB: partsDb, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: partsDb };
   const response = await handleApi(new Request(
     'https://test.example/api/vieps/suitability'), env);
   assert.equal(response.status, 503);
