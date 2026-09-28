@@ -3,39 +3,39 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rangeDatabase } from '../js/vieps-parts.js';
+import { partsDatabase } from '../js/vieps-parts.js';
 import { handleApi } from '../js/vieps-worker.js';
 import { database, d1 } from './helpers/model-db.mjs';
 
-test('real routing uses a reviewed Range binding and never falls back to fixture DB', () => {
+test('real routing uses a reviewed parts database binding and never falls back to fixture DB', () => {
   const fixture = { name: 'fixture' }, xk = { name: 'xk' };
-  const env = { DB: fixture, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: xk };
-  assert.equal(rangeDatabase(new URL('https://example.test/api/vieps/tree'), env).db, xk);
-  assert.throws(() => rangeDatabase(new URL('https://example.test/api/vieps/tree'),
-    { ...env, RANGE_XK: undefined }), error => error.code === 'range_unavailable');
+  const env = { DB: fixture, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: xk };
+  assert.equal(partsDatabase(new URL('https://example.test/api/vieps/tree'), env).db, xk);
+  assert.throws(() => partsDatabase(new URL('https://example.test/api/vieps/tree'),
+    { ...env, PARTS_XK: undefined }), error => error.code === 'parts_database_unavailable');
 });
 
-test('multiple real Ranges fail visibly until global index is available', () => {
-  const env = { DB: {}, RANGE_BINDINGS: '{"xk":"RANGE_XK","xj":"RANGE_XJ"}',
-    RANGE_XK: { name: 'xk' }, RANGE_XJ: { name: 'xj' } };
+test('multiple configured Ranges fail visibly until global index is available', () => {
+  const env = { DB: {}, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK","xj":"PARTS_XJ"}',
+    PARTS_XK: { name: 'xk' }, PARTS_XJ: { name: 'xj' } };
   for (const url of ['https://example.test/api/vieps/part?q=ABC',
     'https://example.test/api/vieps/part?q=ABC&range=xj']) {
-    assert.throws(() => rangeDatabase(new URL(url), env),
-      error => error.code === 'range_unavailable' && error.status === 503);
+    assert.throws(() => partsDatabase(new URL(url), env),
+      error => error.code === 'parts_database_unavailable' && error.status === 503);
   }
 });
 
 test('a single Range does not accept an unsupported per-request selector', () => {
-  const env = { DB: {}, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: {} };
-  assert.throws(() => rangeDatabase(new URL('https://example.test/api/vieps/part?range=xj'), env),
-    error => error.code === 'range_unavailable');
+  const env = { DB: {}, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: {} };
+  assert.throws(() => partsDatabase(new URL('https://example.test/api/vieps/part?range=xj'), env),
+    error => error.code === 'parts_database_unavailable');
 });
 
 test('real PART lookup does not require tree data, FIT tables or a description', async (t) => {
-  const rangeDb = new DatabaseSync(':memory:');
+  const partsDb = new DatabaseSync(':memory:');
   const stockDb = database({ fixtures: false });
-  t.after(() => { rangeDb.close(); stockDb.close(); });
-  rangeDb.exec(`
+  t.after(() => { partsDb.close(); stockDb.close(); });
+  partsDb.exec(`
     CREATE TABLE part (
       id INTEGER PRIMARY KEY,
       part_number_raw TEXT NOT NULL,
@@ -65,8 +65,8 @@ test('real PART lookup does not require tree data, FIT tables or a description',
   `);
   const env = {
     DB: d1(stockDb),
-    RANGE_BINDINGS: '{"xk":"RANGE_XK"}',
-    RANGE_XK: d1(rangeDb),
+    PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}',
+    PARTS_XK: d1(partsDb),
   };
 
   const response = await handleApi(new Request(
@@ -90,7 +90,7 @@ test('real PART lookup does not require tree data, FIT tables or a description',
 test('real mode returns an explicit error rather than publishing available synthetic Suitability', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   const range = d1(db);
-  const env = { DB: range, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: range };
+  const env = { DB: range, PARTS_DATABASE_BINDINGS: '{"xk":"PARTS_XK"}', PARTS_XK: range };
   const response = await handleApi(new Request(
     'https://test.example/api/vieps/suitability'), env);
   assert.equal(response.status, 503);
@@ -110,11 +110,11 @@ test('real mode returns an explicit error rather than publishing available synth
   assert.ok(fixtureBody.categories.length > 0);
 });
 
-test('real mode with an unbound Range fails rather than reading the fixture D1', async (t) => {
+test('real mode with an unbound parts database fails rather than reading the fixture D1', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   await assert.rejects(() => handleApi(new Request(
     'https://test.example/api/vieps/suitability'), { DB: d1(db) }),
-  error => error.status === 503 && error.code === 'range_unavailable');
+  error => error.status === 503 && error.code === 'parts_database_unavailable');
 });
 
 test('case-insensitive TEST URL enables fixtures on Web APIs and does not depend on a real Range', async (t) => {
@@ -146,8 +146,8 @@ test('missing or conflicting TEST URL flags never expose fixture data', async (t
   for (const flags of ['', '?TEST=0', '?test=2', '?TEST=1&test=0', '?test=1&TEST=1']) {
     await assert.rejects(() => handleApi(new Request(
       'https://test.example/api/vieps/suitability' + flags), env),
-    error => error.status === 503 && error.code === 'range_unavailable',
-    'unbound real Range must reject URL flags: ' + flags);
+    error => error.status === 503 && error.code === 'parts_database_unavailable',
+    'unbound parts database must reject URL flags: ' + flags);
   }
 });
 
@@ -169,8 +169,8 @@ test('#976 FIT route is canonical and legacy suitability API remains a compatibl
 test('Worker deployment config publishes the reviewed XK parts binding', async () => {
   const filename = fileURLToPath(new URL('../wrangler.toml', import.meta.url));
   const config = await readFile(filename, 'utf8');
-  assert.match(config, /RANGE_BINDINGS\s*=\s*'\{"xk":"RANGE_XK"\}'/);
-  assert.match(config, /binding\s*=\s*"RANGE_XK"/);
+  assert.match(config, /PARTS_DATABASE_BINDINGS\s*=\s*'\{"xk":"PARTS_XK"\}'/);
+  assert.match(config, /binding\s*=\s*"PARTS_XK"/);
   assert.match(config, /database_name\s*=\s*"parts-xk"/);
   assert.match(config, /database_id\s*=\s*"55a0ebdb-6a86-4c2a-9ede-d4da2e47db00"/);
 });
