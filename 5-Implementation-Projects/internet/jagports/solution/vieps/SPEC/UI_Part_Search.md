@@ -119,11 +119,7 @@ This section is the authoritative *interaction* contract for Find, VIN, Stock on
 - Preserve selected filters when zero PARTs match. Mark limiting selected filters with yellow warnings and show the **number of distinct competing option values** that would become available by clearing **that filter alone while all other constraints remain active**; a count of options is not a count of PARTs. If only clearing several filters together recovers matches, show a **combined** conflicting-filter warning identifying those filters and the number of PARTs that would become available together; do not imply one filter alone is sufficient. A combined multi-filter clear button is **not** required. Never silently clear any filter to resolve zero matches.
 - Every new interaction invalidates superseded asynchronous responses. Recompute visibility/counts from evidence-backed result contexts without circularly suppressing the selected value needed to remove or diagnose a filter. No input or option is silently changed by a late result.
 
-These are normative **target interaction rules**, not a claim that the currently deployed site implements them. Merged #970 supplies alphabetical FIT grouping; coordinated runtime filtering remains separately tracked in #974. Unsupported controls remain explicitly disabled rather than simulating correct filtering.
-
-### Interaction verification ownership
-
-The behavior above is normative. The detailed regression/acceptance matrix and execution evidence are tracked in [#974](https://github.com/jagports/jagports/issues/974); do not record implementation checkbox state in this specification.
+These are normative interaction requirements. Controls without an approved source-backed read contract remain disabled; never simulate filtering.
 
 ## Search input
 - The search area uses one primary query field for a Jaguar part number, deterministic identifier or free text; it must not expose competing part-number and free-text fields.
@@ -171,10 +167,6 @@ UI locale and Parts/catalogue-data language are independent. Changing UI languag
 After clear, UI language switching preserves the collapsed root state and clean URL. If rendering requires asynchronous reads, apply the same latest-action protection; an earlier response cannot restore old-language presentation or a cleared selection.
 
 When supported Parts/catalogue-data language changes, load that language's evidenced source tree. Preserve a selected context only where an explicit stable identity/mapping supports it; never match nodes by label or assume identical source-tree structure. Otherwise remove the invalid tree/occurrence selection and stale selection URL state, return to that language's available collapsed roots, and expose unavailable mapping/context explicitly. Do not resurrect a previously cleared PART. Preserve the stock constraint and canonical identity boundary.
-
-## Clear/browse verification ownership
-
-The clear/browse contract above remains authoritative. The full stale-response, direct-link, language and filtered-root regression table is tracked as implementation acceptance in [#974](https://github.com/jagports/jagports/issues/974).
 
 ## Reduced-MVP limited free-text search
 
@@ -233,12 +225,6 @@ PARTs are shown as last leaf nodes of the tree when the current tree/search cont
 When multiple PARTs match, no PART is selected by default. Matching PARTs appear as clickable terminal Parts Tree leaves **and** distinct right-hand PN/name rows. The centre selected-PART panel stays in explicit no-selected-PART/context state until a result row or tree leaf is selected.
 
 When exactly one PART is resolved deterministically or by free text, that PART may populate PART / Image / Status according to the single-result contract.
-
-## #875 implementation phase split
-
-**Current implementation target:** retain deterministic-first/free-text fallback and existing stock-only contracts; render the right-hand independently scrolling PN/name result list and synchronize its selected canonical PART with the left #873 Parts Tree and one centre detail panel. Show separate **disabled** bookmark checkboxes. Preserve explicit result states and occurrence context, rather than changing search resolution.
-
-**Deferred implementation:** bookmark activation/storage and any unsupported model-range filtering runtime. The approved interaction target now permits **one active model range at a time**, combined with other filter groups as defined above; the former multiple-range ANY/OR proposal is superseded. Unsupported future controls may be visually present but must be disabled and clearly explained.
 
 ## Right-hand Search Results and bookmarks (#875)
 
@@ -489,6 +475,3 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Multiple PART matches are selectable as tree leaves and right-hand results rows. The centre selected-PART panel never presents multiple PARTs.
 - Multiple-PART search results do not select any PART by default.
 
-## Implementation acceptance tracking
-
-The implementation checklist, panel-specific acceptance and regression outcomes are owned by [#974](https://github.com/jagports/jagports/issues/974), [#368](https://github.com/jagports/jagports/issues/368), [#641](https://github.com/jagports/jagports/issues/641) and the relevant domain Issues. This document defines required behavior, not completion status.

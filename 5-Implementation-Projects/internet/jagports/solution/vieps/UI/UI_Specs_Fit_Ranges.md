@@ -1,15 +1,8 @@
 # VIEPS UI — Applicable Models / Fit Model Ranges contract
 
-**Status:** #875 layout merged; source-derived Range browse refinement in #949; superseding single-range filter target documented, runtime evidence gate remains  
-**Controlling UI issue:** #468  
-**Enhancement:** #875  
-**Priority issue:** #477  
-**Implementation parent:** #368  
-**Domain owner:** #354
-
 ## Objective
 
-Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the merged #875 three-column layout. The production transition from the temporary browse test index to source-derived model/Range relations remains a separate implementation task.
+Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the merged #875 three-column layout. Production Range options require verified source-derived Model/Range relations; the temporary browse index is TEST compatibility only.
 
 This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_FIT.md` and #354 own the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
 
@@ -37,7 +30,7 @@ JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are 
 
 **Superseding approved interaction (2026-09-28):** select **at most one** normalized model/range identity at a time. Competing ranges are hidden while selected, then restored from the current evidenced search context when cleared. Combine the active range with Find, VIN, Stock, branch and FIT group constraints. New Find submissions preserve the selected range. Only verified positive occurrences qualify as verified matches; otherwise eligible unknown-applicability PARTs appear under separate unresolved candidates with warnings, not as verified fits. Explicitly incompatible PARTs are excluded.
 
-**Phase split:** the merged #875 increment installed the right-hand Applicable Models layout and retained a temporary browse-only compatibility fixture. The next source-backed implementation must replace that fixture with imported JEPC Model–Range relations. Single-range filtering and the shared read-only selected-PART interaction require the approved read adapter and tests and remain unimplemented where unavailable. A visible filter that cannot yet work must be disabled with an accessible explanation; it must not silently pretend to apply the approved single-Range rule.
+**Source-backed behavior:** Only explicit imported JEPC Model-to-Range evidence supplies production Range options and read-only selected-PART facts. Single-Range filtering requires an approved occurrence-level read contract; otherwise disable the control with an accessible explanation.
 
 The centre-top Fit / Variations filter consumes the normalized #641 categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
 
@@ -69,7 +62,7 @@ The public read adapter must preserve #354/#666 distinctions between stored fit 
 
 ## Deterministic fixture contract
 
-Synthetic test identities and mappings must remain separate from production imported Model-to-Range evidence. Fixture and browser test cases, including the approved **single active Range** regression, are tracked in [#609](https://github.com/jagports/jagports/issues/609) and [#974](https://github.com/jagports/jagports/issues/974); the obsolete multiple-Range OR test is superseded.
+Synthetic identities and mappings remain separate from production Model-to-Range evidence. A synthetic context can demonstrate one active Range, positive, excluded and unresolved evidence, and conjunction with other independent filters; multiple-Range OR filtering is not supported.
 
 ## Viewport and accessibility
 
@@ -79,6 +72,3 @@ The panel scrolls internally in the fitted #616 desktop shell, independently of 
 
 VIN evaluation and VIN-range reconstruction are governed by #478 and approved source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
 
-## Implementation acceptance tracking
-
-Single-Range interaction, evidence, accessibility and fixture acceptance belong to [#609](https://github.com/jagports/jagports/issues/609) and [#974](https://github.com/jagports/jagports/issues/974). This document defines the required Applicable Models behavior and data contract.

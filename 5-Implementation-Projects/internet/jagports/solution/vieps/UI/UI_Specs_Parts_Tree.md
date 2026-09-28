@@ -1,11 +1,5 @@
 # VIEPS UI — Parts Tree hierarchy and selection contract
 
-**Status:** #873 expanded-tree contract retained; #875 coordinated Search Results proposed for review  
-**Controlling issue:** #468  
-**Priority issue:** #474  
-**Implementation parent:** #368  
-**Domain owner:** #354
-
 ## Objective
 Define the implementation-ready Parts Tree contract from the Concept-11 SVG merged by PR #645: retain the catalogue main-level index while expanding/emphasizing only relevant descendant path(s) and the selected occurrence.
 
@@ -158,11 +152,8 @@ PartsTreeResult
 
 ## Deterministic fixture contract
 
-Preserve existing `firtree1` / `firtree2` as non-numbered synthetic fixture identifiers, not Jaguar part numbers. Exact tree/render/browser fixture cases and execution evidence are tracked in [#368](https://github.com/jagports/jagports/issues/368) and [#974](https://github.com/jagports/jagports/issues/974).
+Preserve existing `firtree1` / `firtree2` as non-numbered synthetic fixture identifiers, not Jaguar part numbers. Tree identities and paths are source-qualified; fixtures cannot establish real Jaguar part numbers.
 
 ## Viewport and language
 Long tree content scrolls internally in the fitted #616 desktop shell. Catalogue labels may come from independently selected Parts/catalogue-data language under #620; surrounding UI controls follow #554. Both must tolerate variable-length text.
 
-## Implementation acceptance tracking
-
-Tree/render state, search synchronization, root-clear and browser tests are owned by [#368](https://github.com/jagports/jagports/issues/368) and [#974](https://github.com/jagports/jagports/issues/974). This document defines the required tree behavior, identities and navigation contract.

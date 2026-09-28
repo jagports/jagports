@@ -1,11 +1,5 @@
 # VIEPS UI — Fitment qualifiers and VIN fit contract
 
-**Status:** #875 target geometry proposed for review; existing fitment contract retained  
-**Layout enhancement issue:** #875 (follows #468)  
-**Priority issue:** #478  
-**Implementation parent:** #368  
-**Domain owner:** #354
-
 ## Objective
 Specify how the right-hand #875 Applicable Models panel and centre-top normalized Fit / Variations filter consume the existing approved PART occurrence/fitment and VIN-fit contract. Geometry changes do not invent domain semantics or expand the current reduced-MVP gate.
 
@@ -49,15 +43,11 @@ UI headings, prompts and states use EN/FI i18next keys. Each published category/
 
 Before #355 import, the fixture provider may expose source-shaped test descriptions for Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; and Seat equipment: Memory Seat/Powered Seats. Every fixture row must carry its synthetic namespace, dataset, language, locator and normalized mapping. It validates the public read and localization contract only; it cannot become a JEPC condition or production fitment fact.
 
-The filter reads published mappings at occurrence scope. It never treats a raw description as a predicate, derives a condition from its text, or joins same-looking values across occurrences. If source relation, i18n domain metadata or occurrence scope is absent, return `unavailable`. Memory Seat and Powered Seats may appear together only when their separately sourced records identify that coexisting occurrence; this PR specifies no membership condition or evaluator.
+The filter reads published mappings at occurrence scope. It never treats a raw description as a predicate, derives a condition from its text, or joins same-looking values across occurrences. If source relation, i18n domain metadata or occurrence scope is absent, return `unavailable`. Memory Seat and Powered Seats may appear together only when their separately sourced records identify that coexisting occurrence; no membership condition or evaluator may be inferred from fixture text.
 
 The merged #883 layout places the control at centre-top and keeps right-hand Applicable Models separate. Its 13 model-range browse labels are not fit values.
 
-### Implementation workstreams
-
-Implementation sequencing, earlier PR reconciliation, Admin mapping/fixture corrections and screenshot evidence are tracked in [#641](https://github.com/jagports/jagports/issues/641), [#877](https://github.com/jagports/jagports/issues/877) and [#974](https://github.com/jagports/jagports/issues/974). These tasks do not redefine FIT applicability or the normalized public-read contract.
-
-The known fixture labels—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—are examples of separately mapped descriptions. The two seat labels may appear together only when separately sourced description records identify the same occurrence.
+The fixture examples—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—are independently sourced descriptions. Two seat labels may coexist only where separate source records identify the same occurrence.
 
 ### Information document link
 The `(i)` control may link to verified **Model Family & Year Introduction** documentation when a valid source/document relationship exists.
@@ -94,16 +84,9 @@ Do not add a second domain taxonomy for the 13 fixture labels. Use normalized ex
 ## Deterministic fixtures
 Cover the isolated historical 13-label TEST browse compatibility fixture independently of production source-derived Range membership and selected-PART fitment; include a PART fitting only some Ranges, read-only applicable/nonmatching/unknown indicators, exclusions, VIN-range match/unknown/exclusion, multi-occurrence context, unavailable evidence, context-only search and API error. The superseding single-range filter test matrix must include one active range, restoration of competing ranges on clear, unknowns separately from verified fits, and conjunction with normalized FIT filters. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
 
-### Regression ownership
-
-Occurrence-scoped FIT source-evidence, fixture isolation and independent seat-description regression checks are tracked in [#641](https://github.com/jagports/jagports/issues/641) and [#877](https://github.com/jagports/jagports/issues/877); cross-panel browser acceptance is tracked in [#974](https://github.com/jagports/jagports/issues/974).
-
 ## Viewport and language
 Applicable Models is independently scrollable in the persistent right column below the separate Search Results list; centre VIN/Variations remain above Location and one selected PART. Keep #616 fitted desktop behavior with inner scroll and accessible links/labelled checkboxes. On narrow layouts reflow without mixing bookmark, model filter and verified fit indicators. UI text and source Parts-language remain independently governed by #554 and #620.
 
 ## Boundaries
 VIN decoding and VIN-range reconstruction are separate enabling work. Do not invent VIN ranges or use KOVuosi as a substitute for VIN/evidence-based fit. This specification consumes #354 semantics and does not redefine them.
 
-## Implementation acceptance tracking
-
-Panel and data-mapping outcomes are tracked in [#641](https://github.com/jagports/jagports/issues/641), [#877](https://github.com/jagports/jagports/issues/877), [#609](https://github.com/jagports/jagports/issues/609) and [#974](https://github.com/jagports/jagports/issues/974). This specification retains the normative FIT/evidence contract only.

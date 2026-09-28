@@ -1,15 +1,6 @@
 # VIEPS UI Specifications
 
-## Status
-
-This document defines the VIEPS UI presentation and information architecture. The #875 layout below is the target for the search-results and Applicable Models enhancement; the currently deployed Concept-11 implementation remains the runtime baseline until this specification is reviewed and implemented.
-
-Domain/data semantics remain governed by the approved search, fitment, PART and STOCK contracts. The enhancement changes display placement and interaction without creating another PART identity or expanding the reduced-MVP completion gate by itself.
-
-**Implementation parent:** #368 — VIEPS UI / Implement MVP Web UI  
-**Layout enhancement:** #875 — Search-results PART list and Applicable Models panel  
-**Parts Tree coordination:** #873 — one shared-root tree with PART leaves  
-**Visual foundation:** PR #645 — Concept-11
+This document defines the VIEPS UI three-column presentation and information architecture. Search, FIT, PART and STOCK domain contracts remain authoritative for data semantics.
 
 ## Visual authorities
 
@@ -48,9 +39,9 @@ The following **Product Owner-supplied ASCII map** is the normative target deskt
 
 **Legacy TEST browse index:** Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These labels document historical fixture compatibility, **not** the source-derived production catalogue or selected-PART fitment.
 
-**Current increment:** implement this shell, separately scrolling Parts Tree / Search Results / Applicable Models, accessible selectable PN/name rows and **one shared PART selection** across tree, result rows and centre detail. Bookmark checkboxes are visible but **disabled**, with no saving. Advanced model-range checkbox filtering is also deferred; its approved future semantics are **multiple selections matching ANY (OR)** with only positively evidenced surviving occurrences. The initial layout may display the 13-entry browse index and verified selected-PART fit where an approved read contract exists, but must not invent fitment, VIN evidence or data-driven filters.
+**Panel contract:** Parts Tree, Search Results and Applicable Models scroll independently, with one shared canonical PART selection across tree leaves, PN/name result rows and centre detail. Bookmark checkboxes remain visible but disabled, with no saved state. Applicable Models permits one active source-evidenced Range filter at a time; unsupported filtering is disabled. The historical 13-label index is TEST compatibility only, never production fitment evidence.
 
-## Region ownership and current implementation
+## Panel placement and behavior
 
 | Position | Region | Behavior |
 |---|---|---|
@@ -81,7 +72,7 @@ Concept-11 explicitly shows `Language [UI] [Parts]` as separate concerns.
 
 - **UI language** is governed by #554.
 - **Parts/catalogue-data language** is independently selectable under #620.
-- PR #647 must remain structurally compatible with both concerns, but must **not fabricate working language selectors** before the approved #554/#620 contracts are implemented.
+- Language selectors remain structurally separate and cannot appear functional without the approved UI-language and Parts-language read contracts.
 - Variable-length localized text must not break the layout.
 - The top-left concept block is therefore a durable information-architecture requirement even when the current runtime exposes only branding/instructions and no active language controls yet.
 
@@ -306,17 +297,14 @@ The completed compact-spacing and mobile-header enhancement from #888 is the pre
 - The Stock-only help button is distinct from its checkbox label. Desktop hover/focus/click and mobile tap expose the localized explanation; repeated activation, outside interaction and Escape dismiss it without toggling the checkbox. The in-viewport overlay must not cover Find or permanently grow the mobile top region. The canonical wording and details belong in [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md).
 - Preserve existing search resolution/clearing, PART identity, STOCK eligibility, fitment and deep links. The separate `search.multiple_matches` EN/FI translation fix is covered by merged #894; do not reintroduce raw keys.
 
-**Verification:** retain existing #886/#888 regressions, current i18n assets and #893 browser screenshot checks; extend the same browser mechanism for the three-column desktop and synchronized Search Results without duplicating workflows.
 
-## Approved #875 Product Owner decisions — 2026-09-22
+## Bookmarks and evidence-backed model selection
 
-1. **Bookmarks:** show a separate checkbox beside each PART result now, **disabled and labelled for a future release**. Do not implement session/browser/account persistence, saved lists, or a misleading local-only bookmark toggle in this increment. Future bookmarking remains independent of shared PART selection, fitment and stock.
-2. **Historical model-range proposal, superseded on 2026-09-28:** the formerly approved several-range ANY/OR semantics are replaced by **one active Range at a time**, with competing options hidden and with explicit unresolved-candidate presentation when applicability evidence is incomplete. Keep unsupported controls disabled until a suitable read path is implemented; do not simulate filtering.
-3. **Phase split:** retain the three-column layout, synchronized Parts Tree / Search Results selection and bookmark deferment without silently expanding #280's MVP gate. Supported single-range FIT interaction requires its own read/evaluator implementation. The legacy 13-label browse fixture may remain in existing TEST runtime pending the imported Model-to-Range transition; it is not production fitment evidence.
+- Bookmark checkboxes beside each PART result are disabled and labelled for future use. They must not create saved lists, local-only bookmark states or affect PART selection, FIT or Stock.
+- Applicable Models allows at most one active source-backed Range filter; competing values remain hidden until cleared. Verified, unresolved and excluded occurrences remain distinct; unsupported filtering stays disabled.
+- The 13-label browse index is a TEST compatibility fixture, not production Range authority.
 
-The current implementation acceptance is limited to page regions/scrolling/accessibility, distinct PN/name rows and shared selection with one centre PART, retained #873 tree semantics, visible disabled bookmark controls, and non-fabricated Applicable Models browse/fact states. Later increments require their own API, storage, authorization and integration tests; these are **not** acceptance blockers for the layout increment.
-
-## Implementation boundaries
+## Data and presentation boundaries
 
 - Use deterministic fixtures where production/imported data is not yet available.
 - Preserve current main-branch fixture/search behaviour while changing presentation.
@@ -335,6 +323,3 @@ The current implementation acceptance is limited to page regions/scrolling/acces
 - `UI_Specs_Fitment.md` — Model Ranges and Fit fit contract.
 - [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md) — stock/catalogue boundary and stock-quality authority.
 
-## Implementation acceptance tracking
-
-The seven-panel implementation checklist, cross-panel integration tests and reviewed completion evidence are tracked in [#974](https://github.com/jagports/jagports/issues/974) and the relevant open panel/domain Issues; this document remains the authoritative shared layout and interaction specification.
