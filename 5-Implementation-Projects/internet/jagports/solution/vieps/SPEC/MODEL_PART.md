@@ -12,7 +12,7 @@ Occurrence-bound grouped fit and versioned source-evidence semantics are defined
 
 `PART` is the stable reusable product/reference identity used by VIEPS.
 
-Canonical PART identity must remain consistent across the operational database and Range-partitioned JEPC catalogue databases. A Jagports specified PART is canonical inside VIEPS but is not Jaguar-issued and must remain distinguishable by origin/provenance.
+Canonical PART identity must remain consistent across the operational database and JEPC parts databases separated by approved Range. A Jagports specified PART is canonical inside VIEPS but is not Jaguar-issued and must remain distinguishable by origin/provenance.
 
 Within one database, the internal `id` is the stable row identity. Across the Range-specific parts databases, an imported numbered JEPC PART uses the stable `JEPC:<part_number_normalized>` canonical key; a database-local numeric `id` must never be interpreted as a global PART identifier. A part number can be attached later to an operational/manual PART without changing its local identity. Cross-database reconciliation of that manual identity remains explicit work under Issue #555.
 
@@ -27,7 +27,7 @@ Unresolved physical stock does not require a PART row.
 | Field | Requirement | Meaning |
 |---|---|---|
 | `id` | required | Stable internal catalogue-part identifier. |
-| `canonical_key` | required for numbered Range-imported JEPC PARTs | Cross-Range key `JEPC:<part_number_normalized>`; local numeric IDs remain database-scoped. |
+| `canonical_key` | required for numbered JEPC PARTs imported into a parts database | Cross-Range key `JEPC:<part_number_normalized>`; local numeric IDs remain database-scoped. |
 | `part_number_raw` | optional | Original part-number representation supplied by the source, when known. |
 | `part_number_normalized` | optional, unique when present | Stable lookup identity derived from the raw part number. Multiple NULL values are allowed. |
 | `description` | optional, non-unique | Part description/name; may be empty or NULL. Descriptions are not identity because different parts can share the same description. |
