@@ -4,7 +4,7 @@
 
 Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the three-column layout. Production Range options require verified source-derived Model/Range relations; the temporary browse index is TEST compatibility only.
 
-This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_FIT.md` owns the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
+This file owns the range presentation contract. `SPEC_SEARCH_FIT.md` owns detailed fitment/qualifier semantics; `MODEL_PART_FIT.md` owns the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
 
 ## Panel and modes
 
@@ -16,7 +16,7 @@ The right column places independently scrollable **Applicable Models** below the
 - **Insufficient or unresolved evidence:** when a required source relation or the entire applicable read contract is absent, display `unavailable`, not a positive fitment claim. When an evidenced candidate/context is present but a required individual Range value remains unresolved, keep that otherwise eligible candidate separate from verified matches and mark the displayed unresolved value yellow (`unknown`). A confirmed nonmatch is `no_match`; a service or processing failure is `error`.
 - **Explicitly excluded ranges:** never present them as fitting choices. Preserve their exclusion evidence in the supported detail/diagnostic view when appropriate.
 
-The browse/filter options and selected-PART applicable facts are different UI states over the same panel. Displayed availability is not a filter selection, and an explicit range filter is not itself evidence that any selected PART fits it. See the shared interaction rules in [Part Search](../SPEC/UI_Part_Search.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28).
+The browse/filter options and selected-PART applicable facts are different UI states over the same panel. Displayed availability is not a filter selection, and an explicit range filter is not itself evidence that any selected PART fits it. See the shared interaction rules in [Part Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28).
 
 ## Source-derived Range browse and test isolation
 
@@ -72,3 +72,11 @@ The panel scrolls internally in the fitted the viewport-fit contract desktop she
 
 VIN evaluation and VIN-range reconstruction are governed by the VIN evidence contract and approved source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
 
+
+## Selected-PART and VIN-linked Range behavior
+
+- **No PART selected:** the right-hand Applicable Models panel shows only evidenced ranges supported by the current browse/search candidates, with one optional active range filter. Explicit imported JEPC Model-to-Range mappings are authoritative; the historical 13-label fixture index is test compatibility only, not production membership or positive fitment.
+- **One selected PART/context:** the panel becomes read-only. Preserve available context choices where supported; mark only the PART's evidenced `applicable` ranges as verified/lit, leave verified nonmatching options unlit, and show relevant unresolved range applicability with a yellow unknown warning. No selection silently activates a filter. Distinguish verified exclusion, no confirmed match, unavailable evidence and processing failure.
+- When a right-hand result row identifies one PART with several valid source occurrences, require explicit occurrence/context selection before occurrence-dependent VIN fit is shown; detailed VIN semantics are in [VIN](SPEC_SEARCH_VIN.md). Selecting another range/context must not mutate canonical PART identity.
+- **Superseding Product Owner decision (2026-09-28):** choose **at most one** normalized model-range filter; hide competing ranges while it is active and restore evidenced choices when cleared. Combine with other groups using AND. Preserve selected filters across new Find submissions. Confirmed incompatible occurrences are excluded; otherwise eligible candidates with unknown required model evidence appear in the separate unresolved section with yellow warnings, not as verified matches. Unsupported controls stay disabled until the approved reader/evaluator can satisfy this contract; historical multiple-range ANY/OR is superseded.
+- Empty-query stock-backed model browsing is permitted only when the approved stock/catalogue and fit contracts provide verified candidates; otherwise indicate unavailable/unsupported rather than fabricating ranges.

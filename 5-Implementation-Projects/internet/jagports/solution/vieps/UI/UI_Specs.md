@@ -78,7 +78,7 @@ Concept-11 explicitly shows `Language [UI] [Parts]` as separate concerns.
 
 ## Shared panel interaction (superseding Product Owner decisions, 2026-09-28)
 
-[Part Search](../SPEC/UI_Part_Search.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28) is the interaction authority; [Fitment](UI_Specs_Fitment.md), [Applicable Models](UI_Specs_Fit_Ranges.md) and [Parts Tree](UI_Specs_Parts_Tree.md) own their respective evidence/presentation boundaries.
+[Part Search](../SPEC/SPEC_SEARCH.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28) is the interaction authority; [Fitment](../SPEC/SPEC_SEARCH_FIT.md), [Applicable Models](../SPEC/SPEC_SEARCH_RANGES.md) and [Parts Tree](../SPEC/SPEC_SEARCH_TREE.md) own their respective evidence/presentation boundaries.
 
 | Panel | Data shown | User interaction |
 | --- | --- | --- |
@@ -193,7 +193,7 @@ Initial root load, clear, empty submit and empty-search Availability refresh use
 
 UI language changes preserve browse state even without a selected PART. Catalogue-language changes respect source-qualified identity and structural differences rather than mapping by label.
 
-The normative transition, stock and URL rules are in [Part Search](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition). [Parts Tree](UI_Specs_Parts_Tree.md#empty-search--browse-state) owns root presentation and [Main View](UI_Specs_Main_View.md#clearing-selected-context) owns cleared contextual-region presentation.
+The normative transition, stock and URL rules are in [Part Search](../SPEC/SPEC_SEARCH.md#empty-search-and-clear-transition). [Parts Tree](../SPEC/SPEC_SEARCH_TREE.md#empty-search--browse-state) owns root presentation and [Main View](UI_Specs_Main_View.md#clearing-selected-context) owns cleared contextual-region presentation.
 
 ## Search-result distribution
 
@@ -214,7 +214,7 @@ Search-result bookmark checkboxes are visible but **disabled** while bookmark st
 
 ## 1. Search + Availability
 
-- The single primary part-number/deterministic-identifier/free-text Search field is in the right-hand column above Search Results; its resolution order, match highlighting and stock-filtered-empty semantics remain controlled by `../SPEC/UI_Part_Search.md`.
+- The single primary part-number/deterministic-identifier/free-text Search field is in the right-hand column above Search Results; its resolution order, match highlighting and stock-filtered-empty semantics remain controlled by `../SPEC/SPEC_SEARCH.md`.
 - The left Availability area consumes approved operational STOCK controls and does not change catalogue identity, fitment or source evidence.
 - Centre VIN and fit/variations filters are separate narrowing inputs, populated from approved data. Blank input browse lists, including VIN ranges, are shown only when the supporting contract exists.
 - Invalid, not-found, multiple-match, context-only, unsupported, unavailable and error states remain explicit; neither search-results rows nor filters may fabricate a PART.
@@ -234,7 +234,7 @@ JEPC catalogue-data language is distinct from VIEPS UI locale. If imported langu
 - A selected category or PART shows one expanded root-to-selection path with stable-node ancestor de-duplication. Show immediate children of the active branch and avoid expanding unrelated descendants.
 - Present canonical PART names/identities as selectable terminal tree leaves under supported catalogue contexts. Real stable node/PART links preserve the context; selected text is underlined, with modest indentation and root-to-leaf font-weight progression.
 - A search may display the same canonical PART both as a tree leaf (potentially at several genuine occurrence paths) and as one right-hand Search Results row. Both surfaces update one shared selected PART; tree leaves may also select the exact occurrence.
-- Never infer a tree path, occurrence, PART identity or fitment. Direct-link and tree-path guarantees are defined in `UI_Specs_Parts_Tree.md`.
+- Never infer a tree path, occurrence, PART identity or fitment. Direct-link and tree-path guarantees are defined in `../SPEC/SPEC_SEARCH_TREE.md`.
 
 ## 3. Fit Model Ranges
 
@@ -243,7 +243,7 @@ The **Applicable Models** panel occupies the right column below Search Results. 
 1. **No selected PART — browse/filter index:** display model ranges evidenced by the current supported search/browse candidates and imported source-backed Model-to-Range relations. At most one normalized Range filter is active; its competing choices are hidden until cleared. Option visibility is not an active selection and does not assert fitment to an unselected PART.
 2. **Selected PART/context — read-only applicability:** preserve evidenced panel options where backed by current results; illuminate only verified applicable ranges of the selected PART, leave known nonmatching options unlit, and show unknown applicability with yellow warnings. Never represent excluded or unknown ranges as verified fit. No range click changes the filter while an individual PART is selected.
 
-The historic 13-label browse list is a **TEST compatibility fixture only**, not a production taxonomy. Production choices require imported, explicitly assigned JEPC Model-to-Range relationships and approved evidence, as defined by [Applicable Models](UI_Specs_Fit_Ranges.md).
+The historic 13-label browse list is a **TEST compatibility fixture only**, not a production taxonomy. Production choices require imported, explicitly assigned JEPC Model-to-Range relationships and approved evidence, as defined by [Applicable Models](../SPEC/SPEC_SEARCH_RANGES.md).
 
 **Superseding model-range filter rule (2026-09-28):** users may select **one Range at a time**; competing choices are hidden until cleared. The selected range combines with other filter groups using AND. Verified applicable occurrences are verified matches; otherwise eligible candidates with unknown required range evidence appear separately as unresolved with warnings. Confirmed incompatibility excludes the candidate. Never filter using display labels as identities; disable unsupported controls rather than pretending the backed filtering works.
 
@@ -294,7 +294,7 @@ The three-column layout retains compact spacing, Parts Tree/search clearing beha
 - Use compact panel gaps/padding and Parts Tree row spacing/indentation, including 220–320 CSS px. Preserve stable ancestry connectors, complete selected paths, highlighted PART leaves and the intentional reserved space for Location, Fit and the single selected PART/Image/Status panel.
 - The branded banner exclusively owns existing fixture instructions, explanatory content and relevant links, with expandable translated keyboard-accessible instructions on narrow screens; do not duplicate them below Parts Tree.
 - On mobile, one persistent non-scrolling top region contains branding, language controls, banner/instructions, the primary Find field/button and Availability/Stock-only checkbox plus its separate help button. Only the remaining content scrolls beneath it. Avoid stacking independently sticky controls or fixed offsets; retain usability with translated/wrapped labels, expanded instructions, orientation and the on-screen keyboard without trapping content or horizontal overflow.
-- The Stock-only help button is distinct from its checkbox label. Desktop hover/focus/click and mobile tap expose the localized explanation; repeated activation, outside interaction and Escape dismiss it without toggling the checkbox. The in-viewport overlay must not cover Find or permanently grow the mobile top region. The canonical wording and details belong in [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md).
+- The Stock-only help button is distinct from its checkbox label. Desktop hover/focus/click and mobile tap expose the localized explanation; repeated activation, outside interaction and Escape dismiss it without toggling the checkbox. The in-viewport overlay must not cover Find or permanently grow the mobile top region. The canonical wording and details belong in [`../SPEC/SPEC_SEARCH.md`](../SPEC/SPEC_SEARCH.md).
 - Preserve existing search resolution/clearing, PART identity, STOCK eligibility, fitment and deep links. `search.multiple_matches` must resolve through the EN/FI translation resources; do not expose raw translation keys.
 
 
@@ -317,9 +317,9 @@ The three-column layout retains compact spacing, Parts Tree/search clearing beha
 ## Related specifications
 
 - `UI_CSS_Kit.md` — Tailwind/style-theme direction.
-- [`../SPEC/UI_Part_Search.md`](../SPEC/UI_Part_Search.md) — search/result-state contract.
-- `UI_Specs_Parts_Tree.md` — tree hierarchy/selection contract.
+- [`../SPEC/SPEC_SEARCH.md`](../SPEC/SPEC_SEARCH.md) — search/result-state contract.
+- `../SPEC/SPEC_SEARCH_TREE.md` — tree hierarchy/selection contract.
 - `UI_Specs_Main_View.md` — Location and PART/Image/Status synchronization.
-- `UI_Specs_Fitment.md` — Model Ranges and Fit fit contract.
+- `../SPEC/SPEC_SEARCH_FIT.md` — Model Ranges and Fit fit contract.
 - [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md) — stock/catalogue boundary and stock-quality authority.
 

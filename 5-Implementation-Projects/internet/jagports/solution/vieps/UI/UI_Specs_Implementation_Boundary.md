@@ -11,7 +11,7 @@ Define the ownership and traceability boundary for completing the Concept View-1
 ## Ownership
 - #468 is the controlling Concept View-1 specification while its acceptance criteria are completed.
 - #368 is the implementation parent for the actual VIEPS UI.
-- Search/result-state behavior is maintained in the canonical `../SPEC/UI_Part_Search.md` file.
+- Search/result-state behavior is maintained in the canonical `../SPEC/SPEC_SEARCH.md` file.
 - Other dedicated UI topic specifications remain in the existing `vieps/UI/` directory unless moved to the canonical `SPEC` area by an explicit specification decision.
 - #360 remains obsolete and is not a requirements source.
 - #366 remains superseded by #468.
@@ -27,10 +27,13 @@ The complete Concept-1 page should be established early. Components whose contra
 ```text
 5-Implementation-Projects/internet/jagports/solution/vieps/
   SPEC/
-    UI_Part_Search.md
+    SPEC_SEARCH.md
+    SPEC_SEARCH_FIT.md
+    SPEC_SEARCH_VIN.md
+    SPEC_SEARCH_TREE.md
+    SPEC_SEARCH_RANGES.md
   UI/
     UI_Specs.md
-    UI_Specs_Parts_Tree.md
     UI_Specs_<Topic>.md
 ```
 

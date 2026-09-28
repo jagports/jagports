@@ -43,7 +43,7 @@ The centre-right panel groups **one canonical PART** and approved evidence for i
 
 ## Clearing selected context
 
-Apply the [Part Search clear transition](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition) before loading roots. Remove the previous canonical PART selection, occurrence/item, warning/status, Classic/supersession presentation, image/diagram and visual choice, selected range, fit facts and vehicle-location marker/context. The permanent regions remain visible in their no-selected-PART/browse state.
+Apply the [Part Search clear transition](../SPEC/SPEC_SEARCH.md#empty-search-and-clear-transition) before loading roots. Remove the previous canonical PART selection, occurrence/item, warning/status, Classic/supersession presentation, image/diagram and visual choice, selected range, fit facts and vehicle-location marker/context. The permanent regions remain visible in their no-selected-PART/browse state.
 
 A root browse response must not select a PART automatically or restore the cleared PART's contextual facts. Supported stock-derived Applicable Models may be shown as fresh browse/filter context only. Missing tree data or a root-load error does not retain old PART details as a fallback.
 
@@ -87,7 +87,7 @@ MainViewResult
 ## Deterministic fixtures
 Cover vehicle-location available/unavailable, Part Image available/unavailable, diagram available/unavailable, numbered items, hotspot unavailable, supported status/Classic/supersession examples and synchronized tree/diagram selection. Preserve current main-branch non-numbered fixture identifiers without presenting them as Jaguar part numbers.
 
-Clear/reset fixtures must additionally verify every affected region immediately after clear and after delayed PART/tree responses, root success/empty/unavailable/error, and EN↔FI switching in browse mode. Use the [clear/browse regression matrix](../SPEC/UI_Part_Search.md#clearbrowse-regression-acceptance) as the cross-region acceptance contract; specification coverage is not executed runtime-test evidence.
+Clear/reset fixtures must additionally verify every affected region immediately after clear and after delayed PART/tree responses, root success/empty/unavailable/error, and EN↔FI switching in browse mode. Use the [empty-search and clear transition](../SPEC/SPEC_SEARCH.md#empty-search-and-clear-transition) as the cross-region acceptance contract; specification coverage is not executed runtime-test evidence.
 
 ## Viewport and language
 The #875 desktop shell retains left Availability and Parts Tree, centre VIN/Variations above side-by-side Location and one selected PART, and right Search/Results/Applicable Models. Preserve #616's fitted desktop layout: long tree, results and models lists scroll internally, while narrow layouts may reflow. UI-locale versus catalogue-language controls remain distinct under #554/#620; no unimplemented control pretends to work.

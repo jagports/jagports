@@ -150,7 +150,7 @@ This transition applies when editing makes the trimmed query empty, when an empt
 
 Every input edit invalidates superseded requests. For a non-empty edit, keep the selected PART provisionally only until the submitted query is evaluated; preserve it if it still matches and otherwise clear it without selecting another PART. An unsubmitted edit does not trigger empty-query PART resolution. Editing Find to empty executes the explicit clear transition above.
 
-The latest user action owns the visible state. A root load started by clear must not overwrite a subsequent query, selected tree node, stock-filter change or language change. Current root loading, empty, unavailable and error outcomes follow [Parts Tree](../UI/UI_Specs_Parts_Tree.md#empty-search--browse-state); an empty search never invokes deterministic or free-text PART lookup and never produces `Part not found` merely for being empty.
+The latest user action owns the visible state. A root load started by clear must not overwrite a subsequent query, selected tree node, stock-filter change or language change. Current root loading, empty, unavailable and error outcomes follow [Parts Tree](SPEC_SEARCH_TREE.md#empty-search--browse-state); an empty search never invokes deterministic or free-text PART lookup and never produces `Part not found` merely for being empty.
 
 ### Stock-filter invariants
 
