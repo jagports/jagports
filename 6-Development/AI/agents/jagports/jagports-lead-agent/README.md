@@ -65,11 +65,11 @@ These rules are useful for event routing and framework testing, but they do not 
 
 ## Standalone OpenAI API smoke test
 
-Reusable direct Responses API and wrapper smoke-test commands, their expected outputs, and the distinction between standalone connectivity and integrated reasoning are maintained in [Development OPERATIONS.md](OPERATIONS.md#direct-openai-responses-api-smoke-test). Historical operator-observed outcomes belong in the [implementation project record](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md). Successful connectivity does not prove model-backed specialist operation or an unattended service run.
+Reusable direct Responses API and wrapper smoke-test commands, their expected outputs, and the distinction between standalone connectivity and integrated reasoning are maintained in [Development OPERATIONS.md](OPERATIONS.md#direct-openai-responses-api-smoke-test). Historical operator-observed outcomes belong in the consolidated [MyNode installation and project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Successful connectivity does not prove model-backed specialist operation or an unattended service run.
 
 ## Lead Agent scheduling — intended 9h45min cadence
 
-The host's existing `systemd --user` timer, not a `config.yaml` polling value, is the actual scheduling authority. The intended 585-minute interval and service installation/verification are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Reusable one-shot status and diagnostic commands belong in [Development OPERATIONS.md](OPERATIONS.md). An enabled timer and a successful manual service run do not prove that a later timer-triggered unattended run succeeded; verify that run from the journal, state and report.
+The host's existing `systemd --user` timer, not a `config.yaml` polling value, is the actual scheduling authority. The intended 585-minute interval and service installation/verification are maintained in [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md). Reusable one-shot status and diagnostic commands belong in [Development OPERATIONS.md](OPERATIONS.md). The guide records one successful timer-triggered run with matching journal, state and report evidence; Issue #900 does not yet record the later 13:37:40 recurrence, so repeated unattended reliability remains unverified.
 
 ## Current specialist and Telegram communication test
 
@@ -82,10 +82,8 @@ For the short saved-status Telegram delivery smoke test and its two-part accepta
 | Human startup, current capabilities, usage sequence, navigation and limitations | This `README.md` |
 | Functional contracts, event/model schemas, design, rollout stages, security and acceptance tests | [SPEC_Agent_Lead.md](SPEC_Agent_Lead.md) |
 | Reusable shell commands, manual smoke tests, diagnostics and historical engineering command variants | [OPERATIONS.md](OPERATIONS.md) |
-| Live Raspberry Pi user service, timer installation, user-bus recovery and host acceptance commands | [MyNode Deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
-| Project rationale, operator-verified evidence and delivery dependencies | [Lead Agent implementation project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md) |
+| Live Raspberry Pi service/timer procedure, project rationale, prototype history and operator evidence | [MyNode deployment and project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) |
 | Actual source-backed research and unresolved evidence | The repository's established `7-Research/` semantic root |
-| Governed Research-to-Decision multi-role extension | Its separate Development specification, after that proposal is reviewed and merged |
 | Cross-project workflow, decision authority and agent responsibilities | [Management workflow](../../../../../0-DocumentationEducationCompetense/WORKFLOWS.md) and [agent roles](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) |
 
 `SPEC_Agent_Lead.md` and this README intentionally remain separate: technical requirements change through specification review, while human operation remains discoverable without scanning normative data contracts. The Operations and Deployment documents likewise remain distinct because portable test procedures are not the live host configuration.
