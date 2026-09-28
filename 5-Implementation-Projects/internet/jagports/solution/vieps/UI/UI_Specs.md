@@ -320,6 +320,8 @@ The three-column layout retains compact spacing, Parts Tree/search clearing beha
 - [`../SPEC/SPEC_SEARCH.md`](../SPEC/SPEC_SEARCH.md) — search/result-state contract.
 - `../SPEC/SPEC_SEARCH_TREE.md` — tree hierarchy/selection contract.
 - `UI_Specs_Main_View.md` — Location and PART/Image/Status synchronization.
-- `../SPEC/SPEC_SEARCH_FIT.md` — Model Ranges and Fit fit contract.
+- `../SPEC/SPEC_SEARCH_FIT.md` — FIT filter and normalized evidence contract.
+- `../SPEC/SPEC_SEARCH_VIN.md` — VIN filter and source evidence contract.
+- `../SPEC/SPEC_SEARCH_RANGES.md` — Applicable Models and single-Range contract.
 - [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md) — stock/catalogue boundary and stock-quality authority.
 

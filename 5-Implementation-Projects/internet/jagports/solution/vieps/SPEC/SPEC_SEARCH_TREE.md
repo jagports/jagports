@@ -19,7 +19,7 @@ Required presentation:
 - expand the complete root-to-latest-selected-category/occurrence/PART-leaf path within that **same** tree, rather than replacing the index with a clicked subtree or a series of isolated paths;
 - merge common ancestors by stable tree-node identity so each branch appears once at its correct depth; preserve legitimately distinct source-qualified contexts even when their labels are equal;
 - show the selected category's available immediate children while leaving unrelated deeper descendants collapsed unless they are themselves relevant to the selected path or active search results;
-- show matching or resolved canonical PARTs as selectable terminal **leaves under their evidenced catalogue branches**; the the three-column layout target additionally offers a deduplicated right-hand Search Results PART List, while the centre Main View remains a one-selected-PART panel, never a multi-PART candidate list;
+- show matching or resolved canonical PARTs as selectable terminal **leaves under their evidenced catalogue branches**; the three-column layout additionally offers a deduplicated right-hand Search Results PART List, while the centre Main View remains a one-selected-PART panel, never a multi-PART candidate list;
 - use modest incremental indentation and progressively stronger font weight toward the root; underline the **one active category or PART leaf**, rather than marking every ancestor or repeated path as selected;
 - keep the tree as a scrolling permanent left region below the Concept-11 branding/instructions header block.
 
@@ -90,14 +90,14 @@ The coordinated search/filter interaction authority is [Part Search](SPEC_SEARCH
 
 Use genuinely nested lists or equivalent accessible `tree` semantics with stable keys. Indent each child level by a modest, consistent increment so siblings align and ancestry is immediately legible. Font weight is strongest for root categories, somewhat lighter for intermediate branches, and normal for deeper branches/PART leaves. **Underline only the active node's text** (category or PART) and expose that selection through appropriate accessible state; hover and keyboard focus remain separately discernible. The appearance must not flatten the hierarchy into equal-weight, equal-indent rounded rows or repeat root labels for every matching path. Retain the independent internal tree scroll region in the desktop shell and usable reflow on narrow viewports.
 
-### Coordination with the three-column layout Search Results (proposed)
+### Coordination with Search Results
 
 The tree and right-hand Search Results PN/name list are **two views of the same canonical PART candidates and one shared active PART selection**. Occurrence-first filtering still determines surviving source paths before deriving distinct canonical result rows. Preserve one real terminal leaf for each evidenced occurrence path and only one right-hand row per canonical PART; do not duplicate a canonical PART because it appears in several diagrams or model contexts.
 
 - Selecting a **tree PART leaf** sets the active canonical PART **and its specific verified source occurrence/path**, when present. It updates the centre PART detail, Location, right-hand result-row selected state and evidence-backed Applicable Models.
 - Selecting a **right-hand result row** sets the same canonical PART selection and updates relevant tree paths; if several verified occurrences exist, do not guess which leaf/path is active or show occurrence-specific location, diagram-item or VIN fitment until that context is chosen.
 - The Parts Tree keeps the root index visible throughout, combines shared ancestors once by stable node identity and expands the latest genuinely selected leaf path. Search hits with several source paths remain visible without underlining several different leaves as one active occurrence.
-- A result-row **bookmark checkbox** is visible but **disabled** in the current layout/shared-selection increment; no storage or simulated save behavior is implemented. A later activated bookmark must remain separate from row/leaf selection and never change selected PART, tree expansion, stock constraints or fitment.
+- A result-row **bookmark checkbox** remains **disabled** while bookmark storage is unsupported. Its state is independent of row/leaf selection and cannot change selected PART, tree expansion, stock constraints or FIT.
 - A result row or tree leaf that lacks a verified source relationship must not acquire invented ancestry or positive fit. Show missing context as `unavailable`, distinct from search `no_match`.
 
 ## Clickable node navigation and tree entry path
@@ -155,5 +155,5 @@ PartsTreeResult
 Preserve existing `firtree1` / `firtree2` as non-numbered synthetic fixture identifiers, not Jaguar part numbers. Tree identities and paths are source-qualified; fixtures cannot establish real Jaguar part numbers.
 
 ## Viewport and language
-Long tree content scrolls internally in the fitted the viewport-fit contract desktop shell. Catalogue labels may come from independently selected Parts/catalogue-data language under the Parts-language contract; surrounding UI controls follow the UI-language contract. Both must tolerate variable-length text.
+Long tree content scrolls internally in the fitted desktop shell. Catalogue labels may come from independently selected Parts/catalogue-data language under the Parts-language contract; surrounding UI controls follow the UI-language contract. Both must tolerate variable-length text.
 
