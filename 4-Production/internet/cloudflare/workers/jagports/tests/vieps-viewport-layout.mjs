@@ -115,7 +115,7 @@ test("#895 centre-top suitability is an independently scrollable, accessible che
   assert.match(rule(".variation-group"), /flex:\s*0 0 auto/);
   assert.match(rule(".variation-group-values"), /display:\s*flex/);
   assert.match(rule(".variation-choice"), /white-space:\s*nowrap/);
-  assert.match(app, /data-suitability-facet/);
+  assert.match(app, /data-fit-facet/);
   assert.match(app, /ui_language/);
   assert.match(app, /visibleCandidates/);
   assert.doesNotMatch(app, /FIXTURE_VARIATIONS/);
