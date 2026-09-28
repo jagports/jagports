@@ -67,9 +67,9 @@ ApplicableModelsResult
 
 The public read adapter must preserve #354/#666 distinctions between stored fit assertions and evaluated vehicle fitment. This UI result contract is presentation-oriented and does not itself create or certify a new fitment evaluator.
 
-## Deterministic fixtures and tests
+## Deterministic fixture contract
 
-Cover explicitly created test Ranges, two distinct source-qualified JEPC Model examples with separate original descriptions and independently saved mappings, an unassigned Model kept visible by its original description, and empty/unavailable pre-import states. Include one PART applicable to only a verified subset, several source occurrences of one canonical PART, a verified qualifier, exclusion, no match, incomplete evidence, error, and coordination with Parts Tree, Search Results and centre normalized variations. Keep regression coverage for the deployed legacy browse-only fixture until its source-backed replacement is implemented. Verify disabled bookmarks remain independent. The deferred OR filter needs two selected Ranges, unconstrained empty selection, exclusions, unavailable evidence and other supported filters. Synthetic tests never become Jaguar source facts.
+Synthetic test identities and mappings must remain separate from production imported Model-to-Range evidence. Fixture and browser test cases, including the approved **single active Range** regression, are tracked in [#609](https://github.com/jagports/jagports/issues/609) and [#974](https://github.com/jagports/jagports/issues/974); the obsolete multiple-Range OR test is superseded.
 
 ## Viewport and accessibility
 
@@ -79,16 +79,6 @@ The panel scrolls internally in the fitted #616 desktop shell, independently of 
 
 VIN evaluation and VIN-range reconstruction are governed by #478 and approved source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
 
-## Acceptance criteria
+## Implementation acceptance tracking
 
-- [ ] The right-hand Applicable Models panel is independent of the scrollable Search Results panel in the #875 layout.
-- [ ] Source-derived browse returns only explicitly linked imported Model/Range identities; before import or assignment, report empty/unavailable and never infer membership from fixture labels.
-- [ ] A selected PART/context shows evidence-backed available choices read-only, with verified fitting ranges lit, verified nonmatching ranges unlit and unresolved values marked yellow; exclusions do not appear as suitable.
-- [ ] Multi-occurrence results preserve separate context/evidence rather than inventing combined positive fitment.
-- [ ] Browse filters, available-option indicators and read-only selected-PART verified/unknown fitment indicators remain semantically distinct.
-- [ ] Product Owner superseded multiple-range ANY/OR with a single active Range filter; no selection means unconstrained.
-- [ ] Single-range filtering remains disabled wherever the approved occurrence-level read path/tests do not support it.
-- [ ] `no_match`, `unavailable` and `error` remain distinct.
-- [ ] Visible current-phase bookmark checkboxes are disabled; later saved bookmarks remain independent of range filtering, PART selection, availability and fitment.
-- [ ] Deterministic fixture, accessibility, language and internal scrolling tests are specified.
-- [ ] Independent #875 specification review is completed.
+Single-Range interaction, evidence, accessibility and fixture acceptance belong to [#609](https://github.com/jagports/jagports/issues/609) and [#974](https://github.com/jagports/jagports/issues/974). This document defines the required Applicable Models behavior and data contract.
