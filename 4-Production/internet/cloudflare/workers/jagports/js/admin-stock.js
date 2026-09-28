@@ -96,7 +96,7 @@
       const number = part.part_number_raw || part.part_number_normalized || `#${part.id}`;
       button.textContent = `${number}${part.description ? ` — ${part.description}` : ""}`;
       button.addEventListener("click", () => {
-        // Range D1 row IDs are not operational jagports.part IDs.
+        // Parts database row IDs are not operational jagports.part IDs.
         byId("partId").value = isTestMode()
           ? part.id : "";
         byId("partNumber").value = number;
