@@ -1,6 +1,6 @@
 // Source-qualified normalized suitability reader (#641/#877). TEST=1 uses only
 // fixture rows; real mode reads only independently reviewed JEPC occurrence evidence
-// from the Range D1 selected by vieps-parts.js. No free-text inference or fallback.
+// from the parts database selected by vieps-parts.js. No free-text inference or fallback.
 const SOURCE = 'fixture:pre-jepc-suitability:v1';
 const send = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'content-type': 'application/json; charset=utf-8' },
@@ -180,9 +180,9 @@ export async function handleViepsSuitability(request, env) {
 }
 
 // Called only by vieps-parts.js, after that module has selected and checked a
-// real Range D1 binding; operational stock is resolved separately by part number.
-export async function handleVerifiedSuitability(request, rangeDb, hasRealStock, range) {
-  return readSuitability(request, rangeDb, { fixtureMode: false, hasRealStock, range });
+// real parts database binding; operational stock is resolved separately by part number.
+export async function handleVerifiedSuitability(request, partsDb, hasRealStock, range) {
+  return readSuitability(request, partsDb, { fixtureMode: false, hasRealStock, range });
 }
 
 async function readSuitability(request, db, { fixtureMode, hasRealStock, range = null }) {

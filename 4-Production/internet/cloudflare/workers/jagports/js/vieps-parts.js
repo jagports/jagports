@@ -5,34 +5,34 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), { status
   headers: { 'content-type': 'application/json; charset=utf-8' } });
 const text = value => typeof value === 'string' ? value.trim() : '';
 
-export function liveRangeDatabase(url, env) {
+export function partsDatabase(url, env) {
   let bindings;
-  try { bindings = JSON.parse(env.RANGE_BINDINGS || '{}'); }
+  try { bindings = JSON.parse(env.PARTS_DATABASE_BINDINGS || '{}'); }
   catch {
-    const error = new Error('Invalid reviewed Range binding registry.');
+    const error = new Error('Invalid reviewed parts database binding registry.');
     error.status = 503;
-    error.code = 'range_unavailable';
+    error.code = 'parts_database_unavailable';
     throw error;
   }
   const names = Object.keys(bindings);
   // Cross-Range discovery belongs to #555. Do not substitute a caller-provided Range
-  // for a global index or silently select one of several Range databases.
+  // for a global index or silently select one of several parts databases.
   if (names.length !== 1 || url.searchParams.has('range')) {
     const error = new Error(names.length > 1
       ? 'Cross-Range catalogue discovery is not available.'
       : names.length === 0
-        ? 'No real Range database is bound.'
+        ? 'No parts database is bound.'
         : 'Per-request Range selection is not supported.');
     error.status = 503;
-    error.code = 'range_unavailable';
+    error.code = 'parts_database_unavailable';
     throw error;
   }
   const slug = names[0];
   const db = env[bindings[slug]];
   if (!db) {
-    const error = new Error(`Range ${slug} D1 binding is unavailable.`);
+    const error = new Error(`Parts database binding for configured Range ${slug} is unavailable.`);
     error.status = 503;
-    error.code = 'range_unavailable';
+    error.code = 'parts_database_unavailable';
     throw error;
   }
   return { slug, db };
@@ -96,12 +96,12 @@ async function treeCatalogueAvailable(db) {
   return names.has('part_tree_node') && names.has('part_tree_part');
 }
 
-// Real Suitability is sourced exclusively from the reviewed Range D1 that also
+// Real Suitability is sourced exclusively from the reviewed parts database that also
 // serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
-export async function handleLiveSuitability(request, env) {
+export async function handleSuitability(request, env) {
   if (request.method !== 'GET') return json({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = partsDatabase(url, env);
   const required = [
     'applicability_source_description', 'applicability_description_mapping_current',
     'applicability_dimension', 'applicability_dimension_value',
@@ -119,7 +119,7 @@ export async function handleLiveSuitability(request, env) {
     return json({
       state: 'error', fixture_mode: false, range: slug,
       error_code: 'real_suitability_data_missing',
-      error: 'Reviewed normalized JEPC Suitability data is not published in this Range database.',
+      error: 'Reviewed normalized JEPC Suitability data is not published in this parts database.',
       categories: [], available_options: [], matches: [],
     }, 503);
   }
@@ -142,10 +142,10 @@ export async function handleLiveSuitability(request, env) {
   return handleVerifiedSuitability(request, db, hasRealStock, slug);
 }
 
-export async function handleLivePart(request, env) {
+export async function handlePart(request, env) {
   if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = partsDatabase(url, env);
   const query = text(url.searchParams.get('q'));
   if (!query) return json({ error: 'part-number query is required' }, 400);
   const normalized = normalizePartNumber(query);
@@ -218,10 +218,10 @@ export async function handleLivePart(request, env) {
     applicability_state: 'unverified_source_evidence' });
 }
 
-export async function handleLiveTree(request, env) {
+export async function handleTree(request, env) {
   if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = partsDatabase(url, env);
   const treeRoots = await roots(db);
   const rawNode = url.searchParams.get('node_id');
   const stockOnlyParam = text(url.searchParams.get('stock_only'));
