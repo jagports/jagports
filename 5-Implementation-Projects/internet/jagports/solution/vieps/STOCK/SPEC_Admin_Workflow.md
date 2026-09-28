@@ -87,7 +87,7 @@ A failed PART lookup must leave the operator in the canonical-selection flow and
 
 The STOCK acquisition/source party is a separate fact from vendor-product identity. The same vendor may appear in both roles only when both facts are independently true; one role must not be inferred from the other.
 
-Third-party PART relationship semantics are owned by `MODEL_PART_THIRD_PARTY.md`. Stock Admin must not reinterpret `parent_part`, `component_of`, `equivalent_to`, or Jaguar supersession. Suitability follows the referenced Jaguar PART/context defined by the third-party PART model.
+Third-party PART relationship semantics are owned by `MODEL_PART_THIRD_PARTY.md`. Stock Admin must not reinterpret `parent_part`, `component_of`, `equivalent_to`, or Jaguar supersession. Fit follows the referenced Jaguar PART/context defined by the third-party PART model.
 
 ## Stock management UI
 

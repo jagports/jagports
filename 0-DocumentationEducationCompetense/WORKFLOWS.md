@@ -14,6 +14,7 @@ Other documents may explain, implement, or reference these workflows, but must n
 - `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` — current ChatGPT/GitHub Project capability boundary.
 - `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` — GitHub connection and environment knowledge.
 - `00-Management/RULES.md` — human-readable governance and rationale.
+- `5-Implementation-Projects/WORKFLOW.md` — scoped visual research-to-implementation workflow, incorporated by reference for explanation; no independent change to Management review, approval, or merge rules.
 - `SKILL.md` — machine/agent execution instructions.
 - `.codex/skills/*` — specialized operational instructions.
 - `KNOWLEDGE.md` — durable knowledge, decisions, and lessons learned.
@@ -147,7 +148,7 @@ Requirements:
 1. A suitable Issue must exist before repository modification.
 2. Work occurs on a dedicated branch; never modify `main` directly.
 3. A PR is the integration path.
-4. The PR must explicitly trace to every Issue it implements/resolves.
+4. The PR must explicitly trace to every Issue it implements/resolves. Use `Refs #123` for partial implementations; use `Closes #123` only for an Issue whose complete acceptance criteria and closure authority have been verified. Partial PRs must not create a GitHub closing relationship.
 5. Required Project/Kanban behavior is governed by `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md`.
 6. Current ChatGPT/GitHub Project capability limits are governed by `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md`.
 7. Required review and testing gates must pass before merge.
@@ -183,6 +184,7 @@ Issue and PR checkboxes serve different purposes and must not duplicate the same
 - The executor/agent may check or uncheck executor-controlled Issue Acceptance and PR checklist boxes as objective implementation state changes.
 - A reviewer may require a claimed Issue Acceptance or PR checklist item to be returned to `[ ]` when evidence does not support it. Reviewer-only checklist items may be changed only by the reviewer or explicitly authorized human authority.
 - Checkbox state is not independent approval and does not replace GitHub's formal review state.
+- For a partial PR, **applicable Issue Acceptance** in the PR merge gate means the criteria addressed by that PR, not every criterion of the governing Issue. All remaining Issue criteria continue to govern the later Issue-closure decision; partial PR completion must not close the Issue.
 
 ### Review hand-off and discussion implementation chart
 
@@ -394,7 +396,9 @@ Historical references used to justify active work should be explicitly linked in
 
 When an active Issue or PR materially changes scope, align its title with the current scope. The title-change and checkbox-state exceptions do not permit unrelated modification of historical descriptions/comments.
 
-When multiple Issues are resolved, include an explicit closing/traceability reference for each applicable Issue.
+When multiple Issues are addressed, include an explicit traceability reference for each: `Refs #123` for partial implementations and `Closes #123` only when the complete Issue is ready for closure. A merge must not itself claim that outstanding governing-Issue acceptance criteria are satisfied.
+
+Issue closure remains a separate controlled action. Before closing an Issue or retaining a GitHub-triggered closure, verify every governing-Issue Acceptance checkbox is `[x]` and supported by the required review evidence; if any criterion is outstanding, reopen the Issue and do not mark its Project Item `DONE`. The Issue lifecycle automation enforces this checkbox guard on `closed` events: it verifies the complete Issue checklist, reopens the Issue before `DONE` if any checkbox remains unchecked or no checklist exists, and preserves the existing `DONE` synchronization when all criteria are checked. Checkbox state is a closure prerequisite, not independent reviewer approval.
 
 ---
 
@@ -402,7 +406,7 @@ When multiple Issues are resolved, include an explicit closing/traceability refe
 
 If documents disagree about a Management workflow:
 
-1. `00-Management/WORKFLOWS.md` is the top-level normative workflow authority.
+1. `0-DocumentationEducationCompetense/WORKFLOWS.md` is the top-level normative workflow authority.
 2. `6-Development/github/Projects/GITHUB_PROJECT_WORKFLOWS.md` is the scoped Project/Kanban workflow source incorporated by reference from this file.
 3. `6-Development/github/Projects/PROJECT_CAPABILITY_BOUNDARY.md` defines the current ChatGPT/GitHub Project capability boundary.
 4. `6-Development/github/GITHUB_CONNECTIONS_KNOWLEDGE.md` contains GitHub connection and environment knowledge.

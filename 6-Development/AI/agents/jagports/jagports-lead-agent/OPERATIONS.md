@@ -2,7 +2,7 @@
 
 ## Scope
 
-Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure or the AI OS business case. Current module architecture is in [README.md](README.md); the Raspberry Pi installation belongs to [Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md); business context belongs to [the implementation project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md).
+Reusable engineering and diagnostic commands for the Jagports Lead Agent. These are **not** the MyNodeBTC installation procedure. Current module architecture is in [README.md](README.md); host installation, project background and operator evidence are consolidated in the [MyNodeBTC deployment guide](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md).
 
 **Command execution context:** SSH into the Linux host from any terminal, including Windows Git Bash. The shell prompt determines which Linux account executes the command. Do not paste multiple interactive `sudo` password prompts into a single block; keep secrets out of output and repository history.
 
@@ -18,7 +18,7 @@ python main.py
 python main.py
 ```
 
-The second run should normally report empty lifecycle changes unless GitHub changed between runs. An initial large delta is expected after a long polling gap and does not itself prove a state failure. Review `reports/lead_report.md` and `state/agent_state.json`; no model-backed specialist call occurs in the present modular runtime.
+The second run should normally report empty lifecycle changes unless GitHub changed between runs. An initial large delta is expected after a long polling gap and does not itself prove a state failure. Review `reports/lead_report.md` and `state/agent_state.json`; the checked-in defaults do not enable paid model-backed execution.
 
 ## Direct OpenAI Responses API smoke test
 

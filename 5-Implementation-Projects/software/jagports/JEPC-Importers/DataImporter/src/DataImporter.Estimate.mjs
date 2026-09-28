@@ -1,9 +1,10 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, opendir, readFile, realpath, rename, stat, writeFile } from 'node:fs/promises';
+import { opendir, readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { createInterface } from 'node:readline';
+import { saveEstimate } from './DataImporter.Runtime.mjs';
 
 const within = (root, child) => {
   const relative = path.relative(root, child);
@@ -50,7 +51,7 @@ function validateOptions({ source, stateDir, range, modelPattern, models, seed, 
   const rangeScope = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(range ?? '') && modelPattern === undefined;
   const patternScope = range === undefined && typeof modelPattern === 'string' && modelPattern.trim().length >= 2;
   if (!source || !stateDir || !(rangeScope || patternScope)) {
-    throw new Error('Require --source, --state-dir and either a lowercase Range slug or a model-name pattern.');
+    throw new Error('Require a source root, state directory and model-name pattern.');
   }
   if (!Array.isArray(models) || !models.length || models.some(id => !/^\d{1,10}$/.test(String(id))) || new Set(models).size !== models.length) {
     throw new Error('Provide unique numeric Model_IDs.');
@@ -61,10 +62,10 @@ function validateOptions({ source, stateDir, range, modelPattern, models, seed, 
   }
 }
 
-export async function estimateRange({ source, stateDir, range, modelPattern, models, seed = 'range-estimate', sampleSize = 100, calibrationPath },
+export async function estimateSource({ source, stateDir, range, modelPattern, models, seed = 'source-estimate', sampleSize = 100, calibrationPath },
   { onProgress = () => {}, shouldStop = () => false } = {}) {
   validateOptions({ source, stateDir, range, modelPattern, models, seed, sampleSize });
-  if (modelPattern !== undefined && calibrationPath) throw new Error('D1 calibration requires a resolved destination Range.');
+  if (modelPattern !== undefined && calibrationPath) throw new Error('Calibrated projection is unavailable during source parsing.');
   const root = await realpath(path.resolve(source));
   const state = await canonicalFuture(path.resolve(stateDir));
   if (within(root, state)) throw new Error('State directory must be outside the source installation.');
@@ -79,7 +80,7 @@ export async function estimateRange({ source, stateDir, range, modelPattern, mod
     sample: { seed, requested: sampleSize, eligibleFiles: 0, eligibleBytes: 0, files: [], readBytes: 0, readSeconds: 0, lines: 0, recordLikeLines: 0, byFamily: {} },
     projection: { d1Bytes: null, importSeconds: null, basis: modelPattern === undefined
       ? 'Unavailable until measured D1/import calibration is provided.'
-      : 'Unavailable until destination Ranges are resolved and measured D1/import calibration is provided.' },
+      : 'Unavailable in v0.1a without a measured published import.' },
   };
   const sample = { seed, limit: sampleSize, files: [] };
   const seenDirectories = new Set();
@@ -220,17 +221,8 @@ export async function estimateRange({ source, stateDir, range, modelPattern, mod
         d1BytesAdded: calibration.d1BytesAdded, importSeconds: calibration.importSeconds },
     };
   }
-  await mkdir(state, { recursive: true });
   const scopeName = range ?? `models-${createHash('sha256').update(modelPattern).digest('hex').slice(0, 12)}`;
-  const filename = path.join(state, `range-estimate-${scopeName}-${randomUUID()}.json`);
-  const temporary = `${filename}.tmp`;
-  await writeFile(temporary, `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
-  await rename(temporary, filename);
+  const stored = await saveEstimate(root, state, scopeName, result);
   progress(true);
-  return { filename, result };
-}
-
-export function modelsForRange(range, explicitModels) {
-  if (explicitModels) return explicitModels.split(',').map(value => value.trim());
-  throw new Error(`Range ${range} requires an explicit comma-separated --models list; Model_IDs are not hardcoded.`);
+  return { ...stored, result };
 }

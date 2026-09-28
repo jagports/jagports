@@ -4,13 +4,13 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-const code = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
-const i18nCode = readFileSync(new URL('../public/i18n-runtime.js', import.meta.url), 'utf8');
+const code = readFileSync(new URL('../js/vieps.js', import.meta.url), 'utf8');
+const i18nCode = readFileSync(new URL('../js/vieps-i18n-runtime.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles/vieps-tailwind.css', import.meta.url), 'utf8');
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
-function harness(fetch, { initialSearch = '', rootFetch } = {}) {
+function harness(fetch, { initialSearch = '', rootFetch, fitFetch } = {}) {
   const requests = [];
   const location = { pathname: '/vieps', search: initialSearch, hash: '#browse' };
   const history = { replaceState(_state, _title, path) {
@@ -20,6 +20,11 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
   } };
   const routedFetch = (url) => {
     requests.push(url);
+    if (url.startsWith('/api/vieps/fit?')) return fitFetch
+      ? Promise.resolve(fitFetch(url))
+      : Promise.resolve(response({
+        state: 'unavailable', fixture_mode: false, categories: [], matches: [],
+      }, false));
     if (url.startsWith('/api/vieps/tree?root=1')) return rootFetch
       ? rootFetch(url)
       : Promise.resolve(response({ state: 'root', roots: [
@@ -81,6 +86,8 @@ function harness(fetch, { initialSearch = '', rootFetch } = {}) {
 }
 
 const response = (data, ok = true) => ({ ok, json: async () => data });
+const catalogueRequests = (requests) => requests.filter((url) =>
+  !url.startsWith('/api/vieps/fit?')); // Existing public API alias retained.
 const fixture = {
   part: { id: 10, part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
   tree_roots: [{ node_id: 1, label: 'Parent', sort_order: 1 }, { node_id: 8, label: 'Body', sort_order: 2 }],
@@ -100,8 +107,9 @@ test('complete Concept-11 shell exists before search, with no automatic part loo
   for (const region of ['tree', 'location', 'visual', 'ranges']) {
     assert.match(html, new RegExp(`class="panel ${region}-panel"`));
   }
-  // #875 nests suitability inside the single selected-PART panel.
-  assert.match(html, /class="fitment-panel"/);
+  // #895 removes the duplicate lower FIT panel; verified range evidence stays on the right.
+  assert.doesNotMatch(html, /class="fitment-panel"/);
+  assert.match(html, /id="rangeEvidence"/);
   assert.match(html, /id="searchResults"/);
   assert.match(html, /class="left-workspace"/);
   assert.match(html, /class="centre-workspace"/);
@@ -158,12 +166,12 @@ test('search renders escaped identity, nested paths and range-specific variation
   await ui.search('TEST1');
   assert.match(ui.get('partCard').innerHTML, /Test &lt;part&gt;/);
   assert.match(ui.get('tree').innerHTML, /selected-path/);
-  assert.match(ui.get('fitment').innerHTML, /Alpha 2/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Beta/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Alpha 2/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Beta/);
   ui.get('rangeSelect').value = 'B';
   ui.get('rangeSelect').listeners.change();
-  assert.match(ui.get('fitment').innerHTML, /Beta/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Alpha/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Beta/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Alpha/);
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
 });
 
@@ -176,8 +184,8 @@ test('only applicable ranges are presented as suitable', async () => {
   await ui.search('TEST1');
   assert.match(ui.get('ranges').innerHTML, /Range A/);
   assert.doesNotMatch(ui.get('ranges').innerHTML, /Range B|Range C/);
-  assert.match(ui.get('fitment').innerHTML, /Alpha/);
-  assert.doesNotMatch(ui.get('fitment').innerHTML, /Beta|Gamma/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Alpha/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Beta|Gamma/);
 });
 
 test('confirmed no-match and unavailable applicability are distinct UI states', async () => {
@@ -212,12 +220,84 @@ test('#875 browse index displays precisely 13 vocabulary labels and no implied P
   assert.match(markup, /rangeBrowseNote/);
   assert.doesNotMatch(markup, /data-applicable|aria-checked="true"/);
   assert.equal(ui.get('rangeSelect').disabled, true);
-  assert.equal(ui.get('variationsSelect').disabled, true);
+  assert.ok(ui.get('variationOptions'), 'the upper normalized variation group replaces the old dropdown');
+  assert.match(html, /id="variationOptions"[^>]*role="group"/);
+  assert.doesNotMatch(html, /id="variationsSelect"/);
   assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
   assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   ui.setLanguage('fi');
   assert.match(ui.get('ranges').innerHTML, /E-Pace/);
   assert.match(ui.get('ranges').innerHTML, /Suodatin ei ole vielä käytettävissä/);
+});
+
+test('#641 FIT groups use localized alphabetical headings and checked-first choices per group', async () => {
+  const fitFetch = (url) => {
+    const fiLocale = new URL(url, 'https://fixture.invalid').searchParams.get('ui_language') === 'fi';
+    return response({
+      state: 'applicable', fixture_mode: true, query: 'TEST1',
+      matches: [{ part_id: 10 }],
+      available_options: [
+        'body:convertible', 'body:coupe',
+        'seat_equipment:memory_seat', 'seat_equipment:powered_seats',
+      ],
+      // Deliberately reverse category/value order to exercise presentation sorting.
+      categories: [
+        { code: 'unused', name: 'Unused', values: [{ id: 'unused:phantom', name: 'Phantom' }] },
+        { code: 'seat_equipment', name: fiLocale ? 'Istuinvarusteet' : 'Seat equipment',
+          values: [
+            { id: 'seat_equipment:powered_seats', name: fiLocale ? 'Sähkösäätöiset istuimet' : 'Powered Seats' },
+            { id: 'seat_equipment:memory_seat', name: fiLocale ? 'Muisti-istuin' : 'Memory Seat' },
+          ] },
+        { code: 'body', name: fiLocale ? 'Kori' : 'Body',
+          values: [
+            { id: 'body:coupe', name: fiLocale ? 'Coupé' : 'Coupe',
+              source_descriptions: [{ original_text: 'Coupe', language: 'en',
+                source_namespace: 'fixture', locator: 'test/body/coupe' }] },
+            { id: 'body:convertible', name: fiLocale ? 'Avoauto' : 'Convertible' },
+            { id: 'body:sedan', name: 'Sedan' },
+          ] },
+      ],
+    });
+  };
+  const ui = harness(async () => response(fixture),
+    { initialSearch: '?test=1', fitFetch });
+  await ui.search('TEST1');
+  await flush();
+  const headings = () => [...ui.get('variationOptions').innerHTML.matchAll(
+    /<legend class="variation-group-title">([^<]+)<\/legend>/g)].map(([, name]) => name);
+  const group = (name) => ui.get('variationOptions').innerHTML.match(
+    new RegExp('<legend class="variation-group-title">' + name
+      + '<\\/legend>\\s*<div class="variation-group-values">([\\s\\S]*?)<\\/div>'))?.[1] || '';
+  assert.deepEqual(headings(), ['Body', 'Seat equipment']);
+  assert.doesNotMatch(ui.get('variationOptions').innerHTML, /body:sedan|Unused|Phantom/,
+    'unavailable, response-only fixture labels are not rendered');
+  assert.doesNotMatch(ui.get('variationOptions').innerHTML, /\schecked(?:\s|>)/,
+    'FIT initially has no checked filter values');
+  assert.equal(en.header.variations_filter, 'FIT / Variations');
+  assert.ok(group('Body').indexOf('Convertible</span>') < group('Body').indexOf('Coupe</span>'));
+  assert.ok(group('Seat equipment').indexOf('Memory Seat</span>')
+    < group('Seat equipment').indexOf('Powered Seats</span>'));
+  assert.equal((ui.get('variationOptions').innerHTML.match(/<legend /g) || []).length, 2,
+    'each normalized category is shown once as a heading');
+  assert.doesNotMatch(ui.get('variationOptions').innerHTML, /<small>\(Body\)/);
+
+  ui.get('variationOptions').listeners.change({
+    target: { dataset: { fitFacet: 'body:coupe' }, checked: true },
+  });
+  await flush();
+  assert.deepEqual(headings(), ['Body', 'Seat equipment'],
+    'selecting a value must not move a category out of alphabetical order');
+  assert.ok(group('Body').indexOf('Coupe</span>') < group('Body').indexOf('Convertible</span>'),
+    'checked values sort first within their own category');
+  assert.match(group('Body'), /data-fit-facet="body:coupe"[^>]*checked/);
+
+  ui.setLanguage('fi');
+  await flush();
+  assert.deepEqual(headings(), ['Istuinvarusteet', 'Kori'],
+    'Finnish domain category names determine category ordering');
+  assert.match(group('Kori'), /data-fit-facet="body:coupe"[^>]*checked/);
+  assert.match(group('Kori'), /Coupé/);
+  assert.ok(group('Kori').includes('Coupe [en; fixture; test/body/coupe]'));
 });
 
 test('#875 selected PART never promotes browse vocabulary, excluded or unavailable rows into fitment', async () => {
@@ -239,8 +319,9 @@ test('#875 selected PART never promotes browse vocabulary, excluded or unavailab
   assert.doesNotMatch(markup, /E-Pace|F-Pace|XJS|data-browse-range-index/);
   assert.equal((markup.match(/<li>/g) || []).length, 2);
   assert.equal(ui.get('rangeSelect').disabled, false, 'supported ranges may select verified detail, not filter');
-  assert.equal(ui.get('variationsSelect').disabled, true, 'normalized #641 filter remains separate');
-  assert.match(ui.get('fitment').innerHTML, /Verified qualifier/);
+  assert.ok(ui.get('variationOptions'), 'normalized #641 controls remain separate from range detail');
+  assert.doesNotMatch(html, /id="variationsSelect"/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Verified qualifier/);
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
 });
 
@@ -313,7 +394,7 @@ test('locale flag switching rerenders presentation without changing canonical da
   assert.equal(ui.document.documentElement.lang, 'fi');
   assert.equal(ui.get('searchStatus').textContent, 'OSA ratkaistu.');
   assert.match(ui.get('partCard').innerHTML, /TEST1/);
-  assert.match(ui.get('fitment').innerHTML, /Muunnelma/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Muunnelma/);
   assert.match(ui.get('ranges').innerHTML, /Range A/);
   ui.setLanguage('en');
   assert.equal(ui.document.documentElement.lang, 'en');
@@ -429,13 +510,13 @@ test('UI locale change retains selected browse tree without an extra API read', 
     return response(browseFixture);
   }, { initialSearch: '?tree=2' });
   await flush();
-  const before = ui.requests.length;
+  const before = catalogueRequests(ui.requests).length;
   assert.match(ui.get('tree').innerHTML, /Bushings/);
   ui.setLanguage('fi');
   assert.equal(ui.document.documentElement.lang, 'fi');
   assert.match(ui.get('tree').innerHTML, /Suspension|Front/);
   assert.match(ui.get('tree').innerHTML, /Bushings/);
-  assert.equal(ui.requests.length, before);
+  assert.equal(catalogueRequests(ui.requests).length, before);
 });
 
 test('root failure is distinguished from resolved PART and releases busy state', async () => {
@@ -611,18 +692,21 @@ test('#875 direct candidate/tree link is selected once and search clear preserve
   assert.match(ui.get('tree').innerHTML, /Suspension/);
 });
 
-test('#875 future VIN/variations are disabled and explain unsupported state in both UI locales', () => {
+test('#895 future VIN remains disabled while upper variations has a labelled group in both UI locales', () => {
   const ui = harness(() => { throw Error('unsupported controls must not fetch'); });
-  for (const id of ['vinInput', 'variationsSelect']) {
-    const input = ui.get(id);
-    assert.equal(input.disabled, true, id + ' must remain disabled');
-    assert.match(html, new RegExp('id="' + id + '"[^>]*disabled[^>]*aria-describedby="unsupportedControlsNote"'));
-    assert.match(html, new RegExp('id="' + id + '"[^>]*data-i18n-title="header\\.not_yet_supported"'));
-  }
+  const input = ui.get('vinInput');
+  assert.equal(input.disabled, true, 'VIN remains unavailable');
+  assert.match(html, /id="vinInput"[^>]*disabled[^>]*aria-describedby="unsupportedControlsNote"/);
+  assert.match(html, /id="vinInput"[^>]*data-i18n-title="header\.not_yet_supported"/);
+  assert.match(html, /id="variationOptions"[^>]*role="group"/);
+  assert.match(html, /aria-labelledby="variationsHeading"[^>]*aria-describedby="variationsStatus"/);
+  assert.match(html, /id="variationsStatus"[^>]*aria-live="polite"/);
+  assert.doesNotMatch(html, /id="variationsSelect"/);
   assert.match(html, /id="unsupportedControlsNote"[^>]*data-i18n="header\.not_yet_supported"/);
   assert.equal(ui.get('rangeSelect').disabled, true);
   assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
   assert.ok(en.header.not_yet_supported && fi.header.not_yet_supported);
+  assert.ok(en.header.variations_filter && fi.header.variations_filter);
 });
 
 test('#875 disabled bookmarks remain separate from row selection across English/Finnish', async () => {
@@ -632,7 +716,7 @@ test('#875 disabled bookmarks remain separate from row selection across English/
     parts_tree: [{ part_id: 42, nodes: [{ node_id: 1, label: 'Parent' }] }] };
   const ui = harness(async () => response(data));
   await ui.search('TEST');
-  const before = ui.requests.length;
+  const before = catalogueRequests(ui.requests).length;
   const enHtml = ui.get('searchResults').innerHTML;
   assert.match(enHtml, /<a[^>]*data-result-part-id="42"/);
   assert.match(enHtml, /<label class="bookmark-label"><input type="checkbox" disabled/);
@@ -642,7 +726,8 @@ test('#875 disabled bookmarks remain separate from row selection across English/
   const fiHtml = ui.get('searchResults').innerHTML;
   assert.match(fiHtml, /Kirjanmerkki \(ei vielä käytettävissä\): TEST42 — Fixture description/);
   assert.match(fiHtml, /<input type="checkbox" disabled/);
-  assert.equal(ui.requests.length, before, 'changing UI language never selects a PART or invokes persistence');
+  assert.equal(catalogueRequests(ui.requests).length, before,
+    'changing UI language never selects a PART or invokes persistence');
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST42/);
 });
 
@@ -656,11 +741,88 @@ test('switching language retains multiple-candidate leaves and avoids another se
   const ui = harness(async () => response(data));
   await ui.search('TEST');
   assert.equal(ui.get('searchStatus').textContent, '1 matching PART. Select it from the Parts Tree or Search Results.');
-  const before = ui.requests.length;
+  const before = catalogueRequests(ui.requests).length;
   ui.setLanguage('fi');
   assert.equal(ui.document.documentElement.lang, 'fi');
   assert.equal(ui.get('searchStatus').textContent, '1 vastaava OSA. Valitse se osapuusta tai hakutuloksista.');
   assert.match(ui.get('tree').innerHTML, /TEST1/);
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
-  assert.equal(ui.requests.length, before);
+  assert.equal(catalogueRequests(ui.requests).length, before);
+});
+
+
+test('#974 Find clear, root browse and empty-Find Stock changes preserve chosen FIT filters', async () => {
+  const fitFetch = (url) => {
+    const params = new URL(url, 'https://fixture.invalid').searchParams;
+    return response({
+      state: 'applicable', fixture_mode: true, query: params.get('q') || '',
+      categories: [{ code: 'body', name: 'Body', values: [
+        { id: 'body:coupe', name: 'Coupe' },
+        { id: 'body:convertible', name: 'Convertible' },
+      ] }],
+      available_options: ['body:coupe', 'body:convertible'],
+      matches: [{ part_id: 10, occurrence_key: 'TEST-O-A' }],
+    });
+  };
+  const ui = harness(async () => response(fixture),
+    { initialSearch: '?TEST=1', fitFetch });
+  await ui.search('TEST1');
+  await flush();
+  ui.get('variationOptions').listeners.change({
+    target: { dataset: { fitFacet: 'body:coupe' }, checked: true },
+  });
+  await flush();
+  const currentFit = () => ui.get('variationOptions').innerHTML;
+  const lastFitUrl = () => ui.requests.filter(url =>
+    url.startsWith('/api/vieps/fit?')).at(-1);
+  const assertFit = (message) => {
+    assert.match(currentFit(), /data-fit-facet="body:coupe"[^>]*checked/, message);
+    assert.equal(new URL(lastFitUrl(), 'https://fixture.invalid').searchParams.get('facet'),
+      'body:coupe', message);
+  };
+  assertFit('the initial explicit FIT selection is active');
+
+  // Empty Find submit restores filtered roots without deleting independent FIT.
+  await ui.search('');
+  await flush();
+  assertFit('empty submission retains the chosen FIT');
+  assert.match(ui.get('tree').innerHTML, /Suspension|Parent/);
+
+  // The Stock checkbox is independent even without a Find query.
+  ui.get('availabilitySelect').checked = true;
+  ui.get('availabilitySelect').listeners.change();
+  await flush();
+  assertFit('empty-Find Stock refresh retains the chosen FIT');
+  assert.equal(new URL(lastFitUrl(), 'https://fixture.invalid')
+    .searchParams.get('stock_only'), '1');
+
+  // Native deletion and the root-index heading have the same persistence rule.
+  await ui.search('TEST1');
+  await flush();
+  ui.get('partNumber').value = '';
+  ui.get('partNumber').listeners.input();
+  await flush();
+  assertFit('native input deletion retains the chosen FIT');
+  ui.get('treeRootLink').listeners.click({ preventDefault() {} });
+  await flush();
+  assertFit('root-index navigation retains the chosen FIT');
+});
+
+
+test('#976 FIT-named row state takes precedence over legacy applicability state', async () => {
+  const ui = harness(async () => response({ ...fixture, fitment: [
+    { range_code: 'F', range_name: 'FIT confirmed', fit_state: 'applicable',
+      applicability_state: 'excluded', variation: 'Verified' },
+    { range_code: 'L', range_name: 'Legacy verified',
+      applicability_state: 'applicable', variation: 'Legacy' },
+    { range_code: 'X', range_name: 'Excluded by FIT', fit_state: 'excluded',
+      applicability_state: 'applicable', variation: 'Never expose' },
+  ] }));
+  await ui.search('TEST1');
+  assert.match(ui.get('ranges').innerHTML, /FIT confirmed/);
+  assert.match(ui.get('ranges').innerHTML, /Legacy verified/);
+  assert.doesNotMatch(ui.get('ranges').innerHTML, /Excluded by FIT/,
+    'new FIT evidence overrides the deprecated wire field');
+  assert.match(ui.get('rangeEvidence').innerHTML, /Verified/);
+  assert.doesNotMatch(ui.get('rangeEvidence').innerHTML, /Never expose/);
 });

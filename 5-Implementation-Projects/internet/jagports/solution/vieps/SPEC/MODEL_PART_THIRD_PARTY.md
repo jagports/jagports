@@ -7,7 +7,7 @@ This document defines how VIEPS represents third-party/vendor products and Jagpo
 It complements:
 
 - [`MODEL_PART.md`](MODEL_PART.md) — canonical PART identity and catalogue relationships;
-- [`MODEL_PART_APPLICABILITY.md`](MODEL_PART_APPLICABILITY.md) — applicability of Jaguar/JEPC PARTs and occurrences;
+- [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md) — fit of Jaguar/JEPC PARTs and occurrences;
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — mutable operational stock;
 - [`MODEL_PART_THIRD_PARTY_LOCATION.md`](MODEL_PART_THIRD_PARTY_LOCATION.md) — optional visual-location evidence for third-party PARTs.
 
@@ -79,7 +79,7 @@ The saved reference must identify the known catalogue context, including:
 - occurrence;
 - Jaguar PART.
 
-These references make the relationship auditable and allow VIEPS to use the same Jaguar applicability context rather than inventing separate fitment rules for the third-party product.
+These references make the relationship auditable and allow VIEPS to use the same Jaguar fit context rather than inventing separate fitment rules for the third-party product.
 
 ## PART relationship semantics
 
@@ -295,7 +295,7 @@ Expected results:
 
 - the requested combined identifiers are visibly Jagports specified and never shown as Jaguar-issued;
 - the two vendor products remain separate even though they share the same Jaguar parent/context;
-- applicability follows the selected Jaguar parent/context;
+- fit follows the selected Jaguar parent/context;
 - deleting or changing operational STOCK does not alter the PART/xref evidence;
 - unresolved STOCK is not used once either reusable identity has been established.
 
@@ -348,22 +348,22 @@ A price snapshot should retain:
 
 Price history must not modify canonical PART identity.
 
-## Suitability and applicability
+## Fit and fit
 
-A third-party product does not define a separate vehicle-applicability system.
+A third-party product does not define a separate vehicle-fit system.
 
-Its suitability is the same as the Jaguar PART/context to which it is referenced.
+Its fit is the same as the Jaguar PART/context to which it is referenced.
 
 For a Jagports specified PART:
 
-- its mandatory parent is the Jaguar PART whose suitability it follows;
+- its mandatory parent is the Jaguar PART whose fit it follows;
 - the known category/item/occurrence/PART reference is retained;
-- VIEPS uses the same applicability as that referenced Jaguar PART/context;
-- no independent third-party applicability conditions are created or edited here.
+- VIEPS uses the same fit as that referenced Jaguar PART/context;
+- no independent third-party fit conditions are created or edited here.
 
-For a verified 1:1 third-party product, suitability is the suitability of the existing Jaguar PART to which the vendor reference is attached.
+For a verified 1:1 third-party product, fit is the fit of the existing Jaguar PART to which the vendor reference is attached.
 
-The meaning and evaluation of Jaguar applicability remain defined by `MODEL_PART_APPLICABILITY.md`.
+The meaning and evaluation of Jaguar fit remain defined by `MODEL_PART_FIT.md`.
 
 ## Stock Admin workflow
 
@@ -408,7 +408,7 @@ VIEPS therefore:
 2. records that Jaguar PART as the mandatory parent;
 3. records the vendor's own part number;
 4. creates a Jagports specified PART number as `<JaguarSealKitPN>+<3rdPartyPN>`;
-5. uses the same suitability/applicability as the referenced Jaguar PART/context;
+5. uses the same fit/fit as the referenced Jaguar PART/context;
 6. links STOCK to the Jagports specified PART.
 
 If a vendor instead sells a verified 1:1 equivalent of the Jaguar seal kit, its vendor part number is attached directly to the Jaguar PART and no Jagports specified PART is required.
@@ -434,9 +434,9 @@ The selector should show the imported context available for the selected referen
 - occurrence;
 - Jaguar PART number and description;
 - illustration/hotspot context where available;
-- applicability information such as engine/aspiration, `Except ...` conditions, LH/RH, VIN/revision bounds, market/Region;
+- fit information such as engine/aspiration, `Except ...` conditions, LH/RH, VIN/revision bounds, market/Region;
 - source/provenance and verification information;
-- other relevant catalogue/applicability fields that may become available from later imported data.
+- other relevant catalogue/fit fields that may become available from later imported data.
 
 The category/item/occurrence/PART reference used for the parent must be stored with the Jagports specified PART.
 
@@ -446,7 +446,7 @@ Optional point/region references on imported JEPC illustrations and uploaded loc
 
 [`MODEL_PART_THIRD_PARTY_LOCATION.md`](MODEL_PART_THIRD_PARTY_LOCATION.md)
 
-This evidence is optional and does not change PART applicability or STOCK state.
+This evidence is optional and does not change PART fit or STOCK state.
 
 ## Canonical `part_id` contract
 
@@ -495,7 +495,7 @@ Parent, component, equivalence and supersession relationships must remain visibl
 
 This document defines the third-party PART domain requirements. It does not redefine:
 
-- Jaguar PART applicability;
+- Jaguar PART fit;
 - JEPC importing;
 - operational STOCK fields;
 - optional visual-location evidence.
@@ -510,7 +510,7 @@ Implementation must preserve:
 - third-party vendor identity and URLs;
 - vendor-product manufacturer, description and multiple source/product URLs;
 - verification status and verification date;
-- suitability identical to the referenced Jaguar PART/context;
+- fit identical to the referenced Jaguar PART/context;
 - vendor evidence separate from mutable STOCK.
 
 ## Acceptance criteria
@@ -520,7 +520,7 @@ Implementation must preserve:
 - A non-1:1 third-party product is represented by a Jagports specified PART with its own canonical `part_id` and a mandatory Jaguar parent.
 - The parent category/item/occurrence/PART reference is known and retained, and an exact selected `part_occurrence_tree_path` is retained when available.
 - The Jagports specified part number is formed as `<JaguarPN>+<3rdPartyPN>`.
-- Third-party suitability is the same as the referenced Jaguar PART/context and does not create an independent applicability rule set.
+- Third-party fit is the same as the referenced Jaguar PART/context and does not create an independent fit rule set.
 - `third_party_vendor` supports vendor ID, name and one or more home URLs, with descriptions when several URLs are stored.
 - `third_party_part` stores vendor product identity, manufacturer, description, one-or-more product/source URLs where evidenced, verification status and verification date.
 - Verification status has clear `unverified` and `verified` meanings and the date selector defaults to the current day.

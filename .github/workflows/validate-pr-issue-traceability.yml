@@ -15,7 +15,7 @@ jobs:
     name: Validate PR Issue Traceability
     runs-on: ubuntu-latest
     steps:
-      - name: Require same-repository closing Issue
+      - name: Require same-repository Issue reference
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -33,6 +33,7 @@ jobs:
               pullRequest(number:$number) {
                 number
                 baseRefName
+                body
                 closingIssuesReferences(first:50) {
                   nodes {
                     number
@@ -60,12 +61,31 @@ jobs:
             ' <<<"$pr_json"
           )
 
+          # Explicit non-closing references allow partial implementation PRs
+          # without making GitHub close their governing Issue on merge.
+          pr_body="$(jq -r '.data.repository.pullRequest.body // ""' <<<"$pr_json")"
+          mapfile -t referenced_numbers < <(
+            printf '%s\n' "$pr_body" |
+              grep -Ei '^[[:space:]]*Refs[[:space:]]+#[0-9]+([[:space:][:punct:]]|$)' |
+              sed -E 's/^[[:space:]]*[Rr][Ee][Ff][Ss][[:space:]]+#([0-9]+).*/\1/' |
+              sort -un
+          )
+
+          for issue_number in "${referenced_numbers[@]}"; do
+            # Verify the reference is an Issue (not a PR) in this repository.
+            actual_number="$(gh api "repos/$REPOSITORY/issues/$issue_number"               --jq 'if has("pull_request") then empty else .number end')"
+            if [ "$actual_number" != "$issue_number" ]; then
+              echo "::error::Refs #$issue_number does not identify an Issue in this repository."
+              exit 1
+            fi
+            owning_issues+=("#$issue_number (non-closing)")
+          done
+
           if [ "${#owning_issues[@]}" -eq 0 ]; then
-            echo "::error::PR #$PR_NUMBER has no GitHub-native same-repository closing Issue relationship."
-            echo "Use canonical closing syntax such as 'Closes #123', 'Fixes #123', or 'Resolves #123'."
-            echo "Arbitrary Issue mentions, title text, branch names, labels, paths, or semantic similarity do not qualify."
+            echo "::error::PR #$PR_NUMBER lacks an explicit same-repository Issue relationship."
+            echo "Use 'Refs #123' for partial work; use 'Closes #123' only when full Issue acceptance is verified."
             exit 1
           fi
 
-          printf 'PASS: PR #%s has qualifying same-repository closing Issue relationship(s):\n' "$PR_NUMBER"
+          printf 'PASS: PR #%s has verified same-repository Issue relationship(s):\n' "$PR_NUMBER"
           printf ' - %s\n' "${owning_issues[@]}"

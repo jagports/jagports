@@ -6,7 +6,7 @@ The executable GitHub Issue templates matching `.github/ISSUE_TEMPLATE/*.md` are
 
 Do not maintain duplicate copies of template fields or instructions elsewhere in the repository. Documentation may define template-selection policy and link to the executable templates, but it must not copy their bodies.
 
-This document does **not** redefine the Management workflow. Workflow states, work discovery, Repository Change Gate, review/testing boundaries, record integrity, and completion rules remain authoritative in [`00-Management/WORKFLOWS.md`](../../00-Management/WORKFLOWS.md). Agent/human communication and specialized hand-off/escalation behavior remain governed by [`COMMUNICATION_PROTOCOL.md`](../COMMUNICATION_PROTOCOL.md).
+This document does **not** redefine the Management workflow. Workflow states, work discovery, Repository Change Gate, review/testing boundaries, record integrity, and completion rules remain authoritative in [`0-DocumentationEducationCompetense/WORKFLOWS.md`](../../0-DocumentationEducationCompetense/WORKFLOWS.md). Agent/human communication and specialized hand-off/escalation behavior remain governed by [`COMMUNICATION_PROTOCOL.md`](../COMMUNICATION_PROTOCOL.md).
 
 ## Template map
 
@@ -29,4 +29,4 @@ Existing [`agent-escalation.md`](../../.github/ISSUE_TEMPLATE/agent-escalation.m
 - Write acceptance criteria as measurable checkboxes when the work has an implementation or verification outcome.
 - Keep evidence separate from assumptions and identify uncertainty explicitly when it affects the work.
 - Use repository source-of-truth documents instead of copying durable rules into an Issue body.
-- Template selection does not establish or change Project Item Status; lifecycle state follows `00-Management/WORKFLOWS.md`.
+- Template selection does not establish or change Project Item Status; lifecycle state follows `0-DocumentationEducationCompetense/WORKFLOWS.md`.

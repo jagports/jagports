@@ -2,13 +2,17 @@
 
 ## Purpose
 
-Defines the six operating roles used across Jagports project work. These are
+Defines the five operating roles used across Jagports project work. These are
 logical roles, not separate GitHub or AI accounts. Each role currently maps to
 an existing account (ChatGPT/Claude conversation, or Codex Web) as noted below.
 Splitting a role into its own dedicated account is a future option, not a
 current requirement.
 
 Repository: `jagports/jagports`
+
+## Distinction between logical work roles and executable agents
+
+These five roles describe project work and human decisions; they do not instantiate Python agents. The executable AI OS team is `LeadAgent`, `DocumentationAgent`, `DeploymentAgent` and `KnowledgeAgent`. Shared service modules provide infrastructure to these agents; they are not agents or project-work roles. See the [Lead Agent SPEC](../../6-Development/AI/agents/jagports/jagports-lead-agent/SPEC_Agent_Lead.md) and [shared service specification](../../6-Development/AI/agents/jagports/SHARED_AGENT_SERVICES_SPEC.md).
 
 ## Authority and workflow sources
 
@@ -17,7 +21,7 @@ permissions, approval rights, or a parallel operating model.
 
 Use the current authoritative sources:
 
-- `00-Management/WORKFLOWS.md` — workflow states, transitions, Repository Change Gate, review/testing boundaries, and decision precedence.
+- `0-DocumentationEducationCompetense/WORKFLOWS.md` — workflow states, transitions, Repository Change Gate, review/testing boundaries, and decision precedence.
 - `00-Management/RULES.md` — human governance and authority rationale.
 - `0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md` — escalation, decision, acknowledgement, and hand-off communication.
 - `0-DocumentationEducationCompetense/KNOWLEDGE_ARCHITECTURE.md` — separation between durable knowledge, research evidence, implementation work, and operating rules.
@@ -34,22 +38,12 @@ Current executor: ChatGPT/Claude conversation acting in this capacity
 
 ## 2. Research
 
-Gathers and evaluates source-backed information — JEPC data, SNG catalogues,
-JLR Classic Parts, Nimark, JDHT/Heritage records, vendor reconnaissance.
-Produces findings with source, scope, and confidence, not final decisions.
+Gathers and evaluates source-backed information for approved work. Produces
+findings with source, scope, and confidence, not final decisions.
 
 Current executor: ChatGPT/Claude conversation acting in this capacity
 
-## 3. Product / Vehicle
-
-Owns domain correctness for Jaguar vehicle identity, Range taxonomy, fitment
-logic, and business requirements. Reviews research output for domain accuracy
-before it becomes specification.
-
-Current executor: ChatGPT/Claude conversation acting in this capacity, with
-Tomi Lind as the human domain authority
-
-## 4. Technical / Architecture
+## 3. Technical / Architecture
 
 Owns schema and system design decisions — database schema, import pipeline
 design, API/service boundaries. Converts approved product requirements into
@@ -57,7 +51,7 @@ implementable specification.
 
 Current executor: ChatGPT/Claude conversation acting in this capacity
 
-## 5. Prioritization / Validation
+## 4. Prioritization / Validation
 
 Reviews proposed work against priority rules, checks acceptance criteria
 before DONE, and confirms deliverables actually satisfy their task definition.
@@ -65,7 +59,7 @@ before DONE, and confirms deliverables actually satisfy their task definition.
 Where materially important, the Product Owner retains final acceptance and
 decision authority under the canonical Management rules.
 
-## 6. Codex Engineering
+## 5. Codex Engineering
 
 Executes approved implementation tasks: writes code, runs tests, opens
 changes against the repository.
@@ -82,22 +76,17 @@ role hand-off is:
 1. **Research** produces an evidence-backed finding with source, scope,
    confidence, limitations, and a recommended next action. Unresolved evidence
    remains research.
-2. **Product / Vehicle** validates the domain meaning and may convert a
-   validated finding into a product proposal or requirement. A rejected or
-   still-uncertain finding remains research rather than being promoted by
-   default.
-3. **Prioritization / Validation** applies the existing project prioritization
-   path to proposed work. This role does not create a separate P7 scoring or
-   approval system.
-4. **Team Lead / Chief of Staff** routes only consequential decisions to the
+2. **Prioritization / Validation** applies the existing project prioritization
+   path and canonical approval rules to proposed work.
+3. **Team Lead / Chief of Staff** routes only consequential decisions to the
    Product Owner under the current decision gate. Routine authorized work may
    continue without an unnecessary Product Owner decision request.
-5. **Product Owner**, where the canonical workflow requires a human decision,
+4. **Product Owner**, where the canonical workflow requires a human decision,
    approves, rejects, or redirects the consequential product direction.
-6. **Technical / Architecture** converts approved product requirements into
+5. **Technical / Architecture** converts approved requirements into
    implementable specification and records the technical design boundaries,
    dependencies, and risks required for implementation.
-7. **Codex Engineering** implements only work that has reached the applicable
+6. **Codex Engineering** implements only work that has reached the applicable
    approved implementation state and follows the Repository Change Gate.
 
 Each hand-off must preserve traceability in the relevant GitHub work record so
@@ -119,5 +108,5 @@ human governance sources. This file exists to make the division of labour and
 research-to-specification hand-off explicit, not to create new authority.
 
 Escalation, decision, state-transition, review, testing, merge, and closure
-rules remain governed by `00-Management/WORKFLOWS.md` and the applicable
+rules remain governed by `0-DocumentationEducationCompetense/WORKFLOWS.md` and the applicable
 communication protocol.

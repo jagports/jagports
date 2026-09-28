@@ -4,7 +4,7 @@
 
 This file contains durable, reusable VIEPS domain decisions that must survive individual Issues, PRs and implementation changes. It is not a second implementation specification. Detailed schema, stock, importer and UI requirements remain in their owning work records and authoritative specifications.
 
-Repository-wide workflow and governance remain defined by the repository root `KNOWLEDGE.md`, `00-Management/WORKFLOWS.md`, `00-Management/RULES.md` and `SKILL.md`.
+Repository-wide workflow and governance remain defined by the repository root `KNOWLEDGE.md`, `0-DocumentationEducationCompetense/WORKFLOWS.md`, `00-Management/RULES.md` and `SKILL.md`.
 
 ## Source-of-truth hierarchy
 

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const css = readFileSync(new URL("../styles/vieps-tailwind.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
-const app = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
+const app = readFileSync(new URL("../js/vieps.js", import.meta.url), "utf8");
 const desktop = css.slice(0, css.indexOf("@media (max-width: 1100px)"));
 const tablet = css.slice(css.indexOf("@media (max-width: 1100px)"), css.indexOf("@media (max-width: 760px)"));
 const mobile = css.slice(css.indexOf("@media (max-width: 760px)"), css.indexOf("@media (max-width: 320px)"));
@@ -39,7 +39,9 @@ test("#875 desktop fits three workspaces while preserving #888 compact spacing",
   }
   assert.match(rule(".centre-detail"), /grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1\.05fr\)/);
   assert.match(rule(".results-panel .results-scroll, .ranges-panel .ranges-scroll"), /overflow:\s*auto/);
-  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .fitment-panel #fitment, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".ranges-panel #rangeEvidence"), /overflow:\s*auto/);
+  assert.doesNotMatch(html, /class="fitment-panel"/);
 });
 
 test("#888 reduces panel spacing and #886 tree indentation without shrinking reserved panels", () => {
@@ -50,7 +52,7 @@ test("#888 reduces panel spacing and #886 tree indentation without shrinking res
   assert.match(rule(".tree-children"), /border-left:\s*1px/);
   assert.match(rule(".selected-path a"), /underline/);
   assert.match(rule(".location-panel", mobile), /min-height:\s*12rem/);
-  assert.match(rule(".fitment-panel", mobile), /min-height:\s*12rem/);
+  assert.match(rule(".ranges-panel", mobile), /min-height:\s*14rem/);
   assert.match(rule(".visual-panel", mobile), /min-height:\s*22rem/);
 });
 
@@ -58,7 +60,7 @@ test("#888 moves one expandable fixture guide into the branded banner", () => {
   assert.equal((html.match(/class="fixture-guide"/g) || []).length, 1);
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf("</header>"));
   assert.ok(html.indexOf('class="fixture-guide"') < html.indexOf('class="panel tree-panel"'));
-  assert.match(html, /<details class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
+  assert.match(html, /<details [^>]*class="fixture-guide"[^>]*><summary data-i18n="header\.instructions"><\/summary>/);
   assert.match(html, /data-i18n="fixture\.randomized_note"/);
   assert.match(rule(".banner-block .fixture-guide"), /overflow:\s*auto/);
 });
@@ -97,10 +99,24 @@ test("#875 tablet and keyboard-scroll regions remain available", () => {
   assert.match(rule(".left-workspace", tablet), /grid-area:\s*left/);
   assert.match(rule(".centre-workspace", tablet), /grid-area:\s*centre/);
   assert.match(rule(".right-workspace", tablet), /grid-area:\s*right/);
-  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .fitment-panel #fitment, .visual-panel #visuals"), /overflow:\s*auto/);
+  assert.match(rule(".tree-panel #tree, .ranges-panel #ranges, .visual-panel #visuals"), /overflow:\s*auto/);
   assert.match(rule(".results-panel .results-scroll, .ranges-panel .ranges-scroll"), /overflow:\s*auto/);
   assert.match(html, /id="tree"[^>]*tabindex="0"/);
-  for (const id of ["partSearch", "availabilitySelect", "tree", "searchResults", "ranges", "vehicleLocation", "fitment", "partCard", "visuals"]) {
+  for (const id of ["partSearch", "availabilitySelect", "tree", "searchResults", "ranges", "vehicleLocation", "rangeEvidence", "partCard", "visuals"]) {
     assert.equal((html.match(new RegExp('id="' + id + '"', "g")) || []).length, 1, id);
   }
+});
+
+test("#895 centre-top suitability is an independently scrollable, accessible checkbox row", () => {
+  assert.match(html, /id="variationOptions"[^>]*role="group"/);
+  assert.match(rule(".variation-options"), /display:\s*flex/);
+  assert.match(rule(".variation-options"), /overflow-x:\s*auto/);
+  assert.match(rule(".variation-options"), /max-width:\s*100%/);
+  assert.match(rule(".variation-group"), /flex:\s*0 0 auto/);
+  assert.match(rule(".variation-group-values"), /display:\s*flex/);
+  assert.match(rule(".variation-choice"), /white-space:\s*nowrap/);
+  assert.match(app, /data-fit-facet/);
+  assert.match(app, /ui_language/);
+  assert.match(app, /visibleCandidates/);
+  assert.doesNotMatch(app, /FIXTURE_VARIATIONS/);
 });

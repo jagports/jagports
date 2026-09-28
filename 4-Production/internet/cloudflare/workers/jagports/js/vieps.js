@@ -9,9 +9,24 @@ const $ = (id) => {
 };
 const i18n = globalThis.viepsI18n;
 const t = (key, options) => i18n?.t(key, options) ?? key;
+// Query keys are case-insensitive for the URL switch: ?TEST=1 and ?test=1
+// must select the same catalogue mode. Conflicting duplicates fail closed.
+const isTestMode = () => {
+  if (typeof URLSearchParams !== "function") return false;
+  const flags = [...new URLSearchParams(globalThis.location?.search || "")]
+    .filter(([key]) => key.toLowerCase() === "test");
+  return flags.length === 1 && flags[0][1] === "1";
+};
+const searchPrompt = (withAction = false) => t(isTestMode()
+  ? (withAction ? "search.prompt_with_action" : "search.prompt")
+  : (withAction ? "search.prompt_with_action_real" : "search.prompt_real"));
+const apiUrl = (path) => {
+  if (!isTestMode()) return path;
+  return `${path}${path.includes("?") ? "&" : "?"}TEST=1`;
+};
 const empty = (message) => `<p class="empty">${escapeHtml(message)}</p>`;
 let currentData = null;
-let fitmentRows = [];
+let fitEvidenceRows = [];
 let visualItems = [];
 let requestVersion = 0;
 let selectedTreeNodeId = null;
@@ -20,6 +35,12 @@ let cachedBrowseData = null;
 let cachedCandidatesData = null;
 let pendingCandidateId = null;
 let viewMode = "empty";
+let fitSelections = new Set();
+let fitRequestVersion = 0;
+let fitData = null;
+let fitError = null;
+let fitMatchingPartIds = null; // Null means the source-backed filter is unavailable.
+
 
 const BROWSE_RANGE_LABELS = Object.freeze([
   "Jaguar Accessories", "Daimler Limousine", "E-Pace", "E-Type", "F-Pace",
@@ -33,7 +54,7 @@ function renderBrowseRangeIndex() {
       `<li><label><input type="checkbox" disabled aria-describedby="rangeBrowseNote"
         data-browse-range-index="${index}"> ${escapeHtml(label)}</label></li>`).join("")}</ul>`;
 }
-function renderApplicableState(state) {
+function renderFitRangeState(state) {
   const message = state === "error" ? t("ranges.error")
     : state === "no_match" ? t("ranges.no_match")
     : t("ranges.unavailable");
@@ -56,7 +77,7 @@ function formatMoney(value, currency) {
 
 function formatStockLocationSummary(stock) {
   const locations = [...new Set(stock.map((item) => item.location).filter(Boolean))];
-  return locations.length ? locations.join(", ") : t("stock.no_fixture_location");
+  return locations.length ? locations.join(", ") : t(isTestMode() ? "stock.no_fixture_location" : "common.not_supplied");
 }
 
 function formatStockQuality(item) {
@@ -80,7 +101,7 @@ function partDisplayLabel(part) {
 async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
   const candidateFilter = candidateId === null ? "" : `&candidate_id=${encodeURIComponent(candidateId)}`;
-  const response = await fetch(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`);
+  const response = await fetch(apiUrl(`/api/vieps/part?q=${encodeURIComponent(partNumber)}${stockFilter}${candidateFilter}`));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -91,9 +112,14 @@ async function resolvePart(partNumber, stockOnly = false, candidateId = null) {
 }
 
 async function resolveTreeRoots(stockOnly = false) {
-  const response = await fetch(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`);
-  if (!response.ok) throw new Error("tree roots unavailable");
-  return response.json();
+  const response = await fetch(apiUrl(`/api/vieps/tree?root=1${stockOnly ? "&stock_only=1" : ""}`));
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || `${response.status} ${response.statusText}`);
+    error.code = data.error_code;
+    throw error;
+  }
+  return data;
 }
 
 function clearSelectionUrl() {
@@ -110,7 +136,7 @@ function clearSelectionUrl() {
 
 async function resolveTreeNode(nodeId, stockOnly = false) {
   const stockFilter = stockOnly ? "&stock_only=1" : "";
-  const response = await fetch(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`);
+  const response = await fetch(apiUrl(`/api/vieps/tree?node_id=${encodeURIComponent(nodeId)}${stockFilter}`));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.error || `${response.status} ${response.statusText}`);
@@ -123,7 +149,7 @@ async function resolveTreeNode(nodeId, stockOnly = false) {
 function renderStockRows(stock) {
   if (!stock.length) return "";
   return `<div class="stock-section">
-    <p class="compact-note stock-note">${escapeHtml(t("stock.note"))}</p>
+    ${isTestMode() ? `<p class="compact-note stock-note">${escapeHtml(t("stock.note"))}</p>` : ""}
     <div class="table-scroll"><table class="stock-table">
       <thead><tr><th>${escapeHtml(t("stock.qty"))}</th><th>${escapeHtml(t("stock.status"))}</th><th>${escapeHtml(t("stock.condition"))}</th><th>${escapeHtml(t("stock.location"))}</th><th>${escapeHtml(t("stock.price"))}</th><th>${escapeHtml(t("stock.evidence"))}</th></tr></thead>
       <tbody>${stock.map((item) => `<tr>
@@ -132,7 +158,7 @@ function renderStockRows(stock) {
         <td>${escapeHtml(formatStockQuality(item))}</td>
         <td>${escapeHtml(item.location || t("common.not_supplied"))}</td>
         <td>${formatMoney(item.price, item.currency)}</td>
-        <td>${escapeHtml(item.source_ref || item.source || t("stock.fixture_evidence"))}</td>
+        <td>${escapeHtml(item.source_ref || item.source || t(isTestMode() ? "stock.fixture_evidence" : "common.not_supplied"))}</td>
       </tr>`).join("")}</tbody>
     </table></div>
   </div>`;
@@ -143,8 +169,8 @@ function renderPart(part, occurrences = [], stock = []) {
     ? t("part.epc_occurrence", { count: occurrences.length })
     : t("part.no_epc_context");
   const stockText = stock.length
-    ? t("part.fixture_stock_record", { count: stock.length })
-    : t("part.no_fixture_stock");
+    ? t(isTestMode() ? "part.fixture_stock_record" : "part.stock_record", { count: stock.length })
+    : t(isTestMode() ? "part.no_fixture_stock" : "part.no_stock");
   $("partCard").innerHTML = `
     <strong>${escapeHtml(part.part_number_normalized || t("part.no_jaguar_part_number"))}</strong>
     <p>${escapeHtml(part.description || t("part.no_description"))}</p>
@@ -153,7 +179,7 @@ function renderPart(part, occurrences = [], stock = []) {
       <dt>${escapeHtml(t("part.verification"))}</dt><dd>${escapeHtml(part.verification_status || t("common.not_recorded"))}</dd>
       <dt>${escapeHtml(t("part.source"))}</dt><dd>${escapeHtml(part.source || t("common.not_recorded"))}</dd>
       <dt>${escapeHtml(t("part.epc_context"))}</dt><dd>${escapeHtml(occurrenceText)}</dd>
-      <dt>${escapeHtml(t("part.fixture_stock"))}</dt><dd>${escapeHtml(stockText)}</dd>
+      <dt>${escapeHtml(t(isTestMode() ? "part.fixture_stock" : "part.stock"))}</dt><dd>${escapeHtml(stockText)}</dd>
       <dt>${escapeHtml(t("stock.location"))}</dt><dd>${escapeHtml(formatStockLocationSummary(stock))}</dd>
     </dl>
     ${renderStockRows(stock)}`;
@@ -228,7 +254,7 @@ function renderTree(paths = [], options = {}) {
     const query = encodeURIComponent(partSearchValue(part));
     const context = contextNodeId !== null && contextNodeId !== undefined
       ? `&tree=${encodeURIComponent(contextNodeId)}` : "";
-    return `?part=${query}${context}`;
+    return apiUrl(`?part=${query}${context}`);
   };
   let markedPartLeaf = false;
   const renderPartLeaf = (part, depth, contextNodeId) => {
@@ -245,7 +271,7 @@ function renderTree(paths = [], options = {}) {
     const selected = selectedPartId === null && selectedNodeId !== null &&
       node.nodeId !== null && String(node.nodeId) === selectedNodeId;
     const label = node.nodeId !== null
-      ? `<a href="?tree=${encodeURIComponent(node.nodeId)}" data-tree-node-id="${escapeHtml(node.nodeId)}"
+      ? `<a href="${apiUrl(`?tree=${encodeURIComponent(node.nodeId)}`)}" data-tree-node-id="${escapeHtml(node.nodeId)}"
             ${selected ? 'aria-current="location"' : ''}>${escapeHtml(node.label)}</a>`
       : `<span>${escapeHtml(node.label)}</span>`;
     const children = sortNodes(node.children.values());
@@ -283,7 +309,7 @@ function canonicalCandidates(parts = []) {
 
 function candidateLeaves(data) {
   const paths = Array.isArray(data.parts_tree) ? data.parts_tree : [];
-  return canonicalCandidates(data.matches || []).map((part) => ({
+  return canonicalCandidates(visibleCandidates(data.matches || [])).map((part) => ({
     part,
     paths: (part.tree_paths?.length ? part.tree_paths : paths
       .filter((path) => String(path.part_id) === String(part.id))
@@ -292,14 +318,152 @@ function candidateLeaves(data) {
   }));
 }
 
+
+function visibleCandidates(parts = []) {
+  if (!fitSelections.size || fitMatchingPartIds === null) return parts;
+  return parts.filter((part) => fitMatchingPartIds.has(String(part.id)));
+}
+
+function renderFitOptions() {
+  const panel = $("variationOptions"), status = $("variationsStatus");
+  if (!panel || !status) return;
+  if (!fitData || !Array.isArray(fitData.categories)) {
+    if (panel.dataset) panel.dataset.currentQuery = "";
+    panel.innerHTML = "";
+    status.className = fitError ? "error status-line" : "muted status-line";
+    status.textContent = fitError === "real_suitability_data_missing"
+      || fitError === "real_suitability_data_incomplete"
+        ? t("fit.real_data_missing")
+      : fitError === "range_unavailable"
+        ? t("fit.real_range_missing")
+      : fitError === "test_fixture_data_missing"
+        || fitError === "test_fixture_data_incomplete"
+        ? t("fit.test_data_missing")
+      : fitError
+        ? t("fit.data_error", { code: fitError })
+        : t("fit.unavailable");
+    return;
+  }
+  status.className = "muted status-line";
+  if (panel.dataset) panel.dataset.currentQuery = fitData.query || "";
+  const locale = i18n?.language || "en";
+  const availableOptions = new Set(fitData.available_options || []);
+  // Keep normalized category identities separate even when translated names match.
+  // Alphabetize categories; retain checked-first alphabetical ordering within each.
+  const groups = fitData.categories.map((category) => ({
+    ...category,
+    values: (category.values || []).filter((value) =>
+      availableOptions.has(value.id) || fitSelections.has(value.id)).map((value) => ({
+      ...value,
+      selected: fitSelections.has(value.id),
+      available: availableOptions.has(value.id),
+    })).sort((a, b) => Number(b.selected) - Number(a.selected)
+      || a.name.localeCompare(b.name, locale) || a.id.localeCompare(b.id)),
+  })).filter((category) => category.values.length)
+    .sort((a, b) => a.name.localeCompare(b.name, locale)
+      || String(a.code ?? a.id ?? "").localeCompare(String(b.code ?? b.id ?? "")));
+  panel.innerHTML = groups.map((category) => `<fieldset class="variation-group">
+    <legend class="variation-group-title">${escapeHtml(category.name)}</legend>
+    <div class="variation-group-values">${category.values.map((item) => {
+      const source = item.source_descriptions || [];
+      const title = source.map((s) => `${s.original_text} [${s.language}; ${s.source_namespace}; ${s.locator}]`).join(" · ");
+      return `<label class="variation-choice" title="${escapeHtml(title)}">
+        <input type="checkbox" data-fit-facet="${escapeHtml(item.id)}"
+          aria-describedby="variationsStatus" ${item.selected ? "checked" : ""}
+          ${!item.selected && !item.available ? "disabled" : ""}>
+        <span>${escapeHtml(item.name)}</span>
+      </label>`;
+    }).join("")}</div>
+  </fieldset>`).join("");
+  const matching = fitData.matches?.length || 0;
+  status.textContent = !groups.length ? t("fit.no_options")
+    : fitData.state === "unavailable" && matching === 0
+      ? t("fit.incomplete")
+      : fitSelections.size && matching === 0 ? t("fit.no_matches")
+      : t(fitData.fixture_mode ? "fit.fixture_count"
+        : "fit.real_count", { count: matching });
+}
+
+async function refreshFitOptions(query, stockOnly, mainVersion = requestVersion) {
+  const version = ++fitRequestVersion;
+  if (typeof URLSearchParams !== "function") {
+    fitMatchingPartIds = null;
+    fitData = null;
+    renderFitOptions();
+    return;
+  }
+  const params = new URLSearchParams({
+    q: query || "", stock_only: stockOnly ? "1" : "0",
+    ui_language: i18n?.language || "en",
+  });
+  for (const id of fitSelections) params.append("facet", id);
+  try {
+    // Canonical FIT route; Worker retains the older suitability route as a compatibility alias.
+    const response = await fetch(apiUrl("/api/vieps/fit?" + params.toString()));
+    const data = await response.json();
+    if (version !== fitRequestVersion || mainVersion !== requestVersion) return;
+    if (!response.ok || !Array.isArray(data?.categories)
+        || data.fixture_mode !== isTestMode()) {
+      // Never disguise missing real data as an empty list or fall back to fixtures.
+      fitError = data?.error_code || "fit_mode_mismatch";
+      fitData = null;
+      fitMatchingPartIds = null;
+      renderFitOptions();
+      return;
+    }
+    fitError = null;
+    fitData = data;
+    fitMatchingPartIds = new Set((data.matches || []).map((m) => String(m.part_id)));
+    renderFitOptions();
+    if (viewMode === "candidates" && cachedCandidatesData) {
+      renderPartCandidates(cachedCandidatesData);
+      $("searchStatus").textContent = fitSelections.size
+        ? t("fit.result_count", { count: visibleCandidates(cachedCandidatesData.matches || []).length })
+        : t("search.multiple_matches", { count: cachedCandidatesData.matches?.length || 0 });
+    } else if (viewMode === "resolved" && currentData && fitSelections.size) {
+      if (!fitMatchingPartIds.has(String(currentData.part?.id))) {
+        // A selected canonical PART cannot remain selected outside the
+        // surviving occurrence-backed candidate set.
+        if (cachedCandidatesData) {
+          viewMode = "candidates";
+          renderPartCandidates(cachedCandidatesData);
+        } else {
+          resetContext();
+          renderTree([], { roots: cachedRootData?.roots || [] });
+        }
+        $("searchStatus").textContent = t("fit.no_matches");
+      } else {
+        renderResolvedData(currentData);
+      }
+    }
+  } catch {
+    if (version === fitRequestVersion && mainVersion === requestVersion) {
+      fitError = "fit_request_failed";
+      fitData = null;
+      fitMatchingPartIds = null;
+      renderFitOptions();
+    }
+  }
+}
+
+// Invalidate source-backed results, never an independently chosen FIT constraint.
+// A new query, root browse or Stock change will fetch the fresh candidate universe.
+function invalidateFitView() {
+  ++fitRequestVersion;
+  fitData = null;
+  fitError = null;
+  fitMatchingPartIds = null;
+  renderFitOptions();
+}
+
 function renderSearchResults(parts = [], selectedId = null) {
   const panel = $("searchResults");
   if (!panel) return;
-  const candidates = canonicalCandidates(parts);
+  const candidates = canonicalCandidates(visibleCandidates(parts));
   panel.innerHTML = candidates.length ? `<ul class="results-list">${candidates.map((part) => {
     const selected = selectedId != null && String(part.id) === String(selectedId);
     return `<li class="result-row${selected ? " selected-result" : ""}">
-      <a href="?part=${encodeURIComponent(partSearchValue(part))}&candidate_id=${encodeURIComponent(part.id)}"
+      <a href="${apiUrl(`?part=${encodeURIComponent(partSearchValue(part))}&candidate_id=${encodeURIComponent(part.id)}`)}"
          data-result-part-id="${escapeHtml(part.id)}" ${selected ? 'aria-current="page"' : ""}>${escapeHtml(partDisplayLabel(part))}</a>
       <label class="bookmark-label"><input type="checkbox" disabled aria-label="${escapeHtml(`${t("search.bookmark_pending")}: ${partDisplayLabel(part)}`)}" title="${escapeHtml(t("search.bookmark_pending"))}"><span class="bookmark-caption">${escapeHtml(t("search.bookmark_pending"))}</span></label>
     </li>`;
@@ -319,7 +483,9 @@ function renderSearchResults(parts = [], selectedId = null) {
 
 function renderPartCandidates(data) {
   $("partCard").innerHTML = empty(t("part.no_part_selected"));
-  renderTree([], {
+  const allowed = new Set(visibleCandidates(data.matches || []).map((part) => String(part.id)));
+  const paths = (data.parts_tree || []).filter((path) => allowed.has(String(path.part_id)));
+  renderTree(paths, {
     roots: data.tree_roots || cachedRootData?.roots || [],
     partLeaves: candidateLeaves(data),
   });
@@ -385,42 +551,45 @@ function renderVisuals(images, diagrams) {
   renderSelectedVisual();
 }
 
+// FIT contract alias: historical part_fitment rows may still expose applicability_state.
+// Prefer the active fit_state field when the reader publishes it.
+const readFitState = (row) => row?.fit_state ?? row?.applicability_state;
+
 function renderSelectedRange() {
   const code = $("rangeSelect").value;
-  const rangeRows = fitmentRows.filter((item) => item.range_code === code);
-  const selected = rangeRows.filter((item) => item.applicability_state === "applicable");
-  const range = selected[0];
-  $("selectedRange").textContent = range ? `${range.range_code} — ${range.range_name}` : t("fitment.selected_none");
+  const rangeRows = fitEvidenceRows.filter((item) => item.range_code === code);
+  const verifiedFits = rangeRows.filter((item) => readFitState(item) === "applicable");
+  const range = verifiedFits[0];
   $("locationStatus").textContent = range
     ? t("location.range_unavailable", { range: range.range_name })
     : t("location.verified_unavailable");
 
   let variationStateKey = "fitment.no_confirmed";
-  if (!selected.length && rangeRows.some((item) => item.applicability_state === "unavailable")) {
+  if (!verifiedFits.length && rangeRows.some((item) => readFitState(item) === "unavailable")) {
     variationStateKey = "fitment.unavailable";
-  } else if (!selected.length && rangeRows.length && rangeRows.every((item) => item.applicability_state === "excluded")) {
+  } else if (!verifiedFits.length && rangeRows.length && rangeRows.every((item) => readFitState(item) === "excluded")) {
     variationStateKey = "fitment.no_match";
   }
 
-  $("fitment").innerHTML = selected.length ? `<div class="table-scroll"><table>
+  $("rangeEvidence").innerHTML = verifiedFits.length ? `<div class="table-scroll"><table>
     <thead><tr><th>${escapeHtml(t("fitment.variation"))}</th><th>${escapeHtml(t("fitment.qualifier"))}</th><th>${escapeHtml(t("fitment.verification"))}</th></tr></thead>
-    <tbody>${selected.map((item) => `<tr><td>${escapeHtml(item.variation || t("common.not_specified"))}</td><td>${escapeHtml(item.qualifier || t("common.not_supplied"))}</td><td>${escapeHtml(item.verification_status || t("common.not_recorded"))}</td></tr>`).join("")}</tbody>
+    <tbody>${verifiedFits.map((item) => `<tr><td>${escapeHtml(item.variation || t("common.not_specified"))}</td><td>${escapeHtml(item.qualifier || t("common.not_supplied"))}</td><td>${escapeHtml(item.verification_status || t("common.not_recorded"))}</td></tr>`).join("")}</tbody>
     </table></div>` : empty(t(variationStateKey));
 }
 
-function renderFitment(fitment, declaredState = null) {
+function renderFitRangeEvidence(fitRows, declaredState = null) {
   // Consume only positive assertions returned by the approved PART read path.
   // The 13 synthetic browse labels never enter this selected-PART result.
-  fitmentRows = Array.isArray(fitment) ? fitment : [];
-  const applicable = fitmentRows.filter((item) =>
-    item.applicability_state === "applicable" && item.range_code && item.range_name);
-  const ranges = [...new Map(applicable.map((item) => [item.range_code, item])).values()];
-  const error = declaredState === "error" || fitmentRows.some((item) => item.applicability_state === "error");
-  const unavailable = !fitmentRows.length || declaredState === "unavailable"
-    || fitmentRows.some((item) => item.applicability_state === "unavailable");
+  fitEvidenceRows = Array.isArray(fitRows) ? fitRows : [];
+  const verifiedFits = fitEvidenceRows.filter((item) =>
+    readFitState(item) === "applicable" && item.range_code && item.range_name);
+  const ranges = [...new Map(verifiedFits.map((item) => [item.range_code, item])).values()];
+  const error = declaredState === "error" || fitEvidenceRows.some((item) => readFitState(item) === "error");
+  const unavailable = !fitEvidenceRows.length || declaredState === "unavailable"
+    || fitEvidenceRows.some((item) => readFitState(item) === "unavailable");
   const confirmedNoMatch = declaredState === "no_match"
-    || (fitmentRows.length > 0 && fitmentRows.every((item) =>
-      ["excluded", "no_match"].includes(item.applicability_state)));
+    || (fitEvidenceRows.length > 0 && fitEvidenceRows.every((item) =>
+      ["excluded", "no_match"].includes(readFitState(item))));
 
   const emptyState = error ? "error" : confirmedNoMatch ? "no_match" : "unavailable";
   const emptyLabel = t(emptyState === "error" ? "ranges.error"
@@ -434,7 +603,7 @@ function renderFitment(fitment, declaredState = null) {
     : empty(emptyLabel);
   renderSelectedRange();
   if (!ranges.length) {
-    $("fitment").innerHTML = empty(t(error ? "fitment.unavailable"
+    $("rangeEvidence").innerHTML = empty(t(error ? "fitment.unavailable"
       : confirmedNoMatch ? "fitment.no_match" : "fitment.unavailable"));
   }
 }
@@ -442,7 +611,10 @@ function renderFitment(fitment, declaredState = null) {
 function renderResolvedData(data) {
   currentData = data;
   renderPart(data.part, data.occurrences || [], data.stock || []);
-  renderTree(cachedCandidatesData?.parts_tree || data.parts_tree || [], {
+  renderTree(cachedCandidatesData
+    ? (cachedCandidatesData.parts_tree || []).filter((path) =>
+      visibleCandidates(cachedCandidatesData.matches || []).some((p) => String(p.id) === String(path.part_id)))
+    : data.parts_tree || [], {
     roots: data.tree_roots || cachedRootData?.roots || [],
     selectedPartId: data.part?.id,
     selectedNodeId: selectedTreeNodeId,
@@ -451,12 +623,12 @@ function renderResolvedData(data) {
   });
   renderSearchResults(cachedCandidatesData?.matches || [data.part], data.part?.id);
   renderVisuals(data.images || [], data.diagrams || []);
-  renderFitment(data.fitment, data.fitment_state);
+  renderFitRangeEvidence(data.fitment, data.fit_state ?? data.fitment_state);
 }
 
 function resetContext(messageKey = "part.no_part_selected") {
   currentData = null;
-  fitmentRows = [];
+  fitEvidenceRows = [];
   visualItems = [];
   const message = t(messageKey);
   $("partCard").innerHTML = empty(message);
@@ -468,15 +640,16 @@ function resetContext(messageKey = "part.no_part_selected") {
   $("rangeSelect").innerHTML = `<option value="">${escapeHtml(t("ranges.no_part_selected"))}</option>`;
   $("rangeSelect").disabled = true;
   renderBrowseRangeIndex();
-  $("selectedRange").textContent = t("fitment.selected_none");
-  $("fitment").innerHTML = empty(t("fitment.browse_help"));
+  $("rangeEvidence").innerHTML = empty(t("fitment.browse_help"));
   $("vehicleLocation").innerHTML = empty(t("location.unavailable"));
   $("locationStatus").textContent = t("location.select_help");
 }
 
-function localizeError(error) {
+function localizeError(error, fallback = "search.error") {
+  if (error?.code === "range_required") return t("search.range_required");
+  if (error?.code === "range_unavailable") return t("search.range_unavailable");
   if (error?.code === "stock_filter_no_match") return t("search.no_stock_match");
-  return String(error?.message || "") === "part not found" ? t("search.not_found") : t("search.error");
+  return String(error?.message || "") === "part not found" ? t("search.not_found") : t(fallback);
 }
 
 function refreshForLanguageChange() {
@@ -492,10 +665,10 @@ function refreshForLanguageChange() {
     $("searchStatus").textContent = t("tree.browse_parts", { count: cachedBrowseData.parts?.length || 0 });
   } else if (cachedRootData) {
     renderTree([], { roots: cachedRootData.roots || [] });
-    $("searchStatus").textContent = t("search.prompt");
+    $("searchStatus").textContent = searchPrompt();
   } else {
     resetContext();
-    $("searchStatus").textContent = t("search.prompt");
+    $("searchStatus").textContent = searchPrompt();
   }
 }
 
@@ -536,19 +709,32 @@ function setupStockHelp() {
 
 function setupViepsUi() {
   if (!$("partSearch")) return;
+  const testMode = isTestMode();
+  $("treeRootLink").href = testMode ? "?TEST=1" : "?";
+  $("fixtureModeHelp").hidden = !testMode;
+  $("realModeHelp").hidden = testMode;
+  $("helpGuide").setAttribute("data-i18n-aria-label",
+    testMode ? "fixture.test_guidance_aria" : "header.instructions");
+  $("partNumberLabel").setAttribute("data-i18n",
+    testMode ? "search.input_aria" : "search.input_aria_real");
+  $("partNumber").setAttribute("data-i18n-placeholder",
+    testMode ? "search.input_placeholder" : "search.input_placeholder_real");
+  $("partNumber").setAttribute("data-i18n-aria-label",
+    testMode ? "search.input_aria" : "search.input_aria_real");
   i18n?.init();
   setupStockHelp();
   resetContext();
-  $("searchStatus").textContent = t("search.prompt");
+  $("searchStatus").textContent = searchPrompt();
 
   document.querySelectorAll?.("[data-language]").forEach((control) => {
     control.addEventListener("click", () => {
       i18n?.changeLanguage(control.dataset.language);
       refreshForLanguageChange();
+      void refreshFitOptions($("partNumber").value.trim(),
+        Boolean($("availabilitySelect").checked));
     });
   });
-  // The heading returns to the first-level catalogue index, without changing
-  // the independently selected Stock filter.
+  // The heading restores the catalogue root index while retaining Stock only.
   $("treeRootLink")?.addEventListener("click", (event) => {
     event.preventDefault();
     $("partNumber").value = "";
@@ -556,11 +742,20 @@ function setupViepsUi() {
     clearSelectionUrl();
     void browseTree(null);
   });
+  $("variationOptions")?.addEventListener("change", (event) => {
+    const id = event.target?.dataset?.fitFacet;
+    if (!id) return;
+    if (event.target.checked) fitSelections.add(id);
+    else fitSelections.delete(id);
+    // The API recomputes facets from the same current search/stock universe.
+    void refreshFitOptions($("partNumber").value.trim(),
+      Boolean($("availabilitySelect").checked));
+  });
   $("rangeSelect").addEventListener("change", renderSelectedRange);
   $("visualSelect").addEventListener("change", renderSelectedVisual);
   const loadRootBrowse = async (version, options = {}) => {
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
+    $("searchStatus").textContent = options.defaultLoad ? searchPrompt() : t("tree.browse_loading");
     $("result").setAttribute("aria-busy", "true");
     try {
       const data = await resolveTreeRoots(Boolean($("availabilitySelect").checked));
@@ -571,14 +766,17 @@ function setupViepsUi() {
       cachedCandidatesData = null;
       viewMode = "empty";
       renderTree([], { roots: data.roots || [] });
+      void refreshFitOptions("", Boolean($("availabilitySelect").checked), version);
       $("searchStatus").textContent = data.stock_browse_state === "unsupported"
-        ? t("tree.no_selection", { message: t("search.prompt") }) : t("search.prompt");
+        ? t("tree.no_selection", { message: searchPrompt() }) : searchPrompt();
     } catch (error) {
       if (version !== requestVersion) return;
       cachedRootData = null;
-      $("tree").innerHTML = empty(t("tree.browse_error"));
-      $("searchStatus").textContent = t("tree.browse_error");
+      $("tree").innerHTML = empty(localizeError(error, "tree.browse_error"));
+      $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
+      // Report a missing real FIT source even when root loading failed.
+      void refreshFitOptions("", Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }
@@ -591,24 +789,27 @@ function setupViepsUi() {
     cachedBrowseData = null;
     cachedCandidatesData = null;
     viewMode = "empty";
+    fitMatchingPartIds = null;
     resetContext();
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
     if (!$("partNumber").value.trim()) {
+      invalidateFitView();
       clearSelectionUrl();
       void loadRootBrowse(version);
     } else {
       renderTree([], { roots: cachedRootData?.roots || [] });
-      $("searchStatus").textContent = t("search.prompt_with_action");
+      $("searchStatus").textContent = searchPrompt(true);
     }
   });
 
   const browseTree = async (nodeId = null, options = {}) => {
     const version = ++requestVersion;
+    invalidateFitView(); // Preserve FIT selections; this tree context has no source-qualified FIT read yet.
     resetContext();
     viewMode = "empty";
     $("searchStatus").className = "muted status-line";
-    $("searchStatus").textContent = options.defaultLoad ? t("search.prompt") : t("tree.browse_loading");
+    $("searchStatus").textContent = options.defaultLoad ? searchPrompt() : t("tree.browse_loading");
     $("result").setAttribute("aria-busy", "true");
     try {
       if (nodeId === null || nodeId === undefined || nodeId === "") {
@@ -634,7 +835,7 @@ function setupViepsUi() {
       if (version !== requestVersion) return;
       resetContext();
       renderTree([], { roots: cachedRootData?.roots || [] });
-      $("searchStatus").textContent = t("tree.browse_error");
+      $("searchStatus").textContent = localizeError(error, "tree.browse_error");
       $("searchStatus").className = "error status-line";
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
@@ -644,6 +845,8 @@ function setupViepsUi() {
   const submitSearch = async (event) => {
     event.preventDefault();
     const version = ++requestVersion;
+    ++fitRequestVersion; // Invalidate late responses for the previous query.
+    fitMatchingPartIds = null; // Never apply the previous query's matches.
     const partNumber = $("partNumber").value.trim();
     const candidateId = pendingCandidateId;
     const preservedCandidates = candidateId ? cachedCandidatesData : null;
@@ -655,6 +858,7 @@ function setupViepsUi() {
     $("searchStatus").className = "muted status-line";
     if (!partNumber) {
       selectedTreeNodeId = null;
+      invalidateFitView();
       clearSelectionUrl();
       await loadRootBrowse(version);
       return;
@@ -671,19 +875,24 @@ function setupViepsUi() {
         viewMode = "candidates";
         renderPartCandidates(data);
         $("searchStatus").textContent = t("search.multiple_matches", { count: data.matches?.length || 0 });
+        void refreshFitOptions(partNumber, Boolean($("availabilitySelect").checked), version);
         return;
       }
       cachedRootData = { roots: data.tree_roots || cachedRootData?.roots || [] };
       viewMode = "resolved";
       renderResolvedData(data);
       $("searchStatus").textContent = t("search.resolved");
+      void refreshFitOptions(partNumber, Boolean($("availabilitySelect").checked), version);
     } catch (error) {
       if (version !== requestVersion) return;
       resetContext("part.no_part_resolved");
       renderTree([], { roots: cachedRootData?.roots || [] });
-      if (String(error?.message || "") !== "part not found") renderApplicableState("error");
+      if (String(error?.message || "") !== "part not found") renderFitRangeState("error");
       $("searchStatus").textContent = localizeError(error);
       $("searchStatus").className = "error status-line";
+      // A failed real catalogue lookup must also surface the FIT
+      // provider's explicit error rather than leave the filter uninitialized.
+      void refreshFitOptions(partNumber, Boolean($("availabilitySelect").checked), version);
     } finally {
       if (version === requestVersion) $("result").setAttribute("aria-busy", "false");
     }

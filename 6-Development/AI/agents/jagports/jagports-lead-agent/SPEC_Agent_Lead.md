@@ -2,9 +2,64 @@
 
 **Status:** Proposed for independent specification review. Functional contracts, implementation gates and acceptance tests are normative only after approval; the currently deployed coordinator remains deterministic.
 
-**Owner:** Development / Lead Agent. This file owns system architecture, interface and event contracts, reasoning and notification requirements, staged implementation and acceptance. The adjacent [README.md](README.md) is the human-oriented usage guide. [OPERATIONS.md](OPERATIONS.md) holds reusable execution and diagnostics; [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) owns host installation; [Implementation Project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md) owns business rationale and verified evidence. Relevant research evidence belongs under `7-Research/`.
+**Owner:** Development / Lead Agent. This file owns system architecture, interface and event contracts, reasoning and notification requirements, staged implementation and acceptance. The adjacent [README.md](README.md) is the human-oriented usage guide. [OPERATIONS.md](OPERATIONS.md) holds reusable execution and diagnostics. The [MyNode Deployment and project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) owns host installation, project background, and verified host evidence. Relevant research evidence belongs under `7-Research/`.
 
 This specification extends the current runtime; its approval alone does not enable paid model calls, automated Telegram delivery, autonomous GitHub writes, independent-review substitution, merge or deployment authority.
+
+## Revised target — the original AI OS development agents only (#924)
+
+**Proposed specification; implementation and Raspberry Pi deployment are not yet complete.** [Issue #924](https://github.com/jagports/jagports/issues/924) limits this specification to the original AI OS application agents. Remove the parallel pilot modules, prompts, dispatch, tests, settings and active operational guidance from this runtime. Project source material and historical records remain governed by their existing documentation. The logical project-work roles in [AGENT_ROLES.md](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) are not Python runtime specialists.
+
+The canonical executable agent team is `LeadAgent` with **`DocumentationAgent`**, **`DeploymentAgent`** and **`KnowledgeAgent`**. The registry contains only these original agents. Retain deterministic zero-cost handling when reasoning is disabled.
+
+```text
+existing codex systemd user timer (585 minutes) / manual entry point
+    |
+    v
+main.py  <--- run-agent.sh uses this same entry point
+    |
+    +--> GitHubService / GitHubAgent: bounded Issues, approved guidance
+    |
+    v
+LeadAgent --> StateService / versioned changed-Issue event (#904)
+    |
+    v
+AgentRegistry
+    +--> DocumentationAgent: documentation relevance and explanation
+    +--> DeploymentAgent: deployment relevance and impact
+    +--> KnowledgeAgent: accepted knowledge impact
+            |
+            +--> approved scoped reasoning through shared ReasoningService
+            |
+            v
+      AgentResult[] --> durable ReportService --> authorized Telegram outbox
+                                            |
+       one-shot authorized Telegram /ask --> original agent --> reply
+```
+
+Implement meaningful changed-Issue selection and source retrieval through the existing `GitHubAgent` / `GitHubService`, with bounded title/body/labels/comments, verified content revision, approved AI OS Markdown guidance, source IDs, truncation and prompt-injection protections. Begin with model-backed **DocumentationAgent** on a single explicitly approved AI OS Issue/revision; extend to Deployment and Knowledge only with independently reviewed role-appropriate prompts and regression coverage. Missing, unchanged, unrelated or inadequately sourced events do not spend tokens. Keep the original lifecycle report even when OpenAI is disabled or the provider is unavailable.
+
+## Retain and generalize the existing infrastructure
+
+Reuse the audited GET-only HTTP guard, request cap, versioned #904 Issue-enrichment event and integrity-checked pending store, `AgentRegistry`, `AgentResult`, atomic report persistence, model-neutral reasoning interface, durable cross-process cost ledger, uncertain-attempt accounting, locks/checkpoints and replay without rebilling. Remove pilot-specific role and source assumptions from the reasoning interface **only after equivalent general-purpose safety tests are in place**. Historical charged or uncertain attempts and #904 cursors must be inventoried and durably preserved before removing pilot code. The project's $5 credit pool and existing $4 local cumulative reservation cap do not restart on migration.
+
+[Shared Agent Services](../SHARED_AGENT_SERVICES_SPEC.md) defines reusable technical capabilities called by the coordinator and specialist agents; those services do not add agent roles or make specialist decisions. The existing `GITHUB_TOKEN` remains the configured GitHub credential, but shared-source access does not grant write authority. GET-only read adapters and low-level caps remain enforced; no previously confirmed security gate is removed before replacement authorization and negative tests exist. Future writes, if separately approved, go through one audited, per-operation authorized GitHub boundary with independent read-after-write. This SPEC does not authorize autonomous edits, merges, deployment, new GitHub permissions or recurring paid execution.
+
+## Agent-based report and Telegram acceptance
+
+The **original agents** must produce useful, structured, source-linked results from real changed AI OS Issues, including uncertainty, rationale, model/token usage and measured/estimated cost where applicable. Persist the report **before** enqueueing a bounded, secret-free Telegram message through the existing `services/telegram_service.py`. A durable notification outbox records the event/result digest and delivery state; no-change or already acknowledged results do not resend, and delivery failures never repeat reasoning. At-least-once delivery across the external send/local acknowledgement boundary is documented.
+
+Separately enable a **one-shot** Telegram `/ask` receiver that validates the configured chat and sender, persists the Telegram update ID and source/question context, routes the query to an appropriate **original `agents/*.py` specialist**, enforces a separately approved spend limit, persists the structured answer, then replies through the existing Telegram transport. An unauthorized or replayed update makes no billable call. Do not create another polling timer, silently enable a bot listener or count a direct SDK smoke script as agent integration.
+
+**Minimum real host evidence:** independently verify one bounded, allowlisted GitHub → original agent → `ReasoningService` → persisted report → Telegram message and one authorized Telegram `/ask` → original agent → reply on the Raspberry Pi. Mock the equivalent success/no-change/unauthorized/truncated/provider-failure/replay/Telegram-failure cases first. Running as `codex` never requires sudo or the account's password; host administration stays with `admin`. Keep the existing 585-minute timer and paid-disabled defaults until separately accepted live and scheduled gates.
+
+## Migration and acceptance boundary
+
+1. Review active imports, prompts, configuration, tests, workflows and Markdown for parallel pilot functionality. Remove it from the executable runtime and retire the obsolete [research-to-decision runtime SPEC](RESEARCH_TO_DECISION_SPEC.md), preserving historical human decisions.
+2. Preserve and reconcile every possibly billed or uncertain reservation, stage checkpoint, Issue snapshot and #904 event cursor. Do not reset ledgers or use a new request key to evade an uncertain bill.
+3. Correct `run-agent.sh` (currently invoking nonexistent `agent.py`) to invoke the same `main.py` as systemd; align active runtime documentation.
+4. Deliver the Documentation-agent reasoning slice, then the agent-based Telegram digest and gated `/ask` path. Extend the other original agents only after role-specific evidence, prompts and tests exist.
+5. Verify all original deterministic, #904 enrichment, security, cost, recovery, report and notification regressions on the exact implementation head; obtain independent review and separate Pi live evidence. A SPEC-only PR or successful standalone OpenAI wrapper call is not completion of #924.
 
 ## Current architecture
 
@@ -314,8 +369,8 @@ Automated tests use mocked GitHub, model and Telegram adapters and fixture Issue
 
 **Not in scope:** autonomous GitHub writes, self-directed code execution, PR approval/merge, deployment, unrestricted parallel agents, a second scheduling system, or replacing GitHub with Telegram as the decision record.
 
-Documentation ownership: **`SPEC_Agent_Lead.md`** owns the shared architecture, functional contracts, rollout and acceptance. [OPERATIONS.md](OPERATIONS.md) owns reusable test commands; [MyNode Deployment](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) owns live host installation and systemd verification; [Implementation Project](../../../../../5-Implementation-Projects/Jagports_AI_OS_Lead_Agent_Setup.md) owns rationale and verified prototype evidence. Research findings and source/evidence files belong under the established `7-Research/` semantic root, not next to the Development runtime. A separate Research-to-Decision specification may extend these shared contracts but must not duplicate them.
+Documentation ownership: **`SPEC_Agent_Lead.md`** owns the shared architecture, functional contracts, rollout and acceptance. [OPERATIONS.md](OPERATIONS.md) owns reusable test commands. The [MyNode Deployment and project record](../../../../../3-Deployment/hardware/RaspberryPI/MyNodeBTC/Jagports_Lead_Agent_Installation.md) owns host installation, project rationale, operator evidence, and systemd verification. Research findings and source/evidence files belong under the established `7-Research/` semantic root, not next to the Development runtime. A separate Research-to-Decision specification may extend these shared contracts but must not duplicate them.
 
 ## Authority and related engineering specifications
 
-Apply the canonical [Management workflow](../../../../../00-Management/WORKFLOWS.md), [Management rules](../../../../../00-Management/RULES.md), [Agent role definitions](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) and [communication protocol](../../../../../0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md). The Research-to-Decision extension, once separately reviewed and merged, consumes the shared interfaces here and owns only its multi-role evidence, hand-off and acceptance requirements.
+Apply the canonical [Management workflow](../../../../../0-DocumentationEducationCompetense/WORKFLOWS.md), [Management rules](../../../../../00-Management/RULES.md), [Agent role definitions](../../../../../0-DocumentationEducationCompetense/agents/AGENT_ROLES.md) and [communication protocol](../../../../../0-DocumentationEducationCompetense/COMMUNICATION_PROTOCOL.md). The Research-to-Decision extension, once separately reviewed and merged, consumes the shared interfaces here and owns only its multi-role evidence, hand-off and acceptance requirements.

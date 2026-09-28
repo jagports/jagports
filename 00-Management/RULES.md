@@ -2,9 +2,9 @@
 
 ## Purpose and Authority
 
-This file defines high-level human governance for Jagports AI OS. The detailed Management workflows are defined **only** in [`00-Management/WORKFLOWS.md`](WORKFLOWS.md).
+This file defines high-level human governance for Jagports AI OS. The detailed Management workflows are defined **only** in [`0-DocumentationEducationCompetense/WORKFLOWS.md`](../0-DocumentationEducationCompetense/WORKFLOWS.md).
 
-`WORKFLOWS.md` is the canonical normative source for:
+`0-DocumentationEducationCompetense/WORKFLOWS.md` is the canonical normative source for:
 
 - workflow states and transitions;
 - work-request and historical-work discovery;
@@ -40,19 +40,19 @@ A Project Item's Status is not a property of the Project itself. Project operati
 
 ### Human review hand-off
 
-When review is required, GitHub's native PR reviewer request/notification is used; no separate "Waiting for Review" PR status is created. See `WORKFLOWS.md` for the implementation flow.
+When review is required, GitHub's native PR reviewer request/notification is used; no separate "Waiting for Review" PR status is created. See `0-DocumentationEducationCompetense/WORKFLOWS.md` for the implementation flow.
 
 ### Review authority
 
-Reviewer-owned review concerns remain under that reviewer's resolution authority whether they are raised through visible PR discussion before formal review submission or through comments associated with a submitted review. Executors, PR authors, and other non-reviewers must not resolve those concerns on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined in `WORKFLOWS.md`.
+Reviewer-owned review concerns remain under that reviewer's resolution authority whether they are raised through visible PR discussion before formal review submission or through comments associated with a submitted review. Executors, PR authors, and other non-reviewers must not resolve those concerns on the reviewer's behalf. A repository/project owner or other explicitly designated human authority may resolve them only under the human-authority exception defined in `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
-A GitHub `PENDING` review is a reviewer-private draft until submission. Line-level and file-level comments created through the normal pending-review flow remain private until submission; their line/file anchoring alone does not make them immediately visible. When reviewer↔maker interaction is required before the formal review outcome, use an immediately visible channel defined by `WORKFLOWS.md`: a standalone submitted PR review comment when direct anchored submission is supported, otherwise a top-level PR Conversation comment with explicit file/line links. A discussion becoming `outdated` because the referenced diff changed is not by itself acceptance or semantic resolution of the underlying concern.
+A GitHub `PENDING` review is a reviewer-private draft until submission. Line-level and file-level comments created through the normal pending-review flow remain private until submission; their line/file anchoring alone does not make them immediately visible. When reviewer↔maker interaction is required before the formal review outcome, use an immediately visible channel defined by `0-DocumentationEducationCompetense/WORKFLOWS.md`: a standalone submitted PR review comment when direct anchored submission is supported, otherwise a top-level PR Conversation comment with explicit file/line links. A discussion becoming `outdated` because the referenced diff changed is not by itself acceptance or semantic resolution of the underlying concern.
 
 ### Record integrity
 
 Closed Issues and merged PRs remain GitHub records and must not have their descriptions or comments modified. Their historical content is not copied into current repository documents merely for archival purposes.
 
-New information should normally be recorded chronologically as a new Issue or PR comment rather than by rewriting existing historical narrative. The current PR-creation traceability exception permits `Will Be Fixed By #<PR>` to be added to a still-open implementing Issue, with the same reference also recorded as a new Issue comment. The detailed conditions and workflow handling for this exception are governed by `WORKFLOWS.md`.
+New information should normally be recorded chronologically as a new Issue or PR comment rather than by rewriting existing historical narrative. The current PR-creation traceability exception permits `Will Be Fixed By #<PR>` to be added to a still-open implementing Issue, with the same reference also recorded as a new Issue comment. The detailed conditions and workflow handling for this exception are governed by `0-DocumentationEducationCompetense/WORKFLOWS.md`.
 
 An open Issue or open PR may have its title changed when scope materially changes. GitHub records such changes as `renamed` timeline events, preserving the prior title. Cosmetic title changes should be avoided.
 
@@ -77,13 +77,13 @@ The following official GitHub documentation is the external technical reference 
 - [Commenting on a pull request](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request)
 - [Reviewing proposed changes in a pull request](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request)
 
-These references describe GitHub's technical capabilities and collaboration model. They do **not** replace or override Jagports Management rules; `00-Management/RULES.md` remains the project's human governance authority, while `00-Management/WORKFLOWS.md` remains the canonical normative workflow authority.
+These references describe GitHub's technical capabilities and collaboration model. They do **not** replace or override Jagports Management rules; `00-Management/RULES.md` remains the project's human governance authority, while `0-DocumentationEducationCompetense/WORKFLOWS.md` remains the canonical normative workflow authority.
 
 ## Document Responsibilities
 
 | Document | Responsibility |
 |---|---|
-| `00-Management/WORKFLOWS.md` | Canonical normative Management workflows. |
+| `0-DocumentationEducationCompetense/WORKFLOWS.md` | Canonical normative Management workflows. |
 | `00-Management/RULES.md` | Human governance, rationale, and document authority. |
 | `00-Management/RULES_i18n.md` | Canonical VIEPS i18n contributor/governance rules. |
 | `SKILL.md` | Machine/agent execution instructions that implement/reference the canonical workflows. |
@@ -92,12 +92,12 @@ These references describe GitHub's technical capabilities and collaboration mode
 
 ## Conflict Rule
 
-If a secondary document conflicts with `WORKFLOWS.md`, the canonical workflow takes precedence. The secondary document must be corrected rather than treated as an alternative workflow authority.
+If a secondary document conflicts with `0-DocumentationEducationCompetense/WORKFLOWS.md`, the canonical workflow takes precedence. The secondary document must be corrected rather than treated as an alternative workflow authority.
 
-If a secondary document conflicts with `WORKFLOWS.md`, an Issue must be raised to correct the conflict rather than silently accepting or bypassing the contradiction.
+If a secondary document conflicts with `0-DocumentationEducationCompetense/WORKFLOWS.md`, an Issue must be raised to correct the conflict rather than silently accepting or bypassing the contradiction.
 
 If the canonical workflow itself is ambiguous or internally contradictory, stop the affected decision and obtain the required clarification/decision before proceeding.
 
 ## Scope of this file
 
-`RULES.md` intentionally does **not** reproduce the Management decision chart or detailed state-machine rules. Those belong in `WORKFLOWS.md` so that humans and agents use one authoritative definition.
+`RULES.md` intentionally does **not** reproduce the Management decision chart or detailed state-machine rules. Those belong in `0-DocumentationEducationCompetense/WORKFLOWS.md` so that humans and agents use one authoritative definition.

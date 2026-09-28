@@ -1,6 +1,6 @@
 # Project Research Workflow
 
-This file contains the reusable visual explanation for the research-to-implementation process. It belongs with implementation-project knowledge rather than the repository-wide knowledge index.
+This file contains the reusable visual explanation for the research-to-implementation process. It is the scoped, visual research-to-implementation explanation incorporated by reference from the canonical Management workflows; it does not redefine Management approval, review, or merge rules.
 
 ```text
 Research

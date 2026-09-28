@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isAuthorized, text } from "../src/index.js";
+import { isAuthorized, text } from "../js/vieps-worker.js";
 
 test("text normalizes string input and rejects non-strings", () => {
   assert.equal(text("  X100  "), "X100");

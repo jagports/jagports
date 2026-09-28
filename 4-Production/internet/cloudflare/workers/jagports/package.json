@@ -6,10 +6,11 @@
   "scripts": {
     "build:css": "tailwindcss -i ./styles/vieps-tailwind.css -o ./public/vieps-tailwind.css --minify",
     "build:i18n": "node ./scripts/build-i18n-assets.mjs",
+    "build:js": "node ./scripts/build-js-assets.mjs",
     "verify:generated-assets": "node ./scripts/verify-generated-assets.mjs",
     "verify:deployed-assets": "node ./scripts/verify-deployed-assets.mjs",
-    "build": "npm run build:i18n && npm run build:css && npm run verify:generated-assets",
-    "test": "node --test tests/*.mjs",
+    "build": "npm run build:i18n && npm run build:js && npm run build:css && npm run verify:generated-assets",
+    "test": "node --test --test-timeout=60000 tests/*.mjs",
     "test:runtime": "node --test tests/vieps-runtime-e2e.mjs",
     "dev": "npm run build && wrangler dev",
     "deploy": "npm run build && wrangler deploy"
