@@ -36,15 +36,15 @@ Required presentation:
 The **Parts Tree** heading is a real, keyboard-accessible link that resets tree navigation to the root browse state. Activating it:
 
 - displays only evidenced first-level catalogue branches, with deeper branches collapsed and no active underline;
-- clears the active tree/category/PART selection, search input, dependent PART details and related `part`, `tree` and `candidate_id` deep-link parameters while retaining unrelated URL parameters;
-- retains the current Stock checkbox and requests roots using that existing availability constraint; never claims filtering is supported where the API reports it unsupported;
+- clears the active tree/category/PART selection, Find input, dependent PART details and related `part`, `tree` and `candidate_id` deep-link parameters while retaining unrelated URL parameters **and independently active FIT, Applicable Models, VIN and Stock filters**;
+- retains current Stock, FIT, Applicable Models and VIN constraints and requests filtered roots using only supported backed filtering; never claims filtering is supported where the API reports it unsupported;
 - invalidates outstanding browse/search responses so an obsolete result cannot repopulate the tree after reset;
 - uses existing root loading, empty, unavailable and error states rather than introducing a second reset implementation.
 
 The link remains usable with mouse, keyboard or touch on desktop and mobile. Ordinary category hyperlinks continue navigating to the selected branch.
 
 ## Empty-search / browse state
-Initial load without a deep link, explicit search clearing and empty/whitespace-only submission enter the same root browse state: available first-level/root categories remain visible, descendants are collapsed, and no category, occurrence or PART is selected or underlined. Clear removes previous query candidates, match highlights and selected-path expansion; it must not leave the permanent tree at a no-selection placeholder when roots are available.
+Initial load without a deep link, explicit **Find** clearing and empty/whitespace-only submission enter the same filtered root browse state **for the same active independent constraints**: evidenced first-level/root categories remain visible, descendants are collapsed, and no category, occurrence or PART is selected or underlined. Clear removes previous query candidates, match highlights and selected-path expansion; it must not leave the permanent tree at a no-selection placeholder when roots are available.
 
 The complete event, URL, stock-filter and request-invalidation contract is defined in [Part Search](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition). An empty input while browsing a selected category does not alone mean the user has cleared that category; an explicit clear or empty submit does.
 
@@ -61,6 +61,18 @@ Concept-11v1 permits a supported stock constraint to narrow roots and Applicable
 
 UI locale changes preserve root/category browse state, expansion, stable selection and stock setting even when no PART is selected. Parts/catalogue-language changes use the selected source tree and preserve context only through evidenced identity/mapping; see [Part Search language switching](../SPEC/UI_Part_Search.md#language-switching-in-browse-mode).
 
+## Search-derived branches, manual focus and exclusion exceptions (2026-09-28)
+
+The coordinated search/filter interaction authority is [Part Search](../SPEC/UI_Part_Search.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28). Branch availability reflects **normally matching** PARTs under the current supported Find, VIN, Stock, FIT and Applicable Models constraints; a node with no normally matching descendants is not offered merely because it exists elsewhere in the catalogue. This is a filter-aware view, not deletion of source nodes or PART occurrences.
+
+- A visible branch is both an indicator of matching descendants and a selectable browse constraint. Selecting a branch does not select any individual PART, and preserves Find and other independently active filters. Other matching branches remain visible and selectable; do not collapse them merely because the user navigated elsewhere.
+- A **manually selected branch** remains selected while it still contains matching PARTs. Valid existing expansion is preserved as filters change. Previously collapsed branches remain collapsed, even if newly matching; branches with no normal matches disappear. If a selected branch loses every match while other branches still match, select **and expand** their deepest common surviving branch. The deepest-common rule never overrides a valid manually selected branch and does not count warned/excluded retained PARTs.
+- Selecting a PART leaf opens the single Selected PART detail and preserves **all currently expanded matching branches**. FIT and Applicable Models become read-only. Selecting a result row does not invent an occurrence path when several real paths exist.
+- Clearing Find is a distinct transition: deselect the PART, preserve separately active FIT/Range/VIN/Stock constraints and return the current filtered root index to a **collapsed** state. A mere change of FIT/Range/VIN/Stock is **not** an instruction to collapse the tree.
+- When no normal PART matches, retain the **last selected branch** and its expansion as an explicitly warned no-matches context, even though ordinary unmatched branches are otherwise suppressed. If results return and the last manually selected branch qualifies again, restore it and its valid expansion.
+- If Stock excludes the currently selected PART, remove it from **normal Search Results**; keep its warned selected-detail context and, while its parent branch still contains normal matches, its warned tree occurrence. A previously selected Stock-excluded PART may remain in such a branch even after another PART is selected. Remove these exceptions when parent branches lose all normally matching PARTs; if the selected PART's branch disappears, deselect it. FIT, model-range or Find exclusion instead deselects the PART and removes it from normal filtered tree/results. Retained Stock exceptions never contribute to normal filter options, result counts or deepest-common selection.
+- Keep source-qualified occurrence paths and canonical PART identities distinct. A PART can occur beneath several evidenced branches; expand or retain only supported real source paths, never an inferred synthetic common path.
+
 ## Selection and expansion
 - Resolved occurrence/item is visibly selected.
 - Selection exposes stable occurrence/item identity to Main View.
@@ -73,10 +85,10 @@ UI locale changes preserve root/category browse state, expansion, stable selecti
 
 **Render one identity-keyed hierarchy, not independent `root → leaf` lists.** Build the visible tree by combining supplied path ancestors into shared branches keyed by stable `part_tree_node.id` (and its source-qualified identity where necessary). A shared ancestor appears only once; visually identical labels are not grounds for merging distinct source nodes. Re-selecting a child updates expansion and the active path instead of appending a second copy of the same ancestor.
 
-- **No selected node:** present available first-level/root branches, collapsed by default. Never invent missing roots.
+- **No selected node:** present first-level/root branches with normally matching descendants under active supported filters, collapsed by default; on initial empty-Find browse use all supported browsable PARTs. Never invent missing roots.
 - **Category selected:** retain the first-level/root index, show its complete ancestry expanded, and reveal its available *immediate* child branches. Deeper unrelated descendants remain collapsed.
 - **PART selected:** retain the root index, expand the complete chosen source occurrence path, and display the selected PART identity/name as the terminal leaf below its evidenced parent. An identical canonical PART in another real EPC occurrence may have its own leaf in that other occurrence path without creating another canonical PART.
-- **Multiple PART candidates / search hits:** render all required matching paths and their ancestor branches in the same deduplicated hierarchy, with matching PARTs as clickable terminal leaves. Do not guess a selected PART or expand unrelated non-matching descendants. `PART / Image / Status` remains in its no-selection/context state until the user selects one PART, while exact single-result resolution may select its PART under the established Part Search contract.
+- **Multiple PART candidates / search hits:** render matching paths and their ancestors in the same deduplicated hierarchy, with matching PARTs as clickable terminal leaves. Preserve existing valid expansions and manually selected matching branch; do not auto-expand formerly collapsed branches on a filter change, except when selecting and expanding a replacement deepest-common branch after the old active branch loses all matches. Do not guess a PART selection. `PART / Image / Status` remains in its no-selection/context state until the user selects one PART, while exact single-result resolution may select its PART under the established Part Search contract.
 - **Selection change and direct URLs:** whether entry is a click, identifier/free-text result, or `?tree=<id>` deep link, restore root index plus the full selected path; do not render only the clicked local subtree. Where PART and occurrence/tree context are known, preserve both across navigation and direct links without substituting a label for identity.
 - **Unavailable evidence:** if the API has no root index, complete ancestry, or reliable parent/occurrence relationship, expose that part of the hierarchy as unavailable. Never manufacture an ancestor, attach a PART to a guessed branch, or treat a missing tree link as missing PART.
 
