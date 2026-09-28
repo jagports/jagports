@@ -80,14 +80,14 @@ test('coordinated MVP flow keeps canonical PART through tree, suitable Range, va
   assert.match(ui.get('locationStatus').textContent, /unavailable/i);
 });
 
-test('variation panel distinguishes confirmed no-match from unavailable applicability', async (t) => {
+test('FIT panel distinguishes confirmed no-match from unavailable FIT evidence', async (t) => {
   const { ui } = productionPath(t);
 
   await ui.search('MNA7691AA');
   assert.match(ui.get('rangeEvidence').innerHTML, /No applicable variation matches the selected PART\/context/);
 
   await ui.search('XR847031');
-  assert.match(ui.get('rangeEvidence').innerHTML, /Variation applicability data is unavailable/);
+  assert.match(ui.get('rangeEvidence').innerHTML, /Vehicle FIT evidence is unavailable/);
 });
 
 test('public stock-only filter distinguishes stocked PARTs from stock-filtered empty results', async (t) => {
