@@ -33,7 +33,7 @@ The **Parts Tree** heading is a real, keyboard-accessible link that resets tree 
 - clears the active tree/category/PART selection, Find input, dependent PART details and related `part`, `tree` and `candidate_id` deep-link parameters while retaining unrelated URL parameters **and independently active FIT, Applicable Models, VIN and Stock filters**;
 - retains current Stock, FIT, Applicable Models and VIN constraints and requests filtered roots using only supported backed filtering; never claims filtering is supported where the API reports it unsupported;
 - invalidates outstanding browse/search responses so an obsolete result cannot repopulate the tree after reset;
-- uses existing root loading, empty, unavailable and error states rather than introducing a second reset implementation.
+- uses one shared root loading, empty, unavailable and error-state contract.
 
 The link remains usable with mouse, keyboard or touch on desktop and mobile. Ordinary category hyperlinks continue navigating to the selected branch.
 
@@ -51,7 +51,7 @@ Root reads may be fetched or restored from valid data for the current stock cons
 - **Unavailable/unsupported:** missing root evidence or unsupported stock browsing remains explicit; it is not no PART, zero stock or a confirmed empty catalogue.
 - **Error:** show the current browse failure distinctly from unavailable/empty and finish current loading; an obsolete request must not overwrite a newer state.
 
-Concept-11v1 permits a supported stock constraint to narrow roots and Applicable Models only through approved canonical PART/catalogue/fitment relationships. Preserve the current stock setting through clear; do not silently disable it or simulate quality filtering. Valid browse-derived Applicable Models are filter context, not residual selected-PART facts.
+A supported stock constraint may narrow roots and Applicable Models only through approved canonical PART/catalogue/fitment relationships. Preserve the current stock setting through clear; do not silently disable it or simulate quality filtering. Valid browse-derived Applicable Models are filter context, not residual selected-PART facts.
 
 UI locale changes preserve root/category browse state, expansion, stable selection and stock setting even when no PART is selected. Parts/catalogue-language changes use the selected source tree and preserve context only through evidenced identity/mapping; see [Part Search language switching](SPEC_SEARCH.md#language-switching-in-browse-mode).
 
@@ -102,7 +102,7 @@ The tree and right-hand Search Results PN/name list are **two views of the same 
 
 ## Clickable node navigation and tree entry path
 - Every visible tree node that has a stable `part_tree_node.id` is rendered as a real hyperlink. A styled text node or JavaScript-only click target is not sufficient.
-- The hyperlink target preserves the selected tree-node identity so the same catalogue context can be opened directly or reloaded. The current runtime uses `?tree=<part_tree_node.id>`; the broader URL-state design may later be generalized by the deep-link contract without changing tree-node identity.
+- The hyperlink target preserves the selected tree-node identity so the same catalogue context can be opened directly or reloaded. Tree-node links use `?tree=<part_tree_node.id>` and must preserve that stable tree-node identity.
 - Human-readable labels are presentation/source data, never tree-node identity. A node without a stable identity remains non-clickable rather than receiving an invented target.
 - Selecting a tree node enters browse mode over that node and its descendants using the approved `part_tree_part` browse relationship. This yields canonical PART candidates; it does not create PART identities and does not evaluate vehicle fit.
 - Tree browsing returns direct child nodes so navigation may continue deeper without rebuilding a parallel tree model.
@@ -126,7 +126,7 @@ PartsTreeBrowseResult
   unavailable/error information
 ```
 
-The existing PART-resolution response keeps `path[]` label compatibility and additionally supplies stable node identity for every path segment when available, so presentation can emit genuine node hyperlinks.
+The PART-resolution response supplies `path[]` labels and stable node identity for every path segment when available, so presentation can emit genuine node hyperlinks.
 
 The fields above are logical read-contract requirements, not a mandate for a new table or one specific endpoint shape. If current `/api/vieps/tree` or PART-resolution payloads omit root index or evidenced PART-leaf placement, extend or compose approved reads before claiming the corresponding UI behavior; never reconstruct source identities from label strings.
 
