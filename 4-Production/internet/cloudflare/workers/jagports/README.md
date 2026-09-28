@@ -33,10 +33,10 @@ Public Internet
       v
 Cloudflare Worker: vieps (pre-production)
       |-- operational stock and TEST=1 fixture catalogue --> D1: jagports
-      `-- real JEPC catalogue by reviewed Range slug --> D1 parts-<range_slug>
+      `-- real JEPC catalogue by reviewed Range slug --> D1 jagports-<range_slug>
 ```
 
-`?TEST=1` and `?test=1` (case-insensitive parameter name; value exactly `1`) activate synthetic catalogue and Suitability fixtures without an environment feature flag. Search results, Parts Tree and Admin part lookup preserve this selection; conflicting duplicate TEST parameters are treated as real mode, never as an implicit fixture opt-in. The Suitability endpoint uses the existing source-qualified D1 test mappings when available, or its clearly marked, embedded synthetic fallback linked only to existing fixture PARTs. Normal URLs use the reviewed real Range D1 through `js/vieps-parts.js`; absent Range bindings produce a real-catalogue error, whereas a bound Range with no verified normalized JEPC suitability produces a distinct missing-Suitability error. A real PART catalogue and its verified Suitability data are different publication requirements: real mode must use verified source-qualified mappings when present and must never fall back to test data.
+`?TEST=1` and `?test=1` (case-insensitive parameter name; value exactly `1`) activate synthetic catalogue and Suitability fixtures without an environment feature flag. Search results, Parts Tree and Admin part lookup preserve this selection; conflicting duplicate TEST parameters are treated as real mode, never as an implicit fixture opt-in. The Suitability endpoint uses the existing source-qualified D1 test mappings when available, or its clearly marked, embedded synthetic fallback linked only to existing fixture PARTs. Normal URLs use the reviewed real Range D1 through `js/vieps-parts.js`; absent Range bindings produce a real-catalogue error, whereas a bound Range with no verified normalized JEPC suitability produces a distinct missing-Suitability error. An imported PART catalogue and verified Suitability data have separate readiness requirements: real mode must use verified source-qualified mappings when present and must never fall back to test data.
 
 The later production Worker identity is `jagports`. It is reserved for the production phase and is not established by this pre-production configuration.
 
