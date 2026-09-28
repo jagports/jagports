@@ -102,7 +102,7 @@ async function localServer() {
       }));
       return;
     }
-    if (pathname === "/api/vieps/suitability") {
+    if ((pathname === "/api/vieps/fit" || pathname === "/api/vieps/suitability")) {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify(browserSuitabilityResponse(
         new URL(request.url, "http://localhost").searchParams)));
