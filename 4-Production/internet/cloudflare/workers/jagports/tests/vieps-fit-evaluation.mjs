@@ -56,7 +56,7 @@ function productionPath(t) {
 
 async function api(env, partNumber) {
   const response = await handleViepsPart(
-    new Request(`https://example.test/api/vieps/part?q=${encodeURIComponent(partNumber)}`),
+    new Request(`https://example.test/api/part?q=${encodeURIComponent(partNumber)}`),
     env,
   );
   assert.equal(response.status, 200);

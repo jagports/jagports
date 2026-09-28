@@ -54,7 +54,7 @@ The rule is therefore based on **path depth plus architectural justification**, 
 This repository-directory rule does not rename or prohibit legitimate runtime identifiers such as:
 
 - Worker name `vieps`;
-- `/api/vieps/...` routes;
+- `/api/...` routes;
 - DNS hostnames containing `vieps`;
 - database/resource names containing `vieps`;
 - configuration or content identifiers containing `vieps`.

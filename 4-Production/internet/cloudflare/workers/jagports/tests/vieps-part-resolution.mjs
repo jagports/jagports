@@ -38,7 +38,7 @@ function makeDb({ part = null, parts = null, occurrences = [], tree = [], images
 
 test("empty part-number query is explicit", async () => {
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q="),
+    new Request("https://example.test/api/part?q="),
     { DB: makeDb() },
   );
   assert.equal(response.status, 400);
@@ -47,7 +47,7 @@ test("empty part-number query is explicit", async () => {
 
 test("punctuation-only query is treated as searchable text and may return not-found", async () => {
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=---"),
+    new Request("https://example.test/api/part?q=---"),
     { DB: makeDb() },
   );
   assert.equal(response.status, 404);
@@ -56,7 +56,7 @@ test("punctuation-only query is treated as searchable text and may return not-fo
 
 test("unknown part is an explicit not-found response", async () => {
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=NOT-A-REAL-PART"),
+    new Request("https://example.test/api/part?q=NOT-A-REAL-PART"),
     { DB: makeDb() },
   );
   assert.equal(response.status, 404);
@@ -78,7 +78,7 @@ test("part search SQL supports case-insensitive exact and partial part-number ma
   };
 
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=mjb 7703-aa"),
+    new Request("https://example.test/api/part?q=mjb 7703-aa"),
     {
       DB: makeDb({
         part,
@@ -139,7 +139,7 @@ test("resolved PART returns canonical identity and occurrence context without du
     notes: "Synthetic demo stock value; not real Jagports inventory evidence.",
   }];
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=mjb 7703-aa"),
+    new Request("https://example.test/api/part?q=mjb 7703-aa"),
     { DB: makeDb({ part, occurrences, stock }) },
   );
   assert.equal(response.status, 200);
@@ -168,7 +168,7 @@ test("partial part-number input with one candidate resolves the canonical PART",
   };
 
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=7691"),
+    new Request("https://example.test/api/part?q=7691"),
     { DB: makeDb({ parts: [part] }) },
   );
 
@@ -201,7 +201,7 @@ test("partial part-number input with multiple candidates returns a multiple-matc
   ];
 
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=mna7691"),
+    new Request("https://example.test/api/part?q=mna7691"),
     { DB: makeDb({ parts }) },
   );
 
@@ -222,11 +222,11 @@ test("explicit candidate selection stays within current search candidates and do
       description: "Related fixture label", source: "fixture", verification_status: "fixture" },
   ];
   const db = { DB: makeDb({ parts }) };
-  const initial = await handleViepsPart(new Request("https://example.test/api/vieps/part?q=mna7691"), db);
+  const initial = await handleViepsPart(new Request("https://example.test/api/part?q=mna7691"), db);
   assert.equal((await initial.json()).state, "multiple_match");
 
   const selected = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=mna7691&candidate_id=9"), db);
+    new Request("https://example.test/api/part?q=mna7691&candidate_id=9"), db);
   assert.equal(selected.status, 200);
   const resolved = await selected.json();
   assert.equal(resolved.state, "resolved");
@@ -236,12 +236,12 @@ test("explicit candidate selection stays within current search candidates and do
   assert.deepEqual(resolved.parts_tree, []);
 
   const notCandidate = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=mna7691&candidate_id=10"), db);
+    new Request("https://example.test/api/part?q=mna7691&candidate_id=10"), db);
   assert.equal(notCandidate.status, 404);
   assert.equal((await notCandidate.json()).error_code, "candidate_not_found");
 
   const invalid = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=mna7691&candidate_id=9%20OR%201"), db);
+    new Request("https://example.test/api/part?q=mna7691&candidate_id=9%20OR%201"), db);
   assert.equal(invalid.status, 400);
   assert.equal((await invalid.json()).error_code, "candidate_id_invalid");
 });
@@ -254,7 +254,7 @@ test("candidate selection cannot bypass the existing positive-quantity stock eli
       description: "Unavailable", source: "fixture", verification_status: "fixture", has_available_stock: 0 },
   ];
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=abc&stock_only=1&candidate_id=13"),
+    new Request("https://example.test/api/part?q=abc&stock_only=1&candidate_id=13"),
     { DB: makeDb({ parts }) });
   assert.equal(response.status, 404);
   assert.equal((await response.json()).error_code, "candidate_not_found");
@@ -282,7 +282,7 @@ test("stock-only filter is explicit and preserves canonical PART identity", asyn
   };
 
   const stockedResponse = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=ABC123&stock_only=1"),
+    new Request("https://example.test/api/part?q=ABC123&stock_only=1"),
     { DB: makeDb({ parts: [stocked] }) },
   );
   assert.equal(stockedResponse.status, 200);
@@ -291,14 +291,14 @@ test("stock-only filter is explicit and preserves canonical PART identity", asyn
   assert.equal(stockedData.part.has_available_stock, undefined);
 
   const filteredResponse = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=ABC124&stock_only=1"),
+    new Request("https://example.test/api/part?q=ABC124&stock_only=1"),
     { DB: makeDb({ parts: [unavailable] }) },
   );
   assert.equal(filteredResponse.status, 404);
   assert.equal((await filteredResponse.json()).error_code, "stock_filter_no_match");
 
   const unfilteredResponse = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=ABC124"),
+    new Request("https://example.test/api/part?q=ABC124"),
     { DB: makeDb({ parts: [unavailable] }) },
   );
   assert.equal(unfilteredResponse.status, 200);
@@ -307,7 +307,7 @@ test("stock-only filter is explicit and preserves canonical PART identity", asyn
 
 test("invalid stock-only filter is rejected explicitly", async () => {
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=ABC123&stock_only=yes"),
+    new Request("https://example.test/api/part?q=ABC123&stock_only=yes"),
     { DB: makeDb() },
   );
   assert.equal(response.status, 400);
@@ -327,7 +327,7 @@ test("resolved PART stock query preserves DB-specified stock columns", async () 
   };
 
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=MJB7703AA"),
+    new Request("https://example.test/api/part?q=MJB7703AA"),
     { DB: makeDb({ part, onPrepare: (sql) => preparedSql.push(sql) }) },
   );
 
@@ -341,7 +341,7 @@ test("resolved PART stock query preserves DB-specified stock columns", async () 
 
 test("non-GET requests are rejected", async () => {
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=MJB7703AA", { method: "POST" }),
+    new Request("https://example.test/api/part?q=MJB7703AA", { method: "POST" }),
     { DB: makeDb() },
   );
   assert.equal(response.status, 405);

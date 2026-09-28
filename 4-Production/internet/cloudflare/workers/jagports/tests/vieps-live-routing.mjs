@@ -1,22 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { liveRangeDatabase } from '../js/vieps-parts.js';
-import { handleApi } from '../js/vieps-worker.js';
+import { liveRangeDatabase } from '../js/parts.js';
+import { handleApi } from '../js/worker.js';
 import { database, d1 } from './helpers/model-db.mjs';
 
 test('real routing uses a reviewed Range binding and never falls back to fixture DB', () => {
   const fixture = { name: 'fixture' }, xk = { name: 'xk' };
   const env = { DB: fixture, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: xk };
-  assert.equal(liveRangeDatabase(new URL('https://example.test/api/vieps/tree'), env).db, xk);
-  assert.throws(() => liveRangeDatabase(new URL('https://example.test/api/vieps/tree'),
+  assert.equal(liveRangeDatabase(new URL('https://example.test/api/tree'), env).db, xk);
+  assert.throws(() => liveRangeDatabase(new URL('https://example.test/api/tree'),
     { ...env, RANGE_XK: undefined }), error => error.code === 'range_unavailable');
 });
 
 test('multiple real Ranges fail visibly until global index is available', () => {
   const env = { DB: {}, RANGE_BINDINGS: '{"xk":"RANGE_XK","xj":"RANGE_XJ"}',
     RANGE_XK: { name: 'xk' }, RANGE_XJ: { name: 'xj' } };
-  for (const url of ['https://example.test/api/vieps/part?q=ABC',
-    'https://example.test/api/vieps/part?q=ABC&range=xj']) {
+  for (const url of ['https://example.test/api/part?q=ABC',
+    'https://example.test/api/part?q=ABC&range=xj']) {
     assert.throws(() => liveRangeDatabase(new URL(url), env),
       error => error.code === 'range_unavailable' && error.status === 503);
   }
@@ -24,7 +24,7 @@ test('multiple real Ranges fail visibly until global index is available', () => 
 
 test('a single Range does not accept an unsupported per-request selector', () => {
   const env = { DB: {}, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: {} };
-  assert.throws(() => liveRangeDatabase(new URL('https://example.test/api/vieps/part?range=xj'), env),
+  assert.throws(() => liveRangeDatabase(new URL('https://example.test/api/part?range=xj'), env),
     error => error.code === 'range_unavailable');
 });
 
@@ -33,7 +33,7 @@ test('real mode returns an explicit error rather than publishing available synth
   const range = d1(db);
   const env = { DB: range, RANGE_BINDINGS: '{"xk":"RANGE_XK"}', RANGE_XK: range };
   const response = await handleApi(new Request(
-    'https://test.example/api/vieps/fit'), env);
+    'https://test.example/api/fit'), env);
   assert.equal(response.status, 503);
   const body = await response.json();
   assert.equal(body.state, 'error');
@@ -43,7 +43,7 @@ test('real mode returns an explicit error rather than publishing available synth
   assert.deepEqual(body.categories, []);
   assert.deepEqual(body.matches, []);
   const fixture = await handleApi(new Request(
-    'https://test.example/api/vieps/fit?TEST=1'), env);
+    'https://test.example/api/fit?TEST=1'), env);
   assert.equal(fixture.status, 200);
   const fixtureBody = await fixture.json();
   assert.equal(fixtureBody.fixture_mode, true);
@@ -54,7 +54,7 @@ test('real mode returns an explicit error rather than publishing available synth
 test('real mode with an unbound Range fails rather than reading the fixture D1', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   await assert.rejects(() => handleApi(new Request(
-    'https://test.example/api/vieps/fit'), { DB: d1(db) }),
+    'https://test.example/api/fit'), { DB: d1(db) }),
   error => error.status === 503 && error.code === 'range_unavailable');
 });
 
@@ -64,19 +64,19 @@ test('case-insensitive TEST URL enables fixtures on Web APIs and does not depend
   for (const key of ['TEST', 'test', 'TeSt']) {
     const query = key + '=1';
     const fit = await handleApi(new Request(
-      'https://test.example/api/vieps/fit?' + query), env);
+      'https://test.example/api/fit?' + query), env);
     assert.equal(fit.status, 200, query);
     const body = await fit.json();
     assert.equal(body.fixture_mode, true, query);
     assert.equal(body.categories.length, 4, query);
     assert.equal(body.categories.flatMap(category => category.values).length, 8, query);
     const parts = await handleApi(new Request(
-      'https://test.example/api/vieps/part?q=MJB7703AA&' + query), env);
+      'https://test.example/api/part?q=MJB7703AA&' + query), env);
     assert.equal(parts.status, 200, query);
     const part = await parts.json();
     assert.equal(part.part?.part_number_normalized, 'MJB7703AA', query);
     const tree = await handleApi(new Request(
-      'https://test.example/api/vieps/tree?root=1&' + query), env);
+      'https://test.example/api/tree?root=1&' + query), env);
     assert.equal(tree.status, 200, query);
   }
 });
@@ -86,7 +86,7 @@ test('missing or conflicting TEST URL flags never expose fixture data', async (t
   const env = { DB: d1(db) };
   for (const flags of ['', '?TEST=0', '?test=2', '?TEST=1&test=0', '?test=1&TEST=1']) {
     await assert.rejects(() => handleApi(new Request(
-      'https://test.example/api/vieps/fit' + flags), env),
+      'https://test.example/api/fit' + flags), env),
     error => error.status === 503 && error.code === 'range_unavailable',
     'unbound real Range must reject URL flags: ' + flags);
   }
@@ -96,7 +96,7 @@ test('missing or conflicting TEST URL flags never expose fixture data', async (t
 test('#976 FIT route remains canonical', async (t) => {
   const db = database({ fixtures: false }); t.after(() => db.close());
   const env = { DB: d1(db) };
-  const response = await handleApi(new Request('https://test.example/api/vieps/fit?TEST=1'), env);
+  const response = await handleApi(new Request('https://test.example/api/fit?TEST=1'), env);
   assert.equal(response.status, 200);
   const data = await response.json();
   assert.equal(data.fixture_mode, true);

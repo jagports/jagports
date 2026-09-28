@@ -1,6 +1,6 @@
 // Source-qualified normalized Fit reader (#641/#877). TEST=1 uses only
 // fixture rows; real mode reads only independently reviewed JEPC occurrence evidence
-// from the Range D1 selected by vieps-parts.js. No free-text inference or fallback.
+// from the Range D1 selected by parts.js. No free-text inference or fallback.
 const SOURCE = 'fixture:pre-jepc-suitability:v1';
 const send = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'content-type': 'application/json; charset=utf-8' },
@@ -179,7 +179,7 @@ export async function handleViepsFit(request, env) {
   return readFit(request, env.DB, { fixtureMode: true });
 }
 
-// Called only by vieps-parts.js, after that module has selected and checked a
+// Called only by parts.js, after that module has selected and checked a
 // real Range D1 binding; operational stock is resolved separately by part number.
 export async function handleVerifiedFit(request, rangeDb, hasRealStock, range) {
   return readFit(request, rangeDb, { fixtureMode: false, hasRealStock, range });

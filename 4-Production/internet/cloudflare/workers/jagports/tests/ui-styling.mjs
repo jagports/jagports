@@ -20,12 +20,12 @@ function harness(fetch, { initialSearch = '', rootFetch, fitFetch } = {}) {
   } };
   const routedFetch = (url) => {
     requests.push(url);
-    if (url.startsWith('/api/vieps/fit?')) return fitFetch
+    if (url.startsWith('/api/fit?')) return fitFetch
       ? Promise.resolve(fitFetch(url))
       : Promise.resolve(response({
         state: 'unavailable', fixture_mode: false, categories: [], matches: [],
       }, false));
-    if (url.startsWith('/api/vieps/tree?root=1')) return rootFetch
+    if (url.startsWith('/api/tree?root=1')) return rootFetch
       ? rootFetch(url)
       : Promise.resolve(response({ state: 'root', roots: [
         { node_id: 1, label: 'Suspension', sort_order: 1 },
@@ -87,7 +87,7 @@ function harness(fetch, { initialSearch = '', rootFetch, fitFetch } = {}) {
 
 const response = (data, ok = true) => ({ ok, json: async () => data });
 const catalogueRequests = (requests) => requests.filter((url) =>
-  !url.startsWith('/api/vieps/fit?')); // Existing public API alias retained.
+  !url.startsWith('/api/fit?')); // Existing public API alias retained.
 const fixture = {
   part: { id: 10, part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
   tree_roots: [{ node_id: 1, label: 'Parent', sort_order: 1 }, { node_id: 8, label: 'Body', sort_order: 2 }],
@@ -101,7 +101,7 @@ const fixture = {
 
 test('complete Concept-11 shell exists before search, with no automatic part lookup', () => {
   const ui = harness(() => { throw Error('unexpected part lookup'); });
-  assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
+  assert.equal(ui.requests.filter(url => url.startsWith('/api/part')).length, 0);
   assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
   assert.doesNotMatch(html, /id="result"[^>]*hidden/);
   for (const region of ['tree', 'location', 'visual', 'ranges']) {
@@ -155,7 +155,7 @@ test('Stock information toggles independently of stock filtering and supports di
   ui.document.listeners.pointerdown({ target: null });
   assert.equal(popup.hidden, true, 'outside touch dismisses');
   assert.equal(ui.get('availabilitySelect').checked, true);
-  assert.equal(ui.requests.filter(url => url.includes('/api/vieps/part')).length, 0);
+  assert.equal(ui.requests.filter(url => url.includes('/api/part')).length, 0);
   assert.equal(en.stock.filter_on_stock_note,
     'Filters identifier-search results to PARTs with available operational stock and positive quantity.');
   assert.equal(typeof fi.stock.filter_on_stock_about, 'string');
@@ -224,7 +224,7 @@ test('#875 browse index displays precisely 13 vocabulary labels and no implied P
   assert.match(html, /id="variationOptions"[^>]*role="group"/);
   assert.doesNotMatch(html, /id="variationsSelect"/);
   assert.equal(ui.get('partCard').innerHTML.includes('No part selected.'), true);
-  assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
+  assert.equal(ui.requests.filter(url => url.startsWith('/api/part')).length, 0);
   ui.setLanguage('fi');
   assert.match(ui.get('ranges').innerHTML, /E-Pace/);
   assert.match(ui.get('ranges').innerHTML, /Suodatin ei ole vielä käytettävissä/);
@@ -433,7 +433,7 @@ test('Parts Tree heading link resets selected branch to collapsed roots and reta
   assert.equal(ui.get('availabilitySelect').checked, true);
   assert.equal(ui.location.search, '?lang=fi');
   assert.equal(ui.location.hash, '#browse');
-  assert.ok(ui.requests.includes('/api/vieps/tree?root=1&stock_only=1'));
+  assert.ok(ui.requests.includes('/api/tree?root=1&stock_only=1'));
   assert.match(ui.get('tree').innerHTML, /Suspension/);
   assert.match(ui.get('tree').innerHTML, /Body/);
   assert.doesNotMatch(ui.get('tree').innerHTML, /Front|Bushings|selected-path|data-part-query/);
@@ -451,7 +451,7 @@ test('empty submission restores collapsed roots, clearing selected PART and depe
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
   assert.equal(ui.get('rangeSelect').disabled, true);
   assert.equal(ui.get('result').attrs['aria-busy'], 'false');
-  assert.ok(ui.requests.some(url => url === '/api/vieps/tree?root=1'));
+  assert.ok(ui.requests.some(url => url === '/api/tree?root=1'));
 });
 
 test('clear while PART request is pending invalidates stale result and restores roots', async () => {
@@ -501,7 +501,7 @@ test('blank search retains stock filter on root read without claiming stock-filt
   ui.get('availabilitySelect').checked = true;
   await ui.search('');
   assert.equal(ui.get('availabilitySelect').checked, true);
-  assert.ok(ui.requests.includes('/api/vieps/tree?root=1&stock_only=1'));
+  assert.ok(ui.requests.includes('/api/tree?root=1&stock_only=1'));
 });
 
 test('UI locale change retains selected browse tree without an extra API read', async () => {
@@ -686,7 +686,7 @@ test('#875 direct candidate/tree link is selected once and search clear preserve
   await ui.search('');
   assert.equal(ui.location.search, '?lang=fi');
   assert.equal(ui.get('availabilitySelect').checked, true);
-  assert.ok(ui.requests.includes('/api/vieps/tree?root=1&stock_only=1'));
+  assert.ok(ui.requests.includes('/api/tree?root=1&stock_only=1'));
   assert.doesNotMatch(ui.get('partCard').innerHTML, /TEST1/);
   assert.doesNotMatch(ui.get('searchResults').innerHTML, /data-result-part-id=/);
   assert.match(ui.get('tree').innerHTML, /Suspension/);
@@ -704,7 +704,7 @@ test('#895 future VIN remains disabled while upper variations has a labelled gro
   assert.doesNotMatch(html, /id="variationsSelect"/);
   assert.match(html, /id="unsupportedControlsNote"[^>]*data-i18n="header\.not_yet_supported"/);
   assert.equal(ui.get('rangeSelect').disabled, true);
-  assert.equal(ui.requests.filter(url => url.startsWith('/api/vieps/part')).length, 0);
+  assert.equal(ui.requests.filter(url => url.startsWith('/api/part')).length, 0);
   assert.ok(en.header.not_yet_supported && fi.header.not_yet_supported);
   assert.ok(en.header.variations_filter && fi.header.variations_filter);
 });
@@ -774,7 +774,7 @@ test('#974 Find clear, root browse and empty-Find Stock changes preserve chosen 
   await flush();
   const currentFit = () => ui.get('variationOptions').innerHTML;
   const lastFitUrl = () => ui.requests.filter(url =>
-    url.startsWith('/api/vieps/fit?')).at(-1);
+    url.startsWith('/api/fit?')).at(-1);
   const assertFit = (message) => {
     assert.match(currentFit(), /data-fit-facet="body:coupe"[^>]*checked/, message);
     assert.equal(new URL(lastFitUrl(), 'https://fixture.invalid').searchParams.get('facet'),

@@ -128,7 +128,7 @@ PartsTreeBrowseResult
 
 The existing PART-resolution response keeps `path[]` label compatibility and additionally supplies stable node identity for every path segment when available, so presentation can emit genuine node hyperlinks.
 
-The fields above are logical read-contract requirements, not a mandate for a new table or one specific endpoint shape. If current `/api/vieps/tree` or PART-resolution payloads omit root index or evidenced PART-leaf placement, extend or compose approved reads before claiming the corresponding UI behavior; never reconstruct source identities from label strings.
+The fields above are logical read-contract requirements, not a mandate for a new table or one specific endpoint shape. If current `/api/tree` or PART-resolution payloads omit root index or evidenced PART-leaf placement, extend or compose approved reads before claiming the corresponding UI behavior; never reconstruct source identities from label strings.
 
 ## Missing data
 A resolved PART without tree context is not `not_found`. Use explicit `unavailable` state. Do not invent hierarchy, categories or context.

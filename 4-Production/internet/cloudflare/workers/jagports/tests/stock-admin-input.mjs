@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { normalizeStockRecord, resolveStockIdentity } from "../js/vieps-worker.js";
+import { normalizeStockRecord, resolveStockIdentity } from "../js/worker.js";
 
 test("normalizeStockRecord accepts normalized MVP fields", () => {
   const normalized = normalizeStockRecord({

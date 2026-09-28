@@ -89,12 +89,12 @@ async function localServer() {
     // Synthetic catalogue endpoints only exist in TEST=1.
     const testFlags = [...requestUrl.searchParams].filter(([key]) => key.toLowerCase() === "test");
     const fixtureMode = testFlags.length === 1 && testFlags[0][1] === "1";
-    if (pathname.startsWith("/api/vieps/") && !fixtureMode) {
+    if (pathname.startsWith("/api/") && !fixtureMode) {
       response.writeHead(503, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "No real Range database is bound.", error_code: "range_unavailable" }));
       return;
     }
-    if (pathname === "/api/vieps/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
+    if (pathname === "/api/tree" && new URL(request.url, "http://localhost").searchParams.has("root")) {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({
         roots: [{ node_id: 1, label: "XK Range (browser fixture)", sort_order: 1 }],
@@ -102,13 +102,13 @@ async function localServer() {
       }));
       return;
     }
-    if (pathname === "/api/vieps/fit") {
+    if (pathname === "/api/fit") {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify(browserFitResponse(
         new URL(request.url, "http://localhost").searchParams)));
       return;
     }
-    if (pathname === "/api/vieps/part") {
+    if (pathname === "/api/part") {
       const params = new URL(request.url, "http://localhost").searchParams;
       if (params.get("q") === "BRTEST") {
         const id = params.get("candidate_id");
@@ -567,7 +567,7 @@ try {
       } else await route.continue();
     });
     await page.setViewportSize({ width: 1240, height: 860 });
-    // Admin Stock and Admin Suitability are separate canonical pages on main.
+    // Admin Stock and Admin Fit are separate canonical pages on main.
     // The old stock-admin.html address now redirects in Workers and is not
     // shipped as a static asset; the local evidence server serves static files.
     const stockPage = await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
@@ -631,7 +631,7 @@ try {
       assert.ok(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "touch device must not acquire page-level horizontal overflow");
       await touchPage.screenshot({ path: evidenceDir + "mobile-320-suitability-touch.png", fullPage: true });
-      console.log("PASS: 320px emulated touch toggles occurrence-backed Suitability without page overflow");
+      console.log("PASS: 320px emulated touch toggles occurrence-backed Fit without page overflow");
     } finally {
       await touchContext.close();
     }
@@ -664,7 +664,7 @@ try {
       await lowercasePage.screenshot({
         path: evidenceDir + "web-lowercase-test1-mobile-320.png", fullPage: true,
       });
-      console.log("PASS: lowercase ?test=1 shows Suitability fixture checkboxes on desktop/mobile");
+      console.log("PASS: lowercase ?test=1 shows Fit fixture checkboxes on desktop/mobile");
     } finally {
       await lowercasePage.close();
     }
@@ -677,14 +677,14 @@ try {
       await realPage.locator("#variationsStatus.error").waitFor();
       assert.match(await realPage.locator("#variationsStatus").textContent(),
         /real Range database is unavailable|Oikean mallisarjan tietokantaa ei ole saatavilla/i,
-        "missing live Range must also show an explicit Suitability error");
+        "missing live Range must also show an explicit Fit error");
       assert.equal(await realPage.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "real mode must hide fixture help");
       assert.equal(await realPage.locator("#realModeHelp").evaluate((node) => node.hidden), false,
         "real mode must show real-data help");
       await realPage.locator("#partNumber").fill("BRTEST");
       const responsePromise = realPage.waitForResponse((response) =>
-        response.url().includes("/api/vieps/part") && response.status() === 503);
+        response.url().includes("/api/part") && response.status() === 503);
       await realPage.locator("#partSearch").press("Enter");
       await responsePromise;
       await realPage.locator("#searchStatus.error").waitFor();
@@ -716,13 +716,13 @@ try {
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
         "deployed TEST=1 must show fixture controls");
       const fixtureTreeResponse = await deployed.request.get(
-        new URL("/api/vieps/tree?root=1&TEST=1", fixtureUrl).href);
+        new URL("/api/tree?root=1&TEST=1", fixtureUrl).href);
       assert.equal(fixtureTreeResponse.status(), 200, "deployed TEST=1 fixture tree must work");
       const fixtureTree = await fixtureTreeResponse.json();
       assert.ok(Array.isArray(fixtureTree.roots) && fixtureTree.roots.length > 0,
         "deployed TEST=1 must return fixture roots");
       const fixturePartResponse = await deployed.request.get(
-        new URL("/api/vieps/part?q=MJB7703AA&TEST=1", fixtureUrl).href);
+        new URL("/api/part?q=MJB7703AA&TEST=1", fixtureUrl).href);
       assert.equal(fixturePartResponse.status(), 200, "deployed TEST=1 fixture search must work");
       await deployed.screenshot({ path: evidenceDir + "deployed-web-test1-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
@@ -738,15 +738,15 @@ try {
       // Deployment smoke accepts the previous released DOM hook until this PR is deployed.
       await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-suitability-facet="body:coupe"]').first().waitFor();
       assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
-        "deployed ?test=1 must show synthetic suitability, not real Range errors");
+        "deployed ?test=1 must show synthetic Fit, not real Range errors");
       const lowercaseTree = await deployed.request.get(
-        new URL("/api/vieps/tree?root=1&test=1", lowercaseFixtureUrl).href);
+        new URL("/api/tree?root=1&test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercaseTree.status(), 200, "deployed lowercase TEST tree must work");
       const lowercasePart = await deployed.request.get(
-        new URL("/api/vieps/part?q=MJB7703AA&test=1", lowercaseFixtureUrl).href);
+        new URL("/api/part?q=MJB7703AA&test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercasePart.status(), 200, "deployed lowercase TEST parts must work");
       const lowercaseFit = await deployed.request.get(
-        new URL("/api/vieps/fit?test=1", lowercaseFixtureUrl).href);
+        new URL("/api/fit?test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercaseFit.status(), 200,
         "deployed lowercase TEST suitability must work");
       assert.equal((await lowercaseFit.json()).fixture_mode, true);
@@ -757,7 +757,7 @@ try {
       await deployed.goto(realUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), true,
         "deployed real mode must not show fixture controls");
-      const result = await deployed.request.get(new URL("/api/vieps/tree?root=1", realUrl).href);
+      const result = await deployed.request.get(new URL("/api/tree?root=1", realUrl).href);
       if (result.status() === 503) {
         const unavailable = await result.json();
         assert.equal(unavailable.error_code, "range_unavailable",

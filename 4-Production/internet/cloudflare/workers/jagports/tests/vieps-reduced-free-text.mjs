@@ -49,7 +49,7 @@ const freeTextPart = {
 
 test("reduced-MVP free text fallback resolves after deterministic miss", async () => {
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=hinge%20cover"),
+    new Request("https://example.test/api/part?q=hinge%20cover"),
     { DB: makeDb({ partSelects: [[], [freeTextPart]] }) },
   );
 
@@ -77,7 +77,7 @@ test("multiple free-text PART matches are tree leafs with no default selected PA
   ];
 
   const response = await handleViepsPart(
-    new Request("https://example.test/api/vieps/part?q=cover"),
+    new Request("https://example.test/api/part?q=cover"),
     { DB: makeDb({ partSelects: [[], [freeTextPart, otherPart]], treePathRows }) },
   );
 
@@ -95,7 +95,7 @@ test("multiple free-text PART matches are tree leafs with no default selected PA
 
 test("Parts Tree root request returns first-level branches", async () => {
   const response = await handleViepsTree(
-    new Request("https://example.test/api/vieps/tree"),
+    new Request("https://example.test/api/tree"),
     { DB: makeDb({ rootChildren: [
       { node_id: 1, label: "Body", sort_order: 1 },
       { node_id: 2, label: "Electrical", sort_order: 2 },

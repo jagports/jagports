@@ -305,7 +305,7 @@ test('each existing step fixture executes with explicit prerequisites', (t) => {
 test('API executes real queries after all migrations', async (t) => {
   const db = withDatabase(t);
   const env = { DB: d1(db) };
-  const response = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=MJB7703AA'), env);
+  const response = await handleViepsPart(new Request('https://example.test/api/part?q=MJB7703AA'), env);
   assert.equal(response.status, 200);
   const result = await response.json();
   assert.equal(result.part.part_number_normalized, 'MJB7703AA');
@@ -314,7 +314,7 @@ test('API executes real queries after all migrations', async (t) => {
   assert.equal(result.fitment.length, 6);
   assert.equal(result.diagrams[0].availability_status, 'unavailable');
   assert.deepEqual(result.parts_tree[0].path, ['Body', 'Exterior', 'Clips and Fasteners']);
-  const missing = await handleViepsPart(new Request('https://example.test/api/vieps/part?q=DOESNOTEXIST'), env);
+  const missing = await handleViepsPart(new Request('https://example.test/api/part?q=DOESNOTEXIST'), env);
   assert.equal(missing.status, 404);
 });
 

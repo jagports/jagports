@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { handleApi } from "../js/vieps-worker.js";
+import { handleApi } from "../js/worker.js";
 
 test("Admin routes use the canonical stock and Fit URLs", async () => {
   const assets = { fetch: async (request) => new Response(new URL(request.url).pathname) };
   const env = { ASSETS: assets };
   const stock = await handleApi(new Request("https://test.example/api/health"), { DB: { prepare: () => ({ first: async () => ({}) }) } });
   assert.equal(stock.status, 200);
-  const worker = (await import("../js/vieps-worker.js")).default;
+  const worker = (await import("../js/worker.js")).default;
   const stockPage = await worker.fetch(new Request("https://test.example/admin-stock"), env);
   assert.equal(await stockPage.text(), "/admin-stock.html");
   const fitPage = await worker.fetch(new Request("https://test.example/admin-fit"), env);

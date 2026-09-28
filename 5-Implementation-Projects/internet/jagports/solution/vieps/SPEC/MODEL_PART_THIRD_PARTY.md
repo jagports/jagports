@@ -7,7 +7,7 @@ This document defines how VIEPS represents third-party/vendor products and Jagpo
 It complements:
 
 - [`MODEL_PART.md`](MODEL_PART.md) — canonical PART identity and catalogue relationships;
-- [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md) — fit of Jaguar/JEPC PARTs and occurrences;
+- [`MODEL_PART.md`](MODEL_PART.md) — fit of Jaguar/JEPC PARTs and occurrences;
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — mutable operational stock;
 - [`MODEL_PART_THIRD_PARTY_LOCATION.md`](MODEL_PART_THIRD_PARTY_LOCATION.md) — optional visual-location evidence for third-party PARTs.
 
@@ -363,7 +363,7 @@ For a Jagports specified PART:
 
 For a verified 1:1 third-party product, fit is the fit of the existing Jaguar PART to which the vendor reference is attached.
 
-The meaning and evaluation of Jaguar fit remain defined by `MODEL_PART_FIT.md`.
+The meaning and evaluation of Jaguar fit remain defined by `MODEL_PART.md`.
 
 ## Stock Admin workflow
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import worker from '../js/vieps-worker.js';
+import worker from '../js/worker.js';
 import { database, d1, sql } from './helpers/model-db.mjs';
 
 function request(path, options = {}) {

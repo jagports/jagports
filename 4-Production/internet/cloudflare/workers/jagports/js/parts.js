@@ -89,7 +89,7 @@ async function pathsForPart(db, part) {
 }
 
 // Real Fit is sourced exclusively from the reviewed Range D1 that also
-// serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
+// serves /api/part and /api/tree. Operational stock is a separate DB.
 export async function handleLiveFit(request, env) {
   if (request.method !== 'GET') return json({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
