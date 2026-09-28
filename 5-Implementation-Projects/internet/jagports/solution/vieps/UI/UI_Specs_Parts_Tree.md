@@ -156,29 +156,13 @@ PartsTreeResult
   unavailable/error information
 ```
 
-## Deterministic fixtures
-Cover a root index retained after deep click/direct URL, complete root-to-active-leaf ancestry, progressive immediate-child expansion, two paths with shared ancestors rendered once, equal labels on distinct stable source nodes kept distinct, a selected PART terminal leaf, several matching PARTs without a default selection, one canonical PART in multiple EPC contexts, stable sibling ordering, unavailable root/path/placement evidence, indentation/weight/underline behavior, and viewport scrolling. Add #875 fixtures for one canonical PART represented by several real tree occurrence leaves but one right-hand result row, consistent selection from either surface, no guessed occurrence from a multi-path result row, and disabled current-phase bookmark checkbox (later activation tested separately). Preserve current `main` fixture identifiers such as `firtree1` / `firtree2` as non-numbered fixture identifiers, not Jaguar part numbers.
+## Deterministic fixture contract
+
+Preserve existing `firtree1` / `firtree2` as non-numbered synthetic fixture identifiers, not Jaguar part numbers. Exact tree/render/browser fixture cases and execution evidence are tracked in [#368](https://github.com/jagports/jagports/issues/368) and [#974](https://github.com/jagports/jagports/issues/974).
 
 ## Viewport and language
 Long tree content scrolls internally in the fitted #616 desktop shell. Catalogue labels may come from independently selected Parts/catalogue-data language under #620; surrounding UI controls follow #554. Both must tolerate variable-length text.
 
-## Acceptance criteria
-- [ ] Persistent first-level/root index and complete root-to-latest-selected-leaf expansion are defined, including direct URL restoration.
-- [ ] Shared ancestors are rendered once by stable node identity without merging distinct source-qualified nodes.
-- [ ] Selected branch reveals immediate children; unrelated deeper descendants stay collapsed.
-- [ ] Depth indentation, stronger root typography, and underlined single active selection are defined.
-- [ ] Resolved and multiple matching PARTs occupy selectable terminal leaves under evidenced paths; the separate proposed #875 right-hand Search Results panel deduplicates by canonical PART, and the centre Main View never presents multiple PARTs.
-- [ ] Tree-leaf and result-row selection synchronize one canonical PART without guessing a multi-occurrence row's active path.
-- [ ] Current layout shows labelled disabled bookmark checkboxes, with no effect on tree selection, filters, stock or fit; bookmark activation remains a later increment.
-- [ ] Tree identity and PART vs occurrence/context semantics remain separate.
-- [ ] Selected-item and expand/collapse behavior are defined.
-- [ ] Stable tree nodes are real hyperlinks and direct-load tree context is defined.
-- [ ] Tree-node browsing resolves canonical PART candidates through existing browse relationships and converges on the normal PART-resolution flow.
-- [ ] Multiple EPC occurrences do not duplicate canonical identity.
-- [ ] Missing tree context is explicit and distinct from not-found.
-- [ ] Empty-search stock browsing is conditional on an approved contract.
-- [ ] Main-branch deterministic fixtures remain semantically intact.
-- [ ] Viewport and UI-vs-Parts language boundaries are preserved.
-- [ ] Clear/empty submit restores evidenced collapsed roots with no active selection and preserves the supported stock constraint.
-- [ ] Root loading/empty/stock-filtered-empty/unavailable/error outcomes and stale-response protection satisfy the Part Search regression matrix.
-- [ ] UI-language switching preserves browse state without a selected PART; source-language changes preserve only evidenced mapped context.
+## Implementation acceptance tracking
+
+Tree/render state, search synchronization, root-clear and browser tests are owned by [#368](https://github.com/jagports/jagports/issues/368) and [#974](https://github.com/jagports/jagports/issues/974). This document defines the required tree behavior, identities and navigation contract.
