@@ -30,7 +30,7 @@ const browserPaths = [
 
 // Synthetic source-qualified API fixture for the browser layout harness.
 // Independent D1/endpoint assertions are exercised on implementation PR #892.
-const browserSuitability = [
+const browserFit = [
   ["body", [["coupe", "Coupe", "Coupé"], ["convertible", "Convertible", "Avoauto"]], "Body", "Kori"],
   ["engine_aspiration", [["na", "NA", "Vapaasti hengittävä"], ["supercharged", "Supercharged", "Mekaanisesti ahdettu"]], "Engine aspiration", "Moottorin ahtaminen"],
   ["seat_equipment", [["memory_seat", "Memory Seat", "Muisti-istuin"], ["powered_seats", "Powered Seats", "Sähkösäätöiset istuimet"]], "Seat equipment", "Istuinvarusteet"],
@@ -48,7 +48,7 @@ const browserOccurrences = [
 ];
 function browserFitResponse(params) {
   const fi = params.get("ui_language") === "fi";
-  const categories = browserSuitability.map(([code, values, en, fin]) => ({
+  const categories = browserFit.map(([code, values, en, fin]) => ({
     code, name: fi ? fin : en, description: fi ? fin : en,
     values: values.map(([value, english, finnish], i) => ({
       id: code + ":" + value, code: value,
@@ -363,7 +363,7 @@ try {
     }));
     assert.equal(groupScroll.overflowX, "auto");
     assert.ok(groupScroll.content >= groupScroll.viewport);
-    await page.screenshot({ path: evidenceDir + "desktop-suitability-filter.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "desktop-fit-filter.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
     await page.locator("#variationOptions").filter({ hasText: "Coupé" }).waitFor();
     assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
@@ -372,7 +372,7 @@ try {
     await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
     assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
     assert.match(await page.locator('#variationOptions label:has([data-fit-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
-    await page.screenshot({ path: evidenceDir + "desktop-suitability-fi.png", fullPage: true });
+    await page.screenshot({ path: evidenceDir + "desktop-fit-fi.png", fullPage: true });
     await page.locator('[data-language="en"]').click();
     await page.locator("#partNumber").fill("");
     await page.locator("#tree .tree-node-row").first().waitFor();
@@ -478,7 +478,7 @@ try {
         width + "px long source-backed descriptions must stay inside the horizontal scroller");
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         width + "px facet row must not widen the page");
-      await page.screenshot({ path: evidenceDir + "mobile-" + width + "-suitability.png" });
+      await page.screenshot({ path: evidenceDir + "mobile-" + width + "-fit.png" });
     }
     const topBefore = g.top.top;
     const findBefore = g.find.top;
@@ -582,28 +582,28 @@ try {
     assert.equal(fitPage?.status(), 200, "canonical Fit Admin page must exist");
     await page.locator("#adminToken").fill("browser-admin-test");
     await page.locator("#accessForm button[type=submit]").click();
-    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
-    assert.match(await page.locator("#suitabilitySourceDetails").textContent(),
+    await page.locator('#fitSourceSelect option[value="87709"]').waitFor();
+    assert.match(await page.locator("#fitSourceDetails").textContent(),
       /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
       "Admin must show raw text and its distinct source namespace and group");
-    await page.locator("#suitabilityMappingStatus").selectOption("conflict");
-    await page.locator("#suitabilityMappingVersion").fill("browser-v2");
-    await page.locator("#suitabilityEvidenceNote").fill("Group requires separate verification");
-    await page.locator("#suitabilityMappingForm button[type=submit]").click();
-    await page.locator("#suitabilityAdminStatus").filter({ hasText: "Catalogue change saved" }).waitFor();
+    await page.locator("#fitMappingStatus").selectOption("conflict");
+    await page.locator("#fitMappingVersion").fill("browser-v2");
+    await page.locator("#fitEvidenceNote").fill("Group requires separate verification");
+    await page.locator("#fitMappingForm button[type=submit]").click();
+    await page.locator("#fitAdminStatus").filter({ hasText: "Catalogue change saved" }).waitFor();
     assert.equal(auditWrites.length, 1, "Admin must submit exactly one new mapping revision");
     assert.equal(auditWrites[0].source_description_id, 87709,
       "mapping must use immutable source ID, not display text");
     assert.equal(auditWrites[0].status, "conflict",
       "unverified fixture description must not become verified JEPC");
     assert.equal(currentSource.original_text, "Coupe");
-    await page.locator("#suitabilityShowHistory").click();
-    await page.locator("#suitabilityHistory li").last().waitFor();
-    assert.equal(await page.locator("#suitabilityHistory li").count(), 2,
+    await page.locator("#fitShowHistory").click();
+    await page.locator("#fitHistory li").last().waitFor();
+    assert.equal(await page.locator("#fitHistory li").count(), 2,
       "Admin must show historic and current interpretation separately");
     await page.screenshot({ path: evidenceDir + "admin-fit-desktop.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
-    assert.match(await page.locator("#suitabilityAdminHeading").textContent(), /Soveltuvuusluokat/);
+    assert.match(await page.locator("#fitAdminHeading").textContent(), /Soveltuvuusluokat/);
     await page.setViewportSize({ width: 320, height: 780 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
       "Admin must not cause horizontal overflow on 320px mobile");
@@ -627,10 +627,10 @@ try {
       await touchPage.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
       await touchPage.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
       assert.equal(await touchPage.locator('#searchResults [data-result-part-id]').count(), 1,
-        "touch-selected suitability must narrow canonical results");
+        "touch-selected fit must narrow canonical results");
       assert.ok(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "touch device must not acquire page-level horizontal overflow");
-      await touchPage.screenshot({ path: evidenceDir + "mobile-320-suitability-touch.png", fullPage: true });
+      await touchPage.screenshot({ path: evidenceDir + "mobile-320-fit-touch.png", fullPage: true });
       console.log("PASS: 320px emulated touch toggles occurrence-backed Fit without page overflow");
     } finally {
       await touchContext.close();
@@ -736,7 +736,7 @@ try {
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate(node => node.hidden), false,
         "deployed ?test=1 must show fixture controls");
       // Deployment smoke accepts the previous released DOM hook until this PR is deployed.
-      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-suitability-facet="body:coupe"]').first().waitFor();
+      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-fit-facet="body:coupe"]').first().waitFor();
       assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
         "deployed ?test=1 must show synthetic Fit, not real Range errors");
       const lowercaseTree = await deployed.request.get(
@@ -748,7 +748,7 @@ try {
       const lowercaseFit = await deployed.request.get(
         new URL("/api/fit?test=1", lowercaseFixtureUrl).href);
       assert.equal(lowercaseFit.status(), 200,
-        "deployed lowercase TEST suitability must work");
+        "deployed lowercase TEST fit must work");
       assert.equal((await lowercaseFit.json()).fixture_mode, true);
       await deployed.screenshot({ path: evidenceDir + "deployed-web-lowercase-test1-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
@@ -777,15 +777,15 @@ try {
       await deployed.setViewportSize({ width: 1366, height: 900 });
       await deployed.goto(adminUrl.href, { waitUntil: "load" });
       await deployed.locator("#accessForm").waitFor();
-      await deployed.locator("#suitabilityAdminHeading").waitFor();
+      await deployed.locator("#fitAdminHeading").waitFor();
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-desktop.png", fullPage: true });
-      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.locator("#fitAdminHeading").scrollIntoViewIfNeeded();
       await deployed.screenshot({ path: evidenceDir + "deployed-fit-admin-desktop.png", fullPage: true });
       await deployed.setViewportSize({ width: 320, height: 780 });
       assert.ok(await deployed.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         "deployed mobile Admin must fit");
       await deployed.screenshot({ path: evidenceDir + "deployed-stock-admin-mobile-320.png", fullPage: true });
-      await deployed.locator("#suitabilityAdminHeading").scrollIntoViewIfNeeded();
+      await deployed.locator("#fitAdminHeading").scrollIntoViewIfNeeded();
       await deployed.screenshot({ path: evidenceDir + "deployed-fit-admin-mobile-320.png", fullPage: true });
       console.log("PASS: deployed TEST fixtures, unavailable-or-reviewed real Range, and Web/Admin screenshots");
     } finally {

@@ -117,7 +117,7 @@ The product should converge on multiple complementary paths into the same canoni
 - Parts Tree / EPC hierarchy navigation;
 - Jaguar Range, model, and variation context;
 - vehicle-location navigation;
-- suitability/applicability filtering;
+- FIT filtering;
 - multilingual free-text search;
 - shareable deep-linked search state;
 - VIN/vehicle identity context when the underlying evidence and decoder contracts are mature enough.

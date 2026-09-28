@@ -118,7 +118,7 @@
   .vin-panel #vinInput {
     @apply mb-2 w-full cursor-not-allowed bg-slate-100 text-jagports-muted;
   }
-  /* One horizontally scrolling row of alphabetized, source-backed suitability categories. */
+  /* One horizontally scrolling row of alphabetized, source-backed FIT categories. */
   .variation-options {
     display: flex; align-items: stretch; gap: .4rem;
     min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden;
@@ -469,19 +469,19 @@
 
 /* Suitability administration keeps categories, values and source mappings visible
    together on desktop while remaining a single column on narrow screens. */
-.suitability-admin-grid {
+.fit-admin-grid {
   @apply grid gap-3;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.suitability-admin-grid > h2,
-.suitability-admin-grid > p { grid-column: 1 / -1; }
-.suitability-admin-column {
+.fit-admin-grid > h2,
+.fit-admin-grid > p { grid-column: 1 / -1; }
+.fit-admin-column {
   @apply border rounded-lg p-3;
   min-width: 0;
 }
-.suitability-admin-column .admin-form-grid { @apply grid-cols-1; }
+.fit-admin-column .admin-form-grid { @apply grid-cols-1; }
 @media (max-width: 960px) {
-  .suitability-admin-grid { grid-template-columns: 1fr; }
-  .suitability-admin-grid > h2,
-  .suitability-admin-grid > p { grid-column: auto; }
+  .fit-admin-grid { grid-template-columns: 1fr; }
+  .fit-admin-grid > h2,
+  .fit-admin-grid > p { grid-column: auto; }
 }

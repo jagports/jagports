@@ -236,7 +236,7 @@
     "token_label": "Ylläpitäjän tunnus",
     "unresolved_source_required": "Ratkaisematon varasto tarvitsee lähdetiedon tai lähdeosapuolen."
   },
-  "suitability_admin": {
+  "fit_admin": {
     "category_code": "Pysyvä luokkatunnus",
     "category_heading": "Normalisoidut luokat",
     "category_select": "Muokattava luokka",

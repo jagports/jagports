@@ -102,7 +102,7 @@
   "ranges": {
     "applicable_help": "Search to show applicable model ranges. Stock-based browsing is unavailable.",
     "error": "Applicable Models could not be loaded.",
-    "heading": "Suitability Model Ranges",
+    "heading": "Applicable Models",
     "label": "Model range / fit",
     "no_match": "No suitable vehicle range matches this PART/context.",
     "no_part_selected": "No part selected",
@@ -236,7 +236,7 @@
     "token_label": "Administrator token",
     "unresolved_source_required": "Unresolved stock requires source evidence or a source party."
   },
-  "suitability_admin": {
+  "fit_admin": {
     "category_code": "Stable category code",
     "category_heading": "Normalized categories",
     "category_select": "Edit category",
@@ -248,7 +248,7 @@
     "error": "Catalogue operation failed.",
     "evidence_note": "Source evidence / rationale",
     "fixture": "Synthetic fixture",
-    "heading": "Suitability categories and source mappings",
+    "heading": "FIT categories and source mappings",
     "history": "Show mapping history",
     "history_heading": "Revision history",
     "loaded": "Catalogue reference data loaded.",
