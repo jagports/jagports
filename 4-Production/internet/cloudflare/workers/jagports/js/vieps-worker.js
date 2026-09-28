@@ -1,6 +1,6 @@
 import { normalizePartNumber } from "./part.js";
 import { handleViepsPart as handleFixturePart, handleViepsTree as handleFixtureTree } from "./vieps-fixtures.js";
-import { handlePart, handleTree, handleSuitability as handleFit, rangeDatabase } from "./vieps-parts.js";
+import { handlePart, handleTree, handleSuitability as handleFit, partsDatabase } from "./vieps-parts.js";
 import { handleViepsSuitability as handleFixtureFit } from "./suitability.js";
 import { handleSuitabilityAdmin } from "./vieps-admin-suitability.js";
 
@@ -204,7 +204,7 @@ async function handleApi(request, env) {
     const q = text(url.searchParams.get("q"));
     const normalized = normalizePartNumber(q);
     if (!testMode) {
-      const { db } = rangeDatabase(url, env);
+      const { db } = partsDatabase(url, env);
       const stmt = q
         ? db.prepare(`SELECT * FROM part p WHERE EXISTS
             (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
