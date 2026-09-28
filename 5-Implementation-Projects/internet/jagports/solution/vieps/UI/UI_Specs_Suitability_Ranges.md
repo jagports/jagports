@@ -1,6 +1,6 @@
 # VIEPS UI — Applicable Models / Suitability Model Ranges contract
 
-**Status:** #875 layout merged; source-derived Range browse refinement in #949; advanced OR filter deferred  
+**Status:** #875 layout merged; source-derived Range browse refinement in #949; superseding single-range filter target documented, runtime evidence gate remains  
 **Controlling UI issue:** #468  
 **Enhancement:** #875  
 **Priority issue:** #477  
@@ -85,7 +85,7 @@ VIN evaluation and VIN-range reconstruction are governed by #478 and approved so
 - [ ] Source-derived browse returns only explicitly linked imported Model/Range identities; before import or assignment, report empty/unavailable and never infer membership from fixture labels.
 - [ ] A selected PART/context shows only verified applicable ranges; explicit exclusions do not appear as suitable.
 - [ ] Multi-occurrence results preserve separate context/evidence rather than inventing combined positive fitment.
-- [ ] Browse filters and verified fitment indicators remain semantically distinct.
+- [ ] Browse filters, available-option indicators and read-only selected-PART verified/unknown fitment indicators remain semantically distinct.
 - [ ] Product Owner superseded multiple-range ANY/OR with a single active Range filter; no selection means unconstrained.
 - [ ] Single-range filtering remains disabled wherever the approved occurrence-level read path/tests do not support it.
 - [ ] `no_match`, `unavailable` and `error` remain distinct.
