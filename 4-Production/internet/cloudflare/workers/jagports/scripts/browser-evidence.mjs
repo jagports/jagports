@@ -46,7 +46,7 @@ const browserOccurrences = [
     "seat_equipment:powered_seats",
   ] },
 ];
-function browserSuitabilityResponse(params) {
+function browserFitResponse(params) {
   const fi = params.get("ui_language") === "fi";
   const categories = browserSuitability.map(([code, values, en, fin]) => ({
     code, name: fi ? fin : en, description: fi ? fin : en,
@@ -102,9 +102,9 @@ async function localServer() {
       }));
       return;
     }
-    if (pathname === "/api/vieps/suitability") {
+    if ((pathname === "/api/vieps/fit" || pathname === "/api/vieps/suitability")) {
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify(browserSuitabilityResponse(
+      response.end(JSON.stringify(browserFitResponse(
         new URL(request.url, "http://localhost").searchParams)));
       return;
     }
@@ -205,6 +205,9 @@ try {
     await browseRows.first().waitFor();
     assert.deepEqual((await browseRows.allTextContents()).map((s) => s.trim()), expectedBrowseLabels,
       "the right Applicable Models index must show exactly 13 browse labels in order");
+    await page.locator("#variationOptions .variation-group").first().waitFor();
+    assert.equal(await page.locator("#variationOptions input:checked").count(), 0,
+      "FIT starts with no option selected");
     assert.equal(await page.locator("#ranges .browse-range-list input:disabled").count(), 13,
       "all synthetic browse filter checkboxes must remain disabled");
     assert.ok(await page.locator("#rangeSelect").isDisabled(),
@@ -325,24 +328,36 @@ try {
 
     // #895 source-qualified fixture-backed filter uses the existing three
     // columns and synchronizes BOTH results surfaces without guessing fitment.
-    const coupe = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+    const coupe = page.locator('#variationOptions [data-fit-facet="body:coupe"]');
     await coupe.waitFor();
     await coupe.check();
-    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
     await page.locator('#searchResults [data-result-part-id="101"]').waitFor();
     await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
     assert.equal(await page.locator("#searchResults [data-result-part-id]").count(), 1,
-      "Suitability checkbox must actually narrow the right Search Results");
+      "FIT checkbox must actually narrow the right Search Results");
     assert.equal(await page.locator('#tree [data-part-id="102"]').count(), 0,
-      "Suitability must filter left Parts Tree leaves in the same way");
+      "FIT must filter left Parts Tree leaves in the same way");
     assert.equal(await page.locator('#partCard').textContent().then((v) => v.includes("BRTEST2")), false,
       "out-of-filter selected PART must be cleared");
-    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:memory_seat"]').check();
-    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]').check();
-    await page.locator('#variationOptions [data-suitability-facet="seat_equipment:powered_seats"]:checked').waitFor();
+    await page.locator('#variationOptions [data-fit-facet="seat_equipment:memory_seat"]').check();
+    await page.locator('#variationOptions [data-fit-facet="seat_equipment:powered_seats"]').check();
+    await page.locator('#variationOptions [data-fit-facet="seat_equipment:powered_seats"]:checked').waitFor();
+    assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
+      ["Body", "Engine aspiration", "Seat equipment", "Steering"],
+      "normalized FIT categories appear once each in alphabetical order");
     assert.deepEqual(await page.locator('#variationOptions input:checked').evaluateAll((nodes) =>
       nodes.map((node) => node.closest("label").querySelector("span").textContent.trim())),
-    ["Coupe", "Memory Seat", "Powered Seats"], "checked options appear first alphabetically");
+      ["Coupe", "Memory Seat", "Powered Seats"],
+      "checked FIT values stay inside their own category");
+    assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(0)
+      .locator(".variation-choice span").allTextContents(), ["Coupe"],
+      "only currently fitting Body options are displayed");
+    assert.equal(await page.locator('#variationOptions [data-fit-facet="body:convertible"]').count(), 0,
+      "fixture-backed options that do not fit the remaining candidates are hidden");
+    assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(2)
+      .locator(".variation-choice span").allTextContents(), ["Memory Seat", "Powered Seats"],
+      "checked Seat options sort alphabetically within their category");
     const groupScroll = await page.locator("#variationOptions").evaluate((node) => ({
       viewport: node.clientWidth, content: node.scrollWidth, overflowX: getComputedStyle(node).overflowX,
     }));
@@ -351,15 +366,18 @@ try {
     await page.screenshot({ path: evidenceDir + "desktop-suitability-filter.png", fullPage: true });
     await page.locator('[data-language="fi"]').click();
     await page.locator("#variationOptions").filter({ hasText: "Coupé" }).waitFor();
-    await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+    assert.deepEqual(await page.locator("#variationOptions .variation-group-title").allTextContents(),
+      ["Istuinvarusteet", "Kori", "Moottorin ahtaminen", "Ohjaus"],
+      "group order uses localized Finnish category names");
+    await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
     assert.match(await page.locator("#variationOptions").textContent(), /Coupé/);
-    assert.match(await page.locator('#variationOptions label:has([data-suitability-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
+    assert.match(await page.locator('#variationOptions label:has([data-fit-facet="body:coupe"])').getAttribute("title"), /Coupe \[en;/);
     await page.screenshot({ path: evidenceDir + "desktop-suitability-fi.png", fullPage: true });
     await page.locator('[data-language="en"]').click();
     await page.locator("#partNumber").fill("");
     await page.locator("#tree .tree-node-row").first().waitFor();
-    assert.equal(await page.locator("#variationOptions input:checked").count(), 0,
-      "clearing search clears active suitability selections");
+    assert.equal(await page.locator("#variationOptions input:checked").count(), 3,
+      "clearing Find retains independently selected FIT values");
   }
   const stock = page.locator("#availabilitySelect");
   const button = page.locator("#stockHelpButton");
@@ -440,7 +458,7 @@ try {
       await page.locator("#partNumber").fill("BRTEST");
       await page.locator("#partSearch").press("Enter");
       await page.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
-      const facet = page.locator('#variationOptions [data-suitability-facet="body:coupe"]');
+      const facet = page.locator('#variationOptions [data-fit-facet="body:coupe"]');
       await facet.waitFor();
       if (width === 220) {
         await facet.focus();
@@ -448,7 +466,7 @@ try {
       } else {
         await facet.check();
       }
-      await page.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await page.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
       await page.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
       const facetScroll = await page.locator("#variationOptions").evaluate((node) => ({
         overflowX: getComputedStyle(node).overflowX,
@@ -549,13 +567,22 @@ try {
       } else await route.continue();
     });
     await page.setViewportSize({ width: 1240, height: 860 });
-    await page.goto(local.url + "stock-admin.html?TEST=1", { waitUntil: "load" });
+    // Admin Stock and Admin Suitability are separate canonical pages on main.
+    // The old stock-admin.html address now redirects in Workers and is not
+    // shipped as a static asset; the local evidence server serves static files.
+    const stockPage = await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
+    assert.equal(stockPage?.status(), 200, "canonical Stock Admin page must exist");
     await page.locator("#adminToken").fill("browser-admin-test");
     await page.locator("#accessForm button[type=submit]").click();
-    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
     assert.equal(await page.locator("#stockSearch").count(), 1, "Stock Admin search is present");
     assert.equal(await page.locator("#stockForm").count(), 1, "Stock Admin editor is present");
     await page.screenshot({ path: evidenceDir + "admin-stock-desktop.png", fullPage: true });
+
+    const fitPage = await page.goto(local.url + "admin-fit.html?TEST=1", { waitUntil: "load" });
+    assert.equal(fitPage?.status(), 200, "canonical Suitability Admin page must exist");
+    await page.locator("#adminToken").fill("browser-admin-test");
+    await page.locator("#accessForm button[type=submit]").click();
+    await page.locator('#suitabilitySourceSelect option[value="87709"]').waitFor();
     assert.match(await page.locator("#suitabilitySourceDetails").textContent(),
       /Coupe.*fixture:pre-jepc-suitability:v1.*Body-2/,
       "Admin must show raw text and its distinct source namespace and group");
@@ -581,6 +608,7 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 321,
       "Admin must not cause horizontal overflow on 320px mobile");
     await page.screenshot({ path: evidenceDir + "admin-suitability-mobile-320.png", fullPage: true });
+    await page.goto(local.url + "admin-stock.html?TEST=1", { waitUntil: "load" });
     await page.locator("#stockForm").scrollIntoViewIfNeeded();
     await page.screenshot({ path: evidenceDir + "admin-stock-mobile-320.png" });
     // Existing browser workflow also exercises a touch-emulated 320px device.
@@ -595,8 +623,8 @@ try {
       await touchPage.locator("#partNumber").fill("BRTEST");
       await touchPage.locator("#partSearch").press("Enter");
       await touchPage.locator('#variationOptions[data-current-query="BRTEST"]').waitFor();
-      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]').tap();
-      await touchPage.locator('#variationOptions [data-suitability-facet="body:coupe"]:checked').waitFor();
+      await touchPage.locator('#variationOptions [data-fit-facet="body:coupe"]').tap();
+      await touchPage.locator('#variationOptions [data-fit-facet="body:coupe"]:checked').waitFor();
       await touchPage.locator('#searchResults [data-result-part-id="102"]').waitFor({ state: "detached" });
       assert.equal(await touchPage.locator('#searchResults [data-result-part-id]').count(), 1,
         "touch-selected suitability must narrow canonical results");
@@ -612,7 +640,7 @@ try {
     const lowercasePage = await context.newPage();
     try {
       await lowercasePage.goto(local.url + "?test=1", { waitUntil: "load" });
-      await lowercasePage.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      await lowercasePage.locator('#variationOptions [data-fit-facet="body:coupe"]').waitFor();
       assert.equal(await lowercasePage.locator("#fixtureModeHelp")
         .evaluate(node => node.hidden), false, "?test=1 must expose fixture instructions");
       assert.equal(await lowercasePage.locator("#realModeHelp")
@@ -707,7 +735,8 @@ try {
       await deployed.goto(lowercaseFixtureUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate(node => node.hidden), false,
         "deployed ?test=1 must show fixture controls");
-      await deployed.locator('#variationOptions [data-suitability-facet="body:coupe"]').waitFor();
+      // Deployment smoke accepts the previous released DOM hook until this PR is deployed.
+      await deployed.locator('#variationOptions [data-fit-facet="body:coupe"], #variationOptions [data-suitability-facet="body:coupe"]').first().waitFor();
       assert.equal(await deployed.locator("#variationsStatus.error").count(), 0,
         "deployed ?test=1 must show synthetic suitability, not real Range errors");
       const lowercaseTree = await deployed.request.get(
