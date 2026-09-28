@@ -445,9 +445,10 @@ async function refreshSuitability(query, stockOnly, mainVersion = requestVersion
   }
 }
 
-function clearSuitability() {
+// Invalidate source-backed results, never an independently chosen FIT constraint.
+// A new query, root browse or Stock change will fetch the fresh candidate universe.
+function invalidateSuitabilityView() {
   ++suitabilityRequestVersion;
-  suitabilitySelection.clear();
   suitabilityData = null;
   suitabilityError = null;
   suitabilityMatchingIds = null;
@@ -788,7 +789,7 @@ function setupViepsUi() {
     $("result").setAttribute("aria-busy", "false");
     $("searchStatus").className = "muted status-line";
     if (!$("partNumber").value.trim()) {
-      clearSuitability();
+      invalidateSuitabilityView();
       clearSelectionUrl();
       void loadRootBrowse(version);
     } else {
@@ -799,7 +800,7 @@ function setupViepsUi() {
 
   const browseTree = async (nodeId = null, options = {}) => {
     const version = ++requestVersion;
-    clearSuitability(); // Tree context has no source-qualified suitability read yet.
+    invalidateSuitabilityView(); // Preserve FIT selections; this tree context has no source-qualified FIT read yet.
     resetContext();
     viewMode = "empty";
     $("searchStatus").className = "muted status-line";
@@ -852,7 +853,7 @@ function setupViepsUi() {
     $("searchStatus").className = "muted status-line";
     if (!partNumber) {
       selectedTreeNodeId = null;
-      clearSuitability();
+      invalidateSuitabilityView();
       clearSelectionUrl();
       await loadRootBrowse(version);
       return;
