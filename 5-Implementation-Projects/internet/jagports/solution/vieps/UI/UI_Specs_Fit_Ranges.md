@@ -1,4 +1,4 @@
-# VIEPS UI — Applicable Models / Suitability Model Ranges contract
+# VIEPS UI — Applicable Models / Fit Model Ranges contract
 
 **Status:** #875 layout merged; source-derived Range browse refinement in #949; advanced OR filter deferred  
 **Controlling UI issue:** #468  
@@ -9,9 +9,9 @@
 
 ## Objective
 
-Define the model/range browse and verified applicability presentation inside the right-hand **Applicable Models** panel of the merged #875 three-column layout. The production transition from the temporary browse test index to source-derived model/Range relations remains a separate implementation task.
+Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the merged #875 three-column layout. The production transition from the temporary browse test index to source-derived model/Range relations remains a separate implementation task.
 
-This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_APPLICABILITY.md` and #354 own the underlying evidence and identities. Do not create a competing model/range taxonomy or applicability evaluator in UI code.
+This file owns the range presentation contract. `UI_Specs_Fitment.md` owns detailed fitment/qualifier semantics; `SPEC/MODEL_PART_FIT.md` and #354 own the underlying evidence and identities. Do not create a competing model/range taxonomy or fit evaluator in UI code.
 
 ## Proposed panel and modes
 
@@ -39,9 +39,9 @@ JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are 
 
 **Phase split:** the merged #875 increment installed the right-hand Applicable Models layout and retained a temporary browse-only compatibility fixture. The next source-backed implementation must replace that fixture with imported JEPC Model–Range relations. Advanced multi-range filtering requires its approved read adapter and tests and is deferred. A visible filter that cannot yet work must be disabled with an accessible explanation; it must not silently pretend to apply the OR rule.
 
-The centre-top Suitability / Variations filter consumes the normalized #641 categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
+The centre-top Fit / Variations filter consumes the normalized #641 categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
 
-Search-result row selection and Parts Tree PART-leaf selection share **one canonical selected PART**. A result row representing several EPC occurrences does not guess the active occurrence; range applicability dependent on occurrence remains pending context selection. Availability/stock filters may constrain the candidate set only through approved stock-to-catalogue relationships, never by rewriting fitment facts.
+Search-result row selection and Parts Tree PART-leaf selection share **one canonical selected PART**. A result row representing several EPC occurrences does not guess the active occurrence; range fit dependent on occurrence remains pending context selection. Availability/stock filters may constrain the candidate set only through approved stock-to-catalogue relationships, never by rewriting fitment facts.
 
 ## UI/API contract
 
@@ -65,7 +65,7 @@ ApplicableModelsResult
   unavailable_reason?
 ```
 
-The public read adapter must preserve #354/#666 distinctions between stored applicability assertions and evaluated vehicle fitment. This UI result contract is presentation-oriented and does not itself create or certify a new fitment evaluator.
+The public read adapter must preserve #354/#666 distinctions between stored fit assertions and evaluated vehicle fitment. This UI result contract is presentation-oriented and does not itself create or certify a new fitment evaluator.
 
 ## Deterministic fixtures and tests
 
@@ -73,11 +73,11 @@ Cover explicitly created test Ranges, two distinct source-qualified JEPC Model e
 
 ## Viewport and accessibility
 
-The panel scrolls internally in the fitted #616 desktop shell, independently of the Search Results list and Parts Tree. Use accessible region headings, labelled filter controls, visible keyboard focus and non-colour-only applicability indications. On narrow layouts, regions may reflow while preserving state. UI locale (#554) and source catalogue language (#620) remain independently governed.
+The panel scrolls internally in the fitted #616 desktop shell, independently of the Search Results list and Parts Tree. Use accessible region headings, labelled filter controls, visible keyboard focus and non-colour-only fit indications. On narrow layouts, regions may reflow while preserving state. UI locale (#554) and source catalogue language (#620) remain independently governed.
 
 ## Boundaries
 
-VIN evaluation and VIN-range reconstruction are governed by #478 and approved source evidence; do not infer applicability from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
+VIN evaluation and VIN-range reconstruction are governed by #478 and approved source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
 
 ## Acceptance criteria
 

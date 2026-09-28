@@ -35,15 +35,15 @@ The Main View receives canonical PART, selected EPC occurrence/context and selec
 - Do not recreate the old permanent `Top view` / `Side view` split.
 - Catalogue vehicle location is distinct from physical stock/storage location.
 
-### Coordination with Suitability
-The right-bottom Applicable Models panel consumes the selected PART and, when available, selected occurrence and vehicle context. It shows only verified `applicable` ranges for a selected PART/context; without PART selection it may show the fixture browse index without implying fitment. Its model filtering is separate from centre-top normalized Suitability / Variations search filters. Missing Location mapping does not establish missing or negative fitment.
+### Coordination with Fit
+The right-bottom Applicable Models panel consumes the selected PART and, when available, selected occurrence and vehicle context. It shows only verified `applicable` ranges for a selected PART/context; without PART selection it may show the fixture browse index without implying fitment. Its model filtering is separate from centre-top normalized Fit / Variations search filters. Missing Location mapping does not establish missing or negative fitment.
 
 ### PART / Image / Status
 The centre-right panel groups **one canonical PART** and approved evidence for its selected source occurrence/item, warnings/status, Jaguar Classic, supersession, PN/name, and one part image or exploded diagram. When several PARTs match, no PART is selected by default. Tree leaves and results rows share canonical PART selection; bookmark checkboxes never select a PART. When one result row represents several genuine occurrences, present only verified PART-level details until the occurrence is chosen. Missing diagram, hotspot, media or location remains explicitly unavailable.
 
 ## Clearing selected context
 
-Apply the [Part Search clear transition](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition) before loading roots. Remove the previous canonical PART selection, occurrence/item, warning/status, Classic/supersession presentation, image/diagram and visual choice, selected range, suitability facts and vehicle-location marker/context. The permanent regions remain visible in their no-selected-PART/browse state.
+Apply the [Part Search clear transition](../SPEC/UI_Part_Search.md#empty-search-and-clear-transition) before loading roots. Remove the previous canonical PART selection, occurrence/item, warning/status, Classic/supersession presentation, image/diagram and visual choice, selected range, fit facts and vehicle-location marker/context. The permanent regions remain visible in their no-selected-PART/browse state.
 
 A root browse response must not select a PART automatically or restore the cleared PART's contextual facts. Supported stock-derived Applicable Models may be shown as fresh browse/filter context only. Missing tree data or a root-load error does not retain old PART details as a fallback.
 

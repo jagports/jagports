@@ -466,3 +466,22 @@
 #suitabilityHistory { margin: .5rem 0 0; padding-left: 1.5rem; overflow-wrap: anywhere; }
 #suitabilityMoreSources { margin-top: .5rem; }
 @media (max-width: 760px) { #suitabilityAdminPanel .admin-actions { flex-direction: column; } #suitabilityMoreSources { width: 100%; } }
+
+/* Suitability administration keeps categories, values and source mappings visible
+   together on desktop while remaining a single column on narrow screens. */
+.suitability-admin-grid {
+  @apply grid gap-3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.suitability-admin-grid > h2,
+.suitability-admin-grid > p { grid-column: 1 / -1; }
+.suitability-admin-column {
+  @apply border rounded-lg p-3;
+  min-width: 0;
+}
+.suitability-admin-column .admin-form-grid { @apply grid-cols-1; }
+@media (max-width: 960px) {
+  .suitability-admin-grid { grid-template-columns: 1fr; }
+  .suitability-admin-grid > h2,
+  .suitability-admin-grid > p { grid-column: auto; }
+}

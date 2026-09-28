@@ -205,6 +205,9 @@ try {
     await browseRows.first().waitFor();
     assert.deepEqual((await browseRows.allTextContents()).map((s) => s.trim()), expectedBrowseLabels,
       "the right Applicable Models index must show exactly 13 browse labels in order");
+    await page.locator("#variationOptions .variation-group").first().waitFor();
+    assert.equal(await page.locator("#variationOptions input:checked").count(), 0,
+      "FIT starts with no option selected");
     assert.equal(await page.locator("#ranges .browse-range-list input:disabled").count(), 13,
       "all synthetic browse filter checkboxes must remain disabled");
     assert.ok(await page.locator("#rangeSelect").isDisabled(),
@@ -348,8 +351,10 @@ try {
       ["Coupe", "Memory Seat", "Powered Seats"],
       "checked suitability values stay inside their own category");
     assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(0)
-      .locator(".variation-choice span").allTextContents(), ["Coupe", "Convertible"],
-      "checked Body option precedes unchecked Body option");
+      .locator(".variation-choice span").allTextContents(), ["Coupe"],
+      "only currently fitting Body options are displayed");
+    assert.equal(await page.locator('#variationOptions [data-suitability-facet="body:convertible"]').count(), 0,
+      "fixture-backed options that do not fit the remaining candidates are hidden");
     assert.deepEqual(await page.locator("#variationOptions .variation-group").nth(2)
       .locator(".variation-choice span").allTextContents(), ["Memory Seat", "Powered Seats"],
       "checked Seat options sort alphabetically within their category");

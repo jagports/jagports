@@ -242,6 +242,7 @@ test('#641 suitability groups use localized alphabetical headings and checked-fi
       ],
       // Deliberately reverse category/value order to exercise presentation sorting.
       categories: [
+        { code: 'unused', name: 'Unused', values: [{ id: 'unused:phantom', name: 'Phantom' }] },
         { code: 'seat_equipment', name: fiLocale ? 'Istuinvarusteet' : 'Seat equipment',
           values: [
             { id: 'seat_equipment:powered_seats', name: fiLocale ? 'Sähkösäätöiset istuimet' : 'Powered Seats' },
@@ -253,6 +254,7 @@ test('#641 suitability groups use localized alphabetical headings and checked-fi
               source_descriptions: [{ original_text: 'Coupe', language: 'en',
                 source_namespace: 'fixture', locator: 'test/body/coupe' }] },
             { id: 'body:convertible', name: fiLocale ? 'Avoauto' : 'Convertible' },
+            { id: 'body:sedan', name: 'Sedan' },
           ] },
       ],
     });
@@ -267,6 +269,11 @@ test('#641 suitability groups use localized alphabetical headings and checked-fi
     new RegExp('<legend class="variation-group-title">' + name
       + '<\\/legend>\\s*<div class="variation-group-values">([\\s\\S]*?)<\\/div>'))?.[1] || '';
   assert.deepEqual(headings(), ['Body', 'Seat equipment']);
+  assert.doesNotMatch(ui.get('variationOptions').innerHTML, /body:sedan|Unused|Phantom/,
+    'unavailable, response-only fixture labels are not rendered');
+  assert.doesNotMatch(ui.get('variationOptions').innerHTML, /\schecked(?:\s|>)/,
+    'FIT initially has no checked filter values');
+  assert.equal(en.header.variations_filter, 'FIT / Variations');
   assert.ok(group('Body').indexOf('Convertible</span>') < group('Body').indexOf('Coupe</span>'));
   assert.ok(group('Seat equipment').indexOf('Memory Seat</span>')
     < group('Seat equipment').indexOf('Powered Seats</span>'));

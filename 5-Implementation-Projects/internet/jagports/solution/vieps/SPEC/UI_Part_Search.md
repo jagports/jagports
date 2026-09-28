@@ -17,7 +17,7 @@ The #875 layout separates controls while preserving the approved deterministic-f
 
 ```text
 LEFT   Availability: supported stock/quality constraints above the Parts Tree
-CENTRE VIN and normalized Suitability / Variations filter
+CENTRE VIN and normalized Fit / Variations filter
 RIGHT  one PN / deterministic identifier / free-text Search field
        scrollable Search Results PART List with disabled bookmark placeholders
        independently scrollable Applicable Models panel
@@ -108,9 +108,9 @@ Stock-quality result states include at least:
 - Do not silently invent or normalize unsupported punctuation/characters.
 - Empty/clearly invalid input produces an explicit state, not a guessed identity.
 
-## Suitability / Variations: optional composable filter (#641)
+## FIT / Variations: optional composable filter (#641)
 
-The centre-top Suitability / Variations control is a **search filter**, not a list of default constraints and not the selected-PART fitment-facts view. Its normalized identity, source provenance, occurrence evidence, and unavailable semantics are governed by [the Fitment UI specification](../UI/UI_Specs_Fitment.md). It is separate from the right-hand Applicable Models panel and from Search Results bookmark checkboxes.
+The centre-top FIT / Variations control is a **search filter**, not a list of default constraints and not the selected-PART fitment-facts view. Its normalized identity, source provenance, occurrence evidence, and unavailable semantics are governed by [the Fitment UI specification](../UI/UI_Specs_Fitment.md). It is separate from the right-hand Applicable Models panel and from Search Results bookmark checkboxes.
 
 ### Initial and reset state
 
@@ -142,7 +142,7 @@ Exercise fixture and later verified-real-data modes separately: an initially unc
 This transition applies when editing makes the trimmed query empty, when an empty/whitespace-only query is submitted, and when an explicit Clear action is invoked if that control is provided. Keyboard deletion and native input clearing must work without requiring a dedicated Clear button. An empty field during selected-category browsing is not by itself a new clear event.
 
 1. Immediately invalidate outstanding PART/search, tree-browse and dependent context requests from the previous state. Late success, failure and completion callbacks must not restore old data, selection, URL, status text or loading state. Cancellation alone is insufficient if an already-completed callback can still update the UI.
-2. Clear the selected canonical PART, occurrence/item, category/tree path, query-result candidates and match highlights. Clear previous PART details/status, image/diagram, range selection, suitability facts and vehicle-location context. Keep every permanent Concept-11 region visible in its appropriate no-selection/browse state.
+2. Clear the selected canonical PART, occurrence/item, category/tree path, query-result candidates and match highlights. Clear previous PART details/status, image/diagram, range selection, fit facts and vehicle-location context. Keep every permanent Concept-11 region visible in its appropriate no-selection/browse state.
 3. Remove all stale `part` and `tree` query parameters from the current URL, including duplicate values, before a reload can re-enter the cleared selection. Replace the current history entry rather than adding a clear-only navigation entry. Preserve unrelated URL parameters and supported stock/language state. This does not erase older intentional browser-history entries or define the wider #583 deep-link scheme.
 4. Enter root browse with no active category, occurrence or PART selection. Restore available first-level/root categories, collapsed, with no selected-node underline or previous search-result expansion. Use the same observable root-loading contract as initial load without a deep link and empty-search Availability changes.
 5. Preserve the user's current supported Availability/stock-filter setting; clear is not a filter reset. Root browse uses that setting only through the approved browse contract. PART / Image / Status stays unselected even if the browse result contains exactly one PART.
@@ -173,7 +173,7 @@ These are required implementation regression cases under #873, not claims that t
 
 | Case | Action / controlled order | Required result |
 |---|---|---|
-| Clear a resolved PART | Delete the query through an input event; repeat with whitespace-only submit and any provided Clear control. | Selected PART/occurrence, details/status, image/diagram, range selection, suitability facts, location, candidates and match highlights disappear immediately; permanent regions remain; eventual roots are collapsed with no selection. No empty PART/free-text request occurs. |
+| Clear a resolved PART | Delete the query through an input event; repeat with whitespace-only submit and any provided Clear control. | Selected PART/occurrence, details/status, image/diagram, range selection, fit facts, location, candidates and match highlights disappear immediately; permanent regions remain; eventual roots are collapsed with no selection. No empty PART/free-text request occurs. |
 | Pending PART/search | Start PART resolution (including free-text fallback), clear, complete root loading, then deliver the old success; repeat with failure and finalization. | Neither old data nor old error/status/loading state replaces the clear/root state. |
 | Pending tree browse | Start a category request, clear, then deliver the old category response or failure after the root result. | No selected branch/PART or old expansion reappears; roots remain collapsed. |
 | Root response superseded | Clear, then start a new non-empty search or select a tree node before the root response completes; deliver responses out of order. | The latest action wins; the obsolete root result/error/finalization cannot erase the new search/selection or its loading state. |
@@ -223,7 +223,7 @@ PART
         ├── source language/tree scope
         ├── vehicle/model context
         ├── diagram/item context
-        └── applicability/qualifiers
+        └── fit/qualifiers
 ```
 
 A part-number search returns all matching occurrences and their complete source paths. Multiple occurrences remain distinguishable and do not duplicate canonical PART identity.
@@ -251,10 +251,10 @@ When exactly one PART is resolved deterministically or by free text, that PART m
 ## Right-hand Search Results and bookmarks (#875)
 
 - One independently scrollable PN/name result row appears per distinct canonical PART in the current candidate set. Use stable canonical identity, not label text, as the result key. Preserve each real EPC occurrence in the Parts Tree without duplicating one canonical PART as separate result rows.
-- A result row and a tree PART leaf update the **same** selected PART and visible selection. A tree leaf can additionally carry its verified source occurrence. If a selected result has multiple source occurrences, retain all paths and require explicit context before showing occurrence-specific location, diagram-item or VIN applicability.
+- A result row and a tree PART leaf update the **same** selected PART and visible selection. A tree leaf can additionally carry its verified source occurrence. If a selected result has multiple source occurrences, retain all paths and require explicit context before showing occurrence-specific location, diagram-item or VIN fit.
 - Rows are real keyboard-accessible PART links/actions and highlight matching text fragments where visible. A supported non-numbered identifier does not acquire an invented Jaguar PN.
 - **Current layout increment:** show a separate, properly labelled bookmark checkbox beside each result row, but leave it **disabled** with an accessible future-feature explanation. Do not simulate saving, a checked persistence state or account authorization. **Later increment:** activate bookmarking only after storage scope, authorization and saved-list behavior are separately specified; a bookmark toggle must never select a PART or alter stock filtering, model filtering or fitment.
-- Stock-only, VIN and normalized #641 suitability/variation inputs constrain supported candidate occurrences; a canonical PART remains while at least one verified occurrence survives.
+- Stock-only, VIN and normalized #641 fit/variation inputs constrain supported candidate occurrences; a canonical PART remains while at least one verified occurrence survives.
 - Context-only matches remain in the owning tree/range region. The results panel has explicit empty, no-match, stock-filtered-empty, unsupported, unavailable and error states and never fabricates a PART row.
 - The distinct right-hand Applicable Models panel offers a fixture/index browse state when no PART is selected; with one selected PART/context it shows only evidence-backed applicable ranges, not every browse fixture. Excluded/no-match, unavailable and error remain distinct. **Approved future model filtering:** select multiple normalized model ranges; match **ANY (OR)** selected range through at least one positively evidenced surviving occurrence, in conjunction with other supported constraints. Until the required read path is implemented, show the filter as disabled rather than falsely filtering.
 
@@ -265,15 +265,15 @@ Catalogue browsing and source-description filters operate on occurrences first:
 ```text
 selected Parts Tree branch
     -> all source occurrences below the branch
-    -> optional description / VIN / applicability filters
+    -> optional description / VIN / fit filters
     -> surviving occurrences
     -> distinct visible PARTs as last leaf nodes
 ```
 
-A PART remains visible while at least one occurrence survives. The UI must not merge all occurrence paths into one synthetic applicability path.
+A PART remains visible while at least one occurrence survives. The UI must not merge all occurrence paths into one synthetic fit path.
 
 
-Parts Tree browsing is an alternative entry path into this same resolution model. A stable tree-node link selects a `part_tree_node.id`, resolves the canonical PART candidates related to that node/subtree through `part_tree_part`, and presents those candidates without guessing one PART. Choosing a candidate then uses the normal canonical PART-resolution flow above. Tree labels are never used as identity, and tree navigation itself does not decide fitment/applicability.
+Parts Tree browsing is an alternative entry path into this same resolution model. A stable tree-node link selects a `part_tree_node.id`, resolves the canonical PART candidates related to that node/subtree through `part_tree_part`, and presents those candidates without guessing one PART. Choosing a candidate then uses the normal canonical PART-resolution flow above. Tree labels are never used as identity, and tree navigation itself does not decide fitment/fit.
 
 Imported JEPC descriptions may be presented as filter candidates. Normalized semantic facets derived from those descriptions are a separate enrichment layer; the UI/API must not treat the facet label as the source-tree identity.
 
@@ -317,7 +317,7 @@ No model, range, body-style or example query has special hard-coded behavior. Co
 
 ### Context-only free-text match
 
-When free text matches a category, tree node, path, group, model/range/body-style label, suitability label, context or other browse/context value without directly resolving a PART, show the match only through the existing VIEPS region that owns that context.
+When free text matches a category, tree node, path, group, model/range/body-style label, fit label, context or other browse/context value without directly resolving a PART, show the match only through the existing VIEPS region that owns that context.
 
 For Parts Tree context, navigate/filter the existing Parts Tree to the matching branches and their required ancestors. Do not expand unrelated child leaves unless those leaves also match or are required to show the matched path.
 
@@ -330,9 +330,9 @@ The UI must not:
 
 Matching fragments are highlighted in the existing region where visible.
 
-### Vehicle/range/model/suitability text match
+### Vehicle/range/model/fit text match
 
-When free text matches vehicle/range/model/suitability text, show the match through existing Model Ranges and related Concept-11 regions where the current data path supports it.
+When free text matches vehicle/range/model/fit text, show the match through existing Model Ranges and related Concept-11 regions where the current data path supports it.
 
 If the match resolves to PART candidates through the current search/read contract, show those PART candidates as clickable last leaf nodes in the existing Parts Tree and show all matching Parts Tree branches.
 
@@ -387,7 +387,7 @@ The #875 target distribution changes presentation while preserving search resolu
 resolved identity/context or candidate set
   ├── left Availability: supported stock filters
   ├── left Parts Tree: persistent root index + verified source paths + PART leaves
-  ├── centre VIN and normalized Suitability / Variations filter
+  ├── centre VIN and normalized Fit / Variations filter
   ├── centre Location at car: verified single canvas or unavailable
   ├── centre PART / Image / Status: exactly one selected PART or none
   ├── right Search Results PART List: deduplicated canonical PN/name rows + bookmarks
@@ -425,7 +425,7 @@ PartSearchResult
   result_list[]?                  # UI-derived canonical candidates, NOT new PART entities
   bookmark_state?                 # deferred: no active bookmark state in current layout phase
   diagram/item context when available
-  fitment/suitability context when available
+  fitment/fit context when available
   model_range/body-style context when available
   stock presentation when available
     stock_quality_code?         # A-E only
@@ -485,7 +485,7 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 ## Error/unavailable semantics
 - Missing context is not no PART.
 - Missing image/diagram/location is not no PART.
-- Missing fitment evidence is not a negative match unless the applicability contract says so.
+- Missing fitment evidence is not a negative match unless the fit contract says so.
 - Missing Availability support is not zero stock.
 - Missing stock-quality classification is explicit unclassified quality, not unavailable stock.
 - Missing stock-quality presentation is not a confirmed A–E classification.

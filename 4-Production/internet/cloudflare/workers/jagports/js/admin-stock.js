@@ -8,6 +8,7 @@
   let statusIsError = false;
 
   const byId = (id) => document.getElementById(id);
+  const adminPage = document.documentElement?.dataset?.adminPage || "stock";
   const headers = () => ({ "content-type": "application/json", "x-admin-token": token });
   const nullableNumber = (id) => byId(id).value ? Number(byId(id).value) : null;
   const isTechnicalSitePlaceholder = (name) => /name not recorded in xlsx/i.test(name || "");
@@ -54,8 +55,8 @@
 
   function refreshForLanguageChange() {
     i18n?.applyDocument();
-    render();
-    renderSuitabilityAdmin();
+    if (adminPage === "stock") render();
+    if (adminPage === "suitability") renderSuitabilityAdmin();
     if (statusTranslationKey) setLocalizedStatus(statusTranslationKey, statusIsError);
   }
 
@@ -191,7 +192,7 @@
     byId("currency").value = "EUR";
     byId("available").checked = true;
     byId("identityMode").value = "canonical";
-    setIdentityMode("canonical");
+    if (adminPage === "stock") setIdentityMode("canonical");
     byId("partLookupResults").replaceChildren();
     byId("deleteStock").disabled = true;
   }
@@ -425,6 +426,7 @@
     });
   });
 
+  if (adminPage === "stock") {
   byId("identityMode").addEventListener("change", (event) => {
     setIdentityMode(event.target.value);
     byId("partNumber").value = "";
@@ -434,8 +436,10 @@
   byId("accessForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     token = byId("adminToken").value;
-    try { await loadMeta(); await loadStock(); setLocalizedStatus("stock_admin.connected");
-      try { await loadSuitabilityAdmin(""); } catch (error) { suitError(error); }
+    try {
+      if (adminPage === "stock") { await loadMeta(); await loadStock(); }
+      if (adminPage === "suitability") await loadSuitabilityAdmin("");
+      setLocalizedStatus("stock_admin.connected");
     }
     catch (error) { setLocalizedStatus(localizedErrorKey(error), true); }
   });
@@ -488,6 +492,14 @@
   });
 
 
+  }
+  if (adminPage === "suitability") {
+  byId("accessForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    token = byId("adminToken").value;
+    try { await loadSuitabilityAdmin(""); setLocalizedStatus("stock_admin.connected"); }
+    catch (error) { suitError(error); }
+  });
   suit("CategorySelect").addEventListener("change",suitShowCategory);
   suit("CategoryForm").addEventListener("submit",suitSaveCategory);
   suit("NewCategory").addEventListener("click",()=>{
@@ -533,6 +545,7 @@
   });
   suit("MappingForm").addEventListener("submit",suitSaveMapping);
   suit("ShowHistory").addEventListener("click",suitShowHistory);
+  }
 
-  setIdentityMode("canonical");
+  if (adminPage === "stock") setIdentityMode("canonical");
 })();

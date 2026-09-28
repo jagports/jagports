@@ -396,6 +396,10 @@ async function handleApi(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/stock-admin.html") return Response.redirect(new URL("/admin-stock", url), 308);
+    if (url.pathname === "/admin-stock") return env.ASSETS.fetch(new Request(new URL("/admin-stock.html", url), request));
+    if (url.pathname === "/admin-suitability") return Response.redirect(new URL("/admin-fit", url), 308);
+    if (url.pathname === "/admin-fit") return env.ASSETS.fetch(new Request(new URL("/admin-fit.html", url), request));
     if (url.pathname.startsWith("/api/")) {
       try { return await handleApi(request, env); }
       catch (error) { return json({ error: String(error.message || error),

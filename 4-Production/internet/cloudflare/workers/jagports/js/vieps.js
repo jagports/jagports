@@ -352,7 +352,8 @@ function showSuitability() {
   // Alphabetize categories; retain checked-first alphabetical ordering within each.
   const groups = suitabilityData.categories.map((category) => ({
     ...category,
-    values: (category.values || []).map((value) => ({
+    values: (category.values || []).filter((value) =>
+      availableOptions.has(value.id) || suitabilitySelection.has(value.id)).map((value) => ({
       ...value,
       selected: suitabilitySelection.has(value.id),
       available: availableOptions.has(value.id),
