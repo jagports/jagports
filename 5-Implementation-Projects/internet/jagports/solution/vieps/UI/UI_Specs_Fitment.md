@@ -53,18 +53,11 @@ The filter reads published mappings at occurrence scope. It never treats a raw d
 
 The merged #883 layout places the control at centre-top and keeps right-hand Applicable Models separate. Its 13 model-range browse labels are not fit values.
 
-### UI integration plan and active-work reconciliation
+### Implementation workstreams
 
-The merged #883 specification is the layout authority: persistent Parts Tree on the left; central search and upper Fit / Variations controls; and a right column containing Search Results above Applicable Models. Search-result rows and tree leaves select one canonical PART. Applicable Models remains evidence display, not the fit filter.
+Implementation sequencing, earlier PR reconciliation, Admin mapping/fixture corrections and screenshot evidence are tracked in [#641](https://github.com/jagports/jagports/issues/641), [#877](https://github.com/jagports/jagports/issues/877) and [#974](https://github.com/jagports/jagports/issues/974). These tasks do not redefine FIT applicability or the normalized public-read contract.
 
-Implementation follows this order:
-
-1. **Description mapping read contract (#877 / #879).** Publish only normalized category/value entries that carry a persisted source-qualified description mapping, language-qualified domain name/description metadata and an occurrence scope. Return a deterministic unavailable state when any required relation is absent. Raw JEPC text is presentation evidence, never an API key or filter predicate.
-2. **Persistence and fixture correction (draft PR #892).** Replace its proposed set-membership/cardinality path with source-shaped fixture descriptions and mapping revisions. Fixtures require synthetic namespace, dataset, language, locator and mapping identity, but remain test data and cannot become JEPC fitment facts.
-3. **Upper filter and lower-panel removal (Issue #895 / draft PR #939).** Keep removal of the lower duplicate panel and retain selected-PART range evidence in the right Applicable Models region. Implement the upper control as the requested horizontal, keyboard-accessible checkbox row with checked-first alphabetical ordering and horizontal overflow. Its options and filtering must consume the mapping read contract; do not retain a hard-coded variation list or an independent evaluator based on labels, namespace alone, or inferred conditions.
-4. **Evidence.** Add browser screenshots at desktop, tablet and narrow widths for empty/unavailable, source-backed available options, source-mapping failure, EN/FI UI chrome with catalogue-language source description, fixture isolation, checked ordering and synchronized Search Results/Parts Tree selection. Captions must state whether an image uses fixture or imported data.
-
-The known fixture labels—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—are examples of mapped descriptions. The two seat labels may appear together only when separately sourced description records identify the same occurrence. They do not justify a new condition operator or hard-coded fit logic.
+The known fixture labels—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—are examples of separately mapped descriptions. The two seat labels may appear together only when separately sourced description records identify the same occurrence.
 
 ### Information document link
 The `(i)` control may link to verified **Model Family & Year Introduction** documentation when a valid source/document relationship exists.
@@ -101,9 +94,9 @@ Do not add a second domain taxonomy for the 13 fixture labels. Use normalized ex
 ## Deterministic fixtures
 Cover the isolated historical 13-label TEST browse compatibility fixture independently of production source-derived Range membership and selected-PART fitment; include a PART fitting only some Ranges, read-only applicable/nonmatching/unknown indicators, exclusions, VIN-range match/unknown/exclusion, multi-occurrence context, unavailable evidence, context-only search and API error. The superseding single-range filter test matrix must include one active range, restoration of competing ranges on clear, unknowns separately from verified fits, and conjunction with normalized FIT filters. Fixture labels are never production Jaguar facts. Preserve established main-branch fixture identifier semantics.
 
-### Pre-JEPC filter regression matrix (#641 / #877)
+### Regression ownership
 
-Once the normalized reader is implemented, test that each fixture value is returned only with its source namespace, dataset, locator, language and published mapping; that UI EN/FI chrome and language-qualified domain metadata resolve without changing the mapping ID; and that the fixture provider cannot leak into normal production reads. Test that same text from two source records remains distinct until separately mapped, that incomplete source relation returns `unavailable`, and that Body/Steering/Engine/Seat filters stay within one occurrence. Test coexistence of Memory Seat and Powered Seats only as two sourced descriptions of the same fixture occurrence, with no inferred condition or fabricated fitment.
+Occurrence-scoped FIT source-evidence, fixture isolation and independent seat-description regression checks are tracked in [#641](https://github.com/jagports/jagports/issues/641) and [#877](https://github.com/jagports/jagports/issues/877); cross-panel browser acceptance is tracked in [#974](https://github.com/jagports/jagports/issues/974).
 
 ## Viewport and language
 Applicable Models is independently scrollable in the persistent right column below the separate Search Results list; centre VIN/Variations remain above Location and one selected PART. Keep #616 fitted desktop behavior with inner scroll and accessible links/labelled checkboxes. On narrow layouts reflow without mixing bookmark, model filter and verified fit indicators. UI text and source Parts-language remain independently governed by #554 and #620.
@@ -111,14 +104,6 @@ Applicable Models is independently scrollable in the persistent right column bel
 ## Boundaries
 VIN decoding and VIN-range reconstruction are separate enabling work. Do not invent VIN ranges or use KOVuosi as a substitute for VIN/evidence-based fit. This specification consumes #354 semantics and does not redefine them.
 
-## Acceptance criteria
-- [ ] #875 right-hand Applicable Models panel and centre-top normalized Fit / Variations Filter replace the old full centre/right range row.
-- [ ] No-PART browse options derive from evidenced imported Model-to-Range mappings; historical 13-label fixture labels remain isolated TEST compatibility data, not production range authority.
-- [ ] Selected-PART/context view displays only verified applicable Ranges and excludes confirmed nonmatching/excluded Ranges.
-- [ ] `no_match`, `unavailable`, `error` and unresolved qualifiers are distinguished and never guessed into positive fitment.
-- [ ] Right model filter and centre normalized variation filter semantics are distinct and consume the approved #641/#354/#666 contract.
-- [ ] Superseding single normalized range selection and evidence-safe unresolved-candidate interaction specified by the Product Owner (2026-09-28).
-- [ ] One-range filter runtime remains disabled wherever the supported source/evaluator read contract is incomplete; no obsolete multiple-range ANY/OR behavior is simulated.
-- [ ] VIN fit preserves source evidence and excludes KOVuosi-based guessing.
-- [ ] Shared PART selection, multi-occurrence handling, fixture tests, viewport fit and language boundaries are covered.
-- [ ] Independent #875 specification review is complete.
+## Implementation acceptance tracking
+
+Panel and data-mapping outcomes are tracked in [#641](https://github.com/jagports/jagports/issues/641), [#877](https://github.com/jagports/jagports/issues/877), [#609](https://github.com/jagports/jagports/issues/609) and [#974](https://github.com/jagports/jagports/issues/974). This specification retains the normative FIT/evidence contract only.
