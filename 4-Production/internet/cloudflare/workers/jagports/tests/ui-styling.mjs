@@ -10,7 +10,7 @@ const css = readFileSync(new URL('../styles/vieps-tailwind.css', import.meta.url
 const en = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/en.json', import.meta.url), 'utf8'));
 const fi = JSON.parse(readFileSync(new URL('../../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/i18n/fi.json', import.meta.url), 'utf8'));
 
-function harness(fetch, { initialSearch = '', rootFetch, suitabilityFetch } = {}) {
+function harness(fetch, { initialSearch = '', rootFetch, fitFetch } = {}) {
   const requests = [];
   const location = { pathname: '/vieps', search: initialSearch, hash: '#browse' };
   const history = { replaceState(_state, _title, path) {
@@ -20,8 +20,8 @@ function harness(fetch, { initialSearch = '', rootFetch, suitabilityFetch } = {}
   } };
   const routedFetch = (url) => {
     requests.push(url);
-    if (url.startsWith('/api/vieps/suitability?')) return suitabilityFetch
-      ? Promise.resolve(suitabilityFetch(url))
+    if (url.startsWith('/api/vieps/suitability?')) return fitFetch
+      ? Promise.resolve(fitFetch(url))
       : Promise.resolve(response({
         state: 'unavailable', fixture_mode: false, categories: [], matches: [],
       }, false));
@@ -87,7 +87,7 @@ function harness(fetch, { initialSearch = '', rootFetch, suitabilityFetch } = {}
 
 const response = (data, ok = true) => ({ ok, json: async () => data });
 const catalogueRequests = (requests) => requests.filter((url) =>
-  !url.startsWith('/api/vieps/suitability?'));
+  !url.startsWith('/api/vieps/suitability?')); // Existing public API alias retained.
 const fixture = {
   part: { id: 10, part_number_normalized: 'TEST1', description: 'Test <part>', verification_status: 'fixture' },
   tree_roots: [{ node_id: 1, label: 'Parent', sort_order: 1 }, { node_id: 8, label: 'Body', sort_order: 2 }],
@@ -107,7 +107,7 @@ test('complete Concept-11 shell exists before search, with no automatic part loo
   for (const region of ['tree', 'location', 'visual', 'ranges']) {
     assert.match(html, new RegExp(`class="panel ${region}-panel"`));
   }
-  // #895 removes the duplicate lower Suitability panel; verified range evidence stays on the right.
+  // #895 removes the duplicate lower FIT panel; verified range evidence stays on the right.
   assert.doesNotMatch(html, /class="fitment-panel"/);
   assert.match(html, /id="rangeEvidence"/);
   assert.match(html, /id="searchResults"/);
@@ -230,8 +230,8 @@ test('#875 browse index displays precisely 13 vocabulary labels and no implied P
   assert.match(ui.get('ranges').innerHTML, /Suodatin ei ole vielä käytettävissä/);
 });
 
-test('#641 suitability groups use localized alphabetical headings and checked-first choices per group', async () => {
-  const suitabilityFetch = (url) => {
+test('#641 FIT groups use localized alphabetical headings and checked-first choices per group', async () => {
+  const fitFetch = (url) => {
     const fiLocale = new URL(url, 'https://fixture.invalid').searchParams.get('ui_language') === 'fi';
     return response({
       state: 'applicable', fixture_mode: true, query: 'TEST1',
@@ -260,7 +260,7 @@ test('#641 suitability groups use localized alphabetical headings and checked-fi
     });
   };
   const ui = harness(async () => response(fixture),
-    { initialSearch: '?test=1', suitabilityFetch });
+    { initialSearch: '?test=1', fitFetch });
   await ui.search('TEST1');
   await flush();
   const headings = () => [...ui.get('variationOptions').innerHTML.matchAll(
@@ -282,20 +282,20 @@ test('#641 suitability groups use localized alphabetical headings and checked-fi
   assert.doesNotMatch(ui.get('variationOptions').innerHTML, /<small>\(Body\)/);
 
   ui.get('variationOptions').listeners.change({
-    target: { dataset: { suitabilityFacet: 'body:coupe' }, checked: true },
+    target: { dataset: { fitFacet: 'body:coupe' }, checked: true },
   });
   await flush();
   assert.deepEqual(headings(), ['Body', 'Seat equipment'],
     'selecting a value must not move a category out of alphabetical order');
   assert.ok(group('Body').indexOf('Coupe</span>') < group('Body').indexOf('Convertible</span>'),
     'checked values sort first within their own category');
-  assert.match(group('Body'), /data-suitability-facet="body:coupe"[^>]*checked/);
+  assert.match(group('Body'), /data-fit-facet="body:coupe"[^>]*checked/);
 
   ui.setLanguage('fi');
   await flush();
   assert.deepEqual(headings(), ['Istuinvarusteet', 'Kori'],
     'Finnish domain category names determine category ordering');
-  assert.match(group('Kori'), /data-suitability-facet="body:coupe"[^>]*checked/);
+  assert.match(group('Kori'), /data-fit-facet="body:coupe"[^>]*checked/);
   assert.match(group('Kori'), /Coupé/);
   assert.ok(group('Kori').includes('Coupe [en; fixture; test/body/coupe]'));
 });
@@ -752,7 +752,7 @@ test('switching language retains multiple-candidate leaves and avoids another se
 
 
 test('#974 Find clear, root browse and empty-Find Stock changes preserve chosen FIT filters', async () => {
-  const suitabilityFetch = (url) => {
+  const fitFetch = (url) => {
     const params = new URL(url, 'https://fixture.invalid').searchParams;
     return response({
       state: 'applicable', fixture_mode: true, query: params.get('q') || '',
@@ -765,18 +765,18 @@ test('#974 Find clear, root browse and empty-Find Stock changes preserve chosen 
     });
   };
   const ui = harness(async () => response(fixture),
-    { initialSearch: '?TEST=1', suitabilityFetch });
+    { initialSearch: '?TEST=1', fitFetch });
   await ui.search('TEST1');
   await flush();
   ui.get('variationOptions').listeners.change({
-    target: { dataset: { suitabilityFacet: 'body:coupe' }, checked: true },
+    target: { dataset: { fitFacet: 'body:coupe' }, checked: true },
   });
   await flush();
   const currentFit = () => ui.get('variationOptions').innerHTML;
   const lastFitUrl = () => ui.requests.filter(url =>
     url.startsWith('/api/vieps/suitability?')).at(-1);
   const assertFit = (message) => {
-    assert.match(currentFit(), /data-suitability-facet="body:coupe"[^>]*checked/, message);
+    assert.match(currentFit(), /data-fit-facet="body:coupe"[^>]*checked/, message);
     assert.equal(new URL(lastFitUrl(), 'https://fixture.invalid').searchParams.get('facet'),
       'body:coupe', message);
   };
