@@ -454,7 +454,7 @@ Applied migrations are historical evidence and are never rewritten. Historical m
 
 The administrator URLs are `/admin-fit` for Fit and `/admin-stock` for Stock. The public Fit API is `/api/fit`; the administrator Fit API is `/api/admin/fit`.
 
-Obsolete Suitability-named application routes, redirects, module facades, export aliases and compatibility readers are not part of the active contract. Active consumers must use the canonical Fit names directly.
+Obsolete pre-FIT application routes, redirects, module facades, export aliases and compatibility readers are not part of the active contract. Active consumers must use the canonical FIT names directly.
 
 ## Historical storage boundary
 
@@ -691,7 +691,7 @@ Reprocessing replaces/supersedes the complete derived assertion set for the affe
 | `applicable` is a stored default; missing scope/completeness is not modeled. | Explicit verification/coverage and evaluation results; never backfill positive truth from a default. |
 | Source/raw/derived values and release history lack a complete shared contract. | Link versioned evidence to interpretations and replace derived sets atomically. |
 
-Use a new controlled migration; do not rewrite already applied migrations. Preserve existing IDs, raw fitment rows, legacy range qualifiers and stock references. Existing rows without enough grouping/evidence remain unresolved. Fixtures and UI examples must not be promoted to verified source assertions. Active consumers must use the canonical Fit contract; obsolete Suitability-named route/module adapters are not retained.
+Use a new controlled migration; do not rewrite already applied migrations. Preserve existing IDs, raw fitment rows, legacy range qualifiers and stock references. Existing rows without enough grouping/evidence remain unresolved. Fixtures and UI examples must not be promoted to verified source assertions. Active consumers must use the canonical FIT contract; obsolete pre-FIT route/module adapters are not retained.
 
 ## Acceptance examples
 
