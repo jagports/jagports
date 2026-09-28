@@ -14,7 +14,6 @@ Mutable operational stock remains separate from canonical `PART` / JEPC catalogu
 | [`MODEL_PART_THIRD_PARTY.md`](MODEL_PART_THIRD_PARTY.md) | Third-party/vendor references and Jagports specified PART identity rules. |
 | [`SPEC_SEARCH.md`](SPEC_SEARCH.md) | User-facing search controls and available-part presentation. |
 | [`../STOCK/SPEC_Admin_Workflow.md`](../STOCK/SPEC_Admin_Workflow.md) | Operational stock create/edit workflow and validation UI. |
-| [`../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md`](../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md) | D1 database creation/migration execution and environment verification procedure. |
 
 ## Stock/catalogue separation
 

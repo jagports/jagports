@@ -118,7 +118,7 @@ Minimum vendor data:
 | home URL(s) | At least one vendor home URL may be stored. Multiple URLs are supported. |
 | home URL description | Required for each URL when more than one home URL is stored, so the URLs can be distinguished. |
 
-A normalized implementation may store the URLs in a child relation such as `third_party_vendor_home_url(vendor_id, home_url, description)`.
+Vendor home URLs may be normalized into a child relation such as `third_party_vendor_home_url(vendor_id, home_url, description)`.
 
 ### `third_party_part`
 
@@ -182,7 +182,7 @@ Cardinality and behavior:
 - a product may additionally have `component_of` references where independently evidenced;
 - `parent_part`, `component_of`, `equivalent_to`, and Jaguar supersession remain different relationship types.
 
-For the mandatory `parent_part` record of a Jagports specified PART, the selected Jaguar PART and known catalogue context must be retained. When the imported occurrence exists, `part_occurrence_id` is required and the category/item values must identify that same selected context. When the operator selected the parent through a specific imported source tree path and canonical `part_occurrence_tree_path` evidence exists, `part_occurrence_tree_path_id` must retain that exact path. One occurrence may have several source paths, so occurrence identity alone must not be used to claim which catalogue path the operator selected. If an imported occurrence/tree path is not yet available in the active MVP fixture path, explicit fixture/manual category/item context may be retained, but it must not be presented as imported JEPC evidence.
+For the mandatory `parent_part` record of a Jagports specified PART, the selected Jaguar PART and known catalogue context must be retained. When the imported occurrence exists, `part_occurrence_id` is required and the category/item values must identify that same selected context. When the operator selected the parent through a specific imported source tree path and canonical `part_occurrence_tree_path` evidence exists, `part_occurrence_tree_path_id` must retain that exact path. One occurrence may have several source paths, so occurrence identity alone must not be used to claim which catalogue path the operator selected. If an imported occurrence/tree path is unavailable, explicit manual category/item context may be retained, but it must not be presented as imported JEPC evidence.
 
 Logical uniqueness rules:
 
@@ -195,7 +195,7 @@ A generic `fits` relation is not part of this model and must not replace explici
 
 ## Identity, uniqueness and nullability
 
-These rules are part of the implementation contract and must be enforced either by database constraints or deterministic application validation.
+These rules are part of the model contract and must be enforced by database constraints or deterministic application validation.
 
 | Entity / field | Required / nullable | Uniqueness / validation |
 |---|---|---|
@@ -205,7 +205,7 @@ These rules are part of the implementation contract and must be enforced either 
 | home URL description | nullable for a single URL; required/nonblank when one vendor has multiple home URLs | descriptive text is not an identity. |
 | `third_party_part.third_party_part_id` | required | globally unique stable vendor-product reference identity. |
 | `third_party_part.vendor_id` | required FK | many products may belong to one vendor. |
-| vendor part number | required, nonblank | unique within one vendor after the implementation's deterministic normalization; the same text may exist under another vendor. |
+| vendor part number | required, nonblank | unique within one vendor after deterministic normalization; the same text may exist under another vendor. |
 | `manufacturer` | required, nonblank | manufacturer/brand of the vendor product; distinct from the vendor/seller identity and not assumed globally unique. |
 | `description` | required, nonblank | human-readable vendor-product description; not identity. |
 | `third_party_part.part_id` | required FK for a reusable represented product | points to the existing Jaguar PART for verified 1:1 products or to the Jagports specified PART for non-1:1 products. |
@@ -223,83 +223,6 @@ These rules are part of the implementation contract and must be enforced either 
 | price source URL | nullable | evidence, not identity. |
 
 A canonical PART remains unique according to `MODEL_PART.md`; these third-party records do not weaken PART-number uniqueness or create a second canonical identity namespace.
-
-## Representative deterministic fixtures
-
-At minimum, executable or specification-level fixtures must cover these two paths.
-
-### Fixture A — verified 1:1 vendor product
-
-Use a fixture Jaguar PART `JLM21917-Fixture` and at least two vendor-product records that both resolve to that same canonical Jaguar PART.
-
-Representative fixture values include:
-
-- Jaguar PART: `JLM21917-Fixture`;
-- vendor: `Nimark-fixture`;
-- vendor PN: `2312601-fixture`;
-- manufacturer: a separate nonblank manufacturer fixture value, for example `ManufacturerA-fixture`;
-- description: `Nimark-Korjaussarja, jarrusatula (Etuakseli)-Fixture`;
-- product URL: `https://www.nimark.fi/buy/autofrenseinsa_d41792c/`;
-- a second vendor-product fixture for the same `JLM21917-Fixture`, for example vendor `Motonet-fixture`, with its own vendor PN, manufacturer, description and URL;
-- second description: `Motonet-Jarrusatulan korjaussarja-Fixture`;
-- second product URL: `https://www.motonet.fi/tuote/jarrusatulan-korjaussarja-23-00843?product=23-00843`;
-- each `third_party_part.part_id` points to canonical `JLM21917-Fixture`;
-- each verified `third_party_part_xref` uses `relationship_type = equivalent_to` and points to `JLM21917-Fixture`;
-- no Jagports specified PART is created for either verified 1:1 product;
-- operational STOCK may point to `JLM21917-Fixture` while vendor-product evidence remains separate.
-
-Expected results:
-
-- both vendor PNs may resolve to the same existing Jaguar PART while preserving their different vendor and manufacturer identities;
-- multiple source/product URLs may be retained without collapsing vendor-product identity;
-- no duplicate canonical PART is created merely because vendor, manufacturer, description or URL differs;
-- STOCK identity remains operational and separate from the vendor/xref evidence.
-
-### Fixture B — non-1:1 Jagports specified PARTs
-
-Use two vendor-product fixtures against the same Jaguar parent so numbering, vendor separation and canonical PART creation are deterministic.
-
-Common Jaguar context:
-
-- existing Jaguar parent PART: `MJD7843AA-Fixture`;
-- each vendor product has exactly one `parent_part` xref to `MJD7843AA-Fixture`;
-- each parent xref retains the selected category/item/occurrence context plus the exact `part_occurrence_tree_path` when such imported path evidence is available;
-- separately evidenced `component_of` references may include `JLM20079-Fixture`, `JLM21466-Fixture`, `JLM20078-Fixture`, and `JLM21465-Fixture`;
-- the reference image/source may retain `https://parts.jaguarlandroverclassic.com/jlm20079-brake-caliper.html` as evidence for the NSS + item-7 context.
-
-Fixture B1:
-
-- vendor: `Nimark-fixture`;
-- vendor PN: `D41792C-fixture`;
-- manufacturer: a separate nonblank manufacturer fixture value;
-- description: `Nimark-Korjaussarja, jarrusatula (Etuakseli)-Fixture`;
-- product URL: `https://www.nimark.fi/buy/autofrenseinsa_d41792c/`;
-- new canonical Jagports specified PART: `MJD7843AA+D41792C-fixture`;
-- `source_origin = AddedManually`;
-- `third_party_part.part_id` points to `MJD7843AA+D41792C-fixture`.
-
-Fixture B2:
-
-- vendor: `Motonet-fixture`;
-- vendor PN: `23-00843-fixture`;
-- manufacturer: a separate nonblank manufacturer fixture value;
-- description: `Motonet-Jarrusatulan korjaussarja-Fixture`;
-- product URL: `https://www.motonet.fi/tuote/jarrusatulan-korjaussarja-23-00843?product=23-00843`;
-- new canonical Jagports specified PART: `MJD7843AA+23-00843-fixture`;
-- `source_origin = AddedManually`;
-- `third_party_part.part_id` points to `MJD7843AA+23-00843-fixture`.
-
-For both B1 and B2, operational STOCK points to the corresponding Jagports specified PART, not to `MJD7843AA-Fixture` or any `component_of` reference.
-
-Expected results:
-
-- the requested combined identifiers are visibly Jagports specified and never shown as Jaguar-issued;
-- the two vendor products remain separate even though they share the same Jaguar parent/context;
-- fit follows the selected Jaguar parent/context;
-- deleting or changing operational STOCK does not alter the PART/xref evidence;
-- unresolved STOCK is not used once either reusable identity has been established.
-
-Fixtures must also include invalid cases for duplicate logical xrefs, a second `parent_part` for the same non-1:1 vendor product, missing mandatory parent context, missing manufacturer, missing description, invalid relationship type, verified status without verification date, duplicate vendor PN within one vendor, and duplicate product URL rows for one vendor product.
 
 
 ## Vendor pricing evidence
@@ -378,7 +301,7 @@ The retained/resolvable imported context may include:
 - illustration/hotspot context where available;
 - fit information such as engine/aspiration, `Except ...` conditions, LH/RH, VIN/revision bounds, market/Region;
 - source/provenance and verification information;
-- other relevant catalogue/fit fields that may become available from later imported data.
+- other relevant catalogue/Fit fields present in the retained source context.
 
 The category/item/occurrence/PART reference used for the parent must be stored with the Jagports specified PART.
 

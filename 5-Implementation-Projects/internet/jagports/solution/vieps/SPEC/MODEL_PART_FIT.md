@@ -103,13 +103,12 @@ The mapping relation is additive and versioned:
 There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
 
 
-The approved initial fixture vocabulary is Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats. Coexistence of the two seat descriptions is a source-data fact to preserve in one occurrence when JEPC source records support it. This specification does not introduce a new condition operator, set-membership schema or inferred evaluator for it.
 
 ### Public facet read boundary
 
 The public Fit filter reads published normalized category/value entries together with their source-description references and language metadata. It filters only source occurrences that carry those published references; it must never join unqualified text or values across PARTs or occurrences. A response reports `unavailable` when its source relation, language metadata or occurrence scope is incomplete.
 
-Facet counts and selectable values come from the surviving occurrence universe under active search, stock, model and other filters. A selected zero-result value remains visible as selected but is not offered as an additional choice. The fixture and imported providers share the same endpoint and payload, while fixture data is opt-in and visibly marked.
+Facet counts and selectable values come from the surviving occurrence universe under active search, stock, model and other filters. A selected zero-result value remains visible as selected but is not offered as an additional choice.
 
 ## Occurrence and combination requirements
 
@@ -181,7 +180,7 @@ When querying a PART across occurrences, a verified applicable occurrence establ
 
 The response must retain occurrence IDs, model contexts, complete condition-set grouping, exclusions, evidence/mapping version, availability reasons and coverage. Summary model/VIN lists may be returned for navigation but cannot replace the grouped facts used for fitment. Reverse lookup returns conditional contexts, not a fabricated exhaustive list of individual vehicles.
 
-Keep candidate browsing separate from verified fitment. A source UI leaving a candidate visible when vehicle input is absent does not authorize an `applicable` result. Existing `part_fitment.applicability_state` values describe stored rows; they must not be silently renamed or exposed as this new evaluation contract without an explicit adapter/migration.
+Keep candidate browsing separate from verified fitment. A source UI leaving a candidate visible when vehicle input is absent does not authorize an `applicable` result. Stored `part_fitment.applicability_state` values describe persisted evidence rows and do not by themselves constitute Fit evaluation results.
 
 ## Recommended relational refinement
 
@@ -223,9 +222,8 @@ Reprocessing replaces/supersedes the complete derived assertion set for the affe
 - Preserve evidence multiplicity and set membership separately from semantic predicate deduplication.
 - Represent verification and coverage explicitly; missing scope or evidence never becomes positive Fit by default.
 - Link versioned source evidence to interpretations and replace derived assertion sets atomically while retaining source history.
-- Preserve fixtures and UI examples as non-authoritative test/presentation data rather than verified source assertions.
 
-## Acceptance examples
+## Domain examples
 
 The three airbag cases and headlamp case below are observed source examples; the other combinations are deliberately synthetic requirement fixtures, not additional Jaguar facts.
 

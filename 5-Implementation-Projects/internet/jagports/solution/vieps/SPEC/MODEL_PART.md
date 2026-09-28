@@ -110,7 +110,7 @@ Source-description-to-domain mappings are a separate enrichment layer and do not
 
 ## PART vehicle and VIN fit
 
-Migration `0016_occurrence_applicability.sql` adds occurrence-bound model context, alternative condition sets and versioned evidence. Existing PART-level model/VIN links remain intact. The companion [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#implemented-persistence-contract) defines these additive relations and their verification limits; no legacy fitment row is automatically promoted into them.
+Occurrence-bound model context, alternative condition sets and versioned evidence preserve the relationship between source occurrence and Fit. PART-level model/VIN links remain separate summary relationships. The companion [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#persistence-contract) defines the occurrence Fit relations and their verification limits.
 
 Vehicle fit is represented outside the canonical `part` row.
 
@@ -142,7 +142,7 @@ Historical and current part identities remain separately addressable.
 
 Only direct self-links are prohibited; multi-hop cycles and effective-date ordering are not constrained.
 
-Representative evidence fixture: `MNA7691AA → XR847031`.
+Representative supersession example: `MNA7691AA → XR847031`.
 
 ## PART fitment and attribute fit
 
@@ -295,7 +295,7 @@ All standalone `id` fields are `INTEGER PRIMARY KEY AUTOINCREMENT` unless a tabl
 | `part_supersession` | Composite PK `superseded_part_id`, `superseding_part_id`; `source`; `source_ref`; `verification_status`; `confidence`; `effective_from`; `effective_to`. |
 | `part_fitment` | `id`; `part_occurrence_id`; `part_id`; `vehicle_range_id`; `variation`; `qualifier`; `applicability_state`; `attribute_group`; `attribute_key`; `source_value`; `except_flag`; `source`; `source_ref`; `verification_status`; `confidence`. |
 
-The implemented occurrence fit persistence dictionary is maintained in [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#implemented-persistence-contract) rather than duplicated here.
+The occurrence Fit persistence dictionary is maintained in [`MODEL_PART_FIT.md`](MODEL_PART_FIT.md#persistence-contract) rather than duplicated here.
 
 ### Diagrams, hotspots and catalogue location
 
@@ -372,16 +372,12 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
-Physical SQLite column, migration and index identifiers retain their historical names while migration `0021_fit_contract_aliases.sql` adds read-only Fit views. Fit terminology in headings does not rename storage.
 
 | occurrence fit | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
-| source-qualified fit descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
-| source-to-occurrence description evidence (`0019`) | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
-| Fit catalogue Admin audit (`0020`) | `idx_suitability_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
+| source-qualified Fit descriptions and mappings | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
+| source-to-occurrence description evidence | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
+| Fit catalogue Admin audit | `idx_suitability_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
 
-`0019` adds immutable source-qualified description text, language-qualified normalized labels, append-only mapping revisions and a current-revision view. Separately evidenced source-to-condition-set links keep occurrence contexts distinct and allow coexisting seat-equipment values without inferring a condition operator. Production migrations seed no synthetic fixture records.
-
-`0020_suitability_admin.sql` adds separate category/value retirement tables and an immutable catalogue-Admin audit. Their additive structure preserves existing `0016` inserts. Normalized codes are stable while EN/FI labels may be renamed; description-to-value interpretation changes append mapping revisions. A retired category/value is excluded from newly published fit without deleting historical source or occurrence evidence.
 
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID.
