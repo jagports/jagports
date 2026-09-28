@@ -19,6 +19,19 @@ The existing `jagports` D1 database holds operational stock and fixtures and is 
 
 Database creation must respect the account's verified D1 capacity. Credentials stay in the local environment, never in committed configuration or command arguments.
 
+## Alignment with the Jagports D1 deployment procedure
+
+Use the same controlled setup sequence documented for the existing Jagports D1 database in [CloudFlareGit_DB_Deployment.md](jagports/CloudFlareGit_DB_Deployment.md) and [CloudFlareGit_DB_Migrations.md](jagports/CloudFlareGit_DB_Migrations.md): authenticate to the intended Cloudflare account, inspect the existing database before creation, compare the target identity with reviewed repository configuration, create only when absent, record the returned database ID, apply schema separately, and verify the resulting remote state. Parts setup uses the repository-controlled parts CLI and D1 API because it has no Worker binding or fixture migration chain; it must preserve those same identity, review, separation, and verification controls.
+
+Before any remote setup operation, run the read-only Wrangler account and database checks from the repository root:
+
+```text
+npx wrangler whoami
+npx wrangler d1 list
+```
+
+Confirm the authenticated account ID is the intended account and compare the candidate database name and ID with the reviewed parts configuration. Then use the parts setup CLI below, which independently checks the selected account and exact database identity through the D1 API. Do not create through the dashboard or adopt an existing database without a matching reviewed configuration.
+
 ## Setup and verification contract
 
 Before any catalogue write, derive the database name from the approved Range slug and verify the Cloudflare account, database name and UUID against reviewed `3-Deployment/internet/cloudflare/d1/parts/config/<range_slug>.json`. Reuse an existing database only when its identity matches that configuration. Never silently adopt, delete or recreate an unconfigured or mismatched database.
