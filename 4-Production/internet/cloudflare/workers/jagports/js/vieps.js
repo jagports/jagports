@@ -346,29 +346,37 @@ function showSuitability() {
   }
   status.className = "muted status-line";
   if (panel.dataset) panel.dataset.currentQuery = suitabilityData.query || "";
-  const choices = (suitabilityData.categories || []).flatMap((category) =>
-    (category.values || []).map((value) => ({
-      ...value, category: category.name,
-      selected: suitabilitySelection.has(value.id),
-      available: (suitabilityData.available_options || []).includes(value.id),
-    })));
   const locale = i18n?.language || "en";
-  choices.sort((a, b) => Number(b.selected) - Number(a.selected)
-    || a.name.localeCompare(b.name, locale) || a.category.localeCompare(b.category, locale)
-    || a.id.localeCompare(b.id));
-  panel.innerHTML = choices.map((item) => {
-    const source = item.source_descriptions || [];
-    const title = source.map((s) => `${s.original_text} [${s.language}; ${s.source_namespace}; ${s.locator}]`).join(" · ");
-    return `<label class="variation-choice" title="${escapeHtml(title)}">
-      <input type="checkbox" data-suitability-facet="${escapeHtml(item.id)}"
-        aria-describedby="variationsStatus" ${item.selected ? "checked" : ""}
-        ${!item.selected && !item.available ? "disabled" : ""}>
-      <span>${escapeHtml(item.name)}</span>
-      <small>(${escapeHtml(item.category)})</small>
-    </label>`;
-  }).join("");
+  const availableOptions = new Set(suitabilityData.available_options || []);
+  // Keep normalized category identities separate even when translated names match.
+  // Alphabetize categories; retain checked-first alphabetical ordering within each.
+  const groups = suitabilityData.categories.map((category) => ({
+    ...category,
+    values: (category.values || []).filter((value) =>
+      availableOptions.has(value.id) || suitabilitySelection.has(value.id)).map((value) => ({
+      ...value,
+      selected: suitabilitySelection.has(value.id),
+      available: availableOptions.has(value.id),
+    })).sort((a, b) => Number(b.selected) - Number(a.selected)
+      || a.name.localeCompare(b.name, locale) || a.id.localeCompare(b.id)),
+  })).filter((category) => category.values.length)
+    .sort((a, b) => a.name.localeCompare(b.name, locale)
+      || String(a.code ?? a.id ?? "").localeCompare(String(b.code ?? b.id ?? "")));
+  panel.innerHTML = groups.map((category) => `<fieldset class="variation-group">
+    <legend class="variation-group-title">${escapeHtml(category.name)}</legend>
+    <div class="variation-group-values">${category.values.map((item) => {
+      const source = item.source_descriptions || [];
+      const title = source.map((s) => `${s.original_text} [${s.language}; ${s.source_namespace}; ${s.locator}]`).join(" · ");
+      return `<label class="variation-choice" title="${escapeHtml(title)}">
+        <input type="checkbox" data-suitability-facet="${escapeHtml(item.id)}"
+          aria-describedby="variationsStatus" ${item.selected ? "checked" : ""}
+          ${!item.selected && !item.available ? "disabled" : ""}>
+        <span>${escapeHtml(item.name)}</span>
+      </label>`;
+    }).join("")}</div>
+  </fieldset>`).join("");
   const matching = suitabilityData.matches?.length || 0;
-  status.textContent = !choices.length ? t("suitability.no_options")
+  status.textContent = !groups.length ? t("suitability.no_options")
     : suitabilityData.state === "unavailable" && matching === 0
       ? t("suitability.incomplete")
       : suitabilitySelection.size && matching === 0 ? t("suitability.no_matches")
