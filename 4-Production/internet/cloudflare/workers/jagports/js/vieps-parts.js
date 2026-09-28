@@ -5,34 +5,34 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), { status
   headers: { 'content-type': 'application/json; charset=utf-8' } });
 const text = value => typeof value === 'string' ? value.trim() : '';
 
-export function liveRangeDatabase(url, env) {
+export function partsDatabase(url, env) {
   let bindings;
-  try { bindings = JSON.parse(env.RANGE_BINDINGS || '{}'); }
+  try { bindings = JSON.parse(env.PARTS_DATABASE_BINDINGS || '{}'); }
   catch {
-    const error = new Error('Invalid reviewed Range binding registry.');
+    const error = new Error('Invalid reviewed parts database binding registry.');
     error.status = 503;
-    error.code = 'range_unavailable';
+    error.code = 'parts_database_unavailable';
     throw error;
   }
   const names = Object.keys(bindings);
   // Cross-Range discovery belongs to #555. Do not substitute a caller-provided Range
-  // for a global index or silently select one of several Range databases.
+  // for a global index or silently select one of several parts databases.
   if (names.length !== 1 || url.searchParams.has('range')) {
     const error = new Error(names.length > 1
       ? 'Cross-Range catalogue discovery is not available.'
       : names.length === 0
-        ? 'No real Range database is bound.'
+        ? 'No parts database is bound.'
         : 'Per-request Range selection is not supported.');
     error.status = 503;
-    error.code = 'range_unavailable';
+    error.code = 'parts_database_unavailable';
     throw error;
   }
   const slug = names[0];
   const db = env[bindings[slug]];
   if (!db) {
-    const error = new Error(`Range ${slug} D1 binding is unavailable.`);
+    const error = new Error(`Parts database binding for configured Range ${slug} is unavailable.`);
     error.status = 503;
-    error.code = 'range_unavailable';
+    error.code = 'parts_database_unavailable';
     throw error;
   }
   return { slug, db };
@@ -88,12 +88,20 @@ async function pathsForPart(db, part) {
   });
 }
 
-// Real Suitability is sourced exclusively from the reviewed Range D1 that also
+async function treeCatalogueAvailable(db) {
+  const schema = await db.prepare(
+    "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name IN ('part_tree_node','part_tree_part')"
+  ).all();
+  const names = new Set((schema.results || []).map((row) => row.name));
+  return names.has('part_tree_node') && names.has('part_tree_part');
+}
+
+// Real Suitability is sourced exclusively from the reviewed parts database that also
 // serves /api/vieps/part and /api/vieps/tree. Operational stock is a separate DB.
-export async function handleLiveSuitability(request, env) {
+export async function handleSuitability(request, env) {
   if (request.method !== 'GET') return json({ error_code: 'method_not_allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = partsDatabase(url, env);
   const required = [
     'applicability_source_description', 'applicability_description_mapping_current',
     'applicability_dimension', 'applicability_dimension_value',
@@ -111,7 +119,7 @@ export async function handleLiveSuitability(request, env) {
     return json({
       state: 'error', fixture_mode: false, range: slug,
       error_code: 'real_suitability_data_missing',
-      error: 'Reviewed normalized JEPC Suitability data is not published in this Range database.',
+      error: 'Reviewed normalized JEPC Suitability data is not published in this parts database.',
       categories: [], available_options: [], matches: [],
     }, 503);
   }
@@ -134,10 +142,10 @@ export async function handleLiveSuitability(request, env) {
   return handleVerifiedSuitability(request, db, hasRealStock, slug);
 }
 
-export async function handleLivePart(request, env) {
+export async function handlePart(request, env) {
   if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = partsDatabase(url, env);
   const query = text(url.searchParams.get('q'));
   if (!query) return json({ error: 'part-number query is required' }, 400);
   const normalized = normalizePartNumber(query);
@@ -151,16 +159,28 @@ export async function handleLivePart(request, env) {
   if (candidateId !== null && !/^[1-9]\d*$/.test(candidateId)) {
     return json({ error: 'invalid candidate id', error_code: 'candidate_id_invalid' }, 400);
   }
-  const result = await db.prepare(`SELECT p.id,p.part_number_raw,p.part_number_normalized,
-      p.description,p.source,p.source_ref,p.verification_status
-    FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
-      AND (p.part_number_normalized LIKE '%' || ? || '%'
-        OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%'
-        OR EXISTS (SELECT 1 FROM part_tree_part tp
-          JOIN part_tree_node n ON n.id=tp.tree_node_id WHERE tp.part_id=p.id
-          AND UPPER(n.label) LIKE '%' || UPPER(?) || '%'))
-    ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
-      p.part_number_normalized LIMIT 25`).bind(normalized, query, query, normalized).all();
+  const treeAvailable = await treeCatalogueAvailable(db);
+  const sql = treeAvailable
+    ? `SELECT p.id,p.part_number_raw,p.part_number_normalized,
+        p.description,p.source,p.source_ref,p.verification_status
+      FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+        AND (p.part_number_normalized LIKE '%' || ? || '%'
+          OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%'
+          OR EXISTS (SELECT 1 FROM part_tree_part tp
+            JOIN part_tree_node n ON n.id=tp.tree_node_id WHERE tp.part_id=p.id
+            AND UPPER(n.label) LIKE '%' || UPPER(?) || '%'))
+      ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
+        p.part_number_normalized LIMIT 25`
+    : `SELECT p.id,p.part_number_raw,p.part_number_normalized,
+        p.description,p.source,p.source_ref,p.verification_status
+      FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+        AND (p.part_number_normalized LIKE '%' || ? || '%'
+          OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%')
+      ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
+        p.part_number_normalized LIMIT 25`;
+  const result = treeAvailable
+    ? await db.prepare(sql).bind(normalized, query, query, normalized).all()
+    : await db.prepare(sql).bind(normalized, query, normalized).all();
   const found = result.results || [];
   const withStock = await Promise.all(found.map(async part => ({ ...part,
     stock: await realStock(env, part.part_number_normalized) })));
@@ -174,28 +194,34 @@ export async function handleLivePart(request, env) {
   if (candidateId && !chosen) return json({ error: 'candidate not in current results', error_code: 'candidate_not_found' }, 404);
   const part = chosen || candidates[0];
   if (!chosen && candidates.length > 1 && candidates.filter(item => item.part_number_normalized === normalized).length !== 1) {
-    const partsTree = (await Promise.all(candidates.map(item => pathsForPart(db, partPayload(item))))).flat();
+    const treeRoots = treeAvailable ? await roots(db) : [];
+    const partsTree = treeAvailable
+      ? (await Promise.all(candidates.map(item => pathsForPart(db, partPayload(item))))).flat()
+      : [];
     return json({ state: 'multiple_match', range: slug, query, normalized_query: normalized,
       search_path: searchPath, matches: candidates.map(partPayload),
-      tree_roots: await roots(db), parts_tree: partsTree, selected_part: null });
+      tree_state: treeAvailable ? (treeRoots.length ? 'available' : 'empty') : 'unavailable',
+      tree_roots: treeRoots, parts_tree: partsTree, selected_part: null });
   }
-  const [occurrences, treePaths] = await Promise.all([
-    db.prepare(`SELECT id,source,source_ref,context_type,context_ref,category_ref,item_number,
+  const occurrences = await db.prepare(
+    `SELECT id,source,source_ref,context_type,context_ref,category_ref,item_number,
       diagram_ref,diagram_item_number,verification_status FROM part_occurrence
-      WHERE part_id=? ORDER BY id`).bind(part.id).all(),
-    pathsForPart(db, partPayload(part)),
-  ]);
+      WHERE part_id=? ORDER BY id`
+  ).bind(part.id).all();
+  const treeRoots = treeAvailable ? await roots(db) : [];
+  const treePaths = treeAvailable ? await pathsForPart(db, partPayload(part)) : [];
   return json({ state: 'resolved', range: slug, search_path: searchPath,
-    part: partPayload(part), tree_roots: await roots(db),
-    occurrences: occurrences.results || [], parts_tree: treePaths,
+    part: partPayload(part),
+    tree_state: treeAvailable ? (treeRoots.length ? 'available' : 'empty') : 'unavailable',
+    tree_roots: treeRoots, occurrences: occurrences.results || [], parts_tree: treePaths,
     images: [], diagrams: [], fitment: [], stock: part.stock,
     applicability_state: 'unverified_source_evidence' });
 }
 
-export async function handleLiveTree(request, env) {
+export async function handleTree(request, env) {
   if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
   const url = new URL(request.url);
-  const { slug, db } = liveRangeDatabase(url, env);
+  const { slug, db } = partsDatabase(url, env);
   const treeRoots = await roots(db);
   const rawNode = url.searchParams.get('node_id');
   const stockOnlyParam = text(url.searchParams.get('stock_only'));

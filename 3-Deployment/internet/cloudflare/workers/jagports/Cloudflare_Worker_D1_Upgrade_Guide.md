@@ -15,7 +15,7 @@ reviewed change
     -> verify remote D1 migration ledger
     -> apply pending reviewed migrations
     -> verify remote schema
-    -> verify affected live request
+    -> verify affected deployed request
 ```
 
 Do not change Worker queries merely to hide a missing-column error until remote migration drift has been ruled out.
@@ -101,7 +101,7 @@ For other migrations, inspect the affected table/index/trigger explicitly.
 
 A successful migration-ledger update is not enough when the deployed Worker depends on a specific table shape.
 
-## Verify the live runtime
+## Verify the deployed runtime
 
 After schema verification, exercise the request affected by the migration.
 
@@ -120,7 +120,7 @@ For Stock Admin, verify both:
 
 ## Missing-column troubleshooting
 
-If a live request fails with:
+If a deployed request fails with:
 
 ```text
 D1_ERROR: no such column: <column-name>
@@ -133,7 +133,7 @@ use this order:
 3. apply pending reviewed migrations;
 4. re-list remote migrations;
 5. inspect the affected table shape;
-6. retry the live request;
+6. retry the deployed request;
 7. only then consider application-code changes.
 
 Do not remove DB-specified fields from Worker queries merely to mask an unapplied migration.
@@ -156,7 +156,7 @@ Record:
 - remote migration names applied;
 - pre/post migration ledger;
 - relevant schema verification;
-- live endpoint/request result.
+- deployed endpoint/request result.
 
 Do not record credentials, OAuth tokens, API tokens, passwords, password hashes, or secret values.
 
