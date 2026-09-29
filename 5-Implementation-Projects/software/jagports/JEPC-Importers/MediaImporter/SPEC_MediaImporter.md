@@ -274,7 +274,7 @@ Catalogue geometry persistence must preserve raw source geometry, target-asset i
 
 ### Catalogue geometry requirements
 
-The current model cannot express the complete MediaImporter result without overloading opaque fields. Before Slice 3 production publication, the Parts Data Model owner must approve an additive representation for:
+The catalogue model must represent the complete MediaImporter result without overloading opaque fields. Required additive representation includes:
 
 - storage-provider-neutral object key;
 - SHA-256, byte size and verified media type;
@@ -451,7 +451,7 @@ A change increments only the affected component version and selects prior record
 
 #### Object-preservation contract
 
-Slice 2 preserves only source assets already validated by the local ledger. For a verified JPEG or PNG, its immutable presentation-object key is:
+Object preservation applies only to source assets validated by the local ledger. For a verified JPEG or PNG, its immutable presentation-object key is:
 
 ```text
 jepc/assets/sha256/<first-two-lowercase-hex>/<sha256>.<verified-extension>
