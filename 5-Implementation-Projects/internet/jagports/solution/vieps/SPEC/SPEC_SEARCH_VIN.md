@@ -1,7 +1,7 @@
 # VIEPS Search — VIN specification
 
 ## Scope
-Define the VIN input and its evidence-bounded interaction with Search, FIT, Parts Tree and Applicable Models. [Search](SPEC_SEARCH.md) governs shared filter state and invalidation; [FIT](SPEC_SEARCH_FIT.md) and [Ranges](SPEC_SEARCH_RANGES.md) govern their distinct controls. VIN does not create new canonical PART identities.
+Define the VIN input and its evidence-bounded interaction with Search, FIT, Parts Tree and Applicable Models. [Search](SPEC_FIND.md) governs shared filter state and invalidation; [FIT](SPEC_SEARCH_FIT.md) and [Ranges](SPEC_SEARCH_RANGES.md) govern their distinct controls. VIN does not create new canonical PART identities.
 
 ## Verified VIN evidence
 VIN fit uses approved source VIN ranges, not inferred model years or KOVuosi. VIN filtering consumes approved occurrence-specific model, source VIN ranges and serial-bound evidence. Unverified model years or `KOVuosi` must never substitute for VIN-backed evidence. No default fit, guessed boundary or inferred compatibility is permitted.
