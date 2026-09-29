@@ -134,13 +134,13 @@ This model does not use KOVuosi as a source for VIN decoding, VIN-range selectio
 
 `part_supersession` is an explicit directed relationship between catalogue parts.
 
-`superseded_part_id → superseding_part_id` preserves both historical and replacement identities.
+`superseded_part_id → superseding_part_id` preserves both superseded and replacement identities.
 
 One replacement may supersede multiple historical parts and chains such as `A → B → C` are representable.
 
 Supersession is not a generic interchangeability assertion.
 
-Historical and current part identities remain separately addressable.
+Superseded and current part identities remain separately addressable.
 
 Only direct self-links are prohibited; multi-hop cycles and effective-date ordering are not constrained.
 
@@ -226,7 +226,7 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item.part_id = NULL` does **not** mean merely "not found in Jaguar/JEPC". It is reserved for stock whose reusable product identity is genuinely unresolved. A known reusable third-party product must first resolve to either an existing Jaguar PART (verified 1:1 case) or a Jagports specified PART (non-1:1 reusable case).
 
-The existing `stock_item.part_number` field is retained as the stocked or historical part-number reference.
+The existing `stock_item.part_number` field is retained as the stocked or stocked or superseded part-number reference.
 
 It is not the relational identity and does not require a matching canonical PART.
 
@@ -238,7 +238,7 @@ This is distinct from catalogue vehicle/model/VIN fit and from physical stock/st
 
 Unresolved stock is representable without fabricating a canonical PART. Conversely, known reusable third-party products must not be kept unresolved merely because Jaguar did not issue the vendor product number.
 
-The stock relationship does not implement warehouse transaction history, reservations, sales workflow, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
+The stock relationship does not implement warehouse transaction ledger, reservations, sales workflow, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
 
 ## Architectural boundary
 
@@ -374,16 +374,15 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
-Physical SQLite column, migration and index identifiers retain their historical names while migration `0021_fit_contract_aliases.sql` adds read-only Fit views. Fit terminology in headings does not rename storage.
 
 | occurrence fit | `idx_applicability_snapshot_active`; `idx_applicability_serial_domain`; `idx_applicability_context_range`; `idx_occurrence_applicability_occurrence`; `idx_occurrence_applicability_context`; `idx_applicability_attribute_lookup`. |
-| source-qualified fit descriptions and mappings (`0019`) | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
-| source-to-occurrence description evidence (`0019`) | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
-| Fit catalogue Admin audit (`0020`) | `idx_suitability_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
+| source-qualified fit descriptions and mappings | `idx_applicability_source_description_group`; `idx_applicability_mapping_dimension`. Unique source identities and revision pairs have SQLite-managed autoindexes. |
+| source-to-occurrence description evidence | `idx_applicability_set_description_mapping` for immutable mapping-revision-to-condition-set lookups; domain-label tables have language-qualified primary keys. |
+| Fit catalogue Admin audit | `idx_suitability_admin_audit_created`; normalized dimension/value retirement uses primary-key indexes. |
 
-`0019` adds immutable source-qualified description text, language-qualified normalized labels, append-only mapping revisions and a current-revision view. Separately evidenced source-to-condition-set links keep occurrence contexts distinct and allow coexisting seat-equipment values without inferring a condition operator. Production migrations seed no synthetic fixture records.
+Source-qualified descriptions, localized labels and mapping revisions remain separate evidence layers. Separately evidenced source-to-condition-set links keep occurrence contexts distinct and allow coexisting equipment values without inferring a condition operator. Synthetic fixture records are never production source evidence.
 
-`0020_suitability_admin.sql` adds separate category/value retirement tables and an immutable catalogue-Admin audit. Their additive structure preserves existing `0016` inserts. Normalized codes are stable while EN/FI labels may be renamed; description-to-value interpretation changes append mapping revisions. A retired category/value is excluded from newly published fit without deleting historical source or occurrence evidence.
+Normalized category/value retirement and Admin audit data preserve stable codes and append interpretation revisions. Retiring a category/value excludes it from newly published FIT without deleting retained source or occurrence evidence.
 
 
 Principal canonical lookup is `WHERE part_number_normalized = ?`, then relationships by PART/occurrence ID.
@@ -398,7 +397,7 @@ Search may combine normalized/raw/description matching; description lookup must 
 
 Synthetic fixtures may demonstrate canonical relationships such as multiple occurrences, unidentified images, model/VIN links, positive/excluded/unavailable fitment, mapped/unmapped hotspots, verified/unavailable locations, supersession chains, many-to-one replacement, multiple stock records, donor identity and unresolved stock.
 
-Occurrence-fit fixtures may exercise grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, source-version replacement and retained evidence history. Catalogue-tree fixtures may exercise source-qualified node identity, ordered parentage, multiple occurrence paths, language-specific structural divergence and idempotent source identities.
+Occurrence-fit fixtures may exercise grouped model/item/effective serial evidence, alternative attribute sets, repeated source paths, market conditions below shared models, source-version replacement and retained prior-version evidence. Catalogue-tree fixtures may exercise source-qualified node identity, ordered parentage, multiple occurrence paths, language-specific structural divergence and idempotent source identities.
 
 Fixtures are examples of the model contract, not verified Jaguar/JEPC facts. Synthetic vehicle zones, VINs, fit assertions or other test data must not be presented as verified domain evidence.
 
@@ -709,7 +708,7 @@ A price snapshot should retain:
 - source/product URL;
 - verification status where used.
 
-Price history must not modify canonical PART identity.
+Price snapshots must not modify canonical PART identity.
 
 ### Fit
 
