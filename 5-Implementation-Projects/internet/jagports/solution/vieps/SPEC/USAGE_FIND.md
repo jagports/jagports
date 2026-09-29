@@ -4,7 +4,7 @@
 
 This file is the human-oriented usage and UI verification procedure for **Find**.
 
-Canonical Search behavior and result-state semantics remain in [`SPEC_FIND.md`](SPEC_FIND.md). This file does not redefine Search, PART, Stock, FIT, VIN, Parts Tree, Applicable Models, or Search Results contracts.
+Shared Search behavior and result-state semantics remain in [`SPEC_SEARCH.md`](SPEC_SEARCH.md). Find-specific behavior and acceptance are defined in [`SPEC_SEARCH_FIND.md`](SPEC_SEARCH_FIND.md). This file is the human execution procedure and does not redefine PART, Stock, FIT, VIN, Parts Tree, Applicable Models, or Search Results contracts.
 
 Use this procedure after a Find implementation is deployed to verify the behavior through the same UI an end user uses.
 
@@ -55,7 +55,7 @@ Expected result in both modes:
 - the descriptive query is not rejected merely because it is not a PART identifier;
 - the previously identified PART is present in the resulting candidate set when its description contains the query;
 - the UI does not show ordinary **Part not found** while that description match exists;
-- the result is presented through the existing Search Results / Parts Tree / selected-PART regions defined by `SPEC_FIND.md`.
+- the result is presented through the existing Search Results / Parts Tree / selected-PART regions defined by `SPEC_SEARCH_FIND.md`.
 
 If exactly one canonical PART matches, normal resolved-PART presentation is expected.
 
@@ -107,7 +107,7 @@ Expected result in both modes:
 
 1. After any successful description search, clear the Find field using normal UI interaction.
 2. Confirm the prior query result/selection does not remain presented as the active Find result.
-3. Confirm independently selected supported filters are preserved according to the clear-transition contract in `SPEC_FIND.md`.
+3. Confirm independently selected supported filters are preserved according to the clear-transition contract in `SPEC_SEARCH_FIND.md`.
 
 Run this check in both modes.
 
