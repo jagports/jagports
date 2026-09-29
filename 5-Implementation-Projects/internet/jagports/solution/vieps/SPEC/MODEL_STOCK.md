@@ -319,7 +319,7 @@ The stock model uses the stock index set listed below.
 
 | Table | Named indexes |
 |---|---|
-| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_catalogue_part`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`; `idx_stock_item_condition_code`; `idx_stock_item_storage_location`; `idx_stock_item_source_party`; `idx_stock_item_price_currency`. `idx_stock_item_catalogue_part` indexes `(catalogue_range, part_id)`. |
+| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`; `idx_stock_item_condition_code`; `idx_stock_item_storage_location`; `idx_stock_item_source_party`; `idx_stock_item_price_currency`. A composite lookup index over (`catalogue_range`, `part_id`) is required when the logical catalogue-reference fields are implemented; this specification does not assign its schema-object name. |
 | `stock_location` | `idx_stock_location_root_identity`; `idx_stock_location_child_identity`; `idx_stock_location_site`; `idx_stock_location_parent`. |
 | `stock_source_party` | `idx_stock_source_party_type_name`. |
 
