@@ -119,7 +119,7 @@ This section is the authoritative *interaction* contract for Find, VIN, Stock on
 - Preserve selected filters when zero PARTs match. Mark limiting selected filters with yellow warnings and show the **number of distinct competing option values** that would become available by clearing **that filter alone while all other constraints remain active**; a count of options is not a count of PARTs. If only clearing several filters together recovers matches, show a **combined** conflicting-filter warning identifying those filters and the number of PARTs that would become available together; do not imply one filter alone is sufficient. A combined multi-filter clear button is **not** required. Never silently clear any filter to resolve zero matches.
 - Every new interaction invalidates superseded asynchronous responses. Recompute visibility/counts from evidence-backed result contexts without circularly suppressing the selected value needed to remove or diagnose a filter. No input or option is silently changed by a late result.
 
-These are normative interaction requirements. Controls without an approved source-backed read contract remain disabled; never simulate filtering.
+These are normative interaction requirements. Controls without an defined source-backed read contract remain disabled; never simulate filtering.
 
 ## Search input
 - The search area uses one primary query field for a Jaguar part number, deterministic identifier or free text; it must not expose competing part-number and free-text fields.
@@ -174,7 +174,7 @@ Reduced-MVP free-text search is a pragmatic, current-data-path capability. It ex
 
 Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and deterministic identifiers are not excluded from search; they are resolved first by deterministic lookup. Generic free-text fallback runs only when that deterministic lookup produces no match.
 
-The reduced-MVP free-text corpus includes matching text available through the approved current read path, including at least:
+The reduced-MVP free-text corpus includes matching text available through the defined read path, including at least:
 
 - PART descriptions;
 - model, range, body-style, vehicle, tree, category, path and other catalogue/context text where present;
@@ -186,7 +186,7 @@ The reduced-MVP free-text corpus includes matching text available through the ap
 - source/vendor/person text;
 - donor-vehicle text;
 - notes text;
-- any other current searchable field with matching text in the approved read path;
+- any other searchable field with matching text in the defined read path;
 - i18n texts for the selected UI/catalogue language where those texts are part of the visible/searchable current UI or data presentation.
 
 Searchable stock text does not make stock the catalogue identity. When a stock-text match resolves to a stocked item that is linked to a canonical PART, the visible result object remains the canonical PART or existing PART result region.
