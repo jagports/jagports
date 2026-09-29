@@ -222,19 +222,32 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item` is an operational record and is not a catalogue PART identity.
 
-`stock_item.part_id` is a nullable foreign key to canonical `part(id)`. When reusable identity is established it points to that canonical PART, whether the PART is an imported Jaguar/JEPC PART or a Jagports specified PART created under `MODEL_PARTS.md`.
+Operational STOCK is persisted in the `jagports` D1 database. Imported JEPC catalogue PARTs are persisted in Range-routed `parts-<range_slug>` databases. SQLite/D1 cannot enforce a foreign key from `jagports.stock_item` to a `part` row in another D1 database.
+
+A resolved stock-to-catalogue relationship therefore uses the logical catalogue reference:
+
+```text
+(catalogue_range, part_id)
+```
+
+`part_id` identifies the canonical PART within the resolved catalogue scope. `catalogue_range` is the stable configured Range slug used to route imported catalogue reads to `parts-<range_slug>`; it is a routing scope, not a FIT assertion.
+
+Rules:
+
+- imported JEPC PART: `catalogue_range` and `part_id` are both present; the pair is a logical cross-D1 reference and is **not** a SQL foreign key;
+- catalogue fixture PART physically stored in `jagports`: `catalogue_range = NULL` and `part_id` may use a same-database foreign key;
+- unresolved reusable identity: `catalogue_range = NULL` and `part_id = NULL`;
+- `catalogue_range` must not be present when `part_id` is NULL.
 
 `stock_item.part_id = NULL` does **not** mean merely "not found in Jaguar/JEPC". It is reserved for stock whose reusable product identity is genuinely unresolved. A known reusable third-party product must first resolve to either an existing Jaguar PART (verified 1:1 case) or a Jagports specified PART (non-1:1 reusable case).
 
-The existing `stock_item.part_number` field is retained as the stocked or stocked or superseded part-number reference.
-
-It is not the relational identity and does not require a matching canonical PART.
+The existing `stock_item.part_number` field is retained as the stocked or superseded part-number reference. It is supporting stock evidence, not the canonical relational identity.
 
 One canonical PART may have multiple stock records.
 
 Donor vehicle identity is represented separately by nullable `stock_item.donor_vehicle_id → vehicle(id)`.
 
-This is distinct from catalogue vehicle/model/VIN fit and from physical stock/storage location.
+This is distinct from catalogue vehicle/model/VIN FIT and from physical stock/storage location.
 
 Unresolved stock is representable without fabricating a canonical PART. Conversely, known reusable third-party products must not be kept unresolved merely because Jaguar did not issue the vendor product number.
 
@@ -244,17 +257,47 @@ The stock relationship does not implement warehouse transaction ledger, reservat
 
 `PART` contains catalogue/reference identity only.
 
-It has no direct vehicle fit field and no mutable stock state.
+It has no direct vehicle FIT field and no mutable stock state.
 
 `PART_IMAGE` is evidence associated with that stable identity.
 
-Fit belongs to occurrence/fitment/context relationships.
+FIT belongs to occurrence/FIT/context relationships.
 
 Diagram/hotspot/location evidence belongs to explicit relationships.
 
 Operational inventory belongs to separate stock records.
 
 Catalogue vehicle location and physical stock/storage location are distinct concepts.
+
+The D1 boundary is:
+
+```text
+jagports D1
++-- stock_item
+|   +-- catalogue_range = xk
+|   +-- part_id = 123
+|   `-- operational STOCK fields
+|
++-- catalogue fixture PARTs
+|   `-- same-database FK allowed for fixture rows
+|
+`-- logical catalogue reference
+    `-- (catalogue_range, part_id)
+                 |
+                 v
+configured Range xk
+                 |
+                 v
+parts-xk D1
+`-- part(id = 123)
+    +-- occurrences
+    +-- tree
+    +-- FIT
+    +-- diagrams
+    `-- provenance
+```
+
+No SQL foreign key crosses the `jagports` / `parts-<range_slug>` database boundary. Application/provider code resolves `catalogue_range` to the configured parts-database binding and then resolves `part_id` inside that catalogue.
 
 ## Field dictionary
 
@@ -314,7 +357,7 @@ The occurrence-fit persistence dictionary is maintained in [`SPEC_SEARCH_FIT.md`
 |---|---|
 | `vehicle` | `id`; `vin_raw`; `serial`; `model_range`; `market`; `identity_status`; `notes`; `created_at`; `updated_at`. |
 | `vehicle_identifier` | `id`; `vehicle_id`; `identifier_type`; `location`; `raw_value`; `normalized_value`; `source_ref`; `verification_status`. |
-| `stock_item` | `id`; `part_number`; `quantity`; `condition`; `status`; `location`; `donor_vehicle`; `source_ref`; `notes`; `created_at`; `updated_at`; `part_id`; `donor_vehicle_id`; `source`; `verification_status`; `confidence`; `available`. Full stock model fields and controlled condition code semantics are defined in `MODEL_STOCK.md`. |
+| `stock_item` | `id`; `part_number`; `quantity`; `condition`; `status`; `location`; `donor_vehicle`; `source_ref`; `notes`; `created_at`; `updated_at`; `catalogue_range`; `part_id`; `donor_vehicle_id`; `source`; `verification_status`; `confidence`; `available`. `(catalogue_range, part_id)` is the logical reference to an imported PART; a local fixture PART in `jagports` may use `catalogue_range = NULL` with a same-database FK. Full stock model fields and controlled condition code semantics are defined in `MODEL_STOCK.md`. |
 
 ### Retained range and catalogue-tree entities
 
@@ -341,7 +384,7 @@ The occurrence-fit persistence dictionary is maintained in [`SPEC_SEARCH_FIT.md`
 | Diagram → hotspot | 1:N required diagram; deleting diagram removes hotspots. |
 | Occurrence → hotspot | 1:N optional occurrence; deleting occurrence SET NULL preserves hotspot/source evidence. |
 | Occurrence → vehicle location | 1:N required occurrence; optional model range. Deleting occurrence or a referenced model removes the mapping. |
-| PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 canonical PART and 0..1 donor. The PART may be Jaguar/JEPC-imported or Jagports specified. `part_id = NULL` is reserved for genuinely unresolved reusable identity. Deleting either parent SET NULL preserves stock identity, quantity, legacy number, donor text and location. Supersession never mutates stock. |
+| PART / donor vehicle → stock | Each stock has 0..1 logical canonical-PART reference and 0..1 donor. Imported PART references use `(catalogue_range, part_id)` across D1 and are resolved by application/provider code; only same-database fixture PARTs may use a physical FK. `part_id = NULL` is reserved for genuinely unresolved reusable identity. Catalogue deletion or unavailability must not delete STOCK; the reference becomes unresolved/unavailable until reconciled. Supersession never mutates stock. |
 | Vehicle → identifiers | 1:N; cascade on vehicle deletion. Identifier text is not unique. |
 | Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. Current N:M PART membership remains a broad browse summary. |
 | Tree ↔ occurrence/path | `part_occurrence_tree_path` is N:M where necessary: one occurrence may retain multiple source paths; deleting occurrence or tree node cascades only the link rows. |
@@ -370,7 +413,7 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `part_occurrence_diagram` | `idx_part_occurrence_diagram_diagram`. |
 | `diagram_hotspot` | `idx_diagram_hotspot_diagram`; `idx_diagram_hotspot_occurrence`; `idx_diagram_hotspot_item`. |
 | `part_vehicle_location` | `idx_part_vehicle_location_identity`; `idx_part_vehicle_location_model`; `idx_part_vehicle_location_state`. |
-| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`. |
+| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_catalogue_part`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`. `idx_stock_item_catalogue_part` indexes `(catalogue_range, part_id)` for logical catalogue-reference lookup. |
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
@@ -752,24 +795,27 @@ Optional point/region references on imported JEPC illustrations and uploaded loc
 
 ### Canonical `part_id` contract
 
-For all third-party workflows:
+For all third-party relationships:
 
-- `part.id` is the canonical reusable PART identity;
-- `third_party_part.part_id` points to that canonical identity;
-- `stock_item.part_id` points to the same canonical identity when stock is resolved;
+- `part.id` is the canonical reusable PART identity within its catalogue scope;
+- `third_party_part.part_id` points to that canonical identity inside the catalogue domain;
+- resolved operational STOCK records the same canonical identity through `stock_item.part_id` plus `stock_item.catalogue_range` when the PART resides in a `parts-<range_slug>` database;
 - vendor product identity remains in `third_party_part` and its vendor part number/reference fields;
 - a verified 1:1 vendor product reuses the existing Jaguar `part_id`;
 - a non-1:1 reusable vendor product uses the Jagports specified `part_id`;
-- `stock_item.part_id = NULL` is not an alternative representation for a known reusable third-party product.
+- `stock_item.part_id = NULL` is not an alternative representation for a known reusable third-party product;
+- a cross-D1 stock relationship is logical and must not be represented as a SQLite foreign key.
 
 ```text
 vendor product reference (third_party_part)
              |
              v
-canonical reusable PART (part.id)
+canonical reusable PART
+(catalogue scope, part.id)
              |
              v
-operational stock (stock_item.part_id)
+logical STOCK reference
+(catalogue_range, stock_item.part_id)
 ```
 
 The relationship direction does not imply that a vendor product is Jaguar-issued. Origin/provenance remains authoritative for that distinction.
