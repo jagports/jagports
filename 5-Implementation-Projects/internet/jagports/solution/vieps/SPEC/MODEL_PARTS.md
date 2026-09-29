@@ -243,15 +243,7 @@ Rules:
 
 The existing `stock_item.part_number` field is retained as the stocked or superseded part-number reference. It is supporting stock evidence, not the canonical relational identity.
 
-One canonical PART may have multiple stock records.
-
-Donor vehicle identity is represented separately by nullable `stock_item.donor_vehicle_id → vehicle(id)`.
-
-This is distinct from catalogue vehicle/model/VIN FIT and from physical stock/storage location.
-
-Unresolved stock is representable without fabricating a canonical PART. Conversely, known reusable third-party products must not be kept unresolved merely because Jaguar did not issue the vendor product number.
-
-The stock relationship does not implement warehouse transaction ledger, reservations, sales processing, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
+Operational STOCK cardinality, donor-vehicle linkage, unresolved-stock handling, storage/location semantics and stock-process boundaries are defined in [`MODEL_STOCK.md`](MODEL_STOCK.md). `MODEL_PARTS.md` defines only the catalogue-side identity that STOCK may reference.
 
 ## Architectural boundary
 
