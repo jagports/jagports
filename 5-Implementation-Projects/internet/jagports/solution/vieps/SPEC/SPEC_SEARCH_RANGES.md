@@ -16,7 +16,7 @@ The right column places independently scrollable **Applicable Models** below the
 - **Insufficient or unresolved evidence:** when a required source relation or the entire applicable read contract is absent, display `unavailable`, not a positive fitment claim. When an evidenced candidate/context is present but a required individual Range value remains unresolved, keep that otherwise eligible candidate separate from verified matches and mark the displayed unresolved value yellow (`unknown`). A confirmed nonmatch is `no_match`; a service or processing failure is `error`.
 - **Explicitly excluded ranges:** never present them as fitting choices. Preserve their exclusion evidence in the supported detail/diagnostic view when appropriate.
 
-The browse/filter options and selected-PART applicable facts are different UI states over the same panel. Displayed availability is not a filter selection, and an explicit range filter is not itself evidence that any selected PART fits it. See the shared interaction rules in [Part Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction).
+The browse/filter options and selected-PART applicable facts are different UI states over the same panel. Displayed availability is not a filter selection, and an explicit range filter is not itself evidence that any selected PART fits it. See the shared interaction rules in [Part Search](SPEC_FIND.md#coordinated-searchfilter-interaction).
 
 ## Source-derived Range browse and test isolation
 
@@ -97,7 +97,7 @@ The **original imported JEPC Model description remains the visible Model name wh
 - Do not infer Range assignments from equal or similar names, model year, VIN, engine, body, market, parent navigation label or fixture values.
 - Map the imported **Model** to its Range; this action alone does not assert part fit, VIN fit, variant identification or verified fitment.
 - Preserve the source Model description and original JEPC source records during creation, reassignment, unassignment, retirement and reimport. A Range name change must not rewrite original source labels or stable identifiers.
-- The confirmed Range assignment is the source of the `catalogue_range` routing value published to the Search Index defined by [`SPEC_SEARCH.md`](SPEC_SEARCH.md). Assignment, reassignment, unassignment, retirement or accepted reimport must update or rebuild affected Search Index entries so stale Range routing is not exposed. Physical Search Index placement is defined by [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
+- The confirmed Range assignment is the source of the `catalogue_range` routing value published to the Search Index defined by [`SPEC_FIND.md`](SPEC_FIND.md). Assignment, reassignment, unassignment, retirement or accepted reimport must update or rebuild affected Search Index entries so stale Range routing is not exposed. Physical Search Index placement is defined by [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
 
 ### One-page Admin layout
 
