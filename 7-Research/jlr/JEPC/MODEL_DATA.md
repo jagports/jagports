@@ -1,20 +1,8 @@
-# JEPC applicability model refinement: evidence and review
-
-## Work identity
-
-Refines [#354 — Define and implement Parts Data Model](https://github.com/jagports/jagports/issues/354).
-
-Enables mapping work in [#355 — IMPL / JEPC Data Importer](https://github.com/jagports/jagports/issues/355).
-
-The Product Owner authorized applicability requirements/model refinement on 2026-09-14 and paused the separate hotspot investigation to conserve usage. This work does not resume [#352](https://github.com/jagports/jagports/issues/352).
-
-Proposal: [PART applicability requirements](../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART_APPLICABILITY.md).
-
-Repository baseline: `168a720` on main. Historical model implementation includes merged PRs #535 and #550. Their flat source fitment representation remains valid for retained evidence but does not satisfy the grouped transformation requirements below. This amendment reuses open #354; it does not complete that whole issue.
+# MODEL_DATA — JEPC applicability data model evidence
 
 ## Bounded source evidence
 
-The existing [XK audit](../../JEPC_XK_SOURCE_AUDIT.md) is the evidence baseline. On 2026-09-14 the following installed files were read directly again under `C:/Program Files/JEPC/applications/JEPC`:
+The [XK audit](../../JEPC_XK_SOURCE_AUDIT.md) is the evidence baseline. The following installed files provide the bounded source sample under `C:/Program Files/JEPC/applications/JEPC`:
 
 - `drilldown/pl_id_3187/L0/Itm_M3187_C11096_I1_L0.xml`;
 - `drilldown/pl_id_3187/Itm_M3187_C11096_I1_attributes.xml`;
@@ -29,9 +17,9 @@ The item file again contains HNA9670BA/application 93491 beneath `To VIN (023699
 
 The top-level file repeats item key `1` for those two boundaries. This does not justify collapsing them into one interval. The source record identity, application identity and canonical PART identity are different.
 
-### Model bounds and Product Owner correction
+### Model bounds
 
-The Product Owner clarified that one-sided item conditions must be combined with model breadcrumbs and JLHT production/VIN documentation. Inspection of `JEPCFiles/menus/models_l_id_0.xml` confirms:
+One-sided item conditions must be combined with model breadcrumbs and JLHT production/VIN documentation. Inspection of `JEPCFiles/menus/models_l_id_0.xml` confirms:
 
 | Model | Source label boundary |
 |---|---|
@@ -39,7 +27,7 @@ The Product Owner clarified that one-sided item conditions must be combined with
 | 3178 | XK8 Coupe/Convertible From (V) A00083 To (V) A30644 |
 | 3173 | XK8 Coupe/Convertible From (V) A30645 |
 
-The Product Owner identifies JLHT documents as supplying model 3187's start and model 3173's end. Their exact values/pages have not been captured in this bounded study. Treat those as evidence to attach, not as unknowable boundaries or permission to invent values.
+JLHT documentation supplies model 3187's start and model 3173's end. Where exact values/pages are not present in this bounded evidence set, retain the boundary as unresolved rather than inventing a value.
 
 For the airbag example, application 151439 can have a derived effective interval 023700 through 042775 under verified model ownership and comparator rules. Application 93491 can be bounded from the documented model start through 023699. Preserve the original item conditions and inherited model evidence alongside these derived intervals.
 
@@ -63,7 +51,6 @@ node 7-Research/jlr/JEPC/probe_jepc_applicability.mjs
 
 The script runs the repository's `JEPCFiltering.js` functions in a bounded VM context. It does not implement a replacement evaluator. Its SHA-256 on the inspected source is `552c548a01e31cecfc416dc5452d659a5a5f645041ee1abb5ef05463c0fc96dd`, matching the prior installed-source audit fingerprint.
 
-Result: **16 source probes passed** after adding the cross-sub-model source examples.
 
 | Probe | Observed result | Requirement implication |
 |---|---|---|
@@ -87,29 +74,29 @@ Inspected migrations `0004_part_occurrence_context.sql`, `0006_part_vehicle_vin_
 4. Fitment uniqueness includes occurrence/state/group/key/value/flag but excludes evidence identity. Identical tuples from distinct source rows cannot retain evidence multiplicity in that row structure alone.
 5. Existing `applicable` default and `verification_status` text do not establish complete source coverage or positive vehicle fitment.
 
-These are representation gaps, not claims that current basic stock/part search is broken or that breadcrumbs cannot establish model boundaries. The proposed amendment now prioritizes reuse of established range entities, with explicit occurrence binding and derivation evidence.
+These are representation gaps, not claims that basic stock/part search is broken or that breadcrumbs cannot establish model boundaries. The model requires reuse of established range entities with explicit occurrence binding and derivation evidence.
 
-## Recommended decision
+## Data-model requirements
 
 Adopt occurrence-bound applicability assertions with complete alternative condition sets, typed serial/attribute predicates, independent source evidence and explicit incomplete/unavailable states. Keep the current PART identity and stock boundary.
 
-Alternatives considered:
+Rejected simplifications:
 
 - Independent PART-to-range lists are smaller, but lose combinations and can manufacture applicability through cross-joining.
 - Source tree entities are now retained for catalogue browsing, occurrence context and human-readable filter candidates. They remain separate from the normalized applicability evaluator and must not substitute for grouped source predicates.
 - A general arbitrary Boolean expression engine adds scope and can hide source structure in opaque payloads. The proposal starts with finite, inspectable relational sets and quarantines mappings that cannot be safely represented within bounded processing.
 
-The additive physical SQL implementation is now described in the companion specification's persistence contract. Source identity mapping, the initial comparator and verified attribute mappings still need review before production transformation. No API evaluator, deployment or universal JEPC translation is claimed.
+Source identity mapping, comparator semantics and attribute mappings must remain evidence-qualified. No universal JEPC translation may be inferred from the bounded samples.
 
-## Acceptance review
+## Evaluation cases
 
-The proposal defines fourteen acceptance examples covering observed one-sided bounds, PART coverage across sub-models, repeated headlamp application paths, market scope below a shared model, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent PART identity with language-qualified source-tree evidence.
+The evidence set covers one-sided bounds, PART coverage across sub-models, repeated headlamp application paths, market scope below a shared model, occurrence/model pairing, correlated alternatives, scoped exclusion, missing input, unknown alternatives, incomplete evidence, conflicts, repeat import and language-independent PART identity with language-qualified source-tree evidence.
 
-These examples include requirements for subsequent evaluation/importer tests. Persistence tests described below now cover their storage boundaries; they do not claim all destination evaluation acceptance criteria passed.
+These cases define the required evaluation boundaries; unresolved semantics remain explicitly unresolved.
 
-## Cross-sub-model evidence supplied by the Product Owner
+## Cross-sub-model evidence
 
-The Product Owner supplied three catalogue extracts showing HJB9670AA and HJE9042AB each continuing into another sub-model. Targeted installed-file reads confirmed the later contexts without enumerating the installation:
+Catalogue extracts and targeted installed-file reads show HJB9670AA and HJE9042AB continuing into another sub-model without requiring installation-wide enumeration:
 
 | Model/category/item | Application | PART | Displayed serial condition |
 |---|---|---|---|
@@ -131,11 +118,9 @@ Paths below are relative to the installation root; SHA-256 identifies the inspec
 | `drilldown/pl_id_3173/L0/Itm_M3173_C9502_I1_L0.xml` | `66b092bf3a508c8c4a0d1ab1612cbe3cbba62922b2e77b7be167c12027b0654b` |
 | `drilldown/pl_id_3178/L0/tl_M3178_C9504_L0.xml` and `drilldown/pl_id_3173/L0/tl_M3173_C9502_L0.xml` | `0cff6d8f457f28206752d9408ca4c3561a9093c179eefa687c5b5a84199c49c0` |
 
-## Integration and knowledge placement
+## Headlamp terminology and bundle trace
 
-### Headlamp terminology and bundle trace, 2026-09-15
-
-The Product Owner requested short definitions of applicability, fitment, conditions, Region, steering/equipment attributes and source bundle, supplying two headlamp catalogue paths. A bounded local `rg -l -F` search for `LJA4513AF` and `LJA4501AG` in model folders 3183/L0 and 3187/L0 returned only these two item files in that selected language/profile scope. It was not an installation-wide coverage claim. Only matching files and their explicit dependencies were then read.
+A bounded local `rg -l -F` search for `LJA4513AF` and `LJA4501AG` in model folders 3183/L0 and 3187/L0 returned only these two item files in that selected language/profile scope. This is not an installation-wide coverage claim. Only matching files and their explicit dependencies are part of this evidence set.
 
 | Bundle scope | Canada/USA powerwash example | Other early-XK non-powerwash example |
 |---|---|---|
@@ -149,7 +134,7 @@ The Product Owner requested short definitions of applicability, fitment, conditi
 | Application sidecar | Same-name `Itm_M3183_C8067_I1_attributes.xml` absent at checked model-root path | `drilldown/pl_id_3187/Itm_M3187_C8069_I1_attributes.xml` present |
 | Illustration reference | `tm6269c` | `tm6173d` |
 
-Both `menus/pl_id_<model>_attributes.xml` files exist. The bundle also depends on model-list bounds and ancestor evidence. The exact `flash/images/<illustration>.jpg` and `flash/xml/<illustration>.xml` paths are present for both references. Presence does not establish decoding or hotspot coordinate correctness; no #352 work was performed.
+Both `menus/pl_id_<model>_attributes.xml` files exist. The bundle also depends on model-list bounds and ancestor evidence. The exact `flash/images/<illustration>.jpg` and `flash/xml/<illustration>.xml` paths are present for both references. Presence does not establish decoding or hotspot coordinate correctness.
 
 LJA4513AF/application 145240 occurs four times: Canada or USA, each with `Except headlamp levelling` or `headlamp powerwash`, followed by LH side. The selected USA/except-levelling row ID is 1100110001. The top-level sidecar contains item 1 with A21 values 120 and 121; no dictionary mapping of these codes is claimed here.
 
@@ -157,7 +142,6 @@ LJA4501AG/application 145251 occurs twice: `headlamp levelling → Except Japan 
 
 The raw source headings, selected row IDs and sidecar tuples are observed. Their complete Boolean translation, equipment semantics across category/title and option branches, and applicability beyond the selected scope still require mapping validation. Do not flatten the displayed alternatives indiscriminately or label missing application sidecars as missing all conditions.
 
-The proposal now distinguishes application identity from path/row identity, includes a terminology chapter with both headlamp examples and adds a thirteenth destination acceptance case. The generalized repeated-path/evidence lesson is also added to VIEPS KNOWLEDGE; proposed schema choices remain proposals.
 
 Selected source-file SHA-256 fingerprints:
 
@@ -168,31 +152,13 @@ Selected source-file SHA-256 fingerprints:
 | `drilldown/pl_id_3187/L0/Itm_M3187_C8069_I1_L0.xml` | `1c9a04792c6bdd53b8525380dbb36866d323c83b9a6e18cb0e5a0a96c3ba5887` |
 | `drilldown/pl_id_3187/Itm_M3187_C8069_I1_attributes.xml` | `5c9794038c3e821e69b7efe4849da5d2d62a8d6efcc3d28a6fced994ee0265df` |
 
-### Later-model market scope and additive implementation, 2026-09-15
+### Later-model market scope
 
-The Product Owner supplied a later-model headlamp example with `($)` in the category title. Targeted reads confirmed model `3178`, category `8059`, `HEADLAMP ASSEMBLY-NON POWERWASH ($)`, image `tm6269b`, in `drilldown/pl_id_3178/L0/cat_M3178_C8059_L0.xml`.
+A later-model headlamp example with `($)` in the category title is present in model `3178`, category `8059`, `HEADLAMP ASSEMBLY-NON POWERWASH ($)`, image `tm6269b`, in `drilldown/pl_id_3178/L0/cat_M3178_C8059_L0.xml`.
 
-`drilldown/pl_id_3178/L0/Itm_M3178_C8059_I1_L0.xml` contains Canada and USA branches. Application 145267/LJA4511AG occurs under LH-side paths for both markets and the alternative `Except headlamp levelling` / `Except headlamp powerwash` headings. RH-side rows use application 145265/LJA4510AG. This corrects the supplied `RG side` transcription without changing the Product Owner's market-scope finding.
+`drilldown/pl_id_3178/L0/Itm_M3178_C8059_I1_L0.xml` contains Canada and USA branches. Application 145267/LJA4511AG occurs under LH-side paths for both markets and the alternative `Except headlamp levelling` / `Except headlamp powerwash` headings. RH-side rows use application 145265/LJA4510AG. The source row is `RH side`; the `RG side` form is a transcription error.
 
 The top-level sidecar `drilldown/pl_id_3178/tl_M3178_C8059_attributes.xml` contains item 1 with A21/120 and A21/121. The sample supports Canada/USA association at category/application level; it does not establish a universal expansion of `($)` or the treatment of Mexico/other markets. Original text is retained while geographic vocabulary mapping remains open.
-
-The Product Owner authorized filling the model gaps after the terminology and source amendments. Migration `0016_occurrence_applicability.sql` now adds source bundles/snapshots, evidence, versioned source model context, serial range representations, occurrence assertions, alternative condition sets and scalar dimension/value constraints. Existing model/fitment/stock records are not backfilled or changed.
-
-The internal `readPartApplicability` function returns the grouped active evidence in one SQL statement. It explicitly reports unavailable evaluation; no evaluator, importer or HTTP endpoint is introduced.
-
-Validation: `npm test` on Node 24.19.0: **93 passed, 0 failed, 1 skipped**. The skipped test requires a deployed VIEPS URL. Ten new test cases validate the persistence/read boundary, and the expanded existing integrity suite checks all 47 FK columns. This is local SQLite/D1-interface evidence, not remote D1 deployment evidence. The original 16 source-function probes are unchanged.
-
-The storage fixture uses observed PART/application identifiers alongside clearly marked synthetic context versions, mappings, incomplete coverage and evidence records. It does not constitute an actual JEPC import or approval of the headlamp Boolean translation. Version-switch tests cover rollback, stale assertion retirement, stable PART/occurrence identity and retained historical rows. The current production schema still needs independent review before merge or deployment.
-
-### Model-document relocation status
-
-[PR #655 — SPEC / Move VIEPS part and stock models to SPEC](https://github.com/jagports/jagports/pull/655)
-
-That separate open PR relocates `PART_MODEL.md` to `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md`. This refinement adds a companion specification in that destination area and a short link from the current model. At integration, retain the link in the relocated model using `MODEL_PART_APPLICABILITY.md`; retain the evidence link using `../../../../../../7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`. Do not keep two model authorities. This work does not edit PR #655 or claim its approval.
-
-The existing VIEPS `KNOWLEDGE.md` already records the accepted identity/context, no-source-tree, exclusion, alternative and unknown-data boundaries. No proposed schema decision is promoted to accepted knowledge before review. Detailed new evidence stays in this record; the companion SPEC owns the proposed field/relationship requirements.
-
-Independent review and specification acceptance remain pending. Project Item mutation/read is unavailable through the current connector; no Project Status transition is claimed.
 
 ## Occurrence-tree clarification
 

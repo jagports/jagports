@@ -6,7 +6,7 @@ This GitHub Actions workflow tests the Part Model implementation against disposa
 
 SQL migrations define and create the executable schema.
 
-`5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md` describes the part model.
+`5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md` describes the part model.
 
 This workflow neither creates the production database nor inspects production database state.
 
@@ -17,7 +17,7 @@ This workflow neither creates the production database nor inspects production da
 | Workflow | `.github/workflows/integrity_parts-model.yml` |
 | Display name | VIEPS model integrity tests |
 | Test working directory | `4-Production/internet/cloudflare/workers/jagports` |
-| Part model documentation | `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART.md` |
+| Part model documentation | `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md` |
 | Sparse checkout | Worker directory plus VIEPS `SPEC` model documentation directory and pinned local Tailwind source |
 | Build/install | `npm ci --ignore-scripts --no-audit --no-fund`, then `npm run build` |
 | Test command | `npm test` |

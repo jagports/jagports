@@ -1,38 +1,33 @@
 # Jagports JEPC DataImporter specification
 
-(C)2026 by tlindi and ChatGPT
 
 ## Purpose
 
-Define the current v0.1a command and evidence-staging behavior, followed by requirements for later catalogue transformation and publication. The runnable v0.1a procedure is in the [DataImporter README](README.md).
+Define the DataImporter contract for incrementally reading JEPC source data, preserving lossless source evidence, maintaining restartable importer state, and publishing durable catalogue data that conforms to [MODEL_JEPC_D1.md](../../../../internet/jagports/solution/vieps/SPEC/MODEL_JEPC_D1.md) and [MODEL_PARTS.md](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md).
 
-**Implementation boundary:** v0.1a is a local Windows/Node.js parser. It stages up to 40 complete source-category bundles per run in `ledger.sqlite`, preserves source evidence and run history, and optionally inventories the matched source files into the same ledger. It does not maintain a normalized catalogue database, transform source rows into VIEPS entities, publish to D1, provide the progress screen described below, or implement the future safe-stop and recovery controls. Requirements below for those capabilities are future targets, not claims about v0.1a.
+The importer processes selected JEPC source scopes incrementally, preserves unknown source information, and extends interpretation only when source evidence supports it.
 
-The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
-
-This specification complements the existing JEPC source-structure and importer documents. It does not replace the approved VIEPS Parts Data Model.
-
-## v0.1a command contract
+## Command contract
 
 ```text
 node .\5-Implementation-Projects\software\jagports\JEPC-Importers\DataImporter\src\DataImporter.CLI.mjs --parse PATTERN [--estimate]
 ```
 
-Run this command from the repository root. `--parse PATTERN` is required for every importer run. `PATTERN` must contain at least two characters and is matched as a source model-name fragment. `--estimate` is optional and valid only with `--parse`; it adds a source inventory to that run. The CLI rejects all other flags and all positional commands. An invocation without `--parse PATTERN` fails and prints the usage line.
+Run this command from the repository root. `--parse PATTERN` selects source models by model-name fragment. `PATTERN` must contain at least two characters. `--estimate` adds a source inventory estimate for the selected run. Invalid flags or unsupported positional arguments fail with usage guidance.
 
-The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; the `JEPC_SOURCE` environment variable can point to another installation. Local evidence and run history go into `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`. The current parse uses source language `0`. Progress goes to standard error, and the final result is JSON on standard output. These settings are not additional CLI parameters. Current runs write no separate source copies, category JSON files or estimate-report files. Earlier JSON staging output is left untouched and is not a second active store.
+The source root defaults to `C:\Program Files\JEPC\applications\JEPC`; `JEPC_SOURCE` may point to another installation. Local evidence and run records are stored in `%LOCALAPPDATA%\Jagports\JEPC-Importer\ledger.sqlite`. Source language `0` is the default unless another supported language is selected. Progress is emitted separately from the final machine-readable result.
 
-## Local and production persistence boundary
+## Persistence boundary
 
-The local SQLite ledger is importer-owned source evidence, run history and recovery state. It is not the live VIEPS catalogue. Accepted PARTs, occurrences, tree paths, localized descriptions and verified applicability must eventually be published idempotently to the approved Range D1 database. An accepted Range slug determines the database name as `jagports-<range_slug>`; `xk` resolves to `jagports-xk`. The fixture-backed `jagports` database is not a JEPC importer write target. `--parse PATTERN` selects source models only; it does not assign a Range or destination.
+The local SQLite ledger is importer-owned evidence, processing state and recovery state. It is not the VIEPS runtime catalogue.
 
-Before remote publication, the repository-controlled [Range D1 setup procedure](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) must verify account/name/ID. A schema-only migration path, source-model-to-Range verification, Worker routing and cross-Range identity/search behavior remain required under [Issue #555](https://github.com/jagports/jagports/issues/555). A successful local parse cannot be reported as a published import. The Range setup command is a separate deployment tool and adds no parameters or subcommands to DataImporter.
+Durable imported catalogue data is published idempotently to the Range D1 database selected by source ancestry and Range mapping. A Range slug resolves to `parts-<range_slug>`. Command-line source selectors do not directly choose a destination database.
 
-Kit, nested-kit and NSS source observations must be preserved with provenance when encountered, including an unnumbered constituent; no Jaguar part number or verified composition may be invented. Kit composition is not required to complete the current 40-bundle parsing run. The approved [PART model](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md) governs the distinction between catalogue PART identity, occurrence evidence and verified composition.
+Deployment/account setup remains outside the importer data contract. A successful local parse is not a published import.
+
+Kit, nested-kit and NSS observations must be preserved with provenance when encountered, including unnumbered constituents. No Jaguar part number or verified composition may be invented. The canonical PART model governs catalogue identity, occurrence evidence and verified composition.
 
 ## Core operating principle
-
-The remainder of this specification describes the intended importer unless a paragraph explicitly says it describes the current v0.1a implementation.
 
 The importer must not require the complete JEPC installation to be reverse-engineered before useful import work can begin.
 
@@ -42,11 +37,11 @@ It shall:
 2. process one persistent source bundle at a time;
 3. detect source structures it already understands;
 4. preserve and report structures it does not yet understand;
-5. continue processing safely when an unknown structure can be preserved for later reprocessing;
+5. continue processing safely when an unknown structure can be preserved for reprocessing;
 6. extend parser behavior when an existing schema can already represent newly understood source data;
 7. extend staging/discovery storage where doing so avoids rereading source files and preserves newly observed fields losslessly;
-8. extend the normalized schema only when a genuinely new source concept cannot be represented correctly by the existing approved model;
-9. re-evaluate earlier unresolved data when later discoveries explain it;
+8. extend the normalized schema only when a genuinely new source concept cannot be represented correctly by the canonical model;
+9. re-evaluate earlier unresolved data when new evidence explains it;
 10. commit progress transactionally so the importer can be stopped, corrected, and restarted safely.
 
 ## Source file bundle concept
@@ -68,7 +63,7 @@ Observed interpretation to validate across multiple datasets:
 
 - `M<n>` — JEPC Model_ID.
 - `C<n>` — JEPC Category_ID.
-- `I<n>` — numbered top-level catalogue item within that category; current evidence strongly supports `I1` meaning top-level item 1, but this remains subject to verification across exceptional/missing-number cases.
+- `I<n>` — numbered top-level catalogue item within that category; `I<n>` identifies the numbered top-level catalogue item; exceptional or missing-number cases must remain explicitly verifiable.
 - `L<n>` — language identifier.
 
 The importer must preserve source scope because related files exist at different levels, including model/category/language and model/category/item/language scopes.
@@ -103,7 +98,7 @@ source-file / record provenance
 
 A flattened `FullDescriptionPath` may be generated for logs, validation and exports, but must not be used as the structural identity of the tree or occurrence.
 
-The human-readable source descriptions can be used as browse/filter candidates immediately. Raw `A`, `C` and other source predicates are still preserved for provenance and later applicability evaluation. The importer must not attempt to reconstruct readable descriptions by positional alignment between predicates and tree nodes.
+The human-readable source descriptions can be used as browse/filter candidates immediately. Raw `A`, `C` and other source predicates are still preserved for provenance and applicability evaluation. The importer must not attempt to reconstruct readable descriptions by positional alignment between predicates and tree nodes.
 
 ### Query behavior enabled by the import
 
@@ -128,9 +123,9 @@ PART number
 
 Filtering is occurrence-first. The canonical PART remains visible if at least one occurrence survives the selected conditions.
 
-### Semantic mapping is a later enrichment layer
+### Semantic mapping
 
-The importer shall not invent domain categories for source descriptions. A later controlled mapping layer may map a source description to one or more normalized facets. The original description, occurrence path and raw predicates remain independently recoverable.
+The importer shall not invent domain categories for source descriptions. A controlled mapping layer may map a source description to one or more normalized facets. The original description, occurrence path and raw predicates remain independently recoverable.
 
 Mappings may be context-sensitive. A mapping change must not require a source re-import when the original occurrence/tree data is already preserved losslessly.
 
@@ -155,11 +150,11 @@ The importer must keep source branch nodes as catalogue evidence and must **not*
 
 For a branch whose condition meaning is resolved, VIEPS shall store a stable normalized **description reference** for that meaning and present its localized label through an i18n mapping. The reference identifies the verified concept (for example steering/right-hand-drive), while the JEPC text remains a language-qualified source label with file/row provenance. The reference must not be minted from label spelling or treated as proof that all identically worded branches mean the same thing. Catalogue role descriptions that are not applicability conditions still receive source-language display records without being forced into a condition dimension. The UI may show a source label when a normalized reference is unresolved, but must expose its source/uncertain status and must not use it as a verified filter.
 
-For each selected bundle, look first for the corresponding JEPC language files under that same model/category/item scope. Match localized branch descriptions to a canonical occurrence only after comparing source row/node structure, PART number, application ID, ancestry and role; record the matched source file and line. Do **not** assume that identical node IDs across languages have identical meaning: in installed model `3173`, category `10036`, item `1`, node `11001` in `L0` heads an `LH side` path to `LJA3705AB`, while the `L-2` file uses that node for the opposite-side part `LJA3704AE`. If a localized label is absent or the local row differs, search other language files and nearby item/category files **within the selected model/category scope** for the PART/application and candidate wording. Record search scope, candidates and outcome in SQLite; do not scan the entire installation, invent a translation, or treat a failed search as an empty condition. Any unresolved mapping remains source text plus a missing/ambiguous localization state for later review.
+For each selected bundle, look first for the corresponding JEPC language files under that same model/category/item scope. Match localized branch descriptions to a canonical occurrence only after comparing source row/node structure, PART number, application ID, ancestry and role; record the matched source file and line. Do **not** assume that identical node IDs across languages have identical meaning: in installed model `3173`, category `10036`, item `1`, node `11001` in `L0` heads an `LH side` path to `LJA3705AB`, while the `L-2` file uses that node for the opposite-side part `LJA3704AE`. If a localized label is absent or the local row differs, search other language files and nearby item/category files **within the selected model/category scope** for the PART/application and candidate wording. Record search scope, candidates and outcome in SQLite; do not scan the entire installation, invent a translation, or treat a failed search as an empty condition. Any unresolved mapping remains source text plus a missing/ambiguous localization state for resolution.
 
-## Catalogue occurrence-tree persistence target
+## Catalogue occurrence-tree persistence
 
-Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
+JEPC catalogue trees must be persisted as source-qualified structural relationships. Persistence must preserve node identity, ancestry, ordering, language and exact occurrence-path relationships rather than reducing the source tree to presentation text.
 
 The importer must not reduce source tree structure to only a flattened description path.
 
@@ -231,9 +226,9 @@ The importer shall:
 
 Source discovery must stream/traverse incrementally. It must not materialize or repeatedly loop over an array containing the whole million-file installation.
 
-### Later starts and expanded source directories
+### Restart and expanded source directories
 
-On later starts, the importer shall use the existing processing ledger and ask/verify whether the configured JEPC source directory has been expanded or replaced/changed.
+On restart, the importer shall use the existing processing ledger and verify whether the configured JEPC source directory has been expanded, replaced or changed.
 
 If source verification is requested or indicated, reconciliation must still be incremental: examine candidate files/bundles one at a time, calculate/compare checksums, update affected ledger entries, and continue. A complete file list need not be loaded into memory.
 
@@ -242,28 +237,28 @@ Detected changes shall be handled at least as follows:
 ```text
 new bundle/file      -> add when encountered and process
 checksum changed     -> mark affected bundle NEEDS_REPROCESS
-missing source       -> retain ledger history and mark MISSING/REMOVED
+missing source       -> retain ledger records and mark MISSING/REMOVED
 ```
 
 A complete million-file scan must not be required for **any normal processing loop**. Each loop processes one bundle and then determines the next bundle.
 
 ### Optional source estimate
 
-An operator may explicitly run a slow, exhaustive **selected-model inventory** for the models matched by `--parse`. It traverses their drilldown directories and model menus, excluding shared media and other models. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed estimate must not alter parsed evidence. The report is stored in `ledger.sqlite` and retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and sample details. The scan streams discovery instead of materializing the complete source file list in memory. The estimator function supports cooperative stopping, but the v0.1a CLI does not expose a stop control or guarantee a partial report when its process is interrupted.
+An operator may explicitly run a slow, exhaustive **selected-model inventory** for the models matched by `--parse`. It traverses their drilldown directories and model menus, excluding shared media and other models. This remains separate from the category parsing loop: no estimate is required before a useful parse run, and a failed estimate must not alter parsed evidence. The report is stored in `ledger.sqlite` and retains the model-name pattern, Model_ID set, source scope, start/end time, file/byte counts, errors and sample details. The scan streams discovery instead of materializing the complete source file list in memory. The estimator function supports cooperative stopping. Cooperative stop behavior must not corrupt or misrepresent an incomplete estimate.
 
-Every importer run requires `--parse PATTERN`. The source inventory is enabled only by adding the optional `--estimate` flag to that run; `--estimate` alone is invalid. The flag is off by default and measures the current selected source models; no earlier installation's figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress.
+Every importer run requires `--parse PATTERN`. The source inventory is enabled only by adding the optional `--estimate` flag to that run; `--estimate` alone is invalid. The flag is off by default and measures the selected source models; no external installation figures are built in or used as calibration. An estimate failure is reported separately from parsing and must not erase accepted progress.
 
-The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts, bytes and elapsed scan time are measurements. D1 storage and import duration would be projections only after a calibration sample has actually been transformed and published; v0.1a does not provide those projections. No duration or D1 size is inferred from fixture data or raw XML byte size. Shared media belongs to MediaImporter.
+The estimate may sample reproducibly selected source files to measure input size and read cost. Source counts, bytes and elapsed scan time are measurements. D1 storage and import duration would be projections only after a calibration sample has actually been transformed and published; projections are valid only when backed by measured published calibration. No duration or D1 size is inferred from fixture data or raw XML byte size. Shared media belongs to MediaImporter.
 
 ## Configurable import scope
 
-The operator's parsing input is a case-insensitive model-name pattern, for example `--parse XK`. Match it as a literal substring against the installed `models_l_id_0.xml` names and parent relationships, then identify complete category bundles in the matching leaf models. A parent name match includes its descendant leaves. Stage at most 40 complete bundles per invocation. For each pick, randomly choose a matched model with remaining complete categories, then randomly choose one of that model's categories. Remove the chosen category from the current run's pool so it cannot be picked twice. A later run makes fresh picks without an operator-supplied seed. Report eligible, selected and incomplete category counts. Selection remains in memory. Evidence reuse is keyed by each category's content rather than the whole random selection, so overlapping runs reuse unchanged evidence. This path stages locally and does not publish to D1.
+The operator's parsing input is a case-insensitive model-name pattern, for example `--parse XK`. Match it as a literal substring against the installed `models_l_id_0.xml` names and parent relationships, then identify complete category bundles in the matching leaf models. A parent name match includes its descendant leaves. Stage at most 40 complete bundles per invocation. For each pick, randomly choose a matched model with remaining complete categories, then randomly choose one of that model's categories. Remove the chosen category from the current run's pool so it cannot be picked twice. A subsequent invocation makes fresh picks without an operator-supplied seed. Report eligible, selected and incomplete category counts. Selection remains in memory. Evidence reuse is keyed by each category's content rather than the whole random selection, so overlapping runs reuse unchanged evidence. This path stages locally and does not publish to D1.
 
-A pattern-scoped `--estimate` measures the matched source files. D1 storage and import-time projections require measured published calibration and remain outside v0.1a.
+A pattern-scoped `--estimate` measures the matched source files. D1 storage and import-time projections require measured published calibration.
 
 The importer must allow selection below the broad VIEPS Range level when JEPC exposes distinct model/sub-range/market variants.
 
-Later transformation may need source context based on facts such as:
+Transformation may need source context based on facts such as:
 
 - JEPC Model_ID;
 - JEPC `parent_id` from the model hierarchy in `menus/models_l_id_0.xml`;
@@ -286,7 +281,7 @@ Verified examples from `menus/models_l_id_0.xml` include:
 
 For importer/operator presentation, the selected model shall therefore retain and expose both its own `Model_ID` and its immediate `Parent_ID`, together with the source descriptions for both levels. The parent level may act as a model/family grouping in JEPC, but the importer must preserve the source hierarchy rather than assuming a stronger domain label than the source establishes.
 
-The current `--parse` selector applies the same model-name matching rule to every source model; it does not load a fixed list of validation profiles or assign a VIEPS Range. Later Region mappings require explicit source evidence and remain separate from model selection.
+The `--parse` selector applies the same model-name matching rule to every source model; it does not load a fixed list of validation profiles or assign a VIEPS Range. Region mappings require explicit source evidence and remain separate from model selection.
 
 Where a short region token such as `Region=NA` is used, it must be represented as a Region/market value and kept semantically distinct from the engine-option abbreviation `N/A`, meaning Non-Aspirated/non-Supercharged. Region and aspiration/supercharger state are separate dimensions.
 
@@ -352,7 +347,7 @@ The generic known source structure can already preserve the value, but its human
 
 Example: a new JEPC applicability code appears in a structure already known to represent applicability.
 
-Action: preserve raw code/value/flags and provenance. Mark the affected bundle `NEEDS_REPROCESS` when later semantic/parser improvement could enrich it. Do not stop the whole import when the unknown can be preserved safely.
+Action: preserve raw code/value/flags and provenance. Mark the affected bundle `NEEDS_REPROCESS` when new semantic/parser knowledge could enrich it. Do not stop the whole import when the unknown can be preserved safely.
 
 ### 3. New source format / parser structure
 
@@ -361,24 +356,24 @@ The source carries an already understood or partially understood domain concept 
 Action:
 
 - preserve enough raw/staging representation to avoid losing information;
-- where useful, add explicit staging/discovery columns so a later parser version can work from preserved database values instead of rereading source files;
+- where useful, add explicit staging/discovery columns so parser reprocessing can work from preserved database values instead of rereading source files;
 - record the parser-extension requirement in the run report;
 - mark affected bundle(s) `NEEDS_REPROCESS`;
-- continue with later bundles when data integrity is not compromised.
+- continue with subsequent bundles when data integrity is not compromised.
 
 A parser extension should result in a new parser/software version identifier so reprocessing can determine which bundles were handled by an older parser.
 
 ### 4. New normalized data concept
 
-The source demonstrates a genuine relationship/entity/property that the approved normalized model cannot represent correctly.
+The source demonstrates a genuine relationship/entity/property that the canonical normalized model cannot represent correctly.
 
 Action: document the evidence and required semantic change, extend the normalized schema through a controlled migration, update parser behavior, and reprocess affected source bundles.
 
-The importer may add staging/discovery columns for lossless capture and later acceleration when justified. It must not, however, treat every new JEPC code/value as a new normalized production column or entity without semantic justification.
+The importer may add staging/discovery columns for lossless capture and reprocessing acceleration when justified. It must not, however, treat every new JEPC code/value as a new normalized production column or entity without semantic justification.
 
 ## Learning must also apply backwards
 
-A later source discovery may explain records that were previously unresolved.
+New source evidence may explain previously unresolved records.
 
 When parser/schema/semantic knowledge is improved, the importer shall identify affected prior data and mark it for reprocessing where practical.
 
@@ -441,11 +436,7 @@ mark bundle ERROR or NEEDS_REPROCESS
 
 The importer must provide a cooperative stop mechanism that does not depend on abruptly terminating the process.
 
-At minimum:
-
-```text
-[Q] Stop safely after current bundle parsing transactions are done
-```
+The operator interface must provide a cooperative stop action.
 
 A stop request shall:
 
@@ -490,103 +481,28 @@ FAILED
 CRASH_RECOVERED
 ```
 
-## Operator processing view
+## Operator status information
 
-The terminal/operator view must favor stable, understandable aggregate information rather than rapidly changing internal bundle details.
+Operator-visible status must provide stable aggregate information without prescribing terminal layout, exact labels, fixed banners, column widths or example values.
 
-Do not continuously display current filenames, current bundle identifiers, or deep current breadcrumb paths in the primary live view. Those details change too quickly for a human to follow and belong in the persistent detailed log/run report.
+The status information must make available:
 
-The screen should be redrawn in place rather than producing an endlessly scrolling console log.
+- selected JEPC `Model_ID`, immediate `Parent_ID`, and their source descriptions;
+- source Region/market context when established by source evidence;
+- imported catalogue aggregates by first-level source path, including distinct canonical PART count and occurrence count;
+- language-specific occurrence coverage and a true distinct PART count across languages;
+- cumulative counts for source structures handled by known parser behavior, parser/staging extensions, normalized-model discoveries, unresolved structures and processing errors;
+- cooperative-stop availability and the fact that stopping occurs only after the active transaction/checkpoint is completed or rolled back safely.
 
-### Required header
+Aggregate counts must preserve these semantics:
 
-Example:
+- a canonical PART appearing in several occurrences is counted once in a distinct-PART count;
+- occurrences remain source-qualified and language-qualified;
+- all-language distinct counts must not be calculated by summing per-language distinct counts;
+- unresolved-but-preserved source structures are distinct from processing errors;
+- undiscovered source bundles are not reported as a meaningful pending total unless an explicit complete source inventory exists.
 
-```text
-Jagports JEPC DataImporter — future processing screen
-(C)2026 by tlindi and ChatGPT
-
-JEPC Parent_ID #3175 — Jaguar XK8 Coupe/Convertible
-JEPC Model_ID #3187 — XK8 Coupe/Convertible up to (V) 042775
-Region: Rest of world excluding Americas
-```
-
-The header must identify the selected technical JEPC `Model_ID`, its immediate `Parent_ID`, and the corresponding source descriptions for both levels. For example, source hierarchy `[3175,10001,'Jaguar XK8 Coupe/Convertible']` followed by `[3187,3175,'XK8 Coupe/Convertible up to (V) 042775']` is presented as Parent_ID `3175` plus selected Model_ID `3187`. The parent is described neutrally as the JEPC parent model/family level unless stronger semantics are separately verified. JEPC `Category_ID` must still be preserved in source/staging/log metadata, but it is not required in the compact live operator table.
-
-### Imported catalogue content table
-
-Show first-level catalogue breadcrumb/path groups only after imported content exists for them.
-
-Example:
-
-```text
-Imported catalogue content
-
-Part path                               Unique parts   Occurrences (English)
-AIR AND FUEL DELIVERY SYSTEMS           15             25
-BATTERY/STARTER MOTOR/ALTERNATOR         1              3
-BODY METAL PANELS AND SEALING            1              1
-ENGINE                                  42             78
-ENGINE COOLING SYSTEM                    1              2
-EXTERIOR FITTINGS AND SUNROOF            1              1
-```
-
-Rows with zero imported content stay hidden.
-
-Definitions:
-
-- `Unique parts` = distinct canonical Jaguar part numbers represented in that displayed scope.
-- `Occurrences` = imported catalogue/source occurrences of those parts; one canonical part may have multiple occurrences.
-- The language qualifier in the occurrence column identifies the currently displayed path-language source, not a multiplication of canonical part identities.
-
-### Translation coverage table
-
-Show catalogue/path-item translation coverage separately from the first-level path table.
-
-Example:
-
-```text
-Part path item translations             Unique parts   Occurrences
-English                                 51             92
-Italian                                 11             81
-In all languages                        62            173
-```
-
-Rules:
-
-- `In all languages / Unique parts` must be a true distinct count across all imported languages; do not sum per-language unique counts where the same part occurs in more than one language.
-- `In all languages / Occurrences` represents all imported language-specific occurrences according to the source/import semantics.
-- Importing another language must enrich the same catalogue structure/entity relationships rather than create language-specific duplicate canonical PART identities.
-
-### Structure-discovery metrics
-
-Show stable cumulative importer-learning metrics:
-
-```text
-Existing structure used                    152
-Parser/staging structures created/extended   7
-Created new normalized DB structures         11
-Unknown structures to be researched           2
-Errors                                         0
-```
-
-Definitions:
-
-- `Existing structure used` = processed source structures handled through already-known parser/schema behavior.
-- `Parser/staging structures created/extended` = parser-only behavior additions and/or staging/discovery schema extensions introduced to preserve newly observed source structure or accelerate later reprocessing. These must be counted and recorded even when they do not change the normalized production model.
-- `Created new normalized DB structures` = genuinely new normalized schema elements/migrations introduced because the existing approved schema could not represent verified source semantics correctly.
-- `Unknown structures to be researched` = preserved source structures whose semantic/structural interpretation remains unresolved and requires investigation.
-- `Errors` = processing failures, distinct from unresolved-but-preserved structures.
-
-No `Pending` bundle count is required in the live view because undiscovered bundles are not pre-indexed and a meaningful pending total would require a separate complete source inventory such as `JEPC-files-LIST.txt`.
-
-### Safe-stop control
-
-The live view shall always keep the cooperative stop instruction visible:
-
-```text
-[Q] Stop safely after current bundle parsing transactions are done
-```
+Rapidly changing filenames, bundle IDs and deep breadcrumb paths belong in detailed logs rather than the aggregate operator status.
 
 ## Detailed background log and run report
 
@@ -602,13 +518,13 @@ The importer shall retain a persistent detailed log sufficient to audit and diag
 - parser/schema versions;
 - detected unknowns;
 - parser/staging/normalized-schema discoveries;
-- raw/staging fields preserved for later parser work;
+- raw/staging fields preserved for parser reprocessing;
 - reprocessing decisions;
 - warnings;
 - errors;
 - transaction outcome.
 
-In addition, each importer run shall maintain a **run report** continuously until clean stop/exit. The run report is intended to support the next importer/parser development iteration, including AI-assisted analysis. It shall summarize enough evidence to determine required parser extensions without requiring a human to reconstruct the issue from the console output.
+In addition, each importer run shall maintain a **run report** continuously until clean stop/exit. The run report is intended to support the subsequent diagnosis or parser refinement, including AI-assisted analysis. It shall summarize enough evidence to determine required parser extensions without requiring a human to reconstruct the issue from the console output.
 
 For each parser/schema discovery the run report should include, where available:
 
@@ -620,7 +536,7 @@ observed record shape / field count / field types
 what existing parser expected
 what differed
 how data was preserved in staging
-suggested parser-extension requirement
+required parser-extension evidence
 parser version that encountered it
 bundles marked NEEDS_REPROCESS
 whether normalized schema change appears necessary
@@ -628,9 +544,9 @@ whether normalized schema change appears necessary
 
 The operator should not be expected to follow this high-volume log visually during normal processing.
 
-## Future catalogue-import acceptance direction
+## Conformance requirements
 
-Later catalogue-import implementation should demonstrate that:
+The importer must demonstrate that:
 
 - no complete pre-existing million-file index is required before useful import begins;
 - the processing ledger is built incrementally bundle by bundle;
@@ -639,32 +555,25 @@ Later catalogue-import implementation should demonstrate that:
 - processing resumes from persistent bundle state rather than restarting from the beginning;
 - each normal loop reads/processes one bundle and only then determines the next;
 - known structures import without unnecessary normalized-schema churn;
-- unknown but preservable structures are logged, retained, marked for reprocessing, and do not unnecessarily stop later bundle processing;
-- parser/staging extensions can preserve new fields/columns so later parser versions can reprocess from the database when sufficient;
+- unknown but preservable structures are logged, retained, marked for reprocessing, and do not unnecessarily stop subsequent bundle processing;
+- parser/staging extensions can preserve new fields/columns so subsequent parser versions can reprocess from the database when sufficient;
 - genuinely new normalized concepts can be documented and added through controlled migration;
-- later discoveries can trigger targeted reprocessing of earlier unresolved data;
+- newly resolved evidence can trigger targeted reprocessing of earlier unresolved data;
 - parser/software versions identify which logic processed each bundle;
 - bundle transactions protect the staging database from partial source-set imports;
 - the importer can be stopped cooperatively after current bundle parsing transactions and restarted safely;
 - database health is checked before any bundle processing on restart/resume;
 - the operator sees stable aggregate parent/model/path/language/structure metrics without a scrolling per-record console flood;
-- detailed processing and a development-oriented run report remain available in background logs;
+- detailed processing and a diagnostic run report remain available in background logs;
 - canonical part identity remains independent from language-specific source occurrences;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
 
-## Related work
-
-- Issue #355 — JEPC Data Importer; primary implementation owner.
-- Issue #354 — Parts Data Model; owns approved normalized persistent entities and relationships.
-- Issue #620 — multilingual JEPC catalogue-data specification; relevant to language-specific source/translation handling without duplicating canonical entities.
-- PR #621 — JEPC source Region/breadcrumb semantics used by configurable importer source selection.
-
-This specification does not authorize a parallel Parts Data Model. Importer-discovered normalized-schema changes must be reconciled with the approved model and project workflow before becoming production schema. Staging/discovery extensions may be used to preserve and accelerate analysis of source structures without silently redefining normalized VIEPS domain semantics.
+The importer must not create a parallel Parts Data Model. Any discovered normalized-schema requirement must conform to the canonical PARTS and E2E JEPC-to-D1 models. Staging/discovery extensions may preserve unresolved source structures without redefining normalized VIEPS domain semantics.
 
 ## Fixture-to-imported catalogue transition
 
 Fixture or manually entered catalogue-context evidence may be used by VIEPS before the corresponding JEPC data has been imported.
 
-When authoritative imported JEPC evidence becomes available for the same catalogue context, the importer/publication flow must allow that imported evidence to replace or validate the temporary fixture/manual catalogue-side evidence without changing canonical PART identity or operational STOCK records.
+When authoritative imported JEPC evidence becomes available for the same catalogue context, the importer/publication flow must allow that imported evidence to replace or validate the fixture/manual catalogue-side evidence without changing canonical PART identity or operational STOCK records.
 
-Temporary fixture/manual evidence must remain distinguishable from imported Jaguar/JEPC evidence and must never be presented as independently verified source data.
+Fixture/manual evidence must remain distinguishable from imported Jaguar/JEPC evidence and must never be presented as independently verified source data.
