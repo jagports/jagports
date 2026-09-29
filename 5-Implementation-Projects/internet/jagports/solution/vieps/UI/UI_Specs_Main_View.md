@@ -33,7 +33,7 @@ The Main View receives canonical PART, selected EPC occurrence/context and selec
 The right-bottom Applicable Models panel consumes the selected PART and, when available, selected occurrence and vehicle context. It shows only verified `applicable` ranges for a selected PART/context; without PART selection it shows only evidenced source-backed candidate Ranges in production; TEST fixture ranges never assert real fit. Its model filtering is separate from centre-top normalized Fit / Variations search filters. Missing Location mapping does not establish missing or negative fitment.
 
 ### PART / Image / Status
-The centre-right panel groups **one canonical PART** and approved evidence for its selected source occurrence/item, warnings/status, Jaguar Classic, supersession, PN/name, and one part image or exploded diagram. When several PARTs match, no PART is selected by default. Tree leaves and results rows share canonical PART selection; bookmark checkboxes never select a PART. When one result row represents several genuine occurrences, present only verified PART-level details until the occurrence is chosen. Missing diagram, hotspot, media or location remains explicitly unavailable.
+The centre-right panel groups **one canonical PART** and approved evidence for its selected source occurrence/item, warnings/status, Jaguar Classic, supersession, PN/name, and one part image or exploded diagram. When several PARTs match, no PART is selected by default. Tree leaves and results rows share canonical PART selection. When one result row represents several genuine occurrences, present only verified PART-level details until the occurrence is chosen. Missing diagram, hotspot, media or location remains explicitly unavailable.
 
 ## Clearing selected context
 
