@@ -222,7 +222,7 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item` is an operational record and is not a catalogue PART identity.
 
-Operational STOCK is persisted in the `jagports` D1 database. Imported JEPC catalogue PARTs are persisted in Range-routed `parts-<range_slug>` databases. SQLite/D1 cannot enforce a foreign key from `jagports.stock_item` to a `part` row in another D1 database.
+Physical D1 placement and database topology are defined in [`MODEL_D1.md`](MODEL_D1.md). SQLite/D1 cannot enforce a foreign key across separate D1 databases.
 
 A resolved stock-to-catalogue relationship therefore uses the logical catalogue reference:
 
@@ -261,38 +261,7 @@ Operational inventory belongs to separate stock records.
 
 Catalogue vehicle location and physical stock/storage location are distinct concepts.
 
-The D1 boundary is:
-
-```text
-jagports D1
-+-- stock_item
-|   +-- catalogue_range = xk
-|   +-- part_id = 123
-|   `-- operational STOCK fields
-|
-+-- catalogue fixture PARTs
-|   `-- same-database FK allowed for fixture rows
-|
-+-- Search Index
-|   `-- derived catalogue locators -> (catalogue_range, part_id)
-|
-`-- logical catalogue reference
-    `-- (catalogue_range, part_id)
-                 |
-                 v
-configured Range xk
-                 |
-                 v
-parts-xk D1
-`-- part(id = 123)
-    +-- occurrences
-    +-- tree
-    +-- FIT
-    +-- diagrams
-    `-- provenance
-```
-
-No SQL foreign key crosses the `jagports` / `parts-<range_slug>` database boundary. A resolved `(catalogue_range, part_id)` reference routes directly through the configured Range binding to the authoritative PART. Cross-Range lookup starts from the Search Index in `jagports` and hydrates the resulting reference from the authoritative `parts-<range_slug>` database. The Search Index does not become canonical PART storage.
+The physical D1 boundary, Search Index placement and database-topology ASCII model are canonical in [`MODEL_D1.md`](MODEL_D1.md).
 
 ## Field dictionary
 
