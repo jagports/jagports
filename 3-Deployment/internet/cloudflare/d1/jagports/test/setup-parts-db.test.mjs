@@ -3,7 +3,7 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { databaseNameForRange, setupRangeDatabase } from '../setup-range-db.mjs';
+import { databaseNameForRange, setupRangeDatabase } from '../setup-parts-db.mjs';
 
 const accountId = 'a'.repeat(32);
 const databaseId = '12345678-1234-1234-1234-123456789abc';

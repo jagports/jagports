@@ -26,7 +26,7 @@ Current Cloudflare limits must be verified from Cloudflare before relying on cap
 From the repository root, inspect the derived parts database name without Cloudflare credentials or mutation:
 
 ```text
-node 3-Deployment/internet/cloudflare/d1/jagports/setup-range-db.mjs plan --range xk
+node 3-Deployment/internet/cloudflare/d1/jagports/setup-parts-db.mjs plan --range xk
 ```
 
 Expected database name:
@@ -40,7 +40,7 @@ parts-xk
 After verifying the Range mapping, Cloudflare account, capacity, and derived name, set `CLOUDFLARE_API_TOKEN` in the local environment and run:
 
 ```text
-node 3-Deployment/internet/cloudflare/d1/jagports/setup-range-db.mjs create --range xk --account-id <32-hex-account-id> --account-plan free --confirm-name parts-xk
+node 3-Deployment/internet/cloudflare/d1/jagports/setup-parts-db.mjs create --range xk --account-id <32-hex-account-id> --account-plan free --confirm-name parts-xk
 ```
 
 Before creating anything, the utility lists D1 databases in the selected account.
@@ -74,7 +74,7 @@ A repeated `create` with matching configuration verifies and reuses the same rem
 Verify an existing configured parts database without mutation:
 
 ```text
-node 3-Deployment/internet/cloudflare/d1/jagports/setup-range-db.mjs verify --range xk --account-id <32-hex-account-id> --account-plan free
+node 3-Deployment/internet/cloudflare/d1/jagports/setup-parts-db.mjs verify --range xk --account-id <32-hex-account-id> --account-plan free
 ```
 
 Verification compares the requested Range/account, reviewed repository configuration, and remote Cloudflare database identity.
@@ -111,5 +111,5 @@ The exact database identity, schema, and Worker routing must be verified before 
 Run:
 
 ```text
-node --test 3-Deployment/internet/cloudflare/d1/jagports/test/setup-range-db.test.mjs
+node --test 3-Deployment/internet/cloudflare/d1/jagports/test/setup-parts-db.test.mjs
 ```

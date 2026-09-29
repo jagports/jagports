@@ -23,7 +23,7 @@ A Range is application configuration used to select a parts database. A Range is
 The repository-controlled setup utility is:
 
 ```text
-3-Deployment/internet/cloudflare/d1/jagports/setup-range-db.mjs
+3-Deployment/internet/cloudflare/d1/jagports/setup-parts-db.mjs
 ```
 
 It creates or verifies a parts database identity only.

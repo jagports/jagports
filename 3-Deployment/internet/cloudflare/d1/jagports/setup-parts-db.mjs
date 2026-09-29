@@ -137,7 +137,7 @@ function parseArguments(argv) {
     const flag = remaining[index];
     const value = remaining[index + 1];
     if (!value || !['--range', '--account-id', '--account-plan', '--confirm-name'].includes(flag) || args[flag]) {
-      throw new Error('Usage: setup-range-db.mjs <plan|create|verify> --range <slug> [--account-id <id> --account-plan <free|paid>] [--confirm-name <derived-name> for create]');
+      throw new Error('Usage: setup-parts-db.mjs <plan|create|verify> --range <slug> [--account-id <id> --account-plan <free|paid>] [--confirm-name <derived-name> for create]');
     }
     args[flag] = value;
   }
