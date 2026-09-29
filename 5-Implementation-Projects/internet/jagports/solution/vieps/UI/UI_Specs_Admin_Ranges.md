@@ -5,7 +5,7 @@
 **Range taxonomy owner:** #361  
 **Normalized model and persistence owner:** #354  
 **JEPC import/source-evidence owner:** #355  
-**Existing one-page Admin UI:** [UI_Specs_StockAdmin.md](UI_Specs_StockAdmin.md)  
+**Existing one-page Admin UI:** [Stock Admin specification](../STOCK/SPEC_ADMIN.md)  
 **Parallel, separate fit-category specification:** #877 / PR #879
 
 ## Objective and boundary
