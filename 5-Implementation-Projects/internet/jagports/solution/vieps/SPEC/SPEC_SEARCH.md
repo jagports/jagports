@@ -25,7 +25,7 @@ RIGHT  one PN / deterministic identifier / free-text Search field
 
 Availability remains operational stock state, separate from catalogue identity.
 
-For the reduced MVP, the public Availability control is a boolean **Show only parts on stock** filter applied after a supported part-number, deterministic-identifier or free-text candidate set exists. A PART satisfies this public stock-backed filter only when at least one operational `stock_item` linked to that canonical PART has `available = 1` and `quantity > 0`.
+For the limited, the public Availability control is a boolean **Show only parts on stock** filter applied after a supported part-number, deterministic-identifier or free-text candidate set exists. A PART satisfies this public stock-backed filter only when at least one operational `stock_item` linked to that canonical PART has `available = 1` and `quantity > 0`.
 
 The boolean filter exposes the stock-backed eligibility needed to narrow visible PART results. It does not authorize stock add, edit or delete operations. Stock mutation authorization is separate from this read/display contract unless another specification explicitly defines a field restriction.
 
@@ -126,10 +126,10 @@ These are normative interaction requirements. Controls without an defined source
 - Deterministic identifiers mean exact/normalized lookup values that are intended to resolve deterministically before generic free-text matching, including Jaguar part numbers, raw part-number strings, normalized part-number strings, and approved deterministic non-numbered identifiers where the current read contract supports them.
 - Deterministic identifiers are not excluded from search. They are handled first because their behavior is stricter than free-text matching: they should resolve the intended identity before the same query is allowed to fall back to general text matching.
 - Search resolution is part-number / deterministic-identifier first: attempt the approved part-number / deterministic-identifier lookup first; only when it produces no match may the same query fall back to an available approved free-text search capability.
-- Hybrid reduced-MVP free-text search is required in the reduced-MVP search contract. It is limited to the implemented searchable fields and result presentation in this document.
-- Full multilingual/global free-text indexing/search is outside the reduced-MVP contract. The reduced-MVP free-text path does not include the complete multilingual corpus, ranking, cross-Range search or global search architecture.
-- If reduced-MVP free-text capability is unavailable in a runtime that exposes the general `Find` control, the runtime must not silently ignore the query and return ordinary `not_found` for descriptive text.
-- Primary deterministic MVP behavior remains Jaguar part-number / deterministic-identifier search plus the limited free-text fallback defined here.
+- Hybrid limited free-text search is required in the limited search contract. It is limited to the implemented searchable fields and result presentation in this document.
+- Full multilingual/global free-text indexing/search is outside the limited contract. The limited free-text path does not include the complete multilingual corpus, ranking, cross-Range search or global search architecture.
+- If limited free-text capability is unavailable in a runtime that exposes the general `Find` control, the runtime must not silently ignore the query and return ordinary `not_found` for descriptive text.
+- Primary deterministic behavior remains Jaguar part-number / deterministic-identifier search plus the limited free-text fallback defined here.
 - Approved deterministic non-numbered identifiers may also be accepted where the current read contract supports them.
 - Descriptive fixture identifiers such as `firtree1` and `firtree2` are **not Jaguar part numbers**.
 - Leading/trailing whitespace is ignored.
@@ -170,11 +170,11 @@ When supported Parts/catalogue-data language changes, load that language's evide
 
 ## Limited free-text search
 
-Reduced-MVP free-text search is a pragmatic, current-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring the full multilingual/global search architecture.
+Reduced-MVP free-text search is a pragmatic, defined-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring the full multilingual/global search architecture.
 
 Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and deterministic identifiers are not excluded from search; they are resolved first by deterministic lookup. Generic free-text fallback runs only when that deterministic lookup produces no match.
 
-The reduced-MVP free-text corpus includes matching text available through the defined read path, including at least:
+The limited free-text corpus includes matching text available through the defined read path, including at least:
 
 - PART descriptions;
 - model, range, body-style, vehicle, tree, category, path and other catalogue/context text where present;
@@ -385,7 +385,7 @@ When stock-quality filtering is supported, filter identity is the normalized `A`
 ```text
 PartSearchRequest
   query
-  stock_only?               # reduced-MVP public boolean availability constraint
+  stock_only?               # limited public boolean availability constraint
   stock_quality_codes[]?   # normalized A-E identities when supported
   include_unclassified_quality? # explicit NULL-state filter when supported
 
@@ -423,7 +423,7 @@ Cover at least:
 - multiple EPC occurrences;
 - valid no-match after deterministic and active free-text modes both fail;
 - multiple deterministic candidates without guessed selection;
-- deterministic miss with reduced-MVP free-text fallback;
+- deterministic miss with limited free-text fallback;
 - default Parts Tree view showing first-level branches only;
 - selecting a Parts Tree branch showing all available next-level branches under that branch;
 - fragment highlighting in visible matched text;
@@ -442,8 +442,8 @@ Cover at least:
 - Model Ranges reflecting matched model/range/body-style context where available without special Coupe/Convertible behavior;
 - explicit unsupported state when requested free-text/stock filtering is unavailable;
 - stock-filtered-empty distinct from total search no-match, with `No matching parts currently on stock.` wording;
-- reduced-MVP `stock_only` success when a deterministic or free-text candidate has `available = 1` and `quantity > 0`;
-- reduced-MVP `stock_only` filtered-empty when candidates exist but none satisfy that operational STOCK condition;
+- limited `stock_only` success when a deterministic or free-text candidate has `available = 1` and `quantity > 0`;
+- limited `stock_only` filtered-empty when candidates exist but none satisfy that operational STOCK condition;
 - invalid/empty input;
 - unavailable EPC context;
 - tree context;
@@ -458,7 +458,7 @@ Fixture values are test data, not verified Jaguar catalogue facts.
 The TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST fixture data only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled bookmark placeholders and all results-panel states. Bookmark storage, when supported, requires independent interaction coverage.
 
 ## Viewport and language
-The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search is outside this reduced-MVP contract.
+The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search is outside this limited contract.
 
 ## Error/unavailable semantics
 - Missing context is not no PART.
@@ -468,7 +468,7 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Missing stock-quality classification is explicit unclassified quality, not unavailable stock.
 - Missing stock-quality presentation is not a confirmed A–E classification.
 - Search failures do not fall back to guessed identities.
-- Deterministic miss falls back to the reduced-MVP free-text capability when that capability is active.
+- Deterministic miss falls back to the limited free-text capability when that capability is active.
 - Absence of free-text capability in a runtime exposing descriptive search must be explicit, not simulated.
 - A stock-filtered-empty result is distinct from a total search no-match.
 - A context-only free-text match is shown through the existing region that owns that context and must not fabricate a selected PART.
