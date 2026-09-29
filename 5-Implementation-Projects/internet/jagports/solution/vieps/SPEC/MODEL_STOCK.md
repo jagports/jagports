@@ -11,7 +11,7 @@ Mutable operational stock remains separate from canonical `PART` / JEPC catalogu
 | File | Role |
 |---|---|
 | [`MODEL_PARTS.md`](MODEL_PARTS.md) | Canonical PART identity, catalogue relationships, third-party/vendor references and Jagports specified PART rules. |
-| [`SPEC_SEARCH.md`](SPEC_SEARCH.md) | User-facing search controls and available-part presentation. |
+| [`SPEC_FIND.md`](SPEC_FIND.md) | User-facing search controls and available-part presentation. |
 | [`../STOCK/SPEC_ADMIN.md`](../STOCK/SPEC_ADMIN.md) | Stock Admin create/edit/delete operations and validation UI. |
 
 ## Stock/catalogue separation
