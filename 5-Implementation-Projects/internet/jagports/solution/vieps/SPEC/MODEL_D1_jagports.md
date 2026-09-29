@@ -20,7 +20,8 @@ Those remain authoritative in their domain specifications:
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — operational STOCK persistence and stock-to-PART reference semantics;
 - [`SPEC_SEARCH.md`](SPEC_SEARCH.md) — Search Index contents, global search behavior and catalogue hydration;
 - [`SPEC_SEARCH_RANGES.md`](SPEC_SEARCH_RANGES.md) — normalized Range assignment and `catalogue_range` publication source;
-- [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md) — FIT evidence and evaluation.
+- [`MODEL_PARTS.md`](MODEL_PARTS.md) — non-dynamic catalogue applicability evidence and PART relationships.
+- [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md) — dynamic JEPC-description mapping and FIT filter semantics.
 
 ## D1 topology
 
