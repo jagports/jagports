@@ -8,8 +8,7 @@ It owns the boundaries, completeness rules and durable source-to-D1 relationship
 
 Detailed domain authorities:
 
-- [`MODEL_PARTS.md`](MODEL_PARTS.md) — global canonical PART identities and PART relationships;
-- [`MODEL_PARTS.md`](MODEL_PARTS.md) — non-dynamic catalogue applicability evidence and PART relationships;
+- [`MODEL_PARTS.md`](MODEL_PARTS.md) — global canonical PART identities, PART relationships and non-dynamic catalogue applicability evidence;
 - [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md) — dynamic JEPC-description mapping and FIT filter semantics;
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — mutable operational stock;
 - DataImporter and MediaImporter specifications — importer execution mechanics;
