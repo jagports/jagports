@@ -78,7 +78,7 @@ Concept-11 explicitly shows `Language [UI] [Parts]` as separate concerns.
 
 ## Shared panel interaction (superseding Product Owner decisions, 2026-09-28)
 
-[Part Search](../SPEC/SPEC_FIND.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28) is the interaction authority; [Fitment](../SPEC/SPEC_SEARCH_FIT.md), [Applicable Models](../SPEC/SPEC_SEARCH_RANGES.md) and [Parts Tree](../SPEC/SPEC_SEARCH_TREE.md) own their respective evidence/presentation boundaries.
+[Part Search](../SPEC/SPEC_SEARCH.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28) is the interaction authority; [Fitment](../SPEC/SPEC_SEARCH_FIT.md), [Applicable Models](../SPEC/SPEC_SEARCH_RANGES.md) and [Parts Tree](../SPEC/SPEC_SEARCH_TREE.md) own their respective evidence/presentation boundaries.
 
 | Panel | Data shown | User interaction |
 | --- | --- | --- |
@@ -193,7 +193,7 @@ Initial root load, clear, empty submit and empty-search Availability refresh use
 
 UI language changes preserve browse state even without a selected PART. Catalogue-language changes respect source-qualified identity and structural differences rather than mapping by label.
 
-The normative transition, stock and URL rules are in [Part Search](../SPEC/SPEC_FIND.md#empty-search-and-clear-transition). [Parts Tree](../SPEC/SPEC_SEARCH_TREE.md#empty-search--browse-state) owns root presentation and [Main View](UI_Specs_Main_View.md#clearing-selected-context) owns cleared contextual-region presentation.
+The normative transition, stock and URL rules are in [Part Search](../SPEC/SPEC_SEARCH.md#empty-search-and-clear-transition). [Parts Tree](../SPEC/SPEC_SEARCH_TREE.md#empty-search--browse-state) owns root presentation and [Main View](UI_Specs_Main_View.md#clearing-selected-context) owns cleared contextual-region presentation.
 
 ## Search-result distribution
 
@@ -214,7 +214,7 @@ Search-result bookmark checkboxes are visible but **disabled** while bookmark st
 
 ## 1. Search + Availability
 
-- The single primary part-number/deterministic-identifier/free-text Search field is in the right-hand column above Search Results; its resolution order, match highlighting and stock-filtered-empty semantics remain controlled by `../SPEC/SPEC_FIND.md`.
+- The single primary part-number/deterministic-identifier/free-text Search field is in the right-hand column above Search Results; its resolution order, match highlighting and stock-filtered-empty semantics remain controlled by `../SPEC/SPEC_SEARCH.md`.
 - The left Availability area consumes approved operational STOCK controls and does not change catalogue identity, fitment or source evidence.
 - Centre VIN and fit/variations filters are separate narrowing inputs, populated from approved data. Blank input browse lists, including VIN ranges, are shown only when the supporting contract exists.
 - Invalid, not-found, multiple-match, context-only, unsupported, unavailable and error states remain explicit; neither search-results rows nor filters may fabricate a PART.
@@ -294,7 +294,7 @@ The three-column layout retains compact spacing, Parts Tree/search clearing beha
 - Use compact panel gaps/padding and Parts Tree row spacing/indentation, including 220–320 CSS px. Preserve stable ancestry connectors, complete selected paths, highlighted PART leaves and the intentional reserved space for Location, Fit and the single selected PART/Image/Status panel.
 - The branded banner exclusively owns existing fixture instructions, explanatory content and relevant links, with expandable translated keyboard-accessible instructions on narrow screens; do not duplicate them below Parts Tree.
 - On mobile, one persistent non-scrolling top region contains branding, language controls, banner/instructions, the primary Find field/button and Availability/Stock-only checkbox plus its separate help button. Only the remaining content scrolls beneath it. Avoid stacking independently sticky controls or fixed offsets; retain usability with translated/wrapped labels, expanded instructions, orientation and the on-screen keyboard without trapping content or horizontal overflow.
-- The Stock-only help button is distinct from its checkbox label. Desktop hover/focus/click and mobile tap expose the localized explanation; repeated activation, outside interaction and Escape dismiss it without toggling the checkbox. The in-viewport overlay must not cover Find or permanently grow the mobile top region. The canonical wording and details belong in [`../SPEC/SPEC_FIND.md`](../SPEC/SPEC_FIND.md).
+- The Stock-only help button is distinct from its checkbox label. Desktop hover/focus/click and mobile tap expose the localized explanation; repeated activation, outside interaction and Escape dismiss it without toggling the checkbox. The in-viewport overlay must not cover Find or permanently grow the mobile top region. The canonical wording and details belong in [`../SPEC/SPEC_SEARCH.md`](../SPEC/SPEC_SEARCH.md).
 - Preserve existing search resolution/clearing, PART identity, STOCK eligibility, fitment and deep links. `search.multiple_matches` must resolve through the EN/FI translation resources; do not expose raw translation keys.
 
 
@@ -317,7 +317,7 @@ The three-column layout retains compact spacing, Parts Tree/search clearing beha
 ## Related specifications
 
 - `UI_CSS_Kit.md` — Tailwind/style-theme direction.
-- [`../SPEC/SPEC_FIND.md`](../SPEC/SPEC_FIND.md) — search/result-state contract.
+- [`../SPEC/SPEC_SEARCH.md`](../SPEC/SPEC_SEARCH.md) — search/result-state contract.
 - `../SPEC/SPEC_SEARCH_TREE.md` — tree hierarchy/selection contract.
 - `UI_Specs_Main_View.md` — Location and PART/Image/Status synchronization.
 - `../SPEC/SPEC_SEARCH_FIT.md` — FIT filter and normalized evidence contract.
