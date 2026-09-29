@@ -6,7 +6,7 @@ This specification defines how **dynamic JEPC descriptions** become source-quali
 
 A dynamic description is imported catalogue text attached to a specific JEPC source record, occurrence and/or tree path. This specification covers only those dynamic descriptions and their normalized mappings. Other catalogue applicability semantics remain outside this file and are defined by the canonical PART model in [MODEL_PARTS.md](MODEL_PARTS.md).
 
-[Search](SPEC_FIND.md) owns the combined candidate evaluator and cross-filter transitions. This file owns only the dynamic-description mapping and its centre-top FIT / Variations presentation contract.
+[Search](SPEC_SEARCH.md) owns the combined candidate evaluator and cross-filter transitions. This file owns only the dynamic-description mapping and its centre-top FIT / Variations presentation contract.
 
 ## Dynamic description identity
 
@@ -66,7 +66,7 @@ Facet counts and selectable values come from the surviving candidate universe un
 
 ## FIT / Filter dual mode
 
-The centre-top FIT / Variations control initially has no checked values. Group selection and coordinated filtering are specified in [Search](SPEC_FIND.md#coordinated-searchfilter-interaction).
+The centre-top FIT / Variations control initially has no checked values. Group selection and coordinated filtering are specified in [Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction).
 
 1. **Browse or multiple candidates:** show only published normalized values backed by mapped dynamic descriptions in the current search/browse candidates. Visibility indicates availability; it does not activate a filter. At most one competing value per normalized group is active. Different groups combine with AND.
 2. **Single selected PART/context:** the control becomes read-only and shows the mapped dynamic-description values evidenced for the selected occurrence/context. Unknown or unmapped descriptions remain unavailable rather than becoming positive FIT claims.
