@@ -89,7 +89,7 @@ A verified mapping can be established from several evidence forms:
 
 One observed X100 example has the tree ancestry `main floor → RH → Coffee → LHD → GJA9460BJSDC` and sidecar `142207,[A155,2932,0,0][A23,154,0,0]`. This supports `A155=2932` as Coffee and `A23=154` as LHD in that source context. It also demonstrates that `RH` and `LHD` are separate source-path descriptions. The example does not establish the semantic role of `RH` or prove that it is absent from fit semantics elsewhere.
 
-Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display descriptions in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the historical VIN UI fields.
+Mappings derived from ancestry are versioned interpretation evidence, not replacements for the raw tuples. Equal display descriptions in different JEPC groups must remain distinct source values. Unknown groups/values remain unresolved evidence and must not be guessed, dropped, or coerced into one of the legacy VIN UI fields.
 
 ### Admin-curated semantic categories and source-description mapping
 
@@ -244,7 +244,7 @@ The three airbag cases and headlamp case below are observed source examples; the
 | One complete false alternative and one unknown alternative | `unavailable`; an unknown is not silently false. |
 | No assertion rows, incomplete source scope or parser produced an empty set | `unavailable`; no universal fitment or blanket negative. |
 | Positive and explicit negative match the same occurrence/context | `unavailable` with conflict evidence. |
-| Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; history retained; stale active claims removed only under verified reconciliation. |
+| Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; prior-version evidence retained; stale active claims removed only under verified reconciliation. |
 | Two languages describe the same source application | One canonical PART. Preserve each language-specific source path/tree independently when structure differs; reconcile a shared logical occurrence only when deterministic source identity/correspondence is established. |
 
 Source transformation must establish source identity, comparator and attribute mappings from complete selected-bundle evidence. Unknown patterns remain unresolved/quarantined rather than being inferred from isolated examples.
@@ -253,7 +253,7 @@ Source transformation must establish source identity, comparator and attribute m
 
 The persisted source-evidence graph uses the relations below. Physical `applicability_*`, `occurrence_applicability` and `part_fitment.applicability_state` identifiers are storage/source-evidence names; active application terminology is FIT.
 
-Standalone IDs are integer primary keys; all ownership/evidence IDs below are real foreign keys. Every FK uses restrictive deletion so referenced source history cannot silently disappear. Versioned imports insert new snapshots/contexts and switch snapshots transactionally; in-place mutation of published evidence or meaning is not supported.
+Standalone IDs are integer primary keys; all ownership/evidence IDs below are real foreign keys. Every FK uses restrictive deletion so referenced source evidence cannot silently disappear. Versioned imports insert new snapshots/contexts and switch snapshots transactionally; in-place mutation of published evidence or meaning is not supported.
 
 | Relation | Fields and meaning |
 |---|---|
