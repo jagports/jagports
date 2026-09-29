@@ -175,6 +175,116 @@ async function geometry(page) {
   });
 }
 
+const findAcceptanceViewports = [
+  { name: "1368x768", width: 1368, height: 768 },
+  { name: "2560x1440", width: 2560, height: 1440 },
+];
+
+function modeApiUrl(baseUrl, pathname, params = {}) {
+  const url = new URL(pathname, baseUrl);
+  for (const [key, value] of baseUrl.searchParams) url.searchParams.set(key, value);
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+  return url;
+}
+
+async function discoverFindPart(page, baseUrl) {
+  const rootsResponse = await page.request.get(modeApiUrl(baseUrl, "/api/tree", { root: "1" }).href);
+  if (!rootsResponse.ok()) return null;
+  const rootsPayload = await rootsResponse.json();
+  const queue = (rootsPayload.roots || []).map((root) => root.node_id).filter(Boolean);
+  const visited = new Set();
+  while (queue.length && visited.size < 200) {
+    const nodeId = queue.shift();
+    if (visited.has(nodeId)) continue;
+    visited.add(nodeId);
+    const response = await page.request.get(modeApiUrl(baseUrl, "/api/tree", { node_id: String(nodeId) }).href);
+    if (!response.ok()) continue;
+    const payload = await response.json();
+    const part = (payload.parts || []).find((item) =>
+      (item.part_number_normalized || item.part_number_raw) && item.description);
+    if (part) return part;
+    for (const child of payload.children || []) {
+      if (child.node_id && !visited.has(child.node_id)) queue.push(child.node_id);
+    }
+  }
+  return null;
+}
+
+function findDescriptionQuery(part) {
+  const identity = String(part.part_number_normalized || part.part_number_raw || "").toUpperCase();
+  const words = String(part.description || "").match(/[\p{L}\p{N}-]+/gu) || [];
+  return words.find((word) =>
+    word.length >= 4 &&
+    !identity.includes(word.toUpperCase()) &&
+    !["part", "jaguar"].includes(word.toLowerCase())) || "";
+}
+
+async function submitFindVisual(page, query) {
+  await page.locator("#partNumber").fill(query);
+  const response = page.waitForResponse((candidate) => {
+    try {
+      const url = new URL(candidate.url());
+      return url.pathname === "/api/part" && url.searchParams.get("q") === query;
+    } catch {
+      return false;
+    }
+  }, { timeout: 10000 }).catch(() => null);
+  await page.locator("#partSearch").press("Enter");
+  await response;
+  await page.waitForTimeout(400);
+}
+
+async function renderFindVisualAcceptance(page, targetUrl, mode) {
+  const baseUrl = new URL(targetUrl);
+  await page.goto(baseUrl.href, { waitUntil: "load" });
+  const part = await discoverFindPart(page, baseUrl);
+  assert.ok(part, "#634 " + mode + " visual acceptance needs a discoverable PART with description");
+  const identifier = part.part_number_normalized || part.part_number_raw;
+  const descriptionQuery = findDescriptionQuery(part);
+  assert.ok(descriptionQuery, "#634 " + mode + " visual acceptance needs a description query distinct from the PART identifier");
+
+  for (const viewport of findAcceptanceViewports) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto(baseUrl.href, { waitUntil: "load" });
+
+    await submitFindVisual(page, identifier);
+    await page.screenshot({
+      path: evidenceDir + "find-" + mode + "-" + viewport.name + "-identifier.png",
+    });
+
+    await submitFindVisual(page, descriptionQuery);
+    await page.screenshot({
+      path: evidenceDir + "find-" + mode + "-" + viewport.name + "-free-text.png",
+    });
+
+    const stock = page.locator("#availabilitySelect");
+    if (await stock.count()) {
+      if (!(await stock.isChecked())) await stock.check();
+      await page.waitForTimeout(500);
+      await page.screenshot({
+        path: evidenceDir + "find-" + mode + "-" + viewport.name + "-stock-only.png",
+      });
+      if (await stock.isChecked()) await stock.uncheck();
+      await page.waitForTimeout(250);
+    }
+
+    await submitFindVisual(page, "zzzz-find-ui-no-match-634");
+    await page.screenshot({
+      path: evidenceDir + "find-" + mode + "-" + viewport.name + "-no-match.png",
+    });
+
+    await page.locator("#partNumber").fill("");
+    await page.locator("#partSearch").press("Enter");
+    await page.waitForTimeout(400);
+    await page.screenshot({
+      path: evidenceDir + "find-" + mode + "-" + viewport.name + "-clear.png",
+    });
+  }
+
+  console.log("PASS: #634 rendered deployed " + mode + " Find views for " +
+    identifier + " / " + descriptionQuery + " at 1368x768 and 2560x1440");
+}
+
 const base = process.env.VIEPS_BROWSER_URL;
 let local;
 let browser;
@@ -710,6 +820,9 @@ try {
       const realUrl = new URL(base);
       realUrl.searchParams.delete("TEST");
       const adminUrl = new URL("stock-admin.html", realUrl);
+      // #634: deployed visual acceptance uses screenshots only at 1368x768 and 2560x1440.
+      await renderFindVisualAcceptance(deployed, fixtureUrl, "test1");
+      await renderFindVisualAcceptance(deployed, realUrl, "normal");
       await deployed.goto(fixtureUrl.href, { waitUntil: "load" });
       assert.equal(await deployed.locator("#fixtureModeHelp").evaluate((node) => node.hidden), false,
         "deployed TEST=1 must show fixture controls");
