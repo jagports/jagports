@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document defines the VIEPS Stock Admin workflow around the operational stock model.
+This document defines the VIEPS Stock Admin behavior around the operational stock model.
 
-The stock model authority is [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). This workflow does not redefine canonical `PART` identity or catalogue relationships.
+The stock model authority is [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). This Admin specification does not redefine canonical `PART` identity or catalogue relationships.
 
 This file also owns the minimum Stock Admin Add/Edit/Delete UI contract.
 
@@ -12,7 +12,7 @@ This file also owns the minimum Stock Admin Add/Edit/Delete UI contract.
 
 Stock Admin supports authorized creation and maintenance of operational stock records while keeping mutable inventory separate from catalogue/reference data.
 
-The workflow covers:
+This specification covers:
 
 - stock database readiness;
 - authorized stock create/read/update/delete behavior;
@@ -62,7 +62,7 @@ Catalogue/search data and operational stock evidence have different trust bounda
 
 Fixture-backed catalogue PARTs may be used to exercise Stock Admin when imported catalogue data is not yet available.
 
-Stock records used for workflow or acceptance testing must be explicitly identifiable as test/seed records unless they are independently verified inventory evidence.
+Stock records used for operation or conformance testing must be explicitly identifiable as test/seed records unless they are independently verified inventory evidence.
 
 Synthetic or deterministic stock test data must not be described as real production Jagports inventory. Rows whose source/reference identifies them as fixtures remain fixture evidence even when persisted in D1.
 
@@ -76,7 +76,7 @@ Stock Admin supports these stock-record paths:
 
 1. resolved stock linked to an existing imported Jaguar/JEPC canonical `PART`;
 2. verified 1:1 vendor product stock linked to that same existing Jaguar canonical `PART` while vendor identity remains separate;
-3. non-1:1 reusable vendor product stock linked to a **Jagports specified PART** created through the canonical third-party PART workflow;
+3. non-1:1 reusable vendor product stock linked to a **Jagports specified PART** created through the canonical third-party PART behavior;
 4. explicitly unresolved stock where reusable product identity is genuinely not yet established.
 
 A canonical `PART` must not be fabricated merely to satisfy a stock relationship. A known reusable third-party product must follow `../SPEC/MODEL_PARTS.md`: a verified 1:1 vendor product uses the existing Jaguar canonical PART, while a non-1:1 product uses a Jagports specified PART with exactly one mandatory Jaguar parent and retained category/item/occurrence/PART context. When the parent was selected through a specific imported catalogue tree path and that source-qualified path is available, the exact selected `part_occurrence_tree_path` is retained by the third-party PART evidence. `stock_item.part_id = NULL` is reserved for items whose reusable product identity is genuinely not yet established.
@@ -255,14 +255,14 @@ A local or preview result is evidence only for that environment. It must not be 
 
 ## Boundaries
 
-This workflow does not define:
+This specification does not define:
 
 - catalogue PART identity or JEPC import;
 - deletion of canonical PART/JEPC/reference identity;
 - navigation/menu architecture for the Admin page;
 - dashboard/account/profile UI;
-- warehouse transaction/history ledger;
-- reservations, checkout or sales workflow;
+- warehouse transaction ledger;
+- reservations, checkout or sales processing;
 - individual physical-unit identity;
 - payment or shipping;
 - provider-specific synchronization;
@@ -337,7 +337,7 @@ This document defines the minimum UI required by the Stock Admin requirement to 
 
 The target is **one functional Stock Admin page** supporting search/list, Add, Edit and Delete. Navigation, menus, dashboards, account UI, decorative application shell, and visual polish are not requirements for this increment.
 
-The operational stock model remains authoritative in [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). The workflow and UI behavior in this file form one Admin specification.
+The operational stock model remains authoritative in [`../SPEC/MODEL_STOCK.md`](../SPEC/MODEL_STOCK.md). The operation and UI behavior in this file form one Admin specification.
 
 ### Visual reference
 
@@ -432,7 +432,7 @@ Add must provide an explicit identity decision before save:
 3. select an existing Jagports specified canonical PART for a non-1:1 reusable vendor product; or
 4. explicitly choose unresolved stock with `part_id = NULL` only when reusable product identity is genuinely not yet established.
 
-If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the third-party PART workflow defined by `../SPEC/MODEL_PARTS.md` before STOCK is linked. The minimum page does not silently fabricate that identity.
+If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the third-party PART behavior defined by `../SPEC/MODEL_PARTS.md` before STOCK is linked. The minimum page does not silently fabricate that identity.
 
 For an existing PART, search results need only enough information to select the intended record: part number, description and available fit/context. A separate contextual information panel is optional.
 
