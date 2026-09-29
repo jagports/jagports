@@ -188,7 +188,7 @@ The storage fixture uses observed PART/application identifiers alongside clearly
 
 [PR #655 — SPEC / Move VIEPS part and stock models to SPEC](https://github.com/jagports/jagports/pull/655)
 
-That separate open PR relocates `PART_MODEL.md` to `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md`. This refinement adds a companion specification in that destination area and a short link from the current model. At integration, retain the link in the relocated model using `MODEL_PART_APPLICABILITY.md`; retain the evidence link using `../../../../../../7-Research/jlr/JEPC/JEPC_APPLICABILITY_MODEL_REFINEMENT.md`. Do not keep two model authorities. This work does not edit PR #655 or claim its approval.
+That separate open PR relocates `PART_MODEL.md` to `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md`. This refinement adds a companion specification in that destination area and a short link from the current model. At integration, retain the link in the relocated model using `MODEL_PART_APPLICABILITY.md`; retain the evidence link using `../../../../../../7-Research/jlr/JEPC/MODEL_DATA.md`. Do not keep two model authorities. This work does not edit PR #655 or claim its approval.
 
 The existing VIEPS `KNOWLEDGE.md` already records the accepted identity/context, no-source-tree, exclusion, alternative and unknown-data boundaries. No proposed schema decision is promoted to accepted knowledge before review. Detailed new evidence stays in this record; the companion SPEC owns the proposed field/relationship requirements.
 
