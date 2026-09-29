@@ -6,7 +6,7 @@ This document defines canonical catalogue `PART` identity and the catalogue-side
 
 Operational stock semantics are defined separately in [`MODEL_STOCK.md`](MODEL_STOCK.md).
 
-JEPC-to-PART import completeness, durable D1 content and importer/runtime boundaries are defined in [`MODEL_PART_IMPORT_JEPC.md`](MODEL_PART_IMPORT_JEPC.md).
+The canonical end-to-end JEPC-to-D1 data model, completeness and importer/runtime boundaries are defined in [`MODEL_JEPC_D1.md`](MODEL_JEPC_D1.md).
 
 Occurrence-bound grouped FIT and versioned source-evidence semantics are defined in the [FIT model](#fit-model) section below.
 
