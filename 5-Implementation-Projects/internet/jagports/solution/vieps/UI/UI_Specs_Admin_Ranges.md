@@ -1,12 +1,6 @@
 # VIEPS Admin UI — Range creation and JEPC Model mapping
 
-**Status:** Approved documentation (merged PR #885); source-derived Range Admin implementation pending  
-**Controlling issue:** #884  
-**Range taxonomy owner:** #361  
-**Normalized model and persistence owner:** #354  
-**JEPC import/source-evidence owner:** #355  
 **Existing one-page Admin UI:** [Stock Admin specification](../STOCK/SPEC_ADMIN.md)  
-**Parallel, separate fit-category specification:** #877 / PR #879
 
 ## Objective and boundary
 
@@ -19,8 +13,8 @@ The **original imported JEPC Model description remains the visible Model name wh
 | Concept | Definition |
 |---|---|
 | Normalized Range | One Jagports `model_range` with stable unique `range_code`, display name, identifier, status and provenance. |
-| Imported JEPC Model | Source-qualified Model identity preserved by #355, with original description(s), source namespace/dataset, source Model ID, import/version context, source language and available hierarchy/market evidence. |
-| Explicit assignment | Approved mapping between one source-qualified imported Model and one normalized Range, including operator, verification and change provenance. |
+| Imported JEPC Model | Source-qualified Model identity preserved by the importer, with original description(s), source namespace/dataset, source Model ID, import/version context, source language and available hierarchy/market evidence. |
+| Explicit assignment | Explicit mapping between one source-qualified imported Model and one normalized Range, including operator, verification and change provenance. |
 | Unassigned Model | Existing imported Model with no confirmed Range mapping; its original JEPC description and source identifier remain displayed and searchable. |
 | Model/market name | A distinct notion from a Range and from an imported JEPC source Model ID. An imported label is not automatically a normalized name or proof of vehicle-specific identity. |
 
@@ -33,7 +27,7 @@ The **original imported JEPC Model description remains the visible Model name wh
 
 ## One-page Admin layout
 
-Add a section **Ranges & JEPC Models** on the current Admin page, separate from **Existing STOCK / Add / Edit / Delete** and from **Fit Categories / Descriptions** (#877 / PR #879). No separate dashboard, menu, page or new authentication experience is required.
+Add a section **Ranges & JEPC Models** on the current Admin page, separate from **Existing STOCK / Add / Edit / Delete** and from **Fit Categories / Descriptions**. No separate dashboard, menu, page or new authentication experience is required.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -47,7 +41,7 @@ Add a section **Ranges & JEPC Models** on the current Admin page, separate from 
 │                                                                         │
 │ IMPORTED JEPC MODELS                                                    │
 │ Search original JEPC Model description / source ID [                ]   │
-│ Filter: [All] [Unassigned] [Assigned] [Conflict / needs review]          │
+│ Filter: [All] [Unassigned] [Assigned] [Conflict / conflict]          │
 │                                                                         │
 │ Original JEPC Model description | Source ID / version | Assigned Range  │
 │ <original imported description> | <source identity> | Unassigned       │
@@ -58,7 +52,7 @@ Add a section **Ranges & JEPC Models** on the current Admin page, separate from 
 │ Range: [Choose one existing Range ▼]  [Assign / Reassign] [Unassign]    │
 │ Current mapping / provenance / conflict / persisted result             │
 ├──────────────────────────────────────────────────────────────────────────┤
-│ FIT CATEGORIES — separate #877 section when available           │
+│ FIT CATEGORIES — separate section when available           │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -75,17 +69,17 @@ The illustrative `XK_RANGE` / `XK Range` creation values above represent an admi
 ### Imported Model listing and mapping
 
 - Search and list **all imported Models**, including unassigned ones. Display the **original JEPC Model description** prominently, and available source namespace/dataset, Model ID, version, source-language and parent/market scope alongside it.
-- Provide explicit **All**, **Unassigned**, **Assigned** and **Needs review/conflict** filters. Filters change only visibility; they do not change or delete records. Empty import, empty search result and failed import are different states.
+- Provide explicit **All**, **Unassigned**, **Assigned** and **Conflict** filters. Filters change only visibility; they do not change or delete records. Empty import, empty search result and failed import are different states.
 - Source Model rows remain present after assignment, reassignment, unassignment and refresh. Neither an unassigned state nor a missing normalized Range may blank or replace a source description.
 - Select a source Model, choose **one** existing active Range and explicitly save the mapping. When a Model is already mapped, changing the Range is **Reassign** and requires clear confirmation of the old and new Range.
 - **Unassign** deliberately removes the curated Range relationship, with confirmation. The Model returns to the Unassigned filter under exactly the same imported description and source identity.
-- Display mapping status, last editor/action, source/provenance, verification state and any conflict requiring review. Equal visible descriptions are never sufficient keys for mapping.
-- Reimport of the same source-qualified Model preserves its curated mapping when identity is unchanged. If source identities, contextual grouping or evidence change incompatibly, flag a mapping conflict for review rather than silently assigning a Range or rewriting the imported record.
+- Display mapping status, last editor/action, source/provenance, verification state and any mapping conflict requiring resolution. Equal visible descriptions are never sufficient keys for mapping.
+- Reimport of the same source-qualified Model preserves its curated mapping when identity is unchanged. If source identities, contextual grouping or evidence change incompatibly, flag a mapping conflict for resolution rather than silently assigning a Range or rewriting the imported record.
 - EN/FI Admin controls, headings and validation use the established UI i18n resources. Source descriptions retain their independently imported JEPC language; switching the Admin UI locale must not rewrite them.
 
 ## Data and API contract
 
-Use the **existing canonical** `model_range` identity from #354. The present persistence subset also has `applicability_model_context` with source-qualified `(source_namespace, source_model_id, context_version)` and a nullable `model_range_id`. These are a starting bridge, not permission to invent an independent global JEPC Model taxonomy. #354 and #355 must approve the final source-Model identity, original-description persistence, import reconciliation and mapping-history representation.
+Use the canonical `model_range` identity. The present persistence subset also has `applicability_model_context` with source-qualified `(source_namespace, source_model_id, context_version)` and a nullable `model_range_id`. These relations form the persistence bridge and do not authorize an independent global JEPC Model taxonomy. Source-Model identity, original-description persistence, import reconciliation and mapping-version evidence must remain source-qualified.
 
 Minimum normalized Admin read shape:
 
@@ -111,15 +105,15 @@ RangeAdminImportedModel
 
 The original description is **source data**, not a derived `model_range.name`. Source Model identifiers, model contexts and normalized market/model display names may need distinct representations. The importer supplies actual source identities and descriptions; synthetic pre-import fixtures must carry a clear `fixture` origin.
 
-Proposed operations for the eventual catalogue Admin API: list/create/edit/retire Range; search imported Models including unmapped; create/change/remove an explicit Model→Range mapping; read back current mapping and audit/conflict state. Exact endpoint names and database additions are implementation choices owned by #354/#355. All mutations must be protected **server-side** by the Admin authorization boundary and must **not** reuse STOCK `/api/stock`. Return deterministic validation, unauthorized, not-found, duplicate-code and conflicting-assignment errors. Read-back must reflect persisted state; no client-only fake success.
+Proposed operations for the eventual catalogue Admin API: list/create/edit/retire Range; search imported Models including unmapped; create/change/remove an explicit Model→Range mapping; read back current mapping and audit/conflict state. Exact endpoint names and database additions are implementation details. All mutations must be protected **server-side** by the Admin authorization boundary and must **not** reuse STOCK `/api/stock`. Return deterministic validation, unauthorized, not-found, duplicate-code and conflicting-assignment errors. Read-back must reflect persisted state; no client-only fake success.
 
-Consumer boundaries: an unassigned source Model can still appear under its original JEPC description in source-Model views. It must **not** appear as a verified member of an invented Range. Public Range-filtered browsing and fit remain governed by #609, #641 and approved occurrence-fit evidence; this Admin mapping alone does not establish part fitment.
+Consumer boundaries: an unassigned source Model can still appear under its original JEPC description in source-Model views. It must **not** appear as a verified member of an invented Range. Public Range-filtered browsing and FIT remain governed by the Range and FIT search specifications plus verified occurrence evidence; this Admin mapping alone does not establish part fitment.
 
 ## JEPC-derived Ranges and source-qualified test cases
 
-There is **no fixed, authoritative or required pre-import XK Range/model-name fixture**. The former proposed `Ranges/ranges-fixtures.md` was withdrawn unmerged in PR #651. Normalized Ranges are created by authorized administrators and linked explicitly to imported JEPC Models using the approved one-Range-maximum relationship. Their existence, names and memberships must not be inferred from a list of market-name labels.
+There is **no fixed, authoritative or required pre-import XK Range/model-name fixture**. Normalized Ranges are created by authorized administrators and linked explicitly to imported JEPC Models using the one-Range-maximum relationship. Their existence, names and memberships must not be inferred from a list of market-name labels.
 
-Actual JEPC source menu records are present at `5-Implementation-Projects/software/jlr/JEPC/JEPCFiles/menus/models_l_id_0.xml`. For example, the menu includes source-menu ID `3187`, parent `3175`, with original description `XK8 Coupe/Convertible up to (V) 042775`, and ID `3183`, parent `3175`, with original description `XK8 Coupe/Convertible - Canada/USA up to (V) 042775`. These are **source-menu records**, not proof that #355 has imported them into the production Model table or approved their Range assignments. Persisted source-qualified identities and descriptions are established by the importer; the Admin then explicitly maps each imported Model to at most one Range. Until that import exists, the actual imported-Model list is empty/unavailable, not populated with invented imported IDs.
+Actual JEPC source menu records are present at `5-Implementation-Projects/software/jlr/JEPC/JEPCFiles/menus/models_l_id_0.xml`. For example, the menu includes source-menu ID `3187`, parent `3175`, with original description `XK8 Coupe/Convertible up to (V) 042775`, and ID `3183`, parent `3175`, with original description `XK8 Coupe/Convertible - Canada/USA up to (V) 042775`. These are **source-menu records**, not proof that they have been imported into a production Model table or assigned to a Range. Persisted source-qualified identities and descriptions are established by the importer; the Admin then explicitly maps each imported Model to at most one Range. Until that import exists, the actual imported-Model list is empty/unavailable, not populated with invented imported IDs.
 
 Isolated, explicitly synthetic source-shaped records remain permissible for deterministic Admin/API tests; they never seed a normative Range taxonomy or become production Jaguar or JEPC facts. An illustrative, operator-created `XK_RANGE` Range may be used in a test only as a deliberate create-and-read-back operation, not a migration seed. The rarely used `XKR 100` individual-vehicle classification cannot be inferred from a generic XKR source label, ordinary VIN logic or Range membership; explicit Jaguar/factory or vehicle-specific evidence remains required.
 
@@ -128,23 +122,11 @@ Isolated, explicitly synthetic source-shaped records remain permissible for dete
 1. Create and read back `XK Range`; reject a duplicate `range_code`, invalid code or empty display name.
 2. List and search imported Models **before any Range assignment**: every Model keeps its original imported description, source ID and language, with only its mapping status reading Unassigned.
 3. Assign two distinct source Model IDs to one Range. The same visible source text under two distinct source IDs remains two rows and may be assigned independently.
-4. Reject an attempt to give one Model two active Ranges. Require explicit reassignment; read-back shows one new Range, unchanged source Model description and an audit record.
+4. Reject an attempt to give one Model two active Ranges. Require explicit reassignment; read-back shows one new Range, unchanged source Model description and retained mapping-version evidence.
 5. Unassign a Model: it reappears in the Unassigned filter with the **same original JEPC description**, and the retired mapping remains auditable.
-6. Retire a Range only if approved relationship handling prevents dangling active assignments. A failed action leaves all records unchanged.
-7. Reimport an unchanged source Model without duplicating or erasing its mapping; changed/ambiguous source identity produces an explicit review conflict.
+6. Retire a Range only if defined relationship constraints prevents dangling active assignments. A failed action leaves all records unchanged.
+7. Reimport an unchanged source Model without duplicating or erasing its mapping; changed/ambiguous source identity produces an explicit mapping conflict.
 8. Imported-data-unavailable and description-missing states never invent Model names, model IDs, Range memberships or fit evidence.
 9. Unauthorized mutations are rejected server-side; Admin EN/FI locale switching changes controls but not imported source descriptions.
 10. Exercise two distinct source-menu records with original descriptions (including IDs 3187 and 3183 only after the importer establishes their source-qualified Model identities), confirm no automatic Range mapping or invented import, and verify generic XKR or VIN evidence cannot assert individual XKR 100 identification.
 
-## Scope and related work
-
-**Original PR #885 was specification-only and merged.** This #949 documentation update retires its superseded fixture example. It does not implement the production Admin UI, migration, endpoint or JEPC importer; schema/import decisions remain with #354/#355.
-
-- #884 — controlling Admin Range specification Issue.
-- #361 — remaining JEPC/Range and whole-car zone research; withdrawn, unmerged PR #651 is historical only.
-- #949 — retirement of static Range fixtures and source-derived documentation alignment.
-- #354 — canonical model and persistence owner.
-- #355 — source import, original Model descriptions and provenance.
-- #877 / PR #879 — separate Fit Categories Admin extension on the same one-page Admin UI.
-- #609 — separate future public EPC Range/model/category navigation.
-- #641 — normalized fit filter; does not derive fitment from Range assignments.
