@@ -66,7 +66,7 @@ Stock records used for operation or conformance testing must be explicitly ident
 
 Synthetic or deterministic stock test data must not be described as real production Jagports inventory. Rows whose source/reference identifies them as fixtures remain fixture evidence even when persisted in D1.
 
-Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values. The linked repository workbooks `jagports-parts.xlsx` and `jagports-parts-stock.xlsx` are accepted current Jagports inventory input. Real-stock acceptance evidence may use a traced workbook row when the mapping records the exact source row, persists the mapped record through the stock mutation path, and leaves source fields that are absent or unknown as NULL/unclassified. Synthetic values must never fill missing workbook facts.
+Verified inventory facts must not be inferred from catalogue fixtures, repository examples or generated demo values. The linked repository workbooks `jagports-parts.xlsx` and `jagports-parts-stock.xlsx` are accepted Jagports inventory input. Real-stock acceptance evidence may use a traced workbook row when the mapping records the exact source row, persists the mapped record through the stock mutation path, and leaves source fields that are absent or unknown as NULL/unclassified. Synthetic values must never fill missing workbook facts.
 
 Mutable stock test records must remain separate from immutable catalogue/reference data.
 
@@ -93,7 +93,7 @@ Third-party PART relationship semantics are owned by `../SPEC/MODEL_PARTS.md`. S
 
 The UI target is one functional Stock Admin page with search/list plus **Add, Edit and Delete**. Navigation, menus, dashboard, account/profile UI, breadcrumbs, decorative shell and exact reproduction of concept artwork are not requirements.
 
-The authorized Stock Admin UI must support, where the current data contract exposes the field:
+The authorized Stock Admin UI must support, where the data contract exposes the field:
 
 - search/list existing stock records;
 - create a stock record;
@@ -124,7 +124,7 @@ Public unauthenticated users must not gain stock mutation capability through the
 
 ## Optional physical-stock photographs
 
-A future Stock Admin extension may attach multiple photographs to a stock record. Images may be selected from device files/photo storage or captured directly with a mobile/device camera where supported.
+Stock Admin may attach multiple photographs to a stock record. Images may be selected from device files/photo storage or captured directly with a mobile/device camera where supported.
 
 Physical-stock photographs are operational evidence for the specific stock record. They are distinct from canonical PART/JEPC catalogue imagery and must not overwrite or redefine catalogue imagery or PART identity.
 
@@ -325,7 +325,7 @@ The selector should show the imported context available for the selected referen
 - illustration/hotspot context where available;
 - fit information such as engine/aspiration, `Except ...` conditions, LH/RH, VIN/revision bounds, market/Region;
 - source/provenance and verification information;
-- other relevant catalogue/fit fields that may become available from later imported data.
+- other relevant catalogue/FIT fields available from imported data.
 
 The category/item/occurrence/PART reference used for the parent must be stored with the Jagports specified PART.
 
@@ -481,11 +481,11 @@ An authorized operator can create or retire stable normalized category/value IDs
 
 The panel may list the defined fixture vocabulary—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—only as explicitly tagged synthetic source records. Fixture rows use the same provenance shape as the importer but are not JEPC facts and cannot publish production fit.
 
-A mapping remains proposed or unavailable when its JEPC relation, source scope, language metadata, evidence or verification is missing. Raw description text, translated UI text and localized domain names are never foreign keys. There is no condition or predicate authored from this panel: every later condition must reference its persisted JEPC source-description mapping and resolvable i18n domain name/description.
+A mapping remains unverified or unavailable when its JEPC relation, source scope, language metadata, evidence or verification is missing. Raw description text, translated UI text and localized domain names are never foreign keys. There is no condition or predicate authored from this panel: every condition must reference its persisted JEPC source-description mapping and resolvable i18n domain name/description.
 
 #### Admin API contract
 
-| Operation | Proposed route | Required safeguard |
+| Operation | Route | Required safeguard |
 |---|---|---|
 | Browse categories/values | `GET /api/admin/fit/categories` | Authenticated stable IDs plus language-qualified domain metadata. |
 | Manage categories/values | `POST/PATCH /api/admin/fit/categories` and `.../:id/values` | Validate codes and retire referenced values instead of deleting them. |
