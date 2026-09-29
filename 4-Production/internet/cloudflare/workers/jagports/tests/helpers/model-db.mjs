@@ -4,8 +4,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 export const root = new URL('../../', import.meta.url);
 export const specRoot = new URL('../../../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/', root);
 export const sql = (relative) => {
-  if (relative === 'MODEL_PART.md') {
-    return readFileSync(new URL('MODEL_PART.md', specRoot), 'utf8');
+  if (relative === 'MODEL_PARTS.md') {
+    return readFileSync(new URL('MODEL_PARTS.md', specRoot), 'utf8');
   }
   if (relative === 'MODEL_STOCK.md') {
     return readFileSync(new URL('MODEL_STOCK.md', specRoot), 'utf8');
