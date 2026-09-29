@@ -170,7 +170,7 @@ When supported Parts/catalogue-data language changes, load that language's evide
 
 ## Limited free-text search
 
-Reduced-MVP free-text search is a pragmatic, defined-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring the full multilingual/global search architecture.
+Limited free-text search is a pragmatic, defined-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring the full multilingual/global search architecture.
 
 Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and deterministic identifiers are not excluded from search; they are resolved first by deterministic lookup. Generic free-text fallback runs only when that deterministic lookup produces no match.
 
@@ -458,7 +458,7 @@ Fixture values are test data, not verified Jaguar catalogue facts.
 The TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST fixture data only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled bookmark placeholders and all results-panel states. Bookmark storage, when supported, requires independent interaction coverage.
 
 ## Viewport and language
-The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Reduced-MVP free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search is outside this limited contract.
+The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Limited free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search is outside this limited contract.
 
 ## Error/unavailable semantics
 - Missing context is not no PART.
