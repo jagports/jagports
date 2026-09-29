@@ -56,7 +56,7 @@ MediaImporter local ledger
 
 Media bytes must not be stored as D1 BLOBs. D1 stores catalogue entities, stable object keys, source references, checksums, dimensions, status and relationships. A delivery URL is derived at runtime from a stable object key; it is not media identity.
 
-Cloudflare R2 is the initial object-storage provider because VIEPS is already Cloudflare-based. MediaImporter must use a narrow destination adapter so another object store can implement the same contract without changing JEPC source or catalogue semantics.
+Cloudflare R2 is the default object-storage provider for the Cloudflare-based VIEPS deployment. MediaImporter must use a narrow destination adapter so another object store can implement the same contract without changing JEPC source or catalogue semantics.
 
 A stock-provider or inventory attachment system is not authoritative for JEPC diagram identity, PART occurrences, hotspot relationships or provenance. Any storage adapter must preserve the MediaImporter identity and evidence contract.
 
@@ -188,7 +188,7 @@ The normal loop processes one logical illustration work item at a time:
 2. run startup `quick_check` and `foreign_key_check`;
 3. recover a stranded `PROCESSING` item only after the configured owner is proven dead and a full integrity check succeeds;
 4. accept an explicit logical illustration ID or resume a locally queued item;
-5. select the next `NEEDS_REPROCESS` item that the current resolver/converter can improve, otherwise the next `DISCOVERED` item in deterministic order;
+5. select the next `NEEDS_REPROCESS` item that the available resolver/converter can improve, otherwise the next `DISCOVERED` item in deterministic order;
 6. mark the item `PROCESSING` and persist the attempt;
 7. resolve only its bounded candidate paths;
 8. hash and validate each existing source file without modifying it;
@@ -288,7 +288,7 @@ The catalogue model must represent the complete MediaImporter result without ove
 
 This may be implemented as additive media/representation entities rather than adding every field to `diagram`. The final shape must conform to the canonical Parts Data Model. MediaImporter stores unsupported geometry losslessly in its staging ledger and publishes only fields represented truthfully by the canonical model.
 
-The current VIEPS API also projects `part_image.image_ref` and legacy `part_diagram.image_url` directly to browser image URLs. The implementation must define a stable delivery projection from object key to VIEPS URL, such as a VIEPS media route. Expiring provider URLs and deployment hostnames must not be persisted as canonical asset identity.
+The VIEPS API also projects `part_image.image_ref` and legacy `part_diagram.image_url` directly to browser image URLs. The implementation must define a stable delivery projection from object key to VIEPS URL, such as a VIEPS media route. Expiring provider URLs and deployment hostnames must not be persisted as canonical asset identity.
 
 ## Hotspot evidence and geometry verification
 
@@ -311,7 +311,7 @@ When coordinate transformation is unresolved, MediaImporter may publish the imag
 
 Some JEPC exploded diagrams appear to use dashed enclosures to group callouts for components supplied by a kit. A kit part number may be present in the catalogue context while an explicit, machine-readable kit-content list is absent. This is a research signal, not a source-of-truth composition relationship.
 
-The future importer may detect a dashed enclosure and numbered callouts such as `1` or `12` from the selected image representation. It must preserve each result as a **candidate kit-group observation**, tied to the exact image checksum, representation, detector/OCR version and evidence location. It must retain the source callout text, the corresponding raw hotspot records where available, and the separate source-qualified part occurrences that those callouts resolve to.
+The importer may detect a dashed enclosure and numbered callouts such as `1` or `12` from the selected image representation. It must preserve each result as a **candidate kit-group observation**, tied to the exact image checksum, representation, detector/OCR version and evidence location. It must retain the source callout text, the corresponding raw hotspot records where available, and the separate source-qualified part occurrences that those callouts resolve to.
 
 A candidate becomes a verified kit-content relationship only when all required evidence agrees: the enclosure/callout observation, a validated mapping from the visual callout to a hotspot or catalogue item, the distinct component occurrence/part identity where one exists, and a source-qualified kit part-number context. A component with its own PN remains its own PART and occurrence while also participating in a verified kit-content relationship; kit membership must not replace its individual identity or availability.
 
@@ -414,7 +414,7 @@ Every stage is replay-safe. A crash at any boundary resumes by checking existing
 
 Only one writer may own a MediaImporter state directory. Read-only `status`, `report` and `doctor` commands may operate under the same MediaImporter state-directory safety rules.
 
-## Versioning and reprocessing
+## Reprocessing and source changes
 
 Track independently:
 
@@ -473,7 +473,7 @@ The R2 adapter has the same contract. Endpoint, bucket, account/credential mater
 
 For each object, the durable checkpoint order is: persist preservation intent and expected identity in the MediaImporter ledger; `head` the deterministic key; conditionally upload only when no verified matching object exists; verify the stored result; then persist the verified object result in the ledger. A restart repeats `head` and verification before any upload. A matching verified object is reused; a mismatched or unverifiable object fails explicitly and is never silently accepted. A crash after upload and before the local checkpoint therefore resumes safely without duplicate bytes.
 
-The initial physical smoke test uses one explicit XK media ID such as `tu6333`, performs no recursive source enumeration, and compares source hashes before and after. It proves the filesystem adapter receives the selected verified image representation and hotspot XML in their separate namespaces, then repeats the run to prove object reuse. D1 publication, public serving, conversion of hotspot coordinates, and deletion are outside object-preservation validation.
+A bounded physical smoke test uses one explicit XK media ID such as `tu6333`, performs no recursive source enumeration, and compares source hashes before and after. It proves the filesystem adapter receives the selected verified image representation and hotspot XML in their separate namespaces, then repeats the run to prove object reuse. D1 publication, public serving, conversion of hotspot coordinates, and deletion are outside object-preservation validation.
 
 ### Catalogue metadata publication
 
