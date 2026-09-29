@@ -36,11 +36,11 @@ D1 resource existence check, creation, Worker binding, and verification.
 
 Repeatable migration review, source selection, preview/local testing, production application, and verification.
 
-### JEPC Range D1 identity setup
+### Parts D1 identity setup
 
-`3-Deployment/internet/cloudflare/d1/ranges/README.md`
+`3-Deployment/internet/cloudflare/d1/jagports/README.md`
 
-Repository-controlled Range naming, capacity check, creation, identity verification, and reviewed configuration. Schema migration and Worker routing are separate steps.
+Repository-controlled `parts-<range_slug>` database naming, capacity check, creation, identity verification, and reviewed configuration. Schema migration, Worker binding/routing, JEPC import, and runtime publication are separate steps.
 
 ## Reduced-MVP runtime status
 

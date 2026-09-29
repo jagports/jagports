@@ -14,7 +14,7 @@ export function databaseNameForRange(rangeSlug) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rangeSlug ?? '')) {
     throw new Error('Range slug must use lowercase letters, digits and internal hyphens.');
   }
-  return `jagports-${rangeSlug}`;
+  return `parts-${rangeSlug}`;
 }
 
 function assertAccountId(accountId) {
@@ -41,7 +41,7 @@ async function readConfiguration(path) {
 function assertConfiguration(config, expected) {
   if (!config) return;
   if (config.rangeSlug !== expected.rangeSlug || config.databaseName !== expected.databaseName || config.accountId !== expected.accountId || !/^[0-9a-f-]{36}$/i.test(config.databaseId ?? '')) {
-    throw new Error('Reviewed Range configuration does not match the requested Range/account.');
+    throw new Error('Reviewed parts database configuration does not match the requested Range/account.');
   }
 }
 
@@ -106,7 +106,7 @@ export async function setupRangeDatabase({ mode, rangeSlug, accountId, accountPl
   if (database && !config) {
     throw new Error('A database with this name already exists but has no reviewed configuration; refusing to adopt it.');
   }
-  if (mode === 'verify' && !database) throw new Error('Range database does not exist.');
+  if (mode === 'verify' && !database) throw new Error('Parts database does not exist.');
 
   let created = false;
   if (mode === 'create' && !database) {
