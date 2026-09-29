@@ -4,6 +4,8 @@
 
 This document is the global canonical specification for reusable PART identity and PART relationships across imported Jaguar/JEPC PARTs, Jagports specified PARTs and verified third-party/vendor references. Detailed search/FIT evaluation behavior is owned by [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md); mutable operational stock remains owned by [`MODEL_STOCK.md`](MODEL_STOCK.md).
 
+This document defines canonical catalogue `PART` identity and the catalogue-side relationships needed by VIEPS part search, part detail, EPC context, fit, diagrams, hotspots, supersession and operational stock linkage.
+
 Operational stock semantics are defined separately in [`MODEL_STOCK.md`](MODEL_STOCK.md).
 
 Occurrence-bound grouped fit and versioned source-evidence semantics are defined in [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md).
