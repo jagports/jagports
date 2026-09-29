@@ -8,7 +8,7 @@ Enables mapping work in [#355 — IMPL / JEPC Data Importer](https://github.com/
 
 The Product Owner authorized applicability requirements/model refinement on 2026-09-14 and paused the separate hotspot investigation to conserve usage. This work does not resume [#352](https://github.com/jagports/jagports/issues/352).
 
-Proposal: [PART applicability requirements](../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PART_APPLICABILITY.md).
+Canonical applicability/FIT requirements: [SPEC_SEARCH_FIT.md](../../../5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/SPEC_SEARCH_FIT.md).
 
 Repository baseline: `168a720` on main. Historical model implementation includes merged PRs #535 and #550. Their flat source fitment representation remains valid for retained evidence but does not satisfy the grouped transformation requirements below. This amendment reuses open #354; it does not complete that whole issue.
 
@@ -188,7 +188,7 @@ The storage fixture uses observed PART/application identifiers alongside clearly
 
 [PR #655 — SPEC / Move VIEPS part and stock models to SPEC](https://github.com/jagports/jagports/pull/655)
 
-That separate open PR relocates `PART_MODEL.md` to `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md`. This refinement adds a companion specification in that destination area and a short link from the current model. At integration, retain the link in the relocated model using `MODEL_PART_APPLICABILITY.md`; retain the evidence link using `../../../../../../7-Research/jlr/JEPC/MODEL_DATA.md`. Do not keep two model authorities. This work does not edit PR #655 or claim its approval.
+The canonical PART model is `5-Implementation-Projects/internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md`. Applicability/FIT semantics are owned by `SPEC_SEARCH_FIT.md`, while this research record remains supporting source evidence. Do not create a parallel applicability model authority.
 
 The existing VIEPS `KNOWLEDGE.md` already records the accepted identity/context, no-source-tree, exclusion, alternative and unknown-data boundaries. No proposed schema decision is promoted to accepted knowledge before review. Detailed new evidence stays in this record; the companion SPEC owns the proposed field/relationship requirements.
 
