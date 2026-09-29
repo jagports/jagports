@@ -10,17 +10,17 @@ This file owns the range presentation contract. `SPEC_SEARCH_FIT.md` owns detail
 
 The right column places independently scrollable **Applicable Models** below the independently scrollable **Search Results PART List**.
 
-- **No PART selected:** show source-derived Ranges represented by current evidenced browse/search candidates, backed by persisted JEPC Model-to-Range relations and approved public browse evidence. Initial empty-Find browse can include all supported browsable candidate ranges. Displaying a range is not selecting its filter. If evidence is unavailable, show a truthful empty/unavailable state; static browse labels are TEST fixture data only.
+- **No PART selected:** show source-derived Ranges represented by current evidenced browse/search candidates, backed by persisted JEPC Model-to-Range relations and verified public browse evidence. Initial empty-Find browse can include all supported browsable candidate ranges. Displaying a range is not selecting its filter. If evidence is unavailable, show a truthful empty/unavailable state; static browse labels are TEST fixture data only.
 - **One canonical PART selected:** the panel becomes read-only. Preserve evidenced available context options where backed by current results; illuminate only the PART's verified applicable ranges, leave evidenced nonmatching options unlit and display a yellow unknown warning for unresolved applicability. Never render a confirmed exclusion as a positive fit; preserve qualifiers, exclusions and provenance.
 - **One canonical PART selected, several source occurrences:** do not combine different occurrence-specific evidence into an invented universal fitment. Ask for context when needed, or show distinct verified contexts with their evidence.
 - **Insufficient or unresolved evidence:** when a required source relation or the entire applicable read contract is absent, display `unavailable`, not a positive fitment claim. When an evidenced candidate/context is present but a required individual Range value remains unresolved, keep that otherwise eligible candidate separate from verified matches and mark the displayed unresolved value yellow (`unknown`). A confirmed nonmatch is `no_match`; a service or processing failure is `error`.
 - **Explicitly excluded ranges:** never present them as fitting choices. Preserve their exclusion evidence in the supported detail/diagnostic view when appropriate.
 
-The browse/filter options and selected-PART applicable facts are different UI states over the same panel. Displayed availability is not a filter selection, and an explicit range filter is not itself evidence that any selected PART fits it. See the shared interaction rules in [Part Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28).
+The browse/filter options and selected-PART applicable facts are different UI states over the same panel. Displayed availability is not a filter selection, and an explicit range filter is not itself evidence that any selected PART fits it. See the shared interaction rules in [Part Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction).
 
 ## Source-derived Range browse and test isolation
 
-Public Range browse is source-derived; hard-coded label lists are not normative. An authorized Admin creates normalized Ranges and explicitly assigns each imported JEPC Model at most one Range, preserving the Model's original source-qualified identity and description through the normalized Range mapping contract. The public browse adapter consumes these persisted relations and approved occurrence evidence; it does not create Range memberships from display strings, market-name fixtures or Part descriptions.
+Public Range browse is source-derived; hard-coded label lists are not normative. An authorized Admin creates normalized Ranges and explicitly assigns each imported JEPC Model at most one Range, preserving the Model's original source-qualified identity and description through the normalized Range mapping contract. The public browse adapter consumes these persisted relations and verified occurrence evidence; it does not create Range memberships from display strings, market-name fixtures or Part descriptions.
 
 JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are input evidence only until they are actually imported and explicitly mapped. An imported but unassigned Model remains visible by its original description in Admin; it is not invented as a member of any public Range. With no source-backed Ranges yet, the public panel reports unavailable/empty data rather than exposing a normative static list. Explicitly synthetic, source-qualified Model and Range records can test the same contract in isolated CI without ever claiming real Jaguar fitment.
 
@@ -30,11 +30,11 @@ JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are 
 
 **Single-Range interaction:** select **at most one** normalized model/range identity at a time. Competing ranges are hidden while selected, then restored from the current evidenced search context when cleared. Combine the active range with Find, VIN, Stock, branch and FIT group constraints. New Find submissions preserve the selected range. Only verified positive occurrences qualify as verified matches; otherwise eligible unknown-applicability PARTs appear under separate unresolved candidates with warnings, not as verified fits. Explicitly incompatible PARTs are excluded.
 
-**Source-backed behavior:** Only explicit imported JEPC Model-to-Range evidence supplies production Range options and read-only selected-PART facts. Single-Range filtering requires an approved occurrence-level read contract; otherwise disable the control with an accessible explanation.
+**Source-backed behavior:** Only explicit imported JEPC Model-to-Range evidence supplies production Range options and read-only selected-PART facts. Single-Range filtering requires an defined occurrence-level read contract; otherwise disable the control with an accessible explanation.
 
 The centre-top Fit / Variations filter consumes normalized FIT categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
 
-Search-result row selection and Parts Tree PART-leaf selection share **one canonical selected PART**. A result row representing several EPC occurrences does not guess the active occurrence; range and VIN fit dependent on occurrence remain pending explicit context selection under [VIN](SPEC_SEARCH_VIN.md). Availability/stock filters may constrain the candidate set only through approved stock-to-catalogue relationships, never by rewriting fitment facts.
+Search-result row selection and Parts Tree PART-leaf selection share **one canonical selected PART**. A result row representing several EPC occurrences does not guess the active occurrence; range and VIN fit dependent on occurrence remain pending explicit context selection under [VIN](SPEC_SEARCH_VIN.md). Availability/stock filters may constrain the candidate set only through defined stock-to-catalogue relationships, never by rewriting fitment facts.
 
 ## UI/API contract
 
@@ -70,4 +70,4 @@ The panel scrolls internally in the fitted desktop shell, independently of the S
 
 ## Boundaries
 
-VIN evaluation and VIN-range reconstruction are governed by the VIN evidence contract and approved source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
+VIN evaluation and VIN-range reconstruction are governed by the VIN evidence contract and verified source evidence; do not infer fit from model-year names or `KOVuosi`. Stock, supersession and Jaguar Classic remain independent of fitment.
