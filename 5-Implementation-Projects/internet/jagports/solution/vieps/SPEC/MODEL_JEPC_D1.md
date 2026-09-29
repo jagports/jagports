@@ -34,7 +34,7 @@ Range routing
       |
       v
 Range catalogue D1
-      # physical placement: MODEL_D1.md
+      # physical placement: MODEL_D1_jagports.md
       |
       +--> catalogue browsing/search
       +--> domain-specific PART/FIT/media reads
@@ -80,9 +80,9 @@ Exact lower-level identities and relationships are defined by the relevant domai
 
 ## D1 partitioning
 
-Range routing is derived from reviewed source ancestry/configuration and resolves to the Range catalogue database selected by the canonical D1 topology in [`MODEL_D1.md`](MODEL_D1.md).
+Range routing is derived from reviewed source ancestry/configuration and resolves to the Range catalogue database selected by the canonical D1 topology in [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
 
-This E2E model owns the import-side requirement that partitioning must not discard source identity or provenance. Physical database placement, Search Index placement and cross-database topology are owned by `MODEL_D1.md`; Search Index behavior is owned by [`SPEC_SEARCH.md`](SPEC_SEARCH.md).
+This E2E model owns the import-side requirement that partitioning must not discard source identity or provenance. Physical database placement, Search Index placement and cross-database topology are owned by `MODEL_D1_jagports.md`; Search Index behavior is owned by [`SPEC_SEARCH.md`](SPEC_SEARCH.md).
 
 ## Loss-preserving import
 
