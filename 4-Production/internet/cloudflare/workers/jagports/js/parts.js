@@ -196,9 +196,12 @@ export async function handlePart(request, env) {
   const withStock = await Promise.all(found.map(async part => ({ ...part,
     stock: await realStock(env, part.part_number_normalized) })));
   const candidates = stockOnly ? withStock.filter(part => part.stock.some(row => row.available && row.quantity > 0)) : withStock;
-  if (!candidates.length) return json({ error: stockOnly && found.length ? 'no stocked part match' : 'part not found',
+  if (!candidates.length) return json({
+    error: stockOnly && found.length ? 'no stocked part match' : 'part not found',
+    error_code: stockOnly && found.length ? 'stock_filter_no_match' : undefined,
     query, state: stockOnly && found.length ? 'stock_filtered_empty' : 'not_found',
-    search_path: searchPath }, 404);
+    search_path: searchPath,
+  }, 404);
   const chosen = candidateId ? candidates.find(part => String(part.id) === candidateId) : null;
   if (candidateId && !chosen) return json({ error: 'candidate not in current results', error_code: 'candidate_not_found' }, 404);
   const part = chosen || candidates[0];
