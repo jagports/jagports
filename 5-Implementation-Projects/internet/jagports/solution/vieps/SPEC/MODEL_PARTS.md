@@ -140,7 +140,7 @@ One replacement may supersede multiple superseded parts and chains such as `A â†
 
 Supersession is not a generic interchangeability assertion.
 
-Superseded and current part identities remain separately addressable.
+Historical and current part identities remain separately addressable, including superseded and replacement PART identities.
 
 Only direct self-links are prohibited; multi-hop cycles and effective-date ordering are not constrained.
 
