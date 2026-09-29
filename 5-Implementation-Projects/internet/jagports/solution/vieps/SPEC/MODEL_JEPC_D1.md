@@ -91,7 +91,9 @@ approved Range mapping
 parts-<range_slug>
 ```
 
-Partitioning is a storage/routing boundary. It must not discard source identity, provenance or cross-Range discoverability required by higher-level application behavior.
+Partitioning is a storage/routing boundary. It must not discard source identity or provenance.
+
+Cross-Range discoverability is provided by the **Search Index** stored in the `jagports` D1 database. Each accepted `parts-<range_slug>` catalogue publication provides the authoritative source from which that Range's Search Index entries are published or rebuilt. Search Index rows are derived lookup/routing data only; authoritative PART, occurrence, FIT, tree, diagram and provenance facts remain in the referenced `parts-<range_slug>` database and are hydrated from there.
 
 ## Loss-preserving import
 
