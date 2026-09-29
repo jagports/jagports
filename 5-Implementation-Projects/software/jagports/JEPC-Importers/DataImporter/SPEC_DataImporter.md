@@ -531,7 +531,7 @@ The terminal/operator view must favor stable, understandable aggregate informati
 
 The original `inspect` command redraws the v0.1 aggregate screen while checksumming its explicitly selected eight files. When output goes to a terminal, both catalogue selectors automatically refresh a progress screen on standard error; no key presses or operator input are required. When output is redirected, they emit periodic progress lines. The final JSON result goes to standard output. This does not claim that the imported-catalogue table below is already implemented.
 
-Do not continuously display current filenames, current bundle identifiers, or deep current breadcrumb paths in the primary live view. Those details change too quickly for a human to follow and belong in the persistent detailed log/run report.
+Do not continuously display current filenames, current bundle identifiers, or deep current breadcrumb paths in the primary interactive progress view. Those details change too quickly for a human to follow and belong in the persistent detailed log/run report.
 
 The screen should be redrawn in place rather than producing an endlessly scrolling console log.
 
@@ -548,7 +548,7 @@ JEPC Model_ID #3187 — XK8 Coupe/Convertible up to (V) 042775
 Region: Rest of world excluding Americas
 ```
 
-The header must identify the selected technical JEPC `Model_ID`, its immediate `Parent_ID`, and the corresponding source descriptions for both levels. For example, source hierarchy `[3175,10001,'Jaguar XK8 Coupe/Convertible']` followed by `[3187,3175,'XK8 Coupe/Convertible up to (V) 042775']` is presented as Parent_ID `3175` plus selected Model_ID `3187`. The parent is described neutrally as the JEPC parent model/family level unless stronger semantics are separately verified. JEPC `Category_ID` must still be preserved in source/staging/log metadata, but it is not required in the compact live operator table.
+The header must identify the selected technical JEPC `Model_ID`, its immediate `Parent_ID`, and the corresponding source descriptions for both levels. For example, source hierarchy `[3175,10001,'Jaguar XK8 Coupe/Convertible']` followed by `[3187,3175,'XK8 Coupe/Convertible up to (V) 042775']` is presented as Parent_ID `3175` plus selected Model_ID `3187`. The parent is described neutrally as the JEPC parent model/family level unless stronger semantics are separately verified. JEPC `Category_ID` must still be preserved in source/staging/log metadata, but it is not required in the compact interactive operator table.
 
 ### Imported catalogue content table
 
@@ -615,11 +615,11 @@ Definitions:
 - `Unknown structures to be researched` = preserved source structures whose semantic/structural interpretation remains unresolved and requires investigation.
 - `Errors` = processing failures, distinct from unresolved-but-preserved structures.
 
-No `Pending` bundle count is required in the live view because undiscovered bundles are not pre-indexed and a meaningful pending total would require a separate complete source inventory such as `JEPC-files-LIST.txt`.
+No `Pending` bundle count is required in the interactive progress view because undiscovered bundles are not pre-indexed and a meaningful pending total would require a separate complete source inventory such as `JEPC-files-LIST.txt`.
 
 ### Safe-stop control
 
-The live view shall always keep the cooperative stop instruction visible:
+The interactive progress view shall always keep the cooperative stop instruction visible:
 
 ```text
 [Q] Stop safely after current bundle parsing transactions are done
