@@ -1,6 +1,5 @@
 # Jagports JEPC DataImporter specification
 
-(C)2026 by tlindi and ChatGPT
 
 ## Purpose
 
@@ -153,9 +152,9 @@ For a branch whose condition meaning is resolved, VIEPS shall store a stable nor
 
 For each selected bundle, look first for the corresponding JEPC language files under that same model/category/item scope. Match localized branch descriptions to a canonical occurrence only after comparing source row/node structure, PART number, application ID, ancestry and role; record the matched source file and line. Do **not** assume that identical node IDs across languages have identical meaning: in installed model `3173`, category `10036`, item `1`, node `11001` in `L0` heads an `LH side` path to `LJA3705AB`, while the `L-2` file uses that node for the opposite-side part `LJA3704AE`. If a localized label is absent or the local row differs, search other language files and nearby item/category files **within the selected model/category scope** for the PART/application and candidate wording. Record search scope, candidates and outcome in SQLite; do not scan the entire installation, invent a translation, or treat a failed search as an empty condition. Any unresolved mapping remains source text plus a missing/ambiguous localization state for resolution.
 
-## Catalogue occurrence-tree persistence target
+## Catalogue occurrence-tree persistence
 
-Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PARTS.md` and the additive `0017_part_tree_occurrence.sql` migration.
+JEPC catalogue trees must be persisted as source-qualified structural relationships. Persistence must preserve node identity, ancestry, ordering, language and exact occurrence-path relationships rather than reducing the source tree to presentation text.
 
 The importer must not reduce source tree structure to only a flattened description path.
 
@@ -486,103 +485,28 @@ FAILED
 CRASH_RECOVERED
 ```
 
-## Operator processing view
+## Operator status information
 
-The terminal/operator view must favor stable, understandable aggregate information rather than rapidly changing internal bundle details.
+Operator-visible status must provide stable aggregate information without prescribing terminal layout, exact labels, fixed banners, column widths or example values.
 
-Do not continuously display current filenames, current bundle identifiers, or deep current breadcrumb paths in the primary live view. Those details change too quickly for a human to follow and belong in the persistent detailed log/run report.
+The status information must make available:
 
-The screen should be redrawn in place rather than producing an endlessly scrolling console log.
+- selected JEPC `Model_ID`, immediate `Parent_ID`, and their source descriptions;
+- source Region/market context when established by source evidence;
+- imported catalogue aggregates by first-level source path, including distinct canonical PART count and occurrence count;
+- language-specific occurrence coverage and a true distinct PART count across languages;
+- cumulative counts for source structures handled by known parser behavior, parser/staging extensions, normalized-model discoveries, unresolved structures and processing errors;
+- cooperative-stop availability and the fact that stopping occurs only after the active transaction/checkpoint is completed or rolled back safely.
 
-### Required header
+Aggregate counts must preserve these semantics:
 
-Example:
+- a canonical PART appearing in several occurrences is counted once in a distinct-PART count;
+- occurrences remain source-qualified and language-qualified;
+- all-language distinct counts must not be calculated by summing per-language distinct counts;
+- unresolved-but-preserved source structures are distinct from processing errors;
+- undiscovered source bundles are not reported as a meaningful pending total unless an explicit complete source inventory exists.
 
-```text
-Jagports JEPC DataImporter — processing screen
-(C)2026 by tlindi and ChatGPT
-
-JEPC Parent_ID #3175 — Jaguar XK8 Coupe/Convertible
-JEPC Model_ID #3187 — XK8 Coupe/Convertible up to (V) 042775
-Region: Rest of world excluding Americas
-```
-
-The header must identify the selected technical JEPC `Model_ID`, its immediate `Parent_ID`, and the corresponding source descriptions for both levels. For example, source hierarchy `[3175,10001,'Jaguar XK8 Coupe/Convertible']` followed by `[3187,3175,'XK8 Coupe/Convertible up to (V) 042775']` is presented as Parent_ID `3175` plus selected Model_ID `3187`. The parent is described neutrally as the JEPC parent model/family level unless stronger semantics are separately verified. JEPC `Category_ID` must still be preserved in source/staging/log metadata, but it is not required in the compact live operator table.
-
-### Imported catalogue content table
-
-Show first-level catalogue breadcrumb/path groups only after imported content exists for them.
-
-Example:
-
-```text
-Imported catalogue content
-
-Part path                               Unique parts   Occurrences (English)
-AIR AND FUEL DELIVERY SYSTEMS           15             25
-BATTERY/STARTER MOTOR/ALTERNATOR         1              3
-BODY METAL PANELS AND SEALING            1              1
-ENGINE                                  42             78
-ENGINE COOLING SYSTEM                    1              2
-EXTERIOR FITTINGS AND SUNROOF            1              1
-```
-
-Rows with zero imported content stay hidden.
-
-Definitions:
-
-- `Unique parts` = distinct canonical Jaguar part numbers represented in that displayed scope.
-- `Occurrences` = imported catalogue/source occurrences of those parts; one canonical part may have multiple occurrences.
-- The language qualifier in the occurrence column identifies the currently displayed path-language source, not a multiplication of canonical part identities.
-
-### Translation coverage table
-
-Show catalogue/path-item translation coverage separately from the first-level path table.
-
-Example:
-
-```text
-Part path item translations             Unique parts   Occurrences
-English                                 51             92
-Italian                                 11             81
-In all languages                        62            173
-```
-
-Rules:
-
-- `In all languages / Unique parts` must be a true distinct count across all imported languages; do not sum per-language unique counts where the same part occurs in more than one language.
-- `In all languages / Occurrences` represents all imported language-specific occurrences according to the source/import semantics.
-- Importing another language must enrich the same catalogue structure/entity relationships rather than create language-specific duplicate canonical PART identities.
-
-### Structure-discovery metrics
-
-Show stable cumulative importer-learning metrics:
-
-```text
-Existing structure used                    152
-Parser/staging structures created/extended   7
-Created new normalized DB structures         11
-Unknown structures to be researched           2
-Errors                                         0
-```
-
-Definitions:
-
-- `Existing structure used` = processed source structures handled through already-known parser/schema behavior.
-- `Parser/staging structures created/extended` = parser-only behavior additions and/or staging/discovery schema extensions introduced to preserve newly observed source structure or accelerate later reprocessing. These must be counted and recorded even when they do not change the normalized production model.
-- `Created new normalized DB structures` = genuinely new normalized schema elements/migrations introduced because the canonical schema could not represent verified source semantics correctly.
-- `Unknown structures to be researched` = preserved source structures whose semantic/structural interpretation remains unresolved and requires investigation.
-- `Errors` = processing failures, distinct from unresolved-but-preserved structures.
-
-No `Pending` bundle count is required in the live view because undiscovered bundles are not pre-indexed and a meaningful pending total would require a separate complete source inventory such as `JEPC-files-LIST.txt`.
-
-### Safe-stop control
-
-The live view shall always keep the cooperative stop instruction visible:
-
-```text
-[Q] Stop safely after current bundle parsing transactions are done
-```
+Rapidly changing filenames, bundle IDs and deep breadcrumb paths belong in detailed logs rather than the aggregate operator status.
 
 ## Detailed background log and run report
 
