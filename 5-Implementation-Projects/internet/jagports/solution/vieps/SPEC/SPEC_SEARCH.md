@@ -602,6 +602,29 @@ Presentation code must not encode JEPC database structure or reconstruct domain 
 
 The API/UI boundary must preserve catalogue/reference versus operational-stock separation. A stock-quality value, stock-text match, manufacturer match or localized presentation must not redefine canonical PART identity or immutable JEPC/catalogue facts.
 
+## Human UI acceptance
+
+Find behavior that is exposed in the deployed UI must be verified by a human in **both** deployed data modes defined by [`USAGE_FIND.md`](USAGE_FIND.md):
+
+- **Normal mode** — the production URL without `TEST=1`, using current imported parts data.
+- **TEST mode** — the deployed URL with `TEST=1`, using the synthetic TEST fixture data.
+
+Both are first-class human UI tests. Neither mode substitutes for the other, and automated checks do not substitute for either human test.
+
+The same user-visible Find contract applies in both modes unless a specification explicitly defines a data-source difference. Human verification must therefore cover, in each mode:
+
+- deterministic PART identifier resolution before descriptive fallback;
+- limited PART-description free-text fallback after identifier miss;
+- existing Search Results / Parts Tree / selected-PART presentation and selection behavior;
+- no default PART selection for multiple descriptive matches when such a case is exercised;
+- Stock-only filtering after candidate discovery, with unavailable Normal-mode stock cases recorded as limitations rather than guessed;
+- a genuine no-match state only after deterministic and active limited free-text evaluation;
+- Find clear/reset without stale Find result state.
+
+Normal-mode evidence proves behavior against current imported parts data. TEST-mode evidence proves the repeatable fixture-backed deployed UI path. TEST fixture values remain synthetic evidence and must not be presented as production Jaguar facts.
+
+Acceptance evidence must keep the two human test records separate and identify the deployed URL/mode, tested revision, PART/query used, observed result state, Stock-only observation where applicable, no-match result and clear/reset result. Screenshots are included when required by the governing workflow.
+
 ## Deterministic fixtures
 Cover at least:
 - valid Jaguar part number;
