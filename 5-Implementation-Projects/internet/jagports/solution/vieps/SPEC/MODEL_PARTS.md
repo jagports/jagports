@@ -220,7 +220,7 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item` is an operational record and is not a catalogue PART identity.
 
-`stock_item.part_id` is a nullable foreign key to canonical `part(id)`. When reusable identity is established it points to that canonical PART, whether the PART is an imported Jaguar/JEPC PART or a Jagports specified PART created under `MODEL_PART_THIRD_PARTY.md`.
+`stock_item.part_id` is a nullable foreign key to canonical `part(id)`. When reusable identity is established it points to that canonical PART, whether the PART is an imported Jaguar/JEPC PART or a Jagports specified PART created under `MODEL_PARTS.md`.
 
 `stock_item.part_id = NULL` does **not** mean merely "not found in Jaguar/JEPC". It is reserved for stock whose reusable product identity is genuinely unresolved. A known reusable third-party product must first resolve to either an existing Jaguar PART (verified 1:1 case) or a Jagports specified PART (non-1:1 reusable case).
 
@@ -483,7 +483,7 @@ The model distinguishes these relationships:
 | `component_of` | The Jagports specified PART is physically a component of another PART or assembly where this is known. |
 | `equivalent_to` | A vendor product or independently identified PART is verified as 1:1 interchangeable with a Jaguar PART for the referenced context. |
 
-Jaguar supersession remains governed by `part_supersession` in `MODEL_PART.md`.
+Jaguar supersession remains governed by `part_supersession` in `MODEL_PARTS.md`.
 
 `parent_part`, `component_of`, `equivalent_to`, and supersession are different facts and must not be presented as one another.
 
@@ -558,7 +558,7 @@ Minimum fields:
 | `jaguar_part_id` | required FK | Existing Jaguar/JEPC canonical PART used as the Jaguar reference. |
 | `relationship_type` | required controlled value | `equivalent_to`, `parent_part`, or `component_of`. |
 | `part_occurrence_id` | nullable FK | Exact imported occurrence/context when known. |
-| `part_occurrence_tree_path_id` | nullable FK | Exact source-qualified catalogue tree path selected for the occurrence when available; references the canonical occurrence-tree persistence from `MODEL_PART.md`. |
+| `part_occurrence_tree_path_id` | nullable FK | Exact source-qualified catalogue tree path selected for the occurrence when available; references the canonical occurrence-tree persistence from `MODEL_PARTS.md`. |
 | `category_ref` | nullable except as required below | Retained catalogue category reference for auditable parent/context selection. |
 | `item_number` | nullable except as required below | Retained catalogue item reference for auditable parent/context selection. |
 | `source_ref` | nullable | Evidence supporting this particular relationship. |
@@ -614,7 +614,7 @@ These rules are part of the implementation contract and must be enforced either 
 | observed/check date | required when a snapshot exists | records evidence date, not price validity forever. |
 | price source URL | nullable | evidence, not identity. |
 
-A canonical PART remains unique according to `MODEL_PART.md`; these third-party records do not weaken PART-number uniqueness or create a second canonical identity namespace.
+A canonical PART remains unique according to `MODEL_PARTS.md`; these third-party records do not weaken PART-number uniqueness or create a second canonical identity namespace.
 
 ### Representative deterministic fixtures
 
@@ -724,7 +724,7 @@ For a Jagports specified PART:
 
 For a verified 1:1 third-party product, fit is the fit of the existing Jaguar PART to which the vendor reference is attached.
 
-The meaning and evaluation of Jaguar FIT remain defined by [`MODEL_PART.md`](MODEL_PART.md#fit-model).
+The meaning and evaluation of Jaguar FIT remain defined by [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md).
 
 ### X100 brake-caliper cylinder example
 
@@ -740,18 +740,14 @@ VIEPS therefore:
 2. records that Jaguar PART as the mandatory parent;
 3. records the vendor's own part number;
 4. creates a Jagports specified PART number as `<JaguarSealKitPN>+<3rdPartyPN>`;
-5. uses the same fit/fit as the referenced Jaguar PART/context;
+5. uses the same FIT as the referenced Jaguar PART/context;
 6. links STOCK to the Jagports specified PART.
 
 If a vendor instead sells a verified 1:1 equivalent of the Jaguar seal kit, its vendor part number is attached directly to the Jaguar PART and no Jagports specified PART is required.
 
 ### Optional visual-location evidence
 
-Optional point/region references on imported JEPC illustrations and uploaded location/reference images are defined in:
-
-[`MODEL_PART_THIRD_PARTY_LOCATION.md`](MODEL_PART_THIRD_PARTY_LOCATION.md)
-
-This evidence is optional and does not change PART fit or STOCK state.
+Optional point/region references on imported JEPC illustrations and uploaded location/reference images are PART-side evidence associated with the relevant canonical PART/occurrence and source context. They must retain provenance and verification state, remain distinct from physical STOCK location, and do not change FIT or STOCK state.
 
 ### Canonical `part_id` contract
 
