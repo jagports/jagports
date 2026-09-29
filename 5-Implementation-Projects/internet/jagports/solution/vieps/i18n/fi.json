@@ -165,7 +165,6 @@
     "unavailable": "Ajoneuvosopivuustietoja ei ole saatavilla."
   },
   "search": {
-    "bookmark_pending": "Kirjanmerkki (ei vielä käytettävissä)",
     "error": "OSAA ei voitu ratkaista.",
     "input_aria": "Jaguar-osanumero tai testitunniste",
     "input_aria_real": "Jaguar-osanumero",

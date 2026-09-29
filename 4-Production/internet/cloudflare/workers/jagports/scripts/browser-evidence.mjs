@@ -305,8 +305,6 @@ try {
     assert.equal(await resultLinks.count(), 2, "duplicate occurrence must not duplicate canonical Search Results");
     assert.equal(await page.locator("#searchResults .selected-result").count(), 0,
       "multiple candidates must have no default PART selection");
-    assert.equal(await page.locator("#searchResults .bookmark-label input:disabled").count(), 2,
-      "each result keeps a separate disabled bookmark");
     await resultLinks.nth(1).focus();
     assert.equal(await page.evaluate(() => document.activeElement?.dataset?.resultPartId), "102",
       "result row must expose keyboard focus on the selectable PART link");

@@ -165,7 +165,6 @@
     "unavailable": "Vehicle applicability data is unavailable."
   },
   "search": {
-    "bookmark_pending": "Bookmark (not yet available)",
     "error": "The PART could not be resolved.",
     "input_aria": "Jaguar part number or fixture identifier",
     "input_aria_real": "Jaguar part number",

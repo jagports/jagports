@@ -19,7 +19,7 @@ The three-column layout separates controls while preserving the approved determi
 LEFT   Availability: supported stock/quality constraints above the Parts Tree
 CENTRE VIN and normalized Fit / Variations filter
 RIGHT  one PN / deterministic identifier / free-text Search field
-       scrollable Search Results PART List with disabled bookmark placeholders
+       scrollable Search Results PART List
        independently scrollable Applicable Models panel
 ```
 
@@ -412,12 +412,11 @@ When multiple PARTs match, no PART is selected by default. Matching PARTs appear
 
 When exactly one PART is resolved deterministically or by free text, that PART may populate PART / Image / Status according to the single-result contract.
 
-## Right-hand Search Results and bookmarks
+## Right-hand Search Results
 
 - One independently scrollable PN/name result row appears per distinct canonical PART in the current candidate set. Use stable canonical identity, not label text, as the result key. Preserve each real EPC occurrence in the Parts Tree without duplicating one canonical PART as separate result rows.
 - A result row and a tree PART leaf update the **same** selected PART and visible selection. A tree leaf can additionally carry its verified source occurrence. If a selected result has multiple source occurrences, retain all paths and require explicit context before showing occurrence-specific location, diagram-item or VIN fit.
 - Rows are real keyboard-accessible PART links/actions and highlight matching text fragments where visible. A supported non-numbered identifier does not acquire an invented Jaguar PN.
-- Show a separate, properly labelled bookmark checkbox beside each result row, but leave it **disabled** while bookmark storage, authorization and saved-list behavior are unsupported. Do not simulate saving, a checked persistence state or account authorization. When bookmark support exists, a bookmark toggle must never select a PART or alter stock filtering, model filtering or fitment.
 - Stock-only, VIN and normalized FIT/variation inputs constrain supported candidate occurrences; a canonical PART remains while at least one verified occurrence survives.
 - Context-only matches remain in the owning tree/range region. The results panel has explicit empty, no-match, stock-filtered-empty, unsupported, unavailable and error states and never fabricates a PART row.
 - The distinct right-hand Applicable Models panel derives available range choices from the current evidenced candidate context when no PART is selected; with one selected PART/context it becomes read-only and marks that PART's verified and unknown applicability without making an excluded range look suitable. **Model filter:** one active normalized range at a time, combined with other active constraints. When the required read path is unavailable, keep the control disabled rather than falsely filtering.
@@ -554,11 +553,11 @@ resolved identity/context or candidate set
   ├── centre VIN and normalized Fit / Variations filter
   ├── centre Location at car: verified single canvas or unavailable
   ├── centre PART / Image / Status: exactly one selected PART or none
-  ├── right Search Results PART List: deduplicated canonical PN/name rows + bookmarks
+  ├── right Search Results PART List: deduplicated canonical PN/name rows
   └── right Applicable Models: candidate-derived range filters OR read-only selected-PART evidence
 ```
 
-Both selection surfaces share canonical PART selection. Tree leaves may additionally select a verified source occurrence; result rows must not guess an occurrence for a multi-occurrence PART. Bookmark state never changes selection, stock, fitment or filters. Match fragments are highlighted where visible and missing secondary evidence remains explicitly unavailable.
+Both selection surfaces share canonical PART selection. Tree leaves may additionally select a verified source occurrence; result rows must not guess an occurrence for a multi-occurrence PART. Match fragments are highlighted where visible and missing secondary evidence remains explicitly unavailable.
 
 ## Empty-search stock browsing
 The SVG contract states that when Search is empty, a supported Availability/quality constraint may update both the Parts Tree and Model Ranges to contexts represented by matching stock.
@@ -587,7 +586,6 @@ PartSearchResult
   tree context                    # complete source path, language-qualified where relevant
   tree_part_leafs[]?              # clickable matching PART leaves under genuine branch/path ancestors
   result_list[]?                  # UI-derived canonical candidates, NOT new PART entities
-  bookmark_state?                 # absent while bookmark support is unavailable
   diagram/item context when available
   fitment/fit context when available
   model_range/body-style context when available
@@ -622,7 +620,6 @@ Cover at least:
 - all matching Parts Tree branches where matching PARTs occur, with matching PARTs presented as clickable last leaf nodes and without expanding unrelated child leaves;
 - multiple-PART search results with no default selected PART;
 - synchronized tree leaves and right-hand deduplicated PN/name result rows;
-- visible but disabled bookmark checkboxes that neither select a PART nor claim saved state; independent bookmark toggling only when bookmark support is available;
 - no multi-PART presentation inside the centre PART / Image / Status region;
 - PART / Image / Status showing one selected PART after either surface is used;
 - Model Ranges reflecting matched model/range/body-style context where available without special Coupe/Convertible behavior;
@@ -641,7 +638,7 @@ Cover at least:
 
 Fixture values are test data, not verified Jaguar catalogue facts.
 
-The TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST fixture data only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences, disabled bookmark placeholders and all results-panel states. Bookmark storage, when supported, requires independent interaction coverage.
+The TEST fixture index has exactly these labels, in order: Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. It is **TEST fixture data only**; public production range options require source-derived explicit JEPC Model-to-Range mapping and evidence, not static labels. Additional fixtures cover synchronized selection, de-duplication across occurrences and all results-panel states.
 
 ## Viewport and language
 The default desktop shell follows the fitted-desktop behavior and responsive rules in [`../UI/UI_Specs.md`](../UI/UI_Specs.md). Search/Availability/status UI text follows the repository i18n contract in [`../i18n/README.md`](../i18n/README.md). Stock-quality labels/descriptions use the shared semantic i18next resources from the canonical `i18n/` path. UI locale, selected catalogue-data language and source-data language remain separate concerns. Limited free-text may search selected-language i18n texts where those texts are part of the visible/searchable current data path; full cross-language/global multilingual search is outside this limited contract.

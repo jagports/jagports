@@ -32,7 +32,7 @@ JEPC source-menu examples such as `models_l_id_0.xml` records 3187 and 3183 are 
 
 **Source-backed behavior:** Only explicit imported JEPC Model-to-Range evidence supplies production Range options and read-only selected-PART facts. Single-Range filtering requires an defined occurrence-level read contract; otherwise disable the control with an accessible explanation.
 
-The centre-top Fit / Variations filter consumes normalized FIT categories and values. It must not be conflated with right-panel range selection, with bookmark checkboxes in Search Results, or with computed verified fitment indicators.
+The centre-top Fit / Variations filter consumes normalized FIT categories and values. It must not be conflated with right-panel range selection or with computed verified fitment indicators.
 
 Search-result row selection and Parts Tree PART-leaf selection share **one canonical selected PART**. A result row representing several EPC occurrences does not guess the active occurrence; range and VIN fit dependent on occurrence remain pending explicit context selection under [VIN](SPEC_SEARCH_VIN.md). Availability/stock filters may constrain the candidate set only through defined stock-to-catalogue relationships, never by rewriting fitment facts.
 
