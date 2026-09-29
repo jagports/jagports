@@ -18,7 +18,7 @@ Those remain authoritative in their domain specifications:
 - [`MODEL_D1_DataImporter-JEPC.md`](MODEL_D1_DataImporter-JEPC.md) — JEPC source-to-D1 completeness, Range routing and accepted catalogue publication;
 - [`MODEL_PARTS.md`](MODEL_PARTS.md) — canonical PART identity, catalogue-side PART relationships and non-dynamic catalogue applicability evidence;
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — operational STOCK persistence and stock-to-PART reference semantics;
-- [`SPEC_FIND.md`](SPEC_FIND.md) — Search Index contents, global search behavior and catalogue hydration;
+- [`SPEC_SEARCH.md`](SPEC_SEARCH.md) — Search Index contents, global search behavior and catalogue hydration;
 - [`SPEC_SEARCH_RANGES.md`](SPEC_SEARCH_RANGES.md) — normalized Range assignment and `catalogue_range` publication source;
 - [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md) — dynamic JEPC-description mapping and FIT filter semantics.
 
@@ -96,7 +96,7 @@ Accepted catalogue publication supplies the authoritative data from which Search
 
 Range assignment supplies the `catalogue_range` routing identity.
 
-Detailed Search Index fields, completeness/staleness behavior, rebuilding rules, global deterministic/free-text search, supersession lookup and result semantics belong to [`SPEC_FIND.md`](SPEC_FIND.md).
+Detailed Search Index fields, completeness/staleness behavior, rebuilding rules, global deterministic/free-text search, supersession lookup and result semantics belong to [`SPEC_SEARCH.md`](SPEC_SEARCH.md).
 
 ## Cross-D1 relationship boundary
 
