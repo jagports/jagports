@@ -16,11 +16,10 @@ It does **not** duplicate detailed PART, STOCK, Search, FIT, Range-administratio
 Those remain authoritative in their domain specifications:
 
 - [`MODEL_D1_DataImporter-JEPC.md`](MODEL_D1_DataImporter-JEPC.md) — JEPC source-to-D1 completeness, Range routing and accepted catalogue publication;
-- [`MODEL_PARTS.md`](MODEL_PARTS.md) — canonical PART identity and catalogue-side PART relationships;
+- [`MODEL_PARTS.md`](MODEL_PARTS.md) — canonical PART identity, catalogue-side PART relationships and non-dynamic catalogue applicability evidence;
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — operational STOCK persistence and stock-to-PART reference semantics;
 - [`SPEC_SEARCH.md`](SPEC_SEARCH.md) — Search Index contents, global search behavior and catalogue hydration;
 - [`SPEC_SEARCH_RANGES.md`](SPEC_SEARCH_RANGES.md) — normalized Range assignment and `catalogue_range` publication source;
-- [`MODEL_PARTS.md`](MODEL_PARTS.md) — non-dynamic catalogue applicability evidence and PART relationships.
 - [`SPEC_SEARCH_FIT.md`](SPEC_SEARCH_FIT.md) — dynamic JEPC-description mapping and FIT filter semantics.
 
 ## D1 topology
