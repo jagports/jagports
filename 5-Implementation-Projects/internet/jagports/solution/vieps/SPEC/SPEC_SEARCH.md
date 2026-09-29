@@ -6,7 +6,7 @@ This document defines VIEPS search resolution and its UI/data contract.
 Durable specification authorities:
 
 - [`../UI/UI_Specs.md`](../UI/UI_Specs.md) — controlling VIEPS UI information architecture and layout contract.
-- [`MODEL_PART.md`](MODEL_PART.md) — canonical PART, occurrence/context and catalogue/reference identity.
+- [`MODEL_PARTS.md`](MODEL_PARTS.md) — canonical PART, occurrence/context and catalogue/reference identity.
 - [`MODEL_STOCK.md`](MODEL_STOCK.md) — operational stock model and normalized stock-quality contract.
 - [`../i18n/README.md`](../i18n/README.md) — VIEPS UI translation-resource contract and canonical resource path.
 
@@ -475,3 +475,25 @@ The default desktop shell follows the fitted-desktop behavior and responsive rul
 - Multiple PART matches are selectable as tree leaves and right-hand results rows. The centre selected-PART panel never presents multiple PARTs.
 - Multiple-PART search results do not select any PART by default.
 
+
+
+## Third-party PART search and presentation
+
+### Search and presentation
+
+Search may resolve:
+
+- Jaguar part numbers;
+- Jagports specified part numbers;
+- vendor/third-party part numbers;
+- supported product descriptions.
+
+Presentation must clearly identify whether a displayed number is:
+
+- Jaguar;
+- Jagports specified; or
+- a vendor's own part number.
+
+A vendor number that is verified 1:1 equal to a Jaguar PART may resolve to that Jaguar PART while still showing the vendor identity and vendor part number.
+
+Parent, component, equivalence and supersession relationships must remain visibly distinct.
