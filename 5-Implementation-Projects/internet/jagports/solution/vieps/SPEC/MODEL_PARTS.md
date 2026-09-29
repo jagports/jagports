@@ -598,7 +598,7 @@ These rules are part of the implementation contract and must be enforced either 
 | home URL description | nullable for a single URL; required/nonblank when one vendor has multiple home URLs | descriptive text is not an identity. |
 | `third_party_part.third_party_part_id` | required | globally unique stable vendor-product reference identity. |
 | `third_party_part.vendor_id` | required FK | many products may belong to one vendor. |
-| vendor part number | required, nonblank | unique within one vendor after the implementation's deterministic normalization; the same text may exist under another vendor. |
+| vendor part number | required, nonblank | unique within one vendor after the defined deterministic normalization; the same text may exist under another vendor. |
 | `manufacturer` | required, nonblank | manufacturer/brand of the vendor product; distinct from the vendor/seller identity and not assumed globally unique. |
 | `description` | required, nonblank | human-readable vendor-product description; not identity. |
 | `third_party_part.part_id` | required FK for a reusable represented product | points to the existing Jaguar PART for verified 1:1 products or to the Jagports specified PART for non-1:1 products. |
