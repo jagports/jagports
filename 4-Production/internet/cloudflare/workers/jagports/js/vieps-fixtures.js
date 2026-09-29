@@ -57,16 +57,14 @@ async function findDeterministicPartCandidates(env, query, normalized) {
      FROM part
      WHERE part_number_normalized = ?
         OR UPPER(part_number_raw) = UPPER(?)
-        OR description = ?
         OR part_number_normalized LIKE '%' || ? || '%'
         OR UPPER(part_number_raw) LIKE '%' || UPPER(?) || '%'
      ORDER BY CASE
         WHEN part_number_normalized = ? THEN 0
         WHEN UPPER(part_number_raw) = UPPER(?) THEN 1
-        WHEN description = ? THEN 2
-        WHEN part_number_normalized LIKE ? || '%' THEN 3
-        WHEN UPPER(part_number_raw) LIKE UPPER(?) || '%' THEN 4
-        ELSE 5
+        WHEN part_number_normalized LIKE ? || '%' THEN 2
+        WHEN UPPER(part_number_raw) LIKE UPPER(?) || '%' THEN 3
+        ELSE 4
       END,
       part_number_normalized,
       part_number_raw,
@@ -75,11 +73,9 @@ async function findDeterministicPartCandidates(env, query, normalized) {
   ).bind(
     normalizedQuery,
     query,
-    query,
     normalizedQuery,
     query,
     normalizedQuery,
-    query,
     query,
     normalizedQuery,
     query,

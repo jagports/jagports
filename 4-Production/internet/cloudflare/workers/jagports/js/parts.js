@@ -160,36 +160,48 @@ export async function handlePart(request, env) {
     return json({ error: 'invalid candidate id', error_code: 'candidate_id_invalid' }, 400);
   }
   const treeAvailable = await treeCatalogueAvailable(db);
-  const sql = treeAvailable
-    ? `SELECT p.id,p.part_number_raw,p.part_number_normalized,
-        p.description,p.source,p.source_ref,p.verification_status
-      FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
-        AND (p.part_number_normalized LIKE '%' || ? || '%'
-          OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%'
-          OR EXISTS (SELECT 1 FROM part_tree_part tp
-            JOIN part_tree_node n ON n.id=tp.tree_node_id WHERE tp.part_id=p.id
-            AND UPPER(n.label) LIKE '%' || UPPER(?) || '%'))
-      ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
-        p.part_number_normalized LIMIT 25`
-    : `SELECT p.id,p.part_number_raw,p.part_number_normalized,
-        p.description,p.source,p.source_ref,p.verification_status
-      FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
-        AND (p.part_number_normalized LIKE '%' || ? || '%'
-          OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%')
-      ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
-        p.part_number_normalized LIMIT 25`;
-  const result = treeAvailable
-    ? await db.prepare(sql).bind(normalized, query, query, normalized).all()
-    : await db.prepare(sql).bind(normalized, query, normalized).all();
-  const found = result.results || [];
+  const identifierSql = `SELECT p.id,p.part_number_raw,p.part_number_normalized,
+      p.description,p.source,p.source_ref,p.verification_status
+    FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+      AND (p.part_number_normalized LIKE '%' || ? || '%'
+        OR UPPER(p.part_number_raw) LIKE '%' || UPPER(?) || '%')
+    ORDER BY CASE WHEN p.part_number_normalized=? THEN 0 ELSE 1 END,
+      p.part_number_normalized LIMIT 25`;
+  let result = await db.prepare(identifierSql).bind(normalized, query, normalized).all();
+  let found = result.results || [];
+  let searchPath = 'deterministic';
+
+  if (!found.length) {
+    const freeTextSql = treeAvailable
+      ? `SELECT p.id,p.part_number_raw,p.part_number_normalized,
+          p.description,p.source,p.source_ref,p.verification_status
+        FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+          AND (UPPER(COALESCE(p.description,'')) LIKE '%' || UPPER(?) || '%'
+            OR EXISTS (SELECT 1 FROM part_tree_part tp
+              JOIN part_tree_node n ON n.id=tp.tree_node_id WHERE tp.part_id=p.id
+              AND UPPER(COALESCE(n.label,'')) LIKE '%' || UPPER(?) || '%'))
+        ORDER BY p.part_number_normalized,p.id LIMIT 25`
+      : `SELECT p.id,p.part_number_raw,p.part_number_normalized,
+          p.description,p.source,p.source_ref,p.verification_status
+        FROM part p WHERE EXISTS (SELECT 1 FROM part_occurrence o WHERE o.part_id=p.id)
+          AND UPPER(COALESCE(p.description,'')) LIKE '%' || UPPER(?) || '%'
+        ORDER BY p.part_number_normalized,p.id LIMIT 25`;
+    result = treeAvailable
+      ? await db.prepare(freeTextSql).bind(query, query).all()
+      : await db.prepare(freeTextSql).bind(query).all();
+    found = result.results || [];
+    searchPath = 'free_text';
+  }
+
   const withStock = await Promise.all(found.map(async part => ({ ...part,
     stock: await realStock(env, part.part_number_normalized) })));
   const candidates = stockOnly ? withStock.filter(part => part.stock.some(row => row.available && row.quantity > 0)) : withStock;
-  const searchPath = candidates.some(part => part.part_number_normalized === normalized)
-    ? 'deterministic' : 'free_text';
-  if (!candidates.length) return json({ error: stockOnly && found.length ? 'no stocked part match' : 'part not found',
+  if (!candidates.length) return json({
+    error: stockOnly && found.length ? 'no stocked part match' : 'part not found',
+    error_code: stockOnly && found.length ? 'stock_filter_no_match' : undefined,
     query, state: stockOnly && found.length ? 'stock_filtered_empty' : 'not_found',
-    search_path: searchPath }, 404);
+    search_path: searchPath,
+  }, 404);
   const chosen = candidateId ? candidates.find(part => String(part.id) === candidateId) : null;
   if (candidateId && !chosen) return json({ error: 'candidate not in current results', error_code: 'candidate_not_found' }, 404);
   const part = chosen || candidates[0];
