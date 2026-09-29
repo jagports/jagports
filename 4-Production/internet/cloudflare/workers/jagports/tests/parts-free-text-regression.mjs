@@ -194,6 +194,7 @@ test('descriptive query plus stock_only returns stock_filtered_empty when only n
   const data = await response.json();
   assert.equal(data.state, 'stock_filtered_empty');
   assert.equal(data.search_path, 'free_text');
+  assert.equal(data.error_code, 'stock_filter_no_match');
   assert.equal(data.error, 'no stocked part match');
 });
 
