@@ -101,7 +101,7 @@ Add must provide an explicit identity decision before save:
 3. select an existing Jagports specified canonical PART for a non-1:1 reusable vendor product; or
 4. explicitly choose unresolved stock with `part_id = NULL` only when reusable product identity is genuinely not yet established.
 
-If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the third-party PART workflow defined by `../SPEC/MODEL_PART_THIRD_PARTY.md` before STOCK is linked. The minimum #612 page does not silently fabricate that identity.
+If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the third-party PART workflow defined by `../SPEC/MODEL_PARTS.md` before STOCK is linked. The minimum #612 page does not silently fabricate that identity.
 
 For an existing PART, search results need only enough information to select the intended record: part number, description and available fit/context. A separate contextual information panel is optional.
 
