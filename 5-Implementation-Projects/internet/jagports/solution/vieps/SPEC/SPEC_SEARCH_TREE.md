@@ -97,7 +97,6 @@ The tree and right-hand Search Results PN/name list are **two views of the same 
 - Selecting a **tree PART leaf** sets the active canonical PART **and its specific verified source occurrence/path**, when present. It updates the centre PART detail, Location, right-hand result-row selected state and evidence-backed Applicable Models.
 - Selecting a **right-hand result row** sets the same canonical PART selection and updates relevant tree paths; if several verified occurrences exist, do not guess which leaf/path is active or show occurrence-specific location, diagram-item or VIN fitment until that context is chosen.
 - The Parts Tree keeps the root index visible throughout, combines shared ancestors once by stable node identity and expands the latest genuinely selected leaf path. Search hits with several source paths remain visible without underlining several different leaves as one active occurrence.
-- A result-row **bookmark checkbox** remains **disabled** while bookmark storage is unsupported. Its state is independent of row/leaf selection and cannot change selected PART, tree expansion, stock constraints or FIT.
 - A result row or tree leaf that lacks a verified source relationship must not acquire invented ancestry or positive fit. Show missing context as `unavailable`, distinct from search `no_match`.
 
 ## Clickable node navigation and tree entry path
