@@ -4,7 +4,7 @@
 
 This specification defines how **dynamic JEPC descriptions** become source-qualified, normalized FIT / Variations filter values in VIEPS.
 
-A dynamic description is imported catalogue text attached to a specific JEPC source record, occurrence and/or tree path. This specification does **not** derive FIT values from JEPC static applicability data, application-sidecar tuples, serial/VIN bounds, model-range records or other non-description source fields. Those catalogue applicability relationships remain part of the canonical PART model in [MODEL_PARTS.md](MODEL_PARTS.md), while [VIN](SPEC_SEARCH_VIN.md) and [Ranges](SPEC_SEARCH_RANGES.md) own their dedicated search controls.
+A dynamic description is imported catalogue text attached to a specific JEPC source record, occurrence and/or tree path. This specification covers only those dynamic descriptions and their normalized mappings. Other catalogue applicability semantics remain outside this file and are defined by the canonical PART model in [MODEL_PARTS.md](MODEL_PARTS.md).
 
 [Search](SPEC_SEARCH.md) owns the combined candidate evaluator and cross-filter transitions. This file owns only the dynamic-description mapping and its centre-top FIT / Variations presentation contract.
 
@@ -60,7 +60,7 @@ The read path must:
 2. filter occurrences first, then project the normalized description-derived facets represented by the surviving candidate universe;
 3. keep descriptions from different occurrences distinct unless their verified mapping says they share the same normalized value;
 4. return `unavailable` when required source relation, language metadata or occurrence scope is missing;
-5. never infer a vehicle predicate, VIN boundary, model range or other non-description fact from a dynamic description.
+5. never infer semantics beyond the verified mapping of the dynamic description.
 
 Facet counts and selectable values come from the surviving candidate universe under the active Search constraints. A selected zero-result value remains visible so it can be cleared, but it is not offered as an additional choice.
 
@@ -73,7 +73,7 @@ The centre-top FIT / Variations control initially has no checked values. Group s
 
 Result-row bookmark state is independent of FIT and cannot apply filters or create description mappings.
 
-The FIT control remains separate from the right-hand Applicable Models panel. Model-range labels are not dynamic FIT-description values.
+The FIT control exposes only normalized values backed by mapped dynamic descriptions.
 
 ## Admin mapping contract
 
