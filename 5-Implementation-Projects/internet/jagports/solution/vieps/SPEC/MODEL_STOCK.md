@@ -193,7 +193,7 @@ Stock-quality search and filtering must use normalized codes `A` through `E` and
 
 Search result presentation may group or filter by localized labels, but the underlying filter identity remains the code set plus explicit unclassified state.
 
-Search/index authorization must not make restricted stock details discoverable to unauthorized users.
+The Search Index contains catalogue lookup/routing data only and does not contain operational STOCK fields. Restricted stock details are applied through the authorized STOCK overlay and must not become discoverable through Search Index data.
 
 ## Storage model
 
