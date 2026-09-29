@@ -26,7 +26,7 @@ The following **Product Owner-supplied ASCII map** is the normative desktop arra
 │ scrollable             ├───────────────────────┬──────────────────────────┤ List                   │
 │ root → branch → leaf   │ Location at car       │ Selected PART            │ scrollable             │
 │ expanded path only     │                       │ status / part name       │ row = select PART      │
-│ PART leafs selectable  │                       │ exploded diagram/image   │ checkbox = bookmark    │
+│ PART leafs selectable  │                       │ exploded diagram/image   │                        │
 │                        │                       │                          ├────────────────────────┤
 │                        │                       │                          │ Applicable Models      │
 │                        │                       │                          │ fixture list / fit     │
@@ -39,7 +39,7 @@ The following **Product Owner-supplied ASCII map** is the normative desktop arra
 
 **Legacy TEST browse index:** Jaguar Accessories; Daimler Limousine; E-Pace; E-Type; F-Pace; F-Type; S-Type; X-Type; XE Range; XF Range; XJ Range; XJS; XK Range. These labels document historical fixture compatibility, **not** the source-derived production catalogue or selected-PART fitment.
 
-**Panel contract:** Parts Tree, Search Results and Applicable Models scroll independently, with one shared canonical PART selection across tree leaves, PN/name result rows and centre detail. Bookmark checkboxes remain visible but disabled, with no saved state. Applicable Models permits one active source-evidenced Range filter at a time; unsupported filtering is disabled. The historical 13-label index is TEST compatibility only, never production fitment evidence.
+**Panel contract:** Parts Tree, Search Results and Applicable Models scroll independently, with one shared canonical PART selection across tree leaves, PN/name result rows and centre detail. Applicable Models permits one active source-evidenced Range filter at a time; unsupported filtering is disabled. The historical 13-label index is TEST compatibility only, never production fitment evidence.
 
 ## Panel placement and behavior
 
@@ -61,7 +61,7 @@ The following **Product Owner-supplied ASCII map** is the normative desktop arra
 - The left column shows Availability above the persistent root-index Parts Tree. The latter scrolls internally and preserves the root-to-selected-node/PART context, stable identities and path de-duplication required by the Parts Tree contract.
 - The centre top contains VIN entry and the normalized Fit/Variations filter; a blank VIN or filter may show supported browse choices only where the approved read contract provides them.
 - The centre workspace places one vehicle-location canvas on the left and one selected PART/diagram/status panel on the right. The selected PART panel never presents multiple candidate PARTs.
-- The persistent right column contains one primary part-number/free-text search input, a separate scrollable Search Results PART List with bookmark checkboxes, and an independently scrollable Applicable Models panel below it.
+- The persistent right column contains one primary part-number/free-text search input, a separate scrollable Search Results PART List and an independently scrollable Applicable Models panel below it.
 - Results rows and tree PART leaves are two views over **one shared canonical PART selection**. Their visible duplication never creates duplicate PART records or synthetic occurrence paths.
 - The banner, branding and distinct UI versus catalogue-data language controls remain reserved; unimplemented controls must not pretend to work.
 - The desktop shell fits the viewport, while long tree/results/models content scrolls in its own region. Narrow layouts may reflow without changing region semantics or the single-selection contract.
@@ -100,7 +100,7 @@ Search or supported browse/VIN/variation/stock constraints
         ↓
 Resolve verified canonical PART candidates and occurrence contexts
         ├─ left Parts Tree: retain root index, show relevant paths and clickable PART leaves
-        └─ right Search Results: show distinct canonical PART rows + disabled bookmark placeholders
+        └─ right Search Results: show distinct canonical PART rows
         ↓
 Select ONE PART from either surface (same shared selection)
         ↓
@@ -147,7 +147,7 @@ Representative fixture coverage for the vertical-slice contract should include:
 
 - isolated historical 13-label TEST browse compatibility where still present, with fixture-only provenance; production options instead use explicit source-derived Model-to-Range mappings;
 - a PART visible under multiple genuine occurrence paths but only once in the right-hand result list;
-- two linked selection surfaces that synchronize one selected PART while bookmarking remains independent;
+- two linked selection surfaces that synchronize one selected PART;
 
 - successful part-number or approved fixture-identifier resolution;
 - multiple EPC contexts;
@@ -204,13 +204,11 @@ shared search / browse / fitment state
   ├─ centre VIN / variation Filter → supported normalized facets only
   ├─ centre Location at car → verified single vehicle location or unavailable
   ├─ centre PART / Image / Status → exactly ONE selected canonical PART
-  ├─ right Search Results PART List → distinct selectable PN/name rows + disabled bookmark placeholders
+  ├─ right Search Results PART List → distinct selectable PN/name rows
   └─ right Applicable Models → verified ranges/fit, or browsing fixture index without fit claims
 ~~~
 
 Filter occurrence contexts first, then derive distinct canonical PART candidates. Keep all legitimate source paths in the Parts Tree, but deduplicate right result rows by stable canonical PART identity. A row and a tree leaf share selected PART state; choosing an occurrence-specific tree leaf additionally selects that exact occurrence. If a row maps to more than one occurrence, require an explicit occurrence/context choice before showing context-specific location or fitment.
-
-Search-result bookmark checkboxes are visible but **disabled** while bookmark storage, saved-list UI and authorization are unsupported. Bookmark state, when supported, is independent of PART selection, filtering, availability, fit and catalogue state.
 
 ## 1. Search + Availability
 
@@ -285,7 +283,7 @@ Operational stock remains separate from catalogue/reference information. Quantit
 
 ## Permanent shell and viewport behaviour
 
-All major regions retain their allocated space during loading, empty, unavailable and error states. On the default desktop layout, preserve the viewport-fit shell: the page itself fits the viewport, with **separate internal scrolling for the Parts Tree, Search Results list and Applicable Models panel**. Avoid nested scroll traps; preserve keyboard scrolling, visible focus, accessible region headings, row links and separately labelled bookmark/filter checkboxes. Narrower layouts may reflow and use normal page scrolling while preserving selected PART/tree context.
+All major regions retain their allocated space during loading, empty, unavailable and error states. On the default desktop layout, preserve the viewport-fit shell: the page itself fits the viewport, with **separate internal scrolling for the Parts Tree, Search Results list and Applicable Models panel**. Avoid nested scroll traps; preserve keyboard scrolling, visible focus, accessible region headings, row links and labelled filter controls. Narrower layouts may reflow and use normal page scrolling while preserving selected PART/tree context.
 
 ## Compact presentation and mobile header
 
@@ -298,9 +296,8 @@ The three-column layout retains compact spacing, Parts Tree/search clearing beha
 - Preserve existing search resolution/clearing, PART identity, STOCK eligibility, fitment and deep links. `search.multiple_matches` must resolve through the EN/FI translation resources; do not expose raw translation keys.
 
 
-## Bookmarks and evidence-backed model selection
+## Evidence-backed model selection
 
-- Bookmark checkboxes beside each PART result are disabled and labelled for future use. They must not create saved lists, local-only bookmark states or affect PART selection, FIT or Stock.
 - Applicable Models allows at most one active source-backed Range filter; competing values remain hidden until cleared. Verified, unresolved and excluded occurrences remain distinct; unsupported filtering stays disabled.
 - The 13-label browse index is a TEST compatibility fixture, not production Range authority.
 
