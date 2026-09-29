@@ -100,7 +100,7 @@ The **original imported JEPC Model description remains the visible Model name wh
 
 ### One-page Admin layout
 
-Add a section **Ranges & JEPC Models** on the current Admin page, separate from **Existing STOCK / Add / Edit / Delete** and from **Fit Categories / Descriptions**. No separate dashboard, menu, page or new authentication experience is required.
+Add a section **Ranges & JEPC Models** on the Admin page, separate from **Existing STOCK / Add / Edit / Delete** and from **Fit Categories / Descriptions**. No separate dashboard, menu, page or new authentication experience is required.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -178,7 +178,7 @@ RangeAdminImportedModel
 
 The original description is **source data**, not a derived `model_range.name`. Source Model identifiers, model contexts and normalized market/model display names may need distinct representations. The importer supplies actual source identities and descriptions; synthetic synthetic fixtures must carry a clear `fixture` origin.
 
-Catalogue Admin operations: list/create/edit/retire Range; search imported Models including unmapped; create/change/remove an explicit Model→Range mapping; read back current mapping and audit/conflict state. Exact endpoint names and database additions are implementation details. All mutations must be protected **server-side** by the Admin authorization boundary and must **not** reuse STOCK `/api/stock`. Return deterministic validation, unauthorized, not-found, duplicate-code and conflicting-assignment errors. Read-back must reflect persisted state; no client-only fake success.
+Catalogue Admin operations: list/create/edit/retire Range; search imported Models including unmapped; create/change/remove an explicit Model→Range mapping; read back the mapping and audit/conflict state. Exact endpoint names and database additions are implementation details. All mutations must be protected **server-side** by the Admin authorization boundary and must **not** reuse STOCK `/api/stock`. Return deterministic validation, unauthorized, not-found, duplicate-code and conflicting-assignment errors. Read-back must reflect persisted state; no client-only fake success.
 
 Consumer boundaries: an unassigned source Model can still appear under its original JEPC description in source-Model views. It must **not** appear as a verified member of an invented Range. Public Range-filtered browsing and FIT remain governed by the Range and FIT search specifications plus verified occurrence evidence; this Admin mapping alone does not establish part fitment.
 
