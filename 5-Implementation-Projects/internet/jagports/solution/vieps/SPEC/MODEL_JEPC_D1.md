@@ -121,7 +121,7 @@ For changed source or interpretation:
 ```text
 old active imported scope
         |
-        +--> retained provenance/history
+        +--> retained provenance and prior-version evidence
 
 new staged scope
         |
@@ -172,7 +172,7 @@ importers
 
 ## Importer working-state boundary
 
-Local SQLite may contain scan history, progress, timing, retry state, temporary discovery state, diagnostics and local recovery copies of source bytes.
+Local SQLite may contain scan records, progress, timing, retry state, temporary discovery state, diagnostics and local recovery copies of source bytes.
 
 Such operational information need not be copied verbatim to D1 unless it is required to reconstruct, explain, validate or reinterpret durable imported catalogue data.
 
