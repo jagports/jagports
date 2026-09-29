@@ -273,6 +273,9 @@ jagports D1
 +-- catalogue fixture PARTs
 |   `-- same-database FK allowed for fixture rows
 |
++-- Search Index
+|   `-- derived catalogue locators -> (catalogue_range, part_id)
+|
 `-- logical catalogue reference
     `-- (catalogue_range, part_id)
                  |
@@ -289,7 +292,7 @@ parts-xk D1
     `-- provenance
 ```
 
-No SQL foreign key crosses the `jagports` / `parts-<range_slug>` database boundary. Application/provider code resolves `catalogue_range` to the configured parts-database binding and then resolves `part_id` inside that catalogue.
+No SQL foreign key crosses the `jagports` / `parts-<range_slug>` database boundary. A resolved `(catalogue_range, part_id)` reference routes directly through the configured Range binding to the authoritative PART. Cross-Range lookup starts from the Search Index in `jagports` and hydrates the resulting reference from the authoritative `parts-<range_slug>` database. The Search Index does not become canonical PART storage.
 
 ## Field dictionary
 
