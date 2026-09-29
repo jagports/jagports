@@ -222,7 +222,7 @@ Physical stock/storage location is not stored in this entity; it remains part of
 
 `stock_item` is an operational record and is not a catalogue PART identity.
 
-Physical D1 placement and database topology are defined in [`MODEL_D1.md`](MODEL_D1.md). SQLite/D1 cannot enforce a foreign key across separate D1 databases.
+Physical D1 placement and database topology are defined in [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md). SQLite/D1 cannot enforce a foreign key across separate D1 databases.
 
 A resolved stock-to-catalogue relationship therefore uses the logical catalogue reference:
 
@@ -261,7 +261,7 @@ Operational inventory belongs to separate stock records.
 
 Catalogue vehicle location and physical stock/storage location are distinct concepts.
 
-The physical D1 boundary, Search Index placement and database-topology ASCII model are canonical in [`MODEL_D1.md`](MODEL_D1.md).
+The physical D1 boundary, Search Index placement and database-topology ASCII model are canonical in [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
 
 ## Field dictionary
 
