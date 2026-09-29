@@ -55,9 +55,9 @@ A supported stock constraint may narrow roots and Applicable Models only through
 
 UI locale changes preserve root/category browse state, expansion, stable selection and stock setting even when no PART is selected. Parts/catalogue-language changes use the selected source tree and preserve context only through evidenced identity/mapping; see [Part Search language switching](SPEC_SEARCH.md#language-switching-in-browse-mode).
 
-## Search-derived branches, manual focus and exclusion exceptions (2026-09-28)
+## Search-derived branches, manual focus and exclusion exceptions
 
-The coordinated search/filter interaction authority is [Part Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28). Branch availability reflects **normally matching** PARTs under the current supported Find, VIN, Stock, FIT and Applicable Models constraints; a node with no normally matching descendants is not offered merely because it exists elsewhere in the catalogue. This is a filter-aware view, not deletion of source nodes or PART occurrences.
+The coordinated search/filter interaction authority is [Part Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction). Branch availability reflects **normally matching** PARTs under the current supported Find, VIN, Stock, FIT and Applicable Models constraints; a node with no normally matching descendants is not offered merely because it exists elsewhere in the catalogue. This is a filter-aware view, not deletion of source nodes or PART occurrences.
 
 - A visible branch is both an indicator of matching descendants and a selectable browse constraint. Selecting a branch does not select any individual PART, and preserves Find and other independently active filters. Other matching branches remain visible and selectable; do not collapse them merely because the user navigated elsewhere.
 - A **manually selected branch** remains selected while it still contains matching PARTs. Valid existing expansion is preserved as filters change. Previously collapsed branches remain collapsed, even if newly matching; branches with no normal matches disappear. If a selected branch loses every match while other branches still match, select **and expand** their deepest common surviving branch. The deepest-common rule never overrides a valid manually selected branch and does not count warned/excluded retained PARTs.
@@ -128,7 +128,7 @@ PartsTreeBrowseResult
 
 The PART-resolution response supplies `path[]` labels and stable node identity for every path segment when available, so presentation can emit genuine node hyperlinks.
 
-The fields above are logical read-contract requirements, not a mandate for a new table or one specific endpoint shape. If current `/api/tree` or PART-resolution payloads omit root index or evidenced PART-leaf placement, extend or compose approved reads before claiming the corresponding UI behavior; never reconstruct source identities from label strings.
+The fields above are logical read-contract requirements, not a mandate for a new table or one specific endpoint shape. The runtime read contract must supply root index and evidenced PART-leaf placement before the corresponding UI behavior is exposed; source identities must never be reconstructed from label strings.
 
 ## Missing data
 A resolved PART without tree context is not `not_found`. Use explicit `unavailable` state. Do not invent hierarchy, categories or context.
