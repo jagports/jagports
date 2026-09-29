@@ -10,7 +10,7 @@ Define the current v0.1a command and evidence-staging behavior, followed by requ
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
-This specification complements the existing JEPC source-structure documents and the canonical VIEPS [`MODEL_PART.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md). The canonical end-to-end JEPC-to-D1 data model, completeness and runtime-independence contract is defined by [`MODEL_JEPC_D1.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_JEPC_D1.md).
+This specification complements the existing JEPC source-structure documents and the canonical VIEPS [`MODEL_PARTS.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md). The canonical end-to-end JEPC-to-D1 data model, completeness and runtime-independence contract is defined by [`MODEL_JEPC_D1.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_JEPC_D1.md).
 
 ## v0.1a command contract
 
@@ -28,7 +28,7 @@ The local SQLite ledger is importer-owned source evidence, run history and recov
 
 Before remote publication, the repository-controlled [Range D1 setup procedure](../../../../../3-Deployment/internet/cloudflare/d1/ranges/README.md) must verify account/name/ID. A schema-only migration path, source-model-to-Range verification, Worker routing and cross-Range identity/search behavior remain required under [Issue #555](https://github.com/jagports/jagports/issues/555). A successful local parse cannot be reported as a published import. The Range setup command is a separate deployment tool and adds no parameters or subcommands to DataImporter.
 
-Kit, nested-kit and NSS source observations must be preserved with provenance when encountered, including an unnumbered constituent; no Jaguar part number or verified composition may be invented. Kit composition is not required to complete the current 40-bundle parsing run. The approved [PART model](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md) governs the distinction between catalogue PART identity, occurrence evidence and verified composition.
+Kit, nested-kit and NSS source observations must be preserved with provenance when encountered, including an unnumbered constituent; no Jaguar part number or verified composition may be invented. Kit composition is not required to complete the current 40-bundle parsing run. The approved [PART model](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md) governs the distinction between catalogue PART identity, occurrence evidence and verified composition.
 
 ## Core operating principle
 
@@ -159,7 +159,7 @@ For each selected bundle, look first for the corresponding JEPC language files u
 
 ## Catalogue occurrence-tree persistence target
 
-Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PART.md` and the additive `0017_part_tree_occurrence.sql` migration.
+Production persistence of JEPC catalogue trees must use the canonical PART model defined in `MODEL_PARTS.md` and the additive `0017_part_tree_occurrence.sql` migration.
 
 The importer must not reduce source tree structure to only a flattened description path.
 
