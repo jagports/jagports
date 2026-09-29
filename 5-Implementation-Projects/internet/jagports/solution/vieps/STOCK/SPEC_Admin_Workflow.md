@@ -79,7 +79,7 @@ Stock Admin supports these stock-record paths:
 3. non-1:1 reusable vendor product stock linked to a **Jagports specified PART** created through the canonical third-party PART workflow;
 4. explicitly unresolved stock where reusable product identity is genuinely not yet established.
 
-A canonical `PART` must not be fabricated merely to satisfy a stock relationship. A known reusable third-party product must follow `MODEL_PART_THIRD_PARTY.md`: a verified 1:1 vendor product uses the existing Jaguar canonical PART, while a non-1:1 product uses a Jagports specified PART with exactly one mandatory Jaguar parent and retained category/item/occurrence/PART context. When the parent was selected through a specific imported catalogue tree path and that source-qualified path is available, the exact selected `part_occurrence_tree_path` is retained by the third-party PART evidence. `stock_item.part_id = NULL` is reserved for items whose reusable product identity is genuinely not yet established.
+A canonical `PART` must not be fabricated merely to satisfy a stock relationship. A known reusable third-party product must follow `../SPEC/MODEL_PARTS.md`: a verified 1:1 vendor product uses the existing Jaguar canonical PART, while a non-1:1 product uses a Jagports specified PART with exactly one mandatory Jaguar parent and retained category/item/occurrence/PART context. When the parent was selected through a specific imported catalogue tree path and that source-qualified path is available, the exact selected `part_occurrence_tree_path` is retained by the third-party PART evidence. `stock_item.part_id = NULL` is reserved for items whose reusable product identity is genuinely not yet established.
 
 Canonical PART identity and vendor-product identity remain separate. `part(id)` is the reusable canonical identity namespace for both Jaguar/JEPC PARTs and Jagports specified PARTs. Vendor PN, manufacturer, description, source/product URLs and `third_party_part_xref` evidence remain third-party PART data and must not be folded into mutable STOCK identity or replace canonical `part_id`. A Jagports specified identifier is not Jaguar-issued and must not be presented as such.
 
@@ -87,7 +87,7 @@ A failed PART lookup must leave the operator in the canonical-selection flow and
 
 The STOCK acquisition/source party is a separate fact from vendor-product identity. The same vendor may appear in both roles only when both facts are independently true; one role must not be inferred from the other.
 
-Third-party PART relationship semantics are owned by `MODEL_PART_THIRD_PARTY.md`. Stock Admin must not reinterpret `parent_part`, `component_of`, `equivalent_to`, or Jaguar supersession. Fit follows the referenced Jaguar PART/context defined by the third-party PART model.
+Third-party PART relationship semantics are owned by `../SPEC/MODEL_PARTS.md`. Stock Admin must not reinterpret `parent_part`, `component_of`, `equivalent_to`, or Jaguar supersession. Fit follows the referenced Jaguar PART/context defined by the third-party PART model.
 
 ## Stock management UI
 
@@ -101,7 +101,7 @@ The authorized Stock Admin UI must support, where the current data contract expo
 - delete a selected mutable stock record after explicit confirmation;
 - select a canonical PART reference where resolved, with `part_id` chosen from an existing PART record rather than manually fabricating an identifier;
 - for a verified 1:1 vendor product, select the existing Jaguar canonical PART and retain the vendor reference;
-- for a non-1:1 reusable vendor product, create/select the Jagports specified PART defined by `MODEL_PART_THIRD_PARTY.md` before creating stock, retaining the selected parent occurrence/tree-path context where available;
+- for a non-1:1 reusable vendor product, create/select the Jagports specified PART defined by `../SPEC/MODEL_PARTS.md` before creating stock, retaining the selected parent occurrence/tree-path context where available;
 - retain an explicit unresolved path only where reusable product identity is genuinely not yet established; selecting that path must be deliberate and must clear canonical `part_id` rather than occurring as lookup fallback;
 - keep vendor part-number/reference data distinct from canonical PART identity;
 - capture integer quantity;
@@ -269,3 +269,62 @@ This workflow does not define:
 - tenant/provider authentication architecture;
 - detailed provenance beyond the approved stock evidence fields;
 - physical-stock photo media storage/upload architecture until separately approved.
+
+
+## Third-party / Jagports specified PART workflow
+
+### Stock Admin workflow
+
+This specification covers reusable third-party products only.
+
+#### Existing Jaguar PART / 1:1 third-party product
+
+The operator:
+
+1. finds the existing Jaguar PART, either directly or through the PART tree;
+2. records the vendor and vendor part number;
+3. verifies the 1:1 relationship where claimed;
+4. creates operational STOCK linked to the existing Jaguar PART.
+
+#### New Jagports specified PART / no 1:1 Jaguar PART
+
+The operator:
+
+1. selects the mandatory parent Jaguar PART directly or from the imported tree/category/item context;
+2. records the required category/item/occurrence/PART references;
+3. records the vendor and third-party part number;
+4. creates the combined Jagports specified part number `<JaguarPN>+<3rdPartyPN>`;
+5. enters the description;
+6. records verification status and verification date;
+7. creates operational STOCK linked to the new Jagports specified PART.
+
+The operator must know the parent reference before the new Jagports specified PART is created. A missing parent Jaguar PART is a validation error for this path.
+
+Unresolved stock handling belongs to `MODEL_STOCK.md` and is outside this third-party PART specification. Once a third-party product is known to be reusable, it is no longer an unresolved-stock identity case: it must resolve to an existing Jaguar `part_id` or to a newly created Jagports specified `part_id` before STOCK is linked.
+
+### Catalogue-assisted parent selection
+
+When creating or editing a Jagports specified PART, VIEPS should allow the operator to locate the mandatory Jaguar parent from the already imported catalogue.
+
+Conceptually:
+
+```text
+model/sub-range
+  -> category
+     -> item
+        -> occurrence
+           -> Jaguar PART
+```
+
+The selector should show the imported context available for the selected reference, including:
+
+- model/sub-range and breadcrumb;
+- category and item;
+- occurrence;
+- Jaguar PART number and description;
+- illustration/hotspot context where available;
+- fit information such as engine/aspiration, `Except ...` conditions, LH/RH, VIN/revision bounds, market/Region;
+- source/provenance and verification information;
+- other relevant catalogue/fit fields that may become available from later imported data.
+
+The category/item/occurrence/PART reference used for the parent must be stored with the Jagports specified PART.
