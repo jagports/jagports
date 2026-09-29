@@ -97,6 +97,7 @@ The **original imported JEPC Model description remains the visible Model name wh
 - Do not infer Range assignments from equal or similar names, model year, VIN, engine, body, market, parent navigation label or fixture values.
 - Map the imported **Model** to its Range; this action alone does not assert part fit, VIN fit, variant identification or verified fitment.
 - Preserve the source Model description and original JEPC source records during creation, reassignment, unassignment, retirement and reimport. A Range name change must not rewrite original source labels or stable identifiers.
+- The confirmed Range assignment is the source of the `catalogue_range` routing value published to the Search Index defined by [`SPEC_SEARCH.md`](SPEC_SEARCH.md). Assignment, reassignment, unassignment, retirement or accepted reimport must update or rebuild affected Search Index entries so stale Range routing is not exposed. Physical Search Index placement is defined by [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
 
 ### One-page Admin layout
 

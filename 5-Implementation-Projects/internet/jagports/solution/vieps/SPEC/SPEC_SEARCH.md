@@ -127,7 +127,7 @@ These are normative interaction requirements. Controls without an defined source
 - Deterministic identifiers are not excluded from search. They are handled first because their behavior is stricter than free-text matching: they should resolve the intended identity before the same query is allowed to fall back to general text matching.
 - Search resolution is part-number / deterministic-identifier first: attempt the approved part-number / deterministic-identifier lookup first; only when it produces no match may the same query fall back to an available approved free-text search capability.
 - Hybrid limited free-text search is required in the limited search contract. It is limited to the implemented searchable fields and result presentation in this document.
-- Full multilingual/global free-text indexing/search is outside the limited contract. The limited free-text path does not include the complete multilingual corpus, ranking, cross-Range search or global search architecture.
+- Full multilingual/global free-text indexing/search is not required by the limited search path. When cross-Range/global search is enabled, it follows the optional federated architecture defined below.
 - If limited free-text capability is unavailable in a runtime that exposes the general `Find` control, the runtime must not silently ignore the query and return ordinary `not_found` for descriptive text.
 - Primary deterministic behavior remains Jaguar part-number / deterministic-identifier search plus the limited free-text fallback defined here.
 - Approved deterministic non-numbered identifiers may also be accepted where the current read contract supports them.
@@ -170,7 +170,7 @@ When supported Parts/catalogue-data language changes, load that language's evide
 
 ## Limited free-text search
 
-Limited free-text search is a pragmatic, defined-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring the full multilingual/global search architecture.
+Limited free-text search is a pragmatic, defined-data-path capability. It exists to make the exposed `Find` field useful for descriptive queries without requiring cross-Range federation. A deployment may additionally enable the optional federated architecture below without changing the single-Range interaction contract.
 
 Every free-text query is treated by the same general free-text rules. No specific example term, model label, body style, or category name is a special behavior key. Part numbers and deterministic identifiers are not excluded from search; they are resolved first by deterministic lookup. Generic free-text fallback runs only when that deterministic lookup produces no match.
 
@@ -194,6 +194,192 @@ Searchable stock text does not make stock the catalogue identity. When a stock-t
 A free-text match fragment must be highlighted where the matched text is visible in an existing UI region. Highlighting is fragment-level, meaning the matched substring inside the visible value is highlighted, not merely the whole row.
 
 Do not create an additional search-results page, modal or explanation view. The dedicated right-hand Search Results PART List and clickable Parts Tree leaves represent the same canonical PART candidates. The centre PART / Image / Status region shows exactly one selected PART at a time.
+
+## Optional cross-Range / global search architecture
+
+Cross-Range/global search is optional. A deployment that does not enable it remains conformant with the single-Range search contract above.
+
+When enabled, global search is a read federation over configured `parts-<range_slug>` catalogue databases. Full imported catalogue data remains authoritative in its Range database; federation must not copy complete imported catalogue records into `jagports` merely to make global search possible.
+
+### Catalogue address and cross-Range identity
+
+The stable address of a PART in federated search is:
+
+```text
+(catalogue_range, part_id)
+```
+
+where:
+
+- `catalogue_range` is the configured stable Range slug used to resolve the corresponding `parts-<range_slug>` binding;
+- `part_id` is the canonical PART identifier inside that catalogue scope.
+
+The same numeric `part_id` in two Range databases is not the same identity.
+
+Equal normalized part numbers in two Range databases are not, by themselves, proof of one global canonical identity. Global search may group multiple catalogue addresses only when explicit verified identity/equivalence evidence establishes that they represent the same reusable PART. An optional `global_part_key` may identify that verified group. Without such evidence, return separate catalogue references even when their displayed part numbers are equal.
+
+```text
+global_part_key?                     verified grouping only
+       |
+       +--> (xk, part_id=123)  --> parts-xk
+       |
+       `--> (xj, part_id=456)  --> parts-xj
+```
+
+### Search coordinator
+
+The federation boundary is a search coordinator:
+
+```text
+Find / filters
+      |
+      v
+global search coordinator
+      |
+      +--> Search Index
+      |       `--> lookup key -> catalogue references
+      |
+      +--> Range binding registry
+      |       +--> xk -> parts-xk binding
+      |       `--> xj -> parts-xj binding
+      |
+      +--> authoritative catalogue hydration
+      |       +--> parts-xk
+      |       `--> parts-xj
+      |
+      +--> jagports STOCK overlay
+      |
+      v
+occurrence-first merge/filter
+      |
+      v
+Search Results / Tree / FIT / Applicable Models
+```
+
+The coordinator must not accept a database or binding name directly from user input. It resolves only configured Range slugs.
+
+### Search Index
+
+The **Search Index** is the global catalogue lookup structure. Its physical D1 placement is defined by [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
+
+The Search Index is compact and rebuildable. It contains only the data needed to locate authoritative catalogue records, including:
+
+- normalized deterministic identifiers and supported aliases;
+- language-qualified searchable description tokens when global free-text is enabled;
+- `catalogue_range`;
+- `part_id`;
+- optional verified `global_part_key`;
+- source snapshot/completeness reference sufficient to detect stale or incomplete Search Index data;
+- logical supersession endpoints where verified.
+
+It is derived data, not the catalogue authority. A Search Index hit must be hydrated from the referenced `parts-<range_slug>` database before VIEPS claims current PART, occurrence, FIT, tree, diagram or provenance facts.
+
+Global cross-Range search uses the Search Index to locate authoritative catalogue records across configured Range bindings.
+
+### Global deterministic identifier search
+
+For a deterministic part-number or other supported identifier query:
+
+1. normalize the query using the existing identifier rules;
+2. resolve zero or more catalogue references through the Search Index across the permitted Range set;
+3. hydrate every Search Index reference from its authoritative Range database;
+4. preserve each source occurrence and catalogue Range;
+5. apply active FIT, VIN, Range, branch and other catalogue constraints occurrence-first;
+6. overlay operational STOCK from `jagports`;
+7. project Search Results without collapsing distinct catalogue references unless verified cross-Range identity evidence permits grouping.
+
+A Range filter narrows the permitted catalogue set before hydration. With no active Range filter, global search addresses every configured, available Range.
+
+A result is `not_found` only when every required configured search source participating in the request is known complete for that lookup. Missing bindings, unavailable Range databases, incomplete Search Index coverage or stale index state produce an explicit partial/unavailable result instead of a false global negative.
+
+### Global free-text search
+
+Global free-text search is optional independently of global deterministic identifier search.
+
+When enabled:
+
+- the Search Index must retain language-qualified searchable evidence;
+- equal displayed text does not establish shared PART, occurrence, FIT or model identity;
+- ranking may combine candidates from several Range databases, but every returned candidate retains its catalogue reference;
+- catalogue-language selection constrains the searchable source corpus according to the language contract;
+- incomplete language/index coverage is reported explicitly rather than treated as no match.
+
+The existing deterministic-identifier-first rule remains unchanged.
+
+### Cross-Range supersession
+
+A supersession edge may cross Range databases only when source-qualified evidence explicitly establishes both endpoints.
+
+A cross-Range supersession endpoint is addressed as:
+
+```text
+(catalogue_range, part_id)
+    -> (catalogue_range, part_id)
+```
+
+No cross-D1 foreign key is implied. The Search Index stores the logical endpoints needed for lookup acceleration, but the source evidence remains authoritative in catalogue persistence.
+
+Search follows verified supersession edges to discover replacement candidates in another configured Range. It must not infer cross-Range supersession from equal numbers, similar descriptions or overlapping FIT.
+
+### Binding and routing
+
+The runtime maintains a configured registry:
+
+```text
+Range slug -> parts database binding
+```
+
+The coordinator:
+
+- queries only configured bindings;
+- treats a missing/disabled binding as unavailable coverage;
+- preserves the Range slug on every catalogue reference;
+- may query Range databases concurrently;
+- must isolate one Range failure from successfully returned Range results while marking the overall result partial/unavailable as appropriate.
+
+Binding configuration is deployment data, not user-search state.
+
+### Import publication and recovery
+
+Cross-Range/global search does not require a distributed D1 transaction.
+
+Each `parts-<range_slug>` import is committed independently according to the catalogue import contract. Search Index publication occurs only from an accepted catalogue snapshot for that Range.
+
+If Search Index publication fails after a Range import succeeds:
+
+- the Range catalogue remains authoritative and valid;
+- the failed Search Index publication must not roll back or delete the accepted Range import;
+- global Search Index coverage for the affected Range is marked incomplete/stale;
+- the Search Index can be rebuilt idempotently from authoritative Range data.
+
+If one source operation publishes to more than one Range, each Range has its own completion state. Global search includes only evidence whose publication state is valid for the requested operation and reports incomplete participating Ranges explicitly.
+
+### Growth and partitioning
+
+Range databases remain the primary catalogue partition boundary.
+
+The Search Index is rebuildable from authoritative Range data. Its physical placement is owned by [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md). Its internal storage can be partitioned by deterministic lookup key or another stable search partition when growth requires it, without changing its public identity or moving catalogue authority out of the authoritative Range catalogues.
+
+Partitioning must not change public identity: catalogue references remain `(catalogue_range, part_id)`, and verified `global_part_key` grouping remains optional.
+
+### Response contract
+
+A global-search candidate carries enough routing/evidence state to prevent accidental identity collapse:
+
+```text
+catalogue_ref:
+  catalogue_range
+  part_id
+global_part_key?          # only with verified grouping evidence
+match_kind
+catalogue_state           # verified / unresolved / unavailable / error
+coverage_state            # complete / partial / unavailable
+source_language?
+occurrence_refs[]
+stock_summary?
+```
+
+Search Results may visually group verified cross-Range identities, but selection must retain the underlying catalogue reference(s). Selecting a specific occurrence or tree path always resolves back to exactly one authoritative Range database.
 
 ## Canonical PART and occurrence resolution
 A successful Jaguar part-number lookup resolves one canonical `PART` identity. A non-numbered supported deterministic identifier resolves the approved non-numbered item/context without fabricating a Jaguar number.

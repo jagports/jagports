@@ -32,13 +32,21 @@ Stock quality classification is operational stock data. It may be shown with an 
 
 `stock_item` is the operational stock record.
 
-It may reference canonical `part(id)` when reusable PART identity is established. That canonical namespace includes both imported Jaguar/JEPC PARTs and manually added Jagports specified PARTs.
+A resolved stock record may reference a canonical PART. Because operational STOCK and imported JEPC catalogue data can live in different D1 databases, the stock-side catalogue identity is:
 
-For a verified 1:1 third-party product, `part_id` references the existing Jaguar canonical PART. For a non-1:1 reusable third-party product, `part_id` references the Jagports specified PART created under `MODEL_PARTS.md`.
+```text
+(catalogue_range, part_id)
+```
 
-`part_id` remains nullable only while reusable product identity is genuinely unresolved. A known reusable third-party product is not kept as `part_id = NULL` merely because it is absent from Jaguar/JEPC.
+`catalogue_range` is nullable. When present, it is the stable configured Range slug used to route the PART lookup to `parts-<range_slug>`. It does not state that the stock itself has FIT to that Range.
 
-`stock_item.part_number` is retained as entered or legacy stock reference text and is not the relational identity. For resolved stock, the application must derive/verify the canonical number from `part_id` rather than trusting contradictory client-supplied text. Vendor part numbers remain third-party/vendor reference evidence and do not replace canonical `part_id`.
+`part_id` is the canonical PART identifier inside the resolved catalogue scope.
+
+For a verified 1:1 third-party product, the logical reference resolves to the existing Jaguar canonical PART. For a non-1:1 reusable third-party product, it resolves to the Jagports specified PART created under `MODEL_PARTS.md`.
+
+`part_id` remains nullable only while reusable product identity is genuinely unresolved. A known reusable third-party product is not kept as `part_id = NULL` merely because it is absent from Jaguar/JEPC. `catalogue_range` must be NULL whenever `part_id` is NULL.
+
+`stock_item.part_number` is retained as entered or legacy stock reference text and is not the canonical catalogue identity. For resolved stock, the application must verify the canonical number through the resolved catalogue reference rather than trusting contradictory client-supplied text. Vendor part numbers remain third-party/vendor reference evidence and do not replace the canonical PART reference.
 
 Third-party vendor-product and cross-reference evidence remain outside operational STOCK. The Jagports specified PART retains its mandatory Jaguar parent and `third_party_part_xref` evidence under `MODEL_PARTS.md`; stock mutation must not implicitly create, rewrite or delete that evidence.
 
@@ -50,15 +58,19 @@ Stock does not assign a distinct persistent identity to every physical unit. `qu
 
 ## D1 persistence contract
 
-`stock_item` and its supporting STOCK tables are persisted in Cloudflare D1 through the Worker `DB` binding.
+`stock_item` and its supporting STOCK tables are persisted in the operational D1 database defined by the canonical topology in [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md), through the Worker `DB` binding.
 
-A D1 database may physically contain both catalogue/reference tables and operational STOCK tables. Physical co-location does not merge their domain ownership: mutable STOCK facts remain operational data and canonical PART/JEPC facts remain reference data.
+This STOCK model owns stock-specific persistence behavior only; database-domain placement and Search Index placement are defined by `MODEL_D1_jagports.md`.
+
+When a fixture PART is physically present in `jagports`, `stock_item.part_id` may use a normal same-database foreign key and `catalogue_range` is NULL.
+
+When the resolved PART is in a `parts-<range_slug>` database, `stock_item.catalogue_range` and `stock_item.part_id` form a logical cross-D1 reference. SQLite/D1 does not enforce that relationship as a foreign key. The application/provider layer resolves the configured Range to the correct parts-database binding and validates the target PART.
 
 Persistence must be reproducible from an empty target using the canonical executable schema. Environment-specific persistence evidence applies only to the environment in which it was produced.
 
-Repository fixture and seed data may demonstrate schema and application behavior, but synthetic fixture rows are not real Jagports inventory. Imported live-stock records must retain exact source/row provenance, preserve unknown fields as NULL/unclassified rather than inventing values, and persist through the stock data path. Synthetic values must never be relabeled as real inventory.
+Repository fixture and seed data may demonstrate schema and application behavior, but synthetic fixture rows are not real Jagports inventory. Imported stock records must retain exact source/row provenance, preserve unknown fields as NULL/unclassified rather than inventing values, and persist through the stock data path. Synthetic values must never be relabeled as real inventory.
 
-D1-specific SQL access belongs at the persistence/provider boundary. Canonical PART resolution, JEPC/reference semantics, fitment and supersession remain outside that boundary.
+D1-specific SQL access belongs at the persistence/provider boundary. Canonical PART resolution, JEPC/reference semantics, FIT and supersession remain outside that boundary.
 
 ## Normalized stock quality / condition code
 
@@ -175,7 +187,7 @@ Stock-quality search and filtering must use normalized codes `A` through `E` and
 
 Search result presentation may group or filter by localized labels, but the underlying filter identity remains the code set plus explicit unclassified state.
 
-Search/index authorization must not make restricted stock details discoverable to unauthorized users.
+The Search Index contains catalogue lookup/routing data only and does not contain operational STOCK fields. Restricted stock details are applied through the authorized STOCK overlay and must not become discoverable through Search Index data.
 
 ## Storage model
 
@@ -247,16 +259,19 @@ A canonical `PART` must not be fabricated merely to satisfy a relationship.
 
 Detailed provenance is a separate stock evidence concern and must not be collapsed into catalogue identity.
 
-## `part_id` resolution contract
+## Catalogue reference resolution contract
 
 Stock creation/edit uses these identity rules:
 
-1. **Resolved Jaguar/JEPC PART** — store that existing canonical `part.id` in `stock_item.part_id`.
-2. **Verified 1:1 third-party product** — store the existing Jaguar canonical `part.id`; retain vendor identity separately.
-3. **Non-1:1 reusable third-party product** — first create/select the Jagports specified PART defined by `MODEL_PARTS.md`, then store that canonical `part.id`.
-4. **Genuinely unresolved stock** — store `stock_item.part_id = NULL` only through an explicit unresolved identity path with required source evidence.
+1. **Resolved imported Jaguar/JEPC PART** — store the canonical `part.id` in `stock_item.part_id` and the configured Range slug in `stock_item.catalogue_range`. Resolve the pair through the corresponding `parts-<range_slug>` binding.
+2. **Resolved same-database fixture PART** — store the local fixture `part.id` in `stock_item.part_id` with `stock_item.catalogue_range = NULL`; a normal same-database foreign key may enforce this fixture relationship.
+3. **Verified 1:1 third-party product** — resolve to the existing Jaguar canonical PART and store the corresponding catalogue reference; retain vendor identity separately.
+4. **Non-1:1 reusable third-party product** — first create/select the Jagports specified PART defined by `MODEL_PARTS.md`, then store the corresponding catalogue reference.
+5. **Genuinely unresolved stock** — store both `stock_item.part_id = NULL` and `stock_item.catalogue_range = NULL` only through an explicit unresolved identity path with required source evidence.
 
 No other meaning is assigned to `part_id = NULL`. In particular, it must not mean "vendor product", "not yet imported from JEPC", or "lookup failed".
+
+`catalogue_range` is a routing component of the logical catalogue reference. It must not be used as proof of vehicle FIT, and it must not be inferred from a part number when the catalogue source is unresolved.
 
 ## Quantity
 
@@ -299,7 +314,7 @@ The stock model uses the stock index set listed below.
 
 | Table | Named indexes |
 |---|---|
-| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`; `idx_stock_item_condition_code`; `idx_stock_item_storage_location`; `idx_stock_item_source_party`; `idx_stock_item_price_currency`. |
+| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`; `idx_stock_item_condition_code`; `idx_stock_item_storage_location`; `idx_stock_item_source_party`; `idx_stock_item_price_currency`. A composite lookup index over (`catalogue_range`, `part_id`) is required when the logical catalogue-reference fields are implemented; this specification does not assign its schema-object name. |
 | `stock_location` | `idx_stock_location_root_identity`; `idx_stock_location_child_identity`; `idx_stock_location_site`; `idx_stock_location_parent`. |
 | `stock_source_party` | `idx_stock_source_party_type_name`. |
 
@@ -322,7 +337,7 @@ The stock model requires:
 - currency and non-negative price;
 - availability/location integrity;
 - unresolved stock source requirement;
-- canonical `part_id` resolution across Jaguar/JEPC PARTs and Jagports specified PARTs, with explicit NULL-only unresolved semantics;
+- logical `(catalogue_range, part_id)` resolution across imported Jaguar/JEPC PARTs and Jagports specified PARTs, with same-database fixture FK support and explicit NULL-only unresolved semantics;
 - canonical linkage of reusable third-party stock through Jaguar or Jagports specified PART identity without duplicating third-party PART semantics in STOCK;
 - multiple stock records for one canonical `PART`;
 - relevant stock indexes and invalid cases.

@@ -3,7 +3,7 @@
 
 ## Purpose
 
-Define the DataImporter contract for incrementally reading JEPC source data, preserving lossless source evidence, maintaining restartable importer state, and publishing durable catalogue data that conforms to [MODEL_JEPC_D1.md](../../../../internet/jagports/solution/vieps/SPEC/MODEL_JEPC_D1.md) and [MODEL_PARTS.md](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md).
+Define the DataImporter contract for incrementally reading JEPC source data, preserving lossless source evidence, maintaining restartable importer state, and publishing durable catalogue data that conforms to [MODEL_D1_DataImporter-JEPC.md](../../../../internet/jagports/solution/vieps/SPEC/MODEL_D1_DataImporter-JEPC.md) and [MODEL_PARTS.md](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PARTS.md).
 
 The importer processes selected JEPC source scopes incrementally, preserves unknown source information, and extends interpretation only when source evidence supports it.
 

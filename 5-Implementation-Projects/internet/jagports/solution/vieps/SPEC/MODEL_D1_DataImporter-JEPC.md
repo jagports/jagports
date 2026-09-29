@@ -33,7 +33,8 @@ durable source-qualified catalogue data
 Range routing
       |
       v
-parts-<range_slug> D1
+Range catalogue D1
+      # physical placement: MODEL_D1_jagports.md
       |
       +--> catalogue browsing/search
       +--> domain-specific PART/FIT/media reads
@@ -79,19 +80,9 @@ Exact lower-level identities and relationships are defined by the relevant domai
 
 ## D1 partitioning
 
-Range routing is derived from reviewed source ancestry/configuration and resolves to `parts-<range_slug>` databases.
+Range routing is derived from reviewed source ancestry/configuration and resolves to the Range catalogue database selected by the canonical D1 topology in [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
 
-```text
-JEPC source ancestry
-        |
-        v
-approved Range mapping
-        |
-        v
-parts-<range_slug>
-```
-
-Partitioning is a storage/routing boundary. It must not discard source identity, provenance or cross-Range discoverability required by higher-level application behavior.
+This E2E model owns the import-side requirement that partitioning must not discard source identity or provenance. Physical database placement, Search Index placement and cross-database topology are owned by `MODEL_D1_jagports.md`; Search Index behavior is owned by [`SPEC_SEARCH.md`](SPEC_SEARCH.md).
 
 ## Loss-preserving import
 
@@ -157,7 +148,7 @@ If information required by a supported runtime/domain function exists only in JE
 Runtime application code consumes D1-backed imported data through the relevant domain model.
 
 ```text
-MODEL_JEPC_D1.md
+MODEL_D1_DataImporter-JEPC.md
       |
       +--> defines source-to-D1 completeness and ownership boundaries
 
