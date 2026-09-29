@@ -258,25 +258,23 @@ Search Results / Tree / FIT / Applicable Models
 
 The coordinator must not accept a database or binding name directly from user input. It resolves only configured Range slugs.
 
-### Catalogue discovery provider
+### Search Index
 
-A global discovery provider is optional but recommended when the configured Range set makes direct fan-out inefficient.
+The global catalogue provider is the Search Index stored in the `jagports` D1 database.
 
-The provider is a compact, rebuildable search index. It may be stored in `jagports`, in a dedicated D1 database, or behind another provider implementation. Its physical placement does not change its semantics.
-
-The discovery index may contain only the data needed to locate authoritative catalogue records, including:
+The Search Index is compact and rebuildable. It contains only the data needed to locate authoritative catalogue records, including:
 
 - normalized deterministic identifiers and supported aliases;
 - language-qualified searchable description tokens when global free-text is enabled;
 - `catalogue_range`;
 - `part_id`;
 - optional verified `global_part_key`;
-- source snapshot/completeness reference sufficient to detect stale or incomplete discovery data;
+- source snapshot/completeness reference sufficient to detect stale or incomplete Search Index data;
 - logical supersession endpoints where verified.
 
 It is derived data, not the catalogue authority. A discovery hit must be hydrated from the referenced `parts-<range_slug>` database before VIEPS claims current PART, occurrence, FIT, tree, diagram or provenance facts.
 
-A deployment may omit the discovery index and perform bounded fan-out across configured Range bindings instead. Both modes must produce the same catalogue-reference identity semantics.
+Global cross-Range search uses the Search Index to locate authoritative catalogue records across configured Range bindings.
 
 ### Global deterministic identifier search
 
@@ -352,7 +350,7 @@ If discovery-index publication fails after a Range import succeeds:
 - the Range catalogue remains authoritative and valid;
 - the failed discovery publication must not roll back or delete the accepted Range import;
 - global discovery for the affected Range is marked incomplete/stale;
-- the discovery index can be rebuilt idempotently from authoritative Range data.
+- the Search Index can be rebuilt idempotently from authoritative Range data.
 
 If one source operation publishes to more than one Range, each Range has its own completion state. Global search includes only evidence whose publication state is valid for the requested operation and reports incomplete participating Ranges explicitly.
 
