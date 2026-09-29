@@ -3,7 +3,7 @@
 
 ## Canonical FIT data model
 
-The following is the canonical FIT evidence, persistence and evaluation model. Search/UI-specific behavior follows in the later sections of this file.
+The following is the canonical FIT evidence, persistence and evaluation model. Search/UI-specific behavior follows in the following sections of this file.
 
 ### Scope
 
@@ -49,7 +49,7 @@ The same canonical PART may therefore have several source occurrences and severa
 
 A full-path string is presentation/debug output only. The normalized model must retain structural source-node identity, ancestry/order and occurrence linkage independently of concatenated text.
 
-A later semantic enrichment layer may map source descriptions to normalized facets. Such mappings do not replace the raw tree descriptions or the raw JEPC predicates.
+A semantic enrichment layer may map source descriptions to normalized facets. Such mappings do not replace the raw tree descriptions or the raw JEPC predicates.
 
 #### Headlamp examples
 
@@ -244,7 +244,7 @@ The three airbag cases and headlamp case below are observed source examples; the
 | One complete false alternative and one unknown alternative | `unavailable`; an unknown is not silently false. |
 | No assertion rows, incomplete source scope or parser produced an empty set | `unavailable`; no universal fitment or blanket negative. |
 | Positive and explicit negative match the same occurrence/context | `unavailable` with conflict evidence. |
-| Duplicate import; later changed or removed assertion | No duplicate identities; atomic replacement; prior-version evidence retained; stale active claims removed only under verified reconciliation. |
+| Duplicate import; changed or removed assertion | No duplicate identities; atomic replacement; prior-version evidence retained; stale active claims removed only under verified reconciliation. |
 | Two languages describe the same source application | One canonical PART. Preserve each language-specific source path/tree independently when structure differs; reconcile a shared logical occurrence only when deterministic source identity/correspondence is established. |
 
 Source transformation must establish source identity, comparator and attribute mappings from complete selected-bundle evidence. Unknown patterns remain unresolved/quarantined rather than being inferred from isolated examples.
