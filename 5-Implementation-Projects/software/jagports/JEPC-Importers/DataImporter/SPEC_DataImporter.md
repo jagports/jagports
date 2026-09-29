@@ -436,11 +436,7 @@ mark bundle ERROR or NEEDS_REPROCESS
 
 The importer must provide a cooperative stop mechanism that does not depend on abruptly terminating the process.
 
-At minimum:
-
-```text
-[Q] Stop safely after current bundle parsing transactions are done
-```
+The operator interface must provide a cooperative stop action.
 
 A stop request shall:
 
@@ -568,7 +564,7 @@ The importer must demonstrate that:
 - the importer can be stopped cooperatively after current bundle parsing transactions and restarted safely;
 - database health is checked before any bundle processing on restart/resume;
 - the operator sees stable aggregate parent/model/path/language/structure metrics without a scrolling per-record console flood;
-- detailed processing and a development-oriented run report remain available in background logs;
+- detailed processing and a diagnostic run report remain available in background logs;
 - canonical part identity remains independent from language-specific source occurrences;
 - Region/market terms remain distinct from engine aspiration/supercharger-option terminology.
 
