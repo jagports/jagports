@@ -53,7 +53,7 @@ A later semantic enrichment layer may map source descriptions to normalized face
 
 #### Headlamp examples
 
-The following are observed **source paths** supplied by the Product Owner and confirmed in the installed item files. They are not a claim that each displayed path is the complete final predicate or that all source descriptions have been mapped to approved typed dimensions.
+The following are observed **source paths** confirmed in the source item files. They are not a claim that each displayed path is the complete final predicate or that all source descriptions have been mapped to approved typed dimensions.
 
 | Part and source context | Meaning of the selected path |
 |---|---|
@@ -79,7 +79,7 @@ Do not equate the existing presentation `vehicle_range` with canonical `model_ra
 
 ### JEPC source-attribute interpretation contract
 
-JEPC fit attributes are an open source vocabulary, not a fixed five-column vehicle schema. The historical VIN/search client hard-codes five editable groups, but the VIN response and local fit sidecars support additional group IDs. Therefore production normalization must preserve the raw JEPC group/value identity even when a human-readable mapping is available.
+JEPC fit attributes are an open source vocabulary, not a fixed five-column vehicle schema. Source responses and fit sidecars can contain group IDs beyond the five common editable groups. Therefore production normalization must preserve the raw JEPC group/value identity even when a human-readable mapping is available.
 
 A verified mapping can be established from several evidence forms:
 
@@ -95,21 +95,21 @@ Mappings derived from ancestry are versioned interpretation evidence, not replac
 
 A normalized fit category is a stable domain identifier backed by the existing `fit_dimension` and `fit_dimension_value` relations. It is not a JEPC navigation category or a display string.
 
-A value can enter the public fit contract only through a source-qualified JEPC description mapping. The mapping must retain the JEPC namespace, dataset/version, language, original text, record/group/value locator and model/category/item/tree-path scope. Equal text from two JEPC records remains two source records until an approved mapping establishes their shared normalized meaning.
+A value can enter the public fit contract only through a source-qualified JEPC description mapping. The mapping must retain the JEPC namespace, dataset/version, language, original text, record/group/value locator and model/category/item/tree-path scope. Equal text from two JEPC records remains two source records until an verified mapping establishes their shared normalized meaning.
 
 The mapping relation is additive and versioned:
 
 | Relation | Required purpose |
 |---|---|
 | `fit_source_description` | Immutable JEPC description identity and provenance: namespace, dataset/revision, language, raw text, locator, group/value identifiers and source scope. |
-| `fit_mapping_revision` | Read-only alias of append-only mapping from one source description to one normalized dimension/value, with evidence, reviewer/status and effective/retired state. |
+| `fit_mapping_revision` | Read-only alias of append-only mapping from one source description to one normalized dimension/value, with evidence, verification state and effective/retired state. |
 | `fit_dimension_label` and `fit_dimension_value_label` | Language-qualified domain names for the stable normalized IDs. UI chrome uses EN/FI i18next resources; imported JEPC wording remains catalogue data. |
 
 There is no executable condition, inferred predicate, or public filter value derived from a description alone. A condition may be evaluated only when it references a persisted, source-qualified JEPC description mapping and its domain name/description can be resolved for the requested UI and catalogue languages. Missing source relation, missing language metadata, ambiguity or conflict is `unavailable`.
 
 The pre-import fixture is limited to source-shaped test records: each fixture description has a stable synthetic source namespace, dataset, language, locator and mapped normalized ID. It proves the read shape and localization behavior only. It cannot be treated as a JEPC condition or published catalogue fitment. When imported JEPC descriptions are available, the imported provider replaces the fixture provider while retaining normalized IDs and API field names.
 
-The approved initial fixture vocabulary is Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats. Coexistence of the two seat descriptions is a source-data fact to preserve in one occurrence when JEPC source records support it. This specification does not introduce a new condition operator, set-membership schema or inferred evaluator for it.
+The fixture vocabulary is Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats. Coexistence of the two seat descriptions is a source-data fact to preserve in one occurrence when JEPC source records support it. This specification does not introduce a new condition operator, set-membership schema or inferred evaluator for it.
 
 #### Public facet read boundary
 
@@ -127,7 +127,7 @@ Facet counts and selectable values come from the surviving occurrence universe u
 6. Alternative occurrences of the same PART retain their catalogue roles, constraints and evidence when results are grouped under the PART. A negative result for one occurrence must not veto an independently applicable occurrence in another role/context.
 7. Conflicting positive and explicit negative evidence for the same occurrence and matching context produces `unavailable` with a conflict reason until resolved. There is no implicit last-write-wins or global exclusion-wins rule. Source `exceptFlag` alone is not an explicit negative assertion.
 
-The logical form is a finite collection of relational condition sets, not a persisted copy of the JEPC decision tree. If flattening verified logic would cause unbounded expansion, preserve the unresolved source case and report it; silently truncating alternatives is forbidden. Physical table names and representation optimizations remain subject to schema review.
+The logical form is a finite collection of relational condition sets, not a persisted copy of the JEPC decision tree. If flattening verified logic would cause unbounded expansion, preserve the unresolved source case and report it; silently truncating alternatives is forbidden. Physical table names and representation optimizations remain subject to the schema constraints.
 
 ### Serial and VIN requirements
 
@@ -216,7 +216,7 @@ Separate logical source identity from byte-version evidence. A checksum identifi
 
 Repeated leaf rows for the same source application, PART and context may represent alternative source paths, as in the headlamp examples. Preserve each row/path as evidence and, after validating common occurrence identity, attach the derived alternatives to that occurrence. Repetition alone is not a collision and does not require duplicate PARTs or unconditional quarantine. Distinguish raw row/path identity from logical occurrence identity.
 
-If a unique logical occurrence mapping cannot be established, quarantine the unresolved identity rather than merging by part number, description, filename checksum or row position. A changed PART association requires explicit reconciliation and retained history.
+If a unique logical occurrence mapping cannot be established, quarantine the unresolved identity rather than merging by part number, description, filename checksum or row position. A changed PART association requires explicit reconciliation and retained prior-version evidence.
 
 Reprocessing replaces/supersedes the complete derived assertion set for the affected source scope atomically, retaining prior evidence. It must remove stale active relationships as well as upsert current ones. Preserve stable existing entity IDs; do not append duplicates on rerun. Missing or failed source files cannot imply deleted fit until the relevant discovery/reconciliation scope is known complete.
 
@@ -224,7 +224,7 @@ Reprocessing replaces/supersedes the complete derived assertion set for the affe
 
 Persistence changes must preserve stable PART/occurrence identities, raw source evidence, stock references and unresolved semantics. Existing rows without enough grouping or evidence remain unresolved rather than being promoted to verified FIT. Fixtures and UI examples are never promoted to verified source assertions.
 
-Applied migrations are immutable records. Forward persistence changes must not reinterpret historical source evidence in place.
+Published persistence revisions are immutable evidence. Persistence changes must not reinterpret retained source evidence in place.
 
 ### Evaluation examples
 
@@ -280,22 +280,22 @@ Use the existing PART/occurrence IDs across reruns. Assertion logical identity i
 
 For a changed bundle, stage a new snapshot and its complete derived graph in a transaction. Retain stable PART/occurrence identities and previous source records. Only after required validation, supersede the previous active snapshot and activate the new snapshot in the same transaction. Failure must roll back both graph changes and the active-snapshot switch. The active snapshot determines the complete current assertion set, so old assertions omitted by verified reconciliation no longer leak into reads. A missing-file observation alone is not sufficient authorization to omit assertions or declare complete coverage.
 
-Contexts, ranges and vocabulary entries referenced by historical snapshots must be versioned/reused according to evidence; do not edit their meaning in place during reprocessing. SQL prevents deleting referenced rows but does not enforce an append-only audit policy against arbitrary direct SQL updates. A production importer/writer must implement this policy and source dependency reconciliation; this schema does not claim that tool exists.
+Contexts, ranges and vocabulary entries referenced by prior snapshots must be versioned/reused according to evidence; do not edit their meaning in place during reprocessing. Referenced evidence must remain protected from deletion, and writers must enforce append-only interpretation revisions plus source-dependency reconciliation.
 
 #### Internal read contract
 
-`src/fit.js` exports `readPartFit(db, partId)` for the D1 prepare/bind/all interface. It returns active assertions grouped by occurrence and context, each with its alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. A single parameterized SQL statement observes one database snapshot during concurrent revision switches. PART IDs must be positive safe integers. Empty reads remain unavailable evidence, not negative fitment.
+The FIT evidence read contract returns active assertions grouped by occurrence and context, including alternatives, typed attribute predicates, model/item/effective ranges and linked raw evidence. Reads must observe one consistent persistence snapshot. PART IDs must be valid canonical identifiers. Empty reads remain unavailable evidence, not negative fitment.
 
-The response always declares `evaluation: unavailable`, `reason: evidence_only_no_evaluator`, and `catalogue_coverage: not_established`. Stored verification and coverage claims are returned separately. This internal reader is not routed to an HTTP endpoint and does not change the existing VIEPS API/UI contract. It cannot certify complete catalogue coverage, interpret serials, resolve conflicts or determine fitment. Reverse context lookup is supported by the context index and occurrence relationship; a public vehicle-to-PART evaluator is not implemented here.
+The response always declares `evaluation: unavailable`, `reason: evidence_only_no_evaluator`, and `catalogue_coverage: not_established`. Stored verification and coverage claims are returned separately. The evidence reader does not itself certify complete catalogue coverage, interpret serials, resolve conflicts or determine FIT. Reverse context lookup uses the context index and occurrence relationship; evaluation remains a separate contract.
 
-Fixture evidence must distinguish observed source-inspired IDs from synthetic mapping/coverage claims. Storage validation must cover ownership/FK integrity, uniqueness, separate alternatives and paths, scalar dimension membership, endpoint states, domain consistency, atomic snapshot replacement, retained history and indexed queries. Storage validation does not replace the source-to-vehicle evaluation examples above.
+Fixture evidence must distinguish observed source-inspired IDs from synthetic mapping/coverage claims. Storage validation must cover ownership/FK integrity, uniqueness, separate alternatives and paths, scalar dimension membership, endpoint states, domain consistency, atomic snapshot replacement, retained prior-version evidence and indexed queries. Storage validation does not replace the source-to-vehicle evaluation examples above.
 
 
 ## Scope
 Define the centre-top normalized FIT / Variations filter and read-only selected-PART FIT evidence. [Search](SPEC_SEARCH.md) owns the combined candidate evaluator and filter transitions; [Ranges](SPEC_SEARCH_RANGES.md) owns the separate right-hand Applicable Models control; [VIN](SPEC_SEARCH_VIN.md) owns VIN evidence.
 
 ### Fit / Filter dual mode
-The centre-top Fit / Variations filter (the normalized FIT contract) and right-bottom Applicable Models panel are distinct controls over one normalized fitment contract. The FIT filter initially has no checked values; group selection and coordinated filtering are specified in [Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction--product-owner-decisions-2026-09-28).
+The centre-top Fit / Variations filter (the normalized FIT contract) and right-bottom Applicable Models panel are distinct controls over one normalized fitment contract. The FIT filter initially has no checked values; group selection and coordinated filtering are specified in [Search](SPEC_SEARCH.md#coordinated-searchfilter-interaction).
 
 1. **Browse or multiple candidates:** show only evidence-backed normalized FIT values represented in current search/browse candidates; initial empty-Find browse derives them from browsable PARTs. Visibility is an availability indicator, not an active selection. At most one competing value per FIT group is active: hide other values in that group while selected, restore options on clearing, combine different groups using AND and preserve selections across new Find queries. This applies equally to VIN-range, colour and other normalized FIT groups. Only source-mapped options may be offered; preserve exclusions and unknown/unavailable states.
 2. **Single selected PART/context:** FIT becomes read-only; mark evidence-backed values verified for the selected PART and leave other supported options unlit. Unknown required values receive yellow unknown-evidence indicators, not positive-fit assertions. Preserve occurrence/context scope for body, steering, engine, supercharger, market, transmission, equipment and VIN boundary. FIT and range exclusion deselect the PART; Stock exclusion may retain warned detail under the coordinated search contract.
@@ -312,7 +312,7 @@ For explicitly synthetic TEST data, the fixture provider may expose source-shape
 
 The filter reads published mappings at occurrence scope. It never treats a raw description as a predicate, derives a condition from its text, or joins same-looking values across occurrences. If source relation, i18n domain metadata or occurrence scope is absent, return `unavailable`. Memory Seat and Powered Seats may appear together only when their separately sourced records identify that coexisting occurrence; no membership condition or evaluator may be inferred from fixture text.
 
-The FIT control is placed at centre-top, separate from Applicable Models. The 13 historical model-range browse labels are not FIT values.
+The FIT control is placed at centre-top, separate from Applicable Models. The 13 model-range browse labels are not FIT values.
 
 The fixture examples—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—are independently sourced descriptions. Two seat labels may coexist only where separate source records identify the same occurrence.
 
