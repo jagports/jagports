@@ -58,15 +58,9 @@ Stock does not assign a distinct persistent identity to every physical unit. `qu
 
 ## D1 persistence contract
 
-`stock_item` and its supporting STOCK tables are persisted in the `jagports` Cloudflare D1 database through the Worker `DB` binding.
+`stock_item` and its supporting STOCK tables are persisted in the operational D1 database defined by the canonical topology in [`MODEL_D1.md`](MODEL_D1.md), through the Worker `DB` binding.
 
-The `jagports` D1 database contains:
-
-- operational STOCK and its supporting operational tables;
-- catalogue fixture/reference rows used by deterministic TEST/fixture behavior;
-- the global Search Index defined by `SPEC_SEARCH.md`.
-
-Imported JEPC catalogue/reference data is stored separately in `parts-<range_slug>` databases. Production imported catalogue data is not copied into `jagports` merely to make a stock foreign key possible.
+This STOCK model owns stock-specific persistence behavior only; database-domain placement and Search Index placement are defined by `MODEL_D1.md`.
 
 When a fixture PART is physically present in `jagports`, `stock_item.part_id` may use a normal same-database foreign key and `catalogue_range` is NULL.
 
