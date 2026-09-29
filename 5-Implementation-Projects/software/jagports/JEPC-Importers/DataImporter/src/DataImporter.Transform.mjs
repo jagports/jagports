@@ -26,7 +26,7 @@ function ancestry(nodes, parent, sourcePath) {
 
 // This projection preserves source facts for later mapping. It deliberately
 // does not translate source descriptions or predicates into verified fitment.
-export function transformBundle(staged) {
+export function transformBundle(staged, { itemId } = {}) {
   if (staged?.schemaVersion !== 1 || staged?.status !== 'PARSED'
       || !staged.identity || !Array.isArray(staged.files)) {
     throw new Error('Only complete, parsed local evidence can be transformed.');
@@ -52,6 +52,7 @@ export function transformBundle(staged) {
   const occurrences = [], unresolvedLeaves = [];
   for (const file of staged.files.filter(entry => entry.kind === 'item')) {
     const item = itemNumber(file.path);
+    if (itemId !== undefined && item !== String(itemId)) continue;
     const nodes = new Map();
     for (const record of file.records.filter(entry => entry.type === 'item-tree-row')) {
       const fields = record.fields;
@@ -82,6 +83,7 @@ export function transformBundle(staged) {
     identity: { model, category, language },
     source: { root: staged.source.root, modelLabel: staged.source.modelLabel,
       parentModel: staged.source.parentModel, parentModelLabel: staged.source.parentModelLabel,
+      ancestorModelIds: staged.source.ancestorModelIds,
       categoryLabel: staged.source.categoryLabel, categoryParent: staged.source.categoryParent,
       breadcrumb },
     files: staged.files.map(file => ({ path: file.path, size: file.size, sha256: file.sha256 })),

@@ -28,8 +28,13 @@ test('keeps source decision paths and sidecar predicates with each occurrence', 
       ] },
     ],
   };
+  const originalItem = staged.files.find(file => file.kind === 'item');
+  staged.files.push({ ...originalItem, path: originalItem.path.replace('_I1_', '_I2_') });
   const result = transformBundle(staged);
-  assert.equal(result.occurrences.length, 1);
+  const itemOnly = transformBundle(staged, { itemId: '1' });
+  assert.equal(result.occurrences.length, 2);
+  assert.deepEqual(itemOnly.occurrences.map(item => item.item), ['1']);
+  assert.equal(result.occurrences.length, 2);
   assert.equal(result.occurrences[0].partNumberNormalized, 'LJA3705AB');
   assert.deepEqual(result.occurrences[0].sourceConditions.map(item => item.description),
     ['LH side', 'To VIN (A36873)']);

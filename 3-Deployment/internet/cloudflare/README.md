@@ -38,13 +38,13 @@ Repeatable migration review, source selection, preview/local testing, production
 
 ### Parts D1 identity setup
 
-`3-Deployment/internet/cloudflare/d1/jagports/OPERATIONS.md`
+`3-Deployment/internet/cloudflare/d1/OPERATIONS.md`
 
 Repository-controlled `parts-<range_slug>` database identity planning, capacity check, creation, verification, recovery, and local testing.
 
 Directory context and database-role boundary:
 
-`3-Deployment/internet/cloudflare/d1/jagports/README.md`
+`3-Deployment/internet/cloudflare/d1/SPEC_DATABASES.md`
 
 ## Reduced-MVP runtime status
 
@@ -97,7 +97,7 @@ The Worker identity configured for the current pre-production deployment is `vie
 
 D1:
 
-`4-Production/internet/cloudflare/d1/jagports/vieps/`
+`4-Production/internet/cloudflare/d1/jagports/`
 
 Worker management:
 

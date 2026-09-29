@@ -4,3 +4,6 @@
 4-Production/internet/cloudflare/workers/jagports/public/app.js
 4-Production/internet/cloudflare/workers/jagports/public/stock-admin.js
 4-Production/internet/cloudflare/workers/jagports/public/i18n-runtime.js
+
+# Local JEPC DataImporter ledger and SQLite journals
+5-Implementation-Projects/software/jagports/JEPC-Importers/ledger.sqlite*

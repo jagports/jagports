@@ -80,7 +80,7 @@ export async function estimateSource({ source, stateDir, range, modelPattern, mo
     sample: { seed, requested: sampleSize, eligibleFiles: 0, eligibleBytes: 0, files: [], readBytes: 0, readSeconds: 0, lines: 0, recordLikeLines: 0, byFamily: {} },
     projection: { d1Bytes: null, importSeconds: null, basis: modelPattern === undefined
       ? 'Unavailable until measured D1/import calibration is provided.'
-      : 'Unavailable in v0.1a without a measured published import.' },
+      : 'Unavailable in v0.1a without a measured D1 import.' },
   };
   const sample = { seed, limit: sampleSize, files: [] };
   const seenDirectories = new Set();
@@ -216,7 +216,7 @@ export async function estimateSource({ source, stateDir, range, modelPattern, mo
     result.projection = {
       d1Bytes: Math.round(result.sample.eligibleBytes * calibration.d1BytesAdded / calibration.sourceBytes),
       importSeconds: Math.round(result.sample.eligibleBytes * calibration.importSeconds / calibration.sourceBytes),
-      basis: 'Linear projection from externally measured published sample; not a capacity guarantee.',
+      basis: 'Linear projection from an externally measured D1 import sample; not a capacity guarantee.',
       calibration: { path: path.resolve(calibrationPath), sourceBytes: calibration.sourceBytes,
         d1BytesAdded: calibration.d1BytesAdded, importSeconds: calibration.importSeconds },
     };

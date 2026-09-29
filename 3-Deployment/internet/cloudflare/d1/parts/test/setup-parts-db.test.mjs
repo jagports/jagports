@@ -3,21 +3,21 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { databaseNameForRange, setupRangeDatabase } from '../setup-parts-db.mjs';
+import { databaseNameForRange, setupPartsDatabase } from '../setup-parts-db.mjs';
 
 const accountId = 'a'.repeat(32);
 const databaseId = '12345678-1234-1234-1234-123456789abc';
 const token = 'test-token';
 
 async function configDirectory() {
-  return mkdtemp(join(tmpdir(), 'jagports-parts-db-'));
+  return mkdtemp(join(tmpdir(), 'parts-range-db-'));
 }
 
 function response(result, resultInfo) {
   return { ok: true, status: 200, json: async () => ({ success: true, result, result_info: resultInfo }) };
 }
 
-test('Range slugs derive parts database names and invalid slugs are refused', () => {
+test('Range names are derived and invalid slugs are refused', () => {
   assert.equal(databaseNameForRange('xk'), 'parts-xk');
   assert.equal(databaseNameForRange('f-type'), 'parts-f-type');
   for (const slug of ['XK', '../xk', 'xk_', '-xk', 'xk--s']) {
@@ -26,7 +26,7 @@ test('Range slugs derive parts database names and invalid slugs are refused', ()
 });
 
 test('plan never calls Cloudflare or writes configuration', async () => {
-  const result = await setupRangeDatabase({ mode: 'plan', rangeSlug: 'xk', fetchImpl: () => { throw new Error('network used'); }, configDirectory: await configDirectory() });
+  const result = await setupPartsDatabase({ mode: 'plan', rangeSlug: 'xk', fetchImpl: () => { throw new Error('network used'); }, configDirectory: await configDirectory() });
   assert.equal(result.databaseName, 'parts-xk');
   assert.equal(result.remoteChange, false);
 });
@@ -45,13 +45,13 @@ test('create writes the returned ID and a repeat run reuses the exact database',
     return response(exists ? [{ name: 'parts-xk', uuid: databaseId }] : []);
   };
   const options = { mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: dir };
-  const first = await setupRangeDatabase(options);
+  const first = await setupPartsDatabase(options);
   assert.equal(first.created, true);
   assert.equal(first.freeSlotsIfOnFree, 9);
   assert.deepEqual(JSON.parse(await readFile(join(dir, 'xk.json'), 'utf8')), {
     rangeSlug: 'xk', databaseName: 'parts-xk', accountId, databaseId,
   });
-  const second = await setupRangeDatabase(options);
+  const second = await setupPartsDatabase(options);
   assert.equal(second.created, false);
   assert.deepEqual(calls, ['GET', 'POST', 'GET']);
 });
@@ -60,9 +60,9 @@ test('existing unconfigured database and mismatched reviewed ID are refused', as
   const dir = await configDirectory();
   const fetchImpl = async () => response([{ name: 'parts-xk', uuid: databaseId }]);
   const options = { mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: dir };
-  await assert.rejects(setupRangeDatabase(options), /no reviewed configuration/);
+  await assert.rejects(setupPartsDatabase(options), /no reviewed configuration/);
   await writeFile(join(dir, 'xk.json'), JSON.stringify({ rangeSlug: 'xk', databaseName: 'parts-xk', accountId, databaseId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' }));
-  await assert.rejects(setupRangeDatabase(options), /ID differs/);
+  await assert.rejects(setupPartsDatabase(options), /ID differs/);
 });
 
 test('configured database missing remotely is not recreated', async () => {
@@ -70,7 +70,7 @@ test('configured database missing remotely is not recreated', async () => {
   await writeFile(join(dir, 'xk.json'), JSON.stringify({ rangeSlug: 'xk', databaseName: 'parts-xk', accountId, databaseId }));
   let post = false;
   const fetchImpl = async (_url, options) => { post ||= options.method === 'POST'; return response([]); };
-  await assert.rejects(setupRangeDatabase({ mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: dir }), /missing/);
+  await assert.rejects(setupPartsDatabase({ mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: dir }), /missing/);
   assert.equal(post, false);
 });
 
@@ -80,6 +80,6 @@ test('Workers Free capacity is checked before creation', async () => {
     post ||= options.method === 'POST';
     return response(Array.from({ length: 10 }, (_, index) => ({ name: `other-${index}`, uuid: databaseId })));
   };
-  await assert.rejects(setupRangeDatabase({ mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: await configDirectory() }), /limit/);
+  await assert.rejects(setupPartsDatabase({ mode: 'create', rangeSlug: 'xk', accountId, accountPlan: 'free', token, fetchImpl, configDirectory: await configDirectory() }), /limit/);
   assert.equal(post, false);
 });
