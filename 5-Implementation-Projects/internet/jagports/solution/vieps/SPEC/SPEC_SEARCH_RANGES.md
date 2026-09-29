@@ -4,7 +4,7 @@
 
 Define the model/range browse and verified fit presentation inside the right-hand **Applicable Models** panel of the three-column layout. Production Range options require verified source-derived Model/Range relations; synthetic browse data is TEST fixture data only.
 
-This file owns normalized Range browse/filter presentation and Range-to-imported-Model administration. `SPEC_SEARCH_FIT.md` owns detailed FIT evidence/evaluation semantics and `MODEL_PARTS.md` owns canonical PART identities and relationships. Do not create a competing model/range taxonomy or FIT evaluator in UI code.
+This specification defines normalized Range browse/filter presentation and Range-to-imported-Model administration. Do not create a competing model/range taxonomy or FIT evaluator in UI code.
 
 ## Panel and modes
 
