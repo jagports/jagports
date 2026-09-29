@@ -27,22 +27,22 @@ The workflow covers:
 - public-read versus authorized-mutation boundaries;
 - test/acceptance environment identification and persisted-record verification.
 
-A future extension may add photographs of the actual physical stock item from device files or a mobile/device camera. This is intentionally not an MVP persistence requirement until separately approved.
+Physical-stock photographs are optional operational evidence and are outside the minimum required stock-record persistence contract.
 
 ## Stock database readiness
 
-The native MVP stock environment uses Cloudflare D1 through the Worker `DB` binding and the reviewed migration chain under `4-Production/internet/cloudflare/workers/jagports/migrations/`.
+The stock persistence environment uses Cloudflare D1 through the Worker `DB` binding and the ordered migration chain under `4-Production/internet/cloudflare/workers/jagports/migrations/`.
 
 The executable D1 setup procedure is maintained in [`CloudFlareGit_DB_Migrations.md`](../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md). Stock Admin and acceptance work must consume that procedure rather than maintain another DDL/bootstrap sequence here.
 
 For a clean local/test target, setup means:
 
 1. start with an empty isolated local/test D1 target;
-2. apply the complete ordered reviewed migration chain from the Worker root;
+2. apply the complete ordered migration chain from the Worker root;
 3. verify the migration ledger;
 4. verify the resulting `stock_item`, `stock_site`, `stock_location` and `stock_source_party` structures and relevant STOCK indexes/triggers;
 5. verify the Worker/API can read from the same target;
-6. persist a stock record through the approved mutation path and read that record back from the same target.
+6. persist a stock record through the defined mutation path and read that record back from the same target.
 
 The operational setup record must identify:
 
@@ -91,13 +91,13 @@ Third-party PART relationship semantics are owned by `../SPEC/MODEL_PARTS.md`. S
 
 ## Stock management UI
 
-For #612 MVP, the UI target is one functional Stock Admin page with search/list plus **Add, Edit and Delete**. Navigation, menus, dashboard, account/profile UI, breadcrumbs, decorative shell and exact reproduction of concept artwork are not requirements.
+The UI target is one functional Stock Admin page with search/list plus **Add, Edit and Delete**. Navigation, menus, dashboard, account/profile UI, breadcrumbs, decorative shell and exact reproduction of concept artwork are not requirements.
 
 The authorized Stock Admin UI must support, where the current data contract exposes the field:
 
 - search/list existing stock records;
 - create a stock record;
-- edit approved mutable stock fields;
+- edit mutable stock fields;
 - delete a selected mutable stock record after explicit confirmation;
 - select a canonical PART reference where resolved, with `part_id` chosen from an existing PART record rather than manually fabricating an identifier;
 - for a verified 1:1 vendor product, select the existing Jaguar canonical PART and retain the vendor reference;
@@ -122,15 +122,15 @@ The implementation may use simple form controls. Rich pickers, multi-page naviga
 
 Public unauthenticated users must not gain stock mutation capability through the page or its supporting API path.
 
-## Future physical-stock photographs
+## Optional physical-stock photographs
 
 A future Stock Admin extension may attach multiple photographs to a stock record. Images may be selected from device files/photo storage or captured directly with a mobile/device camera where supported.
 
 Physical-stock photographs are operational evidence for the specific stock record. They are distinct from canonical PART/JEPC catalogue imagery and must not overwrite or redefine catalogue imagery or PART identity.
 
-Media storage, upload API, transformations, retention and storage-provider architecture remain outside the current MVP workflow and require separate approved implementation specification.
+Media storage, upload API, transformations, retention and storage-provider architecture remain outside the minimum Admin contract and require separate approved implementation specification.
 
-## Operational workflows
+## Stock operations
 
 ### Add
 
@@ -141,7 +141,7 @@ admin opens Stock Admin
   -> captures mutable stock facts
   -> classifies stock quality with A-E when known or leaves it explicitly unclassified
   -> validates quantity, location, source and availability rules
-  -> persists the stock record through the approved Worker/D1 application path
+  -> persists the stock record through the defined Worker/D1 application path
   -> reads the persisted record back from the same D1 target
   -> public/read presentation exposes only permitted stock information
 ```
@@ -152,7 +152,7 @@ admin opens Stock Admin
 admin searches/lists stock
   -> selects a stock record
   -> edits approved mutable facts
-  -> PATCHes through the approved application/database path
+  -> PATCHes through the defined application/database path
   -> omitted fields retain their current values
   -> reads the persisted updated record back
 ```
@@ -163,14 +163,14 @@ admin searches/lists stock
 admin searches/lists stock
   -> selects Delete for one mutable stock record
   -> explicit confirmation identifies the target record
-  -> confirmed DELETE uses the approved application/database path
+  -> confirmed DELETE uses the defined application/database path
   -> subsequent read/search no longer returns the deleted stock record
   -> canonical PART identity remains unchanged
 ```
 
 Cancellation must leave the target record unchanged.
 
-A workflow is complete only when persistence is verified in the same environment through the approved data path. A UI-only state change or repository fixture change is not persistence evidence.
+An operation is complete only when persistence is verified in the same environment through the defined data path. A UI-only state change or repository fixture change is not persistence evidence.
 
 ## Stock quality
 
@@ -216,7 +216,7 @@ Search/filter validation should use known records from the target environment an
 The UI/API must explicitly reject or report:
 
 - fractional or otherwise invalid quantity;
-- unknown stock-quality code other than the approved A-E set;
+- unknown stock-quality code other than the defined A-E set;
 - missing physical location when availability requires it;
 - unresolved stock without required source evidence;
 - canonical stock identity where `part_id` does not resolve to an existing PART;
@@ -241,11 +241,11 @@ At minimum, validation should establish that:
 - an unidentified item can remain explicitly unresolved without fabricating Jaguar or Jagports specified identity;
 - a failed canonical PART lookup does not create, fabricate, or silently downgrade identity to unresolved;
 - permitted stock information can be read for known stock records;
-- an authorized operator can create approved mutable stock fields;
+- an authorized operator can create mutable stock fields;
 - an authorized operator can edit a persisted stock record without omitted fields being silently reset;
 - an authorized operator can delete a selected mutable stock record after explicit confirmation;
 - deleting stock does not delete or mutate its canonical PART identity;
-- Add/Edit persisted results can be read back through the approved application/database path;
+- Add/Edit persisted results can be read back through the defined application/database path;
 - a deleted record is absent from subsequent approved read/search results;
 - an unauthenticated or otherwise unauthorized user cannot Add, Edit or Delete stock;
 - invalid stock operations fail deterministically;
@@ -267,15 +267,15 @@ This workflow does not define:
 - payment or shipping;
 - provider-specific synchronization;
 - tenant/provider authentication architecture;
-- detailed provenance beyond the approved stock evidence fields;
-- physical-stock photo media storage/upload architecture until separately approved.
+- detailed provenance beyond the defined stock evidence fields;
+- physical-stock photo media storage/upload architecture unless separately specified.
 
 
-## Third-party / Jagports specified PART workflow
+## Third-party / Jagports specified PART behavior
 
-### Stock Admin workflow
+### Stock Admin behavior
 
-This specification covers reusable third-party products only.
+This section covers reusable third-party products.
 
 #### Existing Jaguar PART / 1:1 third-party product
 
@@ -333,7 +333,7 @@ The category/item/occurrence/PART reference used for the parent must be stored w
 
 ### Purpose
 
-This document defines the minimum UI required by Issue #612 to manage operational stock records.
+This document defines the minimum UI required by the Stock Admin requirement to manage operational stock records.
 
 The target is **one functional Stock Admin page** supporting search/list, Add, Edit and Delete. Navigation, menus, dashboards, account UI, decorative application shell, and visual polish are not requirements for this increment.
 
@@ -381,7 +381,7 @@ The implementation should prefer the simplest page that completes the workflows 
 
 A separate page, wizard or visual stepper is not required. Search/list and the Add/Edit form may coexist on the same page.
 
-### Add workflow
+### Add operation
 
 ```text
 Add Part
@@ -393,7 +393,7 @@ Add Part
 ```
 
 
-### Edit workflow
+### Edit operation
 
 ```text
 search/list existing stock
@@ -407,7 +407,7 @@ search/list existing stock
 
 Edit operates on the mutable stock record. It does not redefine canonical PART identity or catalogue/reference data.
 
-### Delete workflow
+### Delete operation
 
 ```text
 search/list existing stock
@@ -432,7 +432,7 @@ Add must provide an explicit identity decision before save:
 3. select an existing Jagports specified canonical PART for a non-1:1 reusable vendor product; or
 4. explicitly choose unresolved stock with `part_id = NULL` only when reusable product identity is genuinely not yet established.
 
-If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the third-party PART workflow defined by `../SPEC/MODEL_PARTS.md` before STOCK is linked. The minimum #612 page does not silently fabricate that identity.
+If a non-1:1 reusable vendor product does not yet have its required Jagports specified PART, that canonical identity is created through the third-party PART workflow defined by `../SPEC/MODEL_PARTS.md` before STOCK is linked. The minimum page does not silently fabricate that identity.
 
 For an existing PART, search results need only enough information to select the intended record: part number, description and available fit/context. A separate contextual information panel is optional.
 
@@ -440,7 +440,7 @@ A failed PART search must remain a failed canonical lookup. It must not automati
 
 ### Stock details
 
-The Add/Edit form must expose the current #612 `/api/stock` mutable fields supported by the approved model:
+The Add/Edit form must expose the mutable `/api/stock` fields defined by the stock model:
 
 - `part_id` when resolved, otherwise `NULL`;
 - integer `quantity`;
@@ -473,17 +473,17 @@ The page must:
 
 Authorization remains an API requirement. Building an Admin login/account-management UI is outside this page specification.
 
-### Future catalogue Admin panel — Fit Categories and source descriptions (#877)
+### Catalogue Admin panel — Fit Categories and source descriptions
 
-This is a future extension of the existing one-page Admin UI. It is separate from operational STOCK and `/api/stock`.
+This is a separate catalogue-Admin section of the one-page Admin UI. It is separate from operational STOCK and `/api/stock`.
 
 An authorized operator can create or retire stable normalized category/value IDs, provide language-qualified domain names and descriptions, and map **one selected JEPC source description** to one category/value. A source record must show its namespace, dataset/version, original text, source language, locator, group/value identifiers and model/category/item/tree-path scope. Linking creates an append-only interpretation revision; it never rewrites JEPC data.
 
-The panel may list the approved fixture vocabulary—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—only as explicitly tagged synthetic source records. Fixture rows use the same provenance shape as the future importer but are not JEPC facts and cannot publish production fit.
+The panel may list the defined fixture vocabulary—Body: Coupe/Convertible; Steering: LHD/RHD; Engine aspiration: NA/Supercharged; Seat equipment: Memory Seat/Powered Seats—only as explicitly tagged synthetic source records. Fixture rows use the same provenance shape as the importer but are not JEPC facts and cannot publish production fit.
 
-A mapping remains proposed or unavailable when its JEPC relation, source scope, language metadata, evidence or review is missing. Raw description text, translated UI text and localized domain names are never foreign keys. There is no condition or predicate authored from this panel: every later condition must reference its persisted JEPC source-description mapping and resolvable i18n domain name/description.
+A mapping remains proposed or unavailable when its JEPC relation, source scope, language metadata, evidence or verification is missing. Raw description text, translated UI text and localized domain names are never foreign keys. There is no condition or predicate authored from this panel: every later condition must reference its persisted JEPC source-description mapping and resolvable i18n domain name/description.
 
-#### Future Admin API contract
+#### Admin API contract
 
 | Operation | Proposed route | Required safeguard |
 |---|---|---|
@@ -492,15 +492,15 @@ A mapping remains proposed or unavailable when its JEPC relation, source scope, 
 | Browse descriptions | `GET /api/admin/fit/descriptions?status=&language=&q=` | Return immutable source identity, provenance and mapping status. |
 | Map/retire | `POST /api/admin/fit/mappings`; `POST /api/admin/fit/mappings/:id/retire` | Append a source-qualified revision; reject ambiguous or conflicting active mappings. |
 
-All mutations require independent catalogue Admin authorization, validate on the server, and read back the persisted revision. A shared token alone does not prove an independent reviewer. The public filter consumes only published mappings with source and language metadata; it never consumes raw Admin form text.
+All mutations require independent catalogue Admin authorization, validate on the server, and read back the persisted revision. A shared token alone does not establish an independent authorization context. The public filter consumes only published mappings with source and language metadata; it never consumes raw Admin form text.
 
-### Future physical-stock photos
+### Physical-stock photos
 
-Physical-stock photographs remain a future extension. A later implementation may support device files/photo library and camera capture, multiple previews and a primary image. These images belong to the physical stock record and are distinct from canonical PART/JEPC imagery.
+Physical-stock photographs may support device files/photo library and camera capture, multiple previews and a primary image. These images belong to the physical stock record and are distinct from canonical PART/JEPC imagery.
 
-Photo upload, storage and media-provider work **must not block #612 MVP Stock Admin UI**.
+Photo upload, storage and media-provider behavior is outside the minimum Stock Admin contract.
 
-### Not required for #612 minimum UI
+### Outside the minimum UI
 
 - navigation or menus;
 - sidebar;
@@ -512,10 +512,10 @@ Photo upload, storage and media-provider work **must not block #612 MVP Stock Ad
 - exact reproduction of concept artwork;
 - responsive/mobile optimization beyond basic usability;
 - stock-item photo persistence;
-- provider abstraction or #671 completion;
+- provider abstraction;
 - reservations, sales, shipping, payment or warehouse ledger;
 - individual physical-unit identity.
 
 ### Completion criterion
 
-The minimum Stock Admin UI is complete when an authorized operator can use the single Admin page to find stock records and perform Add, Edit and Delete operations through the approved `/api/stock` path; Add supports an existing canonical Jaguar/JEPC or Jagports specified PART, verified 1:1 vendor products reuse the existing Jaguar PART, genuinely unresolved stock is explicitly selected, Edit preserves valid existing values when fields are omitted, Delete removes only the selected mutable stock record, and every operation produces persisted success evidence or a deterministic error.
+The minimum Stock Admin UI conforms when an authorized operator can use the single Admin page to find stock records and perform Add, Edit and Delete operations through the approved `/api/stock` path; Add supports an existing canonical Jaguar/JEPC or Jagports specified PART, verified 1:1 vendor products reuse the existing Jaguar PART, genuinely unresolved stock is explicitly selected, Edit preserves valid existing values when fields are omitted, Delete removes only the selected mutable stock record, and every operation produces persisted success evidence or a deterministic error.
