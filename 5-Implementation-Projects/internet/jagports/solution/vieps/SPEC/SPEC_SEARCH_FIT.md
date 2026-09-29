@@ -71,8 +71,6 @@ The centre-top FIT / Variations control initially has no checked values. Group s
 1. **Browse or multiple candidates:** show only published normalized values backed by mapped dynamic descriptions in the current search/browse candidates. Visibility indicates availability; it does not activate a filter. At most one competing value per normalized group is active. Different groups combine with AND.
 2. **Single selected PART/context:** the control becomes read-only and shows the mapped dynamic-description values evidenced for the selected occurrence/context. Unknown or unmapped descriptions remain unavailable rather than becoming positive FIT claims.
 
-Result-row bookmark state is independent of FIT and cannot apply filters or create description mappings.
-
 The FIT control exposes only normalized values backed by mapped dynamic descriptions.
 
 ## Admin mapping contract
