@@ -552,5 +552,5 @@ Real installed XK data is a bounded smoke/evidence test. It is not committed as 
 - Issue #355 owns DataImporter and catalogue source interpretation.
 - Issue #352 owns hotspot coordinate conversion evidence.
 - Issue #664 owns broader JEPC source reverse engineering.
-- Issue #354 and `MODEL_PART.md` own the normalized Parts Data Model.
+- Issue #354 and `MODEL_PARTS.md` own the normalized Parts Data Model.
 - Issue #672 owns the separate InvenTree StockProvider proof of concept.
