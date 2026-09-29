@@ -38,9 +38,13 @@ Repeatable migration review, source selection, preview/local testing, production
 
 ### Parts D1 identity setup
 
-`3-Deployment/internet/cloudflare/d1/jagports/README.md`
+`3-Deployment/internet/cloudflare/d1/jagports/OPERATIONS.md`
 
-Repository-controlled `parts-<range_slug>` database naming, capacity check, creation, identity verification, and reviewed configuration. Schema migration, Worker binding/routing, JEPC import, and runtime publication are separate steps.
+Repository-controlled `parts-<range_slug>` database identity planning, capacity check, creation, verification, recovery, and local testing.
+
+Directory context and database-role boundary:
+
+`3-Deployment/internet/cloudflare/d1/jagports/README.md`
 
 ## Reduced-MVP runtime status
 
