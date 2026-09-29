@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { matchingLeafModels, selectModelBundles } from '../src/DataImporter.Selection.mjs';
 import { openLedger } from '../src/DataImporter.Runtime.mjs';
@@ -69,6 +70,23 @@ test('selection caps random model/category picks at forty and records incomplete
   assert.deepEqual(changed.incompleteCategories[0].missing, ['top-level']);
 });
 
+test('model/category selector returns exactly one complete category bundle and streams indexing progress', async t => {
+  const options = await fixture(t);
+  const progress = [];
+  const selection = await selectModelBundles({ ...options, modelId: '3187', categoryId: '318701',
+    onProgress: event => progress.push(event) });
+  assert.equal(selection.selector, 'MODEL_CATEGORY');
+  assert.equal(selection.modelId, '3187');
+  assert.equal(selection.categoryId, '318701');
+  assert.deepEqual(selection.modelIds, ['3187']);
+  assert.equal(selection.categoryLimit, 1);
+  assert.equal(selection.eligibleCategories, 1);
+  assert.equal(selection.bundles.length, 1);
+  assert.equal(selection.bundles[0].category, '318701');
+  assert.ok(progress.some(event => event.phase === 'indexing_model_files' && event.completed > 0));
+  await assert.rejects(selectModelBundles({ ...options, modelId: '3187' }), /both numeric/);
+});
+
 test('unknown menu structures and state inside the source are rejected', async t => {
   const options = await fixture(t);
   await options.put('menus/L0/pl_id_3187_l_id_0.xml', '<?xml version="1.0"?>\n<Data>\n[broken]\n</Data>');
@@ -78,9 +96,12 @@ test('unknown menu structures and state inside the source are rejected', async t
 
 test('--parse stages forty random bundles and reuses overlapping evidence without saving a selection file', async t => {
   const options = await fixture(t);
-  const cli = path.resolve('src/DataImporter.CLI.mjs');
+  const cli = fileURLToPath(new URL('../src/DataImporter.CLI.mjs', import.meta.url));
+  const common = ['--source', options.source, '--state-dir', options.stateDir, '--json'];
+  const invoke = args => spawnSync(process.execPath, [cli, ...common, ...args], { encoding: 'utf8',
+    env: { ...process.env, CLOUDFLARE_API_TOKEN: '' } });
   const run = (pattern, extra = []) => spawnSync(process.execPath, [cli, '--parse', pattern,
-    ...extra], { encoding: 'utf8', env: { ...process.env, JEPC_SOURCE: options.source, LOCALAPPDATA: options.appData } });
+    ...common, ...extra], { encoding: 'utf8', env: { ...process.env, CLOUDFLARE_API_TOKEN: '' } });
   const first = run('XK');
   assert.equal(first.status, 0, first.stderr);
   const summary = JSON.parse(first.stdout);
@@ -93,6 +114,7 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.deepEqual(summary.modelIds, TEST_MODEL_IDS);
   assert.equal(summary.staging.bundles, 40);
   assert.equal(summary.staging.reused, 0);
+  assert.equal(summary.d1Import.phase, 'NOT_REQUESTED');
   assert.deepEqual(await readdir(options.stateDir), ['ledger.sqlite']);
   assert.equal((await readdir(options.stateDir)).some(name => name.includes('selection')), false);
   const second = run('xk');
@@ -101,12 +123,43 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.equal(secondSummary.selected, 40);
   assert.ok(secondSummary.staging.reused >= 35 && secondSummary.staging.reused <= 40);
   assert.equal(run('XK', ['--seed', 'not-supported']).status, 1);
-  const estimated = run('XK', ['--estimate']);
+  const direct = spawnSync(process.execPath, [cli, '--category', '3187:318701', ...common], {
+    encoding: 'utf8', env: { ...process.env, CLOUDFLARE_API_TOKEN: '' },
+  });
+  assert.equal(direct.status, 0, direct.stderr);
+  const directSummary = JSON.parse(direct.stdout);
+  assert.equal(directSummary.selector, 'MODEL_CATEGORY');
+  assert.equal(directSummary.selected, 1);
+  assert.equal(directSummary.staging.bundles, 1);
+  assert.equal(directSummary.d1Import.phase, 'NOT_REQUESTED');
+  const oneItem = spawnSync(process.execPath, [cli, '--category', '3187:318701', '--item', '1', ...common], {
+    encoding: 'utf8', env: { ...process.env, CLOUDFLARE_API_TOKEN: '' },
+  });
+  assert.equal(oneItem.status, 0, oneItem.stderr);
+  assert.equal(JSON.parse(oneItem.stdout).itemId, '1');
+  assert.equal(invoke(['--category', '3187:318701', '--item', '99']).status, 1);
+  assert.equal(JSON.parse(oneItem.stdout).d1Import.phase, 'NOT_REQUESTED');
+  const importRequested = spawnSync(process.execPath, [cli, '--category', '3187:318702', ...common, '--import'], {
+    encoding: 'utf8', env: { ...process.env, CLOUDFLARE_API_TOKEN: '' },
+  });
+  assert.equal(importRequested.status, 0, importRequested.stderr);
+  assert.equal(JSON.parse(importRequested.stdout).d1Import.phase, 'NOT_CONFIGURED');
+  assert.equal(invoke(['--model', '3187']).status, 1);
+  assert.equal(invoke(['--category', '318701']).status, 1);
+  assert.equal(invoke(['--parse', 'XK', '--category', '3187:318701']).status, 1);
+  assert.equal(invoke(['--parse', 'XK', '--item', '1']).status, 1);
+  assert.equal(spawnSync(process.execPath, [cli, '--parse', 'XK'], { encoding: 'utf8' }).status, 1);
+  assert.equal(invoke(['--parse', 'XK', '--item', '1']).status, 1);
+  assert.equal(spawnSync(process.execPath, [cli, '--parse', 'XK'], { encoding: 'utf8' }).status, 1);
+  assert.equal(run('XK', ['--estimate']).status, 1);
+  const estimated = run('XK', ['--import', '--estimate']);
   assert.equal(estimated.status, 0, estimated.stderr);
   const estimateSummary = JSON.parse(estimated.stdout).estimate;
   assert.ok(estimateSummary.files > 0);
   assert.ok(estimateSummary.bytes > 0);
   assert.ok(estimateSummary.elapsedSeconds >= 0);
+  assert.ok(estimateSummary.selectedBundleBytes > 0);
+  assert.ok(estimateSummary.estimatedSelectedParseSeconds >= 0);
   const ledger = await openLedger(options.source, options.stateDir);
   const estimateReport = ledger.readEstimate(estimateSummary.reportId);
   ledger.close();
@@ -114,18 +167,21 @@ test('--parse stages forty random bundles and reuses overlapping evidence withou
   assert.equal(estimateReport.range, null);
 });
 
-test('CLI exposes parsing and estimation commands only', () => {
-  const cli = path.resolve('src/DataImporter.CLI.mjs');
+test('CLI exposes model-pattern parsing and the retained inspection commands', () => {
+  const cli = fileURLToPath(new URL('../src/DataImporter.CLI.mjs', import.meta.url));
   const call = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
   const help = call([]);
-  assert.equal(help.status, 1);
+  assert.equal(help.status, 0, help.stderr);
   for (const command of ['inspect', 'status', 'report', 'doctor']) {
     assert.equal(call([command]).status, 1);
+    assert.match(help.stdout, new RegExp(command));
   }
-  assert.match(help.stderr, /--parse PATTERN \[--estimate\]/);
+  assert.ok(help.stdout.includes('--parse PATTERN [--language N] [--json] [--import [--estimate]]'));
+  assert.ok(help.stdout.includes('--category <model_id>:<category_id> [--item <id>]'));
   assert.equal(call(['--estimate']).status, 1);
+  assert.equal(call(['--parse', 'XK', '--source', 'x', '--state-dir', 'y', '--estimate']).status, 1);
   assert.equal(call(['estimate-range']).status, 1);
-  for (const option of ['--range', '--models', '--sample-size', '--calibration', '--source', '--state-dir', '--language', '--json', '--help']) {
+  for (const option of ['--range', '--models', '--sample-size', '--calibration', '--source', '--state-dir', '--language', '--json']) {
     assert.equal(call([option, 'value']).status, 1);
   }
 });

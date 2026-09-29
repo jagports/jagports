@@ -65,12 +65,17 @@ export function matchingLeafModels(modelMenuSource, pattern) {
   return leaves;
 }
 
-async function filesInModel(root, model, language) {
+async function filesInModel(root, model, language, onProgress) {
   const relative = sourcePath('drilldown', `pl_id_${model}`, `L${language}`);
   const directory = await realpath(path.join(root, relative));
   if (!within(root, directory)) throw new Error(`Source directory escapes installation: ${relative}`);
   const byCategory = new Map();
+  let scannedFiles = 0;
   for await (const entry of await opendir(directory)) {
+    scannedFiles++;
+    if (scannedFiles % 1000 === 0) {
+      onProgress?.({ phase: 'indexing_model_files', completed: scannedFiles, total: null, model });
+    }
     if (!entry.isFile()) continue;
     const match = new RegExp(`^(cat|tl)_M${model}_C(\\d+)_L${language}\\.xml$|^Itm_M${model}_C(\\d+)_I(\\d+)_L${language}\\.xml$`).exec(entry.name);
     if (!match) continue;
@@ -80,6 +85,7 @@ async function filesInModel(root, model, language) {
     else existing.items.push({ item: match[4], path: sourcePath(relative, entry.name) });
     byCategory.set(category, existing);
   }
+  onProgress?.({ phase: 'indexing_model_files', completed: scannedFiles, total: null, model });
   return byCategory;
 }
 
@@ -94,12 +100,15 @@ async function fingerprint(root, relative) {
   return { path: relative, size: after.size, sha256: digest.digest('hex') };
 }
 
-export async function selectModelBundles({ pattern, source, stateDir, language = '0', onProgress }) {
-  if (typeof pattern !== 'string' || pattern.trim().length < 2 || !source || !stateDir) {
-    throw new Error('Require a model-name pattern, source root and state directory.');
+export async function selectModelBundles({ pattern, modelId, categoryId, source, stateDir, language = '0', onProgress }) {
+  const singleCategory = modelId !== undefined || categoryId !== undefined;
+  if (singleCategory ? (!/^\d+$/.test(String(modelId ?? '')) || !/^\d+$/.test(String(categoryId ?? ''))
+      || pattern !== undefined) : (typeof pattern !== 'string' || pattern.trim().length < 2)) {
+    throw new Error('Provide either a model-name pattern or both numeric --model and --category IDs.');
   }
+  if (!source || !stateDir) throw new Error('Require a source root and state directory.');
   if (!/^\d{1,2}$/.test(String(language))) throw new Error('Language must be a numeric ID.');
-  const modelPattern = pattern.trim().toLocaleUpperCase('en');
+  const modelPattern = singleCategory ? `model:${modelId}/category:${categoryId}` : pattern.trim().toLocaleUpperCase('en');
   const root = await realpath(path.resolve(source));
   const state = path.resolve(stateDir);
   let ancestor = state;
@@ -112,7 +121,25 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
   const modelsFile = 'menus/models_l_id_0.xml';
   const modelsMenu = await menu(root, modelsFile);
   const models = new Map(rows(modelsMenu.source, 3, modelsFile).map(([id, parent, label]) => [id, { parent, label }]));
-  const matched = matchingLeafModels(modelsMenu.source, modelPattern);
+  const ancestorsOf = id => {
+    const ancestors = [], seen = new Set([id]);
+    let parent = models.get(id)?.parent;
+    while (models.has(parent)) {
+      if (seen.has(parent)) throw new Error(`Cyclic source model hierarchy at ${id}.`);
+      seen.add(parent);
+      ancestors.push(parent);
+      parent = models.get(parent).parent;
+    }
+    return ancestors;
+  };
+  const matched = singleCategory
+    ? (() => {
+      const id = String(modelId), model = models.get(id);
+      if (!model) throw new Error(`JEPC Model_ID not found: ${id}`);
+      if ([...models.values()].some(entry => entry.parent === id)) throw new Error(`--model must identify a leaf source model: ${id}`);
+      return [{ id, parent: model.parent, label: model.label }];
+    })()
+    : matchingLeafModels(modelsMenu.source, modelPattern);
   const modelIds = matched.map(model => model.id);
   const menuChecksums = [{ path: modelsFile, sha256: modelsMenu.sha256 }];
   const candidates = [], incompleteCategories = [];
@@ -120,9 +147,9 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
     const relative = sourcePath('menus', `L${language}`, `pl_id_${model}_l_id_${language}.xml`);
     const categoryMenu = await menu(root, relative);
     menuChecksums.push({ path: relative, sha256: categoryMenu.sha256 });
-    const files = await filesInModel(root, model, language);
+    const files = await filesInModel(root, model, language, onProgress);
     for (const [category, categoryParent, categoryLabel, leaf] of rows(categoryMenu.source, 4, relative)) {
-      if (leaf !== '1') continue;
+      if (leaf !== '1' || (singleCategory && category !== String(categoryId))) continue;
       const bundle = files.get(category);
       if (!bundle?.cat || !bundle?.tl || !bundle.items.length) {
         incompleteCategories.push({ model, category, missing: [
@@ -130,7 +157,7 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
         ].filter(Boolean) });
         continue;
       }
-      candidates.push({ model, parentModel: models.get(model).parent,
+      candidates.push({ model, ancestorModelIds: ancestorsOf(model), parentModel: models.get(model).parent,
         parentModelLabel: models.get(models.get(model).parent)?.label ?? null,
         modelLabel: models.get(model).label, category, categoryParent, categoryLabel, language: String(language),
         paths: [bundle.cat, bundle.tl, ...bundle.items.sort((a, b) => Number(a.item) - Number(b.item))
@@ -142,16 +169,19 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
   for (const model of modelIds) {
     if (!candidates.some(bundle => bundle.model === model)) throw new Error(`No complete category bundle in model ${model}.`);
   }
-  const byModel = new Map(modelIds.map(model => [model, []]));
-  for (const candidate of candidates) byModel.get(candidate.model).push(candidate);
-  const activeModels = modelIds.filter(model => byModel.get(model).length);
-  const sampled = [];
-  while (sampled.length < CATEGORY_LIMIT && activeModels.length) {
-    const modelIndex = randomInt(activeModels.length);
-    const categories = byModel.get(activeModels[modelIndex]);
-    sampled.push(categories.splice(randomInt(categories.length), 1)[0]);
-    if (!categories.length) activeModels.splice(modelIndex, 1);
-  }
+  const sampled = singleCategory ? [...candidates] : (() => {
+    const byModel = new Map(modelIds.map(model => [model, []]));
+    for (const candidate of candidates) byModel.get(candidate.model).push(candidate);
+    const activeModels = modelIds.filter(model => byModel.get(model).length);
+    const selected = [];
+    while (selected.length < CATEGORY_LIMIT && activeModels.length) {
+      const modelIndex = randomInt(activeModels.length);
+      const categories = byModel.get(activeModels[modelIndex]);
+      selected.push(categories.splice(randomInt(categories.length), 1)[0]);
+      if (!categories.length) activeModels.splice(modelIndex, 1);
+    }
+    return selected;
+  })();
   sampled.sort((a, b) => identity(a).localeCompare(identity(b)));
   const bundles = [];
   for (const candidate of sampled) {
@@ -159,6 +189,9 @@ export async function selectModelBundles({ pattern, source, stateDir, language =
     bundles.push({ ...details, files: await Promise.all(paths.map(relative => fingerprint(root, relative))) });
     onProgress?.({ phase: 'selection', completed: bundles.length, total: sampled.length, model: candidate.model });
   }
-  return { schemaVersion: 1, modelPattern, source: root, language: String(language), modelIds,
-    menuChecksums, incompleteCategories, eligibleCategories: candidates.length, categoryLimit: CATEGORY_LIMIT, bundles };
+  return { schemaVersion: 1, selector: singleCategory ? 'MODEL_CATEGORY' : 'MODEL_PATTERN',
+    modelPattern, modelId: singleCategory ? String(modelId) : null, categoryId: singleCategory ? String(categoryId) : null,
+    source: root, language: String(language), modelIds,
+    menuChecksums, incompleteCategories, eligibleCategories: candidates.length,
+    categoryLimit: singleCategory ? 1 : CATEGORY_LIMIT, bundles };
 }

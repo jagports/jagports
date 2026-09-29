@@ -81,7 +81,7 @@ async function listDatabases(options) {
   return databases;
 }
 
-export async function setupRangeDatabase({ mode, rangeSlug, accountId, accountPlan, token, fetchImpl = fetch, configDirectory = defaultConfigDirectory }) {
+export async function setupPartsDatabase({ mode, rangeSlug, accountId, accountPlan, token, fetchImpl = fetch, configDirectory = defaultConfigDirectory }) {
   const databaseName = databaseNameForRange(rangeSlug);
   const configPath = join(configDirectory, `${rangeSlug}.json`);
   const expected = { rangeSlug, databaseName, accountId };
@@ -150,7 +150,7 @@ function parseArguments(argv) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
-    const result = await setupRangeDatabase({ ...parseArguments(process.argv.slice(2)), token: process.env.CLOUDFLARE_API_TOKEN });
+    const result = await setupPartsDatabase({ ...parseArguments(process.argv.slice(2)), token: process.env.CLOUDFLARE_API_TOKEN });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } catch (error) {
     process.stderr.write(`${error.message}\n`);
