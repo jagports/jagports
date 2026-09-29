@@ -10,7 +10,7 @@ Define the current v0.1a command and evidence-staging behavior, followed by requ
 
 The importer must begin from source structures and target-schema concepts already understood with high confidence, process selected JEPC models incrementally, preserve unknown source information, and improve its parser/schema knowledge only when evidence from actual JEPC source requires it.
 
-This specification complements the existing JEPC source-structure documents and the canonical VIEPS [`MODEL_PART.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md). The canonical end-to-end JEPC-to-D1 data model, completeness and runtime-independence contract is defined by [`MODEL_JEPC_D1.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART_IMPORT_JEPC.md).
+This specification complements the existing JEPC source-structure documents and the canonical VIEPS [`MODEL_PART.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_PART.md). The canonical end-to-end JEPC-to-D1 data model, completeness and runtime-independence contract is defined by [`MODEL_JEPC_D1.md`](../../../../internet/jagports/solution/vieps/SPEC/MODEL_JEPC_D1.md).
 
 ## v0.1a command contract
 
