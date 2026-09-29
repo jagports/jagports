@@ -136,7 +136,7 @@ This model does not use KOVuosi as a source for VIN decoding, VIN-range selectio
 
 `superseded_part_id → superseding_part_id` preserves both superseded and replacement identities.
 
-One replacement may supersede multiple historical parts and chains such as `A → B → C` are representable.
+One replacement may supersede multiple superseded parts and chains such as `A → B → C` are representable.
 
 Supersession is not a generic interchangeability assertion.
 
@@ -238,7 +238,7 @@ This is distinct from catalogue vehicle/model/VIN fit and from physical stock/st
 
 Unresolved stock is representable without fabricating a canonical PART. Conversely, known reusable third-party products must not be kept unresolved merely because Jaguar did not issue the vendor product number.
 
-The stock relationship does not implement warehouse transaction ledger, reservations, sales workflow, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
+The stock relationship does not implement warehouse transaction ledger, reservations, sales processing, external catalogue synchronization, or automatic stock mutation from catalogue supersession.
 
 ## Architectural boundary
 
@@ -341,7 +341,7 @@ The occurrence-fit persistence dictionary is maintained in [`SPEC_SEARCH_FIT.md`
 | Diagram → hotspot | 1:N required diagram; deleting diagram removes hotspots. |
 | Occurrence → hotspot | 1:N optional occurrence; deleting occurrence SET NULL preserves hotspot/source evidence. |
 | Occurrence → vehicle location | 1:N required occurrence; optional model range. Deleting occurrence or a referenced model removes the mapping. |
-| PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 canonical PART and 0..1 donor. The PART may be Jaguar/JEPC-imported or Jagports specified. `part_id = NULL` is reserved for genuinely unresolved reusable identity. Deleting either parent SET NULL preserves stock identity, quantity, historical number, donor text and location. Supersession never mutates stock. |
+| PART / donor vehicle → stock | Each parent 1:N; each stock has 0..1 canonical PART and 0..1 donor. The PART may be Jaguar/JEPC-imported or Jagports specified. `part_id = NULL` is reserved for genuinely unresolved reusable identity. Deleting either parent SET NULL preserves stock identity, quantity, legacy number, donor text and location. Supersession never mutates stock. |
 | Vehicle → identifiers | 1:N; cascade on vehicle deletion. Identifier text is not unique. |
 | Tree parent → nodes / tree ↔ PART | Parent 0..1 per node, 1:N children; cascade subtree deletion. Current N:M PART membership remains a broad browse summary. |
 | Tree ↔ occurrence/path | `part_occurrence_tree_path` is N:M where necessary: one occurrence may retain multiple source paths; deleting occurrence or tree node cascades only the link rows. |
