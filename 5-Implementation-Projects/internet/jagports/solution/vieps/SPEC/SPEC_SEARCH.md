@@ -260,7 +260,7 @@ The coordinator must not accept a database or binding name directly from user in
 
 ### Search Index
 
-The **Search Index** is the global catalogue lookup structure. Its physical D1 placement is defined by [`MODEL_D1.md`](MODEL_D1.md).
+The **Search Index** is the global catalogue lookup structure. Its physical D1 placement is defined by [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md).
 
 The Search Index is compact and rebuildable. It contains only the data needed to locate authoritative catalogue records, including:
 
@@ -358,7 +358,7 @@ If one source operation publishes to more than one Range, each Range has its own
 
 Range databases remain the primary catalogue partition boundary.
 
-The Search Index is rebuildable from authoritative Range data. Its physical placement is owned by [`MODEL_D1.md`](MODEL_D1.md). Its internal storage can be partitioned by deterministic lookup key or another stable search partition when growth requires it, without changing its public identity or moving catalogue authority out of the authoritative Range catalogues.
+The Search Index is rebuildable from authoritative Range data. Its physical placement is owned by [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md). Its internal storage can be partitioned by deterministic lookup key or another stable search partition when growth requires it, without changing its public identity or moving catalogue authority out of the authoritative Range catalogues.
 
 Partitioning must not change public identity: catalogue references remain `(catalogue_range, part_id)`, and verified `global_part_key` grouping remains optional.
 
