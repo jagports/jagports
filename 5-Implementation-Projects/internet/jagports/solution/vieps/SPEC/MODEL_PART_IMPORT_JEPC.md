@@ -1,12 +1,115 @@
-# VIEPS JEPC PART Import Model
+# VIEPS E2E JEPC-to-D1 Data Model
 
 ## Purpose
 
-This document defines the canonical import contract for transforming Jaguar JEPC catalogue data into VIEPS PART databases.
+This document is the canonical end-to-end data-model specification for transforming Jaguar JEPC source data into VIEPS Range-partitioned D1 catalogue databases.
 
-It complements [MODEL_PART.md](MODEL_PART.md), which owns canonical PART, occurrence, catalogue-tree and FIT semantics. This document owns the JEPC-to-PART import boundary: what source evidence must survive import, what must be materialized into the Range-partitioned D1 databases, and what must remain derivable after import.
+It owns the complete semantic path from JEPC source evidence through import identity, durable D1 persistence, normalized catalogue relationships, unresolved source evidence and runtime reconstruction/query behavior. It is not limited to FIT, PART rows, the current DataImporter implementation, or the current physical D1 schema.
+
+[MODEL_PART.md](MODEL_PART.md) owns detailed PART, occurrence, catalogue-tree and FIT semantics inside this larger E2E model. JEPC source-research documents describe observed source behavior. DataImporter specifications own execution mechanics. D1 deployment specifications own physical setup and partitioning. Those narrower documents must not reduce this E2E completeness contract.
 
 The import target is not merely a cache of selected PART rows. A successfully imported parts-<range_slug> D1 database is the durable JEPC-derived catalogue database for that Range.
+
+## E2E model ownership
+
+This model owns the JEPC-to-D1 data contract across all JEPC-derived catalogue domains, including domains that are not yet fully implemented.
+
+It includes:
+
+- source dataset/release identity and source-file evidence;
+- model/menu ancestry and Range routing;
+- categories, top-level items and ordered catalogue tree structure;
+- canonical PARTs and source occurrences;
+- application IDs, raw applicability/attribute evidence and normalized FIT;
+- multilingual source structures and descriptions;
+- diagrams, illustrations, hotspots, item callouts and media relationships where present;
+- supersession, catalogue location and other verified source relationships where present;
+- unknown or unsupported JEPC file families, rows, fields, tuples and semantic codes;
+- parser/mapping versions, provenance, snapshots and completeness state;
+- D1 runtime reconstruction and query requirements.
+
+The current importer may implement these domains incrementally. Incremental implementation does not narrow the target model.
+
+~~~text
+JEPC source
+    |
+    v
+durable source evidence
+    |
+    +--> source hierarchy / scope
+    +--> catalogue structure
+    +--> PART / occurrence
+    +--> FIT / applicability
+    +--> multilingual structure
+    +--> media / diagram / hotspot relationships
+    +--> supersession / location / other source relationships
+    +--> unresolved source structures
+    |
+    v
+parts-<range_slug> D1
+    |
+    +--> browse / Parts tree
+    +--> reverse PART search
+    +--> FIT evaluation
+    +--> diagram/location reconstruction
+    +--> provenance/explanation
+    +--> future remapping/reprocessing
+~~~
+
+## Durable source-evidence layer
+
+D1 must retain enough source-qualified evidence to re-derive normalized catalogue relationships without reopening JEPC files. This is broader than retaining only FIT evidence.
+
+At minimum the durable source layer must represent, as applicable:
+
+| Concept | Required durable identity/evidence |
+| --- | --- |
+| Source dataset | source namespace, dataset/release identity when known, import/snapshot identity |
+| Source file | relative path, file family/type, checksum, language and model/category/item scope |
+| Source record | file identity, stable record/row locator, raw record or lossless equivalent |
+| Source bundle | model/category/item/language scope and dependency membership |
+| Source relationship | source-qualified relationship, including unresolved relationship type when semantics are not verified |
+| Interpretation | parser version, mapping/semantic version, verification state |
+| Completeness | complete, partial, incomplete or unresolved state for the relevant source scope |
+
+Unknown source records must remain recoverable with enough context to be interpreted later. A checksum identifies source bytes; it is not logical catalogue identity.
+
+## Complete JEPC-to-D1 information graph
+
+~~~text
+JEPC dataset
+  |
+  +--> model/menu hierarchy
+  |      +--> model / parent / ancestor context
+  |             +--> accepted Range routing
+  |
+  +--> category
+  |      +--> top-level item
+  |             +--> ordered source tree
+  |                    +--> branch/group/condition node
+  |                    +--> PART occurrence
+  |                           +--> canonical PART
+  |                           +--> exact path identity
+  |                           +--> applicationId
+  |                           +--> raw predicates/sidecars
+  |                           +--> normalized FIT assertions
+  |                           +--> diagram/location relationships
+  |
+  +--> language-qualified source structure/text
+  |
+  +--> media / illustration / hotspot references
+  |
+  +--> supersession / location / other source relationships
+  |
+  +--> unknown or unsupported source structures
+  |
+  +--> source files / raw records / checksums / provenance
+  |
+  +--> import snapshot / parser version / mapping version / completeness
+~~~
+
+Every normalized relationship must remain traceable to durable source-qualified evidence.
+
 
 ## Runtime independence requirement
 
@@ -57,7 +160,7 @@ JEPC files or the local ledger are not required after a complete accepted import
 
 ## Required D1 information graph
 
-The physical schema may evolve, but the persisted information graph must preserve the following relationships without flattening away source identity or logical grouping.
+The physical schema may evolve, but the persisted information graph must preserve the complete JEPC-derived source and catalogue relationships without flattening away source identity, unresolved data or logical grouping.
 
 ~~~text
 JEPC source scope
@@ -271,6 +374,36 @@ Canonical PART identity remains language-independent when source evidence establ
 
 Localized presentation may derive from mapped descriptions, but the original source-language description and provenance remain available.
 
+## JEPC media and non-PART catalogue domains
+
+Media, diagrams and hotspots are part of the E2E catalogue model even when binary media bytes are stored outside D1.
+
+D1 must retain stable source identity, checksum/reference metadata and catalogue relationships sufficient to reconstruct how imported media participates in JEPC. A specialized MediaImporter may ingest binary assets, but that does not move ownership of JEPC media relationships out of this E2E model.
+
+Other JEPC-derived relationships such as supersession, replacement, catalogue location or future newly understood domains must follow the same rule: preserve raw source-qualified evidence first; create normalized semantics only when verified; never discard a source relationship merely because the current schema does not yet understand it.
+
+~~~text
+source evidence
+    |
+    +--> known semantic mapping --> normalized D1 relationship
+    |
+    +--> unknown semantic mapping --> durable unresolved evidence
+~~~
+
+## Unknown and unsupported source structures
+
+A complete E2E import is loss-preserving. When a new file family, field, record type, tuple, relationship or code is encountered:
+
+1. preserve the source-qualified raw evidence;
+2. retain dataset/file/bundle/context identity;
+3. record parser/mapping version and unresolved state;
+4. do not invent a normalized meaning;
+5. continue other safe import work where possible;
+6. allow later schema/mapping knowledge to reprocess the durable evidence.
+
+Complete import does not require every JEPC semantic to be understood. It requires unknown semantics to be retained rather than silently lost.
+
+
 ## Diagram and hotspot contract
 
 Where diagram, illustration, hotspot or catalogue-location source data is supported by the importer, D1 must retain the relationships required by [MODEL_PART.md](MODEL_PART.md):
@@ -306,10 +439,12 @@ A partial import must never be represented as complete coverage.
 
 ## D1 completeness invariant
 
-For every source scope reported as completely imported, D1 must satisfy this invariant:
+For every source scope reported as completely imported, D1 must satisfy this E2E invariant:
 
 ~~~text
 D1 complete source scope
+        |
+        +--> durable source hierarchy/evidence       YES
         |
         +--> complete retained Parts tree             YES
         |
@@ -322,6 +457,10 @@ D1 complete source scope
         +--> normalized verified FIT graph            YES, where interpretation is verified
         |
         +--> explicit unresolved FIT evidence         YES, where interpretation is not verified
+        |
+        +--> media/other source relationships         YES, where present
+        |
+        +--> unresolved source structures retained    YES
         |
         +--> provenance and mapping/version identity  YES
         |
@@ -337,6 +476,24 @@ If required information exists only in the local ledger, the D1 import for that 
 Catalogue data is partitioned by the accepted vehicle Range routing contract. Each parts-<range_slug> database must preserve the same model semantics.
 
 Partitioning must not change canonical PART/FIT meaning. Cross-Range discovery and identity resolution are separate query/routing concerns; the importer must not discard source evidence merely because one logical PART may appear in more than one Range database.
+
+## Runtime read model
+
+The runtime catalogue is a D1-derived view of the complete imported E2E graph.
+
+~~~text
+D1
+ |
+ +--> browse source model/category/item/tree
+ +--> selected branch -> occurrences -> distinct PARTs
+ +--> PART -> all occurrences -> all source paths
+ +--> vehicle context -> FIT -> surviving occurrences/PARTs
+ +--> occurrence -> diagram/hotspot/location
+ +--> PART -> supersession / related catalogue facts
+ +--> source fact -> provenance / raw evidence / interpretation version
+~~~
+
+Runtime application code must not need JEPC source files for a query whose source scope is completely imported.
 
 ## Importer working-state boundary
 
