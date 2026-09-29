@@ -33,7 +33,8 @@ durable source-qualified catalogue data
 Range routing
       |
       v
-parts-<range_slug> D1
+Range catalogue D1
+      # physical placement: MODEL_D1.md
       |
       +--> catalogue browsing/search
       +--> domain-specific PART/FIT/media reads
