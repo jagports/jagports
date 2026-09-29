@@ -10,11 +10,9 @@ Mutable operational stock remains separate from canonical `PART` / JEPC catalogu
 
 | File | Role |
 |---|---|
-| [`MODEL_PARTS.md`](MODEL_PARTS.md) | Canonical catalogue `PART` identity and catalogue-side relationships. |
-| [`MODEL_PARTS.md`](MODEL_PARTS.md) | Third-party/vendor references and Jagports specified PART identity rules. |
+| [`MODEL_PARTS.md`](MODEL_PARTS.md) | Canonical PART identity, catalogue relationships, third-party/vendor references and Jagports specified PART rules. |
 | [`SPEC_SEARCH.md`](SPEC_SEARCH.md) | User-facing search controls and available-part presentation. |
-| [`../STOCK/SPEC_ADMIN.md`](../STOCK/SPEC_ADMIN.md) | Operational stock create/edit workflow and validation UI. |
-| [`../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md`](../../../../../../3-Deployment/internet/cloudflare/d1/jagports/CloudFlareGit_DB_Migrations.md) | D1 database creation/migration execution and environment verification procedure. |
+| [`../STOCK/SPEC_ADMIN.md`](../STOCK/SPEC_ADMIN.md) | Stock Admin create/edit/delete operations and validation UI. |
 
 ## Stock/catalogue separation
 
@@ -40,7 +38,7 @@ For a verified 1:1 third-party product, `part_id` references the existing Jaguar
 
 `part_id` remains nullable only while reusable product identity is genuinely unresolved. A known reusable third-party product is not kept as `part_id = NULL` merely because it is absent from Jaguar/JEPC.
 
-`stock_item.part_number` is retained as entered/historical stock reference text and is not the relational identity. For resolved stock, the application must derive/verify the canonical number from `part_id` rather than trusting contradictory client-supplied text. Vendor part numbers remain third-party/vendor reference evidence and do not replace canonical `part_id`.
+`stock_item.part_number` is retained as entered or legacy stock reference text and is not the relational identity. For resolved stock, the application must derive/verify the canonical number from `part_id` rather than trusting contradictory client-supplied text. Vendor part numbers remain third-party/vendor reference evidence and do not replace canonical `part_id`.
 
 Third-party vendor-product and cross-reference evidence remain outside operational STOCK. The Jagports specified PART retains its mandatory Jaguar parent and `third_party_part_xref` evidence under `MODEL_PARTS.md`; stock mutation must not implicitly create, rewrite or delete that evidence.
 
@@ -56,13 +54,7 @@ Stock does not assign a distinct persistent identity to every physical unit. `qu
 
 A D1 database may physically contain both catalogue/reference tables and operational STOCK tables. Physical co-location does not merge their domain ownership: mutable STOCK facts remain operational data and canonical PART/JEPC facts remain reference data.
 
-The executable schema authority is the ordered SQL migration chain under:
-
-`4-Production/internet/cloudflare/workers/jagports/migrations/`
-
-This document defines stock semantics; it is not a second hand-maintained DDL source. Applied migrations are immutable; schema or integrity changes use forward migrations.
-
-A clean local/test database is reproducible from an empty target by applying the complete ordered migration chain. Local, preview and production D1 targets have independent state and migration ledgers; evidence from one environment must not be claimed for another.
+Persistence must be reproducible from an empty target using the canonical executable schema. Environment-specific persistence evidence applies only to the environment in which it was produced.
 
 Repository fixture and seed data may demonstrate schema and application behavior, but synthetic fixture rows are not real Jagports inventory. Imported live-stock records must retain exact source/row provenance, preserve unknown fields as NULL/unclassified rather than inventing values, and persist through the stock data path. Synthetic values must never be relabeled as real inventory.
 
@@ -280,7 +272,7 @@ Application and database validation must reject fractional quantities.
 
 Currency presentation must be reserved for i18n/localization formatting. Currency code remains the stored identity; localized symbols and display order are presentation.
 
-This document does not define sales, reservations, payment, or price-history workflows.
+This document does not define sales, reservations, payment, or longitudinal price tracking.
 
 ## Availability
 
@@ -299,7 +291,7 @@ For new or changed records, `available = 1` requires a non-NULL `storage_locatio
 
 Missing quality classification must not automatically make stock unavailable. `condition_code = NULL` is the explicit unclassified state and must be presented as such.
 
-Availability does not imply a sale transaction, reservation state, positive quantity, or any particular A-E quality class unless a separate workflow defines that relationship.
+Availability does not imply a sale transaction, reservation state, positive quantity, or any particular A-E quality class unless a separate specification defines that relationship.
 
 ## Search/filter indexes
 
@@ -335,7 +327,7 @@ The stock model requires:
 - multiple stock records for one canonical `PART`;
 - relevant stock indexes and invalid cases.
 
-Deterministic fixtures must cover multiple stock records for one part, stock under a historical part number with supersession, unresolved stock, zero/unavailable stock, representative stock quality classifications from the normalized `A` through `E` set, and an available record whose quality is explicitly unclassified where that state is needed for behavior coverage.
+Deterministic fixtures must cover multiple stock records for one part, stock under a superseded part number with supersession, unresolved stock, zero/unavailable stock, representative stock quality classifications from the normalized `A` through `E` set, and an available record whose quality is explicitly unclassified where that state is needed for behavior coverage.
 
 ## Boundary
 
@@ -353,11 +345,11 @@ Defined here:
 Outside this model document:
 
 - individual physical-unit identity;
-- inventory transaction/history ledger;
-- reservations and sales workflow;
+- inventory transaction ledger;
+- reservations and sales processing;
 - provider-specific synchronization behavior;
 - authentication/authorization ownership model;
-- automated acquisition history;
+- automated acquisition records;
 - detailed provenance redesign;
 - production deployment or remote D1 migration execution;
 - Cloudflare account/resource provisioning;
