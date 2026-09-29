@@ -413,7 +413,7 @@ Autoindexes implement composite primary keys and unique range codes; SQLite assi
 | `part_occurrence_diagram` | `idx_part_occurrence_diagram_diagram`. |
 | `diagram_hotspot` | `idx_diagram_hotspot_diagram`; `idx_diagram_hotspot_occurrence`; `idx_diagram_hotspot_item`. |
 | `part_vehicle_location` | `idx_part_vehicle_location_identity`; `idx_part_vehicle_location_model`; `idx_part_vehicle_location_state`. |
-| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_catalogue_part`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`. `idx_stock_item_catalogue_part` indexes `(catalogue_range, part_id)` for logical catalogue-reference lookup. |
+| `stock_item` | `idx_stock_item_part_number`; `idx_stock_item_status`; `idx_stock_item_location`; `idx_stock_item_part_id`; `idx_stock_item_available`; `idx_stock_item_donor_vehicle`; `idx_stock_item_source`. A composite lookup index over (`catalogue_range`, `part_id`) is required when the logical catalogue-reference fields are implemented; this specification does not assign its schema-object name. |
 | `vehicle`, `vehicle_identifier` | `idx_vehicle_vin_raw`; `idx_vehicle_serial`; `idx_vehicle_identifier_normalized`. |
 | `part_tree_node`, `part_tree_part`, `part_occurrence_tree_path` | `idx_part_tree_parent`; `idx_part_tree_part_part`; `idx_part_tree_source_node_identity`; `idx_part_tree_source_parent`; `idx_part_occurrence_tree_path_occurrence`; `idx_part_occurrence_tree_path_node`; `idx_part_occurrence_tree_path_source`. |
 | `part_diagram` | `idx_part_diagram_part`. |
