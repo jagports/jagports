@@ -254,7 +254,7 @@ Stock creation/edit uses these identity rules:
 1. **Resolved Jaguar/JEPC PART** — store that existing canonical `part.id` in `stock_item.part_id`.
 2. **Verified 1:1 third-party product** — store the existing Jaguar canonical `part.id`; retain vendor identity separately.
 3. **Non-1:1 reusable third-party product** — first create/select the Jagports specified PART defined by `MODEL_PARTS.md`, then store that canonical `part.id`.
-4. **Genuinely unresolved stock** — store `stock_item.part_id = NULL` only through an explicit unresolved workflow with required source evidence.
+4. **Genuinely unresolved stock** — store `stock_item.part_id = NULL` only through an explicit unresolved identity path with required source evidence.
 
 No other meaning is assigned to `part_id = NULL`. In particular, it must not mean "vendor product", "not yet imported from JEPC", or "lookup failed".
 
