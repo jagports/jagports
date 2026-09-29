@@ -234,7 +234,7 @@ derive delivery reference
 mark or report stale/withdrawn metadata
 ```
 
-The adapter must support idempotent conditional publication. A recommended v0.1 object key is content-addressed:
+The adapter must support idempotent conditional publication. A recommended object key is content-addressed:
 
 ```text
 jepc/assets/sha256/<first-two-hex>/<sha256>.<verified-extension>
@@ -284,9 +284,9 @@ The current model cannot express the complete MediaImporter result without overl
 - availability, preservation, conversion and publication states without collapsing them into one verification flag;
 - complete raw hotspot rectangle (`x`, `y`, `width`, `height`) and declared source dimensions;
 - converter/transform version and exact target asset checksum;
-- normalized geometry/coordinate system only if #352 verifies it.
+- normalized geometry/coordinate system only when the transformation is verified.
 
-This may be implemented as additive media/representation entities rather than adding every field to `diagram`. The final shape belongs to the Parts Data Model workflow. Until approved, MediaImporter stores the complete result in its staging ledger and publishes only fields the current model represents truthfully.
+This may be implemented as additive media/representation entities rather than adding every field to `diagram`. The final shape must conform to the canonical Parts Data Model. MediaImporter stores unsupported geometry losslessly in its staging ledger and publishes only fields represented truthfully by the canonical model.
 
 The current VIEPS API also projects `part_image.image_ref` and legacy `part_diagram.image_url` directly to browser image URLs. The implementation must define a stable delivery projection from object key to VIEPS URL, such as a VIEPS media route. Expiring provider URLs and deployment hostnames must not be persisted as canonical asset identity.
 
@@ -305,7 +305,7 @@ MediaImporter parses hotspot XML defensively as data, never executable content. 
 
 Raw values must not be labelled pixels unless verified. No normalized or clickable coordinates are published as verified until the source coordinate system and transformation are verified against the exact asset representation VIEPS consumes.
 
-When #352 is unresolved, MediaImporter may publish the image and textual item association while reporting `BLOCKED_UNVERIFIED` for geometry. Later converter knowledge increments the converter version and marks affected items `NEEDS_REPROCESS`; the preserved source evidence is reprocessed without repeating catalogue discovery.
+When coordinate transformation is unresolved, MediaImporter may publish the image and textual item association while reporting `BLOCKED_UNVERIFIED` for geometry. A converter-version change marks affected items `NEEDS_REPROCESS`; preserved source evidence is reprocessed without repeating catalogue discovery.
 
 ## Visual kit-group evidence
 
@@ -332,7 +332,7 @@ The original source bytes are preserved before any lossy transformation. A deriv
 - scaling rule and resampling mode;
 - output format and checksum.
 
-For v0.1, prefer an existing verified JPEG or PNG representation over rendering or transcoding. Any transformation affecting geometry must be included in geometry validation.
+Prefer an existing verified JPEG or PNG representation over rendering or transcoding. Any transformation affecting geometry must be included in geometry validation.
 
 ## Missing, corrupt and unknown cases
 
@@ -345,7 +345,7 @@ The importer never invents an image, hotspot or relationship.
 - Undecodable image: preserve checksum and failure evidence; do not expose it as an available image.
 - Unknown media format/structure: preserve when safe, mark `NEEDS_REPROCESS` or `UNSUPPORTED`, and report it.
 - Changed checksum: retain prior evidence, mark dependent conversion/publication stale, and reprocess deterministically.
-- Source reference withdrawn: retain history; do not immediately delete a shared object.
+- Source reference withdrawn: retain prior-version evidence; do not immediately delete a shared object.
 
 ## Replacement, withdrawal and deletion
 
@@ -371,7 +371,7 @@ Backup and restore must include both object bytes and the catalogue/ledger metad
 
 ## CLI and operator contract
 
-The intended MediaImporter commands are specified independently of the DataImporter v0.1a command (`--parse PATTERN [--estimate]`):
+MediaImporter commands are independent of the DataImporter command contract:
 
 ```text
 MediaImporter inspect --media-id <id> --source <root> --state-dir <dir> [source context]
