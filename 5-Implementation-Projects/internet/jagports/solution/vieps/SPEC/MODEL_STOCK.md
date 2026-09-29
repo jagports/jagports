@@ -58,9 +58,9 @@ Stock does not assign a distinct persistent identity to every physical unit. `qu
 
 ## D1 persistence contract
 
-`stock_item` and its supporting STOCK tables are persisted in the operational D1 database defined by the canonical topology in [`MODEL_D1.md`](MODEL_D1.md), through the Worker `DB` binding.
+`stock_item` and its supporting STOCK tables are persisted in the operational D1 database defined by the canonical topology in [`MODEL_D1_jagports.md`](MODEL_D1_jagports.md), through the Worker `DB` binding.
 
-This STOCK model owns stock-specific persistence behavior only; database-domain placement and Search Index placement are defined by `MODEL_D1.md`.
+This STOCK model owns stock-specific persistence behavior only; database-domain placement and Search Index placement are defined by `MODEL_D1_jagports.md`.
 
 When a fixture PART is physically present in `jagports`, `stock_item.part_id` may use a normal same-database foreign key and `catalogue_range` is NULL.
 
