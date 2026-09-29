@@ -236,7 +236,7 @@ Find / filters
       v
 global search coordinator
       |
-      +--> catalogue discovery provider
+      +--> Search Index
       |       `--> lookup key -> catalogue references
       |
       +--> Range binding registry
@@ -272,7 +272,7 @@ The Search Index is compact and rebuildable. It contains only the data needed to
 - source snapshot/completeness reference sufficient to detect stale or incomplete Search Index data;
 - logical supersession endpoints where verified.
 
-It is derived data, not the catalogue authority. A discovery hit must be hydrated from the referenced `parts-<range_slug>` database before VIEPS claims current PART, occurrence, FIT, tree, diagram or provenance facts.
+It is derived data, not the catalogue authority. A Search Index hit must be hydrated from the referenced `parts-<range_slug>` database before VIEPS claims current PART, occurrence, FIT, tree, diagram or provenance facts.
 
 Global cross-Range search uses the Search Index to locate authoritative catalogue records across configured Range bindings.
 
@@ -281,16 +281,16 @@ Global cross-Range search uses the Search Index to locate authoritative catalogu
 For a deterministic part-number or other supported identifier query:
 
 1. normalize the query using the existing identifier rules;
-2. discover zero or more catalogue references across the permitted Range set;
-3. hydrate every discovered reference from its authoritative Range database;
+2. resolve zero or more catalogue references through the Search Index across the permitted Range set;
+3. hydrate every Search Index reference from its authoritative Range database;
 4. preserve each source occurrence and catalogue Range;
 5. apply active FIT, VIN, Range, branch and other catalogue constraints occurrence-first;
 6. overlay operational STOCK from `jagports`;
 7. project Search Results without collapsing distinct catalogue references unless verified cross-Range identity evidence permits grouping.
 
-A Range filter narrows the permitted catalogue set before hydration. With no active Range filter, global search may address every configured, available Range.
+A Range filter narrows the permitted catalogue set before hydration. With no active Range filter, global search addresses every configured, available Range.
 
-A result is `not_found` only when every required configured search source participating in the request is known complete for that lookup. Missing bindings, unavailable Range databases, incomplete discovery coverage or stale index state produce an explicit partial/unavailable result instead of a false global negative.
+A result is `not_found` only when every required configured search source participating in the request is known complete for that lookup. Missing bindings, unavailable Range databases, incomplete Search Index coverage or stale index state produce an explicit partial/unavailable result instead of a false global negative.
 
 ### Global free-text search
 
@@ -298,7 +298,7 @@ Global free-text search is optional independently of global deterministic identi
 
 When enabled:
 
-- the discovery provider must retain language-qualified searchable evidence;
+- the Search Index must retain language-qualified searchable evidence;
 - equal displayed text does not establish shared PART, occurrence, FIT or model identity;
 - ranking may combine candidates from several Range databases, but every returned candidate retains its catalogue reference;
 - catalogue-language selection constrains the searchable source corpus according to the language contract;
@@ -317,9 +317,9 @@ A cross-Range supersession endpoint is addressed as:
     -> (catalogue_range, part_id)
 ```
 
-No cross-D1 foreign key is implied. The discovery provider may copy the logical endpoints for lookup acceleration, but the source evidence remains authoritative in catalogue persistence.
+No cross-D1 foreign key is implied. The Search Index stores the logical endpoints needed for lookup acceleration, but the source evidence remains authoritative in catalogue persistence.
 
-Search may follow verified supersession edges to discover replacement candidates in another configured Range. It must not infer cross-Range supersession from equal numbers, similar descriptions or overlapping FIT.
+Search follows verified supersession edges to discover replacement candidates in another configured Range. It must not infer cross-Range supersession from equal numbers, similar descriptions or overlapping FIT.
 
 ### Binding and routing
 
@@ -343,13 +343,13 @@ Binding configuration is deployment data, not user-search state.
 
 Cross-Range/global search does not require a distributed D1 transaction.
 
-Each `parts-<range_slug>` import is committed independently according to the catalogue import contract. Discovery publication occurs only from an accepted catalogue snapshot for that Range.
+Each `parts-<range_slug>` import is committed independently according to the catalogue import contract. Search Index publication occurs only from an accepted catalogue snapshot for that Range.
 
-If discovery-index publication fails after a Range import succeeds:
+If Search Index publication fails after a Range import succeeds:
 
 - the Range catalogue remains authoritative and valid;
-- the failed discovery publication must not roll back or delete the accepted Range import;
-- global discovery for the affected Range is marked incomplete/stale;
+- the failed Search Index publication must not roll back or delete the accepted Range import;
+- global Search Index coverage for the affected Range is marked incomplete/stale;
 - the Search Index can be rebuilt idempotently from authoritative Range data.
 
 If one source operation publishes to more than one Range, each Range has its own completion state. Global search includes only evidence whose publication state is valid for the requested operation and reports incomplete participating Ranges explicitly.
@@ -358,17 +358,13 @@ If one source operation publishes to more than one Range, each Range has its own
 
 Range databases remain the primary catalogue partition boundary.
 
-The discovery provider must be replaceable/rebuildable so global search growth does not require merging the `parts-*` databases. It may be:
-
-- one compact index for all configured Ranges;
-- partitioned/sharded by deterministic lookup key or other stable search partition;
-- replaced by bounded Range fan-out where that is operationally simpler.
+The Search Index is rebuildable from authoritative Range data and remains stored in the `jagports` D1 database. Its internal storage can be partitioned by deterministic lookup key or another stable search partition when growth requires it, without changing its public identity or moving catalogue authority out of the `parts-*` databases.
 
 Partitioning must not change public identity: catalogue references remain `(catalogue_range, part_id)`, and verified `global_part_key` grouping remains optional.
 
 ### Response contract
 
-A federated candidate carries enough routing/evidence state to prevent accidental identity collapse:
+A global-search candidate carries enough routing/evidence state to prevent accidental identity collapse:
 
 ```text
 catalogue_ref:
