@@ -260,7 +260,7 @@ The coordinator must not accept a database or binding name directly from user in
 
 ### Search Index
 
-The global catalogue provider is the Search Index stored in the `jagports` D1 database.
+The **Search Index** is the global catalogue lookup structure stored in the `jagports` D1 database.
 
 The Search Index is compact and rebuildable. It contains only the data needed to locate authoritative catalogue records, including:
 
