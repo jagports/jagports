@@ -23,8 +23,9 @@ on:
   workflow_dispatch:
     inputs:
       deployed_url:
-        description: "Optional deployed-main VIEPS URL; checks remote TEST and real catalogue plus Admin screenshots"
+        description: "Deployed-main VIEPS URL for Chromium visual acceptance"
         required: false
+        default: "https://vieps.parts-5ec.workers.dev/"
         type: string
 
 permissions:
@@ -52,7 +53,7 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.55.1
           npx playwright install --with-deps chromium
-      - name: Exercise Web TEST/real modes and Stock/Fit Admin; capture screenshots
+      - name: Exercise Web TEST/real modes, Find visual acceptance and Stock/Fit Admin; capture screenshots
         run: node scripts/browser-evidence.mjs
         env:
           VIEPS_BROWSER_URL: ${{ inputs.deployed_url || '' }}
