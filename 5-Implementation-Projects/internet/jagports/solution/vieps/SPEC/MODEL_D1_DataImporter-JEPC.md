@@ -148,7 +148,7 @@ If information required by a supported runtime/domain function exists only in JE
 Runtime application code consumes D1-backed imported data through the relevant domain model.
 
 ```text
-MODEL_JEPC_D1.md
+MODEL_D1_DataImporter-JEPC.md
       |
       +--> defines source-to-D1 completeness and ownership boundaries
 
