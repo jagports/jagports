@@ -8,27 +8,41 @@ Canonical Search behavior and result-state semantics remain in [`SPEC_SEARCH.md`
 
 Use this procedure after a Find implementation is deployed to verify the behavior through the same UI an end user uses.
 
-## Target
+## Human test targets
 
-Production VIEPS UI:
+Run the Find human UI workflow against **both** deployed modes:
 
-`https://vieps.parts-5ec.workers.dev/`
+| Mode | URL | Data |
+|---|---|---|
+| Normal | `https://vieps.parts-5ec.workers.dev/` | Current imported parts data |
+| TEST | `https://vieps.parts-5ec.workers.dev/?TEST=1` | Synthetic TEST fixtures |
 
-For the real-parts-data verification below, **do not add `TEST=1`**. Fixture mode may be used only for the optional parity check at the end.
+Both are human UI tests. Neither mode substitutes for the other.
+
+- **Normal mode** proves the end-user path works against current imported parts data.
+- **TEST=1 mode** proves the deterministic fixture path works through the deployed UI and provides repeatable human regression evidence.
+- TEST fixture values must remain identified as synthetic evidence and must never be reported as production Jaguar facts.
+
+The same behavioral checks below apply to both modes unless a step explicitly distinguishes the data source.
 
 ## Human UI verification — limited free-text Find
 
-### 1. Establish a real PART reference
+Perform sections 1–6 once in **Normal mode** and once in **TEST=1 mode**.
 
-1. Open the production VIEPS UI without `TEST=1`.
-2. Use **Find** with a real Jaguar PART number that exists in the currently imported parts data.
+### 1. Establish a PART reference
+
+1. Open the target mode.
+2. Use **Find** with a PART number that exists in that mode:
+   - Normal: a real Jaguar PART number from the currently imported parts data.
+   - TEST=1: a fixture PART number from the deployed TEST data.
 3. Record:
-   - the PART number shown by the UI;
-   - its displayed PART description;
+   - test mode used;
+   - PART number shown by the UI;
+   - displayed PART description;
    - whether the result is unique or one of several candidates.
-4. Confirm the identifier query still resolves normally.
+4. Confirm the identifier query resolves normally.
 
-This establishes the real PART and its current source-backed description without hard-coding a production catalogue example into this procedure.
+The reference must be established from the same deployed mode that is being tested. Do not use a TEST fixture to prove normal-mode behavior or a production PART to assume TEST-mode behavior.
 
 ### 2. Verify description fallback
 
@@ -36,10 +50,10 @@ This establishes the real PART and its current source-backed description without
 2. Clear **Find**.
 3. Submit that description word or phrase through the same **Find** field.
 
-Expected result:
+Expected result in both modes:
 
 - the descriptive query is not rejected merely because it is not a PART identifier;
-- the previously identified PART is present in the resulting candidate set when its current canonical description contains the query;
+- the previously identified PART is present in the resulting candidate set when its description contains the query;
 - the UI does not show ordinary **Part not found** while that description match exists;
 - the result is presented through the existing Search Results / Parts Tree / selected-PART regions defined by `SPEC_SEARCH.md`.
 
@@ -54,20 +68,19 @@ If multiple canonical PARTs match:
 ### 3. Verify deterministic identifiers still take precedence
 
 1. Clear **Find**.
-2. Search again with the exact PART number recorded in step 1.
-3. Repeat with a useful partial PART-number fragment when the current catalogue data makes that unambiguous enough to test.
+2. Search again with the exact PART number recorded in section 1.
+3. Repeat with a useful partial PART-number fragment when the current mode's data provides a meaningful partial-match case.
 
-Expected result:
+Expected result in both modes:
 
 - identifier lookup continues to resolve through the deterministic path;
 - descriptive fallback does not replace a deterministic identifier result.
 
 ### 4. Verify Stock only is applied after candidate discovery
 
-Run this check only when the current UI/data gives enough stock evidence to know the expected outcome.
-
-1. Search by a description word/phrase as in step 2.
+1. Search by a description word/phrase as in section 2.
 2. Enable **Show only parts on stock**.
+3. Exercise both a stocked and a filtered-empty case when the target mode provides suitable evidence.
 
 Expected result:
 
@@ -75,15 +88,17 @@ Expected result:
 - non-stock candidates are removed only after the description candidates have been discovered;
 - when descriptive candidates exist but Stock only removes all of them, the UI shows the localized Stock-filtered-empty message rather than ordinary **Part not found**.
 
-Do not treat absence of stock evidence as proof of zero stock.
+For **TEST=1**, choose fixture data that provides deterministic stock evidence so this behavior can be repeated.
+
+For **Normal mode**, use current operational stock evidence. Do not infer zero stock from missing or unresolved stock evidence. If one of the two Stock-only cases cannot be produced from current real data, record that limitation explicitly rather than fabricating a result.
 
 ### 5. Verify a true no-match remains a no-match
 
 1. Clear **Find**.
-2. Enter a deliberately unique nonsense query that does not resemble a current PART number or known description, for example `zzzz-find-ui-no-match-634`.
+2. Enter a deliberately unique nonsense query that does not resemble a PART number or known description in the target mode, for example `zzzz-find-ui-no-match-634`.
 3. Submit it.
 
-Expected result:
+Expected result in both modes:
 
 - after deterministic lookup and limited free-text fallback both find no candidate, the UI shows the normal no-match state;
 - no PART is fabricated or selected.
@@ -94,38 +109,44 @@ Expected result:
 2. Confirm the prior query result/selection does not remain presented as the active Find result.
 3. Confirm independently selected supported filters are preserved according to the clear-transition contract in `SPEC_SEARCH.md`.
 
+Run this check in both modes.
+
 ## Pass criteria
 
-The human UI verification passes only when the **normal production path without `TEST=1`** demonstrates all applicable mandatory behaviors above:
+Human UI acceptance requires **two separate completed test records**:
 
-- real PART identifier search still works;
-- a real PART description can find its candidate PART after identifier lookup misses;
-- multiple descriptive matches do not auto-select a PART;
-- Stock only, when testable from current evidence, filters after candidate discovery;
-- a genuine no-match still returns the no-match state;
+1. Normal mode.
+2. TEST=1 mode.
+
+For each mode, the record must demonstrate:
+
+- PART identifier search works;
+- PART-description search reaches the limited free-text fallback after identifier lookup misses;
+- descriptive matches use the existing result surfaces;
+- multiple descriptive matches do not auto-select a PART when such a case is exercised;
+- Stock only is applied after candidate discovery, with any unavailable real-data case explicitly recorded;
+- a genuine no-match returns the no-match state;
 - clearing Find removes stale Find result state.
 
-Automated tests and `TEST=1` fixture behavior support this evidence but do **not** substitute for the normal-mode human UI check.
+The overall human UI acceptance does not pass merely because automated tests pass, and it does not pass with only one of the two deployed modes tested.
+
+Automated tests remain regression support. They do not replace human interaction with either deployed mode.
 
 ## Evidence to record
 
-For an implementation acceptance comment or review, record:
+For **each mode**, record:
 
-- deployed URL;
+- deployed URL, including whether `TEST=1` is present;
 - tested revision / PR;
-- confirmation that `TEST=1` was absent for the real-data check;
+- mode: Normal or TEST;
 - PART number used to establish the reference;
 - description query used;
-- observed unique/multiple-match behavior;
-- Stock-only observation when applicable;
+- observed resolved or multiple-match behavior;
+- Stock-only observations, including any real-data limitation that prevents a specific case;
 - no-match observation;
 - clear/reset observation;
 - screenshot(s) when visual evidence is required by the governing workflow.
 
-Do not record fixture values as production Jaguar facts.
+Keep Normal and TEST evidence clearly separated in the acceptance comment or review.
 
-## Optional TEST-mode parity check
-
-After the normal-mode verification passes, `?TEST=1` may be used to check that fixture-mode Find follows the same basic deterministic-first / description-fallback interaction.
-
-Fixture evidence is synthetic and must remain identified as TEST evidence.
+TEST fixture values are synthetic test evidence. Normal-mode values are current deployed data evidence.
