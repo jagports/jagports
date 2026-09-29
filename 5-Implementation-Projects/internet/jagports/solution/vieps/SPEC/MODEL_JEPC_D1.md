@@ -38,14 +38,14 @@ parts-<range_slug> D1
       +--> catalogue browsing/search
       +--> domain-specific PART/FIT/media reads
       +--> provenance and explanation
-      +--> later remapping/reprocessing
+      +--> remapping/reprocessing
 ```
 
 Normal runtime reads for a completely imported source scope terminate at durable D1-backed data. The original JEPC installation and local importer ledger are not runtime dependencies.
 
 ## Source scope and durable evidence
 
-Every imported source scope must retain enough source-qualified evidence to identify what was imported, where it came from and how it can be reinterpreted later.
+Every imported source scope must retain enough source-qualified evidence to identify what was imported, where it came from and how it can be reinterpreted from retained evidence.
 
 At minimum the E2E model requires durable identity for:
 
@@ -100,13 +100,13 @@ Unknown or unsupported JEPC structures must not be silently discarded.
 When a new file family, field, record type, tuple, relationship or semantic code is encountered:
 
 1. preserve its source-qualified evidence;
-2. retain the scope needed to interpret it later;
+2. retain the scope needed to interpret it when semantics are available;
 3. record unresolved/unsupported state;
 4. do not invent semantics;
 5. continue other safe import work where possible;
-6. permit later parser/model knowledge to reprocess the durable evidence.
+6. permit newly available parser/model knowledge to reprocess the durable evidence.
 
-A complete import may contain unresolved semantics. It may not silently lose source data required for later interpretation.
+A complete import may contain unresolved semantics. It may not silently lose source data required for reinterpretation.
 
 ## Media and non-tabular source material
 
@@ -172,7 +172,7 @@ importers
 
 ## Importer working-state boundary
 
-Local SQLite may contain scan records, progress, timing, retry state, temporary discovery state, diagnostics and local recovery copies of source bytes.
+Local SQLite may contain scan records, progress, timing, retry state, transient discovery state, diagnostics and local recovery copies of source bytes.
 
 Such operational information need not be copied verbatim to D1 unless it is required to reconstruct, explain, validate or reinterpret durable imported catalogue data.
 
