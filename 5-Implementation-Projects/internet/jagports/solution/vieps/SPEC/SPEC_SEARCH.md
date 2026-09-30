@@ -95,6 +95,84 @@ Stock-quality result states include at least:
 
 This section is the authoritative *interaction* contract for Find, VIN, Stock only, FIT, Parts Tree, Applicable Models, Search Results, and selected-PART presentation. The fitment/stock models remain the authority for evidence and identities; an interaction rule never upgrades unknown evidence to verified fit.
 
+This diagram summarizes the coordinated candidate/filter flow; the detailed rules below remain normative.
+
+```text
+VIEPS SEARCH
+                              |
+             +----------------+----------------+
+             |                                 |
+       USER INPUT FILTERS                BROWSE CONTEXT
+       (one-way)                         (initially all
+             |                         browsable PARTs)
+       +-----+------+                         |
+       |     |      |                         |
+      FIND  VIN    STOCK                      |
+       |     |      |                         |
+       +-----+------+-------------------------+
+                              |
+                              v
+                  INITIAL CANDIDATE SET
+                              |
+            +-----------------+-----------------+
+            |                 |                 |
+            v                 v                 v
+           FIT           PARTS TREE      APPLICABLE MODELS
+      grouped values       branches        model ranges
+            |                 |                 |
+      select <= 1        select branch     select <= 1
+      per group          as constraint     Range
+            |                 |                 |
+            +-----------------+-----------------+
+                              |
+                              v
+                  COMBINE ACTIVE FILTERS
+                       LOGICAL AND
+                              |
+                              v
+                EVALUATE PART OCCURRENCES
+                              |
+             +----------------+----------------+
+             |                |                |
+             v                v                v
+          VERIFIED         UNKNOWN         INCOMPATIBLE
+             |                |                |
+             v                v                v
+        Verified matches   Unresolved       Excluded
+                            candidates      from results
+             |                |
+             +----------------+
+                      |
+                      v
+             CANONICAL PART RESULTS
+          (deduplicate by canonical ID)
+                      |
+          +-----------+-----------+
+          |                       |
+          v                       v
+      PARTS TREE              SEARCH RESULTS
+      real source             one row per
+      occurrence paths        canonical PART
+          |                       |
+          +-----------+-----------+
+                      |
+              SELECT ONE PART
+                      |
+                      v
+              SELECTED PART
+              details / status
+                      |
+          +-----------+-----------+
+          |                       |
+          v                       v
+      FIT READ-ONLY      APPLICABLE MODELS
+                           READ-ONLY
+
+       Verified = lit
+       Nonmatching = unlit
+       Unknown = yellow warning
+```
+
 ### One candidate universe and panel roles
 
 - Find, VIN and **Show only parts on stock** are one-way user inputs. Search results never fill, change or automatically select their values. Stock only remains the existing operational boolean; it is **not** a result-derived stock-facet panel.
